@@ -1,0 +1,54 @@
+#Bass
+35,B1,Acoustic Bass Drum,o1b
+36,C2,Bass Drum 1,o2c
+#Snare
+37,Db2,Side Stick,o2d-
+38,D2,Acoustic Snare,o2d
+39,Eb2,Hand Clap,o2e-
+40,E2,Electric Snare,o2e
+#Tom
+41,F2,Low Floor Tom,o2f
+43,G2,High Floor Tom,o2g
+45,A2,Low Tom,o2a
+47,B2,Low Mid Tom,o2b
+48,C3,High Mid Tom,o3c
+50,D3,High Tom,o3d
+#HiHat
+42,Gb2,Closed Hi-Hat,o2g-
+44,Ab2,Pedal Hi-Hat,o2a-
+46,Bb2,Open Hi-Hat,o2b-
+#Cymbal
+49,Db3,Crash Cymbal 1,o3d-
+51,Eb3,Ride Cymbal 1,o3e-
+52,E3,Chinese Cymbal,o3e
+53,F3,Ride Bell,o3f
+55,G3,Splash Cymbal,o3g
+#Bell
+54,Gb3,Tambourine,o3g-
+56,Ab3,Cowbell,o3a-
+57,A3,Crash Cymbal 2,o3a
+58,Bb3,Vibraslap,o3b-
+59,B3,Ride Cymbal 2,o3b
+#Percussion
+60,C4,High Bongo,o4c
+61,Db4,Low Bongo,o4d-
+62,D4,Mute High Conga,o4d
+63,Eb4,Open High Conga,o4e-
+64,E4,Low Conga,o4e
+65,F4,High Timbale,o4f
+66,Gb4,Low Timbale,o4g-
+67,G4,High Agogo,o4g
+68,Ab4,Low Agogo,o4a-
+69,A4,Cabase,o4a
+70,Bb4,Maracas,o4b-
+71,B4,Short Whistle,o4b
+72,C5,Long Whistle,o5c
+73,Db5,Short Guiro,o5d-
+74,D5,Long Guiro,o5d
+75,Eb5,Claves,o5e-
+76,E5,High Wood Block,o5e
+77,F5,Low Wood Block,o5f
+78,Gb5,Mute Cuica,o5g-
+79,G5,Open Cuica,o5g
+80,Ab5,Mute Triangle,o5a-
+81,A5,Open Triangle,o5a
