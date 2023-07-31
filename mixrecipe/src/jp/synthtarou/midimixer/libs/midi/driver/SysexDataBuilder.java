@@ -33,19 +33,16 @@ public class SysexDataBuilder {
     }
     
     public ArrayList<byte[]> split(byte[] sysexData, int maxLength) {
-        ArrayList<byte[]> listResult = new ArrayList<>();
         // bad usage
         if (maxLength < 10) {
             System.out.println("maxLength (" + maxLength + ") too small");
-            listResult.add(sysexData);
-            return listResult;
+            return null;
         }
 
         // not for sale
         if (sysexData.length <= maxLength) {
             System.out.println("length (" + sysexData.length + ") is less than maxLength (" +  maxLength + ")");
-            listResult.add(sysexData);
-            return listResult;
+            return null;
         }
 
         MidiByteReader reader = new MidiByteReader(sysexData);
@@ -53,16 +50,15 @@ public class SysexDataBuilder {
         int status = reader.read8();
         if (status != 0xf0 || status != 0xf7) {
             System.out.println("Status was " + MXUtil.toHexFF(status));
-            listResult.add(sysexData);
-            return listResult;
+            return null;
         }
         long length = reader.readVariable();
         if (length != sysexData.length  - 1) {
             System.out.println("length from bytes(" + length + " != " + (sysexData.length - 1));
-            listResult.add(sysexData);
-            return listResult;
+            return null;
         }
         
+        ArrayList<byte[]> listResult = new ArrayList<>();
         boolean first = true;
         while (length > 0) {
             byte[] readBuffer = new byte[maxLength];

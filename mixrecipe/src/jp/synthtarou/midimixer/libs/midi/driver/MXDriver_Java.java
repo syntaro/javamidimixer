@@ -29,6 +29,8 @@ import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
+import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
+import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
 
 /**
  *
@@ -276,6 +278,9 @@ public class MXDriver_Java implements MXDriver {
         return false;
     }
     
+    static MidiDevice gervill = null;
+    static boolean seekedGervill = false;
+    
     public boolean OutputLongMessage(int x, byte[] data) {
         listAllOutput();
 
@@ -291,8 +296,36 @@ public class MXDriver_Java implements MXDriver {
                     try {
                         SysexDataBuilder builder = new SysexDataBuilder();
                         ArrayList<byte[]> listData = builder.split(data, 100);
-                        for (byte[] segment : listData) {
-                            SysexMessage msg = new SysexMessage(segment, segment.length);
+                        if (listData != null) {
+                            for (byte[] segment : listData) {
+                                SysexMessage msg = new SysexMessage(segment, segment.length);
+                                _listOutput.get(x).getReceiver().send(msg, 0);
+                            }
+                        }
+                        else {
+                            if (seekedGervill == false) {
+                                seekedGervill = true;
+                                for (MidiDevice device : _listOutput) {
+                                    if (device.getDeviceInfo().getName().equalsIgnoreCase("Gervill")) {
+                                        gervill = device;
+                                    }
+                                }
+                            }
+                            if (seekedGervill && _listOutput.get(x) == gervill) {
+                                byte[] gmsystem = { (byte)0xf0, (byte)0x7e, (byte)0x7f, (byte)0x09, (byte)0x01, (byte)0xf7 };
+                                int count = gmsystem.length;
+                                if (gmsystem.length == data.length) {
+                                    for (int i = 0; i < gmsystem.length; ++ i) {
+                                        if (data[i] == gmsystem[i]) {
+                                            count --;
+                                        }
+                                    }
+                                }
+                                if (count == 0) {
+                                    return false;
+                                }
+                            }
+                            SysexMessage msg = new SysexMessage(data, data.length);
                             _listOutput.get(x).getReceiver().send(msg, 0);
                         }
                         return true;
