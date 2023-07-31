@@ -25,12 +25,9 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.SysexMessage;
-import javax.xml.catalog.CatalogManager;
-import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 
 /**
@@ -292,8 +289,12 @@ public class MXDriver_Java implements MXDriver {
                 case 0xf0:
                 case 0xf7:
                     try {
-                        SysexMessage msg = new SysexMessage(data, data.length);
-                        _listOutput.get(x).getReceiver().send(msg, 0);
+                        SysexDataBuilder builder = new SysexDataBuilder();
+                        ArrayList<byte[]> listData = builder.split(data, 100);
+                        for (byte[] segment : listData) {
+                            SysexMessage msg = new SysexMessage(segment, segment.length);
+                            _listOutput.get(x).getReceiver().send(msg, 0);
+                        }
                         return true;
                     }catch(InvalidMidiDataException e) {
                         System.out.println("Bug Message " + MXUtil.dumpHexFF(data));

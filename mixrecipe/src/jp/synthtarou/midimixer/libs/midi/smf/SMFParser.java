@@ -13,7 +13,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */package jp.synthtarou.midimixer.libs.midi.smf;
+ */
+package jp.synthtarou.midimixer.libs.midi.smf;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -47,7 +48,7 @@ public class SMFParser {
         _info = new SMFFileInfo();
         try {
             int fileLength = MidiFileFormat.UNKNOWN_LENGTH;
-            ByteReader reader = new ByteReader(stream);
+            MidiByteReader reader = new MidiByteReader(stream);
 
             try {
                 int maxReadLength = 16;
@@ -198,8 +199,9 @@ public class SMFParser {
                                     if (sysexLength == 0) {
                                         continue;
                                     }
-                                    byte[] sysexData = new byte[sysexLength];
-                                    child.readBuffer(sysexData, sysexLength);
+                                    byte[] sysexData = new byte[sysexLength + 1];
+                                    sysexData[0] = (byte)status;
+                                    child.readBuffer(sysexData, 1,sysexLength);
 
                                     message = new SMFMessage(tick, status, status, sysexData);
                                     message._seqTrack = tr;
@@ -217,7 +219,7 @@ public class SMFParser {
                                         continue;
                                     }
                                     byte[] metaData = new byte[metaLength];
-                                    child.readBuffer(metaData, metaLength);
+                                    child.readBuffer(metaData, 0, metaLength);
 
                                     message = new SMFMessage(tick, status, metaType, metaData);
                                     message._seqTrack = tr;
@@ -236,12 +238,14 @@ public class SMFParser {
                             list.add(message);
                         } 
                     } catch (ArrayIndexOutOfBoundsException e) {
+                        e.printStackTrace();
                         return false;
                     }
                 }
                 _messageList = list;
                 return true;
             }catch(InvalidMidiDataException midi)  {
+                midi.printStackTrace();
                 return false;
             }
         }finally {

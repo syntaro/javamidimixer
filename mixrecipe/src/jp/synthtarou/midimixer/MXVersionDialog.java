@@ -50,6 +50,7 @@ public class MXVersionDialog extends javax.swing.JDialog {
         text.append("java.vendor=" + System.getProperty("java.vendor") + "\n");
         text.append("java.version=" + System.getProperty("java.version") + "\n");
         text.append("\n");
+        text.append("V0.42 SysEX Bugfix\n");
         text.append("V0.4 Phraase Recorder, UWPx3 Bug Fix\n");
         text.append("V0.3+a8 Tuned RangeConverter\n");
         text.append("V0.3 Apache2.0 + GNU GPL3 Dual License\n");

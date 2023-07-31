@@ -28,7 +28,7 @@ public class ByteReaderChildren {
     boolean _eof = false;
     boolean _error = false;
     
-    public ByteReaderChildren(ByteReader parent, int length) {
+    public ByteReaderChildren(MidiByteReader parent, int length) {
         _buffer = new byte[length];
         _length = parent.readBuffer(_buffer, length);
         _pos = 0;
@@ -82,13 +82,13 @@ public class ByteReaderChildren {
         return x + y + z + a;
     }
 
-    public int readBuffer(byte[] data, int length) {
+    public int readBuffer(byte[] data, int offset, int length) {
         for (int i = 0; i < length; ++ i) {
             int x = read8();
             if (x < 0) {
                 return i;
             }
-            data[i] = (byte)x;
+            data[i + offset] = (byte)x;
         }
         return length;
     }

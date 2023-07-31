@@ -130,38 +130,56 @@ public class VSTInstance {
     }
 
     public int getBusCount() {
-        int x = vst.getBusCount(_isEffect, _slot);
-        return x;
+        if (vst.isUsable()) {
+            int x = vst.getBusCount(_isEffect, _slot);
+            return x;
+        }
+        return 0;
     }
     
     public int getBusVolume(int bus) {
-        float f = vst.getBusVolume(_isEffect, _slot, bus) * 127f;
-        return (int)f;
+        if (vst.isUsable()) {
+            float f = vst.getBusVolume(_isEffect, _slot, bus) * 127f;
+            return (int)f;
+        }
+        return 127;
     }
     
     public void setBusVolume(int bus, int volume) {
-        float f = volume / 127f;
-        vst.setBusVolume(_isEffect, _slot, bus, f);
+        if (vst.isUsable()) {
+            float f = volume / 127f;
+            vst.setBusVolume(_isEffect, _slot, bus, f);
+        }
     }
     
     public int getInsertBalanace() {
-        float f = vst.getInsertBalance(_slot) * 127f;
-        return (int)f;
+        if (vst.isUsable()) {
+            float f = vst.getInsertBalance(_slot) * 127f;
+            return (int)f;
+        }
+        return 0;
     }
     
     public void setInsertBalance(int volume) {
-        float f = volume / 127f;
-        vst.setInsertBalance(_slot, f);
+        if (vst.isUsable()) {
+            float f = volume / 127f;
+            vst.setInsertBalance(_slot, f);
+        }
     }
 
     public int getAuxSend() {
-        float f = vst.getAuxSend(_slot) * 127f;
-        return (int)f;
+        if (vst.isUsable()) {
+            float f = vst.getAuxSend(_slot) * 127f;
+            return (int)f;
+        }
+        return 0;
     }
     
     public void setAuxSend(int volume) {
-        float f = volume / 127f;
-        vst.setAuxSend(_slot, f);
+        if (vst.isUsable()) {
+            float f = volume / 127f;
+            vst.setAuxSend(_slot, f);
+        }
     }
     
     public void setPath(String path) {

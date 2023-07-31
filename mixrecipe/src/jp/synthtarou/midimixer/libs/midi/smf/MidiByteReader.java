@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi.smf;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -23,7 +24,7 @@ import java.io.InputStream;
  *
  * @author Syntarou YOSHIDA
  */
-public class ByteReader {
+public class MidiByteReader {
     InputStream _input;
     byte[] _buffer = new byte[4096];
     int _pos = 0;
@@ -32,7 +33,11 @@ public class ByteReader {
     boolean _eof = false;
     boolean _error = false;
     
-    public ByteReader(InputStream input) {
+    public MidiByteReader(byte[] data) {
+        this(new ByteArrayInputStream(data));
+    }
+    
+    public MidiByteReader(InputStream input) {
         _input = input;
         _length = -1;
         _pos = 0;
@@ -115,6 +120,38 @@ public class ByteReader {
             value = (value << 7) + (currentByte & 0x7F);
         } while ((currentByte & 0x80) != 0);
         return value;
+    }
+    
+    public static byte[] makeVariable(long value) {
+        long x0 = (value >> 21) & 0x7f;
+        long x1 = (value >> 14) & 0x7f;
+        long x2 = (value >> 7) & 0x7f;
+        long x3 = (value) & 0x7f;
+        
+        if (x0 != 0) {
+            byte[] data = new byte[4];
+            data[0] = (byte)x0;
+            data[1] = (byte)x1;
+            data[2] = (byte)x2;
+            data[3] = (byte)x3;
+            return data;
+        }
+        if (x1 != 0) {
+            byte[] data = new byte[3];
+            data[0] = (byte)x1;
+            data[1] = (byte)x2;
+            data[2] = (byte)x3;
+            return data;
+        }
+        if (x2 != 0) {
+            byte[] data = new byte[2];
+            data[0] = (byte)x2;
+            data[1] = (byte)x3;
+            return data;
+        }
+        byte[] data = new byte[1];
+        data[0] = (byte)x3;
+        return data;
     }
     
     public void skip(int length) {

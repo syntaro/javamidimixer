@@ -21,7 +21,6 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.capture.MXMessageCapture;
@@ -35,21 +34,14 @@ import jp.synthtarou.midimixer.mx80vst.MX80Process;
 import jp.synthtarou.midimixer.libs.vst.VSTStream;
 import jp.synthtarou.midimixer.mx00playlist.MX00Process;
 import jp.synthtarou.midimixer.mx10input.MX10Process;
-import jp.synthtarou.midimixer.mx12masterkeys.MX12Process;
 import jp.synthtarou.midimixer.mx30controller.MX30Process;
 import jp.synthtarou.midimixer.mx40layer.MX40Process;
 import jp.synthtarou.midimixer.mx60output.MX60Process;
 import jp.synthtarou.midimixer.libs.console.ConsoleElement;
-import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMessageTemplate;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
-import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import jp.synthtarou.midimixer.libs.vst.VSTInstance;
 import jp.synthtarou.midimixer.mx70console.MX70Process;
-import jp.synthtarou.midimixer.windows.MXLIB02VST3;
 
 /**
  *
@@ -231,9 +223,7 @@ public class MXMain  {
         reList.add(_mx30kontrolProcess);
         reList.add(_mx40layerProcess);
         reList.add(_mx60outputProcess);
-        if (MXLIB02VST3.getInstance().isUsable()) {
-            reList.add(_vstRack);
-        }
+        reList.add(_vstRack);
 
         _mainWindow.initLatebind(reList);
         _mainWindow.setVisible(true);

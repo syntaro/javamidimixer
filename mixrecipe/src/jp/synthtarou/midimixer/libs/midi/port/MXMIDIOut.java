@@ -192,10 +192,6 @@ public class MXMIDIOut {
         }
     }
 
-    public synchronized void outputLongMessage(byte[] data) {
-        _driver.OutputLongMessage(_driverOrder, data);
-    }
-    
     private synchronized void processMidiOutInternal(MXMessage message) {
         if (!_driver.OutputDeviceIsOpen(_driverOrder)) {
             return;
@@ -313,6 +309,7 @@ public class MXMIDIOut {
             if (col == 0) {
                 byte[] data = message.getDataBytes();
                 _driver.OutputLongMessage(_driverOrder, data);
+                MXMain.addOutsideOutput(new ConsoleElement(message._timing, message.getPort(), data));
             }else if (col > 0) {
                 for (int i = 0; i < col; ++ i) {
                     int dword = message.getAsDword(i);

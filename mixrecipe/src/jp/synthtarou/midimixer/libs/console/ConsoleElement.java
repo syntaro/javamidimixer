@@ -16,8 +16,6 @@
  */
 package jp.synthtarou.midimixer.libs.console;
 
-import jdk.nashorn.api.tree.ThrowTree;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;

@@ -21,7 +21,6 @@ import jp.synthtarou.midimixer.MXStatic;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 
 /**
  *

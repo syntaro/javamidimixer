@@ -200,7 +200,7 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
                 };
             }
         } catch (Exception e) {
-            //e.printStackTrace();
+            e.printStackTrace();
             ret.add("Can't open [" + file.toString() + "]");
             ret.add(e.toString());
         }

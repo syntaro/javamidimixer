@@ -34,7 +34,7 @@ public class MXLIB01UWPMidi {
             StartLibrary();
             _loaded = true;
         }catch(Throwable e) {
-            System.err.println("MXLBI01 (UWP Midi) Not Loaded");
+            System.err.println("MXLIB01(UWP Support) Couldn't Load.");
         }
     }
     

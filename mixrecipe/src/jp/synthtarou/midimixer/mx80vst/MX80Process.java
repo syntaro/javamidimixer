@@ -59,28 +59,27 @@ public class MX80Process extends MXReceiver implements MXSettingTarget {
 
     MX80Process() {
         _listSkip = new ArrayList();
+
+        for (int i = 0; i < 16;++ i) {
+            VSTInstance vst = new VSTInstance(false, i);
+            VSTInstancePanel panel = new VSTInstancePanel(vst);
+            
+            _listInstrument.add(vst);
+            _listInstrumentPanel.add(panel);
+        }
+        
+        for (int i = 0; i < 2;++ i) {
+            VSTInstance vst = new VSTInstance(true, i);
+            VSTInstancePanel panel = new VSTInstancePanel(vst);
+
+            _listEffect.add(vst);
+            _listEffectPanel.add(panel);
+        }
+        
         if (MXLIB02VST3.getInstance().isUsable()) {
-            for (int i = 0; i < 16;++ i) {
-                VSTInstance vst = new VSTInstance(false, i);
-                VSTInstancePanel panel = new VSTInstancePanel(vst);
-
-                _listInstrument.add(vst);
-                _listInstrumentPanel.add(panel);
-            }
-
-            for (int i = 0; i < 2;++ i) {
-                VSTInstance vst = new VSTInstance(true, i);
-                VSTInstancePanel panel = new VSTInstancePanel(vst);
-
-                _listEffect.add(vst);
-                _listEffectPanel.add(panel);
-            }
-
-            if (MXLIB02VST3.getInstance().isUsable()) {
-                _setting = new MXSetting("VSTFolderList");
-                _setting.setTarget(this);
-                _setting.readSettingFile();
-            }
+            _setting = new MXSetting("VSTFolderList");
+            _setting.setTarget(this);
+            _setting.readSettingFile();
         }
     }
     

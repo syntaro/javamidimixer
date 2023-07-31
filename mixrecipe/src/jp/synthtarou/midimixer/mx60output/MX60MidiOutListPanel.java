@@ -214,7 +214,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
                     model = (DefaultTableModel)jTableDevice.getModel();
                     String text = (String)model.getValueAt(row, 0);
                     MXMIDIOut output = manager.listAllOutput().valueOfName(text);
-                    
+
                     if (newAssign >= 0) {
                         if (output.isPortAssigned(newAssign)) {
                             synchronized(MXTiming.mutex) {

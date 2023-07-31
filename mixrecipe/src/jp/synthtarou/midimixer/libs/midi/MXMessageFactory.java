@@ -72,14 +72,14 @@ public class MXMessageFactory {
         return message;
     }
 
-    public static MXMessage fromSysexMessage(int port, int status, byte[] data) {
-        int[] template = new int[data.length + 1];
-        template[0] = status;
+    public static MXMessage fromSysexMessage(int port, byte[] data) {
+        int status = data[0] & 0xff;
+        int[] template = new int[data.length];
         if (status != 240 && status != 247) {
             new MXException("SysEx(240,247) was " + status).printStackTrace();
         }
         for (int i = 0; i < data.length; ++i) {
-            template[i + 1] = data[i] & 0xff;
+            template[i] = data[i] & 0xff;
         }
         MXMessage m = new MXMessage(port, template, 0, 0);
         return m;

@@ -99,7 +99,6 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         jProgressBar1 = new javax.swing.JProgressBar();
         jButtonClearLog = new javax.swing.JButton();
         jButtonClearFile = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
         jButtonCompact = new javax.swing.JButton();
 
         setLayout(new java.awt.GridBagLayout());
@@ -230,14 +229,6 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jButtonClearFile, gridBagConstraints);
-
-        jLabel1.setText("-> UWP will device automatically");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        add(jLabel1, gridBagConstraints);
 
         jButtonCompact.setText("Compact");
         jButtonCompact.addActionListener(new java.awt.event.ActionListener() {
@@ -417,7 +408,6 @@ public class MX70SysexPanel extends javax.swing.JPanel {
     private javax.swing.JButton jButtonLoadSysex;
     private javax.swing.JButton jButtonSaveSysex;
     private javax.swing.JComboBox<String> jComboBoxPort;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JList<String> jListScan;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;

@@ -36,7 +36,7 @@ import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
-import jp.synthtarou.midimixer.libs.midi.smf.ByteReader;
+import jp.synthtarou.midimixer.libs.midi.smf.MidiByteReader;
 import jp.synthtarou.midimixer.libs.text.MXLineReader;
 
 /**
@@ -127,6 +127,7 @@ public class SysEXFile {
                 }
             }
             setContents(out.toByteArray());
+            System.out.println("Read bininary size=" + out.size());
             fin.close();
             fin = null;
             return true;
@@ -140,7 +141,7 @@ public class SysEXFile {
     
     public void setContents(byte[] data) {
         ByteArrayInputStream in = new ByteArrayInputStream(data);
-        ByteReader reader = new ByteReader(in);
+        MidiByteReader reader = new MidiByteReader(in);
         _contents.clear();
         int error = 0;
         while (true) {
@@ -162,6 +163,7 @@ public class SysEXFile {
                 byte[] segment = out.toByteArray();
                 _contents.add(segment);
             }else {
+                System.err.println("Error " + MXUtil.toHexFF(sig));
                 error ++;
             }
         }
@@ -247,7 +249,7 @@ public class SysEXFile {
                 FinalMIDIOut out = FinalMIDIOut.getInstance();
                 for (byte[] data : _contents) {
                     progress.progress(x ++ , count);
-                    MXMessage longMessage = MXMessageFactory.fromSysexMessage(port, data[0] & 0xff, data);
+                    MXMessage longMessage = MXMessageFactory.fromSysexMessage(port, data);
                     MXMain.getMain().messageDispatch(longMessage, out);
                     try {
                         Thread.sleep(1000);
@@ -314,133 +316,6 @@ public class SysEXFile {
         return false;
     }
 
-/*    
-    public List<byte[]>splitMessage(byte[] completeData, int limit) {
-        ArrayList<byte[]> ret = new ArrayList();
-        int start = completeData[0] & 0xff;
-        int finish = completeData[completeData.length - 1] & 0xff;
-        if (true) {
-            System.out.println("Split= " + completeData.length + "<<" +  MXUtil.dumpHexFF(completeData));
-            if (start == 0xf0 && finish == 0xf7) {
-                ByteArrayInputStream bin = new ByteArrayInputStream(completeData);
-
-                boolean itsStart = true;
-                int x = 0;
-                byte[] data = new byte[limit];
-                int makerlen = 1, maker1 = 0, maker2 = 0, maker3 = 0;
-
-                int total = 0;
-                while(true) {
-                    ByteArrayOutputStream bout = new ByteArrayOutputStream();
-
-                    if (itsStart) {
-                        int fetch = bin.read(data, 0, limit);
-                        if (fetch <= 0) {
-                            break;
-                        }
-                        maker1 = data[0];
-                        if (maker1 == 0) {
-                            makerlen = 3;
-                            maker2 = data[1];
-                            maker3 = data[2];
-                        }
-                        total += fetch;
-                        bout.write(data, 0, fetch);
-                        itsStart = false;
-                    }else if (false) {
-                        int fetch = bin.read(data, 0, limit - 1 - makerlen);
-                        if (fetch <= 0) {
-                            break;
-                        }
-                        total += fetch;
-                        bout.write(0xf7);
-                        if (makerlen == 1) {
-                            bout.write(maker1);
-                        }else {
-                            bout.write(maker1);
-                            bout.write(maker2);
-                            bout.write(maker3);
-                        }
-                        bout.write(data, 0, fetch);
-                    }else {
-                        int fetch = bin.read(data, 0, limit - 1);
-                        if (fetch <= 0) {
-                            break;
-                        }
-                        total += fetch;
-                        bout.write(0xf7);
-                        bout.write(data, 0, fetch);
-                    }
-                    ret.add(bout.toByteArray());
-                }
-                if (total != completeData.length) {
-                    System.err.println("Length Not Match");
-                }else {
-                    System.err.println("Length Ok");
-                }
-                return ret;
-            }
-
-            
-        }else {
-
-            int maker1 = completeData[1];
-            int maker2 = completeData[2];
-            int maker3 = completeData[3];
-            int headerLength = 1;
-            if (maker1 == 0) {
-                headerLength += 3;
-            }else {
-                headerLength += 1;
-            }
-            System.out.println("Split= " + completeData.length + "<<" +  MXUtil.dumpHexFF(completeData));
-            if (start == 0xf0 && finish == 0xf7) {
-                boolean itsStart = true;
-                int x = headerLength;
-                while (x < completeData.length) {
-                    int segmentSize = completeData.length - x;
-                    if (segmentSize +1 >= limit) {
-                        segmentSize = limit - 1;
-                    }
-                    byte[] sub;
-                    if (itsStart) {
-                        if (headerLength == 4) {
-                            sub = new byte[4 + segmentSize];
-                            sub[0] = (byte)(itsStart ? 0xf0 : 0xf7);
-                            sub[1] = (byte)maker1;
-                            sub[2] = (byte)maker2;
-                            sub[3] = (byte)maker3;
-                            for (int i = 0; i < segmentSize; ++ i) {
-                                sub[4 + i] = completeData[x + i];
-                            }
-                        }else if (headerLength == 2) {
-                            sub = new byte[2 + segmentSize];
-                            sub[0] = (byte)(itsStart ? 0xf0 : 0xf7);
-                            sub[1] = (byte)maker1;
-                            for (int i = 0; i < segmentSize; ++ i) {
-                                sub[2 + i] = completeData[x + i];
-                            }
-                        }else {
-                            System.out.println("Unknown error");
-                            break;
-                        }
-                    }else {
-                        sub = new byte[1 + segmentSize];
-                        sub[0] = (byte)(itsStart ? 0xf0 : 0xf7);
-                        for (int i = 0; i < segmentSize; ++ i) {
-                            sub[1 + i] = completeData[x + i];
-                        }
-                    }
-                    itsStart = false;
-                    ret.add(sub);
-                    x += segmentSize;
-                }
-                return ret;
-            }
-        }
-        return null;
-    }
-*/
     public void parseTest1(byte[] data) {
         /* F0H , ID (1-3), Device, Sub1, Sub2, ... F7H  */
         int x = 0;
