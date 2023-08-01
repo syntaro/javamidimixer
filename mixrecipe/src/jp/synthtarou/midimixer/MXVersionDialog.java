@@ -18,6 +18,7 @@ package jp.synthtarou.midimixer;
 
 import java.awt.Dimension;
 import java.awt.Frame;
+import java.awt.Rectangle;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
@@ -50,6 +51,8 @@ public class MXVersionDialog extends javax.swing.JDialog {
         text.append("java.vendor=" + System.getProperty("java.vendor") + "\n");
         text.append("java.version=" + System.getProperty("java.version") + "\n");
         text.append("\n");
+        text.append("V0.43 Pair CC (+32) support again\n");
+        text.append("V0.42b Java Synth Will Ingore GMReset Signal\n");
         text.append("V0.42 SysEX Bugfix\n");
         text.append("V0.4 Phraase Recorder, UWPx3 Bug Fix\n");
         text.append("V0.3+a8 Tuned RangeConverter\n");
@@ -70,6 +73,7 @@ public class MXVersionDialog extends javax.swing.JDialog {
         text.append("V0.04B supported SysEX Checksum\n");
         jTextArea1.setText(text.toString());
         jTextArea1.setEditable(false);
+        jTextArea1.setCaretPosition(0);
         jProgressBar1.setIndeterminate(true);
     }
 

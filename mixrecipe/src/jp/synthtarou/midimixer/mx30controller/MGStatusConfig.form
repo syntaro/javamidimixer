@@ -395,7 +395,7 @@
             </Component>
             <Component class="javax.swing.JCheckBox" name="jCheckBoxCC14bit">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Allow 14 bit with (CC: 0 to 31 can pair with #+32, And RPN NRPN)"/>
+                <Property name="text" type="java.lang.String" value="Enable 14 bit with +32CC (CC: 0 to 31 can pair with #+32)"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jCheckBoxCC14bitActionPerformed"/>

@@ -71,6 +71,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
         MGStatus status = getStatus();
         if (status != null) {
             status.fixRangedValue();
+            
             jCircleValue.setRange(status.getRangeMin(), status.getRangeMax());
             jCircleValue.setInverted(status.isUiValueInvert());
             jCircleValue.setValue(status.getValue());
@@ -257,7 +258,8 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
 
     public void editContoller() { 
         _process._parent.enterEditMode(false);
-        MGStatusConfig config = new MGStatusConfig(_process, getStatus());
+        MGStatus status = (MGStatus)getStatus().clone();
+        MGStatusConfig config = new MGStatusConfig(_process, status);
         MXUtil.showAsDialog(this, config, "Enter Edit Circle {row:" + _row + ", column:" + _column + "}");
         if (config._okOption) {
             setStatus(config._status);

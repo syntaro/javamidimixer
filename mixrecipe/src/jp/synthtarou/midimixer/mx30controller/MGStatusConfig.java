@@ -192,23 +192,11 @@ public class MGStatusConfig extends javax.swing.JPanel {
             jSpinnerOutOnValueFixed.setModel(new SafeSpinnerNumberModel(_status.getSwitchOutOnValueFixed(), 0, 16383, 1));
             jSpinnerOutOffValueFixed.setModel(new SafeSpinnerNumberModel(_status.getSwitchOutOffValueFixed(), 0, 16383, 1));
 
-            jSpinnerMin.setModel(new SafeSpinnerNumberModel(_status.getRangeMin(), 0, 16383, 1));
-            jSpinnerMax.setModel(new SafeSpinnerNumberModel(_status.getRangeMax(), 0, 16383, 1));
+            resetRange();
 
             _rpnMSBModel.writeComboBox(jComboBoxMSB, _status.getDataeroomMSB());
             _rpnLSBModel.writeComboBox(jComboBoxLSB, _status.getDataroomLSB());
-            if (jCheckBoxCC14bit.isSelected()) {
-                if (_status.isCCHasPair32()) {
-                    
-                }else {
-                    jCheckBoxCC14bit.setSelected(_status.isCCHasPair32());
-                }
-            }else {
-                if (_status.isCCHasPair32()) {
-                    jCheckBoxCC14bit.setSelected(_status.isCCHasPair32());
-                }else {
-                }
-            }
+            jCheckBoxCC14bit.setSelected(_status.isValuePairCC14());
         }finally {
             skipDataExchange = false;
         }
@@ -282,8 +270,9 @@ public class MGStatusConfig extends javax.swing.JPanel {
         
         int min = data.getRangeMin();
         int max = data.getRangeMax();
-        
-        int wishMax = data.toMXMessage(null).hasValueHiField() ? (128 * 128 -1) : (128 -1);
+
+        MXMessage msg = data.toMXMessage(null);
+        int wishMax = (msg.hasValueHiField() || msg.isValuePairCC14()) ? (128 * 128 -1) : (128 -1);
 
         if (max != wishMax || min != 0) {
             String errorText = "Seems custom ranged value, Do you want to reset to 0 ... " + wishMax;
@@ -617,13 +606,12 @@ public class MGStatusConfig extends javax.swing.JPanel {
             }
         }
         if (canHave14bit) {
-            _status.setCCHasPair32(jCheckBoxCC14bit.isSelected());
+            _status.setValuePairCC14(jCheckBoxCC14bit.isSelected());
             jCheckBoxCC14bit.setEnabled(true);
         }else {
-            _status.setCCHasPair32(false);
+            _status.setValuePairCC14(false);
             jCheckBoxCC14bit.setEnabled(false);
             jCheckBoxCC14bit.setSelected(false);
-            
         }
     }
     
@@ -1067,7 +1055,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel2.add(jLabel15, gridBagConstraints);
 
-        jCheckBoxCC14bit.setText("Allow 14 bit with (CC: 0 to 31 can pair with #+32, And RPN NRPN)");
+        jCheckBoxCC14bit.setText("Enable 14 bit with +32CC (CC: 0 to 31 can pair with #+32)");
         jCheckBoxCC14bit.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jCheckBoxCC14bitActionPerformed(evt);
@@ -1654,7 +1642,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
                 String offset = x.getValueOffset();
                 
                 if (min == null && max == null) {
-                    if (msg.canPaired14bit()) {
+                    if (msg.hasValueHiField() || msg.isValuePairCC14()) {
                         _status.setRangeMin(0);
                         _status.setRangeMax(128 * 128 - 1);
                     }else {
@@ -1776,7 +1764,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
                 }
             }else  {
                 int max = 128-1;
-                if (message.canPaired14bit()) {
+                if (message.hasValueHiField() || message.isValuePairCC14()) {
                     max = 128*128-1;
                 }
                 if (retval._minValue != 0 || retval._maxValue != max) {
@@ -1817,7 +1805,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
         String text  = jTextFieldTextCommand.getText();
         int max = 128 -1;
         try {
-            if (_status.isCCHasPair32()) {
+            if (_status.isValuePairCC14()) {
                 max = 128 * 128 -1;
             }
         }catch(Exception e) {
@@ -2116,20 +2104,47 @@ public class MGStatusConfig extends javax.swing.JPanel {
         popup.show(jButtonQuickMenuDrum, 0, jButtonActionQuickMenu.getHeight());
     }//GEN-LAST:event_jButtonQuickMenuDrumActionPerformed
 
+    public void resetRange() {
+        int newMin = 0;
+        int newMax = _status.isValuePairCC14() ? 16383 : 127;
+        
+        if (_status.toMXMessage(null).hasValueHiField()) {
+            newMax = 16383;
+        }
+        
+        if (_status.getRangeMin() > newMax) {
+            _status.setRangeMin(newMax);
+        }
+        if (_status.getRangeMax() > newMax) {
+            _status.setRangeMax(newMax);
+        }
+        else if (_status.getRangeMax() == 127 && newMax == 16383) {
+            _status.setRangeMax(newMax);
+        }
+        
+        jSpinnerMin.setModel(new SafeSpinnerNumberModel(_status.getRangeMin(), newMin, newMax, 1));
+        jSpinnerMax.setModel(new SafeSpinnerNumberModel(_status.getRangeMax(), newMin, newMax, 1));
+    }
+    
     private void jCheckBoxCC14bitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxCC14bitActionPerformed
         skipDataExchange = true;
         _status.setRangeMin((int)jSpinnerMin.getValue());
         _status.setRangeMax((int)jSpinnerMax.getValue());
-        if (jCheckBoxCC14bit.isEnabled() && jCheckBoxCC14bit.isSelected()) {
-            _status.setCCHasPair32(true);
-        }
-        jSpinnerMin.setValue(_status.getRangeMin());
-        jSpinnerMax.setValue(_status.getRangeMax());
+
         if (_status.getDataroomType() == MXVisitant.ROOMTYPE_RPN) {
             fillDataentry(MXVisitant.ROOMTYPE_RPN);
         }
         else if (_status.getDataroomType() == MXVisitant.ROOMTYPE_NRPN) {
             fillDataentry(MXVisitant.ROOMTYPE_NRPN);
+        }
+
+        if (jCheckBoxCC14bit.isEnabled() && jCheckBoxCC14bit.isSelected()) {
+            _status.setValuePairCC14(true);
+            resetRange();
+        }
+        else {
+            _status.setValuePairCC14(false);
+            resetRange();
         }
         skipDataExchange = false;
         writeBufferToPanelSlider();       
@@ -2337,7 +2352,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
             _status.setSwitchWithToggle(false);
             _status.setGate(0);
             _status.setChannel(0);
-            _status.setCCHasPair32(false);
+            _status.setValuePairCC14(false);
             this.writeBufferToPanelDrum();
             textTemplate.clear();
             textTemplate.add("Control Change");
@@ -2441,7 +2456,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
             _status.setTextCommand("@CC #GL #VL");
             _status.setGate(7);
             _status.setValue(0);
-            _status.setCCHasPair32(false);
+            _status.setValuePairCC14(false);
             _status.setRangeMin(0);
             _status.setRangeMax(127);
             _status.setChannel(0);

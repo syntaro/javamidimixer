@@ -49,6 +49,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
     }
     
     public void setStatus(MGStatus status) {
+        System.out.println("slider 14bit " + status.isValuePairCC14());
         _process._data.setSliderStatus(_row, _column, status);
     }
 

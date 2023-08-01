@@ -201,7 +201,8 @@ public class MGPad extends javax.swing.JPanel implements MXFocusAble {
 
    public void editContoller() {
         _process._parent.enterEditMode(false);
-        MGStatusConfig config = new MGStatusConfig(_process, getStatus());
+        MGStatus status = (MGStatus)getStatus().clone();
+        MGStatusConfig config = new MGStatusConfig(_process, status);
         MXUtil.showAsDialog(this, config, "Enter Edit Pad {row:" + _row + ", column:" + _column + "}");
         _process.notifyCacheBroken();
 

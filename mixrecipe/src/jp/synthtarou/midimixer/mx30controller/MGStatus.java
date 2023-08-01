@@ -80,12 +80,12 @@ public class MGStatus implements Cloneable {
         this._dataroomLSB = _dataentryLSB;
     }
     
-    public void setCCHasPair32(boolean flag) {
-        _ccHas32Pair = flag;
+    public void setValuePairCC14(boolean flag) {
+        _ccPair14 = flag;
     }
 
-    public boolean isCCHasPair32() {
-        return _ccHas32Pair;
+    public boolean isValuePairCC14() {
+        return _ccPair14;
     }
 
     //public static final int SWITCH_ON_IF_ONESHOT = 0;
@@ -192,7 +192,7 @@ public class MGStatus implements Cloneable {
     private int _dataroomMSB = -1;
     private int _dataroomLSB = -1;
 
-    private boolean _ccHas32Pair = false;
+    private boolean _ccPair14 = false;
 
     public MGStatus(int port, int uiType, int row, int column) {
         _port = port;
@@ -215,6 +215,7 @@ public class MGStatus implements Cloneable {
         getTemplate();
 
         MXMessage message = _cachedMessage.buildMessage(_port, _gate, _value);
+        message.setValuePairCC14(isValuePairCC14());
         message.setChannel(_channel);;
         
         if (_cachedMessage.get(0) == MXMessageTemplate.DTEXT_RPN
@@ -348,18 +349,21 @@ public class MGStatus implements Cloneable {
         status.setDataroomType(getDataroomType());
         status.setDataroomMSB(getDataeroomMSB());
         status.setDataroomLSB(getDataroomLSB());
+
+        status.setValuePairCC14(isValuePairCC14());
         
         return status;
     }
 
     public synchronized void setMonitoringTarget(String textCommand, int channel, int gate, int value) {
         setTextCommand(textCommand);
-        _rangeMin = 0;
-        _rangeMax = 128 -1;
         _cachedMessage = null;
         _channel = channel;
         _gate = gate;
         _value = value;
+
+        _rangeMin = 0;
+        _rangeMax = 128 -1;
         if (getTemplate().getBytePosHiValue() >= 0) {
             _rangeMax = 128 * 128 -1;
         }
@@ -391,7 +395,7 @@ public class MGStatus implements Cloneable {
         }
         return name + " (" +_memo + ")" + "\n"
            + text + "[row " + (getRow()+1) + ", col " + (getColumn()+1) +"] "
-           + "\n" + message.toString() + (message.isValue14bit() ? " (=14bit)" : "");
+           + "\n" + message.toString() + (message.isValuePairCC14() ? " (=14bit)" : "");
     }
 
     public boolean statusTryCatch(MXMessage message) {

@@ -55,20 +55,8 @@ public final class MXMessage {
         return true;
     }
 
-    public boolean canPaired14bit() {
-        if (createBytes() == null) {
-            return false;
-        }
-        
-        if (hasValueHiField()) {
-            if (hasGateLowField()) {
-                return true;
-            }else {
-                //Cant happen if ..
-                return false;
-            }
-        }
-
+    //Utilitie
+    public boolean isPairAbleCC14() {
         if (getCommand() == MXMidi.COMMAND_CONTROLCHANGE) {
             int cc = getGate();
             if (cc >= 0 && cc <= 31) {
@@ -77,25 +65,25 @@ public final class MXMessage {
         }
         return false;
     }
-    
+
     /**
      * @return the it14bitCC
      */
-    public boolean isValue14bit() {
-        return _value14bit;
+    public boolean isValuePairCC14() {
+        return _valuePair14bit;
     }
     
     /**
      * @param value14bit the it14bitCC to set
      */
-    public void setValue14bit(boolean value14bit) {
-        if (_value14bit != value14bit) {
+    public void setValuePairCC14(boolean value14bit) {
+        if (_valuePair14bit != value14bit) {
             int value = getValue();
             if (value14bit == false && value >= 128) {
                 setValue(127);
             }
         }
-        this._value14bit = value14bit;
+        this._valuePair14bit = value14bit;
     }
 
     private MXVisitant _visitant;
@@ -119,7 +107,7 @@ public final class MXMessage {
     private int _channel = 0;
     
     protected byte[] _dataBytes = null;
-    private boolean _value14bit;
+    private boolean _valuePair14bit;
 
     private final MXMessageTemplate _template;
 
@@ -617,7 +605,7 @@ public final class MXMessage {
         if (_template.get(0) == DTEXT_PROGINC || _template.get(0) == DTEXT_PROGDEC) {
             return 3;
         }
-        if (getCommand() == MXMidi.COMMAND_CONTROLCHANGE && isValue14bit()) {
+        if (getCommand() == MXMidi.COMMAND_CONTROLCHANGE && isValuePairCC14()) {
             return 2;
         }
         return 1;
@@ -641,7 +629,7 @@ public final class MXMessage {
             int status = getStatus();
             int data1 = getData1();
             int data2 = getData2();
-            if (getCommand() == MXMidi.COMMAND_CONTROLCHANGE && isValue14bit()) {
+            if (getCommand() == MXMidi.COMMAND_CONTROLCHANGE && isValuePairCC14()) {
                 if (column == 0)  {
                     data2 = (getValue() >> 7) & 0x7f;
                 }else {
@@ -715,7 +703,7 @@ public final class MXMessage {
         }
         int status, data1, data2;
         if (getVisitant().isHaveDataentryRPN() || getVisitant().isHaveDataentryNRPN()) {
-            status =MXMidi.COMMAND_CONTROLCHANGE + getChannel();
+            status = MXMidi.COMMAND_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_DATAENTRY + 0x20;
             data2 = getVisitant().getDataentryLSB();
             return (((status << 8) | data1) << 8) | data2;
@@ -780,7 +768,7 @@ public final class MXMessage {
         message.setChannel(getChannel());
         
         message.setVisitant(getVisitant());
-        message.setValue14bit(isValue14bit());
+        message.setValuePairCC14(isValuePairCC14());
 
         return message;
     }

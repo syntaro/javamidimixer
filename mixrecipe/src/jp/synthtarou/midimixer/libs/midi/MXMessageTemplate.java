@@ -244,27 +244,6 @@ public class MXMessageTemplate implements Cloneable {
         }
     }
 
-/*    
-    public boolean hasValueHiField() {
-        return _bytePosHiValue >= 0;
-    }
-
-    public boolean hasValueLowField() {
-        return _bytePosValue >= 0;
-    }
-
-    public boolean hasGateLowField() {
-        return _bytePosGate >= 0;
-    }
-
-    public boolean hasGateHiField() {
-        return _bytePosHiGate >= 0;
-    }
-    
-    public boolean isValue14Bit() {
-        return (_bytePosValue >= 0 && _bytePosHiValue >= 0);
-    }*/
-
     public static int getDValue(int alias, MXMessage message) {
         int gate = message.getGate();
         int value = message.getValue();
