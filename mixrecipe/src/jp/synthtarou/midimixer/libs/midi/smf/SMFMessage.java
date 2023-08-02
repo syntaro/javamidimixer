@@ -20,92 +20,72 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXException;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class SMFMessage implements Comparable<SMFMessage> {
-    /**
-     * @return the _binary
-     */
-    public byte[] getBinary() {
-        if (_binary != null) {
-            if (_status == 0xff) {
-                if (_dataType == 0x51) {
-                    byte[] binary = new byte[] {
-                        (byte)0xff,
-                        (byte)0x51,
-                        _binary[0],
-                        _binary[1],
-                        _binary[2]
-                    };
-                    return binary;
-                }
-            }
-            byte[] binary = _binary;
-            return _binary.clone();
-        }else {
-            return null;
-        }
-    }
-
     public SMFMessage(long tick, int status, int data1, int data2) {
-        _tick = tick;
-        _status = status;
-        _data1 = data1;
-        _data2 = data2;
-        _binary = null;
+        this(tick, new byte[] { (byte)status, (byte)data1, (byte)data2 } );
     }
 
-    public SMFMessage(long tick, int status, int type, byte[] binary) {
+    public SMFMessage(long tick, byte[] binary) {
         if (binary.length == 0) {
             throw new IllegalArgumentException("NULLPO");
         }
         _tick = tick;
-        _status = status;
-        _dataType = type;
-        _data1 = 0;        
-        _data2 = 0;
         _binary = binary;
     }
 
-    private byte[] _binary;
+    private final byte[] _binary;
 
     public int _port = -1;
     public long _tick;
-    public int _status;
-    public int _data1;
-    public int _data2;
     public int _seqTrack;
     public int _order;
-    public int _dataType;
-        
-    public String toString() {
-        byte[] data = getBinary();
-        if (data != null)
-        {
-            if (_status == 0xff) {
-                if (_dataType== 0x51) {
-                    return new String("Tempo");
-                }else {
-                    String meta = "";
-                    try {
-                        meta = dumpHexFF(data);
-                        meta = new String(data, "ISO-8859-1");
-                        meta = new String(data, "Shift_JIS");
-                    }catch(Exception e) {
+    
+    public int getStatus() {
+        return _binary[0] & 0xff;
+    }
+    
+    public int getDataType() {
+        return _binary[1] & 0xff;
+    }
 
-                    }
-                    return meta;
-                }
-            }else {
-                
+    public int getData1() {
+        return _binary[1] & 0xff;
+    }
+
+    public int getData2() {
+        return _binary[2] & 0xff;
+    }
+    
+    public String getMetaText() {
+        String meta = "<Meta>";
+        try {
+            byte[] metaData = new byte[_binary.length - 2];
+            for (int i = 0; i < metaData.length; ++ i) {
+                metaData[i] = _binary[i + 2];
             }
-            return toHexFF(_status) + " -> " + dumpHexFF(data);
+            meta = dumpHexFF(_binary);
+            meta = new String(metaData, "ISO-8859-1");
+            meta = new String(metaData, "Shift_JIS");
+        }catch(Exception e) {
+
+        }
+        return meta;
+    }
+
+    public String toString() {
+        if (getStatus() == 0xff) {
+            if (getDataType() == 0x51) {
+                return new String("Tempo");
+            }else {
+                return getMetaText();
+            }
         }else {
-            return toHexFF(_status) + ", " + toHexFF(_data1) + ", " + toHexFF(_data2);
+            return dumpHexFF(_binary);
         }
     }
 
@@ -133,14 +113,15 @@ public class SMFMessage implements Comparable<SMFMessage> {
 
     public MXMessage fromSMFtoMX(int port) {
         MXMessage message = null;
+        int status = getStatus();
 
-        if (_status>= 0x80 && _status <= 0xef) {
-            message = MXMessageFactory.fromShortMessage(port, _status, _data1, _data2);
+       if (status>= 0x80 && status <= 0xef) {
+            message = MXMessageFactory.fromShortMessage(port, getStatus(), getData1(), getData2());
         }
-        else if (_status == 0xf0 || _status == 0xf7) {
+        else if (status == 0xf0 || status == 0xf7) {
             message = MXMessageFactory.fromSysexMessage(port, getBinary());
         }
-        else if (_status == 0xff) {
+        else if (status == 0xff) {
             message = MXMessageFactory.fromMeta(port, getBinary());
         }
         else {
@@ -165,10 +146,12 @@ public class SMFMessage implements Comparable<SMFMessage> {
 
         //System.out.println("Unreach " + x + ", " + y + ", " + z);
         
-        boolean isProg1 = (o1._status & 0xf0) == MXMidi.COMMAND_PROGRAMCHANGE;
-        boolean isProg2 = (o2._status & 0xf0) == MXMidi.COMMAND_PROGRAMCHANGE;
-        boolean isBank1 = (o1._status & 0xf0) == MXMidi.COMMAND_CONTROLCHANGE && (o1._data1 == 0 || o1._data1 == 32);
-        boolean isBank2 = (o2._status & 0xf0) == MXMidi.COMMAND_CONTROLCHANGE && (o2._data1 == 0 || o2._data1 == 32);
+        boolean isProg1 = (o1.getStatus() & 0xf0) == MXMidi.COMMAND_PROGRAMCHANGE;
+        boolean isProg2 = (o2.getStatus() & 0xf0) == MXMidi.COMMAND_PROGRAMCHANGE;
+        boolean isBank1 = (o1.getStatus() & 0xf0) == MXMidi.COMMAND_CONTROLCHANGE && (o1.getData1() == 0 || o1.getData1() == 32);
+        boolean isBank2 = (o2.getStatus() & 0xf0) == MXMidi.COMMAND_CONTROLCHANGE && (o2.getData1() == 0 || o2.getData1() == 32);
+
+        /* バンクとプログラムは早めに送信する */
 
         if (isBank1 && !isBank2) return -1;
         if (!isBank1 && isBank2) return 1;
@@ -176,58 +159,50 @@ public class SMFMessage implements Comparable<SMFMessage> {
         if (isProg1 && !isProg2) return -1;
         if (!isProg1 && isProg2) return 1;
 
-        x = o1._status - o2._status;
-        if (x < 0) return -1; if (x > 0) return 1;
-        x = o1._data1- o2._data1;
-        if (x < 0) return -1; if (x > 0) return 1;
-        x = o1._data2 - o2._data2;
-        if (x < 0) return -1; if (x > 0) return 1;
-        if (o1.getBinary() != null || o2.getBinary() != null) {
-            if (o2.getBinary() == null) return -1;
-            if (o1.getBinary() == null) return  1;
+        int len = o1.getBinary().length - o2.getBinary().length;
+        if (len != 0) return len;
 
-            int len = o1.getBinary().length - o2.getBinary().length;
-            if (len != 0) return len;
-
-            for (int i = 0; i < o1.getBinary().length; ++ i) {
-                x = o1.getBinary()[i] - o2.getBinary()[i];
-                if (x < 0) return -1; if (x > 0) return 1;
-            }
+        for (int i = 0; i < o1.getBinary().length; ++ i) {
+            x = o1.getBinary()[i] - o2.getBinary()[i];
+            if (x < 0) return -1; if (x > 0) return 1;
         }
-        return 0;
+        
+        return  0;
     }
     
     public int getMetaTempo() {
-        int b1 = (0xff & _binary[0]) << 16;
-        int b2 = (0xff & _binary[1]) << 8;
-        int b3 = (0xff & _binary[2]);
+        int b1 = (0xff & _binary[2]) << 16;
+        int b2 = (0xff & _binary[3]) << 8;
+        int b3 = (0xff & _binary[4]);
         return b1 + b2 + b3;
     }
     
     public boolean isMetaMessage() {
-        return (_status == 0xff) ? true : false;
+        return getStatus() == 0xff;
     }
    
     public boolean isBinaryMessage() {
-        /*
-        switch(_status) {
-            case 0xf0:
-            case 0xf7:
-            case 0xff:
-                return true;
+        if (_binary.length <= 4) {
+            return false;
         }
-        return false;
-        */
         return _binary != null;
     }
     
+    public byte[] getBinary() {
+        if (_binary != null) {
+            return _binary;
+        }else {
+            return null;
+        }
+    }
+
     public int toDwordMessage() throws MXException {
         if (isBinaryMessage()) {
             throw new MXException("Its binary");
         }
-        int st = _status & 0xff;
-        int dt1 = _data1 & 0xff;
-        int dt2 = _data2 & 0xff;
+        int st = getStatus() & 0xff;
+        int dt1 = getData1() & 0xff;
+        int dt2 = getData2()  & 0xff;
         return (((st << 8) | dt1) << 8) | dt2;
     }
 }

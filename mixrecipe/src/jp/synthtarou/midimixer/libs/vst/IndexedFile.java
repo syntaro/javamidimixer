@@ -53,7 +53,7 @@ public class IndexedFile {
     public IndexedFile(File baseDir)  {
         _baseDir = baseDir;
         _indexTempFile = new File(_baseDir, "MXIndex.tmp");
-        _indexLockFile = new File(_baseDir, "MXIndex.lcok");
+        _indexLockFile = new File(_baseDir, "MXIndex.lockfile");
         _indexFile = new File(_baseDir, "MXIndex");
     }
     

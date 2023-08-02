@@ -203,7 +203,7 @@ public class SMFParser {
                                     sysexData[0] = (byte)status;
                                     child.readBuffer(sysexData, 1,sysexLength);
 
-                                    message = new SMFMessage(tick, status, status, sysexData);
+                                    message = new SMFMessage(tick, sysexData);
                                     message._seqTrack = tr;
                                     message._order = order;
                                     break;
@@ -218,10 +218,12 @@ public class SMFParser {
                                     if (metaLength == 0) {
                                         continue;
                                     }
-                                    byte[] metaData = new byte[metaLength];
-                                    child.readBuffer(metaData, 0, metaLength);
+                                    byte[] metaData = new byte[metaLength + 2];
+                                    metaData[0] = (byte)status;
+                                    metaData[1] = (byte)metaType;
+                                    child.readBuffer(metaData, 2, metaLength);
 
-                                    message = new SMFMessage(tick, status, metaType, metaData);
+                                    message = new SMFMessage(tick, metaData);
                                     message._seqTrack = tr;
                                     message._order = order;
                                     break;
@@ -264,18 +266,8 @@ public class SMFParser {
         ArrayList<String> ret  = new ArrayList();
         
         for (SMFMessage message : _messageList._set) {
-            if (message._status == 0xff && message._dataType != 0x51) {
-                int metaType = message._dataType;
-                byte[] data = message.getBinary();
-                String meta = "";
-                try {
-                    meta = dumpHexFF(data);
-                    meta = new String(data, 3, data.length - 3, "ISO-8859-1");
-                    meta = new String(data, 3, data.length - 3, "Shift_JIS");
-                }catch(Exception e) {
-                    
-                }
-                ret.add(meta);
+            if (message.getStatus() == 0xff && message.getDataType() != 0x51) {
+                ret.add(message.getMetaText());
             }
         }
         String[] ar = new String[ret.size()];

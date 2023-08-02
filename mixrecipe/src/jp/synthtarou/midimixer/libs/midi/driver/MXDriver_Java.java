@@ -29,8 +29,7 @@ import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
-import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
-import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
+import jp.synthtarou.midimixer.libs.midi.smf.MidiByteReader;
 
 /**
  *
@@ -277,10 +276,11 @@ public class MXDriver_Java implements MXDriver {
         }
         return false;
     }
-    
+
     static MidiDevice gervill = null;
-    static boolean seekedGervill = false;
-    
+    static boolean _seekedGervill = false;
+    static final byte[] gmsystem = { (byte)0xf0, (byte)0x7e, (byte)0x7f, (byte)0x09, (byte)0x01, (byte)0xf7 };
+
     public boolean OutputLongMessage(int x, byte[] data) {
         listAllOutput();
 
@@ -294,43 +294,41 @@ public class MXDriver_Java implements MXDriver {
                 case 0xf0:
                 case 0xf7:
                     try {
-                        SysexDataBuilder builder = new SysexDataBuilder();
-                        ArrayList<byte[]> listData = builder.split(data, 100);
-                        if (listData != null) {
-                            for (byte[] segment : listData) {
-                                SysexMessage msg = new SysexMessage(segment, segment.length);
-                                _listOutput.get(x).getReceiver().send(msg, 0);
+                        if (_seekedGervill == false) {
+                            _seekedGervill = true;
+                            for (MidiDevice device : _listOutput) {
+                                if (device.getDeviceInfo().getName().equalsIgnoreCase("Gervill")) {
+                                    gervill = device;
+                                }
                             }
                         }
-                        else {
-                            if (seekedGervill == false) {
-                                seekedGervill = true;
-                                for (MidiDevice device : _listOutput) {
-                                    if (device.getDeviceInfo().getName().equalsIgnoreCase("Gervill")) {
-                                        gervill = device;
+                        if (_seekedGervill && _listOutput.get(x) == gervill) {
+                            int count = gmsystem.length;
+                            if (gmsystem.length == data.length) {
+                                for (int i = 0; i < gmsystem.length; ++ i) {
+                                    if (data[i] == gmsystem[i]) {
+                                        count --;
                                     }
                                 }
                             }
-                            if (seekedGervill && _listOutput.get(x) == gervill) {
-                                byte[] gmsystem = { (byte)0xf0, (byte)0x7e, (byte)0x7f, (byte)0x09, (byte)0x01, (byte)0xf7 };
-                                int count = gmsystem.length;
-                                if (gmsystem.length == data.length) {
-                                    for (int i = 0; i < gmsystem.length; ++ i) {
-                                        if (data[i] == gmsystem[i]) {
-                                            count --;
-                                        }
-                                    }
-                                }
-                                if (count == 0) {
-                                    return false;
-                                }
+                            if (count == 0) {
+                                return false;
                             }
-                            SysexMessage msg = new SysexMessage(data, data.length);
-                            _listOutput.get(x).getReceiver().send(msg, 0);
+                            
+                            //JavaSynth には、GM Resetを送らない
                         }
+                        SplittableSysexMessage msg = new SplittableSysexMessage(data);
+
+                        if (false) {
+                            MidiByteReader debug1 = new MidiByteReader(msg.getMessage());
+                            debug1.read8();
+                            System.out.println("len: " + debug1.readVariable());
+                            System.out.println("last: " + data.length + " = " + MXUtil.toHexFF(data[data.length - 1]));
+                        }
+
+                        _listOutput.get(x).getReceiver().send(msg, 0);
+
                         return true;
-                    }catch(InvalidMidiDataException e) {
-                        System.out.println("Bug Message " + MXUtil.dumpHexFF(data));
                     }catch(Throwable e) {
                         e.printStackTrace();
                     }

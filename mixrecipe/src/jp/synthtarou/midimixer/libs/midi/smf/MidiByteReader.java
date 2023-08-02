@@ -37,6 +37,10 @@ public class MidiByteReader {
         this(new ByteArrayInputStream(data));
     }
     
+    public MidiByteReader(byte[] data, int offset, int length) {
+        this(new ByteArrayInputStream(data, offset, length));
+    }
+    
     public MidiByteReader(InputStream input) {
         _input = input;
         _length = -1;
@@ -60,6 +64,27 @@ public class MidiByteReader {
         }
         if (_pos < _length) {
             return _buffer[_pos ++] & 0x00ff;
+        }
+        return -1;
+    }
+    
+    public int peek8() {
+        if (_pos >= _length) {
+            try {
+                _pos = 0;
+                _length = _input.read(_buffer);
+            }catch(IOException e) {
+                _eof = true;
+                _error = true;
+                return -1;
+            }
+            if (_length == 0) {
+                _eof = true;
+                return -1;
+            }
+        }
+        if (_pos < _length) {
+            return _buffer[_pos] & 0x00ff;
         }
         return -1;
     }
@@ -117,7 +142,8 @@ public class MidiByteReader {
             if (currentByte < 0) {
                 return -1;
             }
-            value = (value << 7) + (currentByte & 0x7F);
+            int x = currentByte & 0x7f;
+            value = (value << 7) + x;
         } while ((currentByte & 0x80) != 0);
         return value;
     }
@@ -130,22 +156,22 @@ public class MidiByteReader {
         
         if (x0 != 0) {
             byte[] data = new byte[4];
-            data[0] = (byte)x0;
-            data[1] = (byte)x1;
-            data[2] = (byte)x2;
+            data[0] = (byte)(x0 | 0x80);
+            data[1] = (byte)(x1 | 0x80);
+            data[2] = (byte)(x2 | 0x80);
             data[3] = (byte)x3;
             return data;
         }
         if (x1 != 0) {
             byte[] data = new byte[3];
-            data[0] = (byte)x1;
-            data[1] = (byte)x2;
+            data[0] = (byte)(x1 | 0x80);
+            data[1] = (byte)(x2 | 0x80);
             data[2] = (byte)x3;
             return data;
         }
         if (x2 != 0) {
             byte[] data = new byte[2];
-            data[0] = (byte)x2;
+            data[0] = (byte)(x2 | 0x80);
             data[1] = (byte)x3;
             return data;
         }

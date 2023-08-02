@@ -55,7 +55,7 @@ public class SMFRecorder {
             int data2 = data[2] & 0xff;
     
             if (data.length >= 5 && status == 0xff && data1 == 0x51) {
-                SMFMessage smf = new SMFMessage(currentTick(), status, data1, new byte[] { data[2], data[3], data[4] });
+                SMFMessage smf = new SMFMessage(currentTick(), data);
                 smf._port = port;
                 _listMessage.add(smf);
                 int mpq1 = (data[2] & 0xff) << 16;
@@ -65,21 +65,13 @@ public class SMFRecorder {
                 return;
             }
             else if (status == 0xff) {
-                byte[] newData = new byte[data.length - 2];
-                for (int i = 0; i < newData.length; ++ i) {
-                    newData[i] = data[i + 2];
-                }
-                SMFMessage smf = new SMFMessage(currentTick(), status, data1, newData);
+                SMFMessage smf = new SMFMessage(currentTick(), data);
                 smf._port = port;
                 _listMessage.add(smf);
                 return;
             }
             else if (status == 0xf0 || status == 0xf7) {
-                byte[] newData = new byte[data.length - 1];
-                for (int i = 0; i < newData.length; ++ i) {
-                    newData[i] = data[i + 1];
-                }
-                SMFMessage smf = new SMFMessage(currentTick(), status, status, newData);
+                SMFMessage smf = new SMFMessage(currentTick(), data);
                 smf._port = port;
                 _listMessage.add(smf);
                 return;

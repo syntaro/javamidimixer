@@ -23,15 +23,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.console.ConsoleElement;
 import jp.synthtarou.midimixer.libs.console.ConsoleModel;
 import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
-import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
-import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
+import jp.synthtarou.midimixer.libs.midi.driver.SysexSplitter;
 import jp.synthtarou.midimixer.libs.swing.MXFileOpenChooser;
 
 /**
@@ -99,7 +97,6 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         jProgressBar1 = new javax.swing.JProgressBar();
         jButtonClearLog = new javax.swing.JButton();
         jButtonClearFile = new javax.swing.JButton();
-        jButtonCompact = new javax.swing.JButton();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -124,6 +121,7 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         add(jButtonLoadSysex, gridBagConstraints);
 
@@ -134,7 +132,7 @@ public class MX70SysexPanel extends javax.swing.JPanel {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridx = 7;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         add(jButtonSaveSysex, gridBagConstraints);
@@ -155,7 +153,7 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         add(jComboBoxPort, gridBagConstraints);
@@ -191,7 +189,7 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 2.0;
@@ -200,7 +198,7 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 7;
+        gridBagConstraints.gridwidth = 8;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         add(jProgressBar1, gridBagConstraints);
 
@@ -226,22 +224,13 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jButtonClearFile, gridBagConstraints);
-
-        jButtonCompact.setText("Compact");
-        jButtonCompact.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonCompactActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        add(jButtonCompact, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonLoadSysexActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonLoadSysexActionPerformed
+        _file.clear(jTextArea1);
         MXFileOpenChooser chooser = new MXFileOpenChooser();
         chooser.addExtension(".txt", "TEXT");
         chooser.addExtension(".sysex", "SysEX");
@@ -255,6 +244,7 @@ public class MX70SysexPanel extends javax.swing.JPanel {
                 success = _file.readBinary(file);
             }
             _file.bind(jTextArea1);
+            compactBeforeSend();
             if (success) {
                 JOptionPane.showMessageDialog(this, "Done", "Done Read" + file , JOptionPane.OK_OPTION);
             }else {
@@ -349,61 +339,53 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         _file.clear(jTextArea1);
     }//GEN-LAST:event_jButtonClearFileActionPerformed
 
-    private void jButtonCompactActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCompactActionPerformed
-        int countf0 = 0;
-        int countf7 = 0;
+    public void compactBeforeSend() {
+        ArrayList<byte[]> newList = new ArrayList();
+
+        SysexSplitter splitter = null;
+
         for (byte[] data : _file._contents) {
             int ch = data[0] & 0xff;
             if (ch == 0xf0) {
-                ++ countf0;
+                if (splitter != null) {
+                    ArrayList<byte[]> ret = splitter.splitOrJoin(0);
+                    newList.addAll(ret);
+                }
+                splitter = new SysexSplitter();
+                splitter.append(data);
             }
             else if (ch == 0xf7) {
-                if (countf0 == 0) {
+                if (splitter == null) {
                     JOptionPane.showMessageDialog(this, "No header for 0xf7 message");
                     return;
                 }
-                ++ countf7;
+                splitter.append(data);
             }
             else {
                 JOptionPane.showMessageDialog(this, "Header not 0xf0 or 0xf7");
                 return;
             }
         }
-        if (countf7 == 0) {
+        if (splitter != null) {
+            ArrayList<byte[]> ret = splitter.splitOrJoin(0);
+            newList.addAll(ret);
+        }
+        if (splitter == null) {
             JOptionPane.showMessageDialog(this, "Any message not start with 0xf7");
             return;
         }
-        ArrayList<byte[]> newList = new ArrayList();
         
         ByteArrayOutputStream cache = new ByteArrayOutputStream();
         
-        for (byte[] data : _file._contents) {
-            int ch = data[0]  & 0xff;
-            if (ch == 0xf0) {
-                if (cache.size() != 0) {
-                    newList.add(cache.toByteArray());
-                    cache = new ByteArrayOutputStream();
-                }
-                cache.write(data, 0, data.length);
-            }
-            else if (ch == 0xf7) {
-                cache.write(data, 1, data.length - 1);
-            }
-        }
-        if (cache.size() != 0) {
-            newList.add(cache.toByteArray());
-            cache = new ByteArrayOutputStream();
-        }
-        
-        _file._contents = newList;
-        _file.bind(jTextArea1);
-    }//GEN-LAST:event_jButtonCompactActionPerformed
 
+        _file._contents = newList;
+        _file.bind(jTextArea1);    
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton5;
     private javax.swing.JButton jButtonClearFile;
     private javax.swing.JButton jButtonClearLog;
-    private javax.swing.JButton jButtonCompact;
     private javax.swing.JButton jButtonDumpSysex;
     private javax.swing.JButton jButtonLoadSysex;
     private javax.swing.JButton jButtonSaveSysex;

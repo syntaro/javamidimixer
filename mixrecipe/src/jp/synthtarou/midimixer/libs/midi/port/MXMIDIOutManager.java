@@ -66,7 +66,6 @@ public class MXMIDIOutManager implements MXSettingTarget {
                 }
             }
             
-            /*
             if (!assigned) {
                 MXMIDIOut reserve = MXMIDIOutManager.getManager().findMIDIOutput("Gervill");
                 MXMIDIOut reserve2 = MXMIDIOutManager.getManager().findMIDIOutput("Microsoft GS Wavetable Synth");
@@ -83,7 +82,7 @@ public class MXMIDIOutManager implements MXSettingTarget {
                     reserve.setPortAssigned(0, true);
                     reserve.openOutput(5);
                 }
-            }*/
+            }
         }
     }
 

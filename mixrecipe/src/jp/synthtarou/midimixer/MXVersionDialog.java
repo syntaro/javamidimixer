@@ -51,6 +51,7 @@ public class MXVersionDialog extends javax.swing.JDialog {
         text.append("java.vendor=" + System.getProperty("java.vendor") + "\n");
         text.append("java.version=" + System.getProperty("java.version") + "\n");
         text.append("\n");
+        text.append("V0.46 sysex bugfix\n");
         text.append("V0.43 Pair CC (+32) support again\n");
         text.append("V0.42b Java Synth Will Ingore GMReset Signal\n");
         text.append("V0.42 SysEX Bugfix\n");

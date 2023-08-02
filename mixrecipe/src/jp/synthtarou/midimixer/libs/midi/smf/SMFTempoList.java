@@ -43,8 +43,8 @@ public final class SMFTempoList {
         if (listMessage != null) {
 
             for (SMFMessage message : listMessage) {
-                if (message._status == 0xff) {
-                    switch(message._dataType) {
+                if (message.getStatus() == 0xff) {
+                    switch(message.getDataType()) {
                         case 0: // シーケンス番号
                         case 1: // テキストイベント
                         case 2: // 著作権情報
@@ -73,7 +73,7 @@ public final class SMFTempoList {
                 byte b1 = (byte)(SMFTempo.DEFAULT_MPQ >> 16);
                 byte b2 = (byte)(SMFTempo.DEFAULT_MPQ >> 8);
                 byte b3 = (byte)(SMFTempo.DEFAULT_MPQ );
-                mm = new SMFMessage(0, 0xff, 0x51, new byte[] { b1, b2, b3 });
+                mm = new SMFMessage(0, new byte[] { (byte)0xff, (byte)0x51, b1, b2, b3 });
             }else {
                 mm = tempoEvents.get(0);
             }

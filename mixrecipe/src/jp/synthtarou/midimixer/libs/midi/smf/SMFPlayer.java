@@ -127,9 +127,10 @@ public class SMFPlayer {
 
         while (pos < list.size()) {
             SMFMessage smf = list.get(pos);
-            int command = smf._status & 0xf0;
-            int channel = smf._status & 0x0f;
-            int data1 = smf._data1;
+            int status  = smf.getStatus();
+            int command = status & 0xf0;
+            int channel = status & 0x0f;
+            int data1 = smf.getData1();
 
             if (firstNote[channel] == null) {
                 if (command == MXMidi.COMMAND_PROGRAMCHANGE) {
@@ -219,10 +220,10 @@ public class SMFPlayer {
                     if (pos >= list.size()) {
                         break;
                     }
-                } else if (currentEvent._status >= 0x80) {
-                    int status = currentEvent._status;
-                    int data1 = currentEvent._data1;
-                    int data2 = currentEvent._data2;
+                } else if (currentEvent.getStatus() >= 0x80) {
+                    int status = currentEvent.getStatus();
+                    int data1 = currentEvent.getData1();
+                    int data2 = currentEvent.getData2();
                     int command = status & 0xf0;
                     int channel = status & 0x0f;
 
@@ -299,7 +300,7 @@ public class SMFPlayer {
                 SMFMessage currentEvent = list.get(pos++);
 
                 if (currentEvent.isBinaryMessage() || currentEvent.isMetaMessage()) {
-                    if (currentEvent.getBinary().length == 0) {
+                    if (currentEvent.getBinary().length <= 2) {
                         continue;
                     }
                     if (currentEvent.getBinary()[0] == 0) {
@@ -309,10 +310,10 @@ public class SMFPlayer {
                     if (pos >= list.size()) {
                         break;
                     }
-                } else if (currentEvent._status >= 0x80) {
-                    int status = currentEvent._status;
-                    int data1 = currentEvent._data1;
-                    int data2 = currentEvent._data2;
+                } else if (currentEvent.getStatus() >= 0x80) {
+                    int status = currentEvent.getStatus();
+                    int data1 = currentEvent.getData1();
+                    int data2 = currentEvent.getData2();
                     int command = status & 0xf0;
                     int channel = status & 0x0f;
 
@@ -485,8 +486,8 @@ public class SMFPlayer {
         ArrayList<SMFMessage> list = listMessage().listAll();
         int pos = 0;
         for (SMFMessage smf : list) {
-            int command = smf._status; 
-            if ((command & 0xf0) == MXMidi.COMMAND_NOTEON) {
+            int command = smf.getStatus() & 0xf0; 
+            if (command == MXMidi.COMMAND_NOTEON) {
                 return pos;
             }
             pos ++;

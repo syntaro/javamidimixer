@@ -25,17 +25,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.List;
 import javax.swing.JTextArea;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
-import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
-import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
 import jp.synthtarou.midimixer.libs.midi.smf.MidiByteReader;
 import jp.synthtarou.midimixer.libs.text.MXLineReader;
 
@@ -97,7 +93,7 @@ public class SysEXFile {
                     readed = 0;
                 }
             }
-            setContents(out.toByteArray());
+            setContentsFromSingleFile(out.toByteArray());
             fin.close();
             fin = null;
             return true;
@@ -126,7 +122,7 @@ public class SysEXFile {
                     break;
                 }
             }
-            setContents(out.toByteArray());
+            setContentsFromSingleFile(out.toByteArray());
             System.out.println("Read bininary size=" + out.size());
             fin.close();
             fin = null;
@@ -139,34 +135,78 @@ public class SysEXFile {
         }
     }
     
-    public void setContents(byte[] data) {
+    public void setContentsFromSingleFile(byte[] data) {
         ByteArrayInputStream in = new ByteArrayInputStream(data);
         MidiByteReader reader = new MidiByteReader(in);
-        _contents.clear();
+        ArrayList<byte[]> temp = new ArrayList();
+
         int error = 0;
         while (true) {
-            int sig = reader.read8();
+            int sig = reader.peek8();
             if (sig < 0) {
                 break;
             }
-            if (sig == 0xf0 || sig == 0xf7) {
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                out.write(sig);
-                do {
-                    sig = reader.read8();
-                    if (sig < 0) {
-                        break;
-                    }
-                    out.write(sig);
-                }while (sig != 0xf0 && sig != 0xf7);
-
-                byte[] segment = out.toByteArray();
-                _contents.add(segment);
-            }else {
+            if (sig != 0xf0) {
                 System.err.println("Error " + MXUtil.toHexFF(sig));
-                error ++;
+                reader.read8();
+                continue;
+            }
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            out.write(sig);
+            while(true) {
+                int b = reader.read8();
+                if (b < 0) {
+                    break;
+                }
+                if (b == 0xf0 || b == 0xf7) {
+                    byte[] segment = out.toByteArray();
+                    temp.add(segment);
+                    out = new ByteArrayOutputStream();
+                }
+                out.write(b);
+            }
+            byte[] segment = out.toByteArray();
+            temp.add(segment);
+        }
+
+        for (int i = 0; i < temp.size(); ++ i) {
+            byte[] line = temp.get(i);
+            if (line.length == 0) {
+                temp.remove(i);
+                -- i;
+                continue;
+            }
+            if ((line[0] & 0xff) == 0xf0) {
+                if (line.length == 1) {
+                    if (i + 1 >= temp.size()) {
+                        continue;
+                    }
+                    byte[] next = temp.get(i + 1);
+                    byte[] newNext = new byte[next.length + 1];
+                    newNext[0] = line[0];
+                    System.arraycopy(next, 0, newNext, 1, next.length);
+                    temp.set(i, newNext);
+                    temp.remove(i + 1);
+                    i --;
+                    continue;
+                }
+            }
+            if ((line[0] & 0xff) == 0xf7) {
+                if (line.length == 1) {
+                    byte[] prev = temp.get(i - 1);
+                    byte[] newPrev = new byte[prev.length + 1];
+                    System.arraycopy(prev, 0, newPrev, 0, prev.length);
+                    newPrev[newPrev.length - 1] = line[0];
+                    temp.set(i - 1, newPrev);
+                    temp.remove(i);
+                    -- i;
+                    continue;
+                }
             }
         }
+        
+        _contents = temp;
     }
     
     public void add(byte[] data, JTextArea area) {

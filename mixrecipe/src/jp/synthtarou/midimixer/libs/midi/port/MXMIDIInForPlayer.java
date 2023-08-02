@@ -165,26 +165,20 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
             ArrayList<SMFMessage> listMessage = list.listAll();
 
             for (SMFMessage message : listMessage) {
-                if (message._status!= 0xff) {
+                if (message.getStatus() != 0xff) {
                     continue;
                 }
 
-                int type = message._dataType;
+                int type = message.getDataType();
                 byte[] data = message.getBinary();
-                String text = null;
-                try {
-                    text = new String(data, "ASCII");
-                    text = new String(data);
-                    text = new String(data, "SJIS");
-                }catch(Exception e) {
-                    e.printStackTrace();
-                }
+                String text = message.getMetaText();
+
                 int number = 0;
 
                 switch(type) {
                     case 0:
-                        if (data.length >= 2) {                                
-                            number = data[0] * 128 + data[1];
+                        if (data.length >= 4) {                                
+                            number = (data[2] << 8) + data[3];
                             ret.add("Sequence Number : " + number);
                         }
                         break;
@@ -200,7 +194,9 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
                 };
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            if (file.exists()) {                
+                e.printStackTrace();
+            }
             ret.add("Can't open [" + file.toString() + "]");
             ret.add(e.toString());
         }
@@ -222,7 +218,7 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
             ArrayList<SMFMessage> list = _sequencer.listMessage().listAll();
             int pos = 0;
             for (SMFMessage smf : list) {
-                int command = smf._status; 
+                int command = smf.getStatus(); 
                 if ((command & 0xf0) == MXMidi.COMMAND_NOTEON) {
                     _firstNotePos = pos;
                     break;
