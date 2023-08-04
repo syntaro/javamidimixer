@@ -312,6 +312,7 @@ public class MX32MixerView extends javax.swing.JPanel {
         InitializeConfirmPanel panel = new InitializeConfirmPanel(_process);
         MXUtil.showAsDialog(this, panel, "Initialize Mixer");
         updateUI();
+        _process._parent.globalContollerHidden();
     }
     
     public void updateUI() {

@@ -383,8 +383,13 @@ public class MX32MixerData {
         int max = sliderStatus.getRangeMax();
         int min = sliderStatus.getRangeMin();
         MXMessage message = sliderStatus.toMXMessage(null);
-        
-        status.setMonitoringTarget(message.toDText(), message.getChannel(), message.getGate(), max);
+
+        if (message != null) {
+            status.setMonitoringTarget(message.toDText(), message.getChannel(), message.getGate(), max);
+        }
+        else {
+            status.setMonitoringTarget(null, 0, 0, max);
+        }
         status.setSwitchType(MGStatus.SWITCH_TYPE_ON); // 1回のみで
         status.setRangeMin(max);
         status.setRangeMax(max);
@@ -402,8 +407,13 @@ public class MX32MixerData {
         }
         int middle = (max + min) / 2;
         MXMessage message = sliderStatus.toMXMessage(null);
-        
-        status.setMonitoringTarget(message.toDText(), message.getChannel(), message.getGate(), max);
+
+        if (message != null) {
+            status.setMonitoringTarget(message.toDText(), message.getChannel(), message.getGate(), max);
+        }
+        else {
+            status.setMonitoringTarget(null, 0, 0, max);
+        }
         status.setSwitchType(MGStatus.SWITCH_TYPE_ON); // 1回のみで
         status.setRangeMin(middle);
         status.setRangeMax(middle);
@@ -417,8 +427,13 @@ public class MX32MixerData {
         int max = sliderStatus.getRangeMax();
         int min = sliderStatus.getRangeMin();
         MXMessage message = sliderStatus.toMXMessage(null);
-        
-        status.setMonitoringTarget(message.toDText(), message.getChannel(), message.getGate(), max);
+
+        if (message != null) {
+            status.setMonitoringTarget(message.toDText(), message.getChannel(), message.getGate(), max);
+        }
+        else {
+            status.setMonitoringTarget(null, 0, 0, max);
+        }
         status.setSwitchType(MGStatus.SWITCH_TYPE_ON); // 1回のみで
         status.setRangeMin(min);
         status.setRangeMax(min);

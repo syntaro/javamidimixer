@@ -24,6 +24,7 @@ import jp.synthtarou.cceditor.view.CCV10Kontrol;
  */
 public class MX35View extends javax.swing.JPanel {
     MX35Process _process;
+    CCV10Kontrol _kontrol;
     
     /**
      * Creates new form MX35Panel
@@ -31,9 +32,20 @@ public class MX35View extends javax.swing.JPanel {
     public MX35View(MX35Process process) {
         initComponents();
         _process = process;
-        add(new CCV10Kontrol());
+        _kontrol = new CCV10Kontrol();
+        add(_kontrol);
+    }
+    
+    public void updateUI() {
+        super.updateUI();
     }
 
+    public void refreshTable() {
+        if (_kontrol != null) {
+            _kontrol.refreshTable();
+        }
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

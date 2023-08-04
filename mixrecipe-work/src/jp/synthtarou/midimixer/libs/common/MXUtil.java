@@ -24,6 +24,8 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.Window;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -36,12 +38,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
+import java.security.acl.Owner;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -49,8 +53,6 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import jp.synthtarou.midimixer.MXStatic;
-import jp.synthtarou.midimixer.libs.swing.MXFileOpenChooser;
-import jp.synthtarou.midimixer.libs.swing.MXFocusAble;
 import jp.synthtarou.midimixer.libs.text.MXLineReader;
 import jp.synthtarou.midimixer.mx30controller.MGCircle;
 import jp.synthtarou.midimixer.mx30controller.MGPad;
@@ -249,14 +251,46 @@ public class MXUtil {
         loc.y += (screenSize.height - mySize.height) / 2;
         c.setLocation(loc);
     }
+    
+    public static class JTableResizer {
+        JTable _table;
 
-    public static void autoResizeTableColumnWidth(JScrollPane ownwer, JTable table) {
+        public JTableResizer(JTable table) {
+            _table = table;
+            table.addComponentListener(new ComponentListener() {
+                @Override
+                public void componentResized(ComponentEvent e) {
+                    autoResizeTableColumnWidth(_table);
+                }
+
+                @Override
+                public void componentMoved(ComponentEvent e) {
+                }
+
+                @Override
+                public void componentShown(ComponentEvent e) {
+                    System.out.println(".componentShown()");
+                }
+
+                @Override
+                public void componentHidden(ComponentEvent e) {
+                }
+            });
+            autoResizeTableColumnWidth(_table);
+        }
+    }
+    
+    public static void autoResizeTableColumnWidth(JTable table) {
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        
+        System.out.println("jp.synthtarou.midimixer.libs.common.MXUtil.autoResizeTableColumnWidth()");
 
         final TableColumnModel columnModel = table.getColumnModel();
         int totalWidth = table.getWidth();
-        if (ownwer != null) {
-            totalWidth = ownwer.getViewport().getWidth();
+
+        Container cont = table.getParent();
+        if (cont != null) {
+            totalWidth = cont.getWidth();
         }
 
         for (int column = 0; column < table.getColumnCount(); column++) {
@@ -271,8 +305,10 @@ public class MXUtil {
                     if (r instanceof Component) {
                         Component comp = (Component) r;
                         width = Math.max(comp.getPreferredSize().width + 30, width);
+                    } else if (r instanceof String) {
+                        width = Math.max(new JLabel((String)r).getPreferredSize().width, width);
                     } else {
-                        width = 50;
+                        width = Math.max(50, width);
                     }
                 } else {
                     TableCellRenderer renderer = table.getCellRenderer(row, column);
@@ -280,33 +316,11 @@ public class MXUtil {
                     width = Math.max(comp.getPreferredSize().width + 30, width);
                 }
             }
-            if (width > 300) {
-                width = 300;
-            }
             if (column == table.getColumnCount() - 1) {
                 columnModel.getColumn(column).setPreferredWidth(totalWidth);
             } else {
                 totalWidth -= width;
                 columnModel.getColumn(column).setPreferredWidth(width);
-            }
-        }
-    }
-
-    public static void autoResizeTableLastColumnWidth(JScrollPane ownwer, JTable table) {
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-
-        final TableColumnModel columnModel = table.getColumnModel();
-        int totalWidth = table.getWidth();
-        if (ownwer != null) {
-            totalWidth = ownwer.getViewport().getWidth();
-        }
-
-        for (int column = 0; column < table.getColumnCount(); column++) {
-            int width = columnModel.getColumn(column).getWidth();
-            if (column == table.getColumnCount() - 1) {
-                columnModel.getColumn(column).setPreferredWidth(totalWidth);
-            } else {
-                totalWidth -= width;
             }
         }
     }

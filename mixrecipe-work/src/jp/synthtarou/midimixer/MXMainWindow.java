@@ -28,11 +28,13 @@ import javax.swing.Box;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.swing.themes.ThemeManagerDialog;
 import jp.synthtarou.midimixer.mx10input.MX10View;
+import jp.synthtarou.midimixer.mx35cceditor.MX35View;
 import jp.synthtarou.midimixer.mx60output.MX60View;
 import jp.synthtarou.midimixer.mx80vst.MX80Panel;
 
@@ -115,7 +117,14 @@ public class MXMainWindow extends javax.swing.JFrame {
         
         int count = 0;
         for (MXReceiver re : viewList) {
-            jTabbedPane1.add(re.getReceiverName(), re.getReceiverView());
+            if (false) {
+                JScrollPane scroll = new JScrollPane(re.getReceiverView());
+                jTabbedPane1.add(re.getReceiverName(), scroll);
+            }
+            else {
+                //JScrollPane scroll = new JScrollPane(re.getReceiverView());
+                jTabbedPane1.add(re.getReceiverName(), re.getReceiverView());
+            }
             JMenuItem menu = new JMenuItem(re.getReceiverName());
             menu.addActionListener(new WindowMenuItemListener(count));
             count ++;
@@ -240,6 +249,10 @@ public class MXMainWindow extends javax.swing.JFrame {
                 if (view instanceof MX80Panel) {
                     MX80Panel v80 = (MX80Panel)view;
                     v80.onResizeSynth();
+                }
+                if (view instanceof MX35View) {
+                    MX35View v35 = (MX35View)view;
+                    v35.refreshTable();
                 }
             }
         }            

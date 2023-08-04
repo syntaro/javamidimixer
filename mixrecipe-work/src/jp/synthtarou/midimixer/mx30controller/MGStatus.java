@@ -205,7 +205,7 @@ public class MGStatus implements Cloneable {
         if (_cachedMessage == null) {
             _cachedMessage = MXMessageFactory.fromDtext(getTextCommand(), getChannel());
             if (_cachedMessage == null) {
-                return null;
+                _cachedMessage = new MXMessageTemplate(new int[3]);
             }
         }
         return _cachedMessage;
@@ -214,12 +214,16 @@ public class MGStatus implements Cloneable {
     public synchronized MXMessage toMXMessage(MXTiming timing) {
         getTemplate();
 
-        MXMessage message = _cachedMessage.buildMessage(_port, _gate, _value);
+        MXMessageTemplate template = getTemplate();
+        if (template == null) {
+            return null;
+        }
+        MXMessage message = template.buildMessage(_port, _gate, _value);
         message.setValuePairCC14(isValuePairCC14());
         message.setChannel(_channel);;
         
-        if (_cachedMessage.get(0) == MXMessageTemplate.DTEXT_RPN
-          ||_cachedMessage.get(0) == MXMessageTemplate.DTEXT_NRPN) {
+        if (template.get(0) == MXMessageTemplate.DTEXT_RPN
+          ||template.get(0) == MXMessageTemplate.DTEXT_NRPN) {
             MXVisitant visit = new MXVisitant();
             visit.setDataroomType(getDataroomType());
             visit.setDataroomMSB(getDataeroomMSB());
@@ -389,7 +393,12 @@ public class MGStatus implements Cloneable {
         }
         String name;
         if (_name == null || _name.length() == 0) {
-            name = message.toShortString();
+            if (message == null) {
+                name = "null";
+            }
+            else {
+               name = message.toShortString();
+            }
         }else {
             name = _name;
         }
@@ -836,9 +845,6 @@ public class MGStatus implements Cloneable {
      */
     public synchronized void setTextCommand(String textCommand) {
         _cachedMessage = null;
-        if (textCommand == null) {
-            textCommand = "00, 00, 00";
-        }
         _textCommand = textCommand;
     }
 

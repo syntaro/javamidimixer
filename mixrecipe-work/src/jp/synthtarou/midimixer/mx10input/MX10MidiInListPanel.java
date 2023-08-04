@@ -22,11 +22,13 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
@@ -79,7 +81,9 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
                 jTableDeviceKeyPressed(evt);
             }
         });
+
         add(jScrollPane4);
+        new MXUtil.JTableResizer(jTableDevice);
         
         refreshList();
     }
@@ -129,7 +133,6 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
         tableModel.addColumn("Port");
         tableModel.addColumn("Assign");
         tableModel.addColumn("Open");
-        tableModel.addColumn("To Master");
 
         for (MXMIDIIn input : allInput.valueList()) {
             String prefix = "";

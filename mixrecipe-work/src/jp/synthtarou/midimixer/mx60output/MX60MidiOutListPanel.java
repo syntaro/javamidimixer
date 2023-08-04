@@ -27,6 +27,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
@@ -84,6 +85,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
             }
         });
         this.add(jScrollPane4);
+        new MXUtil.JTableResizer(jTableDevice);
         
         refreshList();
     }

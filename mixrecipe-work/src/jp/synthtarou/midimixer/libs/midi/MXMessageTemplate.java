@@ -620,19 +620,24 @@ static final int DTEXT_CCNUM = 0x1500;
     }
     
     public String toString() {
-        StringBuffer str = new StringBuffer();
-        for (int i = 0; i < _template.length; ++ i){
-            int x = _template[i];
-            String seg = fromD(x);
-            if (seg == null) {
-                seg = Integer.toHexString(x);
-            }
-            if (str.length() != 0) {
-                str.append(", ");
-            }
-            str.append(seg);
+        if (_template == null) {
+            return "null";
         }
-        return str.toString();
+        else {
+            StringBuffer str = new StringBuffer();
+            for (int i = 0; i < _template.length; ++ i){
+                int x = _template[i];
+                String seg = fromD(x);
+                if (seg == null) {
+                    seg = Integer.toHexString(x);
+                }
+                if (str.length() != 0) {
+                    str.append(", ");
+                }
+                str.append(seg);
+            }
+            return str.toString();
+        }
     }
     
     public boolean isDataentry() {

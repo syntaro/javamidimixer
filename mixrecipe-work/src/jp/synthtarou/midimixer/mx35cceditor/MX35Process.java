@@ -39,7 +39,7 @@ public class MX35Process extends MXReceiver implements MXSettingTarget {
 
     @Override
     public String getReceiverName() {
-        return "CCEditor";
+        return "Mixer (Domino)";
     }
 
     @Override

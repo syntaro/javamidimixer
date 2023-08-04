@@ -16,8 +16,6 @@
  */
 package jp.synthtarou.cceditor.view;
 
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import jp.synthtarou.cceditor.view.common.AnotherTableData;
 import jp.synthtarou.cceditor.view.common.AnotherTableData2;
 import jp.synthtarou.cceditor.view.common.IPrompt;
@@ -39,33 +37,13 @@ public class CCV10Kontrol extends javax.swing.JPanel {
         
         _model = new AnotherTableData2();
         jTable1.setModel(_model);
-        this.addComponentListener(new ComponentListener() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                if (jTable1 != null) {
-                    MXUtil.autoResizeTableLastColumnWidth(jScrollPane1, jTable1);
-                }
-            }
-
-            @Override
-            public void componentMoved(ComponentEvent e) {
-            }
-
-            @Override
-            public void componentShown(ComponentEvent e) {
-                updateUI();
-            }
-
-            @Override
-            public void componentHidden(ComponentEvent e) {
-            }
-        });
+        
+        new MXUtil.JTableResizer(jTable1);
     }
     
-    public void updateUI() {
-        super.updateUI();
+    public void refreshTable() {
         if (jTable1 != null) {
-            MXUtil.autoResizeTableColumnWidth(jScrollPane1, jTable1);
+            MXUtil.autoResizeTableColumnWidth(jTable1);
         }
     }
 

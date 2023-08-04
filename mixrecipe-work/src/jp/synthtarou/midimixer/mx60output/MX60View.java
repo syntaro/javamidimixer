@@ -25,6 +25,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
@@ -58,6 +59,7 @@ public class MX60View extends javax.swing.JPanel {
         //jComboBoxRecSong.setModel(_recPortList);
          
         _jTableSkip = new JTableWithFooter(jPanel1);
+        new MXUtil.JTableResizer(_jTableSkip);
         resetTableModel();
         _jTableSkip.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override

@@ -125,8 +125,8 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         _process._inputInfo.addTableModelListener(this);
         _process._outputInfo.addTableModelListener(this);
         
-        MXUtil.autoResizeTableColumnWidth(jScrollPane5, jTable1);
-        MXUtil.autoResizeTableColumnWidth(jScrollPane6, jTable2);
+        new MXUtil.JTableResizer(jTable1);
+        new MXUtil.JTableResizer(jTable2);
 
         startEditingPack(0, 0);
         disableUnusedOnPanel();

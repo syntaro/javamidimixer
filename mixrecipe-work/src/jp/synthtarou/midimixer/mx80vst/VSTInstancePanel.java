@@ -513,8 +513,9 @@ public class VSTInstancePanel extends javax.swing.JPanel {
         }
         _initDone = true;
     }   
-    
+
     public void onResize(int width) {
+        /*
         boolean debug = false;
 
         setMinimumSize(new Dimension(width - 5, 100));
@@ -552,5 +553,6 @@ public class VSTInstancePanel extends javax.swing.JPanel {
         }
         
         updateUI();
+        */
     }
 }

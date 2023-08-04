@@ -18,6 +18,7 @@ package jp.synthtarou.midimixer.mx10input;
 
 import java.util.Vector;
 import javax.swing.JLabel;
+import javax.swing.JScrollPane;
 import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
 import jp.synthtarou.midimixer.libs.swing.JTableWithColumnHeader;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -25,6 +26,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
 
@@ -49,6 +51,8 @@ public class MX10View extends javax.swing.JPanel {
         jPanelInputSelect.add(_inPanel);
 
         _jTableSkip = new JTableWithFooter(jPanel1);
+        new MXUtil.JTableResizer(_jTableSkip);
+
         resetTableModel();
         _jTableSkip.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent evt) {
@@ -200,7 +204,8 @@ public class MX10View extends javax.swing.JPanel {
 
     public void resetTableModel() {
         _jTableSkip.setModel(createSkipTableModel(_process._data));
-        _jTableSkip.getColumnModel().getColumn(0).setMinWidth(150);
+        //_jTableSkip.getColumnModel().getColumn(0).setMinWidth(150);
+        new MXUtil.JTableResizer(_jTableSkip);
     }
     
     public void refreshList() {
