@@ -38,7 +38,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
-import java.security.acl.Owner;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -283,8 +282,6 @@ public class MXUtil {
     public static void autoResizeTableColumnWidth(JTable table) {
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         
-        System.out.println("jp.synthtarou.midimixer.libs.common.MXUtil.autoResizeTableColumnWidth()");
-
         final TableColumnModel columnModel = table.getColumnModel();
         int totalWidth = table.getWidth();
 

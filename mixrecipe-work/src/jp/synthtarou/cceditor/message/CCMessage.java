@@ -337,6 +337,7 @@ public class CCMessage {
         System.out.println("Skip " + MXUtil.dumpHexFF(trimBytes(_data, beginIndex, endIndex)));
     }
     
+/*
     public void sendBuffer(MXDriver driver, int device) {
         int dword = getAsDword();
         if (dword > 0) {
@@ -424,4 +425,6 @@ public class CCMessage {
             }
         }
     }
+*/
 }
+

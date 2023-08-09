@@ -29,7 +29,6 @@ import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
-import jp.synthtarou.midimixer.libs.midi.smf.MidiByteReader;
 
 /**
  *
@@ -318,14 +317,7 @@ public class MXDriver_Java implements MXDriver {
                             //JavaSynth には、GM Resetを送らない
                         }
                         SplittableSysexMessage msg = new SplittableSysexMessage(data);
-
-                        if (false) {
-                            MidiByteReader debug1 = new MidiByteReader(msg.getMessage());
-                            debug1.read8();
-                            System.out.println("len: " + debug1.readVariable());
-                            System.out.println("last: " + data.length + " = " + MXUtil.toHexFF(data[data.length - 1]));
-                        }
-
+                        System.out.println("SysEx: " + MXUtil.dumpHexFF(msg.getMessage()));
                         _listOutput.get(x).getReceiver().send(msg, 0);
 
                         return true;

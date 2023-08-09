@@ -109,10 +109,9 @@ public class MX70Panel extends javax.swing.JPanel {
         jTextFieldTestInput = new javax.swing.JTextField();
         jTextFieldTestOutput = new javax.swing.JTextField();
         jLabelTestText = new javax.swing.JLabel();
-        jButtonLogMenu = new javax.swing.JButton();
-        jButtonTestMenu = new javax.swing.JButton();
         jButtonSysEXMenu = new javax.swing.JButton();
-        jToggleButtonPause = new javax.swing.JToggleButton();
+        jCheckBoxLogging = new javax.swing.JCheckBox();
+        jCheckBoxRecordClock = new javax.swing.JCheckBox();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -301,6 +300,11 @@ public class MX70Panel extends javax.swing.JPanel {
         jPanel5.setLayout(new java.awt.GridBagLayout());
 
         jButtonAddTest.setText("+ Add As Test");
+        jButtonAddTest.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonAddTestActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
@@ -309,6 +313,11 @@ public class MX70Panel extends javax.swing.JPanel {
         jPanel5.add(jButtonAddTest, gridBagConstraints);
 
         jButtonRemoveTest.setText("- Remove");
+        jButtonRemoveTest.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonRemoveTestActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 4;
@@ -345,8 +354,7 @@ public class MX70Panel extends javax.swing.JPanel {
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         jPanel5.add(jTextFieldTestOutput, gridBagConstraints);
 
         jLabelTestText.setText("Text");
@@ -357,27 +365,13 @@ public class MX70Panel extends javax.swing.JPanel {
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.gridheight = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         jPanel3.add(jPanel5, gridBagConstraints);
-
-        jButtonLogMenu.setText("Log");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel3.add(jButtonLogMenu, gridBagConstraints);
-
-        jButtonTestMenu.setText("Test");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        jPanel3.add(jButtonTestMenu, gridBagConstraints);
 
         jButtonSysEXMenu.setText("SysEX");
         jButtonSysEXMenu.addActionListener(new java.awt.event.ActionListener() {
@@ -386,20 +380,30 @@ public class MX70Panel extends javax.swing.JPanel {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.weighty = 1.0;
         jPanel3.add(jButtonSysEXMenu, gridBagConstraints);
 
-        jToggleButtonPause.setText("Pause");
-        jToggleButtonPause.addActionListener(new java.awt.event.ActionListener() {
+        jCheckBoxLogging.setText("Logging / Pause");
+        jCheckBoxLogging.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jToggleButtonPauseActionPerformed(evt);
+                jCheckBoxLoggingActionPerformed(evt);
             }
         });
-        jPanel3.add(jToggleButtonPause, new java.awt.GridBagConstraints());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        jPanel3.add(jCheckBoxLogging, gridBagConstraints);
+
+        jCheckBoxRecordClock.setText("Clock Record/Skip");
+        jCheckBoxRecordClock.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxRecordClockActionPerformed(evt);
+            }
+        });
+        jPanel3.add(jCheckBoxRecordClock, new java.awt.GridBagConstraints());
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -556,26 +560,41 @@ int index = jListInsideInput.getSelectedIndex();
         }
     }//GEN-LAST:event_jListOutsideOutputMousePressed
 
-    private void jToggleButtonPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButtonPauseActionPerformed
-        // TODO add your handling code here:
-        boolean pause = jToggleButtonPause.isSelected();
-        _process._outsideInput.switchPause(pause);
-        _process._insideInput.switchPause(pause);
-        _process._insideOutput.switchPause(pause);
-        _process._outsideOutput.switchPause(pause);
-    }//GEN-LAST:event_jToggleButtonPauseActionPerformed
-
     private void jButtonSysEXMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSysEXMenuActionPerformed
         MX70SysexPanel panel = _process.createSysexPanel();
         MXUtil.showAsDialog(this, panel, "System Exclusive");
     }//GEN-LAST:event_jButtonSysEXMenuActionPerformed
 
+    private void jButtonRemoveTestActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRemoveTestActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButtonRemoveTestActionPerformed
+
+    private void jButtonAddTestActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddTestActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButtonAddTestActionPerformed
+
+    private void jCheckBoxLoggingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxLoggingActionPerformed
+        boolean pause = jCheckBoxLogging.isSelected() == false;
+        _process._outsideInput.switchPause(pause);
+        _process._insideInput.switchPause(pause);
+        _process._insideOutput.switchPause(pause);
+        _process._outsideOutput.switchPause(pause);        
+    }//GEN-LAST:event_jCheckBoxLoggingActionPerformed
+
+    private void jCheckBoxRecordClockActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxRecordClockActionPerformed
+        boolean showclock = jCheckBoxRecordClock.isSelected();
+        _process._outsideInput.setRecordClock(showclock);
+        _process._insideInput.setRecordClock(showclock);
+        _process._insideOutput.setRecordClock(showclock);
+        _process._outsideOutput.setRecordClock(showclock);
+    }//GEN-LAST:event_jCheckBoxRecordClockActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonAddTest;
-    private javax.swing.JButton jButtonLogMenu;
     private javax.swing.JButton jButtonRemoveTest;
     private javax.swing.JButton jButtonSysEXMenu;
-    private javax.swing.JButton jButtonTestMenu;
+    private javax.swing.JCheckBox jCheckBoxLogging;
+    private javax.swing.JCheckBox jCheckBoxRecordClock;
     private javax.swing.JLabel jLabelInsideInput;
     private javax.swing.JLabel jLabelInsideOutput;
     private javax.swing.JLabel jLabelOutsideInput;
@@ -606,7 +625,6 @@ int index = jListInsideInput.getSelectedIndex();
     private javax.swing.JTextField jTextFieldTestInput;
     private javax.swing.JTextField jTextFieldTestName;
     private javax.swing.JTextField jTextFieldTestOutput;
-    private javax.swing.JToggleButton jToggleButtonPause;
     // End of variables declaration//GEN-END:variables
 
     public boolean isOwnerWindowVisible() {

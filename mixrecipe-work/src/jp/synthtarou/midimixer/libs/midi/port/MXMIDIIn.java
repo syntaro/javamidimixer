@@ -350,9 +350,10 @@ public class MXMIDIIn {
         int command = status & 0xf0;
         int channel = status & 0x0f;
         
+        /*
         if (status == 0xf8 || status == 0xfe) {
             return;
-        }
+        }*/
         
         synchronized(MXTiming.mutex) {
             MXTiming timing = new MXTiming();

@@ -545,5 +545,6 @@ public class MX32MixerView extends javax.swing.JPanel {
                 }                       
             }
         }
+        updateUI();
     }
 }

@@ -19,7 +19,6 @@ package jp.synthtarou.midimixer.libs.midi.driver;
 import java.io.ByteArrayOutputStream;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiMessage;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
 
 /**
  *
@@ -34,29 +33,16 @@ public class SplittableSysexMessage extends MidiMessage {
     protected void setMessage(byte[] data, int dataLength) throws InvalidMidiDataException {
         _status = data[0] & 0xff;
         int last = data[data.length - 1] & 0xff;
-
+                
         if (_status == 0xf0 || _status == 0xf7) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             
             if (_status == 0xf0 && last == 0xf7) {
-                out.write(data, 0, dataLength);
-            }else if (false) {
-                out.write(data, 0, dataLength);
+            }else if (_status == 0xf0) {
             }else if (true) {
-                /*
-                out.write(data, 0, 1);
-                System.out.println("addingLength From " + MXUtil.dumpHexFF(data));
-                try {
-                    out.write(MidiByteReader.makeVariable(dataLength - 1));
-                }catch(IOException ioe) {
-                    throw new IllegalStateException("out of memory?", ioe);
-                }
-                */
-                _status = 0xf0;
-                out.write(data, 1, dataLength -1);
-                System.out.println("addingLength To " + MXUtil.dumpHexFF(out.toByteArray()));
-            }
-            
+                _offset = 1;
+            }            
+            out.write(data,  _offset, dataLength - _offset);
             byte[] trans = out.toByteArray();
             _length = trans.length;
             setMessagePlain(trans, trans.length);
@@ -89,15 +75,31 @@ public class SplittableSysexMessage extends MidiMessage {
     
     @Override
     public int getStatus() {
-        //return 0xf0;
         return _status;
     }
     
     @Override
     public int getLength() {
-        return _length;
+        return _length + _offset;
     }
     
+    @Override
+    public byte[] getMessage() {
+        byte[] raw = super.getMessage();
+        
+        /*int first = raw[0] & 0xff;
+        if (first != 0xf0 && first != 0xf7) {
+            byte[] data = new byte[raw.length + 1];
+            data[0] = (byte)_status;
+            System.arraycopy(raw, 0, data, 1, raw.length);
+            return data;
+        }
+        else */{
+            return raw;
+        }
+    }
+
+    int _offset;
     int _status;
     int _length;
 }

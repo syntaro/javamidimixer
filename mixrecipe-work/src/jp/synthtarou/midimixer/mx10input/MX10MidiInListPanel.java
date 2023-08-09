@@ -142,8 +142,8 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
             tableModel.addRow(new Object[] { 
                 prefix + input.getName(),
                 input.getPortAssignedAsText(),
-                input.isOpen() ? "o" : "-",
-                input.textForMasterChannel()
+                input.isOpen() ? "o" : "-"
+                /*,input.textForMasterChannel() */
             });
         }
         
@@ -157,12 +157,12 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
             String name = (String)model.getValueAt(i, 0);
             String value = (String)model.getValueAt(i, 1);
             String opened = (String)model.getValueAt(i, 2);
-            String master = (String)model.getValueAt(i, 3);
+            //String master = (String)model.getValueAt(i, 3);
             
             String newName = (String)newModel.getValueAt(i, 0);
             String newValue = (String)newModel.getValueAt(i, 1);
             String newOpen = (String)newModel.getValueAt(i, 2);
-            String newMaster = (String)newModel.getValueAt(i, 3);
+            //String newMaster = (String)newModel.getValueAt(i, 3);
             
             if (name.equals(newName) == false) {
                 _debug.println("any troubole?");
@@ -171,7 +171,7 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
             
             model.setValueAt(newValue, i, 1);
             model.setValueAt(newOpen, i, 2);
-            model.setValueAt(newMaster, i, 3);
+            //model.setValueAt(newMaster, i, 3);
         }
     }
     
@@ -247,10 +247,11 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
             toggleOpen(row);
         }
         if (col == 3) {
-            popupSetMaster(row);
+            //popupSetMaster(row);
         }
     }                                          
 
+    /*
     public class ListenerForSetMaster implements ActionListener {
         MXMIDIIn _input;
         int _channel;
@@ -270,7 +271,7 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
             updateDeviceTable();
         }
     }
-
+*/
     
     public void toggleOpen(int row) {
         DefaultTableModel model = null;
@@ -290,7 +291,7 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
         }
         updateDeviceTable();
     }
-
+/*
     public void popupSetMaster(int row) {
         try {
             DefaultTableModel model = null;
@@ -326,5 +327,5 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
             e.printStackTrace();
         }   
     }
-    
+  */  
 }

@@ -56,11 +56,6 @@ public class SysexSplitter {
     }
     
     public ArrayList<byte[]> splitOrJoin(int maxLength) {
-        // bad usage
-        if (maxLength == 0) {
-            maxLength = 65535;
-        }
-        
         if (maxLength < 10) {
             throw new IllegalArgumentException("split length too small");
         }
@@ -69,37 +64,29 @@ public class SysexSplitter {
         boolean first = true;
         
         byte[] data = sysexBody.toByteArray();
-        MidiByteReader reader = new MidiByteReader(data);
-        int length = data.length;
+        ByteArrayOutputStream segment = new ByteArrayOutputStream();
+        segment.write(0xf0);
+
+        for (int i = 0; i < data.length; ++ i) {
+            int ch = data[i] & 0xff;
+            segment.write(ch);
+            
+            if (ch == 0xf7) {
+                byte[] result = segment.toByteArray();
+                listResult.add(result);
+                segment = new ByteArrayOutputStream();
+                segment.write(0xf0);
+            }
+            else if (maxLength > 0 && segment.size() >= maxLength) {
+                byte[] result = segment.toByteArray();
+                listResult.add(result);
+                segment = new ByteArrayOutputStream();
+                segment.write(0xf7);
+            }
+        }
         
-        while (length > 0) {
-            byte[] readBuffer = new byte[maxLength - 1];
-            int len = reader.readBuffer(readBuffer, maxLength - 1);
-            
-            if (len < 0) {
-                break;
-            }
-            
-            boolean eof = false;
-            if ((readBuffer[len-1] & 0xff) == 0xf7) {
-                eof = true;
-            }
-            
-            byte[] retBuffer = new byte[1 + len];
-            retBuffer[0] = (byte)(first ? 0xf0 : 0xf7);
-
-            first = false;
-
-            for(int x = 0; x < len; ++ x) {
-                retBuffer[x + 1] = readBuffer[x];
-            }
-            
-            System.out.println(MXUtil.dumpHexFF(retBuffer));
-            listResult.add(retBuffer);
-            length -= len;
-            if (eof) {
-                break;
-            }
+        if (segment.size() >= 2) {
+            // not turminate with f7
         }
         
         return listResult;
