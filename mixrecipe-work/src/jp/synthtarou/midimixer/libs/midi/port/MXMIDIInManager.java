@@ -113,6 +113,7 @@ public class MXMIDIInManager implements MXSettingTarget {
                 }
                 temp.addNameAndValue(device.getName(), device);
             } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         
@@ -120,11 +121,13 @@ public class MXMIDIInManager implements MXSettingTarget {
         for (int i = 0; i < uwp.InputDevicesRoomSize(); i++) {
             MXMIDIIn device = new MXMIDIIn(uwp, i);
             try {
+                System.out.println("UWP : "+ device.getName());
                 if (device.getName().equals("Real Time Sequencer")) {
                     continue;
                 }
                 temp.addNameAndValue(device.getName(), device);
             } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 

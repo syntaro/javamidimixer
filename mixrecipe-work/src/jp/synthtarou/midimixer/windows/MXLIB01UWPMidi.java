@@ -16,9 +16,6 @@
  */
 package jp.synthtarou.midimixer.windows;
 
-import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.MXThreadList;
-import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
 
 /**

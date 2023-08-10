@@ -34,22 +34,24 @@ public class SplittableSysexMessage extends MidiMessage {
         _status = data[0] & 0xff;
         int last = data[data.length - 1] & 0xff;
                 
-        if (_status == 0xf0 || _status == 0xf7) {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            
-            if (_status == 0xf0 && last == 0xf7) {
-            }else if (_status == 0xf0) {
-            }else if (true) {
-                _offset = 1;
-            }            
-            out.write(data,  _offset, dataLength - _offset);
-            byte[] trans = out.toByteArray();
-            _length = trans.length;
-            setMessagePlain(trans, trans.length);
-        }
-        else {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        if (_status == 0xf0 && last == 0xf7) {
+            _status = 0xf0;
+            _offset = 0;
+        }else if (_status == 0xf0) {
+            _status = 0xf0;
+            _offset = 0;
+        }else if (_status == 0xf7) {
+            _status = 0xf7;
+            _offset = 1;
+        } else {
             throw new InvalidMidiDataException("data not start f0 or f7");
         }
+        out.write(data,  _offset, dataLength - _offset);
+        byte[] trans = out.toByteArray();
+        _length = trans.length;
+        setMessagePlain(trans, trans.length);
     }
     
     protected void setMessagePlain(byte[] data, int dataLength) throws InvalidMidiDataException {
@@ -80,23 +82,20 @@ public class SplittableSysexMessage extends MidiMessage {
     
     @Override
     public int getLength() {
-        return _length + _offset;
+        return _length /* + _offset */;
     }
     
     @Override
     public byte[] getMessage() {
         byte[] raw = super.getMessage();
-        
-        /*int first = raw[0] & 0xff;
-        if (first != 0xf0 && first != 0xf7) {
-            byte[] data = new byte[raw.length + 1];
-            data[0] = (byte)_status;
-            System.arraycopy(raw, 0, data, 1, raw.length);
-            return data;
+        if (raw.length != getLength()) {
+            throw new IllegalArgumentException("raw.length " + raw.length + " != data.length " + getLength());
         }
-        else */{
-            return raw;
-        }
+        /*
+        if (raw.length > 0 && (raw[0] & 0xff) == 0xf7) {
+            new Throwable("Something Wrong").printStackTrace();
+        }*/
+        return raw;
     }
 
     int _offset;

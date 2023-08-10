@@ -244,8 +244,12 @@ public class SysEXFile {
             for (byte[] data : _contents) {
                 for (int x = 0; x < data.length; ++ x) {
                     String hex = MXUtil.toHexFF(data[x]);
-                    if (x != 0) {
+                    int pos = x % 64;
+                    if (pos != 0) {
                         write.write(" ");
+                    }
+                    else if (x != 0) {
+                        write.write("\n");
                     }
                     write.write(hex);
                 }
@@ -288,37 +292,21 @@ public class SysEXFile {
                 int count = _contents.size();
                 int x = 0;
                 FinalMIDIOut out = FinalMIDIOut.getInstance();
+
                 for (byte[] data : _contents) {
                     progress.progress(x ++ , count);
-                    if (data.length >= splitSize && splitSize >= 1) {
-                        SysexSplitter split = new SysexSplitter();
-                        split.append(data);
-                        ArrayList<byte[]> arrayData = split.splitOrJoin(splitSize);
-                        int totalLength = data.length;
-                        for (byte[] data2 : arrayData) {
-                            totalLength -= data2.length;
-                            System.out.println("split segmnt " + MXUtil.dumpHexFF(data2));
-                            if ((data2[0] & 0xff) == 0xf7) {
-                                totalLength ++;
-                            }
-                            MXMessage longMessage = MXMessageFactory.fromSysexMessage(port, data2);
-                            MXMain.getMain().messageDispatch(longMessage, out);
-                        }
-                        System.out.println("len left " + totalLength);
-                        try {
-                            Thread.sleep(1000);
-                        }catch(Exception e) {
 
-                        }
-                    }
-                    else {
-                        MXMessage longMessage = MXMessageFactory.fromSysexMessage(port, data);
+                    SysexSplitter split = new SysexSplitter();
+                    split.append(data);
+                    ArrayList<byte[]> arrayData = split.splitOrJoin(0 /* splitSize*/);
+                    for (byte[] data2 : arrayData) {
+                        MXMessage longMessage = MXMessageFactory.fromPlaneBinary(port, data2);
                         MXMain.getMain().messageDispatch(longMessage, out);
-                        try {
-                            Thread.sleep(1000);
-                        }catch(Exception e) {
+                    }
+                    try {
+                        Thread.sleep(100);
+                    }catch(Exception e) {
 
-                        }
                     }
                 }
                 progress.progress(x, count);

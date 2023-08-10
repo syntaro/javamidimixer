@@ -17,10 +17,8 @@
 package jp.synthtarou.midimixer.mx70console;
 
 import java.awt.Dimension;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListDataEvent;
@@ -29,7 +27,6 @@ import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.console.ConsoleElement;
 import jp.synthtarou.midimixer.libs.console.ConsoleModel;
 import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
-import jp.synthtarou.midimixer.libs.midi.driver.SysexSplitter;
 import jp.synthtarou.midimixer.libs.swing.MXFileOpenChooser;
 
 /**
@@ -238,7 +235,7 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         gridBagConstraints.gridwidth = 3;
         add(jLabel1, gridBagConstraints);
 
-        jSpinner1.setModel(new javax.swing.SpinnerNumberModel(120, 0, 120, 10));
+        jSpinner1.setModel(new javax.swing.SpinnerNumberModel(1024, 0, 9999, 10));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 6;
         gridBagConstraints.gridy = 5;
@@ -246,7 +243,7 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jSpinner1, gridBagConstraints);
 
-        jLabel2.setText("Split Bytes Per (YAMAHA etc must 0 = Can't recalc HardDepended Style)");
+        jLabel2.setText("Split Bytes Per (0 -> nosplit)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 5;

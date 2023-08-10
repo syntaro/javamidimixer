@@ -24,7 +24,6 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
-import javax.sound.midi.SysexMessage;
 import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -317,7 +316,6 @@ public class MXDriver_Java implements MXDriver {
                             //JavaSynth には、GM Resetを送らない
                         }
                         SplittableSysexMessage msg = new SplittableSysexMessage(data);
-                        System.out.println("SysEx: " + MXUtil.dumpHexFF(msg.getMessage()));
                         _listOutput.get(x).getReceiver().send(msg, 0);
 
                         return true;

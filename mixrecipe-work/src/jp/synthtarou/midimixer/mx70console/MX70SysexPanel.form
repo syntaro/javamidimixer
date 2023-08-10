@@ -186,7 +186,7 @@
     <Component class="javax.swing.JSpinner" name="jSpinner1">
       <Properties>
         <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
-          <SpinnerModel initial="120" maximum="120" minimum="0" numberType="java.lang.Integer" stepSize="10" type="number"/>
+          <SpinnerModel initial="1024" maximum="9999" minimum="0" numberType="java.lang.Integer" stepSize="10" type="number"/>
         </Property>
       </Properties>
       <Constraints>
@@ -197,7 +197,7 @@
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel2">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Split Bytes Per (YAMAHA etc must 0 = Can&apos;t recalc HardDepended Style)"/>
+        <Property name="text" type="java.lang.String" value="Split Bytes Per (0 -&gt; nosplit)"/>
       </Properties>
       <Constraints>
         <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">

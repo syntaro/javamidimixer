@@ -92,9 +92,10 @@ public class MXMIDIIn {
         if (driver instanceof MXDriver_UWP) {
             MXDriver_UWP._instance.addInputCatalog(this);
         }
+        /*
         if (driver instanceof MXDriver_Java) {
             MXDriver_UWP._instance.addInputCatalog(this);
-        }
+        }*/
     }
     
     public boolean isPortAssigned(int port) {
