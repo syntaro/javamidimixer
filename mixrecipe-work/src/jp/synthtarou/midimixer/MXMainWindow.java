@@ -20,10 +20,18 @@ import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import java.net.URI;
 import java.util.Collection;
+/*
+import javafx.application.ConditionalFeature;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.input.TouchEvent;
+*/
 import javax.swing.Box;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -32,6 +40,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
+import jp.synthtarou.midimixer.libs.swing.MXSwingAccordion;
 import jp.synthtarou.midimixer.libs.swing.themes.ThemeManagerDialog;
 import jp.synthtarou.midimixer.mx10input.MX10View;
 import jp.synthtarou.midimixer.mx35cceditor.MX35View;
@@ -43,9 +52,11 @@ import jp.synthtarou.midimixer.mx80vst.MX80Panel;
  * @author Syntarou YOSHIDA
  */
 public class MXMainWindow extends javax.swing.JFrame {
+
     private static final MXDebugPrint _debug = new MXDebugPrint(MXMainWindow.class);
 
     MXMain _main;
+    JTabbedPane jTabbedPane1;
 
     /**
      * Constructor
@@ -56,30 +67,32 @@ public class MXMainWindow extends javax.swing.JFrame {
         jMenuBar1.add(Box.createHorizontalGlue());
         JMenu helpParent = new JMenu("Help");
         jMenuBar1.add(helpParent);
-        
-        JMenuItem  helpMenu = new JMenuItem("Wiki");
+
+        jTabbedPane1 = new javax.swing.JTabbedPane();
+
+        JMenuItem helpMenu = new JMenuItem("Wiki");
         helpMenu.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent evt) {
                 String wikiPage = "https://osdn.net/projects/midimixer/wiki/FrontPage";
-                try{
+                try {
                     Desktop.getDesktop().browse(new URI(wikiPage));
-                }catch(Exception e){
+                } catch (Exception e) {
                     JOptionPane.showMessageDialog(MXMainWindow.this, "Failed launch www-Browser", "Error", JOptionPane.ERROR_MESSAGE);
-                }    
+                }
             }
         });
         helpParent.add(helpMenu);
-        JMenuItem  helpMenu2 = new JMenuItem("Forum");
+        JMenuItem helpMenu2 = new JMenuItem("Forum");
         helpMenu2.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent evt) {
                 String wikiPage = "https://osdn.net/projects/midimixer/forums/";
-                try{
+                try {
                     Desktop.getDesktop().browse(new URI(wikiPage));
-                }catch(Exception e){
+                } catch (Exception e) {
                     JOptionPane.showMessageDialog(MXMainWindow.this, "Failed launch www-Browser", "Error", JOptionPane.ERROR_MESSAGE);
-                }    
+                }
             }
         });
         helpParent.add(helpMenu2);
@@ -103,6 +116,42 @@ public class MXMainWindow extends javax.swing.JFrame {
                 MXVersionDialog.showAsModal(MXMainWindow.this);
             }
         });
+
+        getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.LINE_AXIS));
+        /*
+        if (true) {
+            new JFXPanel(); //initialize before runLater (safety call -> Platform.startup)
+            if (Platform.isSupported(ConditionalFeature.INPUT_TOUCH)) {
+                System.out.println("Touch O");
+            }else {
+                System.out.println("Touch X"); //僕のWindowsではここになるのでサポートしない
+            }
+            if (Platform.isSupported(ConditionalFeature.SWING)) {
+                System.out.println("Swing O");
+            }else {
+                System.out.println("Swing X");
+            }
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        JFXPanel jfx = new JFXPanel();
+                        jfx.setLayout(new javax.swing.BoxLayout(jfx, javax.swing.BoxLayout.LINE_AXIS));
+                        jfx.add(jTabbedPane1);
+                        getContentPane().add(jfx);
+
+                        Scene scene = new Scene(new Group(), javafx.scene.paint.Color.TRANSPARENT);
+                        jfx.setScene(scene);
+                        jfx.getScene().addEventFilter(TouchEvent.ANY, e -> System.out.println("ANY " + e));
+                    }catch(Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        } else */{
+            getContentPane().add(jTabbedPane1);
+        }
+
     }
 
     /**
@@ -114,20 +163,13 @@ public class MXMainWindow extends javax.swing.JFrame {
 
         MXUtil.centerWindow(this);
         setVisible(true);
-        
+
         int count = 0;
         for (MXReceiver re : viewList) {
-            if (false) {
-                JScrollPane scroll = new JScrollPane(re.getReceiverView());
-                jTabbedPane1.add(re.getReceiverName(), scroll);
-            }
-            else {
-                //JScrollPane scroll = new JScrollPane(re.getReceiverView());
-                jTabbedPane1.add(re.getReceiverName(), re.getReceiverView());
-            }
+            jTabbedPane1.add(re.getReceiverName(), re.getReceiverView());
             JMenuItem menu = new JMenuItem(re.getReceiverName());
             menu.addActionListener(new WindowMenuItemListener(count));
-            count ++;
+            count++;
             jMenuWindow.add(menu);
         }
         /*
@@ -141,7 +183,7 @@ public class MXMainWindow extends javax.swing.JFrame {
             });
             jMenuWindow.add(menu);
         }
-        */
+         */
         {
             JMenuItem menu = new JMenuItem("Free Console / SysEX");
             menu.addActionListener(new ActionListener() {
@@ -158,21 +200,22 @@ public class MXMainWindow extends javax.swing.JFrame {
             }
         });
     }
-    
+
     class WindowMenuItemListener implements ActionListener {
+
         int _page;
-        
+
         public WindowMenuItemListener(int page) {
             _page = page;
         }
-        
+
         @Override
         public void actionPerformed(ActionEvent e) {
             jTabbedPane1.setSelectedIndex(_page);
         }
-        
+
     }
-    
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -182,7 +225,6 @@ public class MXMainWindow extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jTabbedPane1 = new javax.swing.JTabbedPane();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenuFile = new javax.swing.JMenu();
         jMenuSaveNow = new javax.swing.JMenuItem();
@@ -190,7 +232,6 @@ public class MXMainWindow extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.LINE_AXIS));
-        getContentPane().add(jTabbedPane1);
 
         jMenuFile.setText("File");
 
@@ -221,40 +262,40 @@ public class MXMainWindow extends javax.swing.JFrame {
     private javax.swing.JMenu jMenuFile;
     private javax.swing.JMenuItem jMenuSaveNow;
     private javax.swing.JMenu jMenuWindow;
-    private javax.swing.JTabbedPane jTabbedPane1;
     // End of variables declaration//GEN-END:variables
 
     /**
      * MainFrame内のTABを管理
+     *
      * @return MainFrame内のTAB
      */
     public JTabbedPane getTabbedPanel() {
         return jTabbedPane1;
     }
 
-    private void tabPanelStateChanged(javax.swing.event.ChangeEvent evt) {                                          
+    private void tabPanelStateChanged(javax.swing.event.ChangeEvent evt) {
         int x = jTabbedPane1.getSelectedIndex();
         if (x >= 0) {
-            Component  view = jTabbedPane1.getComponentAt(x);
+            Component view = jTabbedPane1.getComponentAt(x);
             if (view != null) {
                 view.requestFocusInWindow();
                 if (view instanceof MX60View) {
-                    MX60View v60 = (MX60View)view;
+                    MX60View v60 = (MX60View) view;
                     v60.refreshList();
                 }
                 if (view instanceof MX10View) {
-                    MX10View v10 = (MX10View)view;
+                    MX10View v10 = (MX10View) view;
                     v10.refreshList();
                 }
                 if (view instanceof MX80Panel) {
-                    MX80Panel v80 = (MX80Panel)view;
+                    MX80Panel v80 = (MX80Panel) view;
                     v80.onResizeSynth();
                 }
                 if (view instanceof MX35View) {
-                    MX35View v35 = (MX35View)view;
+                    MX35View v35 = (MX35View) view;
                     v35.refreshTable();
                 }
             }
-        }            
+        }
     }
 }

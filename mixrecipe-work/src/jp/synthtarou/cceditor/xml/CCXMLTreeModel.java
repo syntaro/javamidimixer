@@ -24,7 +24,7 @@ import javax.swing.JTree;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
-import jp.synthtarou.cceditor.view.common.ClipboardMenuItems;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachClipboarder;
 import jp.synthtarou.midimixer.libs.MXGlobalTimer;
 
 /**
@@ -71,7 +71,7 @@ public class CCXMLTreeModel implements TreeModel {
             }
         });
 
-        ClipboardMenuItems clip = new ClipboardMenuItems(tree);
+        MXAttachClipboarder clip = new MXAttachClipboarder(tree);
         clip.insertBeforeThis(_checkAttribute);
         clip.insertBeforeThis(_checkTextContent);
         clip.insertBeforeThis(null);

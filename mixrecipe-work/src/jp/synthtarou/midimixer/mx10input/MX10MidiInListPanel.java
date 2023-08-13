@@ -35,6 +35,7 @@ import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Empty;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 
 /**
  *
@@ -83,7 +84,7 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
         });
 
         add(jScrollPane4);
-        new MXUtil.JTableResizer(jTableDevice);
+        new MXAttachTableResize(jTableDevice);
         
         refreshList();
     }

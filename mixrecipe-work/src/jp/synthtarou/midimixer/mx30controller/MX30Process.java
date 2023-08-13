@@ -20,6 +20,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXStatic;
 import jp.synthtarou.midimixer.MXMain;
@@ -62,7 +63,7 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
                 public String getReceiverName() {
                     return null;
                 }
-                public JComponent getReceiverView() {
+                public JPanel getReceiverView() {
                     return null;
                 }
                 protected void processMXMessageImpl(MXMessage message) {
@@ -168,7 +169,7 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
     }
 
     @Override
-    public JComponent getReceiverView() {
+    public JPanel getReceiverView() {
         return _rootView;
     }
     

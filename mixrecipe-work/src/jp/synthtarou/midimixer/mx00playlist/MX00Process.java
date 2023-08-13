@@ -20,7 +20,7 @@ import jp.synthtarou.midimixer.libs.common.FileWithId;
 import java.io.File;
 import java.util.List;
 import javax.swing.DefaultListModel;
-import javax.swing.JComponent;
+import javax.swing.JPanel;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
@@ -68,7 +68,7 @@ public class MX00Process extends MXReceiver implements MXSettingTarget {
     }
 
     @Override
-    public JComponent getReceiverView() {
+    public JPanel getReceiverView() {
         return _view;
     }
     @Override

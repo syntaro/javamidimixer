@@ -21,7 +21,7 @@ import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JComponent;
+import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXStatic;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -174,7 +174,7 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
     }
 
     @Override
-    public JComponent getReceiverView() {
+    public JPanel getReceiverView() {
         return _view;
     }
 

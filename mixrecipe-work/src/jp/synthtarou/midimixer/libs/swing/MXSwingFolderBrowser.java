@@ -45,7 +45,7 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
  *
  * @author Syntarou YOSHIDA
  */
-public class CCEFolderBrowser extends javax.swing.JPanel {
+public class MXSwingFolderBrowser extends javax.swing.JPanel {
 
     FileSystemView _view = FileSystemView.getFileSystemView();
     DefaultTreeModel _model;
@@ -56,8 +56,8 @@ public class CCEFolderBrowser extends javax.swing.JPanel {
     File _curerntDirectory = null;
 
     public static void main(String[] args) {
-        FileFilter filter = new CCEFleExtensionFilter(new String[]{".xml"});
-        CCEFolderBrowser chooser = new CCEFolderBrowser(new File("C:/Domino144/Module"), filter);
+        FileFilter filter = new MXFileFilterForExtension(new String[]{".xml"});
+        MXSwingFolderBrowser chooser = new MXSwingFolderBrowser(new File("C:/Domino144/Module"), filter);
         chooser.showOpenDialog(null);
         System.out.println("Return " + chooser.getSelectedFile());
     }
@@ -84,7 +84,7 @@ public class CCEFolderBrowser extends javax.swing.JPanel {
     /**
      * Creates new form MXFolderChooser
      */
-    public CCEFolderBrowser(File initialDir, FileFilter filter) {
+    public MXSwingFolderBrowser(File initialDir, FileFilter filter) {
         initComponents();
 
         _already = new TreeSet();

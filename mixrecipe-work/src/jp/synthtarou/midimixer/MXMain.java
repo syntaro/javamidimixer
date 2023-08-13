@@ -135,6 +135,16 @@ public class MXMain  {
     }
     
     public void startUI()  {
+        /*
+        if (SwingUtilities.isEventDispatchThread() == false) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    startUI();
+                }
+            });
+            return;
+        }*/
         _mainWindow = new MXMainWindow(this);
 
         MXOpening winLogo = MXOpening.showAsStartup(_mainWindow);        
@@ -234,19 +244,16 @@ public class MXMain  {
         _mainWindow.initLatebind(reList);
         _mainWindow.setVisible(true);
 
-
-        _mainWindow.setEnabled(true);
         winLogo.showProgress(9, 10);
-
-        //_mx12masterkeyProcess.createWindow();
-
-        winLogo.showProgress(10, 10);
-        winLogo.setVisible(false);
         
         Runnable run;
         while((run = getNextLaunchSequence()) != null) {
             run.run();
         }
+
+        winLogo.showProgress(10, 10);
+        winLogo.setVisible(false);
+        _mainWindow.setEnabled(true);
     }
     
     LinkedList<Runnable> _startQueue = new LinkedList();

@@ -28,7 +28,7 @@ import jp.synthtarou.midimixer.libs.settings.MXSettingUtil;
  *
  * @author Syntarou YOSHIDA
  */
-public class MXFileOpenChooser extends JFileChooser {
+public class MXSwingFileChooser extends JFileChooser {
 
     static File currentDir = MXSettingUtil.getAppBaseDirectory().getAbsoluteFile();
 
@@ -36,11 +36,11 @@ public class MXFileOpenChooser extends JFileChooser {
         return currentDir;
     }
     
-    public MXFileOpenChooser(File dir) {
+    public MXSwingFileChooser(File dir) {
         super(dir);
     }
 
-    public MXFileOpenChooser() {
+    public MXSwingFileChooser() {
         this(currentDir);
     }
 
@@ -85,7 +85,7 @@ public class MXFileOpenChooser extends JFileChooser {
 
     public static void main(String[] args) {
         MXDebugPrint.globalSwitchOn();
-        JFileChooser chooser = new MXFileOpenChooser();
+        JFileChooser chooser = new MXSwingFileChooser();
         chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
             JOptionPane.showMessageDialog(null, "Selected file " + chooser.getSelectedFile().getPath());

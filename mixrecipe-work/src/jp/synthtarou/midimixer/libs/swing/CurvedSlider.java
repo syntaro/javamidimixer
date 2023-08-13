@@ -34,7 +34,7 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
     private boolean _inverted = false;
 
     private Color _highlight;
-    private Color _textBack;
+    private Color _selectionColor;
     
     public void setEditable(boolean e) {
         super.setEnabled(e);
@@ -49,7 +49,7 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
         super.updateUI();
 
         _highlight = new JTextField().getSelectionColor();
-        _textBack = MXUtil.mixedColor(Color.red, Color.yellow, 90);
+        _selectionColor = MXUtil.mixedColor(Color.red, Color.yellow, 90);
     }
 
     int _circleR;
@@ -160,7 +160,7 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
             Math.toDegrees(angleRad-_minAngleRad), 
             Arc2D.PIE);
 
-        g.setColor(_textBack);
+        g.setColor(_selectionColor);
         g.fill(a2);
 
         Arc2D.Double a1inner = new Arc2D.Double(

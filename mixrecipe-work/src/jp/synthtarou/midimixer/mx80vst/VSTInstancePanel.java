@@ -30,6 +30,8 @@ import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.async.Transaction;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 import jp.synthtarou.midimixer.libs.vst.IndexedFile;
 import jp.synthtarou.midimixer.libs.vst.MXPresetAction;
 import jp.synthtarou.midimixer.libs.vst.MXPresetPanel;
@@ -156,6 +158,11 @@ public class VSTInstancePanel extends javax.swing.JPanel {
             String slot = "Slot " + Character.toString(ch);            
             setBorder(BorderFactory.createTitledBorder(slot));
         }
+        
+        new MXAttachSliderLikeEclipse(jSliderInsert);
+        new MXAttachSliderLikeEclipse(jSliderSend);
+        new MXAttachSliderSingleClick(jSliderInsert);
+        new MXAttachSliderSingleClick(jSliderSend);
     }
 
     /**

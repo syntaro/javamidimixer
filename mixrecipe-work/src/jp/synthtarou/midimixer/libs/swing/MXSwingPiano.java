@@ -41,7 +41,7 @@ import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
  *
  * @author Syntarou YOSHIDA
  */
-public class MXPianoComponent extends JComponent {
+public class MXSwingPiano extends JComponent {
 
     /**
      * @return the allowMultiSelect
@@ -84,7 +84,7 @@ public class MXPianoComponent extends JComponent {
     private int _rootNote = 36;
     private int _keyboardOctave = 4;
     
-    public MXPianoComponent() {
+    public MXSwingPiano() {
         addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -93,7 +93,7 @@ public class MXPianoComponent extends JComponent {
 
             @Override
             public void mousePressed(MouseEvent e) {
-                MXPianoComponent.this.pushNoteByMouse(e.getPoint());
+                MXSwingPiano.this.pushNoteByMouse(e.getPoint());
             }
 
             @Override
@@ -112,7 +112,7 @@ public class MXPianoComponent extends JComponent {
         addMouseMotionListener(new MouseMotionListener() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                MXPianoComponent.this.pushNoteByMouse(e.getPoint());
+                MXSwingPiano.this.pushNoteByMouse(e.getPoint());
             }
 
             @Override
@@ -219,7 +219,7 @@ public class MXPianoComponent extends JComponent {
         return widthOne * 5;
     }
 
-    public synchronized void paintOnGraphics(Graphics g, Rectangle rect) {
+    private void paintOnGraphics(Graphics g, Rectangle rect) {
         Rectangle whiteRect = rect;
         
         for (KeyRect key : _whiteKeysList) {
@@ -511,7 +511,7 @@ public class MXPianoComponent extends JComponent {
             return;
         }
         if (note >= 0) {
-            MXPianoComponent.KeyRect key = findRectByNote(_whiteKeysList, note);
+            MXSwingPiano.KeyRect key = findRectByNote(_whiteKeysList, note);
             if (key == null) {
                 key = findRectByNote(_blackKeysList, note);
             }
@@ -534,7 +534,7 @@ public class MXPianoComponent extends JComponent {
         win.setLayout(new GridLayout(7, 1));
 
         for (int i = 1 ; i <= 7; ++ i) {
-            MXPianoComponent comp = new MXPianoComponent();
+            MXSwingPiano comp = new MXSwingPiano();
             if (i == 0) {
                 comp.setAllowMultiSelect(true);
             }

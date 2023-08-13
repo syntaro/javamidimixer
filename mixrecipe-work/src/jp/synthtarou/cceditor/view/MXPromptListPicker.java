@@ -26,7 +26,7 @@ import jp.synthtarou.midimixer.libs.common.MXWrapList;
  *
  * @author Syntarou YOSHIDA
  */
-public class CCV11ListPicker<T> extends javax.swing.JPanel implements IPromptForInput<T>{
+public class MXPromptListPicker<T> extends javax.swing.JPanel implements IPromptForInput<T>{
     
     public static void main(String[] args) {
         MXWrapList<String> model = new MXWrapList<>();
@@ -35,7 +35,7 @@ public class CCV11ListPicker<T> extends javax.swing.JPanel implements IPromptFor
         model.addNameAndValue("OPQ", "opqrstu");
         model.addNameAndValue("VWX", "vwxyz");
         
-        CCV11ListPicker<String> picker = new CCV11ListPicker<>(model, 2);
+        MXPromptListPicker<String> picker = new MXPromptListPicker<>(model, 2);
         System.out.println(CCPromptUtil.showPrompt(null, picker));
         System.out.println(picker.getPromptResult());
     }
@@ -48,7 +48,7 @@ public class CCV11ListPicker<T> extends javax.swing.JPanel implements IPromptFor
     /**
      * Creates new form CCV02ListSelector
      */
-    public CCV11ListPicker(MXWrapList<T> choise, int selectedIndex) {
+    public MXPromptListPicker(MXWrapList<T> choise, int selectedIndex) {
         initComponents();
         _listChoise = choise;
         int sel = selectedIndex;

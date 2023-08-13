@@ -33,7 +33,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
-import jp.synthtarou.midimixer.libs.swing.MXPianoComponent;
+import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
 
 /**
  *
@@ -82,7 +82,7 @@ public class ProgramPicker extends javax.swing.JPanel {
         }
  
         setPreferredSize(new Dimension(600, 600));
-        _piano = new MXPianoComponent();
+        _piano = new MXSwingPiano();
         jPanelPiano.add(_piano);
         _piano.setHandler(new MyHandler());
         jTextFieldSearch.getDocument().addDocumentListener(new DocumentListener() {
@@ -116,7 +116,7 @@ public class ProgramPicker extends javax.swing.JPanel {
     PDBank _lastChoice;
     PDBank _programChanged;
 
-    MXPianoComponent _piano;
+    MXSwingPiano _piano;
    
     MXReceiver _receiver;
     MXWrapList<MXReceiver> _listReceiver;
@@ -186,7 +186,7 @@ public class ProgramPicker extends javax.swing.JPanel {
         updateUISelection(true);
     }
     
-    class MyHandler implements MXPianoComponent.Handler {
+    class MyHandler implements MXSwingPiano.Handler {
         @Override
         public void noteOn(int note) {
             MXWrap<Integer> portObj = (MXWrap)jComboBoxTestPort.getSelectedItem();

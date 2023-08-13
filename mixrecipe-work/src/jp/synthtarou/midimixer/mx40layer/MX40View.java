@@ -38,8 +38,9 @@ import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
 import jp.synthtarou.midimixer.libs.midi.programlist.database.ProgramPicker;
-import jp.synthtarou.midimixer.libs.swing.MXFileOpenChooser;
+import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 
 /**
  *
@@ -125,8 +126,8 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         _process._inputInfo.addTableModelListener(this);
         _process._outputInfo.addTableModelListener(this);
         
-        new MXUtil.JTableResizer(jTable1);
-        new MXUtil.JTableResizer(jTable2);
+        new MXAttachTableResize(jTable1);
+        new MXAttachTableResize(jTable2);
 
         startEditingPack(0, 0);
         disableUnusedOnPanel();
@@ -1420,7 +1421,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
     }//GEN-LAST:event_jButtonSendPortMousePressed
 
     public void doImportLayer() {
-        MXFileOpenChooser chooser = new MXFileOpenChooser();
+        MXSwingFileChooser chooser = new MXSwingFileChooser();
         chooser.addExtension(".xml", "XML File");
         chooser.setAcceptAllFileFilterUsed(false);
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {

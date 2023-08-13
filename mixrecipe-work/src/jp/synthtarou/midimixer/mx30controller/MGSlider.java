@@ -28,9 +28,10 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.swing.MXSliderUIForTablet;
 import jp.synthtarou.midimixer.libs.swing.MXFocusAble;
 import jp.synthtarou.midimixer.libs.swing.MXFocusGroupElement;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 import jp.synthtarou.midimixer.libs.swing.themes.ThemeManager;
 
 /**
@@ -61,10 +62,11 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
 
         updateUI();
 
-        new MXSliderUIForTablet(jSliderValue);
         addMouseWheelListener(this);
+        new MXAttachSliderSingleClick(jSliderValue);
+        new MXAttachSliderLikeEclipse(jSliderValue);
     }
-
+    
     public void updateUI() {
         super.updateUI();
         MGStatus status = getStatus();

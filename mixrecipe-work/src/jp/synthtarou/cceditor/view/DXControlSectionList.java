@@ -16,34 +16,34 @@
  */
 package jp.synthtarou.cceditor.view;
 
-import jp.synthtarou.cceditor.view.common.AnotherTableData;
-import jp.synthtarou.cceditor.view.common.AnotherTableData2;
+import jp.synthtarou.cceditor.view.common.PromptTableModel;
+import jp.synthtarou.cceditor.view.common.PromptTableModelEx;
 import jp.synthtarou.cceditor.view.common.IPrompt;
 import jp.synthtarou.cceditor.view.common.CCPromptUtil;
 import jp.synthtarou.cceditor.xml.CCXMLManagerPanel;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class CCV10Kontrol extends javax.swing.JPanel {
+public class DXControlSectionList extends javax.swing.JPanel {
     
     /**
      * Creates new form Panel03ControllerList
      */
-    public CCV10Kontrol() {
+    public DXControlSectionList() {
         initComponents();
         
-        _model = new AnotherTableData2();
+        _model = new PromptTableModelEx();
         jTable1.setModel(_model);
         
-        new MXUtil.JTableResizer(jTable1);
+        new MXAttachTableResize(jTable1);
     }
     
     public void refreshTable() {
         if (jTable1 != null) {
-            MXUtil.autoResizeTableColumnWidth(jTable1);
+            MXAttachTableResize.autoResizeTableColumnWidth(jTable1);
         }
     }
 
@@ -193,7 +193,7 @@ public class CCV10Kontrol extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonEdirXMLCCActionPerformed
 
     private void jButtonPortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPortActionPerformed
-        IPrompt panel = new CCV14MIDISelector();
+        IPrompt panel = new MXPromptMIDISelector();
         CCPromptUtil.showPrompt(this, panel);
     }//GEN-LAST:event_jButtonPortActionPerformed
 
@@ -206,7 +206,7 @@ public class CCV10Kontrol extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jButtonEditOneActionPerformed
     
-    AnotherTableData _model;
+    PromptTableModel _model;
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;

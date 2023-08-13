@@ -47,7 +47,7 @@ public class AnotherTableEditPanel extends javax.swing.JPanel implements IPrompt
         return new Dimension(400, 150);
     }
 
-    AnotherTableData _dataBase;
+    PromptTableModel _dataBase;
     int _dataRow;
     
     public void reloadTable() {
@@ -108,7 +108,7 @@ public class AnotherTableEditPanel extends javax.swing.JPanel implements IPrompt
     /*
      * Creates new form AnotherTableEditPanel
      */
-    public AnotherTableEditPanel(AnotherTableData data, int row) {
+    public AnotherTableEditPanel(PromptTableModel data, int row) {
         initComponents();
         _dataBase = data;
         _dataRow = row;

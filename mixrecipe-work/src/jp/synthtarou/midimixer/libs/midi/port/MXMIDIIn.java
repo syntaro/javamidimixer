@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.libs.midi.port;
 
 import java.util.ArrayList;
-import javax.swing.JComponent;
+import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXStatic;
 import jp.synthtarou.midimixer.MXThreadList;
@@ -32,7 +32,6 @@ import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver;
-import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
 
 /**
@@ -298,7 +297,7 @@ public class MXMIDIIn {
         }
 
         @Override
-        public JComponent getReceiverView() {
+        public JPanel getReceiverView() {
             return null;
         }
 

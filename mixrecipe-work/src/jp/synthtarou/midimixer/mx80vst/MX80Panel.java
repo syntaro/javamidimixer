@@ -48,7 +48,8 @@ import javax.swing.tree.TreePath;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.async.Transaction;
-import jp.synthtarou.midimixer.libs.swing.MXSliderUIForTablet;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 import jp.synthtarou.midimixer.windows.MXLIB02VST3;
 
 /**
@@ -113,7 +114,8 @@ public class MX80Panel extends javax.swing.JPanel {
         jSliderMasterVolume.setMinimum(0);
         jSliderMasterVolume.setMaximum(1000);
         jSliderMasterVolume.setValue(vol1000);
-        new MXSliderUIForTablet(jSliderMasterVolume);
+        new MXAttachSliderSingleClick(jSliderMasterVolume);
+        new MXAttachSliderLikeEclipse(jSliderMasterVolume);
         _initDone = true;
         
         SwingUtilities.invokeLater(new Runnable() {

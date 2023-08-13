@@ -1,4 +1,20 @@
-package jp.synthtarou.midimixer.libs.swing;
+/*
+ * Copyright 2023 Syntarou YOSHIDA.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package jp.synthtarou.midimixer.libs.swing.attachment;
 
 import java.awt.Point;
 import java.awt.event.MouseEvent;
@@ -12,22 +28,18 @@ import jp.synthtarou.midimixer.MXStatic;
 
 /**
  *
- * @author https://stackoverflow.com/questions/518471/jslider-question-position-after-leftclick
+ * @author Syntarou YOSHIDA
  */
-public class MXSliderUIForTablet extends BasicSliderUI {
-    BasicSliderUI lastUI;
-    
-    public MXSliderUIForTablet(final JSlider slider) {
-        super(slider);
-       
+public class MXAttachSliderSingleClick {
+    public MXAttachSliderSingleClick(JSlider slider) {
         for (MouseListener l : slider.getMouseListeners()) {
             slider.removeMouseListener(l);
         }
         for (MouseMotionListener l2 : slider.getMouseMotionListeners()) {
             slider.removeMouseMotionListener(l2);
         }
-        lastUI = (BasicSliderUI) slider.getUI();
-
+        BasicSliderUI lastUI = (BasicSliderUI) slider.getUI();
+        
         BasicSliderUI.TrackListener tl = lastUI.new TrackListener() {
 
             // this is where we jump to absolute value of click
@@ -49,6 +61,7 @@ public class MXSliderUIForTablet extends BasicSliderUI {
                         int value = ui.valueForYPosition(p.y);
                         slider.setValue(value);
                     }
+                    slider.repaint();
                 }
             }
 
@@ -75,6 +88,7 @@ public class MXSliderUIForTablet extends BasicSliderUI {
                 return false;
             }        
         };
+
         slider.addMouseListener(tl);
         slider.addMouseMotionListener(tl);
     }

@@ -40,7 +40,7 @@ import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
-import jp.synthtarou.midimixer.libs.swing.MXFileOpenChooser;
+import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 
 /**
  *
@@ -341,7 +341,7 @@ public class MX32MixerView extends javax.swing.JPanel {
     }
     
     public void doImportMixer() {
-        MXFileOpenChooser chooser = new MXFileOpenChooser();
+        MXSwingFileChooser chooser = new MXSwingFileChooser();
         chooser.addExtension(".xml", "XML File");
         chooser.setAcceptAllFileFilterUsed(false);
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {

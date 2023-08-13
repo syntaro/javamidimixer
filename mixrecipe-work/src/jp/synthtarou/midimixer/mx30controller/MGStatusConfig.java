@@ -44,7 +44,7 @@ import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
 import jp.synthtarou.midimixer.libs.midi.capture.GateInfomation;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
-import jp.synthtarou.midimixer.libs.swing.MXFileOpenChooser;
+import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 
 /**
@@ -1987,7 +1987,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
     }//GEN-LAST:event_jComboBoxOutputOffTypeActionPerformed
 
     private void jButtonSequenceFileBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSequenceFileBrowseActionPerformed
-        MXFileOpenChooser chooser = new MXFileOpenChooser();
+        MXSwingFileChooser chooser = new MXSwingFileChooser();
 
         chooser.addExtension(".mid", "Standard MIDI File");
         chooser.setAcceptAllFileFilterUsed(false);

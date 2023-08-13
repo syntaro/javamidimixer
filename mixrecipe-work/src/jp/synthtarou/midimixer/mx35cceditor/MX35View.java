@@ -16,7 +16,7 @@
  */
 package jp.synthtarou.midimixer.mx35cceditor;
 
-import jp.synthtarou.cceditor.view.CCV10Kontrol;
+import jp.synthtarou.cceditor.view.DXControlSectionList;
 
 /**
  *
@@ -24,7 +24,7 @@ import jp.synthtarou.cceditor.view.CCV10Kontrol;
  */
 public class MX35View extends javax.swing.JPanel {
     MX35Process _process;
-    CCV10Kontrol _kontrol;
+    DXControlSectionList _kontrol;
     
     /**
      * Creates new form MX35Panel
@@ -32,7 +32,7 @@ public class MX35View extends javax.swing.JPanel {
     public MX35View(MX35Process process) {
         initComponents();
         _process = process;
-        _kontrol = new CCV10Kontrol();
+        _kontrol = new DXControlSectionList();
         add(_kontrol);
     }
     

@@ -28,7 +28,7 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
-import jp.synthtarou.midimixer.libs.swing.MXPianoComponent;
+import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
 
 /**
  *
@@ -72,7 +72,7 @@ public class MXNotePicker extends javax.swing.JPanel {
         return _closeOK;
     }
 
-    MXPianoComponent _piano;
+    MXSwingPiano _piano;
     MXWrapList<Integer> _watchPort = MXUtilMidi.createPortAssigned(true);
     MXWrapList<Integer> _watchChannel = MXUtilMidi.createChannel(false);
     boolean _closeOK = false;
@@ -87,7 +87,7 @@ public class MXNotePicker extends javax.swing.JPanel {
     public MXNotePicker() {
         initComponents();
 
-        _piano = new MXPianoComponent();
+        _piano = new MXSwingPiano();
 
         _piano.setAllowMultiSelect(true);
         _piano.setNoteRange(0, 11);
@@ -98,7 +98,7 @@ public class MXNotePicker extends javax.swing.JPanel {
         jScrollPane1.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         jScrollPane1.setViewportView(_piano);
 
-        _piano.setHandler(new MXPianoComponent.Handler() {
+        _piano.setHandler(new MXSwingPiano.Handler() {
             @Override
             public void noteOn(int note) {
             }

@@ -36,7 +36,8 @@ import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Empty;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
-import jp.synthtarou.midimixer.libs.swing.MXFileOpenChooser;
+import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 import org.xml.sax.SAXException;
 
 /**
@@ -85,7 +86,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
             }
         });
         this.add(jScrollPane4);
-        new MXUtil.JTableResizer(jTableDevice);
+        new MXAttachTableResize(jTableDevice);
         
         refreshList();
     }
@@ -275,12 +276,12 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
             
             File dir = null;
             if (out.getDXMLFile() != null) {
-                dir = MXFileOpenChooser.getExistDirectoryRecursive(out.getDXMLFile());
+                dir = MXSwingFileChooser.getExistDirectoryRecursive(out.getDXMLFile());
             }
             if (dir == null) {
-                dir = MXFileOpenChooser.getStartDirectory();
+                dir = MXSwingFileChooser.getStartDirectory();
             }
-            MXFileOpenChooser chooser = new MXFileOpenChooser(dir);
+            MXSwingFileChooser chooser = new MXSwingFileChooser(dir);
             chooser.addExtension(".xml", "Domino XML File");
             chooser.setAcceptAllFileFilterUsed(false);
             if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {

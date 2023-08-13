@@ -29,6 +29,7 @@ import jp.synthtarou.midimixer.MXStatic;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 
 /**
  *
@@ -51,7 +52,7 @@ public class MX10View extends javax.swing.JPanel {
         jPanelInputSelect.add(_inPanel);
 
         _jTableSkip = new JTableWithFooter(jPanel1);
-        new MXUtil.JTableResizer(_jTableSkip);
+        new MXAttachTableResize(_jTableSkip);
 
         resetTableModel();
         _jTableSkip.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -70,7 +71,7 @@ public class MX10View extends javax.swing.JPanel {
             col.setCellRenderer(tableCellRenderer);
         }
         
-        jCheckBoxUseMessageFilter.setSelected(_process.isUseMessageFilter());
+        jCheckBoxUseSkip.setSelected(_process.isUseMessageFilter());
 
         _jTableSkip.setEnabled(_process.isUseMessageFilter());
         //jPanel4.add(_process._patchBay.getReceiverView());
@@ -109,7 +110,7 @@ public class MX10View extends javax.swing.JPanel {
 
         jSplitPane2 = new javax.swing.JSplitPane();
         jPanelSkip = new javax.swing.JPanel();
-        jCheckBoxUseMessageFilter = new javax.swing.JCheckBox();
+        jCheckBoxUseSkip = new javax.swing.JCheckBox();
         jPanel1 = new javax.swing.JPanel();
         jPanelInputSelect = new javax.swing.JPanel();
 
@@ -121,17 +122,17 @@ public class MX10View extends javax.swing.JPanel {
         jPanelSkip.setBorder(javax.swing.BorderFactory.createTitledBorder("2.Input Filter"));
         jPanelSkip.setLayout(new java.awt.GridBagLayout());
 
-        jCheckBoxUseMessageFilter.setText("Use This Recipe");
-        jCheckBoxUseMessageFilter.addActionListener(new java.awt.event.ActionListener() {
+        jCheckBoxUseSkip.setText("Use This Recipe");
+        jCheckBoxUseSkip.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxUseMessageFilterActionPerformed(evt);
+                jCheckBoxUseSkipActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        jPanelSkip.add(jCheckBoxUseMessageFilter, gridBagConstraints);
+        jPanelSkip.add(jCheckBoxUseSkip, gridBagConstraints);
 
         jPanel1.setLayout(new javax.swing.BoxLayout(jPanel1, javax.swing.BoxLayout.LINE_AXIS));
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -151,9 +152,10 @@ public class MX10View extends javax.swing.JPanel {
         add(jSplitPane2);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jCheckBoxUseMessageFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxUseMessageFilterActionPerformed
-        _process.setUseMesssageFilter(jCheckBoxUseMessageFilter.isSelected());
-    }//GEN-LAST:event_jCheckBoxUseMessageFilterActionPerformed
+    private void jCheckBoxUseSkipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxUseSkipActionPerformed
+        _process.setUseMesssageFilter(jCheckBoxUseSkip.isSelected());
+        _jTableSkip.setEnabled(jCheckBoxUseSkip.isSelected());
+    }//GEN-LAST:event_jCheckBoxUseSkipActionPerformed
 
     public synchronized TableModel createSkipTableModel(MX10Data data) {
         DefaultTableModel model = new DefaultTableModel() {
@@ -195,7 +197,7 @@ public class MX10View extends javax.swing.JPanel {
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JCheckBox jCheckBoxUseMessageFilter;
+    private javax.swing.JCheckBox jCheckBoxUseSkip;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanelInputSelect;
     private javax.swing.JPanel jPanelSkip;
@@ -205,7 +207,7 @@ public class MX10View extends javax.swing.JPanel {
     public void resetTableModel() {
         _jTableSkip.setModel(createSkipTableModel(_process._data));
         //_jTableSkip.getColumnModel().getColumn(0).setMinWidth(150);
-        new MXUtil.JTableResizer(_jTableSkip);
+        new MXAttachTableResize(_jTableSkip);
     }
     
     public void refreshList() {

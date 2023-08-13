@@ -27,10 +27,11 @@ import javax.swing.ListCellRenderer;
  *
  * @author Syntarou YOSHIDA
  */
-public class CheckBoxListCellRenderer extends JCheckBox implements ListCellRenderer, MouseListener {
+public class MXListCellRendererLikeCheckBox extends JCheckBox implements ListCellRenderer, MouseListener {
+
     JList _list;
-    
-    public CheckBoxListCellRenderer() {
+
+    public MXListCellRendererLikeCheckBox() {
     }
 
     public void bind(JList list) {
@@ -41,23 +42,24 @@ public class CheckBoxListCellRenderer extends JCheckBox implements ListCellRende
         list.setCellRenderer(this);
         list.addMouseListener(this);
     }
+
     @Override
     public Component getListCellRendererComponent(
-      JList list,
-      Object value,
-      int index,
-      boolean isSelected,
-      boolean cellHasFocus){
+            JList list,
+            Object value,
+            int index,
+            boolean isSelected,
+            boolean cellHasFocus) {
 
-      JCheckBox checkBox = (JCheckBox)value;
-      setText(checkBox.getText());
-      setSelected(checkBox.isSelected());
+        JCheckBox checkBox = (JCheckBox) value;
+        setText(checkBox.getText());
+        setSelected(checkBox.isSelected());
 
-      return this;
+        return this;
     }
 
     @Override
-    public void mouseClicked(MouseEvent e){
+    public void mouseClicked(MouseEvent e) {
     }
 
     @Override
@@ -66,10 +68,10 @@ public class CheckBoxListCellRenderer extends JCheckBox implements ListCellRende
 
         int index = _list.locationToIndex(p);
 
-        JCheckBox checkBox = (JCheckBox)_list.getModel().getElementAt(index);
-        if (checkBox.isSelected()){
+        JCheckBox checkBox = (JCheckBox) _list.getModel().getElementAt(index);
+        if (checkBox.isSelected()) {
             checkBox.setSelected(false);
-        }else{
+        } else {
             checkBox.setSelected(true);
         }
         //_list.setSelectedIndex(index);

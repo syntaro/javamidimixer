@@ -24,10 +24,10 @@ import javax.swing.JPanel;
  *
  * @author Syntarou YOSHIDA
  */
-public class CCV14MIDISelector extends javax.swing.JPanel implements IPrompt {
+public class MXPromptMIDISelector extends javax.swing.JPanel implements IPrompt {
 
     /** Creates new form Panel011PortOutput */
-    public CCV14MIDISelector() {
+    public MXPromptMIDISelector() {
         initComponents();
     }
 

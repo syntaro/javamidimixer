@@ -22,13 +22,13 @@ public class MainFrame extends javax.swing.JFrame {
      * Creates new form MainFrame
      */
     
-    CCV10Kontrol _kontrol;
+    DXControlSectionList _kontrol;
     
     public MainFrame() {
         initComponents();
         setTitle(Main.APPLICATION_NAME + " " + Main.APPLICATION_VERSION);
 
-        _kontrol = new CCV10Kontrol();
+        _kontrol = new DXControlSectionList();
         getContentPane().add(_kontrol);
         setSize(800, 600);
         centerWindow(this);

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.swing;
+package jp.synthtarou.midimixer.libs.swing.attachment;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -32,16 +32,16 @@ import jp.synthtarou.midimixer.libs.MXGlobalTimer;
  *
  * @author Syntarou YOSHIDA
  */
-public class MXButtonUILabel {
+public class MXAttachLabelSeemsButton {
     String _title;
     JLabel _toInstall;
 
-    public MXButtonUILabel(JLabel toInstall, Runnable target) {
-        _title = toInstall.getText();
-        _toInstall = toInstall;
+    public MXAttachLabelSeemsButton(JLabel label, Runnable target) {
+        _title = label.getText();
+        _toInstall = label;
         _toInstall.setText("");
         setSelected(false);
-        toInstall.addMouseListener(new MouseListener() {
+        label.addMouseListener(new MouseListener() {
             @Override
             public void mouseEntered(MouseEvent e) {
                 setSelected(false);

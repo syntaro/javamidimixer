@@ -24,11 +24,11 @@ import java.util.ArrayList;
  *
  * @author Syntarou YOSHIDA
  */
-public class CCFileExtensionFilter implements FileFilter {
-    public CCFileExtensionFilter() {
+public class MXFileFilterWithExtension implements FileFilter {
+    public MXFileFilterWithExtension() {
     }
 
-    public CCFileExtensionFilter(String[] list) {
+    public MXFileFilterWithExtension(String[] list) {
         for (String ext : list) {
             addExtension(ext);
         }

@@ -23,7 +23,7 @@ import java.util.ArrayList;
  *
  * @author Syntarou YOSHIDA
  */
-public class AnotherTableData2 extends AnotherTableData {
+public class PromptTableModelEx extends PromptTableModel {
     static String[] header = {
         "Module",
         "Ch",
@@ -34,7 +34,7 @@ public class AnotherTableData2 extends AnotherTableData {
     
     ArrayList<String[]> _listRow = new ArrayList<>();
     
-    public AnotherTableData2() {
+    public PromptTableModelEx() {
         super(header);
         _listRow.add(new String[5]);
         _listRow.add(new String[5]);

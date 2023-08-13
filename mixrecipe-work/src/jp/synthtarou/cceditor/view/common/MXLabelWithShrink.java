@@ -17,30 +17,44 @@
 package jp.synthtarou.cceditor.view.common;
 
 import java.awt.AlphaComposite;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
-import javax.swing.plaf.basic.BasicComboBoxRenderer;
-
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MyComboBoxRenderer1 extends BasicComboBoxRenderer {
-        String _text;
-
-    public MyComboBoxRenderer1() {
-    }
-
-    public void setText(String text) {
+public class MXLabelWithShrink extends JLabel {
+    String _text;
+    int _width;
+    
+    public MXLabelWithShrink(String text) {
+        super(text);
         _text = text;
-        super.setText(text.length() < 12 ? text : text.substring(0, 12)); //for calculate minimum size
+        _width = 300;
     }
-
+    
+    public MXLabelWithShrink(String text, int width) {
+        super(text);
+        _text = text;
+        _width = width;
+    }
+    
+    @Override
+    public Dimension getPreferredSize() {
+        Dimension calc = super.getPreferredSize();
+        return new Dimension(_width, calc.height);
+    }
+    
     private static final int LENGTH = 20;
     private static final float DIFF = .05f;
 
@@ -48,7 +62,8 @@ public class MyComboBoxRenderer1 extends BasicComboBoxRenderer {
     public void paintComponent(Graphics g) {
         // https://ateraimemo.com/Swing/TextOverflowFadeLabel.html
         Insets i = getInsets();
-        int w = getWidth() - i.left - i.right;
+        int basew = _width < getWidth() ? _width : getWidth();
+        int w = basew - i.left - i.right;
         int h = getHeight() - i.top - i.bottom;
         Rectangle rect = new Rectangle(i.left, i.top, w - LENGTH, h);
 
@@ -77,5 +92,17 @@ public class MyComboBoxRenderer1 extends BasicComboBoxRenderer {
             tl.draw(g2, getInsets().left, baseline);
         }
         g2.dispose();
+    }
+    
+    public static void main(String[] args) {
+        String alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; 
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        for (int i = 100; i < 800; i += 50) {
+            JLabel label = new MXLabelWithShrink(alpha + alpha + alpha, i);
+            panel.add(label);
+        }
+        MXUtil.showAsDialog(null, panel, "Shrink?");
+        
     }
 }

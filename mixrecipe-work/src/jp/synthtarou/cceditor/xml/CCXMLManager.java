@@ -31,8 +31,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
-import jp.synthtarou.cceditor.view.common.CCFileExtensionFilter;
-import jp.synthtarou.cceditor.view.common.CCFolderBrowser;
+import jp.synthtarou.cceditor.view.common.MXFileFilterWithExtension;
+import jp.synthtarou.cceditor.view.common.MXFolderBrowser;
 import jp.synthtarou.cceditor.view.common.CCPromptUtil;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingNode;
@@ -104,8 +104,8 @@ public class CCXMLManager implements MXSettingTarget {
     ArrayList<CCXMLFile> _listLoaded = new ArrayList<>();
 
     public boolean browseAndImport(JComponent parent) {
-        FileFilter filter = new CCFileExtensionFilter(new String[]{".xml"});
-        CCFolderBrowser chooser = new CCFolderBrowser(getSaveDirectory(), filter);
+        FileFilter filter = new MXFileFilterWithExtension(new String[]{".xml"});
+        MXFolderBrowser chooser = new MXFolderBrowser(getSaveDirectory(), filter);
         CCPromptUtil.showPrompt(parent, chooser);
         File file = chooser.getSelectedFile();
         if (file == null) {

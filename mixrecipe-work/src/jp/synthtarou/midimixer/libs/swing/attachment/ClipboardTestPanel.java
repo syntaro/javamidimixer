@@ -14,10 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.cceditor.view.common;
+package jp.synthtarou.midimixer.libs.swing.attachment;
 
 import java.awt.Dimension;
 import javax.swing.JPanel;
+import jp.synthtarou.cceditor.view.common.IPrompt;
 
 /**
  *
@@ -31,17 +32,17 @@ public class ClipboardTestPanel extends javax.swing.JPanel implements IPrompt {
     public ClipboardTestPanel() {
         initComponents();
         
-        new ClipboardMenuItems(jLabelTest);
-        new ClipboardMenuItems(jLabelTestR);
-        new ClipboardMenuItems(jLabelTestRW);
+        new MXAttachClipboarder(jLabelTest);
+        new MXAttachClipboarder(jLabelTestR);
+        new MXAttachClipboarder(jLabelTestRW);
 
-        new ClipboardMenuItems(jTextAreaTest);
-        new ClipboardMenuItems(jTextAreaTestR);
-        new ClipboardMenuItems(jTextAreaTestRW);
+        new MXAttachClipboarder(jTextAreaTest);
+        new MXAttachClipboarder(jTextAreaTestR);
+        new MXAttachClipboarder(jTextAreaTestRW);
 
-        new ClipboardMenuItems(jTextFieldTest);
-        new ClipboardMenuItems(jTextFieldTestR);
-        new ClipboardMenuItems(jTextFieldTestRW);
+        new MXAttachClipboarder(jTextFieldTest);
+        new MXAttachClipboarder(jTextFieldTestR);
+        new MXAttachClipboarder(jTextFieldTestRW);
     }
 
     /**

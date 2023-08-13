@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.mx12masterkeys;
 
 import java.awt.Container;
-import jp.synthtarou.midimixer.libs.swing.MXButtonUILabel;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachLabelSeemsButton;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Insets;
@@ -33,13 +33,13 @@ import jp.synthtarou.midimixer.MXStatic;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
-import jp.synthtarou.midimixer.libs.swing.MXSliderUIForTablet;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
-import jp.synthtarou.midimixer.libs.swing.MXPianoComponent;
+import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 
 /**
  *
@@ -60,7 +60,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
     }
 
     MX12Process _process;
-    MXPianoComponent _piano;
+    MXSwingPiano _piano;
     MXWrapList<Integer> _watchPort = MXUtilMidi.createPortAssigned(false);
     MXWrapList<Integer> _watchChannel = MXUtilMidi.createChannel(false);
     
@@ -78,7 +78,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
         jSliderPitch.setMinimum(0);
         jSliderPitch.setMaximum(16384 - 1);
         jSliderPitch.setValue(8192);
-        new MXSliderUIForTablet(jSliderPitch);
+        new MXAttachSliderSingleClick(jSliderPitch);
         jSliderPitch.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseReleased(java.awt.event.MouseEvent evt) {
                 setPitchBend(8192);
@@ -112,7 +112,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
         jSliderModwheel.setLabelTable(table2);
         jSliderModwheel.setPaintLabels(true);
 
-        _piano = new MXPianoComponent();
+        _piano = new MXSwingPiano();
         
         _piano.setNoteRange(0, 11);
         _piano.setMinimumSize(new Dimension(9 * 200, 1));
@@ -122,7 +122,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
         jScrollPane1.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         jScrollPane1.setViewportView(_piano);
 
-        _piano.setHandler(new MXPianoComponent.Handler() {
+        _piano.setHandler(new MXSwingPiano.Handler() {
             public void noteOn(int note) {
                 MXMessage message = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_NOTEON + _process.getMouseChannel(), note, _process.getMouseVelocity());
                 _process.mouseMessage(message);
@@ -139,8 +139,8 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
         });
 
         final String title = "Select Output to Connect.";
-        new MXSliderUIForTablet(jSliderModwheel);
-        new MXButtonUILabel(jLabelEdit, new Runnable() {
+        new MXAttachSliderSingleClick(jSliderModwheel);
+        new MXAttachLabelSeemsButton(jLabelEdit, new Runnable() {
             public void run() {
                 Window w = SwingUtilities.getWindowAncestor(MX12MasterkeysPanel.this);
                 JFrame frame = MXMain.getMain().getMainWindow();

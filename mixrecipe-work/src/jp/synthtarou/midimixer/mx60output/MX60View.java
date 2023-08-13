@@ -31,6 +31,7 @@ import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
 import jp.synthtarou.midimixer.libs.swing.JTableWithColumnHeader;
 import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 
 /**
  *
@@ -59,7 +60,7 @@ public class MX60View extends javax.swing.JPanel {
         //jComboBoxRecSong.setModel(_recPortList);
          
         _jTableSkip = new JTableWithFooter(jPanel1);
-        new MXUtil.JTableResizer(_jTableSkip);
+        new MXAttachTableResize(_jTableSkip);
         resetTableModel();
         _jTableSkip.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override

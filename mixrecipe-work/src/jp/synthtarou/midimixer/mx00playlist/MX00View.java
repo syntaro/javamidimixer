@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.mx00playlist;
 
 import jp.synthtarou.midimixer.libs.common.FileWithId;
-import jp.synthtarou.midimixer.libs.swing.MXPianoComponent;
+import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -34,7 +34,7 @@ import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
-import jp.synthtarou.midimixer.libs.swing.MXFileOpenChooser;
+import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInForPlayer;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
@@ -358,7 +358,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         int rows = 0;
         for (int ch = 0; ch < 16; ++ ch) {
             if (activeChannels[ch]) {
-                MXPianoComponent keys = new MXPianoComponent();
+                MXSwingPiano keys = new MXSwingPiano();
                 //maybe more better tune
                 while (octaveRange <= 4) {
                     octaveRange += 2;
@@ -468,7 +468,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     }
     
     private void jButtonAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddActionPerformed
-        MXFileOpenChooser chooser = new MXFileOpenChooser();
+        MXSwingFileChooser chooser = new MXSwingFileChooser();
 
         chooser.addExtension(".mid", "Standard MIDI File");
         chooser.setAcceptAllFileFilterUsed(false);

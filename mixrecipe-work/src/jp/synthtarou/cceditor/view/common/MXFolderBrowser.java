@@ -39,12 +39,13 @@ import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class CCFolderBrowser extends javax.swing.JPanel implements IPromptForInput<File> {
+public class MXFolderBrowser extends javax.swing.JPanel implements IPromptForInput<File> {
 
     FileSystemView _view = FileSystemView.getFileSystemView();
     DefaultTreeModel _model;
@@ -55,8 +56,8 @@ public class CCFolderBrowser extends javax.swing.JPanel implements IPromptForInp
     File _curerntDirectory = null;
 
     public static void main(String[] args) {
-        FileFilter filter = new CCFileExtensionFilter(new String[]{".xml"});
-        CCFolderBrowser chooser = new CCFolderBrowser(new File("C:/Domino144/Module"), filter);
+        FileFilter filter = new MXFileFilterWithExtension(new String[]{".xml"});
+        MXFolderBrowser chooser = new MXFolderBrowser(new File("C:/Domino144/Module"), filter);
         CCPromptUtil.showPanelForTest(null, chooser);
         System.out.println("Return " + chooser.getSelectedFile());
         System.exit(0);
@@ -72,8 +73,12 @@ public class CCFolderBrowser extends javax.swing.JPanel implements IPromptForInp
     /**
      * Creates new form MXFolderChooser
      */
-    public CCFolderBrowser(File initialDir, FileFilter filter) {
+    public MXFolderBrowser(File initialDir, FileFilter filter) {
         initComponents();
+        
+        if (initialDir == null) {
+            initialDir = MXUtil.getAppBaseDirectory();
+        }
 
         _already = new TreeSet();
         _curerntDirectory = initialDir;
@@ -233,6 +238,9 @@ public class CCFolderBrowser extends javax.swing.JPanel implements IPromptForInp
 
     public boolean isTargetVisible(File target) {
         if (target.isDirectory() == false) {
+            if (_onlyFilter == null) {
+                return true;
+            }
             if (_onlyFilter.accept(target)) {
                 return true;
             }

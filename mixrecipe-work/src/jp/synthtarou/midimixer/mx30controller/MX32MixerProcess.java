@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.mx30controller;
 import jp.synthtarou.midimixer.libs.UniqueChecker;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JComponent;
+import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXStatic;
 import jp.synthtarou.midimixer.libs.midi.MXScaledNumber;
 import jp.synthtarou.midimixer.libs.MXGlobalTimer;
@@ -76,7 +76,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
     }
 
     @Override
-    public JComponent getReceiverView() {
+    public JPanel getReceiverView() {
         return _view;
     }
 

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.cceditor.view.common;
+package jp.synthtarou.midimixer.libs.swing.attachment;
 
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -30,12 +30,13 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import jp.synthtarou.cceditor.view.common.CCPromptUtil;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class ClipboardMenuItems {
+public class MXAttachClipboarder {
 
     public static void main(String[] args) {
         CCPromptUtil.showPanelForTest(null, new ClipboardTestPanel());
@@ -48,7 +49,7 @@ public class ClipboardMenuItems {
 
     JComponent _component = null;
 
-    public ClipboardMenuItems(JComponent component) {
+    public MXAttachClipboarder(JComponent component) {
         _component = component;
         component.addMouseListener(new MouseAdapter() {
             @Override

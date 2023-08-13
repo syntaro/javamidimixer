@@ -24,10 +24,10 @@ import javax.swing.table.AbstractTableModel;
  *
  * @author Syntarou YOSHIDA
  */
-public abstract class AnotherTableData extends AbstractTableModel {
+public abstract class PromptTableModel extends AbstractTableModel {
     private final String[] _columns;
     
-    public AnotherTableData(String[] columns) {
+    public PromptTableModel(String[] columns) {
         _columns = columns;
     }
     

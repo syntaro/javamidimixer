@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.swing;
+package jp.synthtarou.midimixer.libs.swing.attachment;
 
 import java.awt.Component;
 import java.awt.Container;
@@ -35,12 +35,13 @@ import jp.synthtarou.midimixer.MXStatic;
  *
  * @author Syntarou YOSHIDA
  */
-public class MXSpinnerMouseExt {
+public class MXAttachSpinnerWheelAble {
     JSpinner _spinner;
     JComponent _parent;
     Point _basePoint;
 
-    public MXSpinnerMouseExt(JComponent parent, JSpinner spinner) {
+    public MXAttachSpinnerWheelAble(JSpinner spinner) {
+         JComponent parent = (JComponent)spinner.getParent();
         _spinner = spinner;
         _parent = parent;
 

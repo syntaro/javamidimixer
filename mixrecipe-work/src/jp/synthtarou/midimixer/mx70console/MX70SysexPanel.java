@@ -27,7 +27,7 @@ import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.console.ConsoleElement;
 import jp.synthtarou.midimixer.libs.console.ConsoleModel;
 import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
-import jp.synthtarou.midimixer.libs.swing.MXFileOpenChooser;
+import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 
 /**
  *
@@ -253,7 +253,7 @@ public class MX70SysexPanel extends javax.swing.JPanel {
 
     private void jButtonLoadSysexActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonLoadSysexActionPerformed
         _file.clear(jTextArea1);
-        MXFileOpenChooser chooser = new MXFileOpenChooser();
+        MXSwingFileChooser chooser = new MXSwingFileChooser();
         chooser.addExtension(".txt", "TEXT");
         chooser.addExtension(".sysex", "SysEX");
         chooser.addExtension(".syx", "SysEX");

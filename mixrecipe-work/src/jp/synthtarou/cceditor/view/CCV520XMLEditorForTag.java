@@ -21,7 +21,7 @@ import javax.swing.table.DefaultTableModel;
 import jp.synthtarou.cceditor.view.common.CCPromptUtil;
 import jp.synthtarou.cceditor.view.common.CCTextPrompt;
 import jp.synthtarou.cceditor.view.common.CCXMLAttributePrompt;
-import jp.synthtarou.cceditor.view.common.MyComboBoxRenderer1;
+import jp.synthtarou.cceditor.view.common.ShrinkableComboBoxRenderer;
 import jp.synthtarou.cceditor.xml.CCXMLFile;
 import jp.synthtarou.cceditor.xml.CCXMLNode;
 import jp.synthtarou.cceditor.xml.CCXMLTreeModel;
@@ -53,7 +53,7 @@ public class CCV520XMLEditorForTag extends javax.swing.JPanel {
         //jTextFieldTagPath.setText(node.getAsPathString(null));
         _file = file;
 
-        jComboBox1.setRenderer(new MyComboBoxRenderer1());
+        jComboBox1.setRenderer(new ShrinkableComboBoxRenderer());
         jComboBox1.setModel(file.listModules());
         fillTreeSub(file.getModule(0));
     }

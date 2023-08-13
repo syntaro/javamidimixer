@@ -24,8 +24,6 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.Window;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -44,13 +42,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
 import jp.synthtarou.midimixer.MXStatic;
 import jp.synthtarou.midimixer.libs.text.MXLineReader;
 import jp.synthtarou.midimixer.mx30controller.MGCircle;
@@ -251,76 +243,6 @@ public class MXUtil {
         c.setLocation(loc);
     }
     
-    public static class JTableResizer {
-        JTable _table;
-
-        public JTableResizer(JTable table) {
-            _table = table;
-            table.addComponentListener(new ComponentListener() {
-                @Override
-                public void componentResized(ComponentEvent e) {
-                    autoResizeTableColumnWidth(_table);
-                }
-
-                @Override
-                public void componentMoved(ComponentEvent e) {
-                }
-
-                @Override
-                public void componentShown(ComponentEvent e) {
-                    System.out.println(".componentShown()");
-                }
-
-                @Override
-                public void componentHidden(ComponentEvent e) {
-                }
-            });
-            autoResizeTableColumnWidth(_table);
-        }
-    }
-    
-    public static void autoResizeTableColumnWidth(JTable table) {
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        
-        final TableColumnModel columnModel = table.getColumnModel();
-        int totalWidth = table.getWidth();
-
-        Container cont = table.getParent();
-        if (cont != null) {
-            totalWidth = cont.getWidth();
-        }
-
-        for (int column = 0; column < table.getColumnCount(); column++) {
-            int width = 10; // Min width
-            for (int row = -1; row < table.getRowCount(); row++) {
-                if (row < 0) {
-                    TableCellRenderer renderer = table.getTableHeader().getDefaultRenderer();
-                    TableColumnModel model = table.getColumnModel();
-                    TableColumn col = model.getColumn(column);
-                    col.getHeaderValue();
-                    Object r = renderer.getTableCellRendererComponent(table, col.getHeaderValue(), false, false, 0, column);
-                    if (r instanceof Component) {
-                        Component comp = (Component) r;
-                        width = Math.max(comp.getPreferredSize().width + 30, width);
-                    } else if (r instanceof String) {
-                        width = Math.max(new JLabel((String)r).getPreferredSize().width, width);
-                    } else {
-                        width = Math.max(50, width);
-                    }
-                } else {
-                    TableCellRenderer renderer = table.getCellRenderer(row, column);
-                    Component comp = table.prepareRenderer(renderer, row, column);
-                    width = Math.max(comp.getPreferredSize().width + 30, width);
-                }
-            }
-            if (column == table.getColumnCount() - 1) {
-                columnModel.getColumn(column).setPreferredWidth(totalWidth);
-            } else {
-                totalWidth -= width;
-                columnModel.getColumn(column).setPreferredWidth(width);
-            }
-        }
-    }
 
     public static Container getOwnerWindow(Component panel) {
         while (panel != null) {
