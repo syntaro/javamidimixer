@@ -145,8 +145,7 @@ public class MGStatus implements Cloneable {
     private String _textCommand = "";
     
     private RangedValue _value = RangedValue.ZERO7;
-    private boolean _uiValueInvert = false;
-    private int _valueHome = 0;    
+    private int _valueHome = 0;
     private boolean _valueLastSent = false;
     private boolean _valueLastDetect = false;
     
@@ -200,7 +199,7 @@ public class MGStatus implements Cloneable {
         _row = row;
         _column = column;
     }
-
+    
     public MXTemplate getTemplate() {
         if (_cachedTemplate == null) {
             _cachedTemplate = MXMessageFactory.fromDtext(getTextCommand(), getChannel());
@@ -315,8 +314,7 @@ public class MGStatus implements Cloneable {
         status.setName(getName());
         status.setMemo(getMemo());
 
-        status.setRange(_value._min, _value._max);
-        status.setUiValueInvert(_uiValueInvert);
+        status.setValue(_value);
         status.setValueHome(_valueHome); 
         status.setValueLastSent(_valueLastSent);
 
@@ -428,7 +426,7 @@ public class MGStatus implements Cloneable {
                         break;
                 }
                 if (value >= _value._min && value <= _value._max) {
-                    setValue(value);
+                    setValue(_value.updateValue(value));
                     return true;
                 }
                 return false;
@@ -436,11 +434,11 @@ public class MGStatus implements Cloneable {
 
             int value = message.getValue()._var;
             if (message.isCommand(MXMidi.COMMAND_NOTEOFF)) {
-                setValue(0);
+                setValue(_value.updateValue(0));
                 return true;
             }
             if (value >= _value._min && value <= _value._max) {
-                setValue(value);
+                setValue(_value.updateValue(value));
                 return true;
             }
             return false;
@@ -448,7 +446,7 @@ public class MGStatus implements Cloneable {
         else if (isOnlyValueDifferent(message)) {
             int value = message.getValue()._var;
             if (value >= _value._min && value <= _value._max) {
-                setValue(value);
+                setValue(_value.updateValue(value));
                 return true;
             }
             return false;
@@ -830,30 +828,8 @@ public class MGStatus implements Cloneable {
         return _value;
     }
 
-    public synchronized void setValue(int value) {
-        _value = _value.updateValue(value);
-    }
-
-    public synchronized void setRange(int min, int max) {
-        _value = _value.modifyRangeTo(min, max);
-    }
-
-    public synchronized void setGateRange(int min, int max) {
-        _gate = _gate.modifyRangeTo(min, max);
-    }
-
-    /**
-     * @return the uiValueInvert
-     */
-    public boolean isUiValueInvert() {
-        return _uiValueInvert;
-    }
-
-    /**
-     * @param uiValueInvert the uiValueInvert to set
-     */
-    public synchronized void setUiValueInvert(boolean uiValueInvert) {
-        _uiValueInvert = uiValueInvert;
+    public void setValue(RangedValue value) {
+        _value = value;
     }
 
     /**
@@ -911,7 +887,38 @@ public class MGStatus implements Cloneable {
     public int getChannel() {
         return _channel;
     }
+    
+    public boolean hasCustomRange() {
+        int wishMax = getTemplate().getBytePosHiValue() >= 0 ? (128 * 128 - 1) : 127;
+        
+        if (_ccPair14) {
+            wishMax = 128 * 128 -1;
+        }
+        
+        if (_value._min == 0 && _value._max == wishMax) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+    
+    public void resetCustomRange() {
+        if (getTemplate().getBytePosHiValue() >= 0) {
+            _value = _value.modifyRangeTo(0, 128 * 128 -1);
+        }
+        else if (_ccPair14) {
+            _value = _value.modifyRangeTo(0, 128 * 128 -1);
+        }
+        else {
+            _value = _value.modifyRangeTo(0, 128 -1);
+        }
+    }
 
+    public void setCustomRange(int min, int max) {
+        _value = _value.modifyRangeTo(min, max);
+    }
+   
     /**
      * @param channel the channel to set
      */

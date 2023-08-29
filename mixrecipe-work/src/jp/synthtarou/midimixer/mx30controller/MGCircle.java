@@ -53,10 +53,6 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
         _process._data.setCircleStatus(_row, _column, status);
     }
 
-    public void setInverted(boolean invert) {
-        jCircleValue.setInverted(invert);
-    }
-
     public MGCircle(MX32MixerProcess process, int row, int column) {
         _row = row;
         _column = column;
@@ -71,9 +67,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
     public void updateUI() {
         MGStatus status = getStatus();
         if (status != null) {
-            jCircleValue.setRange(status.getValue()._min, status.getValue()._max);
-            jCircleValue.setInverted(status.isUiValueInvert());
-            jCircleValue.setValue(status.getValue()._var);
+            jCircleValue.setValue(status.getValue());
 
             if (status.getName() == null || status.getName().length() == 0) {
                 MXMessage message = status.toMXMessage(null);
@@ -172,7 +166,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
     
     public void changeUIOnly(MXTiming timing, int newValue) {
         if (jCircleValue.getValue() != newValue) {
-            getStatus().setValue(newValue);
+            getStatus().setValue(getStatus().getValue().updateValue(newValue));
 
             if (SwingUtilities.isEventDispatchThread() == false) {
                 //new Throwable().printStackTrace();
@@ -180,7 +174,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
                     public void run() {
                         synchronized(this) {
                             _ignoreEvent = true;
-                            jCircleValue.setValue(newValue);
+                            jCircleValue.setValue(getStatus().getValue());
                             _ignoreEvent = false;
                         }
                     }
@@ -188,7 +182,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
             }else {
                 synchronized(this) {
                     _ignoreEvent = true;
-                    jCircleValue.setValue(newValue);
+                    jCircleValue.setValue(getStatus().getValue());
                     _ignoreEvent = false;
                 }
             }

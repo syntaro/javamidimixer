@@ -29,6 +29,7 @@ public class RangedValue {
     public static RangedValue[] _cache128;
     
     static {
+        // 大した、メモリ負荷はないが、いちおうできそうなので、キャッシュ
         _cache128 = new RangedValue[128];
         for (int i = 0; i < 128; ++ i) {
             _cache128[i] = new RangedValue(i, 0, 127);
@@ -47,64 +48,87 @@ public class RangedValue {
     
     public final int _min;
     public final int _max;
-    public final int _size;
+    public final int _count;
+
     public final int _var;
+    public final double _position;
     
     public static final int MAX7  = 127;
     public static final int MAX14 = 128 * 128 - 1;
 
     public RangedValue(int value, int min, int max) {
-        _var = value;
-        _min = min;
-        _max = max;
-        if (_min <= _max) {
-            _size = _max - _min + 1;
-        } else {
-            _size = _min - _max + 1;
+        this(value, min, max, calcPosition(value, min, max));
+    }
+
+    static double calcPosition(int value, int min, int max) {
+        if (min <= max) {
+            int count = max - min + 1;
+            return (value - min) * 1.0 / count;
+        }
+        else {
+            int count = min - max + 1;
+            return (min - value) * 1.0 / count;
         }
     }
 
-    public RangedValue modifyRangeTo(int newMin, int newMax) {
-        int roomCountFrom;
-        int roomCountTo;
-        int newValue;
-        double fromD;
-        double toD;
-
-        if (_min <= _max) {
-            roomCountFrom = _max - _min + 1;
-            fromD = _var - _min;
-        } else {
-            roomCountFrom = _min - _max + 1;
-            fromD = _min - _var;
+    protected RangedValue(int value, int min, int max, double position) {
+        _min = min;
+        _max = max;
+        if (min <= max) {
+            _count = max - min + 1;
+        }
+        else {
+            _count = min - max + 1;
         }
 
-        if (newMin <= newMax) {
-            roomCountTo = newMax - newMin + 1;
-            toD = fromD * roomCountTo / roomCountFrom;
+        _var = value;
+        _position = position;
+    }
+    
+    
+    public RangedValue modifyRangeTo(int newMin, int newMax) {
+        if (newMin == _min && newMax == _max) {
+            return this;
+        }
 
-            double multi = (double) roomCountTo / roomCountFrom;
+        int count;
+        if (newMin < newMax) {
+            count = newMax - newMin + 1;
+        }
+        else {
+            count =  newMin - newMax + 1;
+        }
+        
+        int newValue;
+
+        if (newMin < newMax) {
+            int roomCountTo = newMax - newMin + 1;
+            double toD = _position * roomCountTo;
+
+            double multi = (double) roomCountTo / this._count;
             multi--;
             toD += multi / 2;
 
             newValue = newMin + (int) Math.round(toD);
         } else {
-            roomCountTo = newMin - newMax + 1;
-            toD = fromD * roomCountTo / roomCountFrom;
+            int roomCountTo = newMin - newMax + 1;
+            double toD = _position * roomCountTo;
 
-            double multi = (double) roomCountTo / roomCountFrom;
+            double multi = (double) roomCountTo / this._count;
             multi--;
             toD += multi / 2;
 
             newValue = newMin - (int) Math.round(toD);
         }
-
+        
         if (newMin == 0 && newMax == 127) {
-            return _cache128[newValue];
+            if (newValue >= 0 && newValue <= 127) {
+                return new7bit(newValue);
+            }
         }
-        return new RangedValue(newValue, newMin, newMax);
+        return new RangedValue(newValue, newMin, newMax, _position);
     }
-
+    
     public static void test0(int oldMin, int oldMax, int newMin, int newMax) {
         TreeMap<Integer, Integer> count = new TreeMap();
         RangedValue sample = new RangedValue(0, oldMin, oldMax);
@@ -162,8 +186,8 @@ public class RangedValue {
         RangedValue dump = new RangedValue(0, newMin, newMax);
 
         System.out.println("");
-        System.out.println("元の幅：" + oldMin + " ~ " + oldMax + " = " + sample._size + " 通り");
-        System.out.println("新しい幅：" + newMin + " ~ " + newMax + " = " + dump._size + " 通り");
+        System.out.println("元の幅：" + oldMin + " ~ " + oldMax + " = " + sample._count + " 通り");
+        System.out.println("新しい幅：" + newMin + " ~ " + newMax + " = " + dump._count + " 通り");
         System.out.println("箱の数:" + boxCount + " 新最小値：" + minKey + " 新最大値：" + maxKey);
         if (minCount == maxCount) {
             System.out.println("わけた箱の中身は、すべて " + minCount + " 個で統一されています。");
@@ -262,5 +286,9 @@ public class RangedValue {
             return _cache128[value];
         }
         return new RangedValue(value, _min, _max);
+    }
+    
+    public String toString() {
+        return String.valueOf(_var);
     }
 }

@@ -22,6 +22,7 @@ import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
 import jp.synthtarou.midimixer.libs.vst.VSTInstance;
 
@@ -44,8 +45,7 @@ public class VSTVolume extends javax.swing.JPanel {
         _bus = bus;
         
         _slider = new CurvedSlider(45);
-        _slider.setRange(0, 127);
-        _slider.setValue(_instance.getBusVolume(_bus));
+        _slider.setValue(RangedValue.new7bit(_instance.getBusVolume(_bus)));
         _slider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -94,7 +94,7 @@ public class VSTVolume extends javax.swing.JPanel {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                _slider.setValue(_instance.getBusVolume(_bus));
+                _slider.setValue(RangedValue.new7bit(_instance.getBusVolume(_bus)));
             }
         });
     }

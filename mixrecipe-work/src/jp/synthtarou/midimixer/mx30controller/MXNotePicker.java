@@ -73,8 +73,8 @@ public class MXNotePicker extends javax.swing.JPanel {
     }
 
     MXSwingPiano _piano;
-    MXWrapList<Integer> _watchPort = MXMidi.createPortAssigned(true);
-    MXWrapList<Integer> _watchChannel = MXMidi.createChannel(false);
+    MXWrapList<Integer> _watchPort = MXMidi.listupPortAssigned(true);
+    MXWrapList<Integer> _watchChannel = MXMidi.listupChannel(false);
     boolean _closeOK = false;
     int[] _retNote = null;
     

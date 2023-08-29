@@ -55,8 +55,8 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
     MX40Layer _editingLayer;
 
     //MXWrapList<Integer> _watchPort = MXMidi.createPortShort();
-    MXWrapList<Integer> _watchChannel = MXMidi.createChannel(false);
-    MXWrapList<Integer> _watchProgram = MXMidi.createProgram();
+    MXWrapList<Integer> _watchChannel = MXMidi.listupChannel(false);
+    MXWrapList<Integer> _watchProgram = MXMidi.listupProgramNumber();
 
     MXWrapList<Integer> _modPort = MX40Layer.createSendOption(false);
     MXWrapList<Integer> _modChannel = MX40Layer.createSendOption(false);
@@ -64,16 +64,16 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
     MXWrapList<Integer> _modProgram = MX40Layer.createSendOption(true);
 
     //MXWrapList<Integer> _changePort = MXMidi.createPortShort();
-    MXWrapList<Integer> _changeChannel = MXMidi.createChannel(false);
-    MXWrapList<Integer> _changeProgram = MXMidi.createProgram();
-    MXWrapList<Integer> _changeVolume = MXMidi.createPercent();
-    MXWrapList<Integer> _changeExpression = MXMidi.createPercent();
+    MXWrapList<Integer> _changeChannel = MXMidi.listupChannel(false);
+    MXWrapList<Integer> _changeProgram = MXMidi.listupProgramNumber();
+    MXWrapList<Integer> _changeVolume = MXMidi.listupPercent();
+    MXWrapList<Integer> _changeExpression = MXMidi.listupPercent();
 
-    MXWrapList<Integer> _changeLowNote = MXMidi.createNoteNo();
-    MXWrapList<Integer> _changeHighNote = MXMidi.createNoteNo();
+    MXWrapList<Integer> _changeLowNote = MXMidi.listupNoteNo();
+    MXWrapList<Integer> _changeHighNote = MXMidi.listupNoteNo();
 
-    MXWrapList<Integer> _changeLowVelocity = MXMidi.createVelocity();
-    MXWrapList<Integer> _changeHighVelocity = MXMidi.createVelocity();
+    MXWrapList<Integer> _changeLowVelocity = MXMidi.listupVelocity();
+    MXWrapList<Integer> _changeHighVelocity = MXMidi.listupVelocity();
 
     MXWrapList<MX40Group> _groupsModel = null;
     MXWrapList<MX40Layer> _layersModel = null;

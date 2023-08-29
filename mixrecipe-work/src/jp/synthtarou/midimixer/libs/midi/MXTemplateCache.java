@@ -35,6 +35,10 @@ public class MXTemplateCache {
     }
     
     public synchronized MXTemplate fromDword(int dword) {
+        if (dword == 0) {
+            return ZERO;
+        }
+
         int status = (dword >> 16) & 0xff;
         int data1 = (dword >> 8) & 0xff;
         int data2 = dword & 0xff;
@@ -73,6 +77,8 @@ public class MXTemplateCache {
         template[2] = data2;
         return new MXTemplate(template);
     }
+    
+    static final MXTemplate ZERO = new MXTemplate(new int[]{ 0, 0, 0 });
     
     LinkedList<MXTemplate> _cachedTemplate = new LinkedList();
     

@@ -16,18 +16,15 @@
  */
 package jp.synthtarou.midimixer.mx30controller;
 
-import java.awt.font.NumericShaper;
 import jp.synthtarou.midimixer.libs.UniqueChecker;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.midi.MXScaledNumber;
 import jp.synthtarou.midimixer.libs.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
@@ -203,7 +200,6 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                         node.getSettingAsInt("valuemin", 0),
                         node.getSettingAsInt("valuemax", 127));
 
-                status.setUiValueInvert(node.getSettingAsBoolean("valueinvert", false));
                 status.setupByDtext(msgText, channel, gate, value);
 
 
@@ -218,6 +214,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 e.printStackTrace();
             }
         }
+        
         children = setting.findByPath("Slider[]");
         for (MXSettingNode node : children) {
             int type = node.getSettingAsInt("type", -1);
@@ -239,14 +236,12 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                         node.getSettingAsInt("valuemax", 127));
                 status.setupByDtext(msgText, channel, gate, value);
 
-                status.setUiValueInvert(node.getSettingAsBoolean("valueinvert", false));
-
                 status.setDataroomType(node.getSettingAsInt("dataentryType", MXVisitant.HAVE_VAL_NOT));
                 status.setDataroomMSB(node.getSettingAsInt("dataentryMSB", 0));
                 status.setDataroomLSB(node.getSettingAsInt("dataentryLSB", 0));
 
                 status.setValuePairCC14(node.getSettingAsBoolean("isCCPair", false));
-
+                
                 _data.setSliderStatus(row, column, status);
             }catch(Exception e) {
                 e.printStackTrace();
@@ -279,8 +274,6 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                         node.getSettingAsInt("valuemax", 127));
                 status.setupByDtext(msgText, channel, gate, value);
                 
-                status.setUiValueInvert(node.getSettingAsBoolean("valueinvert", false));
-
                 status.setDataroomType(node.getSettingAsInt("dataentryType", MXVisitant.HAVE_VAL_NOT));
                 status.setDataroomMSB(node.getSettingAsInt("dataentryMSB", 0));
                 status.setDataroomLSB(node.getSettingAsInt("dataentryLSB", 0));
@@ -340,7 +333,6 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 setting.setSetting(prefix + "valuemin", status.getValue()._min);
                 setting.setSetting(prefix + "valuemax", status.getValue()._max);
                 setting.setSetting(prefix + "isCCPair", status.isValuePairCC14());
-                setting.setSetting(prefix + "valueinvert", status.isUiValueInvert());
                 setting.setSetting(prefix + "dataentryType", status.getDataroomType());
                 setting.setSetting(prefix + "dataentryMSB", status.getDataeroomMSB());
                 setting.setSetting(prefix + "dataentryLSB", status.getDataroomLSB());
@@ -366,7 +358,6 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 setting.setSetting(prefix + "valuemin", status.getValue()._min);
                 setting.setSetting(prefix + "valuemax", status.getValue()._max);
                 setting.setSetting(prefix + "isCCPair", status.isValuePairCC14());
-                setting.setSetting(prefix + "valueinvert", status.isUiValueInvert());
                 setting.setSetting(prefix + "dataentryType", status.getDataroomType());
                 setting.setSetting(prefix + "dataentryMSB", status.getDataeroomMSB());
                 setting.setSetting(prefix + "dataentryLSB", status.getDataroomLSB());
@@ -392,7 +383,6 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 setting.setSetting(prefix + "valuemin", status.getValue()._min);
                 setting.setSetting(prefix + "valuemax", status.getValue()._max);
                 setting.setSetting(prefix + "isCCPair", status.isValuePairCC14());
-                setting.setSetting(prefix + "valueinvert", status.isUiValueInvert());
                 setting.setSetting(prefix + "dataentryType", status.getDataroomType());
                 setting.setSetting(prefix + "dataentryMSB", status.getDataeroomMSB());
                 setting.setSetting(prefix + "dataentryLSB", status.getDataroomLSB());
@@ -450,17 +440,17 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             if (status.getUiType() == MGStatus.TYPE_SLIDER) {
                 slider = _data.getSlider(row, column);
                 already.push(status);
-                status.setValue(newValue);
+                status.setValue(status.getValue().updateValue(newValue));
                 slider.updateUIOnly(timing, newValue);
             }
             if (status.getUiType() == MGStatus.TYPE_CIRCLE) {
                 circle = _data.getCircle(row, column);
                 already.push(status);
-                status.setValue(newValue);
+                status.setValue(status.getValue().updateValue(newValue));
                 circle.changeUIOnly(timing, newValue);
             }
             if (status.getUiType() == MGStatus.TYPE_DRUMPAD) {
-                status.setValue(newValue);
+                status.setValue(status.getValue().updateValue(newValue));
                 if (status.isDrumOn(newValue)) {
                     catchedValueDrum(status, timing, true, newValue, already);
                 }else {
@@ -485,11 +475,9 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                         break;
                 }
 
-                if (nextStatus.getValue()._max!= status.getValue()._max
-                 || nextStatus.getValue()._min != status.getValue()._min) {
-                    newValue = status.getValue().modifyRangeTo(nextStatus.getValue()._min, nextStatus.getValue()._max)._var;
-                }
-
+                int nextMin = nextStatus.getValue()._min;
+                int nextMax = nextStatus.getValue()._min;
+                newValue = status.getValue().modifyRangeTo(nextMin, nextMax)._var;
                 nextMixer.catchedValue(nextStatus, timing, newValue, already);
 
                 if (_patchTogether == false) {

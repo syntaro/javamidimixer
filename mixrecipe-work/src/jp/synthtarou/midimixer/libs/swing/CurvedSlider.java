@@ -18,6 +18,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.swing.themes.ThemeManager;
 
 /**
@@ -28,10 +29,7 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
 {
     private double _minAngleRad = 0.0;
     private double _maxAngleRad = 0.0;
-    private int _rangeFrom = 0;
-    private int _rangeTo = 0;
-    private int _value = 0;
-    private boolean _inverted = false;
+    private RangedValue _value = RangedValue.ZERO7;
 
     private Color _highlight;
     private Color _selectionColor;
@@ -40,10 +38,6 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
         super.setEnabled(e);
         updateUI();
     }  
-    
-    public void setInverted(boolean invert) {
-        _inverted = invert;
-    }
     
     public void updateUI() {
         super.updateUI();
@@ -77,14 +71,7 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
         repaint();
     }
 
-    public void setRange(int rangeFrom, int rangeto)
-    {
-        _rangeFrom = rangeFrom;
-        _rangeTo = rangeto;
-        repaint();
-    }
-
-    public void setValue(int value)
+    public void setValue(RangedValue value)
     {
         if (_value != value) {
             _value = value;
@@ -95,7 +82,7 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
 
     public int getValue()
     {
-        return _value;
+        return _value._var;
     }
 
     @Override
@@ -116,10 +103,14 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
             RenderingHints.VALUE_ANTIALIAS_ON);
         g.setColor(background);
         g.fillRect(0,0,getWidth(),getHeight());
+        
+        int value = _value._var;
+        int rangeFrom = _value._min;
+        int rangeTo = _value._max;
 
-        double alpha = ((double)_value - _rangeFrom) / (_rangeTo - _rangeFrom);
-        if (_inverted) { 
-            alpha = ((double)_rangeTo - _value) / (_rangeTo - _rangeFrom);
+        double alpha = ((double)value - rangeFrom) / (rangeTo - rangeFrom);
+        if (_value._max < _value._min) { 
+            alpha = ((double)rangeTo - value) / (rangeTo - rangeFrom);
         }
         double angleRad = _minAngleRad + alpha * (_maxAngleRad - _minAngleRad);
 
@@ -227,6 +218,8 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
 
         double dx = p.getX() - xC;
         double dy = p.getY() - yC;
+        int rangeFrom = _value._min;
+        int rangeTo = _value._max;
 
         if (mouseModeCircle) {
             double angleRad = Math.atan2(-dy, dx);
@@ -236,18 +229,18 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
             }
             angleRad = Math.max(_maxAngleRad, Math.min(_minAngleRad, angleRad));
             double alpha = (angleRad - _minAngleRad) / (_maxAngleRad - _minAngleRad);
-            double value = _rangeFrom + alpha * (_rangeTo - _rangeFrom);
-            setValue((int)value);
+            double value = rangeFrom + alpha * (rangeTo - rangeFrom);
+            setValue(_value.updateValue((int)value));
         }else {
             // Kind of X-Y Pad
             double distance = dx - dy;
-            double range = _rangeTo - _rangeFrom;
+            double range = rangeTo - rangeFrom;
             double value2 = startValue + (distance * range / 250);
 
-            if (value2 < _rangeFrom) value2 = _rangeFrom;
-            if (value2 > _rangeTo) value2 = _rangeTo;
+            if (value2 < rangeFrom) value2 = rangeFrom;
+            if (value2 > rangeTo) value2 = rangeTo;
 
-            setValue((int)value2);
+            setValue(_value.updateValue((int)value2));
         }
     }
 
@@ -276,7 +269,7 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
             if(SwingUtilities.isRightMouseButton(e)){
             }else{
                 startPoint = e.getPoint();
-                startValue = _value;
+                startValue = _value._var;
                 updateAngle(e.getPoint());
             }
         }

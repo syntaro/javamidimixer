@@ -36,7 +36,7 @@ import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 public class MX70SysexPanel extends javax.swing.JPanel {
     ConsoleModel _list;
     SysEXFile _file;
-    MXWrapList<Integer> _listPort = MXMidi.createPortAssigned(false);
+    MXWrapList<Integer> _listPort = MXMidi.listupPortAssigned(false);
 
     /**
      * Creates new form MX70SysexPanel

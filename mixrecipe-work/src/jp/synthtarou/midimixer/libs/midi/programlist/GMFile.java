@@ -66,7 +66,7 @@ public class GMFile implements PDFile {
             DTextFolder commandFolder = ccList.addFolder("Command", "Command");
             DTextFolder ccFolder = ccList.addFolder("Control Change", "Control Change");
             
-            for (MXWrap<Integer> wrap : MXMidi.createCommand()) {
+            for (MXWrap<Integer> wrap : MXMidi.listupCommand()) {
                 int command = wrap.value;
                 if (command == MXMidi.COMMAND_CONTROLCHANGE) {
                     continue;

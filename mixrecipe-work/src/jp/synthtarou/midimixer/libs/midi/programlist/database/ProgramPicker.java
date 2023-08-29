@@ -68,8 +68,8 @@ public class ProgramPicker extends javax.swing.JPanel {
         PDFileManager manager = PDFileManager.getManager();
         _listRoot.addAll(manager._listXML);
 
-        jComboBoxTestPort.setModel(MXMidi.createPortAssigned(false));
-        jComboBoxTestChannel.setModel(MXMidi.createChannel(false));
+        jComboBoxTestPort.setModel(MXMidi.listupPortAssigned(false));
+        jComboBoxTestChannel.setModel(MXMidi.listupChannel(false));
         _xmlList = new MXWrapList();
         for (PDFile xml : _listRoot) {
             _xmlList.addNameAndValue(xml.getName(), xml);

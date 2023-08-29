@@ -60,8 +60,8 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
 
     MX12Process _process;
     MXSwingPiano _piano;
-    MXWrapList<Integer> _watchPort = MXMidi.createPortAssigned(false);
-    MXWrapList<Integer> _watchChannel = MXMidi.createChannel(false);
+    MXWrapList<Integer> _watchPort = MXMidi.listupPortAssigned(false);
+    MXWrapList<Integer> _watchChannel = MXMidi.listupChannel(false);
     
     int _valuePitch = -1;
     int _valueModulation = -1;

@@ -82,7 +82,6 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
             jLabelMax.setText(String.valueOf(value._max));
             jSliderValue.setMinimum(value._min);
             jSliderValue.setMaximum(value._max);
-            jSliderValue.setInverted(status.isUiValueInvert());
             jSliderValue.setPaintLabels(true);
             jSliderValue.setValue(value._var);
             jLabelValue.setText(String.valueOf(value._var));
@@ -201,7 +200,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
     public void updateUIOnly(MXTiming timing, int newValue) {
         if (jSliderValue.getValue() != newValue) {
             jLabelValue.setText(String.valueOf(newValue));
-            getStatus().setValue(newValue);
+            getStatus().setValue(getStatus().getValue().updateValue(newValue));
 
             if (SwingUtilities.isEventDispatchThread() == false) {
                 //new Throwable().printStackTrace();
@@ -295,7 +294,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
                         int x = current * (5 - i) + value * i;
                         x /= 5;
                         Thread.sleep(70);
-                        status.setValue(x);
+                        getStatus().setValue(getStatus().getValue().updateValue(x));
                         updateUIOnly(null, x);
                         if (x == value) { 
                             break;
@@ -304,7 +303,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
                 }catch(Exception e) {
                     e.printStackTrace();
                 }finally {
-                    status.setValue(value);
+                    getStatus().setValue(getStatus().getValue().updateValue(value));
                     updateUIOnly(null, value);
                 }
             }

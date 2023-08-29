@@ -219,7 +219,7 @@ public class MXMidi {
 
     protected static final String[] noteSymbols = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
 
-    public static MXWrapList<Integer> createNormalGate() {
+    public static MXWrapList<Integer> listupGate7Bit() {
         MXWrapList<Integer> newList = new MXWrapList<>();
         for(int i = 0; i < 128; ++ i) {
             newList.addNameAndValue(String.valueOf(i) , i);
@@ -227,7 +227,7 @@ public class MXMidi {
         return newList;
     }
     
-    public static MXWrapList<Integer> createProgram() {
+    public static MXWrapList<Integer> listupProgramNumber() {
         //GMProgramList list = GMProgramList.getInstance();
         MXWrapList<Integer> newList = new MXWrapList<>();
         for (int i = 0; i < 128; ++i) {
@@ -238,7 +238,7 @@ public class MXMidi {
         return newList;
     }
 
-    public static MXWrapList<Integer> createVelocity() {
+    public static MXWrapList<Integer> listupVelocity() {
         MXWrapList<Integer> list = new MXWrapList<Integer>();
         for (int i = 0; i <= 127; ++i) {
             list.addNameAndValue(String.valueOf(i), i);
@@ -246,14 +246,14 @@ public class MXMidi {
         return list;
     }
 
-    public static MXWrapList<Boolean> createSendFilter() {
+    public static MXWrapList<Boolean> listupSendFilter() {
         MXWrapList<Boolean> list = new MXWrapList<Boolean>();
         list.addNameAndValue("Send", Boolean.TRUE);
         list.addNameAndValue("Don't send", Boolean.FALSE);
         return list;
     }
 
-    public static MXWrapList<Integer> createXSB() {
+    public static MXWrapList<Integer> listupXSB() {
         MXWrapList<Integer> newList = new MXWrapList<>();
         for (int i = 0; i < 256; ++i) {
             String name = MXUtil.toHexFF(i);
@@ -263,7 +263,7 @@ public class MXMidi {
         return newList;
     }
 
-    public static MXWrapList<Integer> createCommand() {
+    public static MXWrapList<Integer> listupCommand() {
         MXWrapList<Integer> list = new MXWrapList<>();
         for (int i = 128; i <= 240; i += 16) {
             String name = nameOfChannelMessage(i);
@@ -273,7 +273,7 @@ public class MXMidi {
         return list;
     }
 
-    public static MXWrapList<Integer> createSystemModeOneShot() {
+    public static MXWrapList<Integer> listupSystemModeOneShot() {
         MXWrapList<Integer> list = new MXWrapList<>();
         for (int i = 240; i <= 247; ++i) {
             String name = nameOfSystemCommonMessage(i);
@@ -286,7 +286,7 @@ public class MXMidi {
         return list;
     }
 
-    public static MXWrapList<Integer> createChannel(boolean addOmni) {
+    public static MXWrapList<Integer> listupChannel(boolean addOmni) {
         MXWrapList<Integer> list = new MXWrapList();
         if (addOmni) {
             list.addNameAndValue("any", -1);
@@ -297,7 +297,7 @@ public class MXMidi {
         return list;
     }
 
-    public static MXWrapList<Integer> createChannelModeSlider() {
+    public static MXWrapList<Integer> listChannelModeSlider() {
         MXWrapList<Integer> list = new MXWrapList<>();
         for (int i = 120; i <= 127; ++i) {
             if (i == 122) {
@@ -308,7 +308,7 @@ public class MXMidi {
         return list;
     }
 
-    public static MXWrapList<Integer> createPercent() {
+    public static MXWrapList<Integer> listupPercent() {
         MXWrapList<Integer> list = new MXWrapList();
         for (int i = 100; i >= 0; i -= 10) {
             list.addNameAndValue(String.valueOf(i) + "%", i);
@@ -316,7 +316,7 @@ public class MXMidi {
         return list;
     }
     
-    public static MXWrapList<Integer> createPortShort() {
+    public static MXWrapList<Integer> listupPortShort() {
         MXWrapList<Integer> list = new MXWrapList();
         for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++i) {
             list.addNameAndValue(Character.toString('A' + i), i);
@@ -324,7 +324,7 @@ public class MXMidi {
         return list;
     }
 
-    public static MXWrapList<Integer> createPortAssigned(boolean addOmni) {
+    public static MXWrapList<Integer> listupPortAssigned(boolean addOmni) {
         MXWrapList<Integer> list = new MXWrapList();
         if (addOmni) {
             list.addNameAndValue("Any ", -1);
@@ -335,7 +335,7 @@ public class MXMidi {
         return list;
     }
 
-    public static MXWrapList<Integer> createChannelModeOnShot() {
+    public static MXWrapList<Integer> listupChannelModeOnShot() {
         MXWrapList<Integer> list = new MXWrapList<>();
         for (int i = 120; i <= 127; ++i) {
             if (i != 122) {
@@ -346,7 +346,7 @@ public class MXMidi {
         return list;
     }
 
-    public static MXWrapList<Integer> createControlChange() {
+    public static MXWrapList<Integer> listupControlChange() {
         MXWrapList<Integer> list = new MXWrapList<>();
         for (int i = 0; i <= 119; ++i) {
             String name = nameOfControlChange(i);
@@ -355,7 +355,7 @@ public class MXMidi {
         return list;
     }
 
-    public static MXWrapList<Integer> createNoteNo() {
+    public static MXWrapList<Integer> listupNoteNo() {
         MXWrapList<Integer> list = new MXWrapList();
         for (int i = 0; i <= 127; ++i) {
             list.addNameAndValue(nameOfNote(i), i);
@@ -363,12 +363,12 @@ public class MXMidi {
         return list;
     }
 
-    public static MXWrapList<Integer> createZero() {
+    public static MXWrapList<Integer> listupZero() {
         MXWrapList<Integer> list = new MXWrapList<Integer>();
         list.addNameAndValue("---", 0);
         return list;
     }
-
+    
     public static final String nameOfChannelMessage(int command) {
         switch (command) {
             case MXMidi.COMMAND_NOTEON:
