@@ -123,7 +123,10 @@ public class RangedValue {
         
         if (newMin == 0 && newMax == 127) {
             if (newValue >= 0 && newValue <= 127) {
-                return new7bit(newValue);
+                RangedValue t = new7bit(newValue);
+                if (t._position == _position) {
+                    return t;
+                }
             }
         }
         return new RangedValue(newValue, newMin, newMax, _position);
