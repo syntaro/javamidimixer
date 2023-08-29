@@ -16,6 +16,8 @@
  */
 package jp.synthtarou.midimixer.libs.midi;
 
+import java.io.PrintStream;
+import java.nio.charset.Charset;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -96,6 +98,20 @@ public class MXScaledNumber {
     }
     
     public static void main(String[] args) {
+        System.out.println("file.encoding = " + System.getProperty("file.encoding"));
+        System.out.println("Charset.defaultCharset() = " + Charset.defaultCharset());
+        System.out.println("System.out.charset() = " + System.out.charset());
+        try {
+            String targetCharset = Charset.defaultCharset().name();
+            if (targetCharset.equals(System.out.charset()) == false) {                
+                System.setOut(new PrintStream(System.out, true, targetCharset));
+                System.setErr(new PrintStream(System.err, true, targetCharset));
+            }
+            System.out.println("System.out.charset() = " + System.out.charset());
+            System.out.println("System.err.charset() = " + System.err.charset());
+        }catch(Throwable e) {
+            e.printStackTrace();
+        }
         for (int x = 0; x <= 1; x++) {
             boolean invert = (x == 1);
             test(128, 32768, invert);

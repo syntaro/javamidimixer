@@ -300,7 +300,7 @@ public class SysEXFile {
                     split.append(data);
                     ArrayList<byte[]> arrayData = split.splitOrJoin(0 /* splitSize*/);
                     for (byte[] data2 : arrayData) {
-                        MXMessage longMessage = MXMessageFactory.fromPlaneBinary(port, data2);
+                        MXMessage longMessage = MXMessageFactory.fromBinary(port, data2);
                         MXMain.getMain().messageDispatch(longMessage, out);
                     }
                     try {

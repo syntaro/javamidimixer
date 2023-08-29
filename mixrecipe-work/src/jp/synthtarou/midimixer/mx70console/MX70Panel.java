@@ -24,11 +24,10 @@ import java.awt.Dimension;
 import java.awt.Window;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
@@ -38,7 +37,9 @@ import jp.synthtarou.midimixer.libs.midi.MXTiming;
  * @author Syntarou YOSHIDA
  */
 public class MX70Panel extends javax.swing.JPanel {
+
     MX70Process _process;
+
     /**
      * Creates new form MX70Console
      */
@@ -112,6 +113,7 @@ public class MX70Panel extends javax.swing.JPanel {
         jButtonSysEXMenu = new javax.swing.JButton();
         jCheckBoxLogging = new javax.swing.JCheckBox();
         jCheckBoxRecordClock = new javax.swing.JCheckBox();
+        jLabelMemory = new javax.swing.JLabel();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -383,9 +385,9 @@ public class MX70Panel extends javax.swing.JPanel {
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.weighty = 1.0;
         jPanel3.add(jButtonSysEXMenu, gridBagConstraints);
 
+        jCheckBoxLogging.setSelected(true);
         jCheckBoxLogging.setText("Logging / Pause");
         jCheckBoxLogging.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -403,7 +405,18 @@ public class MX70Panel extends javax.swing.JPanel {
                 jCheckBoxRecordClockActionPerformed(evt);
             }
         });
-        jPanel3.add(jCheckBoxRecordClock, new java.awt.GridBagConstraints());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        jPanel3.add(jCheckBoxRecordClock, gridBagConstraints);
+
+        jLabelMemory.setText("Memory");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        jPanel3.add(jLabelMemory, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -422,8 +435,8 @@ public class MX70Panel extends javax.swing.JPanel {
         gridBagConstraints.weighty = 1.0;
         add(jSplitPane1, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
-    
-    public void selectByTimingCall(JList list, MXTiming trace)  {
+
+    public void selectByTimingCall(JList list, MXTiming trace) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -431,15 +444,14 @@ public class MX70Panel extends javax.swing.JPanel {
             }
         });
     }
-    
-    public void selectByTiming(JList list, MXTiming trace) 
-    {
+
+    public void selectByTiming(JList list, MXTiming trace) {
         _process._outsideInput.setSelectedTiming(trace);
         _process._insideInput.setSelectedTiming(trace);
         _process._insideOutput.setSelectedTiming(trace);
         _process._outsideOutput.setSelectedTiming(trace);
     }
-    
+
     private void jListOutsideInputValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListOutsideInputValueChanged
         int index = jListOutsideInput.getSelectedIndex();
         if (index >= 0) {
@@ -452,7 +464,7 @@ public class MX70Panel extends javax.swing.JPanel {
                         + "2 = " + e.getTiming().thisWrap(2) + ", "
                         + "3 = =" + e.getTiming().thisWrap(3)
                 );
-            }else {
+            } else {
                 selectByTimingCall(jListOutsideInput, null);
             }
         }
@@ -464,13 +476,13 @@ public class MX70Panel extends javax.swing.JPanel {
             ConsoleElement e = _process._insideInput.getConsoleElement(index);
             if (e != null) {
                 selectByTimingCall(jListInsideInput, e.getTiming());
-                jTextFieldTestName.setText("" + e.getTiming() + " => " 
+                jTextFieldTestName.setText("" + e.getTiming() + " => "
                         + "0 = " + e.getTiming().thisWrap(0) + ", "
                         + "1 = " + e.getTiming().thisWrap(1) + ", "
                         + "2 = " + e.getTiming().thisWrap(2) + ", "
-                        + "3 = =" + e.getTiming().thisWrap(3) 
+                        + "3 = =" + e.getTiming().thisWrap(3)
                 );
-            }else {
+            } else {
                 selectByTimingCall(jListInsideInput, null);
             }
         }
@@ -482,13 +494,13 @@ public class MX70Panel extends javax.swing.JPanel {
             ConsoleElement e = _process._insideOutput.getConsoleElement(index);
             if (e != null) {
                 selectByTimingCall(jListInsideOutput, e.getTiming());
-                jTextFieldTestName.setText("" + e.getTiming() + " => " 
+                jTextFieldTestName.setText("" + e.getTiming() + " => "
                         + "0 = " + e.getTiming().thisWrap(0) + ", "
                         + "1 = " + e.getTiming().thisWrap(1) + ", "
                         + "2 = " + e.getTiming().thisWrap(2) + ", "
-                        + "3 = =" + e.getTiming().thisWrap(3) 
-                );                
-            }else {
+                        + "3 = =" + e.getTiming().thisWrap(3)
+                );
+            } else {
                 selectByTimingCall(jListInsideOutput, null);
             }
         }
@@ -500,13 +512,13 @@ public class MX70Panel extends javax.swing.JPanel {
             ConsoleElement e = _process._outsideOutput.getConsoleElement(index);
             if (e != null) {
                 selectByTimingCall(jListOutsideOutput, e.getTiming());
-                jTextFieldTestName.setText("" + e.getTiming() + " => " 
+                jTextFieldTestName.setText("" + e.getTiming() + " => "
                         + "0 = " + e.getTiming().thisWrap(0) + ", "
                         + "1 = " + e.getTiming().thisWrap(1) + ", "
                         + "2 = " + e.getTiming().thisWrap(2) + ", "
-                        + "3 = =" + e.getTiming().thisWrap(3) 
+                        + "3 = =" + e.getTiming().thisWrap(3)
                 );
-            }else {
+            } else {
                 selectByTimingCall(jListOutsideOutput, null);
             }
         }
@@ -518,19 +530,19 @@ public class MX70Panel extends javax.swing.JPanel {
             ConsoleElement e = _process._outsideInput.getConsoleElement(index);
             if (e != null) {
                 selectByTimingCall(jListOutsideInput, e.getTiming());
-            }else {
+            } else {
                 selectByTimingCall(jListOutsideInput, null);
             }
         }
     }//GEN-LAST:event_jListOutsideInputMousePressed
 
     private void jListInsideInputMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jListInsideInputMousePressed
-int index = jListInsideInput.getSelectedIndex();
+        int index = jListInsideInput.getSelectedIndex();
         if (index >= 0) {
             ConsoleElement e = _process._insideInput.getConsoleElement(index);
             if (e != null) {
                 selectByTimingCall(jListInsideInput, e.getTiming());
-            }else {
+            } else {
                 selectByTimingCall(jListInsideInput, null);
             }
         }
@@ -542,7 +554,7 @@ int index = jListInsideInput.getSelectedIndex();
             ConsoleElement e = _process._insideOutput.getConsoleElement(index);
             if (e != null) {
                 selectByTimingCall(jListInsideOutput, e.getTiming());
-            }else {
+            } else {
                 selectByTimingCall(jListInsideOutput, null);
             }
         }
@@ -554,7 +566,7 @@ int index = jListInsideInput.getSelectedIndex();
             ConsoleElement e = _process._outsideOutput.getConsoleElement(index);
             if (e != null) {
                 selectByTimingCall(jListOutsideOutput, e.getTiming());
-            }else {
+            } else {
                 selectByTimingCall(jListOutsideOutput, null);
             }
         }
@@ -578,7 +590,7 @@ int index = jListInsideInput.getSelectedIndex();
         _process._outsideInput.switchPause(pause);
         _process._insideInput.switchPause(pause);
         _process._insideOutput.switchPause(pause);
-        _process._outsideOutput.switchPause(pause);        
+        _process._outsideOutput.switchPause(pause);
     }//GEN-LAST:event_jCheckBoxLoggingActionPerformed
 
     private void jCheckBoxRecordClockActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxRecordClockActionPerformed
@@ -597,6 +609,7 @@ int index = jListInsideInput.getSelectedIndex();
     private javax.swing.JCheckBox jCheckBoxRecordClock;
     private javax.swing.JLabel jLabelInsideInput;
     private javax.swing.JLabel jLabelInsideOutput;
+    private javax.swing.JLabel jLabelMemory;
     private javax.swing.JLabel jLabelOutsideInput;
     private javax.swing.JLabel jLabelOutsideOutput;
     private javax.swing.JLabel jLabelTestInput;
@@ -627,6 +640,19 @@ int index = jListInsideInput.getSelectedIndex();
     private javax.swing.JTextField jTextFieldTestOutput;
     // End of variables declaration//GEN-END:variables
 
+    DecimalFormat format_mem = new DecimalFormat("#,###MB");
+    DecimalFormat format_ratio = new DecimalFormat("##.#");
+
+    public String getMemoryInfo() {
+        long free = Runtime.getRuntime().freeMemory() / 1024 / 1024;
+        long total = Runtime.getRuntime().totalMemory() / 1024 / 1024;
+        long max = Runtime.getRuntime().maxMemory() / 1024 / 1024;
+        long used = total - free;
+        double ratio = (used * 100 / (double) total);
+
+        return " Memory: " + format_mem.format(used) + "/" + format_mem.format(total) + " (" + format_ratio.format(ratio) + "%)";
+    }
+    
     public boolean isOwnerWindowVisible() {
         try {
             Container cont = MXUtil.getOwnerWindow(this);
@@ -634,47 +660,56 @@ int index = jListInsideInput.getSelectedIndex();
                 return true;
             }
             return false;
-        }catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
-    
-    NumberFormat formatter3 = new DecimalFormat("0.000");  
+
+    NumberFormat formatter3 = new DecimalFormat("0.000");
 
     public void showTimeSpend() {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
                 try {
-                    for (int i = 0; i < 4; ++ i) {
+                    for (int i = 0; i < 4; ++i) {
                         long count = MXTiming.totalCount(i);
                         long spend = MXTiming.totalWrap(i);
                         long bottom = MXTiming.totalBottom(i);
 
-                        String div = formatter3.format(1.0 * spend/ count);
+                        String div = formatter3.format(1.0 * spend / count);
 
-                        String text = "<html>" + spend + "ms/" + count + "=" + div +"<br> bottom" + bottom+"ms</html>";
-                        switch(i) {
-                            case 0: jLabelOutsideInput.setText(text);break;
-                            case 1: jLabelInsideInput.setText(text);break;
-                            case 2: jLabelInsideOutput.setText(text);break;
-                            case 3: jLabelOutsideOutput.setText(text);break;
+                        String text = "<html>" + spend + "ms/" + count + "=" + div + "<br> bottom" + bottom + "ms</html>";
+                        switch (i) {
+                            case 0:
+                                jLabelOutsideInput.setText(text);
+                                break;
+                            case 1:
+                                jLabelInsideInput.setText(text);
+                                break;
+                            case 2:
+                                jLabelInsideOutput.setText(text);
+                                break;
+                            case 3:
+                                jLabelOutsideOutput.setText(text);
+                                break;
                         }
                     }
-                }catch(Throwable e) {
+                    jLabelMemory.setText(getMemoryInfo());
+                } catch (Throwable e) {
                     e.printStackTrace();
                 }
                 Container parent = getParent();
                 while (parent != null) {
                     if (parent instanceof Window) {
-                        Window w = (Window)parent;
+                        Window w = (Window) parent;
                         if (w.isVisible() == false) {
                             return;
                         }
                     }
                     if (parent instanceof Dialog) {
-                        Dialog d = (Dialog)parent;
+                        Dialog d = (Dialog) parent;
                         if (d.isVisible() == false) {
                             return;
                         }
@@ -692,7 +727,7 @@ int index = jListInsideInput.getSelectedIndex();
 
     public void showAsWindow() {
         JFrame newFrame = new JFrame();
-        newFrame.setTitle("Free Consone / SysEX(" + MXStatic.MX_APPNAME + ")");
+        newFrame.setTitle("Free Consone / SysEX(" + MXAppConfig.MX_APPNAME + ")");
         //dialog.setAlwaysOnTop(modal ? true : false);
         newFrame.pack();
         newFrame.getContentPane().add(this);

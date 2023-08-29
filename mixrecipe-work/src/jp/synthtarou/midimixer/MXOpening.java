@@ -42,7 +42,7 @@ public class MXOpening extends javax.swing.JDialog {
         initComponents();
         jProgressBar1.setMinimum(0);
         StringBuffer text = new StringBuffer();
-        text.append(MXStatic.MX_APPNAME_WITH_VERSION + "\n");
+        text.append(MXAppConfig.MX_APPNAME + "\n");
         text.append("Compiled with OpenJDK 20 + NetBeans IDE18\n");
         text.append("\n");
         text.append(("Copyright(C) SynthTAROU.\n"));

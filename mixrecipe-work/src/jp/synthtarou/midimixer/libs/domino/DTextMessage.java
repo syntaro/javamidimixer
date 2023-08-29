@@ -19,6 +19,7 @@ package jp.synthtarou.midimixer.libs.domino;
 import jp.synthtarou.midimixer.libs.xml.MXDOMElement;
 import java.awt.Color;
 import java.util.List;
+import jp.synthtarou.midimixer.libs.common.RangedValue;
 
 /**
  *
@@ -28,7 +29,7 @@ public class DTextMessage {
     public DTextMessage() {
     }
 
-    public DTextMessage(String name, String text, int gate) {
+    public DTextMessage(String name, String text, RangedValue gate) {
         _name = name;
         _dataText = text;
         _gate = gate;
@@ -38,7 +39,7 @@ public class DTextMessage {
     String _name = "";
     Color _color = Color.black;
     int _sync; /* 0: None1: Last2: LastEachGate */
-    int _gate;
+    RangedValue _gate;
     boolean _muteSync;
     
     public String toString() {
@@ -62,7 +63,7 @@ public class DTextMessage {
         return _dataText;
     }
     
-    public int getGate() {
+    public RangedValue getGate() {
         return _gate;
     }
     

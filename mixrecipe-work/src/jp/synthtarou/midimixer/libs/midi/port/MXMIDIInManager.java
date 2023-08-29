@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.libs.midi.port;
 
 import java.util.ArrayList;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
@@ -51,7 +51,7 @@ public class MXMIDIInManager implements MXSettingTarget {
     
     public int getFreeAssignPort() {
         int found = -1;
-        for (int i = 0; i < MXStatic.TOTAL_PORT_COUNT; ++ i) {
+        for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
             boolean entered = false;
             for (MXMIDIIn in : listAllInput().valueList()) {
                 if (in.isPortAssigned(i)) {
@@ -246,7 +246,7 @@ public class MXMIDIInManager implements MXSettingTarget {
                 continue;
             }
             StringBuffer assigned = new StringBuffer();
-            for (int p = 0; p < MXStatic.TOTAL_PORT_COUNT; ++ p) {
+            for (int p = 0; p < MXAppConfig.TOTAL_PORT_COUNT; ++ p) {
                 if (e.isPortAssigned(p)) {
                     if (assigned.length() > 0) {
                         assigned.append(",");

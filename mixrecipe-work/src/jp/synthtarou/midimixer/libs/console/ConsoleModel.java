@@ -27,10 +27,9 @@ import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
-import jp.synthtarou.cceditor.message.CCMIDICode;
 import jp.synthtarou.midimixer.libs.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.midi.MXMessage;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 
 /**
@@ -213,9 +212,9 @@ public class ConsoleModel implements ListModel<String> {
                     int status = (dword >> 16) & 0xff;
                     int data1 = (dword >> 8) & 0xff;
                     int data2 = (dword) & 0xff;
-                    if (status == CCMIDICode.STATUS_ACTIVESENSING
-                            || status == CCMIDICode.STATUS_MIDICLOCK
-                            || status == CCMIDICode.STATUS_MIDITIMECODE) {
+                    if (status == MXMidi.STATUS_ACTIVESENSING
+                            || status == MXMidi.STATUS_MIDICLOCK
+                            || status == MXMidi.STATUS_MIDITIMECODE) {
                         return;
                     }
                     break;
@@ -224,9 +223,9 @@ public class ConsoleModel implements ListModel<String> {
                     byte[] data = e.getData();
                     if (data.length > 0) {
                         int status = data[0] & 0xff;
-                        if (status == CCMIDICode.STATUS_ACTIVESENSING
-                                || status == CCMIDICode.STATUS_MIDICLOCK
-                                || status == CCMIDICode.STATUS_MIDITIMECODE) {
+                        if (status == MXMidi.STATUS_ACTIVESENSING
+                                || status == MXMidi.STATUS_MIDICLOCK
+                                || status == MXMidi.STATUS_MIDITIMECODE) {
                             return;
                         }
                     }
@@ -236,9 +235,9 @@ public class ConsoleModel implements ListModel<String> {
                     byte[] data = e.getMessage().createBytes();
                     if (data.length > 0) {
                         int status2 = data[0] & 0xff;
-                        if (status2 == CCMIDICode.STATUS_ACTIVESENSING
-                                || status2 == CCMIDICode.STATUS_MIDICLOCK
-                                || status2 == CCMIDICode.STATUS_MIDITIMECODE) {
+                        if (status2 == MXMidi.STATUS_ACTIVESENSING
+                                || status2 == MXMidi.STATUS_MIDICLOCK
+                                || status2 == MXMidi.STATUS_MIDITIMECODE) {
                             return;
                         }
                     }

@@ -14,12 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.cceditor.xml;
+package jp.synthtarou.midimixer.libs.domino;
 
 import java.util.LinkedList;
 import java.util.List;
-import jp.synthtarou.cceditor.xml.rules.CCXMLRule;
-import jp.synthtarou.cceditor.xml.rules.CCXMLTagRule;
+import jp.synthtarou.midimixer.libs.domino.rules.CCXMLRule;
+import jp.synthtarou.midimixer.libs.domino.rules.CCXMLTagRule;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import org.w3c.dom.Node;
 import org.w3c.dom.UserDataHandler;

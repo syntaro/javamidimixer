@@ -22,9 +22,9 @@ import jp.synthtarou.cceditor.view.common.CCPromptUtil;
 import jp.synthtarou.cceditor.view.common.CCTextPrompt;
 import jp.synthtarou.cceditor.view.common.CCXMLAttributePrompt;
 import jp.synthtarou.cceditor.view.common.ShrinkableComboBoxRenderer;
-import jp.synthtarou.cceditor.xml.CCXMLFile;
-import jp.synthtarou.cceditor.xml.CCXMLNode;
-import jp.synthtarou.cceditor.xml.CCXMLTreeModel;
+import jp.synthtarou.midimixer.libs.domino.CCXMLFile;
+import jp.synthtarou.midimixer.libs.domino.CCXMLNode;
+import jp.synthtarou.midimixer.libs.domino.CCXMLTreeModel;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 

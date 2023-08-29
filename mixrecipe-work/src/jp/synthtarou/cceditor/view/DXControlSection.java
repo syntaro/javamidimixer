@@ -71,7 +71,6 @@ public class DXControlSection extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jLabelAccordionMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelAccordionMousePressed
-        // TODO add your handling code here:
         boolean toggle = !jPanel1.isVisible();
         jPanel1.setVisible(toggle);
     }//GEN-LAST:event_jLabelAccordionMousePressed

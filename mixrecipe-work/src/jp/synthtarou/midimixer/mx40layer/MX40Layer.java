@@ -20,10 +20,9 @@ import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 
 /**
@@ -159,7 +158,7 @@ public class MX40Layer {
     public String toString() {
         StringBuffer str = new StringBuffer();
         if (_modChannel == MOD_FIXED) {
-            str.append("[Channel=").append(MXUtilMidi.nameOfPortOutput(_fixedPort)).append("/").append(_fixedChannel+1).append("]");
+            str.append("[Channel=").append(MXMidi.nameOfPortOutput(_fixedPort)).append("/").append(_fixedChannel+1).append("]");
         }
         if (_modBank == MOD_FIXED) {
             str.append("[Bank=").append(MXUtil.toHexFF(_fixedBankMSB));
@@ -174,9 +173,9 @@ public class MX40Layer {
         }
         if (getAcceptKeyLowest() != 0 || getAcceptKeyHighest() != 127) {
             str.append("[Note=");
-            str.append(MXUtilMidi.nameOfNote(getAcceptKeyLowest()));
+            str.append(MXMidi.nameOfNote(getAcceptKeyLowest()));
             str.append("-");
-            str.append(MXUtilMidi.nameOfNote(getAcceptKeyHighest()));
+            str.append(MXMidi.nameOfNote(getAcceptKeyHighest()));
             str.append("]");
         }
         if (getAcceptVelocityLowest()!= 0 || getAcceptVelocityHighest() != 127) {
@@ -204,7 +203,11 @@ public class MX40Layer {
         boolean changed = false;
         
         int port = message.getPort();
-        int command = message.getCommand();
+        int status = message.getStatus();
+        int command = status;
+        if (message.isMessageTypeChannel()) {
+            command &= 0xf0;
+        }
         int channel = message.getChannel();
         int data1 = message.getData1();
         int data2 = message.getData2();
@@ -274,9 +277,9 @@ public class MX40Layer {
            if (data2_trans > getAcceptVelocityHighest()) return true;
         }
 
-        if (command == MXMidi.COMMAND_CONTROLCHANGE && message.getGate()== MXMidi.DATA1_CC_EXPRESSION) {
+        if (command == MXMidi.COMMAND_CONTROLCHANGE && message.getGate()._var == MXMidi.DATA1_CC_EXPRESSION) {
             if (_adjustExpression != 100) {
-                double exp = message.getValue();
+                double exp = message.getValue()._var;
                 exp = exp * _adjustExpression;
                 exp = exp / 100;
                 int iexp = (int)exp;
@@ -286,7 +289,7 @@ public class MX40Layer {
                 changed = true;
             }
         }
-        if (command == MXMidi.COMMAND_CONTROLCHANGE && message.getGate() == MXMidi.DATA1_CC_PANPOT) {
+        if (command == MXMidi.COMMAND_CONTROLCHANGE && message.getGate()._var == MXMidi.DATA1_CC_PANPOT) {
             if (_modPan == MOD_FIXED) {
                 //int x = message.getValue();
                 int y = _fixedPan;

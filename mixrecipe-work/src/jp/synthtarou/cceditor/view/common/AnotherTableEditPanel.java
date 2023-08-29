@@ -25,7 +25,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import jp.synthtarou.cceditor.Main;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
@@ -89,7 +89,8 @@ public class AnotherTableEditPanel extends javax.swing.JPanel implements IPrompt
         con.fill = GridBagConstraints.VERTICAL;
         add(fill, con);
         updateUI();
-        Main.getMainFrame().updateUITree();
+
+        MXMain.getMain().getCCEditorProcess().getReceiverView().revalidate();
     }
     
     public class RowEditAction extends MouseAdapter {

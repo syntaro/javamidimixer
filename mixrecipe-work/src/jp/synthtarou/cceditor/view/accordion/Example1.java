@@ -14,25 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.swing;
+package jp.synthtarou.cceditor.view.accordion;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.util.ArrayList;
-import jp.synthtarou.cceditor.message.CCMIDICode;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MXSwingAccordionSample extends javax.swing.JPanel {
-
-    public static void main(String[] args) {
-        MXSwingAccordion.main(args);
-    }
-
-    public static class BindValue {
+public class Example1 extends javax.swing.JPanel {
+  public static class BindValue {
 
         String key;
         int value;
@@ -129,7 +124,7 @@ public class MXSwingAccordionSample extends javax.swing.JPanel {
         public ValueFormatForNote() {
             valueTable = new ValueTable();
             for (int i = 0; i < 128; ++i) {
-                String note = CCMIDICode.nameOfNote(i);
+                String note = MXMidi.nameOfNote(i);
                 valueTable.addEntry(i, note);
             }
         }
@@ -140,7 +135,7 @@ public class MXSwingAccordionSample extends javax.swing.JPanel {
         public ValueFormatForCC() {
             valueTable = new ValueTable();
             for (int i = 0; i < 128; ++i) {
-                String cc = CCMIDICode.nameOfControlChange(i);
+                String cc = MXMidi.nameOfControlChange(i);
                 valueTable.addEntry(i, cc);
             }
         }
@@ -207,7 +202,7 @@ public class MXSwingAccordionSample extends javax.swing.JPanel {
     /**
      * Creates new form MXSwingAccordingSample
      */
-    public MXSwingAccordionSample() {
+    public Example1() {
         initComponents();
         setValue(Math.random() >= 0.5 ? new ValuePolyPressure() : new ValueModWheel());
     }
@@ -241,6 +236,9 @@ public class MXSwingAccordionSample extends javax.swing.JPanel {
     }
 
     public String getName() {
+        if (_value == null) {
+            return "";
+        }
         return _value.name + " CH: " + _value.channel;
     }
 
@@ -264,7 +262,6 @@ public class MXSwingAccordionSample extends javax.swing.JPanel {
         jLabelValueDecimal = new javax.swing.JLabel();
         jLabelValueHex = new javax.swing.JLabel();
 
-        setBorder(javax.swing.BorderFactory.createEtchedBorder());
         setLayout(new java.awt.GridBagLayout());
 
         jLabelText.setFont(new java.awt.Font("メイリオ", 0, 12)); // NOI18N

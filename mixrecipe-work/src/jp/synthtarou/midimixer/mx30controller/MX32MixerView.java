@@ -33,12 +33,12 @@ import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 
@@ -61,12 +61,12 @@ public class MX32MixerView extends javax.swing.JPanel {
         
         // following must here (late bind not work)
         chainModel = new MXWrapList<Integer>();
-        chainModel.addNameAndValue(MXUtilMidi.nameOfPortShort(-1), -1);
-        for (int p2 = 0; p2 < MXStatic.TOTAL_PORT_COUNT; ++ p2) {
+        chainModel.addNameAndValue(MXMidi.nameOfPortShort(-1), -1);
+        for (int p2 = 0; p2 < MXAppConfig.TOTAL_PORT_COUNT; ++ p2) {
             if (p2 == port) {
                 continue;
             }
-            chainModel.addNameAndValue(MXUtilMidi.nameOfPortShort(p2), p2);
+            chainModel.addNameAndValue(MXMidi.nameOfPortShort(p2), p2);
         }
 
         jComboBoxChain.setModel(chainModel);
@@ -322,15 +322,15 @@ public class MX32MixerView extends javax.swing.JPanel {
             public void run() {
                 try {
                     MX32MixerData data = _process._data;
-                    for (int column = 0; column < MXStatic.SLIDER_COLUMN_COUNT; ++ column) {
-                        Color c = MXStatic.sliderColor(column);
-                        for (int row = 0; row < MXStatic.CIRCLE_ROW_COUNT; ++ row) {
+                    for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++ column) {
+                        Color c = MXAppConfig.sliderColor(column);
+                        for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++ row) {
                             MXUtil.backgroundRecursive(data.getCircle(row, column), c);
                         }
-                        for (int row = 0; row < MXStatic.SLIDER_ROW_COUNT; ++ row) {
+                        for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++ row) {
                             MXUtil.backgroundRecursive(data.getSlider(row, column), c);
                         }
-                        for (int row = 0; row < MXStatic.DRUM_ROW_COUNT; ++ row) {
+                        for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++ row) {
                             MXUtil.backgroundRecursive(data.getDrumPad(row, column), c);
                         }
                     }
@@ -398,11 +398,11 @@ public class MX32MixerView extends javax.swing.JPanel {
 
             int grindY = 0;
 
-            ArrayList<MGCircle>[] matrixCircle = new ArrayList[MXStatic.CIRCLE_ROW_COUNT];
+            ArrayList<MGCircle>[] matrixCircle = new ArrayList[MXAppConfig.CIRCLE_ROW_COUNT];
 
-            for (int row = 0; row < MXStatic.CIRCLE_ROW_COUNT; ++ row) {
+            for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++ row) {
                 ArrayList<MGCircle> newCircle = new ArrayList<MGCircle>();
-                for (int col = 0; col < MXStatic.SLIDER_COLUMN_COUNT; col ++) {
+                for (int col = 0; col < MXAppConfig.SLIDER_COLUMN_COUNT; col ++) {
                     MGCircle cc1 = new MGCircle(_process, row, col);
 
                     cc1.setSize(50, 50);
@@ -423,13 +423,13 @@ public class MX32MixerView extends javax.swing.JPanel {
                 grindY ++;
             }
 
-            ArrayList<MGSlider>[] matrixSlider = new ArrayList[MXStatic.SLIDER_ROW_COUNT];
+            ArrayList<MGSlider>[] matrixSlider = new ArrayList[MXAppConfig.SLIDER_ROW_COUNT];
 
-            for (int row = 0; row < MXStatic.SLIDER_ROW_COUNT; ++ row) {
+            for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++ row) {
                 ArrayList<MGSlider> newSlider = new ArrayList<MGSlider>();
                 matrixSlider[row] = newSlider;
                 
-                for (int col = 0; col < MXStatic.SLIDER_COLUMN_COUNT; ++col) {
+                for (int col = 0; col < MXAppConfig.SLIDER_COLUMN_COUNT; ++col) {
                     MGSlider sc1 = new MGSlider(_process, row, col);
                     _focusGroup.attach(sc1);
 
@@ -449,11 +449,11 @@ public class MX32MixerView extends javax.swing.JPanel {
             }
             grindY++;
 
-            ArrayList<MGPad>[] matrixPad = new ArrayList[MXStatic.DRUM_ROW_COUNT];
+            ArrayList<MGPad>[] matrixPad = new ArrayList[MXAppConfig.DRUM_ROW_COUNT];
 
-            for (int row = 0; row < MXStatic.DRUM_ROW_COUNT; ++ row) {
+            for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++ row) {
                 ArrayList<MGPad> newPad = new ArrayList<MGPad>();
-                for (int col = 0; col < MXStatic.SLIDER_COLUMN_COUNT; ++col) {
+                for (int col = 0; col < MXAppConfig.SLIDER_COLUMN_COUNT; ++col) {
                     MGStatus number = mixer._data.getDrumPadStatus(row, col);
                     MGPad rc1 = new MGPad(_process, row, col);
                     //rc1.initUIWithStatus(number);
@@ -522,22 +522,22 @@ public class MX32MixerView extends javax.swing.JPanel {
     public void globalControllerHidden() {       
         MX32MixerData data = _process._data;
         int lines = _process._parent.getActiveLines();
-        for (int column = 0; column < MXStatic.SLIDER_COLUMN_COUNT; ++ column) {
-            for (int row = 0; row < MXStatic.CIRCLE_ROW_COUNT; ++ row) {
+        for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++ column) {
+            for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++ row) {
                 if (_process._parent.isKnobActive(row) && column < lines) {
                     data.getCircle(row, column).setVisible(true);
                 }else {
                     data.getCircle(row, column).setVisible(false);
                 }                       
             }
-            for (int row = 0; row < MXStatic.SLIDER_ROW_COUNT; ++ row) {
+            for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++ row) {
                 if (column < lines) {
                     data.getSlider(row, column).setVisible(true);
                 }else {
                     data.getSlider(row, column).setVisible(false);
                 }                       
             }
-            for (int row = 0; row < MXStatic.DRUM_ROW_COUNT; ++ row) {
+            for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++ row) {
                 if (_process._parent.isPadActive(row) && column < lines) {
                     data.getDrumPad(row, column).setVisible(true);
                 }else {

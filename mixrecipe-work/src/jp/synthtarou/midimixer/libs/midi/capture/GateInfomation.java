@@ -16,13 +16,15 @@
  */
 package jp.synthtarou.midimixer.libs.midi.capture;
 
+import jp.synthtarou.midimixer.libs.common.RangedValue;
+
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class GateInfomation {
     public int _gate;
-    public int _minValue;
-    public int _maxValue;
+    public int _hitLoValue;
+    public int _hitHiValue;
     public TextInformation _parent;
 }

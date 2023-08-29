@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.libs.midi.port;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.TreeMap;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
@@ -262,7 +262,7 @@ public class MXMIDIOutManager implements MXSettingTarget {
         int x = 0;
         for (MXMIDIOut e : all.valueList()) {
             StringBuffer assigned = new StringBuffer();
-            for (int p = 0; p < MXStatic.TOTAL_PORT_COUNT; ++ p) {
+            for (int p = 0; p < MXAppConfig.TOTAL_PORT_COUNT; ++ p) {
                 if (e.isPortAssigned(p)) {
                     if (assigned.length() > 0) {
                         assigned.append(",");

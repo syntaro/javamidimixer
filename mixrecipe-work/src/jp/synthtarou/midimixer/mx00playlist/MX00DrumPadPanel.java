@@ -22,7 +22,7 @@ import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.programlist.database.PDFile;
 import jp.synthtarou.midimixer.libs.midi.programlist.database.PDFileManager;
 
@@ -90,7 +90,7 @@ public class MX00DrumPadPanel extends javax.swing.JPanel {
         JToggleButton prev = listDrums[note];
         if (prev == null) {
             String drumNote = _moduleInfo.getDrumSet().simpleGetDrum(note);
-            String noteName = MXUtilMidi.nameOfNote(note);
+            String noteName = MXMidi.nameOfNote(note);
             if (drumNote != null) {
                 noteName = drumNote;
             }

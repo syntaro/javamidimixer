@@ -43,7 +43,7 @@ import java.util.LinkedList;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.text.MXLineReader;
 import jp.synthtarou.midimixer.mx30controller.MGCircle;
 import jp.synthtarou.midimixer.mx30controller.MGPad;
@@ -59,9 +59,10 @@ public class MXUtil {
         if (str.length() == 1) {
             return "0" + str;
         }
+        /*
         if (str.length() >= 3) {
             return str.substring(str.length() - 2, str.length());
-        }
+        }*/
         return str;
     }
 
@@ -71,7 +72,18 @@ public class MXUtil {
             if (i != 0) {
                 str.append(" ");
             }
-            str.append(toHexFF((int) data[i]));
+            str.append(toHexFF(data[i] & 0xff));
+        }
+        return str.toString();
+    }
+
+    public static String dumpHex(int[] data) {
+        StringBuffer str = new StringBuffer();
+        for (int i = 0; i < data.length; ++i) {
+            if (i != 0) {
+                str.append(" ");
+            }
+            str.append(toHexFF(data[i]));
         }
         return str.toString();
     }
@@ -187,7 +199,7 @@ public class MXUtil {
     public static void showAsDialog(Container parent, JPanel panel, String title) {
         Container cont = getOwnerWindow(parent);
         if (title == null) {
-            title = MXStatic.MX_APPNAME_WITH_VERSION;
+            title = MXAppConfig.MX_APPNAME;
         }
         JDialog dialog = null;
         if (cont instanceof Window) {

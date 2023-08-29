@@ -16,7 +16,7 @@
  */
 package jp.synthtarou.midimixer.mx11vcurve;
 
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 
 /**
  *
@@ -30,7 +30,7 @@ public class MX11Data {
     int[][] _vc;
 
     public MX11Data() {
-        _portCount = MXStatic.TOTAL_PORT_COUNT;
+        _portCount = MXAppConfig.TOTAL_PORT_COUNT;
         _vc = new int[_portCount][];
         for (int i = 0; i < _portCount; ++ i) {
             _vc[i] = new int[DEFAULT_CURVE.length];

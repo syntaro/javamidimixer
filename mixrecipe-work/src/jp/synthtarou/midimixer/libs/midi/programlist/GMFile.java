@@ -23,8 +23,6 @@ import jp.synthtarou.midimixer.libs.domino.DTextMessageList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
 import jp.synthtarou.midimixer.libs.midi.programlist.database.PDBank;
 import jp.synthtarou.midimixer.libs.midi.programlist.database.PDDrumSet;
 import jp.synthtarou.midimixer.libs.midi.programlist.database.PDFile;
@@ -68,12 +66,12 @@ public class GMFile implements PDFile {
             DTextFolder commandFolder = ccList.addFolder("Command", "Command");
             DTextFolder ccFolder = ccList.addFolder("Control Change", "Control Change");
             
-            for (MXWrap<Integer> wrap : MXUtilMidi.createCommand()) {
+            for (MXWrap<Integer> wrap : MXMidi.createCommand()) {
                 int command = wrap.value;
                 if (command == MXMidi.COMMAND_CONTROLCHANGE) {
                     continue;
                 }
-                String name = MXUtilMidi.nameOfChannelMessage(command);
+                String name = MXMidi.nameOfChannelMessage(command);
                 MXMessage message = MXMessageFactory.fromShortMessage(0, command, 0, 0);
                 DTextMessage text = new DTextMessage(name, message.toDText(), message.getGate());
                 commandFolder.addMessage(text);
@@ -81,7 +79,7 @@ public class GMFile implements PDFile {
             for (int i = 0; i < 128; ++ i) {
                 try {
                     MXMessage message = MXMessageFactory.fromShortMessage(0,0 + MXMidi.COMMAND_CONTROLCHANGE, i, 0);
-                    DTextMessage text = new DTextMessage(MXUtilMidi.nameOfControlChange(i), message.toDText(), message.getGate());
+                    DTextMessage text = new DTextMessage(MXMidi.nameOfControlChange(i), message.toDText(), message.getGate());
                     ccFolder.addMessage(text);
                 }catch(Exception e) {
                     e.printStackTrace();;

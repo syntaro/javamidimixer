@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.swing;
+package jp.synthtarou.cceditor.view.accordion;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -28,8 +28,8 @@ import javax.swing.SwingUtilities;
  *
  * @author Syntarou YOSHIDA
  */
-public class MXSwingAccordionElement extends JPanel {
-    public MXSwingAccordionElement() {
+public class MXScrollablePanel extends JPanel {
+    public MXScrollablePanel() {
         super();
     }
 
@@ -37,6 +37,18 @@ public class MXSwingAccordionElement extends JPanel {
     Graphics _bufferedImageGraphics = null;
     Rectangle _bufferedRect = null;
     int _percent = 100;
+
+    @Override
+    public Dimension getPreferredSize() {
+        Dimension d = super.getPreferredSize();
+        if (isVisible()) {
+            return d;
+        }
+        else {
+            Dimension newsize = new Dimension(d.width, 0);
+            return newsize;
+        }
+    }
     
     public void setScrollPercent(int x) {
         _percent = x;

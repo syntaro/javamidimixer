@@ -43,7 +43,7 @@ public class MXVersionDialog extends javax.swing.JDialog {
         initComponents();
         jProgressBar1.setMinimum(0);
         StringBuffer text = new StringBuffer();
-        text.append(MXStatic.MX_APPNAME_WITH_VERSION + "\n");
+        text.append(MXAppConfig.MX_APPNAME + "\n");
         text.append("\n");
         text.append("java.vendor=" + System.getProperty("java.vendor") + "\n");
         text.append("java.version=" + System.getProperty("java.version") + "\n");

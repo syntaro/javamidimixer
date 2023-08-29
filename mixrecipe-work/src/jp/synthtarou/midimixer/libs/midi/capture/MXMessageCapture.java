@@ -18,9 +18,10 @@ package jp.synthtarou.midimixer.libs.midi.capture;
 
 import java.util.TreeMap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMessageTemplate;
+import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 
 /**
  *
@@ -41,8 +42,8 @@ public class MXMessageCapture {
     
     public void process(MXMessage message) {
         int channel = message.getChannel();
-        int gate = message.getGate();
-        int value = message.getValue();
+        int gate = message.getGate()._var;
+        int value = message.getValue()._var;
         String dtext = message.toDText();
 
         synchronized(this) {
@@ -50,7 +51,12 @@ public class MXMessageCapture {
             if (textNode == null) {
                 textNode = new TextInformation();
                 textNode.dtext = dtext;
-                textNode.command = message.getCommand();
+                if (message.getStatus() >= 0x80 && message.getStatus() <= 0xef) {
+                    textNode.command = message.getStatus() & 0xf0;
+                }
+                else {
+                    textNode.command = message.getStatus();
+                }
                 textNode.channel = message.getChannel();
                 age ++;
                 _captureData.put(dtext + message.getChannel(), textNode);
@@ -60,19 +66,19 @@ public class MXMessageCapture {
             if (gateNode == null) {
                 gateNode = new GateInfomation();
                 gateNode._gate = gate;
-                gateNode._maxValue = value;
-                gateNode._minValue = value;
+                gateNode._hitHiValue = value;
+                gateNode._hitLoValue = value;
                 gateNode._parent = textNode;
                 textNode.listGateValues.put(gate, gateNode);
                 age ++;
                 return;
             }
-            if (gateNode._minValue > value) {
-                gateNode._minValue = value;
+            if (gateNode._hitLoValue > value) {
+                gateNode._hitLoValue = value;
                 age ++;
             }
-            if (gateNode._maxValue < value) {
-                gateNode._maxValue = value;
+            if (gateNode._hitHiValue < value) {
+                gateNode._hitHiValue = value;
                 age ++;
             }
             notifyAll();
@@ -87,10 +93,10 @@ public class MXMessageCapture {
         TextInformation text = gate._parent;
 
         int port = 0;
-        MXMessageTemplate template = MXMessageFactory.fromDtext(text.dtext, gate._parent.channel);
-        MXMessage message = template.buildMessage(0, 0, 0);
+        MXTemplate template = MXMessageFactory.fromDtext(text.dtext, gate._parent.channel);
+        MXMessage message = template.buildMessage(0, 0, RangedValue.ZERO7, RangedValue.ZERO7);
 
-        return  message.toStringHeader(gate._minValue, gate._maxValue);
+        return  message.toStringHeader(gate._hitLoValue, gate._hitHiValue);
     }
     
     public MXWrapList<GateInfomation> createListModel() {

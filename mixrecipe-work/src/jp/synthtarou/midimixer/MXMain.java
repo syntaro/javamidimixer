@@ -18,8 +18,11 @@ package jp.synthtarou.midimixer;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.PrintStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -113,20 +116,33 @@ public class MXMain  {
      */
     public static void main(String[] args) throws Exception {
         try {
+            try {
+                // for NetBeans + Ant
+                System.out.println("file.encoding = " + System.getProperty("file.encoding"));
+                System.out.println("Charset.defaultCharset() = " + Charset.defaultCharset());
+                System.out.println("System.out.charset() = " + System.out.charset());
+
+                String targetCharset = Charset.defaultCharset().name();
+                if (targetCharset.equals(System.out.charset()) == false) {                
+                    System.setOut(new PrintStream(System.out, true, targetCharset));
+                    System.setErr(new PrintStream(System.err, true, targetCharset));
+                }
+                System.out.println("System.out.charset() = " + System.out.charset());
+                System.out.println("System.err.charset() = " + System.err.charset());
+            }catch(Throwable e) {
+                e.printStackTrace();
+            }
+
             MXDebugPrint.initDebugLine(args);
 
             //フォント描写でアンチエイリアスを有効にする
             System.setProperty("awt.useSystemAAFontSettings", "on");
             
-            ThemeManager inst = ThemeManager.getInstance();
-            /*        
             try {
-                LaunchLoopMidi midiout = new LaunchLoopMidi();
+                ThemeManager inst = ThemeManager.getInstance();
+                inst.setUITheme("Nimbus");
             }catch( Throwable e ) {
             }
-            LookAndFeelPanel.setLookAndFeel(LookAndFeelConfig.THEME_OS_STANDARD);
-            LookAndFeelPanel.updateLookAndFeelRecursive();
-            */
         
         } catch (Throwable e) {
         }
@@ -135,16 +151,6 @@ public class MXMain  {
     }
     
     public void startUI()  {
-        /*
-        if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    startUI();
-                }
-            });
-            return;
-        }*/
         _mainWindow = new MXMainWindow(this);
 
         MXOpening winLogo = MXOpening.showAsStartup(_mainWindow);        
@@ -241,19 +247,24 @@ public class MXMain  {
         reList.add(_mx60outputProcess);
         reList.add(_vstRack);
 
-        _mainWindow.initLatebind(reList);
-        _mainWindow.setVisible(true);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                _mainWindow.initLatebind(reList);
+                _mainWindow.setVisible(true);
 
-        winLogo.showProgress(9, 10);
-        
-        Runnable run;
-        while((run = getNextLaunchSequence()) != null) {
-            run.run();
-        }
+                winLogo.showProgress(9, 10);
 
-        winLogo.showProgress(10, 10);
-        winLogo.setVisible(false);
-        _mainWindow.setEnabled(true);
+                Runnable run;
+                while((run = getNextLaunchSequence()) != null) {
+                    run.run();
+                }
+
+                winLogo.showProgress(10, 10);
+                winLogo.setVisible(false);
+                _mainWindow.setEnabled(true);
+            }
+        });
     }
     
     LinkedList<Runnable> _startQueue = new LinkedList();
@@ -326,6 +337,10 @@ public class MXMain  {
     
     public MX30Process getKontrolProcess() {
         return _mx30kontrolProcess;
+    }
+
+    public MX35Process getCCEditorProcess() {
+        return _mx35cceditorProcess;
     }
 
     public MX40Process getLayerProcess() {

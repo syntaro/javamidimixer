@@ -16,7 +16,7 @@
  */
 package jp.synthtarou.midimixer.mx10input;
 
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -53,8 +53,8 @@ public class MX10Data {
     int _portCount;
 
     public MX10Data() {
-        _portCount = MXStatic.TOTAL_PORT_COUNT;
-        _whichToSkip = new long[MXStatic.TOTAL_PORT_COUNT];
+        _portCount = MXAppConfig.TOTAL_PORT_COUNT;
+        _whichToSkip = new long[MXAppConfig.TOTAL_PORT_COUNT];
         for (int i = 0; i < _whichToSkip.length; ++ i) {
             _whichToSkip[i] = 1L << TYPE_ACTIVE_SENSING;
         }
@@ -65,14 +65,14 @@ public class MX10Data {
             return true;
         }
         int port = message.getPort();
-        int command = message.getCommand();
+        int command = message.getStatus();
+        if (command >= 0x80 && command <= 0xef) {
+            command &= 0xf0;
+        }
 
         int type = TYPE_ZERO;
 
-/*
-    public static final int TYPE_SYSEX = 9;
-    public static final int TYPE_ACTIVE_SENSING = 10;*/
-            int data1 = message.getGate();
+        int data1 = message.getGate()._var;
     
         if (command == MXMidi.COMMAND_NOTEON || command == MXMidi.COMMAND_NOTEOFF) {
             type = TYPE_NOTE;

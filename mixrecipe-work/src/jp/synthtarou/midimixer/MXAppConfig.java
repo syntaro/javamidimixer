@@ -26,8 +26,7 @@ import jp.synthtarou.midimixer.libs.swing.themes.ThemeManager;
  * @author Syntarou YOSHIDA
  */
 
-public class MXStatic {
-
+public class MXAppConfig {
     public static Color sliderColor(int column) {
         column /= 4;
         boolean sprite = (column % 2 == 0) ? true : false;
@@ -44,12 +43,11 @@ public class MXStatic {
         }
     }
     public static final String LOOPMIDI_NAME = "EX MIDIMixer Out";
-    public static final String MX_APPNAME = "MIX Recipe";
-    public static final String MX_APPNAME_WITH_VERSION = "MIX Recipe VSTi 0.48";
+    public static final String MX_APPNAME = "MIX Recipe VSTi 0.50";
     public static final String MX_EDITING = "*** EDIT CONTROl MODE ***";
     public static final int DRUM_CH = 9;
     
-    static final MXStatic _setting = new MXStatic();
+    static final MXAppConfig _setting = new MXAppConfig();
     public static final int TOTAL_PORT_COUNT = 16;
 
     public static final int SLIDER_COLUMN_COUNT = 17;

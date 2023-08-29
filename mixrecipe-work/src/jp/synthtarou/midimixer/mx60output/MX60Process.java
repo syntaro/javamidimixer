@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.mx60output;
 
 import javax.swing.JPanel;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -92,7 +92,7 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
 
     @Override
     public void afterReadSettingFile(MXSetting setting) {
-        for (int port = 0; port < MXStatic.TOTAL_PORT_COUNT; ++ port) {
+        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
             String prefix = "Setting[" + port + "].";
             StringBuffer str = new StringBuffer();
             for (int j = 0; j <_data.countOfTypes(); ++ j) {
@@ -107,7 +107,7 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
 
     @Override
     public void beforeWriteSettingFile(MXSetting setting) {
-        for (int port = 0; port < MXStatic.TOTAL_PORT_COUNT; ++ port) {
+        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
             String prefix = "Setting[" + port + "].";
             StringBuffer str = new StringBuffer();
             for (int j = 0; j <_data.countOfTypes(); ++ j) {
@@ -151,17 +151,15 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
                 if (message == null) {
                     return;
                 }
-                if (message.getCommand() == MXMidi.COMMAND_NOTEON) {
-                    if (message.getData2() == 0) {
-                        message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_NOTEOFF + message.getChannel(), message.getData1(), 0);
-                    }
+                if (message.isCommand(MXMidi.COMMAND_NOTEON) && message.getData2() == 0) {
+                    message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_NOTEOFF + message.getChannel(), message.getData1(), 0);
                 }
-                if (message.getCommand() == MXMidi.COMMAND_NOTEOFF) {
+                if (message.isCommand(MXMidi.COMMAND_NOTEOFF)) {
                     if (_noteOff.raiseHandler(message.getPort(), message._timing, message.getChannel(), message.getData1())) {
                         return;
                     }
                 }
-                if (message.getCommand() == MXMidi.COMMAND_NOTEON) {
+                if (message.isCommand(MXMidi.COMMAND_NOTEON)) {
                     _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
                         @Override
                         public void onNoteOffEvent(MXMessage target) {

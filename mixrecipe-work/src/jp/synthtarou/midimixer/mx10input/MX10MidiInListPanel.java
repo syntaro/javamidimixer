@@ -18,20 +18,16 @@ package jp.synthtarou.midimixer.mx10input;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
-import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
-import jp.synthtarou.midimixer.MXStatic;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Empty;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
@@ -184,12 +180,12 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
     public JPopupMenu createPopupMenuForPort(final int row) {
         JPopupMenu popup = new JPopupMenu();
         
-        for (int i = -1; i < MXStatic.TOTAL_PORT_COUNT; ++ i) {
+        for (int i = -1; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
             JMenuItem item;
             if (i < 0) {
                 item = popup.add("(none)");
             }else {
-                item = popup.add(MXUtilMidi.nameOfPortShort(i));
+                item = popup.add(MXMidi.nameOfPortShort(i));
             }
             item.addActionListener(new ActionListener() {
                 @Override
@@ -200,7 +196,7 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
                     if (itemText.startsWith("(")) {
                         newAssign = -1;
                     }else {
-                        newAssign = MXUtilMidi.valueOfPortName(itemText);
+                        newAssign = MXMidi.valueOfPortName(itemText);
                     }
                     MXMIDIInManager manager = MXMIDIInManager.getManager();
                     

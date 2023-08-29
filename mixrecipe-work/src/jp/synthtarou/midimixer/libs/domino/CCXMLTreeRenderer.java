@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.cceditor.xml;
+package jp.synthtarou.midimixer.libs.domino;
 
 import java.awt.Component;
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ import java.util.HashSet;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeCellRenderer;
-import jp.synthtarou.cceditor.xml.rules.CCXMLAttributeRule;
+import jp.synthtarou.midimixer.libs.domino.rules.CCXMLAttributeRule;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 
 /**

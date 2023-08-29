@@ -23,8 +23,8 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.xml.transform.TransformerException;
 import jp.synthtarou.cceditor.view.common.IPromptForInput;
-import jp.synthtarou.cceditor.xml.CCXMLFile;
-import jp.synthtarou.cceditor.xml.CCXMLNode;
+import jp.synthtarou.midimixer.libs.domino.CCXMLFile;
+import jp.synthtarou.midimixer.libs.domino.CCXMLNode;
 
 /**
  *

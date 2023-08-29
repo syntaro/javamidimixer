@@ -448,7 +448,6 @@ public class MXFolderBrowser extends javax.swing.JPanel implements IPromptForInp
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
     private void jTree1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTree1MouseClicked
-        // TODO add your handling code here:
         if (evt.getClickCount() >= 2) {
             //setResultAndClose(_selection);
         }

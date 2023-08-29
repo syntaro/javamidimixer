@@ -29,7 +29,7 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
@@ -37,7 +37,6 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
 import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 
@@ -61,8 +60,8 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
 
     MX12Process _process;
     MXSwingPiano _piano;
-    MXWrapList<Integer> _watchPort = MXUtilMidi.createPortAssigned(false);
-    MXWrapList<Integer> _watchChannel = MXUtilMidi.createChannel(false);
+    MXWrapList<Integer> _watchPort = MXMidi.createPortAssigned(false);
+    MXWrapList<Integer> _watchChannel = MXMidi.createChannel(false);
     
     int _valuePitch = -1;
     int _valueModulation = -1;
@@ -170,7 +169,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
     public void updateViewForSettingChange() {
         StringBuffer info = new StringBuffer();
         info.append(_process.getReceiverName() +", ");
-        info.append("Port " + MXUtilMidi.nameOfPortInput(_process.getMousePort()) + ", ");
+        info.append("Port " + MXMidi.nameOfPortInput(_process.getMousePort()) + ", ");
         info.append("Channel " + (_process.getMouseChannel() + 1));
         jLabelInfo1.setText(info.toString());
         info = new StringBuffer();
@@ -385,7 +384,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
     
     public void showAsWindow() {
         JFrame newFrame = new JFrame();
-        newFrame.setTitle("Master Keys (" + MXStatic.MX_APPNAME + ")");
+        newFrame.setTitle("Master Keys (" + MXAppConfig.MX_APPNAME + ")");
         //dialog.setAlwaysOnTop(modal ? true : false);
         newFrame.pack();
         newFrame.getContentPane().add(this);

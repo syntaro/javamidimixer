@@ -19,37 +19,21 @@ package jp.synthtarou.midimixer.libs.midi;
 import java.util.ArrayList;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MXMessageTemplate implements Cloneable {
-    int _metaType;
-    Throwable _trace;
-    
+public class MXTemplate {
+
     private final int[] _template;
-    private int _bytePosHiValue;
-    private int _bytePosValue;
     private int _bytePosGate;
     private int _bytePosHiGate;
-    protected int _checksumLength = 0;
-    protected int _checksumTo;
-    private boolean _init = false;
-
-    @Override
-    public Object clone() {
-        MXMessageTemplate temp = new MXMessageTemplate(_template);
-        temp._metaType = _metaType;
-        temp._bytePosGate = getBytePosGate();
-        temp._bytePosHiGate = getBytePosHiGate();
-        temp._bytePosValue = getBytePosValue();
-        temp._bytePosHiValue = getBytePosHiValue();
-        temp._checksumLength = _checksumLength;
-        temp._checksumTo = _checksumTo;
-        return temp;
-    }
+    private int _bytePosValue;
+    private int _bytePosHiValue;
+    private int _checksumCount;
 
     public static final String EXCOMMAND_PROGRAM_INC = "@PROG_INC";
     public static final String EXCOMMAND_PROGRAM_DEC = "@PROG_DEC";
@@ -87,7 +71,8 @@ public class MXMessageTemplate implements Cloneable {
     public static final int DTEXT_RSCTPT1P = 0x2300;
     public static final int DTEXT_RSCTPT2P = 0x2400;
     public static final int DTEXT_RSCTPT3P = 0x2500;
-    public static final int DTEXT_CHECKSUM = 0x2600;
+    public static final int DTEXT_CHECKSUM_SET = 0x2600;
+    public static final int DTEXT_CHECKSUM_START = 0x2700;
 
     public static final int DTEXT_4CH = 0x2700;
     public static final int DTEXT_5CH = 0x2800;
@@ -107,28 +92,15 @@ public class MXMessageTemplate implements Cloneable {
 
     public static final int DTEXT_PROGINC = 0x5000;
     public static final int DTEXT_PROGDEC = 0x5100;
-    
+
     static MXWrapList<Integer> textAlias = new MXWrapList();
 
-    public MXMessageTemplate(int[] template) {
+    MXTemplate(int[] template) {
         _template = template;
-        _trace = new Throwable(toString());
+        System.out.println("New Template " + MXUtil.dumpHex(template));
         initFields();
     }
 
-    public MXMessageTemplate(int[] template, int checksumLength) {
-        if (template == null) {
-            throw new IllegalArgumentException("MXMessage is NULL");
-        }
-        if (template.length == 0) {
-             throw new IllegalArgumentException("MXMessage.length == 0");
-        }
-        _template = template;
-        _trace = new Throwable();
-        _checksumLength = checksumLength;
-        initFields();
-    }
-    
     public int get(int pos) {
         if (_template == null) {
             return 0;
@@ -138,120 +110,101 @@ public class MXMessageTemplate implements Cloneable {
         }
         return _template[pos];
     }
-    
+
     public int size() {
-        if (_template == null)  {
+        if (_template == null) {
             return 0;
         }
         return _template.length;
     }
 
-    public void initFields() {
-        //if (_init) {
-        //    return;
-        //}
+    private void initFields() {
         _bytePosHiValue = -1;
         _bytePosValue = -1;
         _bytePosGate = -1;
         _bytePosHiGate = -1;
-        if (_template == null) {
-            return;
-        }
+        _checksumCount = 0;
 
-        if (_template[0] == 0xff) {
-            _metaType = _template[1];
-            //nothing fof now
-        }
-        for (int i = 0; i < _template.length; ++ i) {
-            int x = _template[i];
-            if (_template[i] == DTEXT_VL) {
-                _bytePosValue = i;
-            }
-            else if (_template[i] == DTEXT_VH) {
-                _bytePosHiValue = i;
-            }
-            else if (_template[i] == DTEXT_GL) {
-                _bytePosGate = i;
-            }
-            else if (_template[i] == DTEXT_GH) {
-                _bytePosHiGate = i;
-            }
-            else if (x == DTEXT_CHECKSUM) {
-                _checksumTo = i;
+        for (int i = 0; i < _template.length; ++i) {
+            switch (_template[i]) {
+                case DTEXT_VL:
+                    _bytePosValue = i;
+                    break;
+                case DTEXT_VH:
+                    _bytePosHiValue = i;
+                    break;
+                case DTEXT_GL:
+                    _bytePosGate = i;
+                    break;
+                case DTEXT_GH:
+                    _bytePosHiGate = i;
+                    break;
+                case DTEXT_CHECKSUM_START:
+                    _checksumCount++;
+                    break;
             }
         }
-        _init = true;
     }
-    
-    public byte[] makeBytes(byte[] data, MXMessage message) {
-        synchronized(this) {
-            if (data == null || _template.length != data.length) {
-                data = new byte[_template.length];
-            }
-            int _checksumTo = -1;
 
-            _bytePosHiValue = -1;
-            _bytePosValue = -1;
-            _bytePosGate = -1;
-            _bytePosHiGate = -1;
-            if (isDataentry()) {//TODO VISITANT
-                data[0] = (byte)(MXMidi.COMMAND_CONTROLCHANGE + message.getChannel());
-                data[1] = MXMidi.DATA1_CC_DATAENTRY;
-                data[2] = 0;
-            }else {
-                for (int i = 0; i < _template.length; ++ i) {
-                    int x = _template[i];
-                    if ((x & 0xff00) != 0) {
-                        if (x == DTEXT_CHECKSUM) {
-                            _checksumTo = i;
-                        }else {
-                            try {
-                                x = getDValue(x, message);
-                            }catch(IllegalArgumentException e) {
-                                throw e;
-                            }
+    public byte[] makeBytes(byte[] data, MXMessage message) {
+        int dataLength = _template.length - _checksumCount;
+
+        if (data == null || data.length != dataLength) {
+            data = new byte[dataLength];
+        }
+
+        if (isDataentry()) {//TODO VISITANT
+            data[0] = (byte) (MXMidi.COMMAND_CONTROLCHANGE + message.getChannel());
+            data[1] = MXMidi.DATA1_CC_DATAENTRY;
+            data[2] = 0;
+        } else {
+            boolean inChecksum = false;
+            int sumChecksum = 0;
+            int dpos = 0;
+
+            for (int i = 0; i < _template.length; ++i) {
+                int x = _template[i];
+                if ((x & 0xff00) != 0) {
+                    if (x == DTEXT_CHECKSUM_START) {
+                        sumChecksum = 0;
+                        inChecksum = true;
+                        continue;
+                    } else if (x == DTEXT_CHECKSUM_SET) {
+                        sumChecksum &= 0x7f;
+                        sumChecksum = 128 - sumChecksum;
+                        sumChecksum &= 0x7f;
+                        x = sumChecksum;
+                        inChecksum = false;
+                    } else {
+                        try {
+                            x = getDValue(x, message);
+                        } catch (IllegalArgumentException e) {
+                            throw e;
                         }
                     }
-                    data[i] = (byte)(x & 0xff);
                 }
-                int command = data[0] & 0xf0;
-                if (command >= 0x80 && command <= 0xe0) {
-                    data[0] = (byte)(command + message.getChannel());
+                data[dpos++] = (byte) (x & 0xff);
+                if (inChecksum) {
+                    sumChecksum += x;
                 }
-                if (_checksumLength >= 0 && _checksumTo >= 0) {
-                    int x128 = 0;
-                    for (int x = _checksumTo - _checksumLength; x < _checksumTo; ++ x) {
-                        x128 += data[x];
-                    }
-                    x128 = x128 & 0x7f;
-                    int r = 128 - x128;
-                    data[_checksumTo] = (byte)(r & 0x7f);
-                }
+            }
+
+            int command = data[0] & 0xff;
+            if (command >= 0x80 && command <= 0xef) {
+                data[0] = (byte) ((command & 0xf0) + message.getChannel());
             }
         }
         return data;
     }
-    
-    public void sealChecksum(byte[] data) {
-        if (_checksumLength >= 0 && _checksumTo >= 0) {
-            int x128 = 0;
-            for (int x = _checksumTo - _checksumLength; x < _checksumTo; ++ x) {
-                x128 += data[x];
-            }
-            x128 = x128 & 0x7f;
-            int r = 128 - x128;
-            data[_checksumTo] = (byte)(r & 0x7f);
-        }
-    }
 
     public static int getDValue(int alias, MXMessage message) {
-        int gate = message.getGate();
-        int value = message.getValue();
+        int gate = message.getGate()._var;
+        int value = message.getValue()._var;
         int channel = message.getChannel();
-    
+
         String str = fromD(alias);
 
-        switch(alias & 0xff00) {
+        switch (alias & 0xff00) {
             case DTEXT_RPN:
             case DTEXT_NRPN:
             case DTEXT_PROGINC:
@@ -321,7 +274,7 @@ public class MXMessageTemplate implements Cloneable {
             case DTEXT_PCH:
                 if (message.getPort() >= 0 && message.getPort() <= 3) {
                     alias = message.getPort() * 0x10 + channel;
-                }else {
+                } else {
                     alias = 0x30 + channel;
                 }
                 break;
@@ -330,15 +283,15 @@ public class MXMessageTemplate implements Cloneable {
             case DTEXT_3RCH:
             case DTEXT_4RCH:
                 throw new IllegalArgumentException("1RCH, 2RCH, 3RCH, 4RCH not supported.");
-                //break;
+            //break;
             case DTEXT_VF1:
                 alias = (value) & 0x0f;
                 break;
             case DTEXT_VF2:
-                alias = (value>> 4) & 0x0f;
+                alias = (value >> 4) & 0x0f;
                 break;
             case DTEXT_VF3:
-                alias = (value>> 8) & 0x0f;
+                alias = (value >> 8) & 0x0f;
                 break;
             case DTEXT_VF4:
                 alias = (value >> 12) & 0x0f;
@@ -353,32 +306,31 @@ public class MXMessageTemplate implements Cloneable {
             case DTEXT_RSCTRT2:
             case DTEXT_RSCTRT3:
                 throw new IllegalArgumentException("RSCTRT1, RSCTRT2, RSCTRT3 not supported.");
-                //break;
+            //break;
             case DTEXT_RSCTRT1P:
             case DTEXT_RSCTRT2P:
             case DTEXT_RSCTRT3P:
                 throw new IllegalArgumentException("RSCTRT1P, RSCTRT2P, RSCTRT3P not supported.");
-                //break;
+            //break;
             case DTEXT_RSCTPT1:
             case DTEXT_RSCTPT2:
             case DTEXT_RSCTPT3:
                 throw new IllegalArgumentException("RSCTPT1, RSCTPT2, RSCTPT3 not supported.");
-                 //break;
+            //break;
             case DTEXT_RSCTPT1P:
             case DTEXT_RSCTPT2P:
             case DTEXT_RSCTPT3P:
                 throw new IllegalArgumentException("RSCTPT1P, RSCTPT2P, RSCTPT3P not supported.");
-                //break;
+            //break;
 /*
 static final int DTEXT_CCNUM = 0x1500;
-*/
-            case DTEXT_CHECKSUM:
-                //_checksumTo = i;
-                break;
+             */
+            case DTEXT_CHECKSUM_SET:
+                return 0;
 
             case 0:
-                return (byte)alias;
-                
+                return (byte) alias;
+
             default:
                 boolean haveEx = false;
                 throw new IllegalArgumentException("something wrong " + Integer.toHexString(alias) + " , " + fromD(alias));
@@ -397,7 +349,7 @@ static final int DTEXT_CCNUM = 0x1500;
 
     public String toDText(MXMessage message) {
         ArrayList<String> array = toDArray(message);
-        
+
         StringBuffer text = new StringBuffer();
         String last = "]";
         for (String seg : array) {
@@ -407,7 +359,7 @@ static final int DTEXT_CCNUM = 0x1500;
             if (text.length() >= 0) {
                 if (seg.equals("[") || seg.equals("]") || last.equals("[") || last.equals("]")) {
                     // nothing
-                }else {
+                } else {
                     text.append(" ");
                 }
             }
@@ -423,35 +375,41 @@ static final int DTEXT_CCNUM = 0x1500;
         if (_template == null) {
             return texts;
         }
-        if (_template[0] == MXMessageTemplate.DTEXT_PROGINC) {
+        if (_template[0] == MXTemplate.DTEXT_PROGINC) {
             texts.add(EXCOMMAND_PROGRAM_INC);
             return texts;
         }
-        if (_template[0] == MXMessageTemplate.DTEXT_PROGDEC) {
+        if (_template[0] == MXTemplate.DTEXT_PROGDEC) {
             texts.add(EXCOMMAND_PROGRAM_DEC);
             return texts;
         }
         if (isDataentry()) {
             if (_template[0] == DTEXT_RPN) {
                 texts.add("@RPN");
-            }else {
+            } else {
                 texts.add("@NRPN");
             }
             MXVisitant visitant = message.getVisitant();
             if (visitant != null) {
                 texts.add(fromD(visitant.getDataentryMSB()));
                 texts.add(fromD(visitant.getDataentryLSB()));
-                texts.add(fromD(message.getValue()));
+                texts.add(fromD(message.getValue()._var));
                 return texts;
-            }else {
+            } else {
                 new Exception("RPN have no DATA").printStackTrace();
                 return null;
             }
         }
-        
+
         if (message.isMessageTypeChannel()) {
-            int command = message.getCommand();
-            int channel = message.getChannel();
+            int status = message.getStatus();
+            int command = status;
+            int channel = 0;
+
+            if (command >= 0x80 && command <= 0xef) {
+                command = command & 0xf0;
+                channel = status & 0x0f;
+            }
             int data1 = message.getData1();
             int data2 = message.getData2();
             if (command == MXMidi.COMMAND_PITCHWHEEL) {
@@ -480,28 +438,19 @@ static final int DTEXT_CCNUM = 0x1500;
             /*
                 @RPN [RPN MSB] [RPN LSB] [Data MSB] [Data LSB] 	RPNを送信します。
                 @NRPN [NRPN MSB] [NRPN LSB] [Data MSB] [Data LSB] 	NRPNを送信します。 
-            */
+             */
         }
-        
-        int csumFrom = -1;
-        if (_checksumLength >= 0) {
-            for (int i = 0; i < _template.length; ++ i) {
-                if (_template[i] == DTEXT_CHECKSUM) {
-                    csumFrom = i -_checksumLength;
-                    break;
-                 }
-            }
-        }
-        
-        for (int i = 0; i < _template.length; ++ i) {
-            if (i == csumFrom) {
-                texts.add("[");
-            }
+
+        for (int i = 0; i < _template.length; ++i) {
             int code = _template[i];
             if (i == 0 && message.isMessageTypeChannel()) {
                 code &= 0xf0;
             }
-            if (code == DTEXT_CHECKSUM) {
+            if (code == DTEXT_CHECKSUM_START) {
+                texts.add("[");
+                continue;
+            }
+            if (code == DTEXT_CHECKSUM_SET) {
                 texts.add("]");
                 continue;
             }
@@ -509,7 +458,7 @@ static final int DTEXT_CCNUM = 0x1500;
         }
         return texts;
     }
-   
+
     static {
         textAlias.addNameAndValue("#NONE", DTEXT_NONE);
         textAlias.addNameAndValue("#VL", DTEXT_VL);
@@ -543,7 +492,8 @@ static final int DTEXT_CCNUM = 0x1500;
         textAlias.addNameAndValue("#RSCTPT1P", DTEXT_RSCTPT1P);
         textAlias.addNameAndValue("#RSCTPT2P", DTEXT_RSCTPT2P);
         textAlias.addNameAndValue("#RSCTPT3P", DTEXT_RSCTPT3P);
-        textAlias.addNameAndValue("#CHECKSUM", DTEXT_CHECKSUM);
+        textAlias.addNameAndValue("#CHECKSUM_START", DTEXT_CHECKSUM_START);
+        textAlias.addNameAndValue("#CHECKSUM_SET", DTEXT_CHECKSUM_SET);
 
         textAlias.addNameAndValue("#4CH", DTEXT_4CH);
         textAlias.addNameAndValue("#5CH", DTEXT_5CH);
@@ -578,20 +528,14 @@ static final int DTEXT_CCNUM = 0x1500;
         return 0;
     }
 
-    public MXMessage buildMessage(int port, int gate, int value) {
-        MXMessage message = new MXMessage(port, this);
-        message.setPort(port);
-        message.setGate(gate);
-        message.setValue(value);
-        return message;
+    public MXMessage buildMessage(int port, int channel, RangedValue gate, RangedValue value) {
+        return new MXMessage(port, this, channel, gate, value);
     }
-
 
     /**
      * @return the _bytePosHiValue
      */
     public int getBytePosHiValue() {
-        initFields();
         return _bytePosHiValue;
     }
 
@@ -599,7 +543,6 @@ static final int DTEXT_CCNUM = 0x1500;
      * @return the _bytePosValue
      */
     public int getBytePosValue() {
-        initFields();
         return _bytePosValue;
     }
 
@@ -607,7 +550,6 @@ static final int DTEXT_CCNUM = 0x1500;
      * @return the _bytePosGate
      */
     public int getBytePosGate() {
-        initFields();
         return _bytePosGate;
     }
 
@@ -615,17 +557,15 @@ static final int DTEXT_CCNUM = 0x1500;
      * @return the _bytePosHiGate
      */
     public int getBytePosHiGate() {
-        initFields();
         return _bytePosHiGate;
     }
-    
+
     public String toString() {
         if (_template == null) {
             return "null";
-        }
-        else {
+        } else {
             StringBuffer str = new StringBuffer();
-            for (int i = 0; i < _template.length; ++ i){
+            for (int i = 0; i < _template.length; ++i) {
                 int x = _template[i];
                 String seg = fromD(x);
                 if (seg == null) {
@@ -639,12 +579,83 @@ static final int DTEXT_CCNUM = 0x1500;
             return str.toString();
         }
     }
-    
+
     public boolean isDataentry() {
         if (_template.length > 0) {
             if (_template[0] == DTEXT_RPN || _template[0] == DTEXT_NRPN) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    public boolean canReuseDword(int dword) {
+        int status = (dword >> 16) & 0xff;
+        int data1 = (dword >> 8) & 0xff;
+        int data2 = (dword) & 0xff;
+
+        if (_template.length == 3) {
+            int seek;
+            seek = _template[0];
+            if (status >= 0x80 && status <= 0xef) {
+                status = status & 0xf0;
+            }
+
+            if (seek != status) {
+                return false;
+            }
+            seek = _template[1];
+            if (seek != data1) {
+                if (seek != DTEXT_VH && seek != DTEXT_VL
+                        && seek != DTEXT_GH && seek != DTEXT_GL) {
+                    return false;
+                }
+            }
+            seek = _template[2];
+            if (seek != data2) {
+                if (seek != DTEXT_VH && seek != DTEXT_VL
+                        && seek != DTEXT_GH && seek != DTEXT_GL) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public boolean canReuseBinary(byte[] data) {
+        if (_template.length - _checksumCount == data.length) {
+            int dpos = 0;
+            for (int tpos = 0; tpos < _template.length; ++tpos) {
+                int seek = _template[tpos];
+                if (seek == DTEXT_CHECKSUM_START) {
+                    continue;
+                }
+                int d1 = data[dpos++] & 0xff;
+                if (seek != d1) {
+                    if (seek != DTEXT_VH && seek != DTEXT_VL) {
+                        return false;
+                    }
+                    if (seek != DTEXT_CHECKSUM_SET) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public boolean canReuseTemplate(int[] template) {
+        if (_template.length == template.length) {
+            for (int i = 0; i < template.length; ++i) {
+                int seek = _template[i];
+                int d1 = template[i];
+                if (seek != d1) {
+                    return false;
+                }
+            }
+            return true;
         }
         return false;
     }

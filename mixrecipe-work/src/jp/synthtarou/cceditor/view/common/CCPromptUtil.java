@@ -28,7 +28,7 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
-import jp.synthtarou.cceditor.Main;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 
 /**
@@ -39,7 +39,7 @@ public class CCPromptUtil {
 
     public static void showPanelForTest(Container parent, JPanel panel) {
         Container cont = MXUtil.getOwnerWindow(parent);
-        String title = Main.TITLE;
+        String title = MXAppConfig.MX_APPNAME;
 
         JDialog modal = null;
         if (cont instanceof Frame) {
@@ -83,7 +83,7 @@ public class CCPromptUtil {
     }
 
     public static void showFrame(JPanel panel) {
-        String title = Main.TITLE;
+        String title = MXAppConfig.MX_APPNAME;
 
         JFrame child = null;
         child = new JFrame(title);
@@ -125,7 +125,7 @@ public class CCPromptUtil {
 
         JDialog child = null;
         if (title == null) {
-            title = Main.TITLE;
+            title = MXAppConfig.MX_APPNAME;
         }
         if (cont instanceof Window) {
             Window W = (Window) cont;

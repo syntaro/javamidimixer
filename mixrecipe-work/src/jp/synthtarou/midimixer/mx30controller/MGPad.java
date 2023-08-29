@@ -112,10 +112,8 @@ public class MGPad extends javax.swing.JPanel implements MXFocusAble {
         if (_process != null && _process != null) {
             MGStatus status = getStatus();
             
-            status.fixRangedValue();
-
             if (status.getName() == null || status.getName().length() == 0) {
-                MXMessage message = status.toMXMessage(new MXTiming());
+                MXMessage message = status.toMXMessage(null);
                 if (message == null) {
                     jButton1.setText("?");
                 }else {

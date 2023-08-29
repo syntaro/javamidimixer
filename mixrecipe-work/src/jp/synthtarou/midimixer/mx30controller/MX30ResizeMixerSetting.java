@@ -16,7 +16,7 @@
  */
 package jp.synthtarou.midimixer.mx30controller;
 
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 
 /**
@@ -25,9 +25,9 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
  */
 public class MX30ResizeMixerSetting extends javax.swing.JPanel {
 
-    boolean[] activeKnob = new boolean[MXStatic.CIRCLE_ROW_COUNT];
-    boolean[] activePad = new boolean[MXStatic.DRUM_ROW_COUNT];
-    int activeLines = MXStatic.SLIDER_COLUMN_COUNT;
+    boolean[] activeKnob = new boolean[MXAppConfig.CIRCLE_ROW_COUNT];
+    boolean[] activePad = new boolean[MXAppConfig.DRUM_ROW_COUNT];
+    int activeLines = MXAppConfig.SLIDER_COLUMN_COUNT;
     MX30Process _process;
 
     /**
@@ -62,7 +62,7 @@ public class MX30ResizeMixerSetting extends javax.swing.JPanel {
                 break;
                 
         }
-        for (int r = 0; r < MXStatic.CIRCLE_ROW_COUNT; ++ r) {
+        for (int r = 0; r < MXAppConfig.CIRCLE_ROW_COUNT; ++ r) {
             activeKnob[r] = process.isKnobActive(r);
             switch(r) {
                 case 0:
@@ -79,7 +79,7 @@ public class MX30ResizeMixerSetting extends javax.swing.JPanel {
                     break;
             }
         }
-        for (int r = 0; r < MXStatic.DRUM_ROW_COUNT; ++ r) {
+        for (int r = 0; r < MXAppConfig.DRUM_ROW_COUNT; ++ r) {
             activePad[r] = process.isPadActive(r);
             switch(r) {
                 case 0:
@@ -272,7 +272,7 @@ public class MX30ResizeMixerSetting extends javax.swing.JPanel {
         activeKnob[2] = jCheckBoxKnob3.isSelected();
         activeKnob[3] = jCheckBoxKnob4.isSelected();
 
-        for (int r = 0; r < MXStatic.CIRCLE_ROW_COUNT; ++ r) {
+        for (int r = 0; r < MXAppConfig.CIRCLE_ROW_COUNT; ++ r) {
             _process.setKnobActive(r, activeKnob[r]);
         }
         
@@ -280,7 +280,7 @@ public class MX30ResizeMixerSetting extends javax.swing.JPanel {
         activePad[1] = jCheckBoxPad2.isSelected();
         //activePad[2] = jCheckBoxPad3.isSelected();
 
-        for (int r = 0; r < MXStatic.DRUM_ROW_COUNT; ++ r) {
+        for (int r = 0; r < MXAppConfig.DRUM_ROW_COUNT; ++ r) {
             _process.setPadActive(r, activePad[r]);
         }
         

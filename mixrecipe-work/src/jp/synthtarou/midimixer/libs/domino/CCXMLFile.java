@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.cceditor.xml;
+package jp.synthtarou.midimixer.libs.domino;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -38,9 +38,9 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import jp.synthtarou.cceditor.xml.rules.CCXMLAttributeRule;
-import jp.synthtarou.cceditor.xml.rules.CCXMLTagRule;
-import jp.synthtarou.cceditor.xml.rules.CCXMLRule;
+import jp.synthtarou.midimixer.libs.domino.rules.CCXMLAttributeRule;
+import jp.synthtarou.midimixer.libs.domino.rules.CCXMLTagRule;
+import jp.synthtarou.midimixer.libs.domino.rules.CCXMLRule;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;

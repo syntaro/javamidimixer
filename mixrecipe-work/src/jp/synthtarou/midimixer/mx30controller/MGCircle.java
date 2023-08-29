@@ -25,6 +25,7 @@ import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
@@ -70,14 +71,12 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
     public void updateUI() {
         MGStatus status = getStatus();
         if (status != null) {
-            status.fixRangedValue();
-            
-            jCircleValue.setRange(status.getRangeMin(), status.getRangeMax());
+            jCircleValue.setRange(status.getValue()._min, status.getValue()._max);
             jCircleValue.setInverted(status.isUiValueInvert());
-            jCircleValue.setValue(status.getValue());
+            jCircleValue.setValue(status.getValue()._var);
 
             if (status.getName() == null || status.getName().length() == 0) {
-                MXMessage message = status.toMXMessage(new MXTiming());
+                MXMessage message = status.toMXMessage(null);
                 if (message == null) {
                     jLabel1.setText("?");
                 }else {
@@ -160,7 +159,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
 
     private void jCircleValueStateChanged(javax.swing.event.ChangeEvent evt) {                                          
         int newValue = jCircleValue.getValue();
-        if (getStatus().getValue() == newValue) {
+        if (getStatus().getValue()._var == newValue) {
             return;
         }
         if (_ignoreEvent) {
@@ -224,35 +223,17 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
 
     public void increment() {
         MGStatus status = getStatus();
-        int newValue = status.getValue()+ 1;
-        if (status.isUiValueInvert()) {
-            newValue = status.getValue() - 1;
-        }
-        if (newValue > status.getRangeMax()) {
-            newValue = status.getRangeMax();
-        }
-        if (newValue < status.getRangeMin()) {
-            newValue = status.getRangeMin();
-        }
-        if (newValue != status.getValue()) {
-            _process.catchedValue(status, null, newValue, null);
+        RangedValue var = status.getValue().increment();
+        if (var != null) {
+            _process.catchedValue(status, null, var._var, null);
         }
     }
     
     public void decriment() {
         MGStatus status = getStatus();
-        int newValue = status.getValue() - 1;
-        if (status.isUiValueInvert()) {
-            newValue = status.getValue() + 1;
-        }
-        if (newValue > status.getRangeMax()) {
-            newValue = status.getRangeMax();
-        }
-        if (newValue < status.getRangeMin()) {
-            newValue = status.getRangeMin();
-        }
-        if (newValue != status.getValue()) {
-            _process.catchedValue(status, null, newValue, null);
+        RangedValue var = status.getValue().decrement();
+        if (var != null) {
+            _process.catchedValue(status, null, var._var, null);
         }
     }
 

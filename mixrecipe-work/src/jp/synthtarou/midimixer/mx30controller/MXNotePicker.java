@@ -23,11 +23,11 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
 
 /**
@@ -60,7 +60,7 @@ public class MXNotePicker extends javax.swing.JPanel {
         }else {
             dialog = new JDialog(owner2, true);
         }
-        dialog.setTitle("Master Keys (" + MXStatic.MX_APPNAME + ")");
+        dialog.setTitle("Master Keys (" + MXAppConfig.MX_APPNAME + ")");
         //dialog.setAlwaysOnTop(modal ? true : false);
         dialog.pack();
         dialog.getContentPane().add(this);
@@ -73,8 +73,8 @@ public class MXNotePicker extends javax.swing.JPanel {
     }
 
     MXSwingPiano _piano;
-    MXWrapList<Integer> _watchPort = MXUtilMidi.createPortAssigned(true);
-    MXWrapList<Integer> _watchChannel = MXUtilMidi.createChannel(false);
+    MXWrapList<Integer> _watchPort = MXMidi.createPortAssigned(true);
+    MXWrapList<Integer> _watchChannel = MXMidi.createChannel(false);
     boolean _closeOK = false;
     int[] _retNote = null;
     
@@ -130,7 +130,7 @@ public class MXNotePicker extends javax.swing.JPanel {
 
     public void noteSelectionChanged() {
         _retNote = _piano.listMultiSelected();
-        jLabelNoteList.setText(MXUtilMidi.noteListToText(_retNote));
+        jLabelNoteList.setText(MXMidi.noteListToText(_retNote));
     }
 
     /**

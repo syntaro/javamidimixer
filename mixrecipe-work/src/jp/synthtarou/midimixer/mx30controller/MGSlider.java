@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
@@ -75,18 +76,18 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
             if (ThemeManager.getInstance().isColorfulMetalTheme()) {        
                 col = MXUtil.mixedColor(Color.red, Color.yellow, 30);
             }
+            RangedValue value = status.getValue();
             jLabelValue.setForeground(col);
-            jLabelMin.setText(String.valueOf(status.getRangeMin()));
-            jLabelMax.setText(String.valueOf(status.getRangeMax()));
-            jSliderValue.setMinimum(status.getRangeMin());
-            jSliderValue.setMaximum(status.getRangeMax());
+            jLabelMin.setText(String.valueOf(value._min));
+            jLabelMax.setText(String.valueOf(value._max));
+            jSliderValue.setMinimum(value._min);
+            jSliderValue.setMaximum(value._max);
             jSliderValue.setInverted(status.isUiValueInvert());
             jSliderValue.setPaintLabels(true);
-            jSliderValue.setValue(status.getValue());
-            jLabelValue.setText(String.valueOf(status.getValue()));
-            status.fixRangedValue();
+            jSliderValue.setValue(value._var);
+            jLabelValue.setText(String.valueOf(value._var));
             if (status.getName() == null || status.getName().length() == 0) {
-                MXMessage message = status.toMXMessage(new MXTiming());
+                MXMessage message = status.toMXMessage(null);
                 if (message == null) {
                     jLabelName.setText("?");
                 }else {
@@ -187,7 +188,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
     
     private void jSliderValueStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderValueStateChanged
         int newValue = jSliderValue.getValue();
-        if (getStatus().getValue() == newValue) {
+        if (getStatus().getValue()._var == newValue) {
             return;
         }
         jLabelValue.setText(String.valueOf(newValue));
@@ -269,42 +270,24 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
 
     public void increment() {
         MGStatus status = getStatus();
-        int newValue = status.getValue() + 1;
-        if (status.isUiValueInvert()) {
-            newValue = status.getValue() - 1;
-        }
-        if (newValue > status.getRangeMax()) {
-            newValue = status.getRangeMax();
-        }
-        if (newValue < status.getRangeMin()) {
-            newValue = status.getRangeMin();
-        }
-        if (newValue != status.getValue()) {
-            _process.catchedValue(status, null, newValue, null);
+        RangedValue var = status.getValue().increment();
+        if (var != null) {
+            _process.catchedValue(status, null, var._var, null);
         }
     }
     
     public void decriment() {
         MGStatus status = getStatus();
-        int newValue = status.getValue() - 1;
-        if (status.isUiValueInvert()) {
-            newValue = status.getValue() + 1;
-        }
-        if (newValue > status.getRangeMax()) {
-            newValue = status.getRangeMax();
-        }
-        if (newValue < status.getRangeMin()) {
-            newValue = status.getRangeMin();
-        }
-        if (newValue != status.getValue()) {
-            _process.catchedValue(status, null, newValue, null);
+        RangedValue var = status.getValue().decrement();
+        if (var != null) {
+            _process.catchedValue(status, null, var._var, null);
         }
     }
     
-    public void beHomePosition() {
+    public void doHomePosition() {
         final MGStatus status = getStatus();
-        final int current = status.getValue();
-        final int value = status.getValueHome();
+        final int current = status.getValue()._var;
+        final int value = status.getHomePosition();
         Thread t = new Thread(new Runnable() {
             public void run() {
                 try {

@@ -31,7 +31,6 @@ import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
 
@@ -69,8 +68,8 @@ public class ProgramPicker extends javax.swing.JPanel {
         PDFileManager manager = PDFileManager.getManager();
         _listRoot.addAll(manager._listXML);
 
-        jComboBoxTestPort.setModel(MXUtilMidi.createPortAssigned(false));
-        jComboBoxTestChannel.setModel(MXUtilMidi.createChannel(false));
+        jComboBoxTestPort.setModel(MXMidi.createPortAssigned(false));
+        jComboBoxTestChannel.setModel(MXMidi.createChannel(false));
         _xmlList = new MXWrapList();
         for (PDFile xml : _listRoot) {
             _xmlList.addNameAndValue(xml.getName(), xml);

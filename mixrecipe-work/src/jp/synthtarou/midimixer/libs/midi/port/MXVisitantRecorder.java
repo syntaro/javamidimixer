@@ -21,14 +21,13 @@ import java.util.LinkedList;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
 
 /**
  *
@@ -40,7 +39,7 @@ public class MXVisitantRecorder implements TableModel {
 
     public MXVisitantRecorder() {
         _element = new ArrayList();
-        for (int port = 0; port < MXStatic.TOTAL_PORT_COUNT; ++ port) {
+        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
             _element.add(new MXVisitant16());
         }
     }
@@ -136,9 +135,9 @@ public class MXVisitantRecorder implements TableModel {
         
         switch(columnIndex) {
             case 0:
-                return MXUtilMidi.nameOfPortShort(port) + (channel+1);
+                return MXMidi.nameOfPortShort(port) + (channel+1);
             case 1:
-                if (info.isHavingBank()) {
+                if (info._havingBank != MXVisitant.HAVE_VAL_NOT) {
                     return MXUtil.toHexFF(info.getBankMSB()) + ":" + MXUtil.toHexFF(info.getBankLSB());
                 }
                 break;

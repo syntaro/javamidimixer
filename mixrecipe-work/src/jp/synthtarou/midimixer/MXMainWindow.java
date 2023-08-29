@@ -36,11 +36,9 @@ import javax.swing.Box;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
-import jp.synthtarou.midimixer.libs.swing.MXSwingAccordion;
 import jp.synthtarou.midimixer.libs.swing.themes.ThemeManagerDialog;
 import jp.synthtarou.midimixer.mx10input.MX10View;
 import jp.synthtarou.midimixer.mx35cceditor.MX35View;
@@ -96,7 +94,7 @@ public class MXMainWindow extends javax.swing.JFrame {
             }
         });
         helpParent.add(helpMenu2);
-        JMenu appMenu = new JMenu(MXStatic.MX_APPNAME_WITH_VERSION);
+        JMenu appMenu = new JMenu(MXAppConfig.MX_APPNAME);
         jMenuBar1.add(appMenu);
 
         JMenuItem themeMenu = new JMenuItem("Theme");
@@ -158,8 +156,8 @@ public class MXMainWindow extends javax.swing.JFrame {
      * ウィンドウの初期化
      */
     public void initLatebind(Collection<MXReceiver> viewList) {
-        setTitle(MXStatic.MX_APPNAME_WITH_VERSION);
-        setSize(new Dimension(1200, 700));
+        setTitle(MXAppConfig.MX_APPNAME);
+        setSize(new Dimension(1200, 800));
 
         MXUtil.centerWindow(this);
         setVisible(true);

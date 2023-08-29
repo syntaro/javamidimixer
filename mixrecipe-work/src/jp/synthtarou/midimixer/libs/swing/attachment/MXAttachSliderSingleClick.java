@@ -24,7 +24,7 @@ import javax.swing.JSlider;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicSliderUI;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 
 /**
  *
@@ -48,7 +48,7 @@ public class MXAttachSliderSingleClick {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     return;
                 }
-                if (MXStatic._trapMouseForOnlySelect) {
+                if (MXAppConfig._trapMouseForOnlySelect) {
                     return;
                 }
                 if (slider.isEnabled()) {

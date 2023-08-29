@@ -19,9 +19,9 @@ package jp.synthtarou.cceditor.view.common;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import jp.synthtarou.cceditor.xml.CCXMLNode;
-import jp.synthtarou.cceditor.xml.rules.CCXMLAttributeRule;
-import jp.synthtarou.cceditor.xml.rules.CCXMLTagRule;
+import jp.synthtarou.midimixer.libs.domino.CCXMLNode;
+import jp.synthtarou.midimixer.libs.domino.rules.CCXMLAttributeRule;
+import jp.synthtarou.midimixer.libs.domino.rules.CCXMLTagRule;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 
 /**

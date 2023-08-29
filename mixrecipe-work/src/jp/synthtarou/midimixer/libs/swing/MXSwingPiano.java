@@ -216,7 +216,7 @@ public class MXSwingPiano extends JComponent {
     public int getAdjustedHeight(int width) {
         int heightAll = getHeight();
         int widthOne = width / _whiteKeysList.size();
-        return widthOne * 5;
+        return widthOne * 5 + 40;
     }
 
     private void paintOnGraphics(Graphics g, Rectangle rect) {

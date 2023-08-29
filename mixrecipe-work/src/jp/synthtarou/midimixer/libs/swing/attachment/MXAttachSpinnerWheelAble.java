@@ -29,7 +29,7 @@ import javax.swing.JComponent;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 
 /**
  *
@@ -87,7 +87,7 @@ public class MXAttachSpinnerWheelAble {
     public class MouseManager implements MouseListener, MouseMotionListener, MouseWheelListener  {
         @Override
         public void mouseDragged(MouseEvent e) {
-            if (MXStatic._trapMouseForOnlySelect) {
+            if (MXAppConfig._trapMouseForOnlySelect) {
                 return;
             }
             mouseMoved(e);
@@ -95,7 +95,7 @@ public class MXAttachSpinnerWheelAble {
 
         @Override
         public void mouseMoved(MouseEvent e) {
-            if (MXStatic._trapMouseForOnlySelect) {
+            if (MXAppConfig._trapMouseForOnlySelect) {
                 return;
             }
             if (_spinner.isEnabled()) {
@@ -122,14 +122,14 @@ public class MXAttachSpinnerWheelAble {
 
         @Override
         public void mouseClicked(MouseEvent e) {
-            if (MXStatic._trapMouseForOnlySelect) {
+            if (MXAppConfig._trapMouseForOnlySelect) {
                 return;
             }
         }
 
         @Override
         public void mousePressed(MouseEvent e) {
-            if (MXStatic._trapMouseForOnlySelect) {
+            if (MXAppConfig._trapMouseForOnlySelect) {
                 return;
             }
             if (_spinner.isEnabled()) {
@@ -139,7 +139,7 @@ public class MXAttachSpinnerWheelAble {
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            if (MXStatic._trapMouseForOnlySelect) {
+            if (MXAppConfig._trapMouseForOnlySelect) {
                 return;
             }
             _basePoint = null;
@@ -147,21 +147,21 @@ public class MXAttachSpinnerWheelAble {
 
         @Override
         public void mouseEntered(MouseEvent e) {
-            if (MXStatic._trapMouseForOnlySelect) {
+            if (MXAppConfig._trapMouseForOnlySelect) {
                 return;
             }
         }
 
         @Override
         public void mouseExited(MouseEvent e) {
-            if (MXStatic._trapMouseForOnlySelect) {
+            if (MXAppConfig._trapMouseForOnlySelect) {
                 return;
             }
         }
 
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
-            if (MXStatic._trapMouseForOnlySelect) {
+            if (MXAppConfig._trapMouseForOnlySelect) {
                 return;
             }
             if (_spinner.isEnabled()) {

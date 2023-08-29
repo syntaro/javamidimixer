@@ -15,12 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package jp.synthtarou.cceditor.xml;
+package jp.synthtarou.midimixer.libs.domino;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import jp.synthtarou.cceditor.xml.rules.CCXMLTagRule;
-import jp.synthtarou.cceditor.xml.rules.CCXMLRule;
+import jp.synthtarou.midimixer.libs.domino.rules.CCXMLTagRule;
+import jp.synthtarou.midimixer.libs.domino.rules.CCXMLRule;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 
 /**

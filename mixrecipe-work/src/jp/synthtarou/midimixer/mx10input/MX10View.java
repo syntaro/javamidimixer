@@ -18,17 +18,15 @@ package jp.synthtarou.midimixer.mx10input;
 
 import java.util.Vector;
 import javax.swing.JLabel;
-import javax.swing.JScrollPane;
 import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
 import jp.synthtarou.midimixer.libs.swing.JTableWithColumnHeader;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
-import jp.synthtarou.midimixer.MXStatic;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 
 /**
@@ -86,7 +84,7 @@ public class MX10View extends javax.swing.JPanel {
         DefaultTableModel model = (DefaultTableModel)_jTableSkip.getModel();
         
         if (type >= 1 && type <= _process._data.TYPE_COUNT) {
-            if (port >= 0 && port < MXStatic.TOTAL_PORT_COUNT) {
+            if (port >= 0 && port < MXAppConfig.TOTAL_PORT_COUNT) {
                 if (_process._data.isSkip(port, type)) {
                     _process._data.setSkip(port, type, false);
                     model.setValueAt("", row, column);
@@ -166,15 +164,15 @@ public class MX10View extends javax.swing.JPanel {
 
         model.addColumn("");
         
-        for (int i = 0; i < MXStatic.TOTAL_PORT_COUNT; ++ i) {
-            model.addColumn(MXUtilMidi.nameOfPortShort(i));
+        for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
+            model.addColumn(MXMidi.nameOfPortShort(i));
         }
         
         for (int row = 0; row < _process._data.TYPE_COUNT; ++ row) {
             Vector line = new Vector();
             line.add(data.typeNames[row]);
             
-            for (int delivery = 0; delivery < MXStatic.TOTAL_PORT_COUNT; ++ delivery) {
+            for (int delivery = 0; delivery < MXAppConfig.TOTAL_PORT_COUNT; ++ delivery) {
                 int type = row + 1; /* 1 ... 9 */
                 if (data.isSkip(delivery, type)) {
                     line.add("Skip");
@@ -188,8 +186,8 @@ public class MX10View extends javax.swing.JPanel {
             Vector line = new Vector();
             line.add("");
 
-            for (int i = 0; i < MXStatic.TOTAL_PORT_COUNT; ++ i) {
-                line.add(MXUtilMidi.nameOfPortShort(i));
+            for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
+                line.add(MXMidi.nameOfPortShort(i));
             }
         }
         return model;

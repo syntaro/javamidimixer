@@ -63,6 +63,7 @@ public class MXSwingFileChooser extends JFileChooser {
             }
             if (notFound.size() > 0) {
                 JOptionPane.showMessageDialog(this, "File not found.\n" + notFound);
+                return;
             }
             currentDir = getCurrentDirectory();
         }

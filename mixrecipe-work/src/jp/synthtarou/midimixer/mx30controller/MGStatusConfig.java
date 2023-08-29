@@ -32,16 +32,16 @@ import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.domino.DTextMessage;
 import jp.synthtarou.midimixer.libs.domino.DTextPicker;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.capture.MXMessageCapture;
 import jp.synthtarou.midimixer.libs.midi.capture.MXMessageCapturePanel;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMessageTemplate;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.capture.GateInfomation;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
@@ -131,12 +131,12 @@ public class MGStatusConfig extends javax.swing.JPanel {
         skipDataExchange = true;
         try {
             if (_channelModel == null) {
-                _channelModel = MXUtilMidi.createChannel(false);
-                _ccGateModel = MXUtilMidi.createControlChange();
-                _keyGateModel = MXUtilMidi.createNoteNo();
-                _normalGateModel = MXUtilMidi.createNormalGate();
-                _rpnMSBModel = MXUtilMidi.createXSB();
-                _rpnLSBModel = MXUtilMidi.createXSB();
+                _channelModel = MXMidi.createChannel(false);
+                _ccGateModel = MXMidi.createControlChange();
+                _keyGateModel = MXMidi.createNoteNo();
+                _normalGateModel = MXMidi.createNormalGate();
+                _rpnMSBModel = MXMidi.createXSB();
+                _rpnLSBModel = MXMidi.createXSB();
             }
 
             if (_status.getName() == null) {
@@ -162,30 +162,32 @@ public class MGStatusConfig extends javax.swing.JPanel {
             _channelModel.writeComboBox(jComboBoxChannel, _status.getChannel());
 
             MXMessage message = _status.toMXMessage(null);
-            int command = message.getCommand();
             boolean initTurn = true;
             if (jComboBoxGate.getModel() instanceof MXWrapList) {
                 initTurn = false;
             }
 
             jLabelNameDefault.setText("Empty means-> '" + message.toShortString() + "'");
+            
+            int command = message.getStatus() & 0xf0;
+            int gateValue = _status.getGate()._var;
 
             if (command == MXMidi.COMMAND_CHANNELPRESSURE
               ||command == MXMidi.COMMAND_NOTEON
               ||command == MXMidi.COMMAND_NOTEOFF) {
                 jComboBoxGate.setModel(_keyGateModel);
-                if (initTurn || ((MXWrap<Integer>)jComboBoxGate.getSelectedItem()).value != _status.getGate()) {
-                    _keyGateModel.writeComboBox(jComboBoxGate, _status.getGate());
+                if (initTurn || ((MXWrap<Integer>)jComboBoxGate.getSelectedItem()).value !=  gateValue) {
+                    _keyGateModel.writeComboBox(jComboBoxGate, gateValue);
                 }
             }else if (command == MXMidi.COMMAND_CONTROLCHANGE) {
                 jComboBoxGate.setModel(_ccGateModel);
-                if (initTurn || ((MXWrap<Integer>)jComboBoxGate.getSelectedItem()).value != _status.getGate()) {
-                    _ccGateModel.writeComboBox(jComboBoxGate, _status.getGate());
+                if (initTurn || ((MXWrap<Integer>)jComboBoxGate.getSelectedItem()).value != gateValue) {
+                    _ccGateModel.writeComboBox(jComboBoxGate, gateValue);
                 }
             }else {
                 jComboBoxGate.setModel(_normalGateModel);
-                if (initTurn || ((MXWrap<Integer>)jComboBoxGate.getSelectedItem()).value != _status.getGate()) {
-                    _normalGateModel.writeComboBox(jComboBoxGate, _status.getGate());
+                if (initTurn || ((MXWrap<Integer>)jComboBoxGate.getSelectedItem()).value != gateValue) {
+                    _normalGateModel.writeComboBox(jComboBoxGate, gateValue);
                 }
             }
 
@@ -242,7 +244,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
                     }else  if (message.getVisitant() != null && (message.getVisitant().isHaveDataentryRPN() || message.getVisitant().isHaveDataentryNRPN())) {
                         //OK
                     }
-                }else if (message.isMessageTypeChannel() && message.getCommand() == MXMidi.COMMAND_CONTROLCHANGE && message.isDataentry() == false) {
+                }else if (message.isMessageTypeChannel() && message.isCommand(MXMidi.COMMAND_CONTROLCHANGE) && !message.isDataentry()) {
                     String newText = "@CC #GL #VL";
                     if (data.getTextCommand().equals(newText) == false) {
                         String errorText = "ControlChange's Text Command can be '" + newText + "'";
@@ -251,7 +253,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
                             data.setTextCommand(newText);
                             jTextFieldTextCommand.setText(newText);
                             data.setGate(message.getGate());
-                            _ccGateModel.writeComboBox(jComboBoxGate, data.getGate());
+                            _ccGateModel.writeComboBox(jComboBoxGate, data.getGate()._var);
                             skipDataExchange = false;
                         }else {
                             result.add(errorText);
@@ -268,8 +270,8 @@ public class MGStatusConfig extends javax.swing.JPanel {
             //ok
         }
         
-        int min = data.getRangeMin();
-        int max = data.getRangeMax();
+        int min = data.getValue()._min;
+        int max = data.getValue()._max;
 
         MXMessage msg = data.toMXMessage(null);
         int wishMax = (msg.hasValueHiField() || msg.isValuePairCC14()) ? (128 * 128 -1) : (128 -1);
@@ -278,9 +280,8 @@ public class MGStatusConfig extends javax.swing.JPanel {
             String errorText = "Seems custom ranged value, Do you want to reset to 0 ... " + wishMax;
             if (canDialog && JOptionPane.showConfirmDialog(this, errorText , "Smart Replace", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                 skipDataExchange = true;
-                data.setRangeMin(0);
-                data.setRangeMin(wishMax);
-                
+                data.setRange(0, wishMax);
+                //TODO data.setValue(max);
                 jSpinnerMin.setValue(0);
                 jSpinnerMax.setValue(wishMax);
                 skipDataExchange = false;
@@ -351,9 +352,9 @@ public class MGStatusConfig extends javax.swing.JPanel {
         
         boolean isdataentry = false;
 
-        MXMessageTemplate temp = _status.getTemplate();
-        if (temp.get(0) == MXMessageTemplate.DTEXT_RPN
-          ||temp.get(0) == MXMessageTemplate.DTEXT_NRPN) {
+        MXTemplate temp = _status.getTemplate();
+        if (temp.get(0) == MXTemplate.DTEXT_RPN
+          ||temp.get(0) == MXTemplate.DTEXT_NRPN) {
             isdataentry = true;
         }
         jComboBoxLSB.setEnabled(isdataentry);
@@ -506,8 +507,8 @@ public class MGStatusConfig extends javax.swing.JPanel {
             jTextFieldSequenceFile.setText("");
             jLabelBlank2.setText("");
             
-            _drumOutPort = MXUtilMidi.createPortAssigned(false);
-            _drumOutChannel = MXUtilMidi.createChannel(false);
+            _drumOutPort = MXMidi.createPortAssigned(false);
+            _drumOutChannel = MXMidi.createChannel(false);
 
             jComboBoxDrumPort.setModel(_drumOutPort);
             jComboBoxDrumChannel.setModel(_drumOutChannel);
@@ -550,9 +551,8 @@ public class MGStatusConfig extends javax.swing.JPanel {
         data.setTextCommand(jTextFieldTextCommand.getText());
         data.setChannel((int) _channelModel.readCombobox(this.jComboBoxChannel));
         MXWrap<Integer> x = (MXWrap<Integer>)jComboBoxGate.getSelectedItem();
-        data.setGate((int) x.value);
-        data.setRangeMin((int)jSpinnerMin.getValue());
-        data.setRangeMax((int)jSpinnerMax.getValue());
+        data.setGate(RangedValue.new7bit(x.value));
+        data.setRange((int)jSpinnerMin.getValue(), (int)jSpinnerMax.getValue());
     }
   
     public void readBufferFromPanelSlider() {
@@ -564,9 +564,8 @@ public class MGStatusConfig extends javax.swing.JPanel {
         _status.setTextCommand(jTextFieldTextCommand.getText());
         _status.setChannel((int) _channelModel.readCombobox(this.jComboBoxChannel));
         MXWrap<Integer> x = (MXWrap<Integer>)jComboBoxGate.getSelectedItem();
-        _status.setGate((int) x.value);
-        _status.setRangeMin((int)jSpinnerMin.getValue());
-        _status.setRangeMax((int)jSpinnerMax.getValue());
+        _status.setGate(RangedValue.new7bit(x.value));
+        _status.setRange((int)jSpinnerMin.getValue(), (int)jSpinnerMax.getValue());
 
         _status.setDataroomMSB(_rpnMSBModel.readCombobox(jComboBoxMSB));
         _status.setDataroomLSB(_rpnLSBModel.readCombobox(jComboBoxLSB));
@@ -574,19 +573,21 @@ public class MGStatusConfig extends javax.swing.JPanel {
         boolean changed = false;
         try {
             _status.setDataroomType(MXVisitant.ROOMTYPE_NODATA);
-            MXMessageTemplate template = MXMessageFactory.fromDtext(_status.getTextCommand(), _status.getChannel());
-            MXMessage message = template.buildMessage(_status.getPort(), _status.getGate(), _status.getValue());
+            MXTemplate template = MXMessageFactory.fromDtext(_status.getTextCommand(), _status.getChannel());
+            MXMessage message = template.buildMessage(_status.getPort(),  _status.getChannel(), _status.getGate(), _status.getValue());
             skipDataExchange = true;
 
-            if (message.getGate() != _status.getGate()) {
+            if (message.getGate()._var != _status.getGate()._var) {
                 _status.setGate(message.getGate());
                 changed = true;
             }
             
-            if (message.getTemplate(0) == MXMessageTemplate.DTEXT_RPN) {
+            int d = message.getTemplate().get(0);
+            
+            if (d == MXTemplate.DTEXT_RPN) {
                 _status.setDataroomType(MXVisitant.ROOMTYPE_RPN);
                 changed = true;
-            }else if (message.getTemplate(0) == MXMessageTemplate.DTEXT_NRPN) {
+            }else if (d == MXTemplate.DTEXT_NRPN) {
                 _status.setDataroomType(MXVisitant.ROOMTYPE_NRPN);
                 changed = true;
             }
@@ -600,7 +601,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
         }
         MXMessage msg = _status.toMXMessage(null);
         boolean canHave14bit = false;
-        if (msg.getCommand() == MXMidi.COMMAND_CONTROLCHANGE) {
+        if (msg.isCommand(MXMidi.COMMAND_CONTROLCHANGE)) {
             if (msg.getData1() >= 0 && msg.getData1() < 32) {
                 canHave14bit = true;
             }
@@ -1632,8 +1633,8 @@ public class MGStatusConfig extends javax.swing.JPanel {
         DTextMessage x = picker.getTextReturn();
         if (x != null) {
             try {
-                MXMessageTemplate template = MXMessageFactory.fromDtext(x.getDataText(), 0);
-                MXMessage msg =template.buildMessage(_process._port, x.getGate(), 0);
+                MXTemplate template = MXMessageFactory.fromDtext(x.getDataText(), 0);
+                MXMessage msg =template.buildMessage(_process._port, 0, x.getGate(), RangedValue.ZERO7);
                 //_display._channel = msg.getChannel();
                 _status.setTextCommand(x.getDataText());
 
@@ -1643,11 +1644,9 @@ public class MGStatusConfig extends javax.swing.JPanel {
                 
                 if (min == null && max == null) {
                     if (msg.hasValueHiField() || msg.isValuePairCC14()) {
-                        _status.setRangeMin(0);
-                        _status.setRangeMax(128 * 128 - 1);
+                        _status.setRange(0, 128 * 128 - 1);
                     }else {
-                        _status.setRangeMin(0);
-                        _status.setRangeMax(128 - 1);
+                        _status.setRange(0, 128 - 1);
                     }
                 }else {
                     try {
@@ -1656,8 +1655,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
                         if (offset == null) offset = "0";
                         int offsetN = Integer.parseInt(offset);
                         
-                        _status.setRangeMin(Integer.parseInt(min) + offsetN);
-                        _status.setRangeMax(Integer.parseInt(max) + offsetN);
+                        _status.setRange(Integer.parseInt(min) + offsetN, Integer.parseInt(max) + offsetN);
                     }catch(Exception e){
                         
                     }
@@ -1681,8 +1679,8 @@ public class MGStatusConfig extends javax.swing.JPanel {
         Object sel = jComboBoxGate.getModel().getSelectedItem();
         MXWrap<Integer> wrap = (MXWrap<Integer>)sel;
         int gate = wrap.value;
-        if (_status.getGate() != gate) {
-            _status.setGate(gate);
+        if (_status.getGate()._var != gate) {
+            _status.setGate(RangedValue.new7bit(gate));
             writeBufferToPanelSlider();
             disableUnusedOnPanel();
             if (gate == MXMidi.DATA1_CC_DATAENTRY) {
@@ -1726,7 +1724,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
         if (skipDataExchange) {
             return;
         }
-        _status.setRangeMax((int)jSpinnerMax.getValue());
+        _status.setRange((int)jSpinnerMin.getValue(), (int)jSpinnerMax.getValue());
     }//GEN-LAST:event_jSpinnerMaxStateChanged
 
     MXMessageCapture _capture = null;
@@ -1740,16 +1738,14 @@ public class MGStatusConfig extends javax.swing.JPanel {
         if (retval != null) {
             _status.setTextCommand(retval._parent.dtext);
             _status.setChannel(retval._parent.channel);
-            _status.setGate(retval._gate);
-            _status.setRangeMin(retval._minValue);
-            _status.setRangeMax(retval._maxValue);
+            _status.setGate(new RangedValue(retval._gate, retval._hitLoValue, retval._hitHiValue));
             
             String dtext = retval._parent.dtext;
 
             writeBufferToPanelSlider();
             MXMessage message = _status.toMXMessage(new MXTiming());
 
-            if (message.getCommand() == MXMidi.COMMAND_NOTEOFF) {
+            if (message.isCommand(MXMidi.COMMAND_NOTEOFF)) {
                 int z = JOptionPane.showConfirmDialog(
                         this
                         ,"Seems you choiced Note Off\n"
@@ -1758,25 +1754,24 @@ public class MGStatusConfig extends javax.swing.JPanel {
                         ,JOptionPane.YES_NO_OPTION);
                 if (z == JOptionPane.YES_OPTION) {
                     message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_NOTEON + message.getChannel(), message.getData1(), 127);
-                    _status.setMonitoringTarget(message.toDText(), message.getChannel(), message.getGate(), 127);
-                    _status.setRangeMin(0);
-                    _status.setRangeMax(127);
+                    _status.setupByDtext(message.toDText(), message.getChannel(), 
+                            message.getGate(),
+                            RangedValue.new7bit(127));
                 }
             }else  {
                 int max = 128-1;
                 if (message.hasValueHiField() || message.isValuePairCC14()) {
                     max = 128*128-1;
                 }
-                if (retval._minValue != 0 || retval._maxValue != max) {
+                if (retval._hitLoValue != 0 || retval._hitHiValue != max) {
                     int z = JOptionPane.showConfirmDialog(
                             this
-                            ,"min-max = " + retval._minValue + "-" + retval._maxValue  + "\n"
+                            ,"min-max = " + retval._hitLoValue + "-" + retval._hitHiValue  + "\n"
                           +" I will offer you reset to 0 - " + max
                             ,"Offer (adjust value rnage)"
                             ,JOptionPane.YES_NO_OPTION);
                     if (z == JOptionPane.YES_OPTION) {
-                        _status.setRangeMin(0);
-                        _status.setRangeMax(max);
+                        _status.setRange(0, max);
                     }
                 }
             }
@@ -1795,8 +1790,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
             jSpinnerMin.setValue(min);
             jSpinnerMax.setValue(max);
             skipDataExchange = false;
-            _status.setRangeMin(min);
-            _status.setRangeMax(max);
+            _status.setRange(min, max);
         }
     }
     
@@ -1945,14 +1939,14 @@ public class MGStatusConfig extends javax.swing.JPanel {
     private void jButtonOutputOnEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOutputOnEditActionPerformed
         MGStatus status = new MGStatus(_status.getPort(), MGStatus.TYPE_DRUMPAD_OUTSIGNAL, _status.getRow(), _status.getColumn());
         status.setTextCommand(_status.getSwitchOutOnText());
-        status.setGate(_status.getSwitchOutOnTextGate());
+        status.setGate(RangedValue.new7bit(_status.getSwitchOutOnTextGate()));
         status.setChannel(_status.getSwitchOutChannel());
         MGStatusConfig config = new MGStatusConfig(_process, status);
         MXUtil.showAsDialog(this, config, "Edit Output-On signal");
         if (config._okOption) {
             _status.setSwitchOutOnType(MGStatus.SWITCH_OUT_ON_CUSTOM);
             _status.setSwitchOutOnText(config._status.getTextCommand());
-            _status.setSwitchOutOnTextGate(config._status.getGate());
+            _status.setSwitchOutOnTextGate(config._status.getGate()._var);
             _status.setSwitchOutChannel(config._status.getChannel());
             showsub1();
         }
@@ -1961,14 +1955,14 @@ public class MGStatusConfig extends javax.swing.JPanel {
     private void jButtonOutputOffEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOutputOffEditActionPerformed
         MGStatus status = new MGStatus(_status.getPort(), MGStatus.TYPE_DRUMPAD_OUTSIGNAL, _status.getRow(), _status.getColumn());
         status.setTextCommand(_status.getSwitchOutOffText());
-        status.setGate(_status.getSwitchOutOffTextGate());
+        status.setGate(RangedValue.new7bit(_status.getSwitchOutOffTextGate()));
         status.setChannel(_status.getSwitchOutChannel());
         MGStatusConfig config = new MGStatusConfig(_process, status);
         MXUtil.showAsDialog(this, config, "Edit Output-Off signal");
         if (config._okOption) {
             _status.setSwitchOutOffType(MGStatus.SWITCH_OUT_OFF_CUSTOM);
             _status.setSwitchOutOffText(config._status.getTextCommand());
-            _status.setSwitchOutOffTextGate(config._status.getGate());
+            _status.setSwitchOutOffTextGate(config._status.getGate()._var);
             _status.setSwitchOutChannel(config._status.getChannel());
             showsub1();
         }
@@ -2003,10 +1997,10 @@ public class MGStatusConfig extends javax.swing.JPanel {
 
     private void jButtonHarmonyEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonHarmonyEditActionPerformed
         MXNotePicker picker = new MXNotePicker();
-        picker.setSelectedNoteList(MXUtilMidi.textToNoteList(jTextFieldHarmonyNoteList.getText()));
+        picker.setSelectedNoteList(MXMidi.textToNoteList(jTextFieldHarmonyNoteList.getText()));
         if (picker.showAsModalDialog(this)) {
             int[] note = picker.getSelectedNoteList();
-            String text = MXUtilMidi.noteListToText(note);
+            String text = MXMidi.noteListToText(note);
             jTextFieldHarmonyNoteList.setText(text);
         }
     }//GEN-LAST:event_jButtonHarmonyEditActionPerformed
@@ -2112,24 +2106,15 @@ public class MGStatusConfig extends javax.swing.JPanel {
             newMax = 16383;
         }
         
-        if (_status.getRangeMin() > newMax) {
-            _status.setRangeMin(newMax);
-        }
-        if (_status.getRangeMax() > newMax) {
-            _status.setRangeMax(newMax);
-        }
-        else if (_status.getRangeMax() == 127 && newMax == 16383) {
-            _status.setRangeMax(newMax);
-        }
+        _status.setRange(newMin, newMax);
         
-        jSpinnerMin.setModel(new SafeSpinnerNumberModel(_status.getRangeMin(), newMin, newMax, 1));
-        jSpinnerMax.setModel(new SafeSpinnerNumberModel(_status.getRangeMax(), newMin, newMax, 1));
+        jSpinnerMin.setModel(new SafeSpinnerNumberModel(_status.getValue()._min, newMin, newMax, 1));
+        jSpinnerMax.setModel(new SafeSpinnerNumberModel(_status.getValue()._max, newMin, newMax, 1));
     }
     
     private void jCheckBoxCC14bitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxCC14bitActionPerformed
         skipDataExchange = true;
-        _status.setRangeMin((int)jSpinnerMin.getValue());
-        _status.setRangeMax((int)jSpinnerMax.getValue());
+        _status.setRange((int)jSpinnerMin.getValue(), (int)jSpinnerMax.getValue());
 
         if (_status.getDataroomType() == MXVisitant.ROOMTYPE_RPN) {
             fillDataentry(MXVisitant.ROOMTYPE_RPN);
@@ -2162,7 +2147,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
         if (skipDataExchange) {
             return;
         }
-        _status.setRangeMin((int)jSpinnerMin.getValue());
+        _status.setRange((int)jSpinnerMin.getValue(), (int)jSpinnerMax.getValue());
     }//GEN-LAST:event_jSpinnerMinStateChanged
 
     private void jComboBoxMSBItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxMSBItemStateChanged
@@ -2209,13 +2194,13 @@ public class MGStatusConfig extends javax.swing.JPanel {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (e.getActionCommand().equals(PROG_INC)) {
-                _status.setTextCommand(MXMessageTemplate.EXCOMMAND_PROGRAM_INC);
+                _status.setTextCommand(MXTemplate.EXCOMMAND_PROGRAM_INC);
                 MGStatusConfig.this.writeBufferToPanelSlider();
                 disableUnusedOnPanel();
                 return;
             }
             if (e.getActionCommand().equals(PROG_DEC)) {
-                _status.setTextCommand(MXMessageTemplate.EXCOMMAND_PROGRAM_DEC);
+                _status.setTextCommand(MXTemplate.EXCOMMAND_PROGRAM_DEC);
                 MGStatusConfig.this.writeBufferToPanelSlider();
                 disableUnusedOnPanel();
                 return;
@@ -2350,7 +2335,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
             _status.setSwitchOutChannel(0);
             _status.setSwitchInputType(MGStatus.SWITCH_ON_IF_PLUS1);
             _status.setSwitchWithToggle(false);
-            _status.setGate(0);
+            _status.setGate(RangedValue.ZERO7);
             _status.setChannel(0);
             _status.setValuePairCC14(false);
             this.writeBufferToPanelDrum();
@@ -2369,8 +2354,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
             String msb = MXUtil.toHexFF(_status.getDataeroomMSB()) + "h";
             String lsb = MXUtil.toHexFF(_status.getDataroomLSB()) + "h";
             _status.setDataroomType(dataroomType);
-            _status.setRangeMin(0);
-            _status.setRangeMax(128 * 128 -1);
+            _status.setRange(0, 128 * 128 -1);
             if (dataroomType == MXVisitant.ROOMTYPE_RPN) {
                 _status.setTextCommand("@RPN " + msb + " "  + lsb + " #VH #VL");
             }else if (dataroomType == MXVisitant.ROOMTYPE_NRPN) {
@@ -2425,7 +2409,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
         skipDataExchange = true;
         try {
             _status.setTextCommand("90h #GL #VL");
-            _status.setGate(note);
+            _status.setGate(RangedValue.new7bit(note));
             _status.setChannel(0);
             _status.setName("");
             _status.setMemo("");
@@ -2454,11 +2438,10 @@ public class MGStatusConfig extends javax.swing.JPanel {
         skipDataExchange = true;
         try {
             _status.setTextCommand("@CC #GL #VL");
-            _status.setGate(7);
+            _status.setGate(RangedValue.new7bit(7));
             _status.setValue(0);
             _status.setValuePairCC14(false);
-            _status.setRangeMin(0);
-            _status.setRangeMax(127);
+            _status.setRange(0, 127);
             _status.setChannel(0);
             _status.setName("");
             _status.setMemo("");

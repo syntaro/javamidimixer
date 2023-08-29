@@ -349,7 +349,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
             jPanelPiano.remove(comp);
         }
 
-        int height = 50;
+        int height = 150;
         
         _drumPanel = new MX00DrumPadPanel();
         for (int note : drumProgs) {
