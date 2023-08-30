@@ -18,16 +18,16 @@ package jp.synthtarou.midimixer.libs.domino;
 
 import java.awt.Dimension;
 import javax.swing.JPanel;
-import jp.synthtarou.cceditor.view.CCV500XMLRoot;
-import jp.synthtarou.cceditor.view.common.CCPromptUtil;
-import jp.synthtarou.cceditor.view.common.IPrompt;
+import jp.synthtarou.midimixer.mx35cceditor.CCV500XMLRoot;
+import jp.synthtarou.midimixer.mx35cceditor.prompt.CCPromptUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.mx35cceditor.prompt.IPromptPanel;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class CCXMLManagerPanel extends javax.swing.JPanel implements IPrompt {
+public class CCXMLManagerPanel extends javax.swing.JPanel implements IPromptPanel {
 
     public static void main(String[] args) {
         CCXMLManagerPanel panel = new CCXMLManagerPanel();
@@ -193,7 +193,7 @@ public class CCXMLManagerPanel extends javax.swing.JPanel implements IPrompt {
         int sel = jListXMLFiles.getSelectedIndex();
         if (sel >= 0) {
             CCXMLFile file = _listModel.valueOfIndex(sel);
-            IPrompt panel = new CCV500XMLRoot(file);
+            IPromptPanel panel = new CCV500XMLRoot(file);
             CCPromptUtil.showPrompt(this, panel);
         }
     }//GEN-LAST:event_jButtonEditXMLActionPerformed
@@ -215,12 +215,12 @@ public class CCXMLManagerPanel extends javax.swing.JPanel implements IPrompt {
     }
 
     @Override
-    public String getPromptTitle() {
+    public String getPanelTitle() {
         return "XML Manager";
     }
 
     @Override
-    public Dimension getPromptSize() {
+    public Dimension getPanelSize() {
         return new Dimension(600, 450);
     }
 }

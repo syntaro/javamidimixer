@@ -16,7 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi.programlist;
 
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDDrumSet;
+import jp.synthtarou.midimixer.libs.domino.database.PDDrumSet;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;

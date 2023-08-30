@@ -309,6 +309,9 @@ public class ConsoleModel implements ListModel<String> {
             });
             return;
         }
+        if (_switchPause) {
+            return;
+        }
         _repainReserved = false;
         _repaintLastTick = System.currentTimeMillis();
         LinkedList<ConsoleElement> pop;

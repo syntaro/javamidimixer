@@ -165,7 +165,7 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
 
     @Override
     public String getReceiverName() {
-        return "Mixer (MX)";
+        return "Kontroller Mixer";
     }
 
     @Override

@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.mx30controller;
 
 import java.awt.Color;
-import jp.synthtarou.midimixer.libs.swing.MXFocusGroup;
+import jp.synthtarou.midimixer.libs.swing.focus.MXFocusGroup;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

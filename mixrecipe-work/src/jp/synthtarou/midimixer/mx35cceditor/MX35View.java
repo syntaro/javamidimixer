@@ -16,8 +16,6 @@
  */
 package jp.synthtarou.midimixer.mx35cceditor;
 
-import jp.synthtarou.cceditor.view.DXControlPanel;
-
 /**
  *
  * @author Syntarou YOSHIDA

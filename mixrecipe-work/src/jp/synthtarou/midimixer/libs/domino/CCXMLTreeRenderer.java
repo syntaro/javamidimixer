@@ -22,7 +22,6 @@ import java.util.HashSet;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeCellRenderer;
-import jp.synthtarou.midimixer.libs.domino.rules.CCXMLAttributeRule;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 
 /**
@@ -92,7 +91,7 @@ public class CCXMLTreeRenderer implements TreeCellRenderer {
             if (node._tagRule != null) {
                 HashSet<String> already = new HashSet();
 
-                for (CCXMLAttributeRule dump :  node._tagRule.listAttributes()) {
+                for (CCRuleAttributes dump :  node._tagRule.listAttributes()) {
                     String name = dump.getName();
                     String value = node._listAttributes.valueOfName(name);
                     if (value != null) {

@@ -16,8 +16,6 @@
  */
 package jp.synthtarou.midimixer.libs.common;
 
-import java.io.PrintStream;
-import java.nio.charset.Charset;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -26,16 +24,17 @@ import java.util.TreeMap;
  * @author Syntarou YOSHIDA
  */
 public class RangedValue {
+
     public static RangedValue[] _cache128;
-    
+
     static {
         // 大した、メモリ負荷はないが、いちおうできそうなので、キャッシュ
         _cache128 = new RangedValue[128];
-        for (int i = 0; i < 128; ++ i) {
+        for (int i = 0; i < 128; ++i) {
             _cache128[i] = new RangedValue(i, 0, 127);
         }
     }
-    
+
     public static final RangedValue ZERO7 = _cache128[0];
 
     public static final RangedValue new7bit(int x) {
@@ -43,17 +42,17 @@ public class RangedValue {
     }
 
     public static final RangedValue new14bit(int x) {
-        return new RangedValue(x, 0, 128 * 128 -1 );
+        return new RangedValue(x, 0, 128 * 128 - 1);
     }
-    
+
     public final int _min;
     public final int _max;
     public final int _count;
 
     public final int _var;
     public final double _position;
-    
-    public static final int MAX7  = 127;
+
+    public static final int MAX7 = 127;
     public static final int MAX14 = 128 * 128 - 1;
 
     public RangedValue(int value, int min, int max) {
@@ -64,8 +63,7 @@ public class RangedValue {
         if (min <= max) {
             int count = max - min + 1;
             return (value - min) * 1.0 / count;
-        }
-        else {
+        } else {
             int count = min - max + 1;
             return (min - value) * 1.0 / count;
         }
@@ -76,16 +74,14 @@ public class RangedValue {
         _max = max;
         if (min <= max) {
             _count = max - min + 1;
-        }
-        else {
+        } else {
             _count = min - max + 1;
         }
 
         _var = value;
         _position = position;
     }
-    
-    
+
     public RangedValue modifyRangeTo(int newMin, int newMax) {
         if (newMin == _min && newMax == _max) {
             return this;
@@ -94,11 +90,10 @@ public class RangedValue {
         int count;
         if (newMin < newMax) {
             count = newMax - newMin + 1;
+        } else {
+            count = newMin - newMax + 1;
         }
-        else {
-            count =  newMin - newMax + 1;
-        }
-        
+
         int newValue;
 
         if (newMin < newMax) {
@@ -120,7 +115,7 @@ public class RangedValue {
 
             newValue = newMin - (int) Math.round(toD);
         }
-        
+
         if (newMin == 0 && newMax == 127) {
             if (newValue >= 0 && newValue <= 127) {
                 RangedValue t = new7bit(newValue);
@@ -131,7 +126,7 @@ public class RangedValue {
         }
         return new RangedValue(newValue, newMin, newMax, _position);
     }
-    
+
     public static void test0(int oldMin, int oldMax, int newMin, int newMax) {
         TreeMap<Integer, Integer> count = new TreeMap();
         RangedValue sample = new RangedValue(0, oldMin, oldMax);
@@ -223,22 +218,7 @@ public class RangedValue {
     }
 
     public static void main(String[] args) {
-        try {
-            // for NetBeans + Ant
-            System.out.println("file.encoding = " + System.getProperty("file.encoding"));
-            System.out.println("Charset.defaultCharset() = " + Charset.defaultCharset());
-            System.out.println("System.out.charset() = " + System.out.charset());
-
-            String targetCharset = Charset.defaultCharset().name();
-            if (targetCharset.equals(System.out.charset()) == false) {
-                System.setOut(new PrintStream(System.out, true, targetCharset));
-                System.setErr(new PrintStream(System.err, true, targetCharset));
-            }
-            System.out.println("System.out.charset() = " + System.out.charset());
-            System.out.println("System.err.charset() = " + System.err.charset());
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
+        MXUtil.fixConsoleEncoding();
 
         test(0, 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3, 0, 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2);
         test(0, 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2, 0, 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3);
@@ -273,15 +253,14 @@ public class RangedValue {
             if (value < _min) {
                 value = _min;
             }
-            if (value >_max) {
+            if (value > _max) {
                 value = _max;
             }
-        }
-        else {
+        } else {
             if (value < _max) {
                 value = _max;
             }
-            if (value >_min) {
+            if (value > _min) {
                 value = _min;
             }
         }
@@ -290,7 +269,7 @@ public class RangedValue {
         }
         return new RangedValue(value, _min, _max);
     }
-    
+
     public String toString() {
         return String.valueOf(_var);
     }

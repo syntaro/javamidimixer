@@ -197,7 +197,6 @@ public class MXMIDIOutManager implements MXSettingTarget {
         setting.register("device[].name");
         setting.register("device[].open");
         setting.register("device[].port");
-        setting.register("device[].fromDXML");
     }
 
     @Override
@@ -208,7 +207,6 @@ public class MXMIDIOutManager implements MXSettingTarget {
             String deviceName = setting.getSetting("device[" + seek + "].name");
             String deviceOpen = setting.getSetting("device[" + seek + "].open");
             String devicePort = setting.getSetting("device[" + seek + "].port");
-            String deviceFile = setting.getSetting("device[" + seek + "].fromDXML");
             
             if (deviceName == null || deviceName.length() == 0) {
                 break;
@@ -242,16 +240,6 @@ public class MXMIDIOutManager implements MXSettingTarget {
 
                 }
             }
-            if (deviceFile != null) {
-                File f = new File(deviceFile);
-                if (f.isFile()) {
-                    try {   
-                    out.setDXMLFile(f);
-                    }catch(SAXException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
         }
         clearMIDIOutCache();
     }
@@ -274,7 +262,6 @@ public class MXMIDIOutManager implements MXSettingTarget {
                 setting.setSetting("device[" + x + "].name", e.getName());
                 setting.setSetting("device[" + x + "].open", e.isOpen() ? "1" : "0");
                 setting.setSetting("device[" + x + "].port", assigned.toString());
-                setting.setSetting("device[" + x + "].fromDXML", e.getDXMLFile() == null ? "" : e.getDXMLFile().getPath());
                 x ++;
             }
         }

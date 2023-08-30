@@ -19,8 +19,6 @@ package jp.synthtarou.midimixer.libs.domino;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import jp.synthtarou.midimixer.libs.domino.rules.CCXMLTagRule;
-import jp.synthtarou.midimixer.libs.domino.rules.CCXMLRule;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 
 /**
@@ -28,7 +26,7 @@ import jp.synthtarou.midimixer.libs.common.MXWrapList;
  * @author Syntarou YOSHIDA
  */
 public class CCXMLNode  {
-    public CCXMLNode(CCXMLNode parent, String name, CCXMLTagRule rule) {
+    public CCXMLNode(CCXMLNode parent, String name, CCRuleElement rule) {
         _name = name;
         _tagRule = rule;
         _parent = parent;
@@ -36,7 +34,7 @@ public class CCXMLNode  {
         _listAttributes.setIgnoreCase(true);
     }
     
-    final CCXMLTagRule _tagRule;
+    final CCRuleElement _tagRule;
     final String _name;
     final CCXMLNode _parent;
 
@@ -72,7 +70,7 @@ public class CCXMLNode  {
         _textContext = text;
     }
     
-    public CCXMLTagRule getTagRule() {
+    public CCRuleElement getTagRule() {
         return _tagRule;
     }
     
@@ -143,27 +141,27 @@ public class CCXMLNode  {
     }
 
     public MXWrapList<CCXMLNode> getChildInstruemntsList() {
-        CCXMLRule def = CCXMLRule.getInstance();
+        CCRuleManager def = CCRuleManager.getInstance();
         return getChildren(def.getInstrumentListTag().getName());
     }
 
     public MXWrapList<CCXMLNode> getChildDrumSetList() {
-        CCXMLRule def = CCXMLRule.getInstance();
+        CCRuleManager def = CCRuleManager.getInstance();
         return getChildren(def.getDrumSetListTag().getName());
     }
 
     public MXWrapList<CCXMLNode> getChildControlChangeMacroList() {
-        CCXMLRule def = CCXMLRule.getInstance();
+        CCRuleManager def = CCRuleManager.getInstance();
         return getChildren(def.getControlChangeMacroListTag().getName());
     }
 
     public MXWrapList<CCXMLNode> getChildTemplateList() {
-        CCXMLRule def = CCXMLRule.getInstance();
+        CCRuleManager def = CCRuleManager.getInstance();
         return getChildren(def.getTemplateListTag().getName());
     }
 
     public MXWrapList<CCXMLNode> getChildDefaultData() {
-        CCXMLRule def = CCXMLRule.getInstance();
+        CCRuleManager def = CCRuleManager.getInstance();
         return getChildren(def.getDefaultDataTag().getName());
     }
 

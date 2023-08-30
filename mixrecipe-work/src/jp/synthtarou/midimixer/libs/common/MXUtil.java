@@ -29,9 +29,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.CodeSource;
@@ -104,6 +106,12 @@ public class MXUtil {
     public static final int numberFromText(String text, boolean strict) {
         int mum = 10;
 
+        if (text == null) {
+            if (strict) {
+                throw  new NullPointerException("numberFromText");
+            }
+            return 0;
+        }
         if (text.startsWith("0x")) {
             text = text.substring(2);
             mum = 16;
@@ -577,6 +585,39 @@ public class MXUtil {
                     ex.printStackTrace();
                 }
             }
+        }
+    }
+
+    public static void fixConsoleEncoding() {
+        try {
+            // for NetBeans + Ant With Fork
+            String targetCharset = System.getProperty("stdout.encoding");
+            if (targetCharset == null) {
+                targetCharset = System.getProperty("native.encoding");
+            }
+            if (targetCharset.equals(System.out.charset().toString())) {
+                System.out.println("Console Have Valid Encoding.");
+            } else {
+                System.out.println("*ENV*JAVA_TOOL_OPTIONS=" + System.getenv("JAVA_TOOL_OPTIONS"));
+                System.out.println("*ENV*_JAVA_OPTIONS=" + System.getenv("_JAVA_OPTIONS"));
+                System.out.println("*ENV*LANG=" + System.getenv("LANG"));
+
+                System.out.println("*PROP*file.encoding = " + System.getProperty("file.encoding"));
+                System.out.println("*PROP*native.encoding = " + System.getProperty("native.encoding"));
+                System.out.println("*PROP*stdout.encoding = " + System.getProperty("stdout.encoding"));
+                System.out.println("*PROP*stderr.encoding = " + System.getProperty("stderr.encoding"));
+
+                System.out.println("*METHOD*Charset.defaultCharset() = " + Charset.defaultCharset());
+                System.out.println("*METHOD*System.out.charset() = " + System.out.charset());
+
+                System.setOut(new PrintStream(System.out, true, targetCharset));
+                System.setErr(new PrintStream(System.err, true, targetCharset));
+                System.out.println("Console Encoding fixed.");
+                System.out.println("after overwrite System.out.charset() = " + System.out.charset());
+                System.out.println("after overwrite System.err.charset() = " + System.err.charset());
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
     }
 }

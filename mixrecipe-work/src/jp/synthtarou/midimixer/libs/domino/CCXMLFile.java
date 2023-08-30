@@ -38,9 +38,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import jp.synthtarou.midimixer.libs.domino.rules.CCXMLAttributeRule;
-import jp.synthtarou.midimixer.libs.domino.rules.CCXMLTagRule;
-import jp.synthtarou.midimixer.libs.domino.rules.CCXMLRule;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
@@ -100,7 +97,7 @@ public class CCXMLFile {
     }
 
     public static void main(String[] args) {
-        CCXMLRule.dumpRules();
+        CCRuleManager.dumpRules();
 
         File moduleDirectory = new File("C:/Domino144/Module");
         for (File file : moduleDirectory.listFiles()) {
@@ -190,7 +187,7 @@ public class CCXMLFile {
             _arrayModuleData.clear();
 
             for (CCXMLNode moduleNode : handler._document._listChildTags) {
-                CCXMLRule rule = CCXMLRule.getInstance();
+                CCRuleManager rule = CCRuleManager.getInstance();
                 if (moduleNode._name.equalsIgnoreCase(rule.getModuleDataTag().getName())) {
                     fillRules(moduleNode, rule.getModuleDataTag());
                     _arrayModuleData.add(moduleNode);
@@ -209,7 +206,7 @@ public class CCXMLFile {
         _loadError = null;
     }
 
-    public void fillRules(CCXMLNode target, CCXMLTagRule targetRule) {
+    public void fillRules(CCXMLNode target, CCRuleElement targetRule) {
         target._warningText = null;
 
         if (targetRule == null) {
@@ -222,7 +219,7 @@ public class CCXMLFile {
         ArrayList<String> missingAttr = new ArrayList<>();
         ArrayList<String> undocumentedAttr = new ArrayList<>();
 
-        for (CCXMLAttributeRule ruleAttr : targetRule.listAttributes()) {
+        for (CCRuleAttributes ruleAttr : targetRule.listAttributes()) {
             if (ruleAttr.isMust()) {
                 if (target._listAttributes.indexOfName(ruleAttr.getName()) < 0) {
                     missingAttr.add(ruleAttr.getName());
@@ -230,7 +227,7 @@ public class CCXMLFile {
             }
         }
         if (missingAttr.size() > 0) {
-            warning.append(" missing attributes " + missingAttr + "");
+            warning.append(target._name + " hasn's attributes " + missingAttr + "");
         }
         for (MXWrap<String> keyValue : target._listAttributes) {
             if (targetRule.getAttribute(keyValue.name) == null) {
@@ -239,13 +236,13 @@ public class CCXMLFile {
         }
 
         if (undocumentedAttr.size() > 0) {
-            warning.append(" undocumented attributes " + undocumentedAttr + "");
+            warning.append(target._name + " have undocumented attributes " + undocumentedAttr + "");
         }
 
         ArrayList<String> undocumentedTag = new ArrayList<>();
 
         for (CCXMLNode child : target._listChildTags) {
-            CCXMLTagRule childRule = targetRule.findChildRule(child._name);
+            CCRuleElement childRule = targetRule.findChildRule(child._name);
             if (childRule == null) {
                 undocumentedTag.add(child._name);
             }

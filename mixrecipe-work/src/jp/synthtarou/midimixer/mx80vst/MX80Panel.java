@@ -48,6 +48,8 @@ import javax.swing.tree.TreePath;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.async.Transaction;
+import jp.synthtarou.midimixer.libs.swing.MXFileFilter;
+import jp.synthtarou.midimixer.libs.swing.MXSwingFolderBrowser;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 import jp.synthtarou.midimixer.windows.MXLIB02VST3;
@@ -552,11 +554,14 @@ public class MX80Panel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonStartQuickScanActionPerformed
 
     private void jButtonAddRootActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddRootActionPerformed
-        FolderBrowser browse = new FolderBrowser();
-        browse._onlyDirectory = true;
+        MXFileFilter filter = new MXFileFilter();
+        filter.addExtension("VST3");
+        MXSwingFolderBrowser browse = new MXSwingFolderBrowser(new File("C:\\Program Files"), filter);
+        browse.setOnlyDirectory(true);
         MXUtil.showAsDialog(this, browse, "Select and Enter");
-        if (browse._result != null) {
-            addFilter(browse._result);
+        File f = browse.getSelectedFile();
+        if (f != null) {
+            addFilter(f);
         }
     }//GEN-LAST:event_jButtonAddRootActionPerformed
 
@@ -609,12 +614,15 @@ public class MX80Panel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonRemoveSkipActionPerformed
 
     private void jButtonAddSkipBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddSkipBrowseActionPerformed
-        FolderBrowser browse = new FolderBrowser();
-        browse._onlyDirectory = false;
+        MXFileFilter filter = new MXFileFilter();
+        filter.addExtension("VST3");
+        MXSwingFolderBrowser browse = new MXSwingFolderBrowser(new File("C:\\Program Files"), filter);
+        browse.setOnlyDirectory(false);
         MXUtil.showAsDialog(this, browse, "Select and Enter");
-        if (browse._result != null) {
+        File f = browse.getSelectedFile();
+        if (f != null) {
             try {
-                String path = browse._result.getPath();
+                String path = f.getPath();
                 if (MX80Process.getInstance()._listSkip.contains(path) == false) {
                     addSkip(path);
                 }

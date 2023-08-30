@@ -24,7 +24,7 @@ import javax.swing.JTree;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
-import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachClipboarder;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachCopyAndPaste;
 import jp.synthtarou.midimixer.libs.MXGlobalTimer;
 
 /**
@@ -71,7 +71,7 @@ public class CCXMLTreeModel implements TreeModel {
             }
         });
 
-        MXAttachClipboarder clip = new MXAttachClipboarder(tree);
+        MXAttachCopyAndPaste clip = new MXAttachCopyAndPaste(tree);
         clip.insertBeforeThis(_checkAttribute);
         clip.insertBeforeThis(_checkTextContent);
         clip.insertBeforeThis(null);

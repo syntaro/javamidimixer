@@ -16,16 +16,16 @@
  */
 package jp.synthtarou.midimixer.libs.midi.programlist;
 
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDModule;
+import jp.synthtarou.midimixer.libs.domino.database.PDModule;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.text.MXLineReader;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDBank;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDMap;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDProgram;
+import jp.synthtarou.midimixer.libs.domino.database.PDBank;
+import jp.synthtarou.midimixer.libs.domino.database.PDMap;
+import jp.synthtarou.midimixer.libs.domino.database.PDProgram;
 
 /**
  *

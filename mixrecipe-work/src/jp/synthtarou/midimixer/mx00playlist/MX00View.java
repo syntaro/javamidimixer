@@ -40,13 +40,15 @@ import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInForPlayer;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFCallback;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
-
+import jp.synthtarou.midimixer.libs.swing.MXFileFilter;
+import jp.synthtarou.midimixer.libs.swing.MXSwingFolderBrowser;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MX00View extends javax.swing.JPanel implements SMFCallback {
+
     private static final MXDebugPrint _debug = new MXDebugPrint(MX00View.class);
 
     static int DRUM_CH = 10 - 1;
@@ -57,12 +59,12 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     MXMIDIInForPlayer _player;
 
     FileWithId _selectedItem = null;
-    
+
     public MX00View(MX00Process process) {
         _listKeyboard = new MX00PianoPanel[16];
 
         initComponents();
-        
+
         jSlider1.setMinimum(0);
         jSlider1.setMaximum(10);
         jSlider1.setValue(0);
@@ -71,13 +73,13 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         jSplitPane1.setDividerLocation(350);
         jSplitPane2.setDividerLocation(300);
     }
-    
+
     public void settingUpdated() {
         jListPlayList.setModel(_process._playListModel);
         jCheckBoxChain.setSelected(_process._playAsChained);
         jCheckBoxRepeat.setSelected(_process._playAsRepeated);
-   }
-    
+    }
+
     public void setSongName(String songName) {
         jTextFieldSongFile.setText(songName);
     }
@@ -332,8 +334,8 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         if (SwingUtilities.isEventDispatchThread() == false) {
             int againNote = lowNote;
             int againRange = octaveRange;
-            SwingUtilities.invokeLater(new Runnable() { 
-                public void run() { 
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
                     createPianoControls(againNote, againRange, activeChannels, listPrograms, drumProgs);
                 }
             });
@@ -343,20 +345,20 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         invalidate();
         _listKeyboard = new MX00PianoPanel[16];
         _drumPanel = null;
-       
-        for (int i = jPanelPiano.getComponentCount(); i >=1 ; i --) {
+
+        for (int i = jPanelPiano.getComponentCount(); i >= 1; i--) {
             Component comp = jPanelPiano.getComponent(i - 1);
             jPanelPiano.remove(comp);
         }
 
         int height = 150;
-        
+
         _drumPanel = new MX00DrumPadPanel();
         for (int note : drumProgs) {
             _drumPanel.addNote(note);
         }
         int rows = 0;
-        for (int ch = 0; ch < 16; ++ ch) {
+        for (int ch = 0; ch < 16; ++ch) {
             if (activeChannels[ch]) {
                 MXSwingPiano keys = new MXSwingPiano();
                 //maybe more better tune
@@ -365,7 +367,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                     lowNote -= 12;
                 }
                 while (octaveRange < 5) {
-                    octaveRange ++;
+                    octaveRange++;
                 }
                 keys.setNoteRange(lowNote, octaveRange);
 
@@ -382,9 +384,9 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
 
                         cont.fill = GridBagConstraints.HORIZONTAL;
                         jPanelPiano.add(_drumPanel, cont);
-                        rows ++;
+                        rows++;
                     }
-                }else {
+                } else {
                     MX00PianoPanel piano = new MX00PianoPanel(keys);
                     piano.setChannel(ch);
                     piano.updateProgramNumber(listPrograms[ch] < 0 ? 0 : listPrograms[ch]);
@@ -400,7 +402,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                     cont.fill = GridBagConstraints.HORIZONTAL;
                     jPanelPiano.add(piano, cont);
                     _listKeyboard[ch] = piano;
-                    rows ++;
+                    rows++;
                 }
             }
         }
@@ -424,68 +426,86 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
 
         cont.fill = GridBagConstraints.BOTH;
         jPanelPiano.add(new JPanel(), cont);
-        rows ++;
+        rows++;
 
         autoResizePiano();
     }
-    
+
     public void autoResizePiano() {
         try {
             if (_drumPanel != null) {
-                SwingUtilities.invokeLater(new Runnable(){
+                SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
                         _drumPanel.setPreferredSize(new Dimension(jPanelRight.getWidth() - 70, 350));
                         _drumPanel.updateUI();
                         /*SwingUtilities.invokeLater(new Runnable(){
                             public void run() {*/
-                                int maxHeight = 0;
-                                for (JToggleButton c : _drumPanel.listDrums) {
-                                    if (c != null) {
-                                        Rectangle r = c.getBounds();
-                                        int height = r.y + r.height;
-                                        if (maxHeight < height) {
-                                            maxHeight = height;
-                                        }
-                                    }
+                        int maxHeight = 0;
+                        for (JToggleButton c : _drumPanel.listDrums) {
+                            if (c != null) {
+                                Rectangle r = c.getBounds();
+                                int height = r.y + r.height;
+                                if (maxHeight < height) {
+                                    maxHeight = height;
                                 }
-                                _drumPanel.setPreferredSize(new Dimension(jPanelRight.getWidth() - 70, maxHeight));
-                                _drumPanel.setSize(new Dimension(jPanelRight.getWidth() - 70, maxHeight));
+                            }
+                        }
+                        _drumPanel.setPreferredSize(new Dimension(jPanelRight.getWidth() - 70, maxHeight));
+                        _drumPanel.setSize(new Dimension(jPanelRight.getWidth() - 70, maxHeight));
                         /*    }
                         });*/
                     }
                 });
             }
-            for (int ch = 0; ch < 16; ++ ch) {
+            for (int ch = 0; ch < 16; ++ch) {
                 if (_listKeyboard[ch] != null) {
                     _listKeyboard[ch].autoAdjustHeight(jPanelRight.getWidth() - 70);
                     _listKeyboard[ch]._keys.invalidate();
                 }
             }
             revalidate();
-        }catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    
+
     private void jButtonAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddActionPerformed
-        MXSwingFileChooser chooser = new MXSwingFileChooser();
+        if (true) {
+            MXFileFilter filter = new MXFileFilter();
+            filter.addExtension(".MID");
 
-        chooser.addExtension(".mid", "Standard MIDI File");
-        chooser.setAcceptAllFileFilterUsed(false);
-        chooser.setDialogTitle("Add Standard MIDI File");
+            File root = new File("C:/midi");
 
-        if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-            return;
+            if (root.isDirectory() == false) {
+                root = null;
+            }
+
+            MXSwingFolderBrowser folders = new MXSwingFolderBrowser(root, filter);
+            if (folders.showOpenDialog(this)) {
+                File file = folders.getSelectedFile();
+                _process._playListModel.addElement(new FileWithId(file));
+            }
+        } else {
+            MXSwingFileChooser chooser = new MXSwingFileChooser();
+
+            chooser.addExtension(".mid", "Standard MIDI File");
+            chooser.setAcceptAllFileFilterUsed(false);
+            chooser.setDialogTitle("Add Standard MIDI File");
+
+            if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+                return;
+            }
+
+            File file = chooser.getSelectedFile();
+            _process._playListModel.addElement(new FileWithId(file));
         }
 
-        File file = chooser.getSelectedFile();
-        _process._playListModel.addElement(new FileWithId(file));
     }//GEN-LAST:event_jButtonAddActionPerformed
 
     private void jListPlayListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListPlayListValueChanged
         int x = jListPlayList.getSelectedIndex();
         if (x >= 0) {
-            FileWithId f = (FileWithId)_process._playListModel.get(x);
+            FileWithId f = (FileWithId) _process._playListModel.get(x);
             DefaultListModel model = new DefaultListModel();
             Date lastDate = new Date(f._file.lastModified());
             String textDate = DateFormat.getDateTimeInstance().format(lastDate);
@@ -495,16 +515,16 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
             model.addElement("Date: " + textDate);
 
             _selectedItem = f;
-            
+
             try {
                 String[] str = _player.readFileInfo(f._file);
                 model.addElement("MetaInfo: ");
-                for (int i = 0; i < str.length; ++ i) {
+                for (int i = 0; i < str.length; ++i) {
                     model.addElement(str[i]);
                 }
-            }catch(Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
-            }            
+            }
             jListFileInfo.setModel(model);
         }
     }//GEN-LAST:event_jListPlayListValueChanged
@@ -512,42 +532,42 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     private void jButtonEraseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEraseActionPerformed
         int x = jListPlayList.getSelectedIndex();
         if (x >= 0) {
-            FileWithId file = (FileWithId)_process._playListModel.elementAt(x);
+            FileWithId file = (FileWithId) _process._playListModel.elementAt(x);
             if (_process._file != null && _process._file._id == file._id) {
                 if (JOptionPane.showConfirmDialog(
-                        this, 
-                        file +" is current song.\nThis operation will cancel Chain / Repeat.", 
+                        this,
+                        file + " is current song.\nThis operation will cancel Chain / Repeat.",
                         null,
-                        JOptionPane.OK_CANCEL_OPTION) 
-                    == JOptionPane.OK_OPTION) {
+                        JOptionPane.OK_CANCEL_OPTION)
+                        == JOptionPane.OK_OPTION) {
                     jCheckBoxChain.setSelected(false);
                     jCheckBoxRepeat.setSelected(false);
                     _process._playListModel.remove(x);
                 }
-            }else {            
+            } else {
                 _process._playListModel.remove(x);
             }
-        }        
+        }
     }//GEN-LAST:event_jButtonEraseActionPerformed
 
     private void jButtonUpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonUpActionPerformed
         int x = jListPlayList.getSelectedIndex();
         if (x >= 1) {
-            FileWithId f = (FileWithId)_process._playListModel.elementAt(x);
+            FileWithId f = (FileWithId) _process._playListModel.elementAt(x);
             _process._playListModel.remove(x);
             _process._playListModel.add(x - 1, f);
             jListPlayList.setSelectedIndex(x - 1);
-        }        
+        }
     }//GEN-LAST:event_jButtonUpActionPerformed
 
     private void jButtonDownActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDownActionPerformed
         int x = jListPlayList.getSelectedIndex();
         if (x >= 0 && x < _process._playListModel.size() - 1) {
-            FileWithId f = (FileWithId)_process._playListModel.elementAt(x);
+            FileWithId f = (FileWithId) _process._playListModel.elementAt(x);
             _process._playListModel.remove(x);
-            _process._playListModel.add(x+1, f);
-            jListPlayList.setSelectedIndex(x+1);
-        }        
+            _process._playListModel.add(x + 1, f);
+            jListPlayList.setSelectedIndex(x + 1);
+        }
     }//GEN-LAST:event_jButtonDownActionPerformed
 
     private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
@@ -560,7 +580,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     private void ｊButtonPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ｊButtonPauseActionPerformed
         if (_player.isSequencerPlaying()) {
             _player.stopSequencer();
-        }else {
+        } else {
             if (_process._file != null) {
                 _selectedItem = _process._file;
             }
@@ -596,14 +616,14 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
             });
             return;
         }
-        
+
         int status = (dword >> 16) & 0xff;
         int data1 = (dword >> 8) & 0xff;
         int data2 = (dword) & 0xff;
-        
+
         int command = status & 0xf0;
         int channel = status & 0x0f;
-        
+
         if (command >= 0x80 && command <= 0xef) {
             if (command == MXMidi.COMMAND_NOTEON && data2 == 0) {
                 command = MXMidi.COMMAND_NOTEOFF;
@@ -611,44 +631,40 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
 
             if (command == MXMidi.COMMAND_NOTEON) {
                 if (channel != DRUM_CH) {
-                    MX00PianoPanel  piano =  _listKeyboard[channel];
+                    MX00PianoPanel piano = _listKeyboard[channel];
                     if (piano != null) {
                         piano.getKeys().noteOn(data1);
                     }
-                }else {
+                } else {
                     MX00DrumPadPanel kit = _drumPanel;
                     kit.noteOn(data1);
                 }
-            }
-            else if (command == MXMidi.COMMAND_NOTEOFF) {
+            } else if (command == MXMidi.COMMAND_NOTEOFF) {
                 if (channel != DRUM_CH) {
-                    MX00PianoPanel piano =  _listKeyboard[channel];
+                    MX00PianoPanel piano = _listKeyboard[channel];
                     if (piano != null) {
                         piano.getKeys().noteOff(data1);
                     }
-                }else {
+                } else {
                     if (_drumPanel != null) {
                         MX00DrumPadPanel kit = _drumPanel;
                         kit.noteOff(data1);
                     }
                 }
-            }
-            else if (command == MXMidi.COMMAND_CONTROLCHANGE
-               && data1 == MXMidi.DATA1_CC_DAMPERPEDAL) {
-                MX00PianoPanel  piano =  _listKeyboard[channel];
+            } else if (command == MXMidi.COMMAND_CONTROLCHANGE
+                    && data1 == MXMidi.DATA1_CC_DAMPERPEDAL) {
+                MX00PianoPanel piano = _listKeyboard[channel];
                 if (piano != null) {
                     piano.getKeys().sustain(data2);
                 }
-            }
-            else if (command == MXMidi.COMMAND_CONTROLCHANGE
-               && data1 == MXMidi.DATA1_CC_ALLNOTEOFF) {
-                MX00PianoPanel  piano =  _listKeyboard[channel];
+            } else if (command == MXMidi.COMMAND_CONTROLCHANGE
+                    && data1 == MXMidi.DATA1_CC_ALLNOTEOFF) {
+                MX00PianoPanel piano = _listKeyboard[channel];
                 if (piano != null) {
                     piano.getKeys().allNoteOff();
                 }
-            }
-            else if (command == MXMidi.COMMAND_PROGRAMCHANGE) {
-                MX00PianoPanel  piano =  _listKeyboard[channel];
+            } else if (command == MXMidi.COMMAND_PROGRAMCHANGE) {
+                MX00PianoPanel piano = _listKeyboard[channel];
                 if (piano != null) {
                     piano.updateProgramNumber(data1);
                 }
@@ -690,7 +706,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     // End of variables declaration//GEN-END:variables
 
     FileWithId _lastPlayeed = null;
-    
+
     @Override
     public void smfPlayNote(SMFMessage e) {
     }
@@ -703,37 +719,37 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     public void smfStoped(boolean fineFinish) {
         FileWithId file = _lastPlayeed;
         FileWithId next = null;
-        
+
         if (!fineFinish) {
             return;
         }
-        
+
         if (_process._playAsChained) {
-            for (int i = 0; i < _process._playListModel.size() ;++ i) {
-                FileWithId seek = (FileWithId)_process._playListModel.get(i);
+            for (int i = 0; i < _process._playListModel.size(); ++i) {
+                FileWithId seek = (FileWithId) _process._playListModel.get(i);
                 if (seek == file) {
-                    i ++;
+                    i++;
                     if (i < _process._playListModel.size()) {
-                        next = (FileWithId)_process._playListModel.get(i);
+                        next = (FileWithId) _process._playListModel.get(i);
                         break;
-                    }else if (_process._playAsRepeated) {
+                    } else if (_process._playAsRepeated) {
                         i = 0;
                         if (i < _process._playListModel.size()) {
-                            next = (FileWithId)_process._playListModel.get(0);
+                            next = (FileWithId) _process._playListModel.get(0);
                             break;
-                        }else {
+                        } else {
                             next = null;
                             break;
                         }
                     }
                 }
             }
-        }else if (_process._playAsRepeated) {
+        } else if (_process._playAsRepeated) {
             next = file;
-        }else {
+        } else {
             next = null;
         }
-        
+
         if (next != null) {
             _selectedItem = next;
             turnOnMusic(_selectedItem, 0);
@@ -748,7 +764,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         jSlider1.setMaximum(finish);
         jSlider1.setValue(pos);
     }
-    
+
     public void turnOnMusic(FileWithId file, final int pos) {
         try {
             if (file == null) {
@@ -759,18 +775,18 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                 JOptionPane.showMessageDialog(this, file + " is not in PlayList", "Error", JOptionPane.OK_OPTION);
                 return;
             }
-            try{
+            try {
                 setSongName(file.toString());
                 _player.openFile(file._file);
                 _lastPlayeed = file;
                 _process._file = file;
-            }catch(Throwable e) {
+            } catch (Throwable e) {
                 e.printStackTrace();
                 return;
             }
             if (SwingUtilities.isEventDispatchThread()) {
                 jListPlayList.setSelectedValue(file, true);
-            }else {
+            } else {
                 SwingUtilities.invokeAndWait(new Runnable() {
                     public void run() {
                         jListPlayList.setSelectedValue(file, true);
@@ -782,5 +798,5 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
             ex.printStackTrace();
         }
     }
-    
+
 }

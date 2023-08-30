@@ -16,7 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.domino;
 
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDFileManager;
+import jp.synthtarou.midimixer.libs.domino.database.PDFileManager;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
@@ -24,7 +24,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDFile;
+import jp.synthtarou.midimixer.libs.domino.database.PDFile;
 
 /**
  *

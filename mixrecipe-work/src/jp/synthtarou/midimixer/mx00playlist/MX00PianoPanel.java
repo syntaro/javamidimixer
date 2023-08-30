@@ -20,8 +20,8 @@ import java.awt.Dimension;
 import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
 import javax.swing.BorderFactory;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDFile;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDFileManager;
+import jp.synthtarou.midimixer.libs.domino.database.PDFile;
+import jp.synthtarou.midimixer.libs.domino.database.PDFileManager;
 
 /**
  *

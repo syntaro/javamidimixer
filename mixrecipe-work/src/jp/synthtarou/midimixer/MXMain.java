@@ -18,11 +18,10 @@ package jp.synthtarou.midimixer;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.PrintStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import javax.swing.SwingUtilities;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -116,23 +115,7 @@ public class MXMain  {
      */
     public static void main(String[] args) throws Exception {
         try {
-            try {
-                // for NetBeans + Ant
-                System.out.println("file.encoding = " + System.getProperty("file.encoding"));
-                System.out.println("Charset.defaultCharset() = " + Charset.defaultCharset());
-                System.out.println("System.out.charset() = " + System.out.charset());
-
-                String targetCharset = Charset.defaultCharset().name();
-                if (targetCharset.equals(System.out.charset()) == false) {                
-                    System.setOut(new PrintStream(System.out, true, targetCharset));
-                    System.setErr(new PrintStream(System.err, true, targetCharset));
-                }
-                System.out.println("System.out.charset() = " + System.out.charset());
-                System.out.println("System.err.charset() = " + System.err.charset());
-            }catch(Throwable e) {
-                e.printStackTrace();
-            }
-
+            MXUtil.fixConsoleEncoding();
             MXDebugPrint.initDebugLine(args);
 
             //フォント描写でアンチエイリアスを有効にする

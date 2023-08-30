@@ -23,8 +23,8 @@ import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDFile;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDFileManager;
+import jp.synthtarou.midimixer.libs.domino.database.PDFile;
+import jp.synthtarou.midimixer.libs.domino.database.PDFileManager;
 
 /**
  *

@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.TreeSet;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JTree;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeSelectionEvent;
@@ -40,23 +41,31 @@ import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.mx35cceditor.prompt.IPromptPanel;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MXSwingFolderBrowser extends javax.swing.JPanel {
+public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptPanel {
 
     FileSystemView _view = FileSystemView.getFileSystemView();
     DefaultTreeModel _model;
     TreeSet<File> _already;
     boolean _ignoreSystemFile = true;
     boolean _onlyDirectory = false;
+    File _selection;
+    File _result = null;
+
     FileFilter _onlyFilter = null;
     File _curerntDirectory = null;
+    
+    public void setOnlyDirectory(boolean dirOnly) {
+        _onlyDirectory = dirOnly;
+    }
 
     public static void main(String[] args) {
-        FileFilter filter = new MXFileFilterForExtension(new String[]{".xml"});
+        FileFilter filter = new MXFileFilter(new String[]{".xml"});
         MXSwingFolderBrowser chooser = new MXSwingFolderBrowser(new File("C:/Domino144/Module"), filter);
         chooser.showOpenDialog(null);
         System.out.println("Return " + chooser.getSelectedFile());
@@ -135,7 +144,6 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel {
         jTree1.setRequestFocusEnabled(true);
         jTree1.requestFocusInWindow();
 
-        setPreferredSize(new Dimension(500, 300));
         selectFile(separateDirectory(_curerntDirectory));
     }
     
@@ -313,6 +321,21 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel {
         }
     }
 
+    @Override
+    public JPanel getAsPanel() {
+        return this;
+    }
+
+    @Override
+    public String getPanelTitle() {
+        return "Folder Browser";
+    }
+
+    @Override
+    public Dimension getPanelSize() {
+        return new Dimension(500, 300);
+    }
+
     static class MyRenderer extends DefaultTreeCellRenderer {
 
         private TreeCellRenderer _defRenderer;
@@ -473,9 +496,6 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel {
     private void jTree1ValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_jTree1ValueChanged
 
     }//GEN-LAST:event_jTree1ValueChanged
-
-    File _selection;
-    File _result = null;
 
     public void setResultAndClose(File result) {
         if (result == null) {

@@ -16,25 +16,20 @@
  */
 package jp.synthtarou.midimixer.libs.midi.port;
 
-import java.io.File;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.MXQueue1;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
-import jp.synthtarou.midimixer.libs.domino.DTextXML;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDFileManager;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDFile;
 import jp.synthtarou.midimixer.libs.console.ConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_VSTi;
-import org.xml.sax.SAXException;
 
 /**
  *
@@ -49,7 +44,6 @@ public class MXMIDIOut {
     private String _name;
     boolean[] _assigned;
     int _assignCount;
-    private File _DXMLFile;
     private MXVisitant16 _visitant16 = new MXVisitant16();
 
     MXQueue1<MXMessage> _queue;
@@ -135,25 +129,6 @@ public class MXMIDIOut {
         return _name;
     }
 
-    public File getDXMLFile() {
-        return _DXMLFile;
-    }
-    
-    public void setDXMLFile(File file) throws SAXException {
-        try {
-            PDFileManager manager = PDFileManager.getManager();
-            if (_DXMLFile != null) {
-                manager.unregist(_DXMLFile.getName());
-            }
-            PDFile parser = DTextXML.fromFile(file);
-            _DXMLFile = file;
-            manager.register(parser);
-        }catch(SAXException e) {
-            throw e;
-        }catch(Exception e) {
-             e.printStackTrace();
-        }
-    }
     
     public int hashCode() {
         return _name.hashCode();

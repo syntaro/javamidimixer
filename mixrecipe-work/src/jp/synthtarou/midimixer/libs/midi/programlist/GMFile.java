@@ -23,10 +23,10 @@ import jp.synthtarou.midimixer.libs.domino.DTextMessageList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDBank;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDDrumSet;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDFile;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDModule;
+import jp.synthtarou.midimixer.libs.domino.database.PDBank;
+import jp.synthtarou.midimixer.libs.domino.database.PDDrumSet;
+import jp.synthtarou.midimixer.libs.domino.database.PDFile;
+import jp.synthtarou.midimixer.libs.domino.database.PDModule;
 
 /**
  *

@@ -18,8 +18,6 @@ package jp.synthtarou.midimixer.libs.domino;
 
 import java.util.LinkedList;
 import java.util.List;
-import jp.synthtarou.midimixer.libs.domino.rules.CCXMLRule;
-import jp.synthtarou.midimixer.libs.domino.rules.CCXMLTagRule;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import org.w3c.dom.Node;
 import org.w3c.dom.UserDataHandler;
@@ -38,7 +36,7 @@ public class CCDocumentHandler extends DefaultHandler {
     public static final String USERDATA_STARTCOLUMN = "user.startColumn";
 
     LinkedList<CCXMLNode> _cursor = new LinkedList();
-    CCXMLNode _document = new CCXMLNode(null, "", CCXMLRule.getInstance().getRootTag());
+    CCXMLNode _document = new CCXMLNode(null, "", CCRuleManager.getInstance().getRootTag());
     Locator _locator;
 
     public CCDocumentHandler() {
@@ -73,9 +71,9 @@ public class CCDocumentHandler extends DefaultHandler {
         }
     };
 
-    public static CCXMLTagRule findRule(List<CCXMLNode> path, String child) {
-        CCXMLTagRule root = CCXMLRule.getInstance().getRootTag();
-        CCXMLTagRule rule = root;
+    public static CCRuleElement findRule(List<CCXMLNode> path, String child) {
+        CCRuleElement root = CCRuleManager.getInstance().getRootTag();
+        CCRuleElement rule = root;
         for (CCXMLNode seek : path) {
             rule = rule.findChildRule(seek._name);
             if (rule == null) {

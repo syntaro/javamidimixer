@@ -583,6 +583,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
         MXMessage msg = _status.toMXMessage(null);
         boolean canHave14bit = false;
         if (msg.isCommand(MXMidi.COMMAND_CONTROLCHANGE)) {
+            System.out.println("data1 = " + msg.getData1());
             if (msg.getData1() >= 0 && msg.getData1() < 32) {
                 canHave14bit = true;
             }
@@ -1668,11 +1669,12 @@ public class MGStatusConfig extends javax.swing.JPanel {
         }
         Object sel = jComboBoxGate.getModel().getSelectedItem();
         MXWrap<Integer> wrap = (MXWrap<Integer>)sel;
-        int gate = wrap.value;
-        if (_status.getGate()._var != gate) {
-            _status.setGate(RangedValue.new7bit(gate));
-            writeBufferToPanelSlider();
-            if (gate == MXMidi.DATA1_CC_DATAENTRY) {
+        int newGate = wrap.value;
+        int oldGate = _status.getGate()._var;
+        
+        readBufferFromPanelSlider();
+        if (oldGate != newGate) {
+            if (newGate == MXMidi.DATA1_CC_DATAENTRY) {
                 fillDataentry(MXVisitant.ROOMTYPE_RPN);
             }
         }
