@@ -16,13 +16,13 @@
  */
 package jp.synthtarou.midimixer.libs.common;
 
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.ListModel;
 import javax.swing.event.ListDataListener;
+import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 
 /**
  *
@@ -105,6 +105,31 @@ public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, Co
         }
     }
     
+    public int indexOfNameShrink(String name) {
+        name = MXUtil.shrinkText(name);
+        if (_ignoreCase) {
+            int x = 0;
+            for (MXWrap<T> e : this) {
+                String name2 = MXUtil.shrinkText(e.name);
+                if(name2.equalsIgnoreCase(name)) {
+                    return x;
+                }
+                x ++;
+            }
+            return -1;
+        }else {
+            int x = 0;
+            for (MXWrap<T> e : this) {
+                String name2 = MXUtil.shrinkText(e.name);
+                if(name2.equalsIgnoreCase(name)) {
+                    return x;
+                }
+                x ++;
+            }
+            return -1;
+        }
+    }
+
     public T valueOfIndex(int x) {
         return get(x).value;
     }

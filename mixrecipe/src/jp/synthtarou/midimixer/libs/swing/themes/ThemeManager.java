@@ -22,11 +22,14 @@ import java.awt.Font;
 import java.awt.Window;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPopupMenu;
+import javax.swing.JSlider;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.plaf.FontUIResource;
+import javax.swing.plaf.SliderUI;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.plaf.metal.MetalTheme;
@@ -35,6 +38,7 @@ import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 
 public class ThemeManager implements MXSettingTarget {
     MXSetting _setting;
@@ -134,7 +138,7 @@ public class ThemeManager implements MXSettingTarget {
         for (int i = 0; i < win.length; ++i) {
             updateComponentTreeUI(win[i]);
             if (win[i] instanceof JDialog) {
-                win[i].pack();
+                //win[i].pack();
             }
         }
     }
@@ -149,6 +153,13 @@ public class ThemeManager implements MXSettingTarget {
     private static void updateComponentTreeUI0(Component c) {
         if (c instanceof JComponent) {
             JComponent jc = (JComponent) c;
+            if (jc instanceof JSlider) {
+                SliderUI ui = (SliderUI)jc.getUI();
+                if (ui instanceof MXAttachSliderLikeEclipse) {
+                    jc.setBackground(new JLabel().getBackground());
+                    return;
+                }
+            }
             jc.updateUI();
             JPopupMenu jpm =jc.getComponentPopupMenu();
             if(jpm != null) {

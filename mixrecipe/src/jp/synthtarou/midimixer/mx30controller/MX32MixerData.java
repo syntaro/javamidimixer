@@ -18,10 +18,11 @@ package jp.synthtarou.midimixer.mx30controller;
 
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMessageTemplate;
+import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 
 /**
@@ -91,8 +92,8 @@ public class MX32MixerData {
     
     private void initVolumeMixer() {
         MX32MixerProcess process = _process;
-        ArrayList<MGStatus>[] circleMatrix = new ArrayList[MXStatic.CIRCLE_ROW_COUNT];
-        ArrayList<MGStatus>[] sliderMatrix = new ArrayList[MXStatic.SLIDER_ROW_COUNT];
+        ArrayList<MGStatus>[] circleMatrix = new ArrayList[MXAppConfig.CIRCLE_ROW_COUNT];
+        ArrayList<MGStatus>[] sliderMatrix = new ArrayList[MXAppConfig.SLIDER_ROW_COUNT];
 
         int port = process._port;
         int column;
@@ -110,18 +111,23 @@ public class MX32MixerData {
         for(int row = 0; row < sliderMatrix.length; ++ row) {
             ArrayList<MGStatus> slider = sliderMatrix[row];
 
-            while (slider.size() < MXStatic.SLIDER_COLUMN_COUNT) {
+            while (slider.size() < MXAppConfig.SLIDER_COLUMN_COUNT) {
                 String text;
                 column = slider.size();
                 if (column >= 16) {
                     //F0H，7FH，7FH，04H，01H，00H，mm，F7H
                     text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
+                    MXTemplate template = MXMessageFactory.fromDtext(text, 0);
                     status = new MGStatus(process._port, MGStatus.TYPE_SLIDER, row, column);
-                    status.setMonitoringTarget(text, 0, 0, 128 * 128 - 1);
+                    status.setTemplate(template);
+                    status.setValue(RangedValue.new14bit(128 * 128 -1));
                 }else {
                     status = new MGStatus(process._port, MGStatus.TYPE_SLIDER, row, column);
                     message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CONTROLCHANGE + column, MXMidi.DATA1_CC_CHANNEL_VOLUME, 128 -1);
-                    status.setMonitoringTarget(message.toDText(), message.getChannel(), message.getGate(), message.getValue());
+                    status.setChannel(message.getChannel());
+                    status.setTemplate(message.getTemplate());
+                    status.setGate(message.getGate());
+                    status.setValue(message.getValue());
                 }
                 slider.add(status);
             }
@@ -137,18 +143,23 @@ public class MX32MixerData {
                 MXMidi.DATA1_CC_EXPRESSION,
                 MXMidi.DATA1_CC_PANPOT
             };
-            while (circle.size() < MXStatic.SLIDER_COLUMN_COUNT) {
+            while (circle.size() < MXAppConfig.SLIDER_COLUMN_COUNT) {
                 if (column >= 16) {
                     status = new MGStatus(process._port, MGStatus.TYPE_CIRCLE, row, column);
                     String text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
 
-                    status.setMonitoringTarget(text, 0, 0, 128 * 128 - 1);
+                    status.setTemplateAsText(text, 0);
+                    status.setGate(RangedValue.ZERO7);
+                    status.setValue(RangedValue.new14bit(128 * 128 - 1));
                     circle.add(status);
                     column ++;
                 }else {
                     status = new MGStatus(process._port, MGStatus.TYPE_CIRCLE, row, column);
                     message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CONTROLCHANGE + column, ccCode[row], 64);
-                    status.setMonitoringTarget(message.toDText(), column, message.getGate(), message.getValue());
+                    status.setTemplate(message.getTemplate());
+                    status.setChannel(column);
+                    status.setGate(message.getGate());
+                    status.setValue(message.getValue());
                     circle.add(status);
                     
                     column ++;
@@ -179,24 +190,28 @@ public class MX32MixerData {
             74, 71, 76, 77, 93, 18, 19, 16, 17
         };
         
-        for(int row = 0; row < MXStatic.SLIDER_ROW_COUNT; ++ row) {
-            for(int col = 0; col <MXStatic.SLIDER_COLUMN_COUNT; ++ col) {
+        for(int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++ row) {
+            for(int col = 0; col <MXAppConfig.SLIDER_COLUMN_COUNT; ++ col) {
                 status = data.getSliderStatus(row, col);
                 if (col < cclist.length) {
                     message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CONTROLCHANGE + row, cclist[col], 128 -1);
                 }else {
                     message = MXMessageFactory.createDummy();
                 }
-                status.setMonitoringTarget(message.toDText(), 0, message.getGate(), message.getValue());
+                status.setTemplate(message.getTemplate());
+                status.setGate(message.getGate());
+                status.setValue(message.getValue());
             }
         }
 
-        for (int row = 0; row < MXStatic.CIRCLE_ROW_COUNT; ++ row) {
-            for(int col = 0; col <MXStatic.SLIDER_COLUMN_COUNT; ++ col) {
+        for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++ row) {
+            for(int col = 0; col <MXAppConfig.SLIDER_COLUMN_COUNT; ++ col) {
                 status = data.getCircleStatus(row, col);
                 if (col < cclist2.length) {
                     message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CONTROLCHANGE + row, cclist2[col], 128 -1);
-                    status.setMonitoringTarget(message.toDText(), row, message.getGate(), message.getValue());
+                    status.setTemplate(message.getTemplate());
+                    status.setGate(message.getGate());
+                    status.setValue(message.getValue());
                 }
             }
         }
@@ -207,8 +222,8 @@ public class MX32MixerData {
 
     private void initZero() {
         MX32MixerProcess process = _process;
-        ArrayList<MGStatus>[] circleMatrix = new ArrayList[MXStatic.CIRCLE_ROW_COUNT];
-        ArrayList<MGStatus>[] sliderMatrix = new ArrayList[MXStatic.SLIDER_ROW_COUNT];
+        ArrayList<MGStatus>[] circleMatrix = new ArrayList[MXAppConfig.CIRCLE_ROW_COUNT];
+        ArrayList<MGStatus>[] sliderMatrix = new ArrayList[MXAppConfig.SLIDER_ROW_COUNT];
 
         circleMatrix[0] = new ArrayList();
         circleMatrix[1] = new ArrayList();
@@ -225,7 +240,7 @@ public class MX32MixerData {
         for(int row = 0; row < sliderMatrix.length; ++ row) {
             ArrayList<MGStatus> slider = new ArrayList();
 
-            while (slider.size() < MXStatic.SLIDER_COLUMN_COUNT) {
+            while (slider.size() < MXAppConfig.SLIDER_COLUMN_COUNT) {
                 status = new MGStatus(process._port, MGStatus.TYPE_SLIDER, row, column);
                 slider.add(status);
                 column ++;
@@ -235,7 +250,7 @@ public class MX32MixerData {
         column = 0;
         for (int row = 0; row < circleMatrix.length; ++ row) {
             ArrayList<MGStatus> circle = new ArrayList();
-            while (circle.size() < MXStatic.SLIDER_COLUMN_COUNT) {
+            while (circle.size() < MXAppConfig.SLIDER_COLUMN_COUNT) {
                 status = new MGStatus(process._port, MGStatus.TYPE_CIRCLE, row, column);
                 circle.add(status);
                 column ++;
@@ -267,29 +282,31 @@ public class MX32MixerData {
         
         MX32MixerData data =  _process._data;
 
-        for(int row = 0; row < MXStatic.SLIDER_ROW_COUNT; ++ row) {
-            for(int col = 0; col <MXStatic.SLIDER_COLUMN_COUNT; ++ col) {
+        for(int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++ row) {
+            for(int col = 0; col <MXAppConfig.SLIDER_COLUMN_COUNT; ++ col) {
                 status = data.getSliderStatus(row, col);
                 if (col < cclist.length) {
                     message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CONTROLCHANGE + row, cclist[col], 128 -1);
-                    status.setMonitoringTarget(message.toDText(), 0, message.getGate(), message.getValue());
                 }else {
                     message = MXMessageFactory.createDummy();
-                    status.setMonitoringTarget(message.toDText(), 0, message.getGate(), message.getValue());
                 }
+                status.setTemplate(message.getTemplate());
+                status.setGate(message.getGate());
+                status.setValue(message.getValue());
             }
         }
 
-        for(int row = 0; row < MXStatic.CIRCLE_ROW_COUNT; ++ row) {
-            for(int col = 0; col <MXStatic.SLIDER_COLUMN_COUNT; ++ col) {
+        for(int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++ row) {
+            for(int col = 0; col <MXAppConfig.SLIDER_COLUMN_COUNT; ++ col) {
                 status = data.getCircleStatus(row, col);
                 if (col < cclist2.length) {
                     message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CONTROLCHANGE + row, cclist2[col], 128 -1);
-                    status.setMonitoringTarget(message.toDText(), 0, message.getGate(), message.getValue());
                 }else {
                     message = MXMessageFactory.createDummy();
-                    status.setMonitoringTarget(message.toDText(), 0, message.getGate(), message.getValue());
                 }
+                status.setTemplate(message.getTemplate());
+                status.setGate(message.getGate());
+                status.setValue(message.getValue());
             }
         }
  
@@ -307,17 +324,19 @@ public class MX32MixerData {
         MGStatus status = null;
         MX32MixerData data =  _process._data;
 
-        for(int row = 0; row < MXStatic.SLIDER_ROW_COUNT; ++ row) {
-            for(int col = 0; col <MXStatic.SLIDER_COLUMN_COUNT; ++ col) {
+        for(int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++ row) {
+            for(int col = 0; col <MXAppConfig.SLIDER_COLUMN_COUNT; ++ col) {
                 status = data.getSliderStatus(row, col);
                 if (col >= 16) {
                     String text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
-
-                    status.setMonitoringTarget(text, 0, 0, 0);
+                    MXTemplate template  = MXMessageFactory.fromDtext(text, 0);
+                    message = template.buildMessage(port, 0, RangedValue.ZERO7, RangedValue.new14bit(0));
                 }else {
                     message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CONTROLCHANGE + col, MXMidi.DATA1_CC_EXPRESSION, 128 -1);
-                    status.setMonitoringTarget(message.toDText(), col, message.getGate(), message.getValue());
                 }
+                status.setTemplate(message.getTemplate());
+                status.setGate(message.getGate());
+                status.setValue(message.getValue());
             }
         }
         
@@ -327,17 +346,19 @@ public class MX32MixerData {
             MXMidi.DATA1_CC_SOUND_RELEASETIME, 
             MXMidi.DATA1_CC_SOUND_BLIGHTNESS,
         };
-        for(int row = 0; row < MXStatic.CIRCLE_ROW_COUNT; ++ row) {
-            for(int col = 0; col <MXStatic.SLIDER_COLUMN_COUNT; ++ col) {
+        for(int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++ row) {
+            for(int col = 0; col <MXAppConfig.SLIDER_COLUMN_COUNT; ++ col) {
                 status = data.getSliderStatus(row, col);
                 if (col >= 16) {
                     String text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
-
-                    status.setMonitoringTarget(text, 0, 0, 128 * 128 + 1);
+                    MXTemplate template  = MXMessageFactory.fromDtext(text, 0);
+                    message = template.buildMessage(port, 0, RangedValue.ZERO7, RangedValue.new14bit(0));
                 }else {
                     message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CONTROLCHANGE + col, ccCode[row], 64);
-                    status.setMonitoringTarget(message.toDText(), col, message.getGate(), message.getValue());
                 }
+                status.setTemplate(message.getTemplate());
+                status.setGate(message.getGate());
+                status.setValue(message.getValue());
             }
         }
         
@@ -345,8 +366,8 @@ public class MX32MixerData {
             -1, 0, 2, 5, 8, 10, 13, 27, 36, 40, 56, 65, 72, 82, 96, 106, 120
         };
 
-        for(int row = 0; row < MXStatic.DRUM_ROW_COUNT; ++ row) {
-            for(int col = 0; col <MXStatic.SLIDER_COLUMN_COUNT; ++ col) {
+        for(int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++ row) {
+            for(int col = 0; col <MXAppConfig.SLIDER_COLUMN_COUNT; ++ col) {
                 status = data.getSliderStatus(row, col);
                 int prog = proglist[col];
                 switch(row) {
@@ -372,41 +393,63 @@ public class MX32MixerData {
                         }
                         break;
                 }
-                status.setMonitoringTarget(message.toDText(), message.getChannel(), message.getGate(), message.getValue());
+                status.setTemplate(message.getTemplate());
+                status.setChannel(message.getChannel());
+                status.setGate(message.getGate());
+                status.setValue(message.getValue());
             }
         }
     }
     
     public void fillMaxOfSlider(MGStatus status, int column) {
         MGStatus sliderStatus = _matrixSliderStatus[0].get(column);
-        
-        int max = sliderStatus.getRangeMax();
-        int min = sliderStatus.getRangeMin();
         MXMessage message = sliderStatus.toMXMessage(null);
         
-        status.setMonitoringTarget(message.toDText(), message.getChannel(), message.getGate(), max);
+        int x = sliderStatus.getValue()._max;
+        RangedValue maxValue = new RangedValue(x, x, x);
+
+        if (message != null) {
+            status.setTemplate(message.getTemplate());
+            status.setChannel(message.getChannel());
+            status.setGate(message.getGate());
+            status.setValue(maxValue);;
+        }
+        else {
+            status.setTemplate(null);
+            status.setChannel(0);
+            status.setGate(RangedValue.ZERO7);
+            status.setValue(RangedValue.ZERO7);
+        }
         status.setSwitchType(MGStatus.SWITCH_TYPE_ON); // 1回のみで
-        status.setRangeMin(max);
-        status.setRangeMax(max);
         status.setSwitchOutOnTypeOfValue(MGStatus.SWITCH_OUT_ON_VALUE_FIXED);
-        status.setSwitchOutOnValueFixed(max);
+        status.setSwitchOutOnValueFixed(maxValue._var);
     }
 
     public void fillMiddleOfSlider(MGStatus status, int column) {
         MGStatus sliderStatus = _matrixSliderStatus[0].get(column);
         
-        int max = sliderStatus.getRangeMax();
-        int min = sliderStatus.getRangeMin();
+        int max = sliderStatus.getValue()._max;
+        int min = sliderStatus.getValue()._min;
         if (((max - min) % 2) != 0) {
             max ++;
         }
         int middle = (max + min) / 2;
+        RangedValue middleValue = new RangedValue(middle, middle, middle);
+
         MXMessage message = sliderStatus.toMXMessage(null);
-        
-        status.setMonitoringTarget(message.toDText(), message.getChannel(), message.getGate(), max);
+        if (message != null) {
+            status.setTemplate(message.getTemplate());
+            status.setChannel(message.getChannel());
+            status.setGate(message.getGate());
+            status.setValue(middleValue);
+        }
+        else {
+            status.setTemplate(null);
+            status.setChannel(0);
+            status.setGate(RangedValue.ZERO7);
+            status.setValue(middleValue);
+        }
         status.setSwitchType(MGStatus.SWITCH_TYPE_ON); // 1回のみで
-        status.setRangeMin(middle);
-        status.setRangeMax(middle);
         status.setSwitchOutOnTypeOfValue(MGStatus.SWITCH_OUT_ON_VALUE_FIXED);
         status.setSwitchOutOnValueFixed(middle);
     }
@@ -414,14 +457,24 @@ public class MX32MixerData {
     public void fillMinOfSlider(MGStatus status, int column) {
         MGStatus sliderStatus = _matrixSliderStatus[0].get(column);
         
-        int max = sliderStatus.getRangeMax();
-        int min = sliderStatus.getRangeMin();
+        int max = sliderStatus.getValue()._max;
+        int min = sliderStatus.getValue()._min;
+        RangedValue minValue = new RangedValue(min, min, min);
+
         MXMessage message = sliderStatus.toMXMessage(null);
-        
-        status.setMonitoringTarget(message.toDText(), message.getChannel(), message.getGate(), max);
+        if (message != null) {
+            status.setTemplate(message.getTemplate());
+            status.setChannel(message.getChannel());
+            status.setGate(message.getGate());
+            status.setValue(minValue);
+        }
+        else {
+            status.setTemplate(null);
+            status.setChannel(0);
+            status.setGate(RangedValue.ZERO7);
+            status.setValue(minValue);
+        }
         status.setSwitchType(MGStatus.SWITCH_TYPE_ON); // 1回のみで
-        status.setRangeMin(min);
-        status.setRangeMax(min);
         status.setSwitchOutOnTypeOfValue(MGStatus.SWITCH_OUT_ON_VALUE_FIXED);
         status.setSwitchOutOnValueFixed(min);
     }
@@ -430,14 +483,14 @@ public class MX32MixerData {
         MX32MixerProcess process = _process;
 
         ArrayList<MGStatus>[] sliderMatrix = _matrixSliderStatus;
-        ArrayList<MGStatus>[] padMatrix = new ArrayList[MXStatic.DRUM_ROW_COUNT];
+        ArrayList<MGStatus>[] padMatrix = new ArrayList[MXAppConfig.DRUM_ROW_COUNT];
 
         padMatrix[0] = new ArrayList();
         padMatrix[1] = new ArrayList();
         padMatrix[2] = new ArrayList();
 
         int column = 0;
-        while (padMatrix[0].size() < MXStatic.SLIDER_COLUMN_COUNT) {
+        while (padMatrix[0].size() < MXAppConfig.SLIDER_COLUMN_COUNT) {
             MGStatus status;
             status = new MGStatus(process._port, MGStatus.TYPE_DRUMPAD, 0, column);
             fillMaxOfSlider(status, column);
@@ -460,7 +513,7 @@ public class MX32MixerData {
         if (_matrixSliderComponent == null) {
             return null;
         }
-        if (row >= MXStatic.SLIDER_ROW_COUNT || column >= MXStatic.SLIDER_COLUMN_COUNT) {
+        if (row >= MXAppConfig.SLIDER_ROW_COUNT || column >= MXAppConfig.SLIDER_COLUMN_COUNT) {
             throw new IllegalArgumentException("row " + row + " , column = " + column);
         }
         return _matrixSliderComponent[row].get(column);
@@ -470,7 +523,7 @@ public class MX32MixerData {
         if (_matrixCircleComponent == null) {
             return null;
         }
-        if (row >= MXStatic.CIRCLE_ROW_COUNT || column >= MXStatic.SLIDER_COLUMN_COUNT) {
+        if (row >= MXAppConfig.CIRCLE_ROW_COUNT || column >= MXAppConfig.SLIDER_COLUMN_COUNT) {
             throw new IllegalArgumentException("row " + row + " , column = " + column);
         }
         return _matrixCircleComponent[row].get(column);
@@ -480,7 +533,7 @@ public class MX32MixerData {
         if (_matrixDrumComponent == null) {
             return null;
         }
-        if (row >= MXStatic.DRUM_ROW_COUNT || column >= MXStatic.SLIDER_COLUMN_COUNT) {
+        if (row >= MXAppConfig.DRUM_ROW_COUNT || column >= MXAppConfig.SLIDER_COLUMN_COUNT) {
             throw new IllegalArgumentException("row " + row + " , column = " + column);
         }
         return _matrixDrumComponent[row].get(column);

@@ -23,13 +23,13 @@ import java.awt.event.WindowListener;
 import javax.swing.JOptionPane;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
+import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMessageTemplate;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
+import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 
 /**
  *.
@@ -252,13 +252,12 @@ public class MXMessageCapturePanel extends javax.swing.JPanel {
                 int channel = wrap.value._parent.channel;
                 String dtext = wrap.value._parent.dtext;
                 int gate = wrap.value._gate;
-                int min = wrap.value._minValue;
-                int max = wrap.value._maxValue;
+                int lowvalue = wrap.value._hitLoValue;
+                int hivalue = wrap.value._hitHiValue;
 
-                MXMessageTemplate template = MXMessageFactory.fromDtext(dtext, channel);
-                MXMessage msg = template.buildMessage(0, gate, max);
-                msg.setChannel(0);
-                String text = msg.toStringHeader(min, max);
+                MXTemplate template = MXMessageFactory.fromDtext(dtext, channel);
+                MXMessage msg = template.buildMessage(0, channel, RangedValue.new7bit(gate), RangedValue.new7bit(hivalue));
+                String text = msg.toStringHeader(lowvalue, hivalue);
                 jTextFieldCommandText.setText(text);
             }catch(Exception e) {
                 jTextFieldCommandText.setText("Error");

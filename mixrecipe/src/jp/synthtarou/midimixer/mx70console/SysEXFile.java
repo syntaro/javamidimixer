@@ -31,6 +31,7 @@ import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
+import jp.synthtarou.midimixer.libs.midi.driver.SysexSplitter;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.smf.MidiByteReader;
 import jp.synthtarou.midimixer.libs.text.MXLineReader;
@@ -243,8 +244,12 @@ public class SysEXFile {
             for (byte[] data : _contents) {
                 for (int x = 0; x < data.length; ++ x) {
                     String hex = MXUtil.toHexFF(data[x]);
-                    if (x != 0) {
+                    int pos = x % 64;
+                    if (pos != 0) {
                         write.write(" ");
+                    }
+                    else if (x != 0) {
+                        write.write("\n");
                     }
                     write.write(hex);
                 }
@@ -280,21 +285,28 @@ public class SysEXFile {
         }
     }
     
-    public void sendTo(int port, SysexProgress progress) {
+    public void sendSysexTo(int port, SysexProgress progress, int splitSize) {
         MXThreadList.newThread("SysEXFile", new Runnable() {
             @Override
             public void run() {
                 int count = _contents.size();
                 int x = 0;
                 FinalMIDIOut out = FinalMIDIOut.getInstance();
+
                 for (byte[] data : _contents) {
                     progress.progress(x ++ , count);
-                    MXMessage longMessage = MXMessageFactory.fromSysexMessage(port, data);
-                    MXMain.getMain().messageDispatch(longMessage, out);
+
+                    SysexSplitter split = new SysexSplitter();
+                    split.append(data);
+                    ArrayList<byte[]> arrayData = split.splitOrJoin(0 /* splitSize*/);
+                    for (byte[] data2 : arrayData) {
+                        MXMessage longMessage = MXMessageFactory.fromBinary(port, data2);
+                        MXMain.getMain().messageDispatch(longMessage, out);
+                    }
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(100);
                     }catch(Exception e) {
-                        
+
                     }
                 }
                 progress.progress(x, count);

@@ -16,13 +16,10 @@
  */
 package jp.synthtarou.midimixer.mx80vst;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import jp.synthtarou.midimixer.libs.common.async.Transaction;
 import java.io.File;
 import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
@@ -30,8 +27,11 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.common.async.Transaction;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 import jp.synthtarou.midimixer.libs.vst.IndexedFile;
 import jp.synthtarou.midimixer.libs.vst.MXPresetAction;
 import jp.synthtarou.midimixer.libs.vst.MXPresetPanel;
@@ -158,6 +158,11 @@ public class VSTInstancePanel extends javax.swing.JPanel {
             String slot = "Slot " + Character.toString(ch);            
             setBorder(BorderFactory.createTitledBorder(slot));
         }
+        
+        new MXAttachSliderLikeEclipse(jSliderInsert);
+        new MXAttachSliderLikeEclipse(jSliderSend);
+        new MXAttachSliderSingleClick(jSliderInsert);
+        new MXAttachSliderSingleClick(jSliderSend);
     }
 
     /**
@@ -515,8 +520,9 @@ public class VSTInstancePanel extends javax.swing.JPanel {
         }
         _initDone = true;
     }   
-    
+
     public void onResize(int width) {
+        /*
         boolean debug = false;
 
         setMinimumSize(new Dimension(width - 5, 100));
@@ -554,5 +560,6 @@ public class VSTInstancePanel extends javax.swing.JPanel {
         }
         
         updateUI();
+        */
     }
 }

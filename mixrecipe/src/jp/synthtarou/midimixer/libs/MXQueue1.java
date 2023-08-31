@@ -16,9 +16,9 @@
  */
 package jp.synthtarou.midimixer.libs;
 
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import java.util.LinkedList;
 import jp.synthtarou.midimixer.MXThreadList;
+import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 
 /**
  *

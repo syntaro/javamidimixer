@@ -24,16 +24,29 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.Window;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.CodeSource;
+import java.security.ProtectionDomain;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.LinkedList;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
-import javax.swing.JTable;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.libs.text.MXLineReader;
 import jp.synthtarou.midimixer.mx30controller.MGCircle;
 import jp.synthtarou.midimixer.mx30controller.MGPad;
 import jp.synthtarou.midimixer.mx30controller.MGSlider;
@@ -48,9 +61,10 @@ public class MXUtil {
         if (str.length() == 1) {
             return "0" + str;
         }
+        /*
         if (str.length() >= 3) {
             return str.substring(str.length() - 2, str.length());
-        }
+        }*/
         return str;
     }
 
@@ -60,17 +74,42 @@ public class MXUtil {
             if (i != 0) {
                 str.append(" ");
             }
-            str.append(toHexFF((int) data[i]));
+            str.append(toHexFF(data[i] & 0xff));
+        }
+        return str.toString();
+    }
+
+    public static String dumpHex(int[] data) {
+        StringBuffer str = new StringBuffer();
+        for (int i = 0; i < data.length; ++i) {
+            if (i != 0) {
+                str.append(" ");
+            }
+            str.append(toHexFF(data[i]));
         }
         return str.toString();
     }
  
-    public static final int parseTextForNumber(String text) {
-        int x = 0;
-        int start = 0;
+    public static boolean isNumberFormat(String text) {
+        try {
+            if (MXUtil.numberFromText(text, Integer.MIN_VALUE) == Integer.MIN_VALUE) {
+                return false;
+            }
+            return true;
+        } catch (NumberFormatException e) {
+        }
+        return false;
+    }
+
+    public static final int numberFromText(String text) {
+        return MXUtil.numberFromText(text, 0);
+    }
+    
+    public static final int numberFromText(String text, int errorNumber) {
         int mum = 10;
+
         if (text == null) {
-            return -1;
+            return errorNumber;
         }
         if (text.startsWith("0x")) {
             text = text.substring(2);
@@ -80,18 +119,17 @@ public class MXUtil {
             text = text.substring(0, text.length() - 1);
             mum = 16;
         }
-        for (start = 0; start < text.length(); ++start) {
-            char ch = text.charAt(start);
-            if (ch == ' ' || ch == '\t' || ch == '\n') {
-                continue;
-            }
-            break;
+
+        int start = 0;
+        int end = text.length();
+
+        if (start >= end) {
+            return errorNumber;
         }
-        if (start >= text.length()) {
-            return -1;
-        }
-        for (; start < text.length(); ++start) {
-            int ch = text.charAt(start) & 255;
+
+        int x = 0;
+        for (int pos = start; pos < end; ++pos) {
+            int ch = text.charAt(pos);
             if (ch >= '0' && ch <= '9') {
                 x *= mum;
                 x += ch - (char) '0';
@@ -102,12 +140,11 @@ public class MXUtil {
                 x *= mum;
                 x += ch - (char) 'a' + 10;
             } else {
-                break;
+                return errorNumber;
             }
         }
         return x;
     }
-    
     
     public static boolean searchTextIgnoreCase(String text, String words) {
         text = text.toLowerCase();
@@ -163,7 +200,7 @@ public class MXUtil {
     public static void showAsDialog(Container parent, JPanel panel, String title) {
         Container cont = getOwnerWindow(parent);
         if (title == null) {
-            title = MXStatic.MX_APPNAME_WITH_VERSION;
+            title = MXAppConfig.MX_APPNAME;
         }
         JDialog dialog = null;
         if (cont instanceof Window) {
@@ -218,37 +255,7 @@ public class MXUtil {
         loc.y += (screenSize.height - mySize.height) / 2;
         c.setLocation(loc);
     }
-
-    public static void autoResizeTableColumnWidth(JTable table) {
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        final TableColumnModel columnModel = table.getColumnModel();
-        for (int column = 0; column < table.getColumnCount(); column++) {
-            int width = 10; // Min width
-            for (int row = -1; row < table.getRowCount(); row++) {
-                if (row < 0) {
-                    TableCellRenderer renderer = table.getTableHeader().getDefaultRenderer();
-                    TableColumnModel model = table.getColumnModel();
-                    TableColumn col = model.getColumn(column);
-                    col.getHeaderValue();
-                    Object r = renderer.getTableCellRendererComponent(table, col.getHeaderValue(), false, false, 0, column);
-                    if (r instanceof Component) {
-                        Component comp = (Component) r;
-                        width = Math.max(comp.getPreferredSize().width + 30, width);
-                    } else {
-                        width = 50;
-                    }
-                } else {
-                    TableCellRenderer renderer = table.getCellRenderer(row, column);
-                    Component comp = table.prepareRenderer(renderer, row, column);
-                    width = Math.max(comp.getPreferredSize().width + 30, width);
-                }
-            }
-            if (width > 300) {
-                width = 300;
-            }
-            columnModel.getColumn(column).setPreferredWidth(width);
-        }
-    }
+    
 
     public static Container getOwnerWindow(Component panel) {
         while (panel != null) {
@@ -309,6 +316,302 @@ public class MXUtil {
                     child.setBackground(color);
                 }
             }
+        }
+    }
+
+
+    public static boolean isShrinkTarget(char c) {
+        if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
+            return true;
+        }
+        return false;
+    }
+
+    public static String shrinkText(String text) {
+        if (text == null) {
+            return null;
+        }
+        if (text.length() == 0) {
+            return text;
+        }
+        int start = 0;
+        int end = text.length() - 1;
+        while (start <= end && isShrinkTarget(text.charAt(start))) {
+            start++;
+        }
+        while (start <= end && isShrinkTarget(text.charAt(end))) {
+            end--;
+        }
+        if (start > end) {
+            return "";
+        }
+        return text.substring(start, end + 1);
+    }
+
+    public static String getStackTraceAsString(Throwable th) {
+        StringBuffer ret = new StringBuffer();
+        StackTraceElement[] elems = th.getStackTrace();
+        ret.append(th.toString());
+        for (int i = 1; i < elems.length; ++i) {
+            StackTraceElement x = elems[i];
+            ret.append("\n    ");
+            ret.append(x.toString());
+        }
+        return ret.toString();
+    }
+
+
+    public static File getAppBaseDirectory() {
+        String fileName = null;
+        try {
+            ProtectionDomain pd = MXUtil.class.getProtectionDomain();
+            CodeSource cs = pd.getCodeSource();
+            URL location = cs.getLocation();
+            URI uri = location.toURI();
+            Path path = Paths.get(uri);
+            fileName = path.toString();
+        } catch (URISyntaxException ex) {
+            return new File(".");
+        }
+
+        File base = new File(fileName);
+
+        if (base.isFile()) {
+            base = base.getParentFile();
+        }
+        return base;
+    }
+
+    public static File createTemporaryFile(File target) {
+        File dir = target.getParentFile();
+        dir.mkdirs();
+        String fileName = target.getName();
+        for (int i = 1; i < 100; ++i) {
+            String newName = fileName + "_temporary" + String.valueOf(i);
+            File newFile = new File(dir, newName);
+            if (newFile.exists()) {
+                continue;
+            }
+            try {
+                new FileOutputStream(newFile).close();
+            } catch (IOException e) {
+                continue;
+            }
+            return newFile;
+        }
+        return null;
+    }
+
+    public static File safeRenameToBackup(File target) {
+        File parent = target.getParentFile();
+        
+        parent = new File(parent, "Old");
+        parent.mkdir();
+
+        String fileName = target.getName();
+
+        int lastDot = fileName.indexOf('.');
+        String forward, fileExt;
+
+        if (lastDot >= 0) {
+            forward = fileName.substring(0, lastDot);
+            fileExt = fileName.substring(lastDot);
+        } else {
+            forward = fileName;
+            fileExt = "";
+        }
+
+        Date lastMod = new Date(target.lastModified());
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(lastMod);
+
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH);
+        int day = cal.get(Calendar.DAY_OF_MONTH);
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        int min = cal.get(Calendar.MINUTE);
+
+        String newName1 = forward + "_back" + year + "-" + month + "-" + day;
+        String newName3 = fileExt;
+
+        for (int count = 1; count <= 99; ++count) {
+            String newName;
+            if (count == 0) {
+                newName = newName1 + newName3;
+            } else {
+                String newName2 = "(" + count + ")";
+                newName = newName1 + newName2 + newName3;
+            }
+
+            File f = new File(parent, newName);
+            if (f.isFile()) {
+                continue;
+            }
+            target.renameTo(f);
+            return f;
+        }
+        return null;
+    }
+
+    public static int compareFileText(File f1, File f2) {
+        MXLineReader r1 = null, r2 = null;
+        InputStream i1 = null, i2 = null;
+
+        try {
+            if (!f1.exists() || !f2.exists()) {
+                return -1;
+            }
+            i1 = new FileInputStream(f1);
+            i2 = new FileInputStream(f2);
+
+            r1 = new MXLineReader(i1, "utf-8");
+            r2 = new MXLineReader(i2, "utf-8");
+
+            while (true) {
+                String line1 = "", line2 = "";
+
+                while (line1 != null && line1.isEmpty()) {
+                    line1 = r1.readLine();
+                    line1 = shrinkText(line1);
+                }
+
+                while (line2 != null && line2.isEmpty()) {
+                    line2 = r2.readLine();
+                    line2 = shrinkText(line2);
+                }
+
+                if (line1 == null) {
+                    if (line2 == null) {
+                        return 0;
+                    } else {
+                        return -1;
+                    }
+                }
+                if (line2 == null) {
+                    return 1;
+                }
+
+                int x = line1.compareTo(line2);
+                if (x != 0) {
+                    return x;
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return -1;
+        } finally {
+            if (i1 != null) {
+                try {
+                    i1.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            if (i2 != null) {
+                try {
+                    i2.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static int compareFileBinary(File f1, File f2) throws IOException {
+        long l1 = f1.length();
+        long l2 = f2.length();
+        if (l1 < l2) {
+            return -1;
+        }
+        if (l1 > l2) {
+            return -1;
+        }
+
+        byte[] data1 = new byte[4096];
+        byte[] data2 = new byte[4096];
+        FileInputStream in1 = null;
+        FileInputStream in2 = null;
+
+        try {
+            in1 = new FileInputStream(f1);
+            in2 = new FileInputStream(f2);
+
+            while (true) {
+                int len1 = in1.read(data1);
+                int len2 = in1.read(data2);
+                if (len1 < len2) {
+                    return -1;
+                }
+                if (len1 > len2) {
+                    return 1;
+                }
+                if (len1 <= 0) {
+                    break;
+                }
+                for (int x = 0; x < len1; ++x) {
+                    if (data1[x] < data2[x]) {
+                        return -1;
+                    }
+                    if (data1[x] > data2[x]) {
+                        return 1;
+                    }
+                }
+            }
+            return 0;
+        } catch (IOException ex) {
+            throw ex;
+        } finally {
+            if (in1 != null) {
+                try {
+                    in1.close();
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                ;
+
+            }
+            if (in2 != null) {
+                try {
+                    in2.close();
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static void fixConsoleEncoding() {
+        try {
+            // for NetBeans + Ant With Fork
+            String targetCharset = System.getProperty("stdout.encoding");
+            if (targetCharset == null) {
+                targetCharset = System.getProperty("native.encoding");
+            }
+            if (targetCharset.equals(System.out.charset().toString())) {
+                System.out.println("Console Have Valid Encoding.");
+            } else {
+                System.out.println("*ENV*JAVA_TOOL_OPTIONS=" + System.getenv("JAVA_TOOL_OPTIONS"));
+                System.out.println("*ENV*_JAVA_OPTIONS=" + System.getenv("_JAVA_OPTIONS"));
+                System.out.println("*ENV*LANG=" + System.getenv("LANG"));
+
+                System.out.println("*PROP*file.encoding = " + System.getProperty("file.encoding"));
+                System.out.println("*PROP*native.encoding = " + System.getProperty("native.encoding"));
+                System.out.println("*PROP*stdout.encoding = " + System.getProperty("stdout.encoding"));
+                System.out.println("*PROP*stderr.encoding = " + System.getProperty("stderr.encoding"));
+
+                System.out.println("*METHOD*Charset.defaultCharset() = " + Charset.defaultCharset());
+                System.out.println("*METHOD*System.out.charset() = " + System.out.charset());
+
+                System.setOut(new PrintStream(System.out, true, targetCharset));
+                System.setErr(new PrintStream(System.err, true, targetCharset));
+                System.out.println("Console Encoding fixed.");
+                System.out.println("after overwrite System.out.charset() = " + System.out.charset());
+                System.out.println("after overwrite System.err.charset() = " + System.err.charset());
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
     }
 }

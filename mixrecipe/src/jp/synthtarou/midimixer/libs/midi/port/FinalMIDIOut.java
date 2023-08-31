@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.libs.midi.port;
 
-import java.util.List;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;

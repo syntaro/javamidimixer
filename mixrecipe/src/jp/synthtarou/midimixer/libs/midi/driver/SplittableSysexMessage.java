@@ -19,7 +19,6 @@ package jp.synthtarou.midimixer.libs.midi.driver;
 import java.io.ByteArrayOutputStream;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiMessage;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
 
 /**
  *
@@ -34,36 +33,25 @@ public class SplittableSysexMessage extends MidiMessage {
     protected void setMessage(byte[] data, int dataLength) throws InvalidMidiDataException {
         _status = data[0] & 0xff;
         int last = data[data.length - 1] & 0xff;
+                
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        if (_status == 0xf0 || _status == 0xf7) {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            
-            if (_status == 0xf0 && last == 0xf7) {
-                out.write(data, 0, dataLength);
-            }else if (false) {
-                out.write(data, 0, dataLength);
-            }else if (true) {
-                /*
-                out.write(data, 0, 1);
-                System.out.println("addingLength From " + MXUtil.dumpHexFF(data));
-                try {
-                    out.write(MidiByteReader.makeVariable(dataLength - 1));
-                }catch(IOException ioe) {
-                    throw new IllegalStateException("out of memory?", ioe);
-                }
-                */
-                _status = 0xf0;
-                out.write(data, 1, dataLength -1);
-                System.out.println("addingLength To " + MXUtil.dumpHexFF(out.toByteArray()));
-            }
-            
-            byte[] trans = out.toByteArray();
-            _length = trans.length;
-            setMessagePlain(trans, trans.length);
-        }
-        else {
+        if (_status == 0xf0 && last == 0xf7) {
+            _status = 0xf0;
+            _offset = 0;
+        }else if (_status == 0xf0) {
+            _status = 0xf0;
+            _offset = 0;
+        }else if (_status == 0xf7) {
+            _status = 0xf7;
+            _offset = 1;
+        } else {
             throw new InvalidMidiDataException("data not start f0 or f7");
         }
+        out.write(data,  _offset, dataLength - _offset);
+        byte[] trans = out.toByteArray();
+        _length = trans.length;
+        setMessagePlain(trans, trans.length);
     }
     
     protected void setMessagePlain(byte[] data, int dataLength) throws InvalidMidiDataException {
@@ -89,15 +77,28 @@ public class SplittableSysexMessage extends MidiMessage {
     
     @Override
     public int getStatus() {
-        //return 0xf0;
         return _status;
     }
     
     @Override
     public int getLength() {
-        return _length;
+        return _length /* + _offset */;
     }
     
+    @Override
+    public byte[] getMessage() {
+        byte[] raw = super.getMessage();
+        if (raw.length != getLength()) {
+            throw new IllegalArgumentException("raw.length " + raw.length + " != data.length " + getLength());
+        }
+        /*
+        if (raw.length > 0 && (raw[0] & 0xff) == 0xf7) {
+            new Throwable("Something Wrong").printStackTrace();
+        }*/
+        return raw;
+    }
+
+    int _offset;
     int _status;
     int _length;
 }

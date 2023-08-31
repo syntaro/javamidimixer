@@ -23,11 +23,12 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.ShortMessage;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXException;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_PlayList;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFMessageList;
@@ -91,18 +92,19 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
                 continue;
             }
 
-            int status = (msg >> 8) >> 8;
-            int command = status & 0xf0;
+            int status = (msg >> 16) & 0xff;
             int ch = status & 0x0f;
             int data1 = (msg >> 8) & 0xff;
             int data2 = msg & 0xff;
+
+            int command = status & 0xf0;
 
             if (command == MXMidi.COMMAND_NOTEON) {
                 if (firstNotePos < 0) {
                     firstNotePos = i;
                 }
                 _existNoteChannel[ch] = true;
-                if (ch == MXStatic.DRUM_CH && data2 >= 1) {
+                if (ch == MXAppConfig.DRUM_CH && data2 >= 1) {
                     drums.add(data1);
                 }else {
                     if (data1 < _noteLowest) _noteLowest = data1;
@@ -249,10 +251,10 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
                         MXThreadList.attachIfNeed("smfPlayNote", _last);
                     }
                     if (smf.isBinaryMessage()) {
-                        receiveLongMessage(smf.getBinary());
+                        receiveLongMessage(new MXTiming(), smf.getBinary());
                     }else {
                         int dword = smf.toDwordMessage();
-                        receiveShortMessage(dword);
+                        receiveShortMessage(new MXTiming(), dword);
                     }
                 }catch(Throwable e) {
                     e.printStackTrace();

@@ -17,11 +17,14 @@
 package jp.synthtarou.midimixer.mx30controller;
 
 import java.io.File;
+import java.time.temporal.Temporal;
 import jp.synthtarou.midimixer.MXMain;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMessageTemplate;
+import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
@@ -140,23 +143,18 @@ public class MGStatus implements Cloneable {
 
     private String _name = "";
     private String _memo = "";
-    private String _textCommand = "";
+    private MXTemplate _template = MXMessageFactory.createDummy().getTemplate();
     
-    private int _value = 0;
-    private int _rangeMin = 0;
-    private int _rangeMax = 127;
-    private boolean _uiValueInvert = false;
-    private int _valueHome = 0;    
+    private RangedValue _value = RangedValue.ZERO7;
+    private int _valueHome = 0;
     private boolean _valueLastSent = false;
     private boolean _valueLastDetect = false;
     
-    private int _gate = 0;
+    private RangedValue _gate = RangedValue.ZERO7;
     private int _channel = 0;
     
     private int _switchLastDetected;
     
-    private MXMessageTemplate _cachedMessage = null;
-
     private int _switchType = SWITCH_TYPE_ONOFF;
     private int _switchInputType = SWITCH_ON_IF_PLUS1;
     private int _switchOutOnType = SWITCH_OUT_ON_SAME_AS_INPUT;
@@ -165,14 +163,14 @@ public class MGStatus implements Cloneable {
     private String _switchOutOnText = "";
     private int _switchOutOnTextGate = 0;
     
-    MXMessageTemplate _cacheOutOnMessage = null;
+    MXTemplate _cacheOutOnMessage = null;
 
     private int _switchOutOffType = SWITCH_OUT_OFF_SAME_AS_INPUT;
     private int _switchOutOffTypeOfValue = SWITCH_OUT_OFF_VALUE_0;
     private int _switchOutOffValueFixed = 0;
     private String _switchOutOffText = "";
     private int _switchOutOffTextGate = 0;
-    MXMessageTemplate _cacheOutOffMessage = null;
+    MXTemplate _cacheOutOffMessage = null;
 
     private boolean _switchWithToggle = false;
     private int _switchHarmonyVelocityType = SWITCH_HARMONY_VELOCITY_SAME_AS_INPUT;
@@ -200,31 +198,24 @@ public class MGStatus implements Cloneable {
         _row = row;
         _column = column;
     }
-
-    public MXMessageTemplate getTemplate() {
-        if (_cachedMessage == null) {
-            _cachedMessage = MXMessageFactory.fromDtext(getTextCommand(), getChannel());
-            if (_cachedMessage == null) {
-                return null;
-            }
-        }
-        return _cachedMessage;
+    
+    public MXTemplate getTemplate() {
+        return _template;
     }
     
     public synchronized MXMessage toMXMessage(MXTiming timing) {
-        getTemplate();
-
-        MXMessage message = _cachedMessage.buildMessage(_port, _gate, _value);
+        MXTemplate template = getTemplate();
+        MXMessage message = template.buildMessage(_port, _channel, _gate, _value);
+        message._timing = timing;
         message.setValuePairCC14(isValuePairCC14());
-        message.setChannel(_channel);;
         
-        if (_cachedMessage.get(0) == MXMessageTemplate.DTEXT_RPN
-          ||_cachedMessage.get(0) == MXMessageTemplate.DTEXT_NRPN) {
+        if (template.get(0) == MXTemplate.DTEXT_RPN
+          ||template.get(0) == MXTemplate.DTEXT_NRPN) {
             MXVisitant visit = new MXVisitant();
             visit.setDataroomType(getDataroomType());
             visit.setDataroomMSB(getDataeroomMSB());
             visit.setDataroomLSB(getDataroomLSB());
-            visit.setDataentry14(_value);
+            visit.setDataentry14(_value._var);
             message.setVisitant(visit);
         }
         return message;
@@ -252,8 +243,9 @@ public class MGStatus implements Cloneable {
             if (value < 0) {
                 return null;
             }
-            MXMessage message = _cacheOutOnMessage.buildMessage(_port, getSwitchOutOnTextGate(), value);
-            message.setChannel(getSwitchOutChannel());
+            int ch = getSwitchOutChannel();
+            int gate = getSwitchOutOnTextGate();
+            MXMessage message = _cacheOutOnMessage.buildMessage(_port, ch, RangedValue.new7bit(gate), _value.updateValue(value));
             return message;
         }
         //TODO
@@ -296,9 +288,10 @@ public class MGStatus implements Cloneable {
                 return null;
             }
 
-            MXMessage message = _cacheOutOffMessage.buildMessage(_port, getSwitchOutOffTextGate(), value);
+            int ch = getSwitchOutChannel();
+            int gate = getSwitchOutOffTextGate();
+            MXMessage message = _cacheOutOffMessage.buildMessage(_port, ch, RangedValue.new7bit(gate), _value.updateValue(value));
             message._timing = timing;
-            message.setChannel(getSwitchOutChannel());
             
             return message;
         }
@@ -310,13 +303,15 @@ public class MGStatus implements Cloneable {
     public Object clone() {
         MGStatus status = new MGStatus(getPort(), getUiType(), getRow(), getColumn());
 
-        status.setMonitoringTarget(getTextCommand(), getChannel(), getGate(), getValue());
+        status._template = _template;
+        status._channel = _channel;
+        status._gate = _gate;
+        status._value = _value;
+        
         status.setName(getName());
         status.setMemo(getMemo());
-   
-        status.setRangeMin(_rangeMin);
-        status.setRangeMax(_rangeMax);
-        status.setUiValueInvert(_uiValueInvert);
+
+        status.setValue(_value);
         status.setValueHome(_valueHome); 
         status.setValueLastSent(_valueLastSent);
 
@@ -355,18 +350,42 @@ public class MGStatus implements Cloneable {
         return status;
     }
 
-    public synchronized void setMonitoringTarget(String textCommand, int channel, int gate, int value) {
-        setTextCommand(textCommand);
-        _cachedMessage = null;
-        _channel = channel;
-        _gate = gate;
-        _value = value;
-
-        _rangeMin = 0;
-        _rangeMax = 128 -1;
-        if (getTemplate().getBytePosHiValue() >= 0) {
-            _rangeMax = 128 * 128 -1;
+    public synchronized void setTemplateAsText(String text, int channel) {
+        setTemplate(MXMessageFactory.fromDtext(text, _channel));
+    }
+    
+    public void refillGate() {
+        System.out.println("refillGate()- 1");
+        switch (_template.get(0)) {
+            case MXTemplate.DTEXT_9CH: // noteon
+            case MXTemplate.DTEXT_8CH: // noteoff
+            case MXTemplate.DTEXT_BCH: // controlchange
+            case MXTemplate.DTEXT_ACH: // polyPressure
+            case MXTemplate.DTEXT_CCH: // progrramChange
+            case MXMidi.COMMAND_NOTEON:
+            case MXMidi.COMMAND_NOTEOFF:
+            case MXMidi.COMMAND_CONTROLCHANGE:
+            case MXMidi.COMMAND_POLYPRESSURE:
+            case MXMidi.COMMAND_PROGRAMCHANGE:
+                System.out.println("refillGate()- 2");
+                if ((_template.get(1) & 0xff00) == 0) {
+                    int[] newTemplate = new int[]{
+                        _template.get(0),
+                        MXTemplate.DTEXT_GL,
+                        _template.get(2)
+                    };
+                    _gate = RangedValue.new7bit(_template.get(1));
+                    _template = new MXTemplate(newTemplate);
+                    System.out.println("refillGate()- 4");
+                    return;
+                }
+                break;
         }
+        System.out.println("refillGate()- 3");
+    }
+    
+    public synchronized void setTemplate(MXTemplate template) {
+        _template = template;
     }
 
     public synchronized String toString() {
@@ -389,7 +408,12 @@ public class MGStatus implements Cloneable {
         }
         String name;
         if (_name == null || _name.length() == 0) {
-            name = message.toShortString();
+            if (message == null) {
+                name = "null";
+            }
+            else {
+               name = message.toShortString();
+            }
         }else {
             name = _name;
         }
@@ -404,52 +428,52 @@ public class MGStatus implements Cloneable {
         if (haveSameStatusAndGate(message)) {
             MXVisitant visit = message.getVisitant();
             if (message.isDataentry()) {
-                int original = _value;
+                int original = _value._var;
                 int value = visit.getDataentryValue14();
-                switch(message.getGate()) {
+                switch(message.getGate()._var) {
                     case MXMidi.DATA1_CC_DATAENTRY:
-                        if (value >= _rangeMin && value <= _rangeMax) {
+                        if (value >= _value._min && value <= _value._max) {
                         }else {
                             return false;
                         }
                         break;
                     case MXMidi.DATA1_CC_DATAINC:
                         value = original + 1;
-                        if (value >= _rangeMin && value <= _rangeMax) {
+                        if (value >= _value._min && value <= _value._max) {
                         }else {
                             return false;
                         }
                         break;
                     case MXMidi.DATA1_CC_DATADEC:
                         value = original - 1;
-                        if (value >= _rangeMin && value <= _rangeMax) {
+                        if (value >= _value._min && value <= _value._max) {
                         }else {
                             return false;
                         }
                         break;
                 }
-                if (value >= _rangeMin && value <= _rangeMax) {
-                    setValue(value);
+                if (value >= _value._min && value <= _value._max) {
+                    setValue(_value.updateValue(value));
                     return true;
                 }
                 return false;
             }
 
-            int value = message.getValue();
-            if (message.getCommand() == MXMidi.COMMAND_NOTEOFF) {
-                setValue(0);
+            int value = message.getValue()._var;
+            if (message.isCommand(MXMidi.COMMAND_NOTEOFF)) {
+                setValue(_value.updateValue(0));
                 return true;
             }
-            if (value >= _rangeMin && value <= _rangeMax) {
-                setValue(value);
+            if (value >= _value._min && value <= _value._max) {
+                setValue(_value.updateValue(value));
                 return true;
             }
             return false;
         }
-        else if (canFixWithTemplate(message)) {
-            int value = target.importBytesUseTemplate(message);
-            if (value >= _rangeMin && value <= _rangeMax) {
-                setValue(value);
+        else if (isOnlyValueDifferent(message)) {
+            int value = message.getValue()._var;
+            if (value >= _value._min && value <= _value._max) {
+                setValue(_value.updateValue(value));
                 return true;
             }
             return false;
@@ -458,34 +482,22 @@ public class MGStatus implements Cloneable {
         return false;
     }
 
-    public void fixRangedValue() {
-        if (getValue() < getRangeMin()) {
-            setValue(getRangeMin());
-        }
-        if (getValue() > getRangeMax()) {
-            setValue(getRangeMax());
-        }
-        if (getRangeMin() > getRangeMax()) {
-            setRangeMax(getRangeMin());
-        }
-    }
-
     public boolean isDrumOn(int value) {
         switch(getSwitchInputType()) {
             case SWITCH_ON_WHEN_ANY:
                 return true;
             case SWITCH_ON_IF_PLUS1:
-                if (value >= getRangeMin() + 1) {
+                if (value >= _value._min + 1) {
                     return true;
                 }
                 return false;
             case SWITCH_ON_IF_OVER_HALF:
-                if (value >= (getRangeMin() + getRangeMax()) / 2) {
+                if (value >= (_value._min + _value._max) / 2) {
                     return true;
                 }
                 return false;
             case SWITCH_ON_IF_MAX:
-                if (value == getRangeMax()) {
+                if (value == _value._max) {
                     return true;
                 }
                 return false;
@@ -504,7 +516,7 @@ public class MGStatus implements Cloneable {
                         
                     case SWITCH_OUT_ON_VALUE_AS_INPUT_PLUS1:
                         int x = getSwitchLastDetected();
-                        if (x == getRangeMin() && x < getRangeMax()) {
+                        if (x == _value._min && x < _value._max) {
                             x ++;
                         }
                         return x;
@@ -533,7 +545,7 @@ public class MGStatus implements Cloneable {
                         return getSwitchLastDetected();
 
                     case SWITCH_OUT_OFF_VALUE_SAME_AS_MIN:
-                        return getRangeMin();
+                        return _value._min;
                         
                 }
 
@@ -764,7 +776,6 @@ public class MGStatus implements Cloneable {
      * @param uiType the uiType to set
      */
     public synchronized void setUiType(int uiType) {
-        _cachedMessage = null;
         _uiType = uiType;
     }
 
@@ -824,93 +835,18 @@ public class MGStatus implements Cloneable {
         _memo = memo;
     }
 
-    /**
-     * @return the textCommand
-     */
-    public String getTextCommand() {
-        return _textCommand;
-    }
-
-    /**
-     * @param textCommand the textCommand to set
-     */
-    public synchronized void setTextCommand(String textCommand) {
-        _cachedMessage = null;
-        if (textCommand == null) {
-            textCommand = "00, 00, 00";
-        }
-        _textCommand = textCommand;
-    }
-
-    /**
-     * @return the value
-     */
-    public int getValue() {
+    public RangedValue getValue() {
         return _value;
     }
 
-    /**
-     * @param value the value to set
-     */
-    public synchronized void setValue(int value) {
-        if (value > 128 * 128 -1) {
-            value = 128 * 128 -1;
-        }
+    public void setValue(RangedValue value) {
         _value = value;
-    }
-
-    /**
-     * @return the rangeMin
-     */
-    public int getRangeMin() {
-        return _rangeMin;
-    }
-
-    /**
-     * @param rangeMin the ioRangeMin to set
-     */
-    public synchronized void setRangeMin(int rangeMin) {
-        if (rangeMin > 128 * 128 -1) {
-            rangeMin = 128 * 128 -1;
-        }
-        _rangeMin = rangeMin;
-    }
-
-    /**
-     * @return the ioRangeMax
-     */
-    public int getRangeMax() {
-        return _rangeMax;
-    }
-
-    /**
-     * @param rangeMax the ioRangeMax to set
-     */
-    public synchronized void setRangeMax(int rangeMax) {
-        if (rangeMax > 128 * 128 -1) {
-            rangeMax = 128 * 128 -1;
-        }
-        _rangeMax = rangeMax;
-    }
-
-    /**
-     * @return the uiValueInvert
-     */
-    public boolean isUiValueInvert() {
-        return _uiValueInvert;
-    }
-
-    /**
-     * @param uiValueInvert the uiValueInvert to set
-     */
-    public synchronized void setUiValueInvert(boolean uiValueInvert) {
-        _uiValueInvert = uiValueInvert;
     }
 
     /**
      * @return the valueHome
      */
-    public int getValueHome() {
+    public int getHomePosition() {
         return _valueHome;
     }
 
@@ -945,14 +881,14 @@ public class MGStatus implements Cloneable {
     /**
      * @return the gate
      */
-    public int getGate() {
+    public RangedValue getGate() {
         return _gate;
     }
 
     /**
      * @param gate the gate to set
      */
-    public synchronized void setGate(int gate) {
+    public synchronized void setGate(RangedValue gate) {
         _gate = gate;
     }
 
@@ -962,7 +898,38 @@ public class MGStatus implements Cloneable {
     public int getChannel() {
         return _channel;
     }
+    
+    public boolean hasCustomRange() {
+        int wishMax = getTemplate().getBytePosHiValue() >= 0 ? (128 * 128 - 1) : 127;
+        
+        if (_ccPair14) {
+            wishMax = 128 * 128 -1;
+        }
+        
+        if (_value._min == 0 && _value._max == wishMax) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+    
+    public void resetCustomRange() {
+        if (getTemplate().getBytePosHiValue() >= 0) {
+            _value = _value.modifyRangeTo(0, 128 * 128 -1);
+        }
+        else if (_ccPair14) {
+            _value = _value.modifyRangeTo(0, 128 * 128 -1);
+        }
+        else {
+            _value = _value.modifyRangeTo(0, 128 -1);
+        }
+    }
 
+    public void setCustomRange(int min, int max) {
+        _value = _value.modifyRangeTo(min, max);
+    }
+   
     /**
      * @param channel the channel to set
      */
@@ -1104,34 +1071,38 @@ public class MGStatus implements Cloneable {
                 return false;
             }
         }
-        if (message.isMessageTypeChannel()) {
-            if (_channel != message.getChannel()) {
-                return false;
-            }
-            if (from.getCommand() == MXMidi.COMMAND_NOTEON || from.getCommand() == MXMidi.COMMAND_NOTEOFF) {
-                if (message.getCommand() == MXMidi.COMMAND_NOTEON || message.getCommand() == MXMidi.COMMAND_NOTEOFF) {
-                    if (from.getGate() != message.getGate()) {
-                        return false;
-                    }
-                    return true;
-                }else {
+        if (from.isCommand(MXMidi.COMMAND_NOTEON) || from.isCommand(MXMidi.COMMAND_NOTEOFF)) {
+            if (message.isCommand(MXMidi.COMMAND_NOTEON) || message.isCommand(MXMidi.COMMAND_NOTEOFF)) {
+                if (from.getGate() != message.getGate()) {
                     return false;
                 }
+                return true;
+            }else {
+                return false;
             }
-            if (from.getCommand() == message.getCommand()) {
-                if (from.getCommand() == MXMidi.COMMAND_CONTROLCHANGE) {
-                    int cc1 = from.getGate();
-                    int cc2 = message.getGate();
-                    if (cc1 != message.getGate()) {
-                        if (cc1 >= 0 && cc1 <= 31 && cc1 + 32 == cc2) {
-                            return true;
-                        }
-                        if (cc2 >= 0 && cc2 <= 31 && cc2 + 32 == cc1) {
-                            return true;
+        }
+        if (message.isMessageTypeChannel()) {
+            int command = message.getStatus() & 0xf0;
+            int channel = message.getChannel();
+            
+            if (_channel != channel) {
+                return false;
+            }
+            if (from.isCommand(command)) {
+                if (command == MXMidi.COMMAND_CONTROLCHANGE) {
+                    int cc1 = from.getGate()._var;
+                    int cc2 = message.getGate()._var;
+                    if (cc1 != cc2) {
+                        if (from.isValuePairCC14() && message.isValuePairCC14()) {
+                            if (cc1 >= 0 && cc1 <= 31 && cc1 + 32 == cc2) {
+                                return true;
+                            }
+                            if (cc2 >= 0 && cc2 <= 31 && cc2 + 32 == cc1) {
+                                return true;
+                            }
                         }
                         return false;
                     }
-                    return true;
                 }
                 return true;
             }
@@ -1140,53 +1111,43 @@ public class MGStatus implements Cloneable {
         return false;
     }
     
-    public boolean canFixWithTemplate(MXMessage message) {
-        MXMessage from = toMXMessage(null);
-        byte[] byteFrom = from.getDataBytes();
-        byte[] byteTo = message.getDataBytes();
-        if (byteFrom == null) {
-            if (byteTo == null) {
-                return true;
+    public boolean isOnlyValueDifferent(MXMessage message) {
+        if (_channel != message.getChannel()) {
+            return false;
+        }
+
+        if (_gate._var != message.getGate()._var) {
+            return false;
+        }
+
+        MXTemplate temp1 = getTemplate();
+        MXTemplate temp2 = message.getTemplate();
+        
+        if (temp1 != temp2) {
+            if (temp1.size() != temp2.size()) {
+                return false;
             }
-            return false;
-        }
-        if (byteTo == null) {
-            return false;
-        }
-
-        if (byteFrom.length != byteTo.length) {
-            return false;
-        }
-
-        int hitcount = 0;
-        int faultcont = 0;
-        int ignorecount = 0;
-        for (int i = 0; i < byteFrom.length; ++ i) {
-            if (byteFrom[i] == byteTo[i]) {
-                hitcount ++;
-                continue;
-            }
-            if (byteFrom[i] != byteTo[i]) {
-                int fromX = from.getTemplate(i);
-
-                if (fromX == MXMessageTemplate.DTEXT_VH || fromX == MXMessageTemplate.DTEXT_VL || fromX == MXMessageTemplate.DTEXT_CHECKSUM) {
-                    ignorecount ++;
+            for (int i = 0; i < temp1.size(); ++ i) {
+                int t1 = temp1.get(i);
+                int t2 = temp2.get(i);
+                
+                if (t1 == t2) {
                     continue;
                 }
-
-                int messageX = message.getTemplate(i);
-
-                if (messageX == MXMessageTemplate.DTEXT_VH || messageX == MXMessageTemplate.DTEXT_VL || messageX == MXMessageTemplate.DTEXT_CHECKSUM) {
-                    ignorecount ++;
+                
+                if (t1 == MXTemplate.DTEXT_VH || t1 == MXTemplate.DTEXT_VL 
+                  ||t2 == MXTemplate.DTEXT_VH || t2 == MXTemplate.DTEXT_VL) {
                     continue;
                 }
-                faultcont ++;
+                
+                return false;
             }
         }
         
-        if (faultcont == 0) {
-            return true;
-        }
-        return false;
+        return true;
+    }
+    
+    public String toTemplateText() {
+        return _template.buildMessage(_port, _channel, _gate, _value).toTemplateText();
     }
 }

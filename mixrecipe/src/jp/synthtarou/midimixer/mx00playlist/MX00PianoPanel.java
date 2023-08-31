@@ -17,24 +17,19 @@
 package jp.synthtarou.midimixer.mx00playlist;
 
 import java.awt.Dimension;
-import jp.synthtarou.midimixer.libs.swing.MXPianoComponent;
+import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
 import javax.swing.BorderFactory;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDFile;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDFileManager;
+import jp.synthtarou.midimixer.libs.domino.GMFile;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MX00PianoPanel extends javax.swing.JPanel {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MX00PianoPanel.class);
-    private static final PDFile _moduleInfo = PDFileManager.getManager().get(0);
-   
-    MXPianoComponent _keys;
+    MXSwingPiano _keys;
     int _channel;
 
-    public MX00PianoPanel(MXPianoComponent keys) {
+    public MX00PianoPanel(MXSwingPiano keys) {
         initComponents();
         _keys = keys;
         add(_keys);
@@ -47,7 +42,7 @@ public class MX00PianoPanel extends javax.swing.JPanel {
         setPreferredSize(d);
     }
     
-    public MXPianoComponent getKeys() {
+    public MXSwingPiano getKeys() {
         return _keys;
     }
     
@@ -60,7 +55,7 @@ public class MX00PianoPanel extends javax.swing.JPanel {
     }
 
     public void updateProgramNumber(int program) {
-        String name = _moduleInfo.getModule().simpleGetName(program, -1, -1);
+        String name = GMFile.getInstance().simpleFindProgram(program);
         setBorder(BorderFactory.createTitledBorder("TR "  + (_channel + 1) + " " + name + "(" + program + ")"));
     }
     

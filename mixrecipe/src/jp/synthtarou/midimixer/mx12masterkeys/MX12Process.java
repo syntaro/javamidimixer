@@ -16,7 +16,7 @@
  */
 package jp.synthtarou.midimixer.mx12masterkeys;
 
-import javax.swing.JComponent;
+import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
@@ -24,7 +24,6 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 
@@ -116,7 +115,7 @@ public class MX12Process extends MXReceiver implements MXSettingTarget {
     }
 
     @Override
-    public JComponent getReceiverView() {
+    public JPanel getReceiverView() {
         return _view;
     }
    
@@ -131,7 +130,7 @@ public class MX12Process extends MXReceiver implements MXSettingTarget {
         public void onNoteOffEvent(MXMessage target) {
             MXMain.getMain().messageDispatch(target, _receiver);
             if (_view != null) {
-                _view._piano.noteOff(target.getGate());
+                _view._piano.noteOff(target.getGate()._var);
             }
         }
     }
@@ -140,9 +139,10 @@ public class MX12Process extends MXReceiver implements MXSettingTarget {
         if (message.isMessageTypeChannel()) {
             int port = message.getPort();
             int ch = message.getChannel();
-            int command = message.getCommand();
+            int status = message.getStatus();
             int data1 = message.getData1();
             int data2 = message.getData2();
+            int command = status & 0xf0;
 
             if (command == MXMidi.COMMAND_NOTEON && data2 == 0) {
                 command = MXMidi.COMMAND_NOTEOFF;
@@ -173,9 +173,9 @@ public class MX12Process extends MXReceiver implements MXSettingTarget {
             }else if (command == MXMidi.COMMAND_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_DAMPERPEDAL) {
                 _view._piano.sustain(data2);
             }else if (command == MXMidi.COMMAND_PITCHWHEEL) {
-                _view.setPitchBend(message.getValue());
+                _view.setPitchBend(message.getValue()._var);
             }else if (command == MXMidi.COMMAND_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_MODULATION) {
-                _view.setModulatoinWheel(message.getValue());
+                _view.setModulatoinWheel(message.getValue()._var);
             }
             if (newMessage != null) {
                 sendToNext(newMessage);

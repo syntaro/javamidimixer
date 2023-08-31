@@ -30,17 +30,17 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
-import javax.swing.table.DefaultTableModel;
-import jp.synthtarou.midimixer.MXStatic;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.ProgramPicker;
-import jp.synthtarou.midimixer.libs.swing.MXFileOpenChooser;
+import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.domino.PickerForProgram;
+import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 
 /**
  *
@@ -54,26 +54,26 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
     MX40Group _editingGroup;
     MX40Layer _editingLayer;
 
-    //MXWrapList<Integer> _watchPort = MXUtilMidi.createPortShort();
-    MXWrapList<Integer> _watchChannel = MXUtilMidi.createChannel(false);
-    MXWrapList<Integer> _watchProgram = MXUtilMidi.createProgram();
+    //MXWrapList<Integer> _watchPort = MXMidi.createPortShort();
+    MXWrapList<Integer> _watchChannel = MXMidi.listupChannel(false);
+    MXWrapList<Integer> _watchProgram = MXMidi.listupProgramNumber();
 
     MXWrapList<Integer> _modPort = MX40Layer.createSendOption(false);
     MXWrapList<Integer> _modChannel = MX40Layer.createSendOption(false);
     MXWrapList<Integer> _modBank = MX40Layer.createSendOption(true);
     MXWrapList<Integer> _modProgram = MX40Layer.createSendOption(true);
 
-    //MXWrapList<Integer> _changePort = MXUtilMidi.createPortShort();
-    MXWrapList<Integer> _changeChannel = MXUtilMidi.createChannel(false);
-    MXWrapList<Integer> _changeProgram = MXUtilMidi.createProgram();
-    MXWrapList<Integer> _changeVolume = MXUtilMidi.createPercent();
-    MXWrapList<Integer> _changeExpression = MXUtilMidi.createPercent();
+    //MXWrapList<Integer> _changePort = MXMidi.createPortShort();
+    MXWrapList<Integer> _changeChannel = MXMidi.listupChannel(false);
+    MXWrapList<Integer> _changeProgram = MXMidi.listupProgramNumber();
+    MXWrapList<Integer> _changeVolume = MXMidi.listupPercent();
+    MXWrapList<Integer> _changeExpression = MXMidi.listupPercent();
 
-    MXWrapList<Integer> _changeLowNote = MXUtilMidi.createNoteNo();
-    MXWrapList<Integer> _changeHighNote = MXUtilMidi.createNoteNo();
+    MXWrapList<Integer> _changeLowNote = MXMidi.listupNoteNo();
+    MXWrapList<Integer> _changeHighNote = MXMidi.listupNoteNo();
 
-    MXWrapList<Integer> _changeLowVelocity = MXUtilMidi.createVelocity();
-    MXWrapList<Integer> _changeHighVelocity = MXUtilMidi.createVelocity();
+    MXWrapList<Integer> _changeLowVelocity = MXMidi.listupVelocity();
+    MXWrapList<Integer> _changeHighVelocity = MXMidi.listupVelocity();
 
     MXWrapList<MX40Group> _groupsModel = null;
     MXWrapList<MX40Layer> _layersModel = null;
@@ -126,8 +126,8 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         _process._inputInfo.addTableModelListener(this);
         _process._outputInfo.addTableModelListener(this);
         
-        MXUtil.autoResizeTableColumnWidth(jTable1);
-        MXUtil.autoResizeTableColumnWidth(jTable2);
+        new MXAttachTableResize(jTable1);
+        new MXAttachTableResize(jTable2);
 
         startEditingPack(0, 0);
         disableUnusedOnPanel();
@@ -1148,7 +1148,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         }
         MX40Group group = new MX40Group(null);
         readGroupFromPanel(group);
-        ProgramPicker picker = new ProgramPicker();
+        PickerForProgram picker = new PickerForProgram();
         picker.setDefault(group._watchingProgram, group._watchingBankMSB, group._watchingBankLSB);
         MXUtil.showAsDialog(this, picker, "Select Program");
         if (picker._returnProgram >= 0) {
@@ -1165,7 +1165,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         }
         MX40Layer layer = new MX40Layer(null, null);
         readLayerFromPanel(layer);
-        ProgramPicker picker = new ProgramPicker();
+        PickerForProgram picker = new PickerForProgram();
         picker.setDefault(layer._fixedProgram, layer._fixedBankMSB, layer._fixedBankLSB);
         MXUtil.showAsDialog(this, picker, "Select Program");
         if (picker._returnProgram >= 0) {
@@ -1380,8 +1380,8 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
             return;
         }
         
-        for (int i = 0; i < MXStatic.TOTAL_PORT_COUNT; ++ i) {
-            String name = MXUtilMidi.nameOfPortOutput(i);
+        for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
+            String name = MXMidi.nameOfPortOutput(i);
             JMenuItem item = new JMenuItem(name);  
             item.addActionListener(new ActionListener() {
                 @Override
@@ -1405,8 +1405,8 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
             return;
         }
         
-        for (int i = 0; i < MXStatic.TOTAL_PORT_COUNT; ++ i) {
-            String name = MXUtilMidi.nameOfPortOutput(i);
+        for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
+            String name = MXMidi.nameOfPortOutput(i);
             JMenuItem item = new JMenuItem(name);  
             item.addActionListener(new ActionListener() {
                 @Override
@@ -1421,7 +1421,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
     }//GEN-LAST:event_jButtonSendPortMousePressed
 
     public void doImportLayer() {
-        MXFileOpenChooser chooser = new MXFileOpenChooser();
+        MXSwingFileChooser chooser = new MXSwingFileChooser();
         chooser.addExtension(".xml", "XML File");
         chooser.setAcceptAllFileFilterUsed(false);
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -1582,7 +1582,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         jCheckBoxProgram.setSelected(group._isWatchProgram);
         jCheckBoxRotateLayer.setSelected(group._isRotate);
         jSpinnerRotatePoly.setValue(group._rotatePoly);
-        jButtonWatchPort.setText(MXUtilMidi.nameOfPortShort(group._watchingPort));
+        jButtonWatchPort.setText(MXMidi.nameOfPortShort(group._watchingPort));
         //jComboBoxWatchPort.setSelectedIndex(_watchPort.indexOfValue(group._watchingPort));
         jComboBoxWatchChannel.setSelectedIndex(_watchChannel.indexOfValue(group._watchingChannel));
         jSpinnerWatchProgram.setValue(group._watchingProgram);
@@ -1642,7 +1642,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         _modBank.writeComboBox(jComboBoxModBank, layer._modBank);
         _modProgram.writeComboBox(jComboBoxModProgram, layer._modProgram);
 
-        jButtonSendPort.setText(MXUtilMidi.nameOfPortShort(layer._fixedPort));
+        jButtonSendPort.setText(MXMidi.nameOfPortShort(layer._fixedPort));
         //_changePort.writeComboBox(jComboBoxSendPort, layer._fixedPort);
         _changeChannel.writeComboBox(jComboBoxSendChannel, layer._fixedChannel);
         jSpinnerSendProgram.setValue(layer._fixedProgram);

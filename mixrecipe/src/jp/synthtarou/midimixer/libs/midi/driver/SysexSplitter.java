@@ -39,69 +39,77 @@ public class SysexSplitter {
         MidiByteReader reader = new MidiByteReader(sysexData);
 
         int status = reader.read8();
-        if (status != 0xf0 && status != 0xf7) {
-            System.out.println("Status was " + MXUtil.toHexFF(status));
-            return;
+        
+        while (status != 0xf0 && status != 0xf7 && status >= 0) {
+            status = reader.read8();
         }
         
-        byte[] data = new byte[512];
-        while(true) {
-            int x = reader.readBuffer(data, 512);
-            if (x <= 0) {
-                break;
+        _endingCode = false;
+        if (status == 0xf0 || status == 0xf7) {            
+            _beginningCode = status;
+            while (status >= 0) {
+                status = reader.read8();
+                if (status < 0) {
+                    break;
+                }
+                
+                if (status == 0xf7) {
+                    _endingCode = true;
+                    break;
+                }
+                sysexBody.write(status);
             }
-            sysexBody.write(data, 0, x);
         }
-        //最初の文字F0,F7を除いて格納する。最後F7は格納されている
     }
     
     public ArrayList<byte[]> splitOrJoin(int maxLength) {
-        // bad usage
-        if (maxLength == 0) {
-            maxLength = 65535;
-        }
-        
         if (maxLength < 10) {
-            throw new IllegalArgumentException("split length too small");
+            maxLength = 10000000;
         }
 
         ArrayList<byte[]> listResult = new ArrayList<>();
-        boolean first = true;
-        
+
         byte[] data = sysexBody.toByteArray();
-        MidiByteReader reader = new MidiByteReader(data);
-        int length = data.length;
-        
-        while (length > 0) {
-            byte[] readBuffer = new byte[maxLength - 1];
-            int len = reader.readBuffer(readBuffer, maxLength - 1);
-            
-            if (len < 0) {
-                break;
-            }
-            
-            boolean eof = false;
-            if ((readBuffer[len-1] & 0xff) == 0xf7) {
-                eof = true;
-            }
-            
-            byte[] retBuffer = new byte[1 + len];
-            retBuffer[0] = (byte)(first ? 0xf0 : 0xf7);
+        ByteArrayOutputStream segment = new ByteArrayOutputStream();
 
-            first = false;
-
-            for(int x = 0; x < len; ++ x) {
-                retBuffer[x + 1] = readBuffer[x];
-            }
+        for (int i = 0; i < data.length; ++ i) {
+            int ch = data[i] & 0xff;
             
-            System.out.println(MXUtil.dumpHexFF(retBuffer));
-            listResult.add(retBuffer);
-            length -= len;
-            if (eof) {
-                break;
+            if (maxLength > 0 && segment.size() >= maxLength) {
+                byte[] result = segment.toByteArray();
+                if (result.length > 1) {
+                    segment.write(ch);
+                    listResult.add(result);
+                }
+                segment = new ByteArrayOutputStream();
+            }
+            else {
+                /* なんか数字がきたらはじめる */
+                if (segment.size() == 0) {
+                    if (listResult.isEmpty()) {
+                        /* 最初はF0はじまり */
+                        segment.write(_beginningCode);
+                    }
+                    else {                        
+                        segment.write(0xf7);
+                    }
+                }
+                segment.write(ch);
             }
         }
         
+        if (segment.size() >= 1) {
+            /* 最期は終端 */
+            if (_endingCode) {
+                segment.write(0xf7);
+            }
+            byte[] result = segment.toByteArray();
+            listResult.add(result);
+        }
+
         return listResult;
     }
+
+    int _beginningCode;
+    boolean _endingCode;
 }

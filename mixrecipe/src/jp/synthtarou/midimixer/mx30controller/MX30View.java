@@ -17,6 +17,7 @@
 package jp.synthtarou.midimixer.mx30controller;
 
 import java.awt.Component;
+import javax.swing.JScrollPane;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 
@@ -40,8 +41,12 @@ public class MX30View extends javax.swing.JPanel {
     
     public void addPage(int port, MX32MixerProcess process) {
         MX32MixerView view = (MX32MixerView)process.getReceiverView();
-        jTabbedPane1.add(process.getReceiverName(), view);
+        jTabbedPane1.add(process.getReceiverName(), new JScrollPane(view));
         view.initControllers();
+    }
+    
+    public MX32MixerView getPage(int port) {
+        return  (MX32MixerView)_process.getPage(port).getReceiverView();
     }
 
     /**
@@ -112,16 +117,14 @@ public class MX30View extends javax.swing.JPanel {
     private void jTabbedPane1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jTabbedPane1StateChanged
         int x = jTabbedPane1.getSelectedIndex();
         if (x >= 0) {
-            MX32MixerView view = (MX32MixerView)jTabbedPane1.getComponentAt(x);
-            view.setFocusString("");
+            getPage(x).setFocusString("");
         }            
     }//GEN-LAST:event_jTabbedPane1StateChanged
 
     private void formFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_formFocusGained
         int x = jTabbedPane1.getSelectedIndex();
         if (x >= 0) {
-            Component c = jTabbedPane1.getComponentAt(x);
-            c.requestFocusInWindow();
+            getPage(x).requestFocusInWindow();
         }
     }//GEN-LAST:event_formFocusGained
 
@@ -140,13 +143,13 @@ public class MX30View extends javax.swing.JPanel {
                 jTabbedPane1.setEnabledAt(i, i == x ? true : false);
             }
             //MXUtil.swingTreeEnable(jTabbedPane1.getSelectedComponent(), false);
-            MXUtil.swingTreeEditable(jTabbedPane1.getSelectedComponent(), false);
+            MXUtil.swingTreeEditable(getPage(jTabbedPane1.getSelectedIndex()), false);
         }else {
             for (int i = 0; i < jTabbedPane1.getTabCount(); ++ i) {
                 jTabbedPane1.setEnabledAt(i, true);
             }
             //MXUtil.swingTreeEnable(jTabbedPane1.getSelectedComponent(), true);
-            MXUtil.swingTreeEditable(jTabbedPane1.getSelectedComponent(), true);
+            MXUtil.swingTreeEditable(getPage(jTabbedPane1.getSelectedIndex()), true);
         }
     }
     

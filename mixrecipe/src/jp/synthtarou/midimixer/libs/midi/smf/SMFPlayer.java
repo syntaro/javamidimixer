@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.sound.midi.InvalidMidiDataException;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 

@@ -119,7 +119,7 @@ public class SMFMessage implements Comparable<SMFMessage> {
             message = MXMessageFactory.fromShortMessage(port, getStatus(), getData1(), getData2());
         }
         else if (status == 0xf0 || status == 0xf7) {
-            message = MXMessageFactory.fromSysexMessage(port, getBinary());
+            message = MXMessageFactory.fromBinary(port, getBinary());
         }
         else if (status == 0xff) {
             message = MXMessageFactory.fromMeta(port, getBinary());

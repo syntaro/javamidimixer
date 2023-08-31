@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.libs.midi.port;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.TreeMap;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
@@ -197,7 +197,6 @@ public class MXMIDIOutManager implements MXSettingTarget {
         setting.register("device[].name");
         setting.register("device[].open");
         setting.register("device[].port");
-        setting.register("device[].fromDXML");
     }
 
     @Override
@@ -208,7 +207,6 @@ public class MXMIDIOutManager implements MXSettingTarget {
             String deviceName = setting.getSetting("device[" + seek + "].name");
             String deviceOpen = setting.getSetting("device[" + seek + "].open");
             String devicePort = setting.getSetting("device[" + seek + "].port");
-            String deviceFile = setting.getSetting("device[" + seek + "].fromDXML");
             
             if (deviceName == null || deviceName.length() == 0) {
                 break;
@@ -242,16 +240,6 @@ public class MXMIDIOutManager implements MXSettingTarget {
 
                 }
             }
-            if (deviceFile != null) {
-                File f = new File(deviceFile);
-                if (f.isFile()) {
-                    try {   
-                    out.setDXMLFile(f);
-                    }catch(SAXException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
         }
         clearMIDIOutCache();
     }
@@ -262,7 +250,7 @@ public class MXMIDIOutManager implements MXSettingTarget {
         int x = 0;
         for (MXMIDIOut e : all.valueList()) {
             StringBuffer assigned = new StringBuffer();
-            for (int p = 0; p < MXStatic.TOTAL_PORT_COUNT; ++ p) {
+            for (int p = 0; p < MXAppConfig.TOTAL_PORT_COUNT; ++ p) {
                 if (e.isPortAssigned(p)) {
                     if (assigned.length() > 0) {
                         assigned.append(",");
@@ -274,7 +262,6 @@ public class MXMIDIOutManager implements MXSettingTarget {
                 setting.setSetting("device[" + x + "].name", e.getName());
                 setting.setSetting("device[" + x + "].open", e.isOpen() ? "1" : "0");
                 setting.setSetting("device[" + x + "].port", assigned.toString());
-                setting.setSetting("device[" + x + "].fromDXML", e.getDXMLFile() == null ? "" : e.getDXMLFile().getPath());
                 x ++;
             }
         }

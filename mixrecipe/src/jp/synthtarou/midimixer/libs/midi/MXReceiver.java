@@ -16,10 +16,9 @@
  */
 package jp.synthtarou.midimixer.libs.midi;
 
-import javax.swing.JComponent;
+import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
-import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 
 /**
  *
@@ -31,7 +30,7 @@ public abstract class MXReceiver {
     
     public abstract String getReceiverName();
 
-    public abstract JComponent getReceiverView();
+    public abstract JPanel getReceiverView();
     
     private MXReceiver _nextReceiver;
 

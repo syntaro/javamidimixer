@@ -23,10 +23,8 @@ import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMessageTemplate;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 
 /**
  *
@@ -65,7 +63,7 @@ public class MX40Group {
     public String toString() {
         StringBuffer str = new StringBuffer();
         str.append("By ");
-        str.append("Port=").append(_isWatchPort).append("[").append(MXUtilMidi.nameOfPortOutput(_watchingPort)).append("]");
+        str.append("Port=").append(_isWatchPort).append("[").append(MXMidi.nameOfPortOutput(_watchingPort)).append("]");
         str.append("Channel=").append(_isWatchChannel).append("[").append(_watchingChannel+1).append("]");
         str.append("Program=").append(_isWatchProgram).append("[").append(_watchingProgram).append("]");
         str.append("Bank=").append(_watchingBankMSB).append(":").append(_watchingBankLSB).append("]");
@@ -134,17 +132,21 @@ public class MX40Group {
         }
 
         int port = message.getPort();
-        int command = message.getCommand();
+        int status = message.getStatus();
+        int command = status;
+        if (message.isMessageTypeChannel()) {
+            command &= 0xf0;
+        }
         int channel = message.getChannel();
         
         if (command == MXMidi.COMMAND_NOTEOFF) {
-            if (_noteOff.raiseHandler(port, message._timing, channel, message.getGate())) {
+            if (_noteOff.raiseHandler(port, message._timing, channel, message.getGate()._var)) {
                 return true;
             }
         }
 
         if (command == MXMidi.COMMAND_CONTROLCHANGE) {
-            int cc = message.getGate();
+            int cc = message.getGate()._var;
             if (cc == MXMidi.DATA1_CC_BANKSELECT) {
                 return true;
             }
@@ -200,14 +202,14 @@ public class MX40Group {
             MX40Layer layer = _listLayer.get(found);
             proced = layer.processByLayer(message);
 
-            MXMessage msg2 = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_NOTEOFF + channel, message.getGate(), 0);
+            MXMessage msg2 = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_NOTEOFF + channel, message.getGate()._var, 0);
             msg2._timing = message._timing;
             _noteOff.setHandler(message, msg2,  new NoteOffWatcher2(layer, found));
         }else {
             for (MX40Layer layer: _listLayer) {
                 layer.processByLayer(message);
                 if (command == MXMidi.COMMAND_NOTEON) {
-                    MXMessage msg2 = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_NOTEOFF + channel, message.getGate(), 0);
+                    MXMessage msg2 = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_NOTEOFF + channel, message.getGate()._var, 0);
                     msg2._timing = message._timing;
                     _noteOff.setHandler(message, msg2,  new NoteOffWatcher2(layer, -1));
                 }

@@ -25,21 +25,10 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
+import jp.synthtarou.midimixer.libs.domino.CCParameters;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -59,7 +48,7 @@ public class MXDOMElement {
     String _text;
     List<String> _nodePath;
     MXWrapList<MXDOMElement> _childElements;
-    MXWrapList<String> _attributes;
+    CCParameters _attributes;
 
     public int _userDataType;
     public Object _userData;
@@ -67,8 +56,7 @@ public class MXDOMElement {
     public MXDOMElement(MXDOMElement parent, Element element) {
         _parent = parent;
         _childElements = new MXWrapList();
-        _attributes = new MXWrapList();
-        _attributes.setIgnoreCase(true);
+        _attributes = new CCParameters();
         _nodeName = element.getNodeName();
         ArrayList nodePath = new ArrayList();
 
@@ -165,23 +153,7 @@ public class MXDOMElement {
         return _text;
     }
 
-    public int countAttributes() {
-        return _attributes.size();
-    }
-    
-    public String getAttributeName(int x) {
-        return _attributes.nameOfIndex(x);
-    }
-
-    public String getAttributeValue(int x) {
-        return _attributes.valueOfIndex(x);
-    }
-
-    public String getAttributeValue(String name) {
-        return _attributes.valueOfName(name);
-    }
-    
-    public MXWrapList<String> getAttributesMap() {
+    public CCParameters getAttributesMap() {
         return _attributes;
     }
 
@@ -220,15 +192,14 @@ public class MXDOMElement {
         process.add(docElement);
         
 
-        if (docElement.countAttributes() > 0) {
+        CCParameters params = docElement.getAttributesMap();
+        if (params.size() > 0) {
             output.print("{");
-            for (int i = 0; i < docElement.countAttributes(); ++ i) {
-                String name = docElement.getAttributeName(i);
-                String value = docElement.getAttributeValue(i);
+            for (int i = 0; i < params.size(); ++ i) {
                 if (i > 0) {
                     output.print(",");
                 }
-                output.print(name + "=" + value);
+                output.print(params.get(i).name + "=" + params.get(i).value);
             }
             output.print("}");
         }
@@ -245,15 +216,14 @@ public class MXDOMElement {
             if (text != null && text.length() > 0) {
                 output.print("text = " +  text);
             }
-            if (element.countAttributes() > 0) {
+            CCParameters eparams = element.getAttributesMap();
+            if (eparams.size() > 0) {
                 output.print("{");
-                for (int i = 0; i < element.countAttributes(); ++ i) {
-                    String name = element.getAttributeName(i);
-                    String value = element.getAttributeValue(i);
+                for (int i = 0; i < eparams.size(); ++ i) {
                     if (i > 0) {
                         output.print(",");
                     }
-                    output.print(name + "=" + value);
+                    output.print(eparams.get(i).name + "=" + eparams.get(i).value);
                 }
                 output.print("}");
             }
@@ -301,16 +271,16 @@ public class MXDOMElement {
         ArrayList<MXDOMElement> process = new ArrayList();
         MXDOMElement e = this;
         process.add(e);
+        
+        CCParameters params =  e.getAttributesMap();
 
-        if (e.countAttributes() > 0) {
+        if (params.size() > 0) {
             output.print("{");
-            for (int i = 0; i < e.countAttributes(); ++ i) {
-                String name = e.getAttributeName(i);
-                String value = e.getAttributeValue(i);
+            for (int i = 0; i < params.size(); ++ i) {
                 if (i > 0) {
                     output.print(",");
                 }
-                output.print(name + "=" + value);
+                output.print(params.get(i).name + "=" + params.get(i).value);
             }
             output.print("}");
         }
@@ -327,15 +297,14 @@ public class MXDOMElement {
             if (text != null && text.length() > 0) {
                 output.print("text = " +  text);
             }
-            if (element.countAttributes() > 0) {
+            CCParameters eparams = element.getAttributesMap();
+            if (eparams.size() > 0) {
                 output.print("{");
-                for (int i = 0; i < element.countAttributes(); ++ i) {
-                    String name = element.getAttributeName(i);
-                    String value = element.getAttributeValue(i);
+                for (int i = 0; i < eparams.size(); ++ i) {
                     if (i > 0) {
                         output.print(",");
                     }
-                    output.print(name + "=" + value);
+                    output.print(eparams.get(i).name + "=" + eparams.get(i).value);
                 }
                 output.print("}");
             }

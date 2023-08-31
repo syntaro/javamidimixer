@@ -17,11 +17,8 @@
 package jp.synthtarou.midimixer.libs.midi;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import static jp.synthtarou.midimixer.libs.midi.MXMessageTemplate.DTEXT_VL;
-import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 
 /**
  *
@@ -30,12 +27,15 @@ import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 public class MXMessageFactory {
     private static final MXDebugPrint _debug = new MXDebugPrint(MXMessageFactory.class);
     
+    static MXTemplateCache _cache = MXTemplateCache.getInstance();
+    
     static {
         _debug.switchOn();
     }
     
     public static MXMessage createDummy() {
-        return new MXMessage(0, new MXMessageTemplate(null), 0, 0);
+        MXTemplate template = _cache.fromDword(0);
+        return template.buildMessage(0, 0, RangedValue.ZERO7, RangedValue.ZERO7);
     }
 
     public static MXMessage fromClone(MXMessage old) {
@@ -44,18 +44,16 @@ public class MXMessageFactory {
     }
     
     public static MXMessage fromDWordMessage(int port, int dword) {
-        int status = ((dword >> 8) >> 8) & 0xff;
+        int status = (dword >> 16) & 0xff;
         int data1 = (dword >> 8) & 0xff;
         int data2 = dword & 0xff;
-        return MXMessageFactory.fromShortMessage(port, status, data1, data2);
+        return fromShortMessage(port, status, data1, data2);
     }
 
-    public static MXMessage fromMeta(int port, byte[] data) {
-        int[] template = new int[data.length];
-        for (int i = 0; i < data.length; ++ i) {
-            template[i] = data[i] & 0xff;
-        }
-        MXMessage message = new MXMessage(port, template, 0, 0);
+    public static MXMessage fromMeta(int port, byte[] data) {        
+        MXTemplate template = _cache.fromBinary(data);
+
+        MXMessage message = new MXMessage(port, template, 0, RangedValue.ZERO7, RangedValue.ZERO7);
         message.setMetaType(data[1] & 0xff);
 
         String text = null;
@@ -71,124 +69,93 @@ public class MXMessageFactory {
         message._dataBytes = data;
         return message;
     }
-
-    public static MXMessage fromSysexMessage(int port, byte[] data) {
-        int status = data[0] & 0xff;
-        int[] template = new int[data.length];
-        if (status != 240 && status != 247) {
-            new MXException("SysEx(240,247) was " + status).printStackTrace();
-        }
-        for (int i = 0; i < data.length; ++i) {
-            template[i] = data[i] & 0xff;
-        }
-        MXMessage m = new MXMessage(port, template, 0, 0);
-        return m;
-    }
     
-    public static MXMessage fromShortMessage(int port, int status, int data1, int data2) {
-        int command = status;
-        int channel = 0;
-        if (status >= 0x80 && status <= 0xe0) {
-            command = status & 0xf0;
-            channel = status & 0x0f;
-        }
-
-        if (command < 0 || command > 255) {
-            _debug.println("command = " + command);
-            return null;
-        }
-        if (channel < 0 || channel > 15) {
-            _debug.println("channel= " + channel);
-            return null;
-        }
-        if (data1 < 0 || data1 > 127) {
-            _debug.println("data1 = " + data1);
-            return null;
-        }
-        if (data2 < 0 || data2 > 127) {
-            _debug.println("data2 = " + data2);
-            return null;
-        }
-
-        int gate = 0;
-        int value = 0;
-        
-        switch (command) {
-            case MXMidi.COMMAND_PROGRAMCHANGE:
-                gate = data1;
-                value = 0;
-                
-                data1 = MXMessageTemplate.DTEXT_GL;
-                data2 = 0;
-                break;
-            case MXMidi.COMMAND_CONTROLCHANGE:
-                gate = data1;
-                value = data2;
-
-                data1 = MXMessageTemplate.DTEXT_GL;
-                data2 = MXMessageTemplate.DTEXT_VL;
-                break;
-            case MXMidi.COMMAND_NOTEON:
-            case MXMidi.COMMAND_NOTEOFF:
-            case MXMidi.COMMAND_POLYPRESSURE:
-                gate = data1;
-                value = data2;
-
-                data1 = MXMessageTemplate.DTEXT_GL;
-                data2 = MXMessageTemplate.DTEXT_VL;
-                break;
-            case MXMidi.COMMAND_PITCHWHEEL:
-                value = (data1 & 127) | (data2 << 7);
-                data1 = MXMessageTemplate.DTEXT_VL;
-                data2 = MXMessageTemplate.DTEXT_VH;
-                break;
-            case MXMidi.COMMAND_CHANNELPRESSURE:
-                value = data1;
-                data1 = MXMessageTemplate.DTEXT_VL;
-                break;
-            default:
-                if (command >= 240 && command <= 247) {
-                    if (command == MXMidi.STATUS_SONGPOSITION) {
-                        value = (data1 & 127) | (data2 << 7);
-                        data1= MXMessageTemplate.DTEXT_VL;
-                        data2 = MXMessageTemplate.DTEXT_VH;
-                    }
-                    if (command == MXMidi.STATUS_SONGSELECT) {
-                        value = data1;
-                        data1 = MXMessageTemplate.DTEXT_VL;
-                    }
-                }
-                break;
-        }
-
-        int[] template = new int[3];
-        template[0] = status;
-        template[1] = data1;
-        template[2] = data2;
-        MXMessage message = new MXMessage(port, template, gate, value);
-        message.setChannel(channel);
-
-        return message;
-    }
-
     public static MXMessage fromBinary(int port, byte[] data)  {
-        if (data == null || data.length == 0 || data[0] == 0) {
-            return null;
-        }
-        int[] template = new int[data.length];
-        for (int i = 0; i < data.length; ++ i) {
-            template[i] = data[i] & 0xff;
-        }
         try {
-            MXMessage ret = new MXMessage(port, template, 0, 0);
-            return ret;
+            MXTemplate template = _cache.fromBinary(data);
+            return template.buildMessage(port, 0, RangedValue.ZERO7, RangedValue.ZERO7);
         }catch(Exception e) {
             e.printStackTrace();
             return null;
         }
+    }    
+    
+    public static MXMessage fromShortMessage(int port, int status, int data1, int data2) {
+        int dword = (status << 16) | (data1 << 8) | data2;
+        MXTemplate template = _cache.fromDword(dword);
+        
+        int valueLow = template.getBytePosValue();
+        int valueHi = template.getBytePosHiValue();
+        
+        int value = 0;
+        
+        switch(valueLow) {
+            case 0:
+                value += status;
+                break;
+            case 1:
+                value += data1;
+                break;
+            case 2:
+                value += data2;
+                break;
+        }
+
+        switch(valueHi) {
+            case 0:
+                value += status << 7;
+                break;
+            case 1:
+                value += data1 << 7;
+                break;
+            case 2:
+                value += data2 << 7;
+                break;
+        }
+
+        int gateLow = template.getBytePosGate();
+        int gateHi = template.getBytePosHiGate();
+        int gate = 0;
+    
+        switch(gateLow) {
+            case 0:
+                gate += status;
+                break;
+            case 1:
+                gate += data1;
+                break;
+            case 2:
+                gate += data2;
+                break;
+        }
+
+        switch(gateHi) {
+            case 0:
+                gate += status << 7;
+                break;
+            case 1:
+                gate += data1 << 7;
+                break;
+            case 2:
+                gate += data2 << 7;
+                break;
+        }
+
+        int command = status;
+        int channel = 0;
+        if (status >= 0x80 && status <= 0xef) {
+            command = status & 0xf0;
+            channel = status & 0x0f;
+        }
+
+        if (template.getBytePosHiValue() >= 0) {
+            return template.buildMessage(port, channel, RangedValue.new7bit(gate), RangedValue.new14bit(value));
+        }
+        
+        return template.buildMessage(port, channel, RangedValue.new7bit(gate), RangedValue.new7bit(value));
     }
     
-    public static MXMessageTemplate fromDtext(String text, int channel)  {
+    public static MXTemplate fromDtext(String text, int channel)  {
         if (text == null || text.length() == 0) {
             return null;
         }
@@ -200,14 +167,13 @@ public class MXMessageFactory {
             text = text.substring(0, text.length() - 1);
         }
         
-        
-        if (text.equals(MXMessageTemplate.EXCOMMAND_PROGRAM_INC)) {
-            int[] template = { MXMessageTemplate.DTEXT_PROGINC, channel };
-            return new MXMessageTemplate(template);
+        if (text.equals(MXTemplate.EXCOMMAND_PROGRAM_INC)) {
+            int[] template = { MXTemplate.DTEXT_PROGINC, channel };
+            return _cache.fromTemplate(template);
         }
-        if (text.equals(MXMessageTemplate.EXCOMMAND_PROGRAM_DEC)) {
-            int[] template = { MXMessageTemplate.DTEXT_PROGDEC, channel };
-            return new MXMessageTemplate(template);
+        if (text.equals(MXTemplate.EXCOMMAND_PROGRAM_DEC)) {
+            int[] template = { MXTemplate.DTEXT_PROGDEC, channel };
+            return _cache.fromTemplate(template);
         }
 
         try {
@@ -223,15 +189,13 @@ public class MXMessageFactory {
 
             int readX = 0;
             ArrayList<String> separated = new ArrayList();
-
             boolean inChecksum = false;
-            int checksumKeep = -1;
 
             while(readX < line.length) {
                 char ch = line[readX ++];
                 if (ch == '[') {
+                    separated.add("#CHECKYSUM_START");
                     inChecksum = true;
-                    checksumKeep = 0;
                     continue;
                 }
                 if (ch == ']') {
@@ -240,7 +204,7 @@ public class MXMessageFactory {
                         if (wx != 0) {
                             separated.add(new String(word, 0, wx));
                         }
-                        separated.add("#CHECKSUM");
+                        separated.add("#CHECKSUM_SET");
                         wx = 0;
                     }else {
                         _debug.println("Checksum have not opened");
@@ -251,9 +215,6 @@ public class MXMessageFactory {
                 if (ch == ' '|| ch == '\t' || ch == ',') {
                     if (wx != 0) {
                         separated.add(new String(word, 0, wx));
-                        if (inChecksum) {
-                            checksumKeep ++;
-                        }
                     }
                     wx = 0;
                     continue;
@@ -263,13 +224,9 @@ public class MXMessageFactory {
 
             if (wx != 0) {
                 separated.add(new String(word, 0, wx));
-                if (inChecksum) {
-                    checksumKeep ++;
-                }
                 wx = 0;
             }
 
-            int gatetemp = -1;
             if (text.contains("@")) {
                 ArrayList<String> sepa2 = new ArrayList();
                 for (int sx = 0; sx < separated.size(); ++ sx) {
@@ -291,20 +248,14 @@ public class MXMessageFactory {
                             if(t.startsWith("#")) {
                                 sepa2.add(t);
                             }else {
-                                gatetemp = MXUtil.parseTextForNumber(t);
-                                sepa2.add("#GL");
+                                sepa2.add(t);
                             }
                             sepa2.add(separated.get(++ sx));
                         }
                         else if (str.equalsIgnoreCase("@CC")) {
                             sepa2.add("#BCH");
                             String t = separated.get(++sx);
-                            if(t.startsWith("#")) {
-                                sepa2.add(t);
-                            }else {
-                                gatetemp = MXUtil.parseTextForNumber(t);
-                                sepa2.add("#GL");
-                            }
+                            sepa2.add(t);
                             sx ++;
                             if (separated.size() <= sx) {
                                 return null;
@@ -315,28 +266,28 @@ public class MXMessageFactory {
                             //THRU (no need recompile)
                         }
                         else if (str.equalsIgnoreCase("@RPN")) {
-                            int  msb = MXMessageTemplate.readAliasText(separated.get(++sx));
-                            int  lsb = MXMessageTemplate.readAliasText(separated.get(++sx));
-                            int data = MXMessageTemplate.readAliasText(separated.get(++sx));
+                            int  msb = MXTemplate.readAliasText(separated.get(++sx));
+                            int  lsb = MXTemplate.readAliasText(separated.get(++sx));
+                            int data = MXTemplate.readAliasText(separated.get(++sx));
                             if (separated.size() >= sx +2) {
                                 data = data << 7;
-                                data |= MXMessageTemplate.readAliasText(separated.get(++sx));
+                                data |= MXTemplate.readAliasText(separated.get(++sx));
                             }
 
-                            int[] template = { MXMessageTemplate.DTEXT_RPN, msb, lsb, data };
-                            return new MXMessageTemplate(template);
+                            int[] template = { MXTemplate.DTEXT_RPN, msb, lsb, data };
+                            return _cache.fromTemplate(template);
                         }
                         else if (str.equalsIgnoreCase("@NRPN")) {
-                            int  msb = MXMessageTemplate.readAliasText(separated.get(++sx));
-                            int  lsb = MXMessageTemplate.readAliasText(separated.get(++sx));
-                            int data = MXMessageTemplate.readAliasText(separated.get(++sx));
+                            int  msb = MXTemplate.readAliasText(separated.get(++sx));
+                            int  lsb = MXTemplate.readAliasText(separated.get(++sx));
+                            int data = MXTemplate.readAliasText(separated.get(++sx));
                             if (separated.size() >= sx +2) {
                                 data = data << 7;
-                                data |= MXMessageTemplate.readAliasText(separated.get(++sx));
+                                data |= MXTemplate.readAliasText(separated.get(++sx));
                             }
 
-                            int[] template = { MXMessageTemplate.DTEXT_NRPN, msb, lsb, data };
-                            return new MXMessageTemplate(template);
+                            int[] template = { MXTemplate.DTEXT_NRPN, msb, lsb, data };
+                            return _cache.fromTemplate(template);
                         }else {
                             _debug.println("Not Support [" + text + "]");
                             return null;
@@ -349,26 +300,20 @@ public class MXMessageFactory {
             }
 
             // cleanup
-            int[] compiled = new int[line.length];
+            int[] compiled = new int[separated.size()];
             int cx = 0;
             int px = 0;
             
             for (int sx = 0; sx < separated.size(); ++ sx) {
                 String str = separated.get(sx);
-                int code = MXMessageTemplate.readAliasText(str);
+                int code = MXTemplate.readAliasText(str);
                 if (code < 0) {
                     return null;
                 }
                 compiled[px++] = code;
-                continue;
             }
-            int[] template = new int[Math.max(px, 3)];
-            for (int i = 0; i < px; ++ i) {
-                template[i] = compiled[i];
-            }
-            
-            MXMessageTemplate temp = new MXMessageTemplate(template);
-            temp._checksumTo = checksumKeep;
+
+            MXTemplate temp = _cache.fromTemplate(compiled);
             return temp;
         }catch(Exception e) {
             _debug.printStackTrace(e);

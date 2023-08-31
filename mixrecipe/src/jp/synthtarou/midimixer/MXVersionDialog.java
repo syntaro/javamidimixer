@@ -16,12 +16,9 @@
  */
 package jp.synthtarou.midimixer;
 
-import java.awt.Dimension;
 import java.awt.Frame;
-import java.awt.Rectangle;
-import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 
 /**
  *
@@ -46,12 +43,12 @@ public class MXVersionDialog extends javax.swing.JDialog {
         initComponents();
         jProgressBar1.setMinimum(0);
         StringBuffer text = new StringBuffer();
-        text.append(MXStatic.MX_APPNAME_WITH_VERSION + "\n");
+        text.append(MXAppConfig.MX_APPNAME + "\n");
         text.append("\n");
         text.append("java.vendor=" + System.getProperty("java.vendor") + "\n");
         text.append("java.version=" + System.getProperty("java.version") + "\n");
         text.append("\n");
-        text.append("V0.46 sysex bugfix\n");
+        text.append("V0.47 sysex bugfix\n");
         text.append("V0.43 Pair CC (+32) support again\n");
         text.append("V0.42b Java Synth Will Ingore GMReset Signal\n");
         text.append("V0.42 SysEX Bugfix\n");

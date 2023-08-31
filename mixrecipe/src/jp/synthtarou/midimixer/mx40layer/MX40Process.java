@@ -21,13 +21,12 @@ import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JComponent;
-import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.MXStatic;
+import javax.swing.JPanel;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMessageTemplate;
+import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
@@ -101,30 +100,36 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
         }
 
         int port = message.getPort();
-        int command = message.getCommand();
+        int status = message.getStatus();
         int channel = message.getChannel();
+        int command = status;
+        if (command >= 0x80 && command <= 0xef) {
+            command &= 0xf0;
+        }
+        
+        int first = message.getTemplate().get(0);
 
-        if (message.getTemplate(0) == MXMessageTemplate.DTEXT_PROGINC) {
+        if (first == MXTemplate.DTEXT_PROGINC) {
             int x = message.getVisitant().getProgram() + 1;
             if (x >= 128) {
                 x = 127;
             }
             message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_PROGRAMCHANGE + message.getChannel(), x, 0);
             message._timing = timing;
-            command = message.getCommand();
+            command = MXMidi.COMMAND_PROGRAMCHANGE;
         }
-        if (message.getTemplate(0) == MXMessageTemplate.DTEXT_PROGDEC) {
+        if (first == MXTemplate.DTEXT_PROGDEC) {
             int x = message.getVisitant().getProgram() - 1;
             if (x < 0) {
                 x = 0;
             }
             message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_PROGRAMCHANGE + message.getChannel(), x, 0);
             message._timing = timing;
-            command = message.getCommand();
+            command = MXMidi.COMMAND_PROGRAMCHANGE;
         }
 
         if (command == MXMidi.COMMAND_NOTEOFF) {
-            if (_noteOff.raiseHandler(port, message._timing, channel, message.getGate())) {
+            if (_noteOff.raiseHandler(port, message._timing, channel, message.getGate()._var)) {
                 return;
             }
         }
@@ -140,7 +145,7 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
                             public void onNoteOffEvent(MXMessage target) {
                                 MXMessage msg = MXMessageFactory.fromShortMessage(target.getPort(), 
                                         MXMidi.COMMAND_NOTEOFF + target.getChannel(), 
-                                        target.getGate(), 0);
+                                        target.getGate()._var, 0);
                                 msg._timing = timing;
                                 col.processByGroup(msg);
                             }
@@ -157,12 +162,13 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
                     public void onNoteOffEvent(MXMessage target) {
                         MXMessage msg = MXMessageFactory.fromShortMessage(target.getPort(), 
                                 MXMidi.COMMAND_NOTEOFF + target.getChannel(), 
-                                target.getGate(), 0);
+                                target.getGate()._var, 0);
+                        msg._timing = target._timing;
                         sendToNext(msg);
                     }
                 });
             }
-            if (message.getCommand() == MXMidi.COMMAND_PROGRAMCHANGE && message.getGate() < 0) {
+            if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_PROGRAMCHANGE && message.getGate()._var < 0) {
                 return;
             }
             sendToNext(message);
@@ -175,12 +181,12 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
     }
 
     @Override
-    public JComponent getReceiverView() {
+    public JPanel getReceiverView() {
         return _view;
     }
 
     public synchronized void resendProgramChange() {
-        for(int port = 0; port < MXStatic.TOTAL_PORT_COUNT; ++ port) {
+        for(int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
             for(int channel = 0; channel < 16; ++ channel) {
                 MXVisitant info = _inputInfo.getVisitant(port, channel);
                 if (info.isHavingProgram()) {

@@ -25,8 +25,6 @@ public class MXTiming implements Comparable<MXTiming>{
     
     public final long _clock;
     public final int _order;
-    //public final Throwable _traceBirthDay;
-    //public Throwable _arrivePath;
     
     long[] _thisWrap = new long[10];
 
@@ -55,7 +53,7 @@ public class MXTiming implements Comparable<MXTiming>{
             }
             _order = _lastOrder;
             _lastOrder ++;
-            //_traceBirthDay = new Throwable("" + _clock + "(" + _order + ")");
+            //new Throwable("" + _clock + "(" + _order + ")").printStackTrace();
         }
     }
 

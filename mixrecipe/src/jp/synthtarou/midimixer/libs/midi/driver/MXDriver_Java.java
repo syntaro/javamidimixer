@@ -24,12 +24,11 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
-import javax.sound.midi.SysexMessage;
 import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
-import jp.synthtarou.midimixer.libs.midi.smf.MidiByteReader;
 
 /**
  *
@@ -178,10 +177,10 @@ public class MXDriver_Java implements MXDriver {
                 }
                 
                 int dword = (((status << 8) | data1) << 8) | data2;
-                _input.receiveShortMessage(dword);
+                _input.receiveShortMessage(new MXTiming(), dword);
             }else {
                 byte[] data = msg.getMessage();
-                _input.receiveLongMessage(data);
+                _input.receiveLongMessage(new MXTiming(), data);
             }
         }
 
@@ -261,7 +260,7 @@ public class MXDriver_Java implements MXDriver {
     public boolean OutputShortMessage(int x, int message) {
         listAllOutput();
 
-        int status = ((message >> 8) >> 8) & 0xff;
+        int status = (message >> 16) & 0xff;
         int data1 = (message >> 8) & 0xff;
         int data2 = (message) & 0xff;
         if (_listOutput.get(x).isOpen()) {
@@ -318,14 +317,6 @@ public class MXDriver_Java implements MXDriver {
                             //JavaSynth には、GM Resetを送らない
                         }
                         SplittableSysexMessage msg = new SplittableSysexMessage(data);
-
-                        if (false) {
-                            MidiByteReader debug1 = new MidiByteReader(msg.getMessage());
-                            debug1.read8();
-                            System.out.println("len: " + debug1.readVariable());
-                            System.out.println("last: " + data.length + " = " + MXUtil.toHexFF(data[data.length - 1]));
-                        }
-
                         _listOutput.get(x).getReceiver().send(msg, 0);
 
                         return true;
@@ -337,11 +328,17 @@ public class MXDriver_Java implements MXDriver {
                     break;
                 default:
                     if (data.length <= 3) {
-                        int data1 = (data.length >= 2) ? data[1] : 0;
-                        int data2 = (data.length >= 3) ? data[2] : 0;
+                        int data1 = 0;
+                        int data2 = 0;
+                        if (data.length >= 2) {
+                            data1 = data[1] & 0xff;
+                        }
+                        if (data.length >= 3) {
+                            data1 = data[2] & 0xff;
+                        }
                         if (_listOutput.get(x).isOpen()) {
                             try {
-                                ShortMessage msg3 = new ShortMessage(status & 0xff, data1 & 0xff, data2 & 0xff);
+                                ShortMessage msg3 = new ShortMessage(status, data1, data2);
                                 _listOutput.get(x).getReceiver().send(msg3, 0);
                                 return true;
                             }catch(InvalidMidiDataException e) {

@@ -27,6 +27,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
 
 public class ThemeManagerDialog extends javax.swing.JDialog {
@@ -63,9 +64,7 @@ public class ThemeManagerDialog extends javax.swing.JDialog {
         
         setPreferredSize(new Dimension(400, 400));
         CurvedSlider curve = new CurvedSlider(35);
-
-        curve.setRange(0, 127);
-        curve.setInverted(false);
+        curve.setValue(RangedValue.new7bit(0));
 
         jLabelFill.setText("");
         jCheckBox1.setSelected(CurvedSlider.isMouseCircleIsCircle());

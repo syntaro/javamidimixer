@@ -17,12 +17,11 @@
 package jp.synthtarou.midimixer.libs.midi;
 
 import java.io.PrintStream;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import static jp.synthtarou.midimixer.libs.midi.MXMessageTemplate.DTEXT_GL;
-import static jp.synthtarou.midimixer.libs.midi.MXMessageTemplate.DTEXT_PROGDEC;
-import static jp.synthtarou.midimixer.libs.midi.MXMessageTemplate.DTEXT_PROGINC;
-import static jp.synthtarou.midimixer.libs.midi.MXMessageTemplate.DTEXT_VL;
+import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
+import static jp.synthtarou.midimixer.libs.midi.MXTemplate.DTEXT_PROGDEC;
+import static jp.synthtarou.midimixer.libs.midi.MXTemplate.DTEXT_PROGINC;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import jp.synthtarou.midimixer.libs.console.ConsoleElement;
 
@@ -43,6 +42,7 @@ public final class MXMessage {
                 switch(b) {
                     case 0xf0:
                     case 0xf7:
+                    case 0xff:
                         return true;
                 }
                 return false;
@@ -57,8 +57,8 @@ public final class MXMessage {
 
     //Utilitie
     public boolean isPairAbleCC14() {
-        if (getCommand() == MXMidi.COMMAND_CONTROLCHANGE) {
-            int cc = getGate();
+        if (isCommand(MXMidi.COMMAND_CONTROLCHANGE)) {
+            int cc = getGate()._var;
             if (cc >= 0 && cc <= 31) {
                 return true;
             }
@@ -78,7 +78,7 @@ public final class MXMessage {
      */
     public void setValuePairCC14(boolean value14bit) {
         if (_valuePair14bit != value14bit) {
-            int value = getValue();
+            int value = getValue()._var;
             if (value14bit == false && value >= 128) {
                 setValue(127);
             }
@@ -102,14 +102,14 @@ public final class MXMessage {
     public MXTiming _timing;
     int _port;
 
-    private int _value = -1;
-    private int _gate = -1;
+    private RangedValue _value = RangedValue.ZERO7;
+    private RangedValue _gate = RangedValue.ZERO7;
     private int _channel = 0;
     
     protected byte[] _dataBytes = null;
     private boolean _valuePair14bit;
 
-    private final MXMessageTemplate _template;
+    private final MXTemplate _template;
 
     private int _metaType;
     public String _metaText;
@@ -143,27 +143,16 @@ public final class MXMessage {
         return status;
     }
     
-    public int getCommand() {
-        if (createBytes() == null) {
-            return 0;
+    public boolean isCommand(int command) {
+        int status = getStatus();
+        if (status >= 0x80 && status <= 0xef) {
+            if ((status & 0xf0) == command) {
+                return true;
+            }
         }
-        int status = _dataBytes[0] & 0xff;
-        if (status >= 0x80 && status <= 0xe0) {
-            return status & 0xf0;
-        }else {
-            return status;
-        }
+        return false;
     }
-    /*
-    public void setStatus(int status) {
-        _dataBytes = null;
-        if (getExtype() == EXTYPE_SHORTMESSAGE) {
-            _template._template[0] = status & 0xff;
-        }else {
-            throw new IllegalStateException("setStatus on none ShortMessage");
-        }
-    }*/
-    
+
     public void setChannel(int channel) {
         if (_channel != channel) {
              _dataBytes = null;
@@ -190,28 +179,6 @@ public final class MXMessage {
         }
         return 0;
     }
-/* 
-    public int getNoteNumberFromBytes() {
-        switch(getCommand()) {
-        case MXMidi.COMMAND_NOTEON:
-        case MXMidi.COMMAND_NOTEOFF:
-        case MXMidi.COMMAND_POLYPRESSURE:
-            return getData1();
-        }
-        _debug.println("Its not note message.");
-        return 0;
-    }
-
-    public int getVelocityFromBytes() {
-        switch(getCommand()) {
-        case MXMidi.COMMAND_NOTEON:
-        case MXMidi.COMMAND_NOTEOFF:
-        case MXMidi.COMMAND_POLYPRESSURE:
-            return getData2();
-        }
-        _debug.println("Its not note message.");
-        return 0;
-    }*/
 
     public int getChannel() {
         if (_channel < 0 || _channel > 15) {
@@ -221,24 +188,24 @@ public final class MXMessage {
         return _channel;
     }
     
-    public int getValue() {
+    public RangedValue getValue() {
         return _value;
     }
 
     public void setValue(int value) {
-        if (value != _value) {
-            _value = value;
+        if (value != _value._var) {
+            _value = _value.updateValue(value);
             _dataBytes = null;
         }
     }
 
-    public int getGate() {
+    public RangedValue getGate() {
         return _gate;
     }
 
     public void setGate(int gate) {
-        if (gate != _gate) {
-            _gate = gate;
+        if (gate != _gate._var) {
+            _gate = _gate.updateValue(gate);
             _dataBytes = null;
         }
     }
@@ -264,13 +231,17 @@ public final class MXMessage {
         }
     }
 
-    protected MXMessage(int port, MXMessageTemplate template) {
-        this(port, template, 0, 0);
+    protected MXMessage(int port, MXTemplate template) {
+        this(port, template, 0, RangedValue.ZERO7, RangedValue.ZERO7);
     }
 
-    protected MXMessage(int port, MXMessageTemplate template, int gate, int value) {
+    protected MXMessage(int port, MXTemplate template, int channel, RangedValue gate, RangedValue value) {
+        if (template == null) {
+            throw new NullPointerException();
+        }
         _port = port;
         _template = template;
+        _channel = channel;
         _gate = gate;
         _value = value;
         
@@ -280,22 +251,7 @@ public final class MXMessage {
             }
         }
     }
-    
-    protected MXMessage(int port, int[] template, int gate, int value) {
-        this(port, new MXMessageTemplate(template), gate, value);
-        if ((template[0] & 0xfff0) == MXMidi.COMMAND_CONTROLCHANGE) {
-            int data1 = template[1];
-            if ((data1 & 0xff00) == 0) {
-                _gate = data1;
-                template[1] = DTEXT_GL;
-            }
-            int data2 = template[2];
-            if ((data2 & 0xff00) == 0) {
-                _value = data2;
-                template[2] = DTEXT_VL;
-            }
-        }
-    }
+
 
     public byte[] getDataBytes() {
         createBytes();
@@ -305,21 +261,8 @@ public final class MXMessage {
     public boolean isMessageTypeChannel() {
         createBytes();
         if (isBinMessage() == false) {
-            if (getCommand() >= 0x80 && getCommand() <= 0xe0) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean isMessageTypeSystemKnown() {
-        createBytes();
-
-        if (isBinMessage() == false) {
-            if (getCommand() >= 0x80 && getCommand() <= 0xe0) {
-                return true;
-            }
-            if (getCommand() >= 0xf0 && getCommand() <= 0xfe) {
+            int status = getStatus();
+            if (status >= 0x80 && status <= 0xef) {
                 return true;
             }
         }
@@ -331,14 +274,12 @@ public final class MXMessage {
         if (_template.isDataentry()) {
             return true;
         }
-        if (isBinMessage() == false) {
-            if (getCommand() == MXMidi.COMMAND_CONTROLCHANGE) {
-                switch (getData1()) {
-                    case MXMidi.DATA1_CC_DATAENTRY:
-                    case MXMidi.DATA1_CC_DATAINC:
-                    case MXMidi.DATA1_CC_DATADEC:
-                        return true;
-                }
+        if (isCommand(MXMidi.COMMAND_CONTROLCHANGE)) {
+            switch (getData1()) {
+                case MXMidi.DATA1_CC_DATAENTRY:
+                case MXMidi.DATA1_CC_DATAINC:
+                case MXMidi.DATA1_CC_DATADEC:
+                    return true;
             }
         }
         return false;
@@ -346,13 +287,12 @@ public final class MXMessage {
 
     public String toString() {
         String str = toStringHeader();
-        if (getCommand() == MXMidi.COMMAND_PROGRAMCHANGE) {
+        if (isCommand(MXMidi.COMMAND_PROGRAMCHANGE)) {
             return str + "("+ getGate() + ")";
         }else {
             return str + "("+ getValue() + ")";
         }
     }
-    
         
     public String toStringHeader(int min, int max) {
         String str = toStringHeader();
@@ -423,7 +363,11 @@ public final class MXMessage {
             return "???";
         }
  
-        int command = getCommand();
+        int status = getStatus();
+        int command = status;
+        if (command >= 0x80 && command <= 0xef) {
+            command &= 0xf0;
+        }
         
         if (command == MXMidi.COMMAND_CONTROLCHANGE) {
             int data1 = getData1();
@@ -448,25 +392,25 @@ public final class MXMessage {
                     return chname + "NRPN[" + MXUtil.toHexFF(_visitant.getDataroomMSB()) + ":" + MXUtil.toHexFF(_visitant.getDataroomLSB()) + "]-";
                 }            
             }
-            return chname + MXUtilMidi.nameOfControlChange(data1);
+            return chname + MXMidi.nameOfControlChange(data1);
         }else {
             if (command == MXMidi.COMMAND_NOTEOFF) {
-                int note = getGate();
-                int velocity = getValue();
-                return  chname + MXUtilMidi.nameOfNote(note) + "-";
+                int note = getGate()._var;
+                int velocity = getValue()._var;
+                return  chname + MXMidi.nameOfNote(note) + "-";
             }
             if (command == MXMidi.COMMAND_NOTEON) {
-                int note = getGate();
-                int velocity = getValue();
-                return  chname + MXUtilMidi.nameOfNote(note);
+                int note = getGate()._var;
+                int velocity = getValue()._var;
+                return  chname + MXMidi.nameOfNote(note);
             }
             if (command == MXMidi.COMMAND_POLYPRESSURE) {
-                int note = getGate();
-                int velocity = getValue();
+                int note = getGate()._var;
+                int velocity = getValue()._var;
                 return  chname + "PPrs";
             }
             if (command == MXMidi.COMMAND_PROGRAMCHANGE) {
-                int program = getGate();
+                int program = getGate()._var;
                 return  chname + "PG" + program;
             }
             if (command == MXMidi.COMMAND_CHANNELPRESSURE) {
@@ -484,9 +428,9 @@ public final class MXMessage {
         }
 
         if (isMessageTypeChannel()) {
-            return  chname + MXUtilMidi.nameOfMessage(getStatus(), getData1(), getData2());
+            return  chname + MXMidi.nameOfMessage(getStatus(), getData1(), getData2());
         }else {
-            return  MXUtilMidi.nameOfMessage(getStatus(), getData1(), getData2());
+            return  MXMidi.nameOfMessage(getStatus(), getData1(), getData2());
         }
     }
     
@@ -494,8 +438,8 @@ public final class MXMessage {
         MXMessage message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_NOTEON + 0, 64, 127);
         String dtext = message._template.toDText(message);
 
-        MXMessageTemplate template = MXMessageFactory.fromDtext(dtext, message.getChannel());
-        MXMessage msg = template.buildMessage(message.getPort(), message.getGate(), message.getValue());
+        MXTemplate template = MXMessageFactory.fromDtext(dtext, message.getChannel());
+        MXMessage msg = template.buildMessage(message.getPort(), message.getChannel(), message.getGate(), message.getValue());
 
         PrintStream output = System.out;
         
@@ -513,8 +457,8 @@ public final class MXMessage {
         MXMessage message2 = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CONTROLCHANGE + 1, MXMidi.DATA1_CC_CHANNEL_VOLUME, 127);
         output.println(message2);
         String dtext2 = message2._template.toDText(message2);
-        MXMessageTemplate template2 = MXMessageFactory.fromDtext(dtext2, message2.getChannel());
-        MXMessage msg2 = template.buildMessage(message2.getPort(), message2.getGate(), message2.getValue());
+        MXTemplate template2 = MXMessageFactory.fromDtext(dtext2, message2.getChannel());
+        MXMessage msg2 = template.buildMessage(message2.getPort(), message2.getChannel(), message2.getGate(), message2.getValue());
 
         output.println(dtext2);
         output.println(msg2);
@@ -562,28 +506,6 @@ public final class MXMessage {
         return MXUtil.dumpHexFF(_dataBytes);
     }
     
-    public int importBytesUseTemplate(MXMessage message) {
-        byte[] data = message.createBytes();
-        createBytes();
-        _template.initFields();
-        
-        int vl = _template.getBytePosValue() >= 0 ? data[_template.getBytePosValue()] : 0;
-        int vh = _template.getBytePosHiValue() >= 0 ? data[_template.getBytePosHiValue()] : 0;
-        int gl = _template.getBytePosGate() >= 0 ? data[_template.getBytePosGate()] : 0;
-        int gh = _template.getBytePosHiGate() >= 0 ? data[_template.getBytePosHiGate()] : 0;
-
-        this._value = (vh & 0x7f) << 7 | (vl & 0x7f);
-        this._gate = (gh & 0x7f) << 7 | (gl & 0x7f);
-        
-        /*
-            System.out.println("Import Gate " + _gate + " value " + _value);
-            System.out.println("Import GatePos " + _template.getBytePosGate()  + "," + _template.getBytePosHiGate());
-            System.out.println("Import ValuePos " + _template.getBytePosValue()  + "," + _template.getBytePosHiValue());
-        */
-        
-        return this._value;
-    }
-    
     public int getDwordCount() {
         if (isDataentry()) {
             MXVisitant visit = getVisitant();
@@ -599,13 +521,13 @@ public final class MXMessage {
         if (isBinMessage()) {
             return 0;
         }
-        if (_template == null || _template.size() == 0) {
+        if (_template.size() == 0) {
             return 0;
         }
         if (_template.get(0) == DTEXT_PROGINC || _template.get(0) == DTEXT_PROGDEC) {
             return 3;
         }
-        if (getCommand() == MXMidi.COMMAND_CONTROLCHANGE && isValuePairCC14()) {
+        if (isCommand(MXMidi.COMMAND_CONTROLCHANGE) && isValuePairCC14()) {
             return 2;
         }
         return 1;
@@ -629,12 +551,12 @@ public final class MXMessage {
             int status = getStatus();
             int data1 = getData1();
             int data2 = getData2();
-            if (getCommand() == MXMidi.COMMAND_CONTROLCHANGE && isValuePairCC14()) {
+            if ((getStatus() & 0xf0)== MXMidi.COMMAND_CONTROLCHANGE && isValuePairCC14()) {
                 if (column == 0)  {
-                    data2 = (getValue() >> 7) & 0x7f;
+                    data2 = (getValue()._var >> 7) & 0x7f;
                 }else {
                     data1 += 0x20;
-                    data2 = getValue() & 0x7f;
+                    data2 = getValue()._var & 0x7f;
                 }
             }
             return (status << 16) | (data1 << 8) | data2;
@@ -711,31 +633,15 @@ public final class MXMessage {
         return 0;
     }
     
-    public String toDText() {
-        if (_template == null) {
-            return "";
-        }
-        return _template.toDText(this);
-    }
-
     public boolean hasValueHiField() {
-        if (_template == null) {
-            return false;
-        }
         return _template.getBytePosHiValue() >= 0;
     }
 
     public boolean hasValueLowField() {
-        if (_template == null) {
-            return false;
-        }
         return _template.getBytePosValue() >= 0;
     }
 
     public boolean hasGateLowField() {
-        if (_template == null) {
-            return false;
-        }
         return _template.getBytePosGate() >= 0;
     }
 
@@ -746,27 +652,20 @@ public final class MXMessage {
         return _template.getBytePosHiGate() >= 0;
     }
     
-    public int getTemplate(int pos) {
-        if (_template == null) {
-            return -1;
-        }
-        return _template.get(pos);
+    public String toTemplateText() {
+        return _template.toDText(this);
+    }
+    
+    public MXTemplate getTemplate() {
+        return _template;
     }
     
     public Object clone() {
         MXMessage message;
-        if (_template == null) {
-            message = new MXMessage(_port, (MXMessageTemplate)null);
-        }else {
-            message = new MXMessage(_port, (MXMessageTemplate) _template.clone());
-        }
+        message = new MXMessage(_port, _template, _channel, _gate, _value);
         
         message._timing = this._timing;
 
-        message.setValue(getValue());
-        message.setGate(getGate());
-        message.setChannel(getChannel());
-        
         message.setVisitant(getVisitant());
         message.setValuePairCC14(isValuePairCC14());
 

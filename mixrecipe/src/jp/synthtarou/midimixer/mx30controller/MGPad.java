@@ -26,11 +26,11 @@ import java.awt.event.MouseListener;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicButtonUI;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.swing.MXFocusAble;
+import jp.synthtarou.midimixer.libs.swing.focus.MXFocusAble;
 
 /**
  *
@@ -112,10 +112,8 @@ public class MGPad extends javax.swing.JPanel implements MXFocusAble {
         if (_process != null && _process != null) {
             MGStatus status = getStatus();
             
-            status.fixRangedValue();
-
             if (status.getName() == null || status.getName().length() == 0) {
-                MXMessage message = status.toMXMessage(new MXTiming());
+                MXMessage message = status.toMXMessage(null);
                 if (message == null) {
                     jButton1.setText("?");
                 }else {

@@ -19,14 +19,13 @@ package jp.synthtarou.midimixer.mx30controller;
 import jp.synthtarou.midimixer.libs.UniqueChecker;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JComponent;
-import jp.synthtarou.midimixer.MXStatic;
-import jp.synthtarou.midimixer.libs.midi.MXScaledNumber;
+import javax.swing.JPanel;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.MXGlobalTimer;
+import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
@@ -72,11 +71,11 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
 
     @Override
     public String getReceiverName() {
-        return "#" + MXUtilMidi.nameOfPortShort(_port);
+        return "#" + MXMidi.nameOfPortShort(_port);
     }
 
     @Override
-    public JComponent getReceiverView() {
+    public JPanel getReceiverView() {
         return _view;
     }
 
@@ -196,13 +195,15 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 status.setMemo(node.getSetting("note"));
                 String msgText = node.getSetting("message");
                 int channel = node.getSettingAsInt("channel",0);
-                int gate = node.getSettingAsInt("gate", 0);
-                int value = node.getSettingAsInt("value", 0);
-                status.setUiValueInvert(node.getSettingAsBoolean("valueinvert", false));
-                status.setMonitoringTarget(msgText, channel, gate, value);
+                RangedValue gate = RangedValue.new7bit(node.getSettingAsInt("gate", 0));
+                RangedValue value = new RangedValue(node.getSettingAsInt("value", 0), 
+                        node.getSettingAsInt("valuemin", 0),
+                        node.getSettingAsInt("valuemax", 127));
 
-                status.setRangeMin(node.getSettingAsInt("valuemin", 0));
-                status.setRangeMax(node.getSettingAsInt("valuemax", 127));
+                status.setTemplateAsText(msgText, channel);
+                status.setChannel(channel);
+                status.setGate(gate);
+                status.setValue(value);
 
                 status.setDataroomType(node.getSettingAsInt("dataentryType", MXVisitant.HAVE_VAL_NOT));
                 status.setDataroomMSB(node.getSettingAsInt("dataentryMSB", 0));
@@ -215,6 +216,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 e.printStackTrace();
             }
         }
+        
         children = setting.findByPath("Slider[]");
         for (MXSettingNode node : children) {
             int type = node.getSettingAsInt("type", -1);
@@ -230,20 +232,22 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 String msgText = node.getSetting("message");
 
                 int channel = node.getSettingAsInt("channel",0);
-                int gate = node.getSettingAsInt("gate", 0);
-                int value = node.getSettingAsInt("value", 0);
-                status.setMonitoringTarget(msgText, channel, gate, value);
+                RangedValue gate = RangedValue.new7bit(node.getSettingAsInt("gate", 0));
+                RangedValue value = new RangedValue(node.getSettingAsInt("value", 0), 
+                        node.getSettingAsInt("valuemin", 0),
+                        node.getSettingAsInt("valuemax", 127));
 
-                status.setRangeMin(node.getSettingAsInt("valuemin", 0));
-                status.setRangeMax(node.getSettingAsInt("valuemax", 127));
-                status.setUiValueInvert(node.getSettingAsBoolean("valueinvert", false));
+                status.setTemplateAsText(msgText, channel);
+                status.setChannel(channel);
+                status.setGate(gate);
+                status.setValue(value);
 
                 status.setDataroomType(node.getSettingAsInt("dataentryType", MXVisitant.HAVE_VAL_NOT));
                 status.setDataroomMSB(node.getSettingAsInt("dataentryMSB", 0));
                 status.setDataroomLSB(node.getSettingAsInt("dataentryLSB", 0));
 
                 status.setValuePairCC14(node.getSettingAsBoolean("isCCPair", false));
-
+                
                 _data.setSliderStatus(row, column, status);
             }catch(Exception e) {
                 e.printStackTrace();
@@ -270,13 +274,15 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 msgText = node.getSetting("message");
 
                 int channel = node.getSettingAsInt("channel",0);
-                int gate = node.getSettingAsInt("gate", 0);
-                int value = node.getSettingAsInt("value", 0);
-                status.setMonitoringTarget(msgText, channel, gate, value);
+                RangedValue gate = RangedValue.new7bit(node.getSettingAsInt("gate", 0));
+                RangedValue value = new RangedValue(node.getSettingAsInt("value", 0), 
+                        node.getSettingAsInt("valuemin", 0),
+                        node.getSettingAsInt("valuemax", 127));
                 
-                status.setRangeMin(node.getSettingAsInt("valuemin", 0));
-                status.setRangeMax(node.getSettingAsInt("valuemax", 127));
-                status.setUiValueInvert(node.getSettingAsBoolean("valueinvert", false));
+                status.setTemplateAsText(msgText, channel);
+                status.setChannel(channel);
+                status.setGate(gate);
+                status.setValue(value);
 
                 status.setDataroomType(node.getSettingAsInt("dataentryType", MXVisitant.HAVE_VAL_NOT));
                 status.setDataroomMSB(node.getSettingAsInt("dataentryMSB", 0));
@@ -320,8 +326,8 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
         int counter;
         counter = 1;
         setting.setSetting("PatchToMixer", _patchToMixer);
-        for (int column = 0; column < MXStatic.SLIDER_COLUMN_COUNT; ++ column) {
-            for (int row = 0; row < MXStatic.CIRCLE_ROW_COUNT; ++ row) {
+        for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++ column) {
+            for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++ row) {
                 String prefix = "Circle[" + counter + "].";
                 MGStatus status = _data.getCircleStatus(row, column);
                 MXMessage message = status.toMXMessage(null);
@@ -330,14 +336,13 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 setting.setSetting(prefix + "type", status.getUiType());
                 setting.setSetting(prefix + "row", row);
                 setting.setSetting(prefix + "column", column);
-                setting.setSetting(prefix + "message", status.getTextCommand());
+                setting.setSetting(prefix + "message", status.toTemplateText());
                 setting.setSetting(prefix + "channel", message.getChannel());
-                setting.setSetting(prefix + "gate", message.getGate());
-                setting.setSetting(prefix + "value", status.getValue());
-                setting.setSetting(prefix + "valuemin", status.getRangeMin());
-                setting.setSetting(prefix + "valuemax", status.getRangeMax());
+                setting.setSetting(prefix + "gate", message.getGate()._var);
+                setting.setSetting(prefix + "value", status.getValue()._var);
+                setting.setSetting(prefix + "valuemin", status.getValue()._min);
+                setting.setSetting(prefix + "valuemax", status.getValue()._max);
                 setting.setSetting(prefix + "isCCPair", status.isValuePairCC14());
-                setting.setSetting(prefix + "valueinvert", status.isUiValueInvert());
                 setting.setSetting(prefix + "dataentryType", status.getDataroomType());
                 setting.setSetting(prefix + "dataentryMSB", status.getDataeroomMSB());
                 setting.setSetting(prefix + "dataentryLSB", status.getDataroomLSB());
@@ -346,8 +351,8 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             }
         }
         counter = 1;
-        for (int column = 0; column < MXStatic.SLIDER_COLUMN_COUNT; ++ column) {
-            for (int row = 0; row < MXStatic.SLIDER_ROW_COUNT; ++ row) {
+        for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++ column) {
+            for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++ row) {
                 String prefix = "Slider[" + counter + "].";
                 MGStatus status = _data.getSliderStatus(row, column);
                 MXMessage message = status.toMXMessage(null);
@@ -356,14 +361,13 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 setting.setSetting(prefix + "type", status.getUiType());
                 setting.setSetting(prefix + "row", row);
                 setting.setSetting(prefix + "column", column);
-                setting.setSetting(prefix + "message", status.getTextCommand());
+                setting.setSetting(prefix + "message", status.toTemplateText());
                 setting.setSetting(prefix + "channel", message.getChannel());
-                setting.setSetting(prefix + "gate", message.getGate());
-                setting.setSetting(prefix + "value", status.getValue());
-                setting.setSetting(prefix + "valuemin", status.getRangeMin());
-                setting.setSetting(prefix + "valuemax", status.getRangeMax());
+                setting.setSetting(prefix + "gate", message.getGate()._var);
+                setting.setSetting(prefix + "value", status.getValue()._var);
+                setting.setSetting(prefix + "valuemin", status.getValue()._min);
+                setting.setSetting(prefix + "valuemax", status.getValue()._max);
                 setting.setSetting(prefix + "isCCPair", status.isValuePairCC14());
-                setting.setSetting(prefix + "valueinvert", status.isUiValueInvert());
                 setting.setSetting(prefix + "dataentryType", status.getDataroomType());
                 setting.setSetting(prefix + "dataentryMSB", status.getDataeroomMSB());
                 setting.setSetting(prefix + "dataentryLSB", status.getDataroomLSB());
@@ -372,8 +376,8 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             }
         }
         counter = 1;
-        for (int column = 0; column < MXStatic.SLIDER_COLUMN_COUNT; ++ column) {
-            for (int row = 0; row < MXStatic.DRUM_ROW_COUNT; ++ row) {
+        for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++ column) {
+            for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++ row) {
                 String prefix = "Pad[" + counter + "].";
                 MGStatus status = _data.getDrumPadStatus(row, column);
                 MXMessage message = status.toMXMessage(null);
@@ -382,14 +386,13 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 setting.setSetting(prefix + "type", status.getUiType());
                 setting.setSetting(prefix + "row", row);
                 setting.setSetting(prefix + "column", column);
-                setting.setSetting(prefix + "message", status.getTextCommand());
+                setting.setSetting(prefix + "message", status.toTemplateText());
                 setting.setSetting(prefix + "channel", message.getChannel());
-                setting.setSetting(prefix + "gate", message.getGate());
-                setting.setSetting(prefix + "value", status.getValue());
-                setting.setSetting(prefix + "valuemin", status.getRangeMin());
-                setting.setSetting(prefix + "valuemax", status.getRangeMax());
+                setting.setSetting(prefix + "gate", message.getGate()._var);
+                setting.setSetting(prefix + "value", status.getValue()._var);
+                setting.setSetting(prefix + "valuemin", status.getValue()._min);
+                setting.setSetting(prefix + "valuemax", status.getValue()._max);
                 setting.setSetting(prefix + "isCCPair", status.isValuePairCC14());
-                setting.setSetting(prefix + "valueinvert", status.isUiValueInvert());
                 setting.setSetting(prefix + "dataentryType", status.getDataroomType());
                 setting.setSetting(prefix + "dataentryMSB", status.getDataeroomMSB());
                 setting.setSetting(prefix + "dataentryLSB", status.getDataroomLSB());
@@ -447,17 +450,17 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             if (status.getUiType() == MGStatus.TYPE_SLIDER) {
                 slider = _data.getSlider(row, column);
                 already.push(status);
-                status.setValue(newValue);
+                status.setValue(status.getValue().updateValue(newValue));
                 slider.updateUIOnly(timing, newValue);
             }
             if (status.getUiType() == MGStatus.TYPE_CIRCLE) {
                 circle = _data.getCircle(row, column);
                 already.push(status);
-                status.setValue(newValue);
+                status.setValue(status.getValue().updateValue(newValue));
                 circle.changeUIOnly(timing, newValue);
             }
             if (status.getUiType() == MGStatus.TYPE_DRUMPAD) {
-                status.setValue(newValue);
+                status.setValue(status.getValue().updateValue(newValue));
                 if (status.isDrumOn(newValue)) {
                     catchedValueDrum(status, timing, true, newValue, already);
                 }else {
@@ -482,23 +485,9 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                         break;
                 }
 
-                if (nextStatus.getRangeMax() != status.getRangeMax()
-                 || nextStatus.getRangeMin() != status.getRangeMin()) {
-                    int fromRange = status.getRangeMax() - status.getRangeMin();
-                    int toRange = nextStatus.getRangeMax() - nextStatus.getRangeMin();
-                    int fromOffset = status.getValue() - status.getRangeMin();
-                    boolean invert = false;
-                    if (status.isUiValueInvert()) {
-                        invert = !nextStatus.isUiValueInvert();
-                    }else {
-                        invert = nextStatus.isUiValueInvert();
-                    }
-
-                    MXScaledNumber trans = new MXScaledNumber(fromRange, toRange);
-                    int toOffset = trans.getNewNumber(fromOffset, invert);
-                    newValue = nextStatus.getRangeMin() + toOffset;
-                }
-
+                int nextMin = nextStatus.getValue()._min;
+                int nextMax = nextStatus.getValue()._min;
+                newValue = status.getValue().modifyRangeTo(nextMin, nextMax)._var;
                 nextMixer.catchedValue(nextStatus, timing, newValue, already);
 
                 if (_patchTogether == false) {
@@ -507,11 +496,12 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             }
 
             MXMessage message = status.toMXMessage(timing);
-            if (message.getValue() == 0) {
+            if (message.getValue()._var == 0) {
+                //TODO whats this
                 message.setValue(newValue);
             }
             if (message != null) {
-                if (message.getValue() == 0 && message.getCommand() == MXMidi.COMMAND_NOTEON) {
+                if (message.getValue()._var == 0 && message.isCommand(MXMidi.COMMAND_NOTEON)) {
                     message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_NOTEOFF + message.getChannel(), message.getData1(), 0);
                     message._timing = timing;
                 }
@@ -574,8 +564,8 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             boolean now = newValue;
             boolean prev = status.isValueLastDetect();
 
-            int value = status.getValue();
-            if (status.toMXMessage(timing).getCommand() == MXMidi.COMMAND_PROGRAMCHANGE) {
+            int value = status.getValue()._var;
+            if (status.toMXMessage(timing).isCommand(MXMidi.COMMAND_PROGRAMCHANGE)) {
                 value = 0;
             }
 
@@ -626,7 +616,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                         }else {
                             throw  new IllegalStateException("velocity unknown");
                         }
-                        int[] noteList = MXUtilMidi.textToNoteList(notes);
+                        int[] noteList = MXMidi.textToNoteList(notes);
                         for (int note : noteList) {
                             message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_NOTEON + status.getSwitchOutChannel(), note, velocity);
                             message._timing = timing;
@@ -648,7 +638,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                     }
                     if (status.getSwitchType() == MGStatus.SWITCH_TYPE_HARMONY) {
                         String notes = status.getSwitchHarmonyNotes();
-                        int[] noteList = MXUtilMidi.textToNoteList(notes);
+                        int[] noteList = MXMidi.textToNoteList(notes);
                         for (int note : noteList) {
                             message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_NOTEOFF + status.getSwitchOutChannel(), note, 0);
                             message._timing = timing;
@@ -662,7 +652,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                     }
                 }
                 message = MXMessageFactory.fromClone(message);
-                if (message.getValue() == 0 && message.getCommand() == MXMidi.COMMAND_NOTEON) {
+                if (message.isCommand(MXMidi.COMMAND_NOTEON) && message.getValue()._var == 0) {
                     message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_NOTEOFF + message.getChannel(), message.getData1(), 0);
                 }
                 message._timing = timing;
@@ -678,7 +668,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
         }
         
         MXMessage message = status.toMXMessage(null);
-        if (message.getCommand() == MXMidi.COMMAND_CONTROLCHANGE) {
+        if (message.isCommand(MXMidi.COMMAND_CONTROLCHANGE)) {
             int data1 = message.getData1();
             if (data1 == MXMidi.DATA1_CC_DATAENTRY || data1 == MXMidi.DATA1_CC_DATAINC || data1 == MXMidi.DATA1_CC_DATADEC) {
                 _data._cachedDataentry.add(status);
@@ -696,18 +686,19 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 }
                 _data._cachedControlChange[message.getChannel()][data2].add(status);
             }
-        }else if (message.getCommand() == MXMidi.COMMAND_NOTEON || message.getCommand() == MXMidi.COMMAND_NOTEOFF
-                ||message.getCommand() == MXMidi.COMMAND_POLYPRESSURE) {
+        }else if (message.isCommand(MXMidi.COMMAND_NOTEON) || message.isCommand(MXMidi.COMMAND_NOTEOFF)
+                ||message.isCommand(MXMidi.COMMAND_POLYPRESSURE)) {
             int note = message.getData1();
             if (_data._cachedNoteMessage[message.getChannel()][note] == null) {
                 _data._cachedNoteMessage[message.getChannel()][note] = new ArrayList();
             }
             _data._cachedNoteMessage[message.getChannel()][note].add(status);    
         }else if (message.isMessageTypeChannel()) {
-            if (_data._cachedChannelMessage[message.getChannel()][message.getCommand()] == null) {
-                _data._cachedChannelMessage[message.getChannel()][message.getCommand()] = new ArrayList();
+            int command = message.getStatus() & 0xf0;
+            if (_data._cachedChannelMessage[message.getChannel()][command] == null) {
+                _data._cachedChannelMessage[message.getChannel()][command] = new ArrayList();
             }
-            _data._cachedChannelMessage[message.getChannel()][message.getCommand()].add(status);
+            _data._cachedChannelMessage[message.getChannel()][command].add(status);
         }else {
             _data._cachedSystemMessage.add(status);
         }
@@ -721,36 +712,40 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             _data._cachedSystemMessage = new ArrayList();
             _data._cachedDataentry = new ArrayList();
             
-            for (int row = 0; row < MXStatic.SLIDER_ROW_COUNT; ++ row) {
-                for (int column = 0; column < MXStatic.SLIDER_COLUMN_COUNT; ++column) {
+            for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++ row) {
+                for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
                     makeCacheInternal1(_data.getSliderStatus(row, column));
                 }
             }
 
-            for (int row = 0; row < MXStatic.CIRCLE_ROW_COUNT; ++ row) {
-                for (int column = 0; column < MXStatic.SLIDER_COLUMN_COUNT; ++column) {
+            for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++ row) {
+                for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
                     makeCacheInternal1(_data.getCircleStatus(row, column));
                 }
             }
 
-            for (int row = 0; row < MXStatic.DRUM_ROW_COUNT; ++ row) {
-                for (int column = 0; column < MXStatic.SLIDER_COLUMN_COUNT; ++column) {
+            for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++ row) {
+                for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
                     MGStatus status = _data.getDrumPadStatus(row, column);
                     makeCacheInternal1(status);
                 }
             }
         }
-        if (request.getCommand() == MXMidi.COMMAND_CONTROLCHANGE) {
-            int data1 = request.getData1();
-            if (data1 == MXMidi.DATA1_CC_DATAENTRY || data1 == MXMidi.DATA1_CC_DATAINC || data1 == MXMidi.DATA1_CC_DATADEC) {
-                return _data._cachedDataentry;
+        
+        if (request.isMessageTypeChannel()) {
+            int command = request.getStatus() & 0xf0;
+            if (command == MXMidi.COMMAND_CONTROLCHANGE) {
+                int data1 = request.getData1();
+                if (data1 == MXMidi.DATA1_CC_DATAENTRY || data1 == MXMidi.DATA1_CC_DATAINC || data1 == MXMidi.DATA1_CC_DATADEC) {
+                    return _data._cachedDataentry;
+                }
+                return _data._cachedControlChange[request.getChannel()][request.getGate()._var];
+            }else if (command == MXMidi.COMMAND_NOTEON || command == MXMidi.COMMAND_NOTEOFF
+                    || command == MXMidi.COMMAND_POLYPRESSURE) {
+                return _data._cachedNoteMessage[request.getChannel()][request.getGate()._var];
             }
-            return _data._cachedControlChange[request.getChannel()][request.getGate()];
-        }else if (request.getCommand() == MXMidi.COMMAND_NOTEON || request.getCommand() == MXMidi.COMMAND_NOTEOFF
-                ||request.getCommand() == MXMidi.COMMAND_POLYPRESSURE) {
-            return _data._cachedNoteMessage[request.getChannel()][request.getGate()];
-        }else if (request.isMessageTypeChannel()) {
-            return _data._cachedChannelMessage[request.getChannel()][request.getCommand()];
+
+            return _data._cachedChannelMessage[request.getChannel()][command];
         }else {
             return _data._cachedSystemMessage;
         }
@@ -762,13 +757,14 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
     
     public boolean isPairToPooled14bit(MXMessage message) {
         if (_poolFor14bit != null) {
-            if (message.getCommand() == MXMidi.COMMAND_CONTROLCHANGE) {
-                if (message.getGate() >= 0 && message.getGate() < 32) {
-                    if (message.getGate() +32 == _poolFor14bit.getGate()) {
+            if (message.isCommand(MXMidi.COMMAND_CONTROLCHANGE)) {
+                int gate = message.getGate()._var;
+                if (gate >= 0 && gate < 32) {
+                    if (gate +32 == _poolFor14bit.getGate()._var) {
                         return true;
                     }
-                }else {
-                    if (message.getGate() == _poolFor14bit.getGate() +32) {
+                }else if (gate >= 32 && gate < 64) {
+                    if (gate == _poolFor14bit.getGate()._var +32) {
                         return true;
                     }
                 }
@@ -779,14 +775,15 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
     
     public int valueForPair(MXMessage message) {
         if (isPairToPooled14bit(message)) {
-            if (message.getCommand() == MXMidi.COMMAND_CONTROLCHANGE) {
-                if (message.getGate() >= 0 && message.getGate() < 32) {
-                    if (message.getGate() +32 == _poolFor14bit.getGate()) {
-                        return message.getValue() * 128 + _poolFor14bit.getValue();
+            if (message.isCommand(MXMidi.COMMAND_CONTROLCHANGE)) {
+                int gate = message.getGate()._var;
+                if (gate >= 0 && gate  < 32) {
+                    if (gate +32 == _poolFor14bit.getGate()._var) {
+                        return message.getValue()._var * 128 + _poolFor14bit.getValue()._var;
                     }
-                }else if (message.getGate() >= 32 && message.getChannel() <= 64) {
-                    if (message.getGate() == _poolFor14bit.getGate() +32) {
-                        return message.getValue() + _poolFor14bit.getValue()  * 128;
+                }else if (gate >= 32 && message.getChannel() <= 64) {
+                    if (gate == _poolFor14bit.getGate()._var +32) {
+                        return message.getValue()._var + _poolFor14bit.getValue()._var  * 128;
                     }
                 }
             }
@@ -796,7 +793,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
 
     public boolean isSameToPooled14bit(MXMessage message) {
         if (_poolFor14bit != null) {
-            if (message.getCommand() == MXMidi.COMMAND_CONTROLCHANGE) {
+            if (message.isCommand(MXMidi.COMMAND_CONTROLCHANGE)) {
                 if (message.getGate() == _poolFor14bit.getGate()) {
                     return true;
                 }
@@ -847,15 +844,13 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             for (int i = 0; i < list.size(); ++ i) {
                 MGStatus status = list.get(i);
                 if (status.statusTryCatch(message)) {
-                    int command = message.getCommand();
-                    int gate = message.getGate();
-                    if (command == MXMidi.COMMAND_CONTROLCHANGE 
-                       && gate >= 0 && gate < 32 && status.isValuePairCC14()) {
+                    int gate = message.getGate()._var;
+                    if (message.isCommand(MXMidi.COMMAND_CONTROLCHANGE) && gate >= 0 && gate < 32 && status.isValuePairCC14()) {
                         //TODO more logical
-                        if (gate == message.getGate()) {
+                        if (gate == message.getGate()._var) {
                             _poolFor14bit = message;
                             _poolFor14bitStatus = status;
-                        }else if (gate + 32 == message.getGate()) {
+                        }else if (gate + 32 == message.getGate()._var) {
                             _poolFor14bit = message;
                             _poolFor14bitStatus = status;
                         }else {
@@ -871,7 +866,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                             }
                         });
                     }
-                    catchedValue(status, message._timing, status.getValue(), already);
+                    catchedValue(status, message._timing, status.getValue()._var, already);
                     foundSome = true;
                     hit ++;
                 }else {

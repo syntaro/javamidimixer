@@ -20,8 +20,9 @@ import java.awt.Color;
 import java.util.ArrayList;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
@@ -46,15 +47,15 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
         _setting.setTarget(this);
         prepareActiveSlider();
         _rootView = new MX30View(this);
-        _pageProcess = new MX32MixerProcess[MXStatic.TOTAL_PORT_COUNT];
-        for (int i = 0; i < MXStatic.TOTAL_PORT_COUNT; ++ i) {
+        _pageProcess = new MX32MixerProcess[MXAppConfig.TOTAL_PORT_COUNT];
+        for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
             _pageProcess[i] = new MX32MixerProcess(this, i);
         }
     }
 
     public void readSettings() {
         _setting.readSettingFile();
-        for (int port = 0; port < MXStatic.TOTAL_PORT_COUNT; ++ port) {
+        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
             _pageProcess[port].readSettings();
             MX32MixerProcess proc = _pageProcess[port];
             _rootView.addPage(port, proc);
@@ -62,7 +63,7 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
                 public String getReceiverName() {
                     return null;
                 }
-                public JComponent getReceiverView() {
+                public JPanel getReceiverView() {
                     return null;
                 }
                 protected void processMXMessageImpl(MXMessage message) {
@@ -164,11 +165,11 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
 
     @Override
     public String getReceiverName() {
-        return "Kontrolls";
+        return "Kontroller Mixer";
     }
 
     @Override
-    public JComponent getReceiverView() {
+    public JPanel getReceiverView() {
         return _rootView;
     }
     
@@ -208,7 +209,7 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
             }
 
             if (focus_type > 0) {
-                Color c = MXStatic.sliderColor(focus_column);
+                Color c = MXAppConfig.sliderColor(focus_column);
 
                 MX32MixerData focus_data = getPage(focus_port)._data;
                 switch(focus_type) {
@@ -342,7 +343,7 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
 
                 case 39: //RIGHT
                     column ++;
-                    if (column >= MXStatic.SLIDER_COLUMN_COUNT) {
+                    if (column >= MXAppConfig.SLIDER_COLUMN_COUNT) {
                         column --;
                     }
                     break;
@@ -390,11 +391,11 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
         if (flag) {
             _editingControl = true;
             _rootView.lockAnothereTabs(true);
-            MXMain.getMain().getMainWindow().setTitle(MXStatic.MX_EDITING);
+            MXMain.getMain().getMainWindow().setTitle(MXAppConfig.MX_EDITING);
         }else {
             _editingControl = false;
             _rootView.lockAnothereTabs(false);
-            MXMain.getMain().getMainWindow().setTitle(MXStatic.MX_APPNAME_WITH_VERSION);
+            MXMain.getMain().getMainWindow().setTitle(MXAppConfig.MX_APPNAME);
         }
     }
 

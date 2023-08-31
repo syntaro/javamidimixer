@@ -19,27 +19,21 @@ package jp.synthtarou.midimixer.mx80vst;
 import jp.synthtarou.midimixer.libs.vst.VSTFolder;
 import jp.synthtarou.midimixer.libs.vst.VSTInstance;
 import jp.synthtarou.midimixer.libs.vst.VSTStream;
-import jp.synthtarou.midimixer.libs.common.async.Transaction;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.ArrayList;
 import javax.swing.BorderFactory;
-import javax.swing.ComboBoxModel;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
@@ -52,9 +46,12 @@ import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.swing.MXSliderUIForTablet;
+import jp.synthtarou.midimixer.libs.common.async.Transaction;
+import jp.synthtarou.midimixer.libs.swing.MXFileFilter;
+import jp.synthtarou.midimixer.libs.swing.MXSwingFolderBrowser;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 import jp.synthtarou.midimixer.windows.MXLIB02VST3;
 
 /**
@@ -119,7 +116,8 @@ public class MX80Panel extends javax.swing.JPanel {
         jSliderMasterVolume.setMinimum(0);
         jSliderMasterVolume.setMaximum(1000);
         jSliderMasterVolume.setValue(vol1000);
-        new MXSliderUIForTablet(jSliderMasterVolume);
+        new MXAttachSliderSingleClick(jSliderMasterVolume);
+        new MXAttachSliderLikeEclipse(jSliderMasterVolume);
         _initDone = true;
         
         SwingUtilities.invokeLater(new Runnable() {
@@ -556,11 +554,14 @@ public class MX80Panel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonStartQuickScanActionPerformed
 
     private void jButtonAddRootActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddRootActionPerformed
-        FolderBrowser browse = new FolderBrowser();
-        browse._onlyDirectory = true;
+        MXFileFilter filter = new MXFileFilter();
+        filter.addExtension("VST3");
+        MXSwingFolderBrowser browse = new MXSwingFolderBrowser(new File("C:\\Program Files"), filter);
+        browse.setOnlyDirectory(true);
         MXUtil.showAsDialog(this, browse, "Select and Enter");
-        if (browse._result != null) {
-            addFilter(browse._result);
+        File f = browse.getSelectedFile();
+        if (f != null) {
+            addFilter(f);
         }
     }//GEN-LAST:event_jButtonAddRootActionPerformed
 
@@ -613,12 +614,15 @@ public class MX80Panel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonRemoveSkipActionPerformed
 
     private void jButtonAddSkipBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddSkipBrowseActionPerformed
-        FolderBrowser browse = new FolderBrowser();
-        browse._onlyDirectory = false;
+        MXFileFilter filter = new MXFileFilter();
+        filter.addExtension("VST3");
+        MXSwingFolderBrowser browse = new MXSwingFolderBrowser(new File("C:\\Program Files"), filter);
+        browse.setOnlyDirectory(false);
         MXUtil.showAsDialog(this, browse, "Select and Enter");
-        if (browse._result != null) {
+        File f = browse.getSelectedFile();
+        if (f != null) {
             try {
-                String path = browse._result.getPath();
+                String path = f.getPath();
                 if (MX80Process.getInstance()._listSkip.contains(path) == false) {
                     addSkip(path);
                 }

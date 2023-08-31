@@ -16,9 +16,9 @@
  */
 package jp.synthtarou.midimixer.libs.vst;
 
-import jp.synthtarou.midimixer.libs.common.async.Transaction;
 import java.io.File;
 import javax.swing.filechooser.FileSystemView;
+import jp.synthtarou.midimixer.libs.common.async.Transaction;
 import jp.synthtarou.midimixer.libs.settings.MXSettingUtil;
 import jp.synthtarou.midimixer.windows.MXLIB02VST3;
 

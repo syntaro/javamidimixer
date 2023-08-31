@@ -16,25 +16,20 @@
  */
 package jp.synthtarou.midimixer.libs.midi.port;
 
-import java.io.File;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.MXStatic;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.MXQueue1;
-import jp.synthtarou.midimixer.libs.domino.DTextXML;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDFileManager;
+import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDFile;
 import jp.synthtarou.midimixer.libs.console.ConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_VSTi;
-import org.xml.sax.SAXException;
 
 /**
  *
@@ -49,7 +44,6 @@ public class MXMIDIOut {
     private String _name;
     boolean[] _assigned;
     int _assignCount;
-    private File _DXMLFile;
     private MXVisitant16 _visitant16 = new MXVisitant16();
 
     MXQueue1<MXMessage> _queue;
@@ -66,7 +60,7 @@ public class MXMIDIOut {
     }
 
     public boolean isPortAssigned(int port) {
-        if (port < 0 || port >= MXStatic.TOTAL_PORT_COUNT) {
+        if (port < 0 || port >= MXAppConfig.TOTAL_PORT_COUNT) {
             return false;
         }
         return _assigned[port];
@@ -78,7 +72,7 @@ public class MXMIDIOut {
     
     public String getPortAssignedAsText() {
         StringBuffer assigned = new StringBuffer();
-        for (int p = 0; p < MXStatic.TOTAL_PORT_COUNT; ++ p) {
+        for (int p = 0; p < MXAppConfig.TOTAL_PORT_COUNT; ++ p) {
             if (isPortAssigned(p)) {
                 if (assigned.length() > 0) {
                     assigned.append(",");
@@ -110,7 +104,7 @@ public class MXMIDIOut {
     
     public void resetPortAssigned() {
         synchronized(MXMIDIInManager.getManager()) {
-            for (int i = 0; i < MXStatic.TOTAL_PORT_COUNT; ++ i) {
+            for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
                 setPortAssigned(i, false);
             }
         }
@@ -135,25 +129,6 @@ public class MXMIDIOut {
         return _name;
     }
 
-    public File getDXMLFile() {
-        return _DXMLFile;
-    }
-    
-    public void setDXMLFile(File file) throws SAXException {
-        try {
-            PDFileManager manager = PDFileManager.getManager();
-            if (_DXMLFile != null) {
-                manager.unregist(_DXMLFile.getName());
-            }
-            PDFile parser = DTextXML.fromFile(file);
-            _DXMLFile = file;
-            manager.register(parser);
-        }catch(SAXException e) {
-            throw e;
-        }catch(Exception e) {
-             e.printStackTrace();
-        }
-    }
     
     public int hashCode() {
         return _name.hashCode();
@@ -210,9 +185,13 @@ public class MXMIDIOut {
             if (message.isMessageTypeChannel()) {
                 MXVisitant msgVisitant = message.getVisitant();
                 MXVisitant visitant = _visitant16.get(message.getChannel());
-                int command = message.getCommand();
+                int status = message.getStatus();
                 int channel = message.getChannel();
-                int gate = message.getGate();
+                int gate = message.getGate()._var;
+                int command = status;
+                if (status >= 0x80 && status <= 0xef) {
+                    command = status & 0xf0;
+                }
                 if (command != MXMidi.COMMAND_PROGRAMCHANGE) {
                     if (msgVisitant != null && msgVisitant.isHavingProgram()) {
                         if (visitant.isHavingProgram() == false || visitant.getProgram() != message.getVisitant().getProgram()) {
@@ -281,7 +260,7 @@ public class MXMIDIOut {
                 }
             }
             
-            if (message.getCommand() == MXMidi.COMMAND_NOTEON) {
+            if (message.isCommand(MXMidi.COMMAND_NOTEON)) {
                 _myNoteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
                     @Override
                     public void onNoteOffEvent(MXMessage target) {
@@ -295,14 +274,14 @@ public class MXMIDIOut {
                 MXMain.addOutsideOutput(new ConsoleElement(message._timing, message.getPort(), dword));
                 return;
             }
-            else if (message.getCommand() == MXMidi.COMMAND_NOTEOFF) {
+            else if (message.isCommand(MXMidi.COMMAND_NOTEOFF)) {
                 if (_myNoteOff.raiseHandler(message)) {
                     return;
                 }
             }
-            else if (message.getCommand() == MXMidi.COMMAND_CONTROLCHANGE
+            else if (message.isCommand(MXMidi.COMMAND_CONTROLCHANGE)
                   && message.getData1() == MXMidi.DATA1_CC_ALLNOTEOFF) {
-                allNoteOff();
+                allNoteOff(message._timing);
             }
             
             int col = message.getDwordCount();
@@ -337,9 +316,9 @@ public class MXMIDIOut {
         
     }
 
-    public void allNoteOff() {
+    public void allNoteOff(MXTiming timing) {
         synchronized(MXTiming.mutex) {
-            _myNoteOff.allNoteOff(new MXTiming());
+            _myNoteOff.allNoteOff(timing);
         }
     }
 
@@ -363,7 +342,7 @@ public class MXMIDIOut {
         MXMIDIOutManager manager = MXMIDIOutManager.getManager();
         synchronized(manager) {
             if (isOpen()) {
-                allNoteOff();
+                allNoteOff(new MXTiming());
                 if(_name.equals("Gervill")) {
                     
                 }else  {

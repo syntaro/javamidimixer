@@ -20,7 +20,6 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
 
 /**
  *
@@ -175,13 +174,13 @@ public class ConsoleElement implements Comparable<ConsoleElement>{
         }
 
         if (command == MXMidi.COMMAND_NOTEON) {
-            return  "[On " + channel + ":" + MXUtilMidi.nameOfNote(data1) + "=" + data2 + "]";
+            return  "[On " + channel + ":" + MXMidi.nameOfNote(data1) + "=" + data2 + "]";
         }
         if (command == MXMidi.COMMAND_NOTEOFF) {
-            return  "[Off " + channel + ":" + MXUtilMidi.nameOfNote(data1) + "=" + data2 + "]";
+            return  "[Off " + channel + ":" + MXMidi.nameOfNote(data1) + "=" + data2 + "]";
         }
         if (command == MXMidi.COMMAND_POLYPRESSURE) {
-            return  "[PolyPress " + channel + ":" + MXUtilMidi.nameOfNote(data1) + "=" + data2 + "]";
+            return  "[PolyPress " + channel + ":" + MXMidi.nameOfNote(data1) + "=" + data2 + "]";
         }
         if (command == MXMidi.COMMAND_PROGRAMCHANGE) {
             return  "[Program " + channel + ":" + data1 + "]";
@@ -199,12 +198,12 @@ public class ConsoleElement implements Comparable<ConsoleElement>{
             return  "[SongSel " + data1 + "]";
         }
         if (command == MXMidi.COMMAND_CONTROLCHANGE) {
-            String ccname = MXUtilMidi.nameOfControlChange(data1);
+            String ccname = MXMidi.nameOfControlChange(data1);
             return  "[CC-" + ccname + " " + channel + ":" + MXUtil.toHexFF(data2) + "]";
         }
 
         return "****" + MXUtil.toHexFF(status) + MXUtil.toHexFF(data1) + MXUtil.toHexFF(data2);
-        //return  "[" + MXUtilMidi.nameOfMessage(status, data1, data2) + " " + channel + "]";
+        //return  "[" + MXMidi.nameOfMessage(status, data1, data2) + " " + channel + "]";
     }
 
     @Override

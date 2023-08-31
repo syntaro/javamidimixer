@@ -25,10 +25,10 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 
 /**
@@ -236,14 +236,14 @@ public class MX11View extends javax.swing.JPanel {
 
         model.addColumn("");
         
-        for (int port = 0; port < MXStatic.TOTAL_PORT_COUNT; ++ port) {
-            model.addColumn(outName + MXUtilMidi.nameOfPortInput(port));
+        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
+            model.addColumn(outName + MXMidi.nameOfPortInput(port));
         }
         
         for (int i = data.curveCount() - 1; i >= 0; --i) {
             Vector line = new Vector();
             line.add(inName + data.curveDefault(i));
-            for (int port = 0; port < MXStatic.TOTAL_PORT_COUNT; ++ port) {
+            for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
                 line.add(data.curveValue(port, i));
             }
             model.addRow(line);
@@ -267,7 +267,7 @@ public class MX11View extends javax.swing.JPanel {
                 int base = data.curveDefault(curveId);
                 int set = data.curveValue(port, curveId);
 
-                jLabelVelocityPort.setText(MXUtilMidi.nameOfPortInput(port));
+                jLabelVelocityPort.setText(MXMidi.nameOfPortInput(port));
                 jLabelVelocityOriginal.setText(String.valueOf(base));
                 jSpinnerVelocityCurve.setModel(new SafeSpinnerNumberModel(set, 0, 127, 1));
             }catch(Throwable e) {

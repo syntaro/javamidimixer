@@ -19,29 +19,21 @@ package jp.synthtarou.midimixer.mx00playlist;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import javax.swing.JToggleButton;
-import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.MXGlobalTimer;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDFile;
-import jp.synthtarou.midimixer.libs.midi.programlist.database.PDFileManager;
+import jp.synthtarou.midimixer.libs.domino.GMFile;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MX00DrumPadPanel extends javax.swing.JPanel {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MX00DrumPadPanel.class);
-    private static final PDFile _moduleInfo = PDFileManager.getManager().get(0);
-
     JToggleButton[] listDrums = new JToggleButton[256];
     ArrayList<ArrayList<JToggleButton>> layout;
 
     public MX00DrumPadPanel() {
         initComponents();
-        if (SwingUtilities.isEventDispatchThread() == false) {
-            _debug.println("SwingUtilities.isEventDispatchThread() == false");
-        }
+        System.err.println("MX00DrumPadPanel :: SwingUtilities.isEventDispatchThread() == false");
     }
     
     public void buttonLayout(JToggleButton btn) {
@@ -89,8 +81,8 @@ public class MX00DrumPadPanel extends javax.swing.JPanel {
     protected void addNote(int note) {
         JToggleButton prev = listDrums[note];
         if (prev == null) {
-            String drumNote = _moduleInfo.getDrumSet().simpleGetDrum(note);
-            String noteName = MXUtilMidi.nameOfNote(note);
+            String drumNote = GMFile.getInstance().simpleFindDrum(note);
+            String noteName = MXMidi.nameOfNote(note);
             if (drumNote != null) {
                 noteName = drumNote;
             }

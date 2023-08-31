@@ -139,8 +139,8 @@ public class UniqueChecker {
     }
     
     public boolean sendOnlyNeed(MXMessage message) {
-        if (message.getCommand() == MXMidi.COMMAND_NOTEON && message.getValue() == 0) {
-            MXMessage message2 = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_NOTEOFF + message.getChannel(), message.getGate(), 0);
+        if (message.isCommand(MXMidi.COMMAND_NOTEON) && message.getValue()._var == 0) {
+            MXMessage message2 = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_NOTEOFF + message.getChannel(), message.getGate()._var, 0);
             message2._timing = message._timing;
         }
         if (_receiver == null) {

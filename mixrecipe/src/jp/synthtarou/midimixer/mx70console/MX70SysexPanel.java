@@ -17,10 +17,8 @@
 package jp.synthtarou.midimixer.mx70console;
 
 import java.awt.Dimension;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListDataEvent;
@@ -28,9 +26,8 @@ import javax.swing.event.ListDataListener;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.console.ConsoleElement;
 import jp.synthtarou.midimixer.libs.console.ConsoleModel;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
-import jp.synthtarou.midimixer.libs.midi.driver.SysexSplitter;
-import jp.synthtarou.midimixer.libs.swing.MXFileOpenChooser;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 
 /**
  *
@@ -39,7 +36,7 @@ import jp.synthtarou.midimixer.libs.swing.MXFileOpenChooser;
 public class MX70SysexPanel extends javax.swing.JPanel {
     ConsoleModel _list;
     SysEXFile _file;
-    MXWrapList<Integer> _listPort = MXUtilMidi.createPortAssigned(false);
+    MXWrapList<Integer> _listPort = MXMidi.listupPortAssigned(false);
 
     /**
      * Creates new form MX70SysexPanel
@@ -90,13 +87,16 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         jButtonSaveSysex = new javax.swing.JButton();
         jButtonDumpSysex = new javax.swing.JButton();
         jComboBoxPort = new javax.swing.JComboBox<>();
-        jButton5 = new javax.swing.JButton();
+        jButtonToFile = new javax.swing.JButton();
         jToggleButton1 = new javax.swing.JToggleButton();
         jScrollPane3 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
         jProgressBar1 = new javax.swing.JProgressBar();
         jButtonClearLog = new javax.swing.JButton();
         jButtonClearFile = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
+        jSpinner1 = new javax.swing.JSpinner();
+        jLabel2 = new javax.swing.JLabel();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -158,17 +158,17 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         gridBagConstraints.weightx = 1.0;
         add(jComboBoxPort, gridBagConstraints);
 
-        jButton5.setText("This Line To File");
-        jButton5.addActionListener(new java.awt.event.ActionListener() {
+        jButtonToFile.setText("This Line To File");
+        jButtonToFile.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton5ActionPerformed(evt);
+                jButtonToFileActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHWEST;
-        add(jButton5, gridBagConstraints);
+        add(jButtonToFile, gridBagConstraints);
 
         jToggleButton1.setText("Pause");
         jToggleButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -227,11 +227,33 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jButtonClearFile, gridBagConstraints);
+
+        jLabel1.setText("MultiSelect = with Ctrl / Shift");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 3;
+        add(jLabel1, gridBagConstraints);
+
+        jSpinner1.setModel(new javax.swing.SpinnerNumberModel(1024, 0, 9999, 10));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        add(jSpinner1, gridBagConstraints);
+
+        jLabel2.setText("Split Bytes Per (0 -> nosplit)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
+        add(jLabel2, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonLoadSysexActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonLoadSysexActionPerformed
         _file.clear(jTextArea1);
-        MXFileOpenChooser chooser = new MXFileOpenChooser();
+        MXSwingFileChooser chooser = new MXSwingFileChooser();
         chooser.addExtension(".txt", "TEXT");
         chooser.addExtension(".sysex", "SysEX");
         chooser.addExtension(".syx", "SysEX");
@@ -244,7 +266,6 @@ public class MX70SysexPanel extends javax.swing.JPanel {
                 success = _file.readBinary(file);
             }
             _file.bind(jTextArea1);
-            compactBeforeSend();
             if (success) {
                 JOptionPane.showMessageDialog(this, "Done", "Done Read" + file , JOptionPane.OK_OPTION);
             }else {
@@ -258,24 +279,26 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         _list.switchPause(jToggleButton1.isSelected());
     }//GEN-LAST:event_jToggleButton1ActionPerformed
 
-    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+    private void jButtonToFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonToFileActionPerformed
         // TODO add your handling code here:
-        int index = jListScan.getSelectedIndex();
-        if (index >= 0) {
-            ConsoleElement e = _list.getConsoleElement(index);
-            switch (e.getType()) {
-                case ConsoleElement.TYPE_DATA:
-                    byte[] data = e.getData();
-                    _file.add(data, jTextArea1);
-                    break;
-                case ConsoleElement.TYPE_MESSAGE:
-                    byte[] data2 =  e.getMessage().getDataBytes();
-                    _file.add(data2, jTextArea1);
-                    break;
+        int[] index = jListScan.getSelectedIndices();
+        if (index != null & index.length >= 1) {
+            for (int i = 0; i < index.length; ++ i) {
+                ConsoleElement e = _list.getConsoleElement(index[i]);
+                switch (e.getType()) {
+                    case ConsoleElement.TYPE_DATA:
+                        byte[] data = e.getData();
+                        _file.add(data, jTextArea1);
+                        break;
+                    case ConsoleElement.TYPE_MESSAGE:
+                        byte[] data2 =  e.getMessage().getDataBytes();
+                        _file.add(data2, jTextArea1);
+                        break;
+                }
             }
             _file.bind(jTextArea1);
         }
-    }//GEN-LAST:event_jButton5ActionPerformed
+    }//GEN-LAST:event_jButtonToFileActionPerformed
 
     private void jButtonSaveSysexActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSaveSysexActionPerformed
         JFileChooser chooser = new JFileChooser();
@@ -319,13 +342,13 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         // TODO add your handling code here:
         Integer port  = _listPort.readCombobox(jComboBoxPort);
         if (port != null) {
-            _file.sendTo(port, new SysexProgress() {
+            _file.sendSysexTo(port, new SysexProgress() {
                 @Override
                 public void progress(int pos, int total) {
                     jProgressBar1.setMaximum(total);
                     jProgressBar1.setValue(pos);
                 }
-            });
+            }, (int)jSpinner1.getValue());
         }
     }//GEN-LAST:event_jButtonDumpSysexActionPerformed
 
@@ -339,61 +362,22 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         _file.clear(jTextArea1);
     }//GEN-LAST:event_jButtonClearFileActionPerformed
 
-    public void compactBeforeSend() {
-        ArrayList<byte[]> newList = new ArrayList();
-
-        SysexSplitter splitter = null;
-
-        for (byte[] data : _file._contents) {
-            int ch = data[0] & 0xff;
-            if (ch == 0xf0) {
-                if (splitter != null) {
-                    ArrayList<byte[]> ret = splitter.splitOrJoin(0);
-                    newList.addAll(ret);
-                }
-                splitter = new SysexSplitter();
-                splitter.append(data);
-            }
-            else if (ch == 0xf7) {
-                if (splitter == null) {
-                    JOptionPane.showMessageDialog(this, "No header for 0xf7 message");
-                    return;
-                }
-                splitter.append(data);
-            }
-            else {
-                JOptionPane.showMessageDialog(this, "Header not 0xf0 or 0xf7");
-                return;
-            }
-        }
-        if (splitter != null) {
-            ArrayList<byte[]> ret = splitter.splitOrJoin(0);
-            newList.addAll(ret);
-        }
-        if (splitter == null) {
-            JOptionPane.showMessageDialog(this, "Any message not start with 0xf7");
-            return;
-        }
-        
-        ByteArrayOutputStream cache = new ByteArrayOutputStream();
-        
-
-        _file._contents = newList;
-        _file.bind(jTextArea1);    
-    }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton5;
     private javax.swing.JButton jButtonClearFile;
     private javax.swing.JButton jButtonClearLog;
     private javax.swing.JButton jButtonDumpSysex;
     private javax.swing.JButton jButtonLoadSysex;
     private javax.swing.JButton jButtonSaveSysex;
+    private javax.swing.JButton jButtonToFile;
     private javax.swing.JComboBox<String> jComboBoxPort;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JList<String> jListScan;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JSpinner jSpinner1;
     private javax.swing.JTextArea jTextArea1;
     private javax.swing.JToggleButton jToggleButton1;
     // End of variables declaration//GEN-END:variables

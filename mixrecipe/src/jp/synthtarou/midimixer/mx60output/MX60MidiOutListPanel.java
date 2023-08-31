@@ -19,26 +19,22 @@ package jp.synthtarou.midimixer.mx60output;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
-import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.MXStatic;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Empty;
-import jp.synthtarou.midimixer.libs.swing.CheckBoxListCellRenderer;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
-import jp.synthtarou.midimixer.libs.swing.MXFileOpenChooser;
-import org.xml.sax.SAXException;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 
 /**
  *
@@ -86,6 +82,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
             }
         });
         this.add(jScrollPane4);
+        new MXAttachTableResize(jTableDevice);
         
         refreshList();
     }
@@ -134,23 +131,16 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
         tableModel.addColumn("Port");
         tableModel.addColumn("Assign");
         tableModel.addColumn("Open");
-        tableModel.addColumn("DominoXML");
 
         for (MXMIDIOut output : allOutput.valueList()) {
             String prefix = "";
             if (output.getDriver() instanceof MXDriver_Empty) {
                 prefix = "*";
             }
-            File dfile = output.getDXMLFile();
-            String dfileName = "";
-            if (dfile != null) {
-                dfileName = dfile.getName();
-            }
             tableModel.addRow(new Object[] { 
                 prefix + output.getName(),
                 output.getPortAssignedAsText(),
                 output.isOpen() ? "o" : "-",
-                dfileName
             });
         }
 
@@ -190,12 +180,12 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
     public JPopupMenu createPopupMenuForPort(final int row) {
         JPopupMenu popup = new JPopupMenu();
         
-        for (int i = -1; i < MXStatic.TOTAL_PORT_COUNT; ++ i) {
+        for (int i = -1; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
             JMenuItem item;
             if (i < 0) {
                 item = popup.add("(none)");
             }else {
-                item = popup.add(MXUtilMidi.nameOfPortShort(i));
+                item = popup.add(MXMidi.nameOfPortShort(i));
             }
             item.addActionListener(new ActionListener() {
                 @Override
@@ -206,7 +196,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
                     if (itemText.startsWith("(none")) {
                         newAssign = -1;
                     }else {
-                        newAssign = MXUtilMidi.valueOfPortName(itemText);
+                        newAssign = MXMidi.valueOfPortName(itemText);
                     }
                     MXMIDIOutManager manager = MXMIDIOutManager.getManager();
                     
@@ -265,38 +255,5 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
             }
             updateDeviceTable();
         }       
-        if (col == 3) {
-            DefaultTableModel tableModel = (DefaultTableModel)jTableDevice.getModel();
-            String portname = (String)tableModel.getValueAt(row, 0);
-            MXMIDIOut out = MXMIDIOutManager.getManager().findMIDIOutput(portname);
-            if (out == null) {
-                return;
-            }
-            
-            File dir = null;
-            if (out.getDXMLFile() != null) {
-                dir = MXFileOpenChooser.getExistDirectoryRecursive(out.getDXMLFile());
-            }
-            if (dir == null) {
-                dir = MXFileOpenChooser.getStartDirectory();
-            }
-            MXFileOpenChooser chooser = new MXFileOpenChooser(dir);
-            chooser.addExtension(".xml", "Domino XML File");
-            chooser.setAcceptAllFileFilterUsed(false);
-            if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                String name = (String)tableModel.getValueAt(row, 0);
-                MXWrapList<MXMIDIOut> allOutput = MXMIDIOutManager.getManager().listAllOutput();
-                for (MXMIDIOut output : allOutput.valueList()) {
-                    if (output.getName().equals(name)) {
-                        try {
-                            output.setDXMLFile(chooser.getSelectedFile());
-                            updateDeviceTable();
-                        }catch(SAXException e) {
-                            JOptionPane.showMessageDialog(this, e.toString());
-                        }
-                    }
-                }
-            }
-        }
     }    
 }

@@ -20,8 +20,10 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
+import javax.swing.SwingUtilities;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.capture.MXMessageCapture;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
@@ -41,6 +43,7 @@ import jp.synthtarou.midimixer.libs.console.ConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.vst.VSTInstance;
+import jp.synthtarou.midimixer.mx35cceditor.MX35Process;
 import jp.synthtarou.midimixer.mx70console.MX70Process;
 
 /**
@@ -93,6 +96,7 @@ public class MXMain  {
     //private MX12Process _mx12masterkeyProcess;
     private MX00Process _mx00playlistProcess;
     private MX30Process _mx30kontrolProcess;
+    private MX35Process _mx35cceditorProcess;
     private MX40Process _mx40layerProcess;
     private MX60Process _mx60outputProcess;
     private MX70Process _mx70CosoleProcess;
@@ -111,20 +115,17 @@ public class MXMain  {
      */
     public static void main(String[] args) throws Exception {
         try {
+            MXUtil.fixConsoleEncoding();
             MXDebugPrint.initDebugLine(args);
 
             //フォント描写でアンチエイリアスを有効にする
             System.setProperty("awt.useSystemAAFontSettings", "on");
             
-            ThemeManager inst = ThemeManager.getInstance();
-            /*        
             try {
-                LaunchLoopMidi midiout = new LaunchLoopMidi();
+                ThemeManager inst = ThemeManager.getInstance();
+                inst.setUITheme("Nimbus");
             }catch( Throwable e ) {
             }
-            LookAndFeelPanel.setLookAndFeel(LookAndFeelConfig.THEME_OS_STANDARD);
-            LookAndFeelPanel.updateLookAndFeelRecursive();
-            */
         
         } catch (Throwable e) {
         }
@@ -148,6 +149,7 @@ public class MXMain  {
         //_mx12masterkeyProcess = new MX12Process();
         winLogo.showProgress(1, 10);
         _mx30kontrolProcess =  new MX30Process();
+        _mx35cceditorProcess = new MX35Process();
         _mx40layerProcess = new MX40Process();
         _vstRack = MX80Process.getInstance();
 
@@ -156,12 +158,11 @@ public class MXMain  {
         _mx60outputProcess = new MX60Process();
         _mx70CosoleProcess = new MX70Process();
         
-        _masterToList = new MXWrapList();
-
         winLogo.showProgress(3, 10);
 
         _masterToList.addNameAndValue("PushBack", MXMIDIIn.returnReceirer);
         _masterToList.addNameAndValue(_mx30kontrolProcess.getReceiverName(), _mx30kontrolProcess);
+        _masterToList.addNameAndValue(_mx35cceditorProcess.getReceiverName(), _mx35cceditorProcess);
         _masterToList.addNameAndValue(_mx40layerProcess.getReceiverName(), _mx40layerProcess);
         _masterToList.addNameAndValue(_mx60outputProcess.getReceiverName(), _mx60outputProcess);
         _masterToList.addNameAndValue("Direct Output", FinalMIDIOut.getInstance());
@@ -169,7 +170,8 @@ public class MXMain  {
         _mx10inputProcess.setNextReceiver(_mx30kontrolProcess);
         winLogo.showProgress(4, 10);
 
-        _mx30kontrolProcess.setNextReceiver(_mx40layerProcess);
+        _mx30kontrolProcess.setNextReceiver(_mx35cceditorProcess);
+        _mx35cceditorProcess.setNextReceiver(_mx40layerProcess);
         _mx40layerProcess.setNextReceiver(_mx60outputProcess);
         _mx60outputProcess.setNextReceiver(FinalMIDIOut.getInstance());
 
@@ -221,26 +223,29 @@ public class MXMain  {
         reList.add(_mx10inputProcess);
         //reList.add(_velocityProcess);
         reList.add(_mx30kontrolProcess);
+        reList.add(_mx35cceditorProcess);
         reList.add(_mx40layerProcess);
         reList.add(_mx60outputProcess);
         reList.add(_vstRack);
 
-        _mainWindow.initLatebind(reList);
-        _mainWindow.setVisible(true);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                _mainWindow.initLatebind(reList);
+                _mainWindow.setVisible(true);
 
+                winLogo.showProgress(9, 10);
 
-        _mainWindow.setEnabled(true);
-        winLogo.showProgress(9, 10);
+                Runnable run;
+                while((run = getNextLaunchSequence()) != null) {
+                    run.run();
+                }
 
-        //_mx12masterkeyProcess.createWindow();
-
-        winLogo.showProgress(10, 10);
-        winLogo.setVisible(false);
-        
-        Runnable run;
-        while((run = getNextLaunchSequence()) != null) {
-            run.run();
-        }
+                winLogo.showProgress(10, 10);
+                winLogo.setVisible(false);
+                _mainWindow.setEnabled(true);
+            }
+        });
     }
     
     LinkedList<Runnable> _startQueue = new LinkedList();
@@ -264,7 +269,7 @@ public class MXMain  {
         _mx70CosoleProcess.createWindow();
     }
 
-    private MXWrapList<MXReceiver> _masterToList = null;
+    private MXWrapList<MXReceiver> _masterToList = new MXWrapList();
     
     public MXWrapList<MXReceiver> getReceiverList() {
         MXWrapList<MXReceiver> list = new MXWrapList();
@@ -313,6 +318,10 @@ public class MXMain  {
     
     public MX30Process getKontrolProcess() {
         return _mx30kontrolProcess;
+    }
+
+    public MX35Process getCCEditorProcess() {
+        return _mx35cceditorProcess;
     }
 
     public MX40Process getLayerProcess() {

@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.mx10input;
 
 import javax.swing.JPanel;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
@@ -84,7 +84,7 @@ public class MX10Process extends MXReceiver implements MXSettingTarget {
 
     @Override
     public void afterReadSettingFile(MXSetting setting) {
-        for (int port = 0; port < MXStatic.TOTAL_PORT_COUNT; ++ port) {
+        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
             String prefix = "Setting[" + port + "].";
             StringBuffer str = new StringBuffer();
             for (int j = 0; j <_data.countOfTypes(); ++ j) {
@@ -98,7 +98,7 @@ public class MX10Process extends MXReceiver implements MXSettingTarget {
 
     @Override
     public void beforeWriteSettingFile(MXSetting setting) {
-        for (int port = 0; port < MXStatic.TOTAL_PORT_COUNT; ++ port) {
+        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
             String prefix = "Setting[" + port + "].";
             StringBuffer str = new StringBuffer();
             for (int j = 0; j <_data.countOfTypes(); ++ j) {

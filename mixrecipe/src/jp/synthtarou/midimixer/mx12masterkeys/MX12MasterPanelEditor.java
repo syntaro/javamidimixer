@@ -19,10 +19,10 @@ package jp.synthtarou.midimixer.mx12masterkeys;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.MXStatic;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.midi.MXUtilMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 
@@ -76,10 +76,10 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
         _receiverModel = MXMain.getMain().getReceiverList();
         _receiverModel.writeComboBox(jComboBoxReciever, _process.getNextReceiver());
 
-        _portModel = MXUtilMidi.createPortAssigned(false);
+        _portModel = MXMidi.listupPortAssigned(false);
         _portModel.writeComboBox(jComboBoxPort, _process.getMousePort());
         
-        _channelModel = MXUtilMidi.createChannel(false);
+        _channelModel = MXMidi.listupChannel(false);
         _channelModel.writeComboBox(jComboBoxChannel, _process.getMouseChannel());
         
         jSpinnerMouseVelocity.setModel(new SafeSpinnerNumberModel(_process.getMouseVelocity(), 1, 127, 1));
@@ -104,7 +104,7 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
     MX12Process _process;
     
     public String getTitle() {
-        return MXStatic.MX_APPNAME;
+        return MXAppConfig.MX_APPNAME;
     }
     
     /**

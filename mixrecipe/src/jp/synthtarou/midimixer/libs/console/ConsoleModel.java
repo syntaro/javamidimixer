@@ -29,17 +29,19 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import jp.synthtarou.midimixer.libs.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class ConsoleModel implements ListModel<String>{
+public class ConsoleModel implements ListModel<String> {
+
     ArrayList<ConsoleElement> _list = new ArrayList();
     ArrayList<ListDataListener> _listener = new ArrayList();
     LinkedList<ConsoleElement> _queue = new LinkedList();
-    
+
     static final int _capacity = 5000;
     static final int _timer = 500;
     int _startPos = 0;
@@ -48,7 +50,7 @@ public class ConsoleModel implements ListModel<String>{
     MXTiming _selectedTiming = null;
     public boolean _showAllLine = false;
     public boolean _globalSelection = true;
-    
+
     ListCellRenderer<Object> _renderer = new ListCellRenderer<Object>() {
         DefaultListCellRenderer _def = new DefaultListCellRenderer();
 
@@ -56,7 +58,7 @@ public class ConsoleModel implements ListModel<String>{
 
             ConsoleElement value = getConsoleElement(index);
 
-            if (_globalSelection) { 
+            if (_globalSelection) {
                 boolean prevSele = isSelected;
                 cellHasFocus = false;
                 isSelected = false;
@@ -64,21 +66,21 @@ public class ConsoleModel implements ListModel<String>{
                 boolean gray = false;
 
                 if (value == null) {
-                    if (_globalSelection) { 
-                        if (_selectedTiming == null) {                    
+                    if (_globalSelection) {
+                        if (_selectedTiming == null) {
                             isSelected = prevSele;
                             back = null;
                             gray = true;
                         }
                     }
                     var = "-";
-                }else {
-                    if (_selectedTiming ==  value.getTiming()) {
+                } else {
+                    if (_selectedTiming == value.getTiming()) {
                         back = Color.red;
                         isSelected = true;
                         if (_selectedTiming != null) {
                             back = Color.cyan;
-                        }else {
+                        } else {
                             back = Color.gray;
                         }
                         if (_refList.hasFocus()) {
@@ -98,30 +100,29 @@ public class ConsoleModel implements ListModel<String>{
                     c.setBackground(back);
                 }
                 return c;
-            }
-            else {
+            } else {
                 Component c = null;
                 c = _def.getListCellRendererComponent(list, var, index, isSelected, cellHasFocus);
                 return c;
             }
         }
     };
-    
+
     public void bind(JList list) {
         list.setModel(this);
         list.setCellRenderer(_renderer);
         _refList = list;
     }
-    
-    public  void unbind(JList list) {
+
+    public void unbind(JList list) {
         //nothing
         _refList = null;
     }
-    
+
     public static int getGlobalCapacity() {
         return _capacity;
     }
-    
+
     @Override
     public int getSize() {
         return _capacity;
@@ -136,32 +137,32 @@ public class ConsoleModel implements ListModel<String>{
         }
         return e.formatMessageLong();
     }
-    
+
     public int viewIndex(int viewpos) {
         int index = viewpos + _list.size() - _capacity + _startPos;
         if (index < 0) {
             return -1;
         }
         while (index >= _capacity) {
-            index  -= _capacity;
+            index -= _capacity;
         }
-        if (index  >= _list.size()) {
+        if (index >= _list.size()) {
             return -1;
         }
         return index;
     }
 
     public int indexView(int index) {
-        int  viewpos = index - _list.size() + _capacity - _startPos;
+        int viewpos = index - _list.size() + _capacity - _startPos;
         while (viewpos < 0) {
             viewpos += _capacity;
         }
         while (viewpos >= _capacity) {
-            viewpos  -= _capacity;
+            viewpos -= _capacity;
         }
         return viewpos;
     }
-    
+
     public ConsoleElement getConsoleElement(int viewpos) {
         int index = viewIndex(viewpos);
         if (index >= 0) {
@@ -173,62 +174,108 @@ public class ConsoleModel implements ListModel<String>{
     public void add(ConsoleElement e) {
         if (false) {
             addImpl(e);
-        }else if (true) {
+        } else if (true) {
             if (e.getTiming() == null) {
                 new Exception("null timing" + e.formatMessageLong()).printStackTrace();
             }
-            synchronized(_queue) {
+            synchronized (_queue) {
                 _queue.add(e);
             }
             countDown();
         }
     }
-    
+
     boolean _switchPause = false;
-    
+
     public void switchPause(boolean pause) {
-        if (_switchPause) {
-            _switchPause = false;
+        if (pause) {
             fireImpl();
-        }else {
+            _switchPause = pause;
+        } else {
+            _switchPause = pause;
             fireImpl();
-            _switchPause = true;
         }
+    }
+
+    boolean _recordClock = false;
+
+    public void setRecordClock(boolean record) {
+        _recordClock = record;
     }
 
     private synchronized void addImpl(ConsoleElement e) {
         /* Ignore */
+        if (_recordClock == false) {
+            switch (e.getType()) {
+                case ConsoleElement.TYPE_DWORD: {
+                    int dword = e.getDword();
+                    int status = (dword >> 16) & 0xff;
+                    int data1 = (dword >> 8) & 0xff;
+                    int data2 = (dword) & 0xff;
+                    if (status == MXMidi.STATUS_ACTIVESENSING
+                            || status == MXMidi.STATUS_MIDICLOCK
+                            || status == MXMidi.STATUS_MIDITIMECODE) {
+                        return;
+                    }
+                    break;
+                }
+                case ConsoleElement.TYPE_DATA: {
+                    byte[] data = e.getData();
+                    if (data.length > 0) {
+                        int status = data[0] & 0xff;
+                        if (status == MXMidi.STATUS_ACTIVESENSING
+                                || status == MXMidi.STATUS_MIDICLOCK
+                                || status == MXMidi.STATUS_MIDITIMECODE) {
+                            return;
+                        }
+                    }
+                    break;
+                }
+                case ConsoleElement.TYPE_MESSAGE: {
+                    byte[] data = e.getMessage().createBytes();
+                    if (data.length > 0) {
+                        int status2 = data[0] & 0xff;
+                        if (status2 == MXMidi.STATUS_ACTIVESENSING
+                                || status2 == MXMidi.STATUS_MIDICLOCK
+                                || status2 == MXMidi.STATUS_MIDITIMECODE) {
+                            return;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
         //e.getTiming()._arrivePath = new Throwable();
         if (_writePos >= _capacity) {
             _writePos = 0;
         }
         if (_list.size() >= _capacity) {
             int prev = _writePos - 1;
-            if (prev < 0) prev = _capacity - 1;
+            if (prev < 0) {
+                prev = _capacity - 1;
+            }
             ConsoleElement prevE = _list.get(prev);
             if (prevE != null) {
-   /*
                 MXTiming prevNumber = prevE.getTiming();
                 int comp = prevNumber.compareTo(e.getTiming());
                 if (comp > 0) {
                     System.err.println("***********************************************************");
                     System.err.println("This " + e.formatMessageLong());
-                    e.getTiming()._arrivePath.printStackTrace();
+                    //e.getTiming()._arrivePath.printStackTrace();
                     System.err.println("Before" + prevE.formatMessageLong());
-                    prevE.getTiming()._arrivePath.printStackTrace();
+                    //prevE.getTiming()._arrivePath.printStackTrace();
                 }
-                */
             }
-            
+
             _list.set(_writePos, e);
-            _writePos ++;
+            _writePos++;
             _startPos = _writePos;
-        }else {
+        } else {
             _list.add(e);
-            _writePos ++;
+            _writePos++;
         }
     }
-    
+
     long _repaintLastTick = 0;
     boolean _repainReserved = false;
 
@@ -242,7 +289,7 @@ public class ConsoleModel implements ListModel<String>{
         }
         if (tickNow - _repaintLastTick >= _timer) {
             fireImpl();
-        }else {
+        } else {
             _repainReserved = true;
             MXGlobalTimer.letsCountdown(_timer - (tickNow - _repaintLastTick), new Runnable() {
                 @Override
@@ -252,7 +299,7 @@ public class ConsoleModel implements ListModel<String>{
             });
         }
     }
-    
+
     private void fireImpl() {
         if (SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(new Runnable() {
@@ -262,6 +309,9 @@ public class ConsoleModel implements ListModel<String>{
             });
             return;
         }
+        if (_switchPause) {
+            return;
+        }
         _repainReserved = false;
         _repaintLastTick = System.currentTimeMillis();
         LinkedList<ConsoleElement> pop;
@@ -269,7 +319,7 @@ public class ConsoleModel implements ListModel<String>{
             pop = _queue;
             _queue = new LinkedList<>();
         }
-        synchronized(this) {
+        synchronized (this) {
             for (ConsoleElement e : pop) {
                 addImpl(e);
             }
@@ -278,9 +328,9 @@ public class ConsoleModel implements ListModel<String>{
                 for (ListDataListener listener : _listener) {
                     listener.contentsChanged(e);
                 }
-                _refList.ensureIndexIsVisible(_capacity -1);
+                _refList.ensureIndexIsVisible(_capacity - 1);
                 _refList.repaint();
-            }catch(Throwable ex) {
+            } catch (Throwable ex) {
 
             }
         }
@@ -296,7 +346,6 @@ public class ConsoleModel implements ListModel<String>{
         _listener.remove(l);
     }
 
-    
     boolean reserved2 = false;
     long lastTick2 = 0;
 
@@ -307,7 +356,7 @@ public class ConsoleModel implements ListModel<String>{
         if (tickNow - lastTick2 >= 100) {
             reserved2 = true;
             fireSelectByTiming(selection);
-        }else {
+        } else {
             if (reserved2) {
                 return;
             }
@@ -337,10 +386,10 @@ public class ConsoleModel implements ListModel<String>{
         if (reserved2) {
             lastTick2 = System.currentTimeMillis();
             reserved2 = false;
-            synchronized(this) {
+            synchronized (this) {
                 int low = 0;
                 int high = getSize();
-                while(low < high) {
+                while (low < high) {
                     int middle = (high + low) / 2;
                     ConsoleElement elem = getConsoleElement(middle);
                     if (elem == null) {
@@ -352,7 +401,7 @@ public class ConsoleModel implements ListModel<String>{
                         low = middle + 1;
                         continue;
                     }
-                    
+
                     int comp = middlesNumber.compareTo(selection);
                     if (comp == 0) {
                         low = high = middle;
@@ -360,7 +409,7 @@ public class ConsoleModel implements ListModel<String>{
                     }
                     if (comp < 0) {
                         low = middle + 1;
-                    }else {
+                    } else {
                         high = middle - 1;
                     }
                 }
@@ -370,7 +419,7 @@ public class ConsoleModel implements ListModel<String>{
                     _refList.repaint();
                     return;
                 }
-                while(low >= 0) {
+                while (low >= 0) {
                     ConsoleElement e1 = getConsoleElement(low);
                     ConsoleElement e2 = getConsoleElement(low - 1);
                     if (e1 == null || e2 == null) {
@@ -382,13 +431,13 @@ public class ConsoleModel implements ListModel<String>{
                         break;
                     }
                     if (t1.compareTo(t2) == 0) {
-                        low --;
+                        low--;
                         continue;
-                    }else {
+                    } else {
                         break;
                     }
                 }
-                while(high + 1 < getSize()) {
+                while (high + 1 < getSize()) {
                     ConsoleElement e1 = getConsoleElement(high);
                     ConsoleElement e2 = getConsoleElement(high + 1);
                     if (e1 == null || e2 == null) {
@@ -400,9 +449,9 @@ public class ConsoleModel implements ListModel<String>{
                         break;
                     }
                     if (t1.compareTo(t2) == 0) {
-                        high ++;
+                        high++;
                         continue;
-                    }else {
+                    } else {
                         break;
                     }
                 }
@@ -411,7 +460,7 @@ public class ConsoleModel implements ListModel<String>{
             };
         }
     }
-    
+
     public void clear() {
         _list = new ArrayList();
         _queue = new LinkedList();
@@ -422,8 +471,9 @@ public class ConsoleModel implements ListModel<String>{
             listener.contentsChanged(e);
         }
     }
-    
-/*
+
+
+    /*
                 String text ="-";
                 if (value != null) {
                     byte[] data = value.getData();
@@ -486,5 +536,5 @@ public class ConsoleModel implements ListModel<String>{
                 }else {
                     c = new JLabel(text);
                 }
-*/
+     */
 }
