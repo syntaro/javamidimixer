@@ -25,7 +25,6 @@ import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.text.MXLineReader;
 
 /**
@@ -231,63 +230,80 @@ public class GMFile {
             memoTag.setTextContent("");
         }
     }
+    
+    public List<CCXMLNode> seekEvenryonesChildren(List<CCXMLNode> parents, CCRuleForTag tag) {
+        if (parents == null) {
+            return null;
+        }
+        ArrayList<CCXMLNode> result = new ArrayList<>();
+        for (CCXMLNode node : parents) {
+            List<CCXMLNode> list = node.listChildren(tag);
+            if (list != null) {
+                result.addAll(list);
+            }
+        }
+        
+        if (result.isEmpty()) {
+            return null;
+        }
+        return result;
+    }
+
+    public List<CCXMLNode> seekEveryonesChildren(List<CCXMLNode> parents, String tag) {
+        if (parents == null) {
+            return null;
+        }
+        ArrayList<CCXMLNode> result = new ArrayList<>();
+        for (CCXMLNode node : parents) {
+            List<CCXMLNode> list = node.listChildren(tag);
+            if (list != null) {
+                result.addAll(list);
+            }
+        }
+        
+        if (result.isEmpty()) {
+            return null;
+        }
+        return result;
+    }
 
     public String simpleFindProgram(int seekPC) {
-        String seekPCText = Integer.toString(seekPC);
+        seekPC ++; // 0~>1
+        
+        List<CCXMLNode> listModuleData = _file._document.listChildren(CCRuleManager._instance.moduleData);
+        List<CCXMLNode> listInstrument = seekEvenryonesChildren(listModuleData, CCRuleManager._instance.instrumentList);
+        List<CCXMLNode> listMap = seekEvenryonesChildren(listInstrument, CCRuleManager._instance.instrumentList_map);
+        List<CCXMLNode> listPC = seekEvenryonesChildren(listMap, CCRuleManager._instance.instrumentList_pc);
 
-        try {
-            List<CCXMLNode> listModuileData = _file._document.listChildren(CCRuleManager._instance.moduleData);
-            for (CCXMLNode module : listModuileData) {
-                List<CCXMLNode> listInstrument = module.listChildren(CCRuleManager._instance.instrumentList);
-                for (CCXMLNode instrument : listInstrument) {
-                    List<CCXMLNode> listMap = instrument.listChildren(CCRuleManager._instance.instrumentList_map);
-                    for (CCXMLNode map : listMap) {
-                        List<CCXMLNode> listPC = map.listChildren(CCRuleManager._instance.instrumentList_pc);
-                        for (CCXMLNode pc : listPC) {
-                            String attrName = pc._listAttributes.valueOfName("Name");
-                            String attrPC = pc._listAttributes.valueOfName("PC");
-                            if (attrPC.equals(seekPCText)) {
-                                return attrName;
-                            }
-                        }
-                    }
-                }
+        if (listPC == null) {
+            return "-";
+        }
+
+        for (CCXMLNode program : listPC) {
+            String attrName = program._listAttributes.valueOfName("Name");
+            String attrPC = program._listAttributes.valueOfName("PC");
+            int x = MXUtil.numberFromText(attrPC, -1);
+            if (x == seekPC) {
+                return attrName;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return "-";
     }
 
     public String simpleFindDrum(int seekKey) {
-        try {
-            List<CCXMLNode> listModuileData = _file._document.listChildren(CCRuleManager._instance.moduleData);
-            for (CCXMLNode module : listModuileData) {
-                List<CCXMLNode> listDrumSet = module.listChildren("DrumSetList");
-                for (CCXMLNode drum : listDrumSet) {
-                    List<CCXMLNode> listMap = drum.listChildren("Map");
-                    String seekKeyText = Integer.toString(seekKey);
-
-                    for (CCXMLNode map : listMap) {
-                        List<CCXMLNode> listPC = map.listChildren("PC");
-                        for (CCXMLNode pc : listPC) {
-                            List<CCXMLNode> listBank = pc.listChildren("Bank");
-                            for (CCXMLNode bank : listBank) {
-                                List<CCXMLNode> listTone = bank.listChildren("Tone");
-                                for (CCXMLNode tone : listTone) {
-                                    String attrName = tone._listAttributes.valueOfName("Name");
-                                    String attrKey = tone._listAttributes.valueOfName("Key");
-                                    if (attrKey.equals(seekKeyText)) {
-                                        return attrName;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+        List<CCXMLNode> listModuileData = _file._document.listChildren(CCRuleManager._instance.moduleData);
+        List<CCXMLNode> listDrumSet = seekEveryonesChildren(listModuileData, "DrumSetList");
+        List<CCXMLNode> listMap = seekEveryonesChildren(listDrumSet, "Map");
+        List<CCXMLNode> listPC = seekEveryonesChildren(listMap, "PC");
+        List<CCXMLNode> listBank = seekEveryonesChildren(listPC, "Bank");
+        List<CCXMLNode> listTone = seekEveryonesChildren(listBank, "Tone");
+        for (CCXMLNode tone : listTone) {
+            String attrName = tone._listAttributes.valueOfName("Name");
+            String attrKey = tone._listAttributes.valueOfName("Key");
+            int x = MXUtil.numberFromText(attrKey, -1);
+            if (x == seekKey) {
+                return attrName;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return "-";
     }

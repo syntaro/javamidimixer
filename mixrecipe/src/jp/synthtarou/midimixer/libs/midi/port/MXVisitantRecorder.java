@@ -100,7 +100,7 @@ public class MXVisitantRecorder implements TableModel {
 
 
     String[] tableColumns =  {
-        "Port/Ch", "Bank", "Prog", "Vol",  "Exp", "Pan", "Data"
+        "Port/Ch", "Bank", "Prog-1", "Vol",  "Exp", "Pan", "Data"
     };
     @Override
     public int getRowCount() {
