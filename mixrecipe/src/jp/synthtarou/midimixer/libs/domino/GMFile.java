@@ -297,6 +297,11 @@ public class GMFile {
         List<CCXMLNode> listPC = seekEveryonesChildren(listMap, "PC");
         List<CCXMLNode> listBank = seekEveryonesChildren(listPC, "Bank");
         List<CCXMLNode> listTone = seekEveryonesChildren(listBank, "Tone");
+
+        if (listTone == null) {
+            return "-";
+        }
+
         for (CCXMLNode tone : listTone) {
             String attrName = tone._listAttributes.valueOfName("Name");
             String attrKey = tone._listAttributes.valueOfName("Key");
