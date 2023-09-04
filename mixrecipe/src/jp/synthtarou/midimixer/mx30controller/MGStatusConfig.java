@@ -42,6 +42,7 @@ import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.capture.GateInfomation;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
+import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 
@@ -1598,17 +1599,19 @@ public class MGStatusConfig extends javax.swing.JPanel {
             return;
         }
         _okOption = true;
-        MXUtil.closeOwnerWindow(this);
+        MXUtil.getOwnerWindow(this).setVisible(false);
+
     }//GEN-LAST:event_jButtonOKActionPerformed
 
     private void jButtonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelActionPerformed
         _okOption = false;
-        MXUtil.closeOwnerWindow(this);
+        MXUtil.getOwnerWindow(this).setVisible(false);
+
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
     private void jButtonFromListActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonFromListActionPerformed
         PickerForControlChange picker = new PickerForControlChange();
-        MXUtil.showAsDialog(this, picker, "Picker");
+        MXModalFrame.showAsDialog(this, picker, "Picker");
         CCXMLNode x = picker.getTextReturn();
 
         if (x != null) {
@@ -1706,7 +1709,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
         _capture = new MXMessageCapture();
         MXMain.setCapture(_capture);
         MXMessageCapturePanel panel = new MXMessageCapturePanel();
-        MXUtil.showAsDialog(this, panel, "Capture ...");
+        MXModalFrame.showAsDialog(this, panel, "Capture ...");
         GateInfomation retval = panel._selected;
         if (retval != null) {
             _status.setChannel(retval._parent.channel);
@@ -1902,7 +1905,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
         status.setGate(RangedValue.new7bit(_status.getSwitchOutOnTextGate()));
         status.setTemplate(MXMessageFactory.fromDtext(_status.getSwitchOutOnText(), status.getChannel()));
         MGStatusConfig config = new MGStatusConfig(_process, status);
-        MXUtil.showAsDialog(this, config, "Edit Output-On signal");
+        MXModalFrame.showAsDialog(this, config, "Edit Output-On signal");
         if (config._okOption) {
             _status.setSwitchOutOnType(MGStatus.SWITCH_OUT_ON_CUSTOM);
             _status.setSwitchOutOnText(config._status.toTemplateText());
@@ -1918,7 +1921,7 @@ public class MGStatusConfig extends javax.swing.JPanel {
         status.setGate(RangedValue.new7bit(_status.getSwitchOutOffTextGate()));
         status.setTemplateAsText(_status.getSwitchOutOffText(), status.getChannel());
         MGStatusConfig config = new MGStatusConfig(_process, status);
-        MXUtil.showAsDialog(this, config, "Edit Output-Off signal");
+        MXModalFrame.showAsDialog(this, config, "Edit Output-Off signal");
         if (config._okOption) {
             _status.setSwitchOutOffType(MGStatus.SWITCH_OUT_OFF_CUSTOM);
             _status.setSwitchOutOffText(config._status.toTemplateText());

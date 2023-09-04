@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.swing;
+package jp.synthtarou.midimixer.libs.swing.folderbrowser;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -24,11 +24,11 @@ import java.util.ArrayList;
  *
  * @author Syntarou YOSHIDA
  */
-public class MXFileFilter implements FileFilter {
-    public MXFileFilter() {
+public class FileFilterListExt implements FileFilter {
+    public FileFilterListExt() {
     }
 
-    public MXFileFilter(String[] list) {
+    public FileFilterListExt(String[] list) {
         for (String ext : list) {
             addExtension(ext);
         }
@@ -43,19 +43,31 @@ public class MXFileFilter implements FileFilter {
     }
     
     ArrayList<String> _listExtension = new ArrayList<>();
+    public boolean _useAllDirectory = true;
+    public boolean _stopAllFile = false;
     
     @Override
     public boolean accept(File pathname) {
-        if (pathname.isDirectory()) {
-            return true;
-        }
         String path = pathname.getName();
+
+        if (pathname.isDirectory()) {
+            if (_useAllDirectory) {
+                return true;
+            }
+        }
+        else {
+            if (_stopAllFile) {
+                return false;
+            }
+        }
         for (String ext : _listExtension) {
             if (path.toLowerCase().endsWith(ext)) {
+                if (pathname.isDirectory()) {
+                    System.out.println("Dirctory return true " + ext);
+                }
                 return true;
             }
         }
         return false;
     }
-    
 }

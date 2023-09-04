@@ -26,7 +26,6 @@ import java.util.Iterator;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.text.MXLineReader;
 
 /**
@@ -34,11 +33,8 @@ import jp.synthtarou.midimixer.libs.text.MXLineReader;
  * @author Syntarou YOSHIDA
  */
 public class MXMidi {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MXMidi.class);
 
     public static void main(String[] args) {
-        MXDebugPrint.globalSwitchOn();
-        //出力したあと手動で補正する
         File dir = new File("C:/java/release/2022-02-work/src");
         File file = new File(dir, "jp/synthtarou/midimixer/libs/midi/MXMidi.java");
         InputStream in = null;
@@ -95,15 +91,15 @@ public class MXMidi {
             Iterator<String> it = sort.iterator();
             while(it.hasNext()) {
                 String s = it.next();
-                _debug.println(s);
+                System.out.println(s);
             }
         }catch(IOException e) {
-            _debug.printStackTrace(e);
+                e.printStackTrace();
         }finally {
             try {
                 in.close();
             } catch (IOException e) {
-                _debug.printStackTrace(e);
+                e.printStackTrace();
             }
         }
     }

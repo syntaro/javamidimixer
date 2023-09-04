@@ -22,14 +22,12 @@ import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.ListModel;
 import javax.swing.event.ListDataListener;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, ComboBoxModel {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MXWrapList.class);
 
     boolean _ignoreCase = false;
 

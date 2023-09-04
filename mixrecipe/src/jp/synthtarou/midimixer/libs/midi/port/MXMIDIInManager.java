@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
@@ -33,7 +32,6 @@ import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Empty;
  * @author Syntarou YOSHIDA
  */
 public class MXMIDIInManager implements MXSettingTarget {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MXMIDIInManager.class);
     private static final MXMIDIInManager _instance = new MXMIDIInManager();
     
     public static MXMIDIInManager getManager() {

@@ -19,27 +19,22 @@ package jp.synthtarou.midimixer.libs.domino;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.mx35cceditor.prompt.CCValueRule;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class CCParameters extends MXWrapList<String> {
-    public final CCRuleForTag _rule;
-
-    public CCParameters() {
-        this(new CCRuleForTag(""));
-    }
+public class CCXMLAttributes extends MXWrapList<String> {
+    public final CCXMLNode _tag;
     
-    public CCParameters(CCRuleForTag rule) {
-        _rule = rule;
+    public CCXMLAttributes(CCXMLNode tag) {
+        _tag = tag;
         super.setIgnoreCase(true);
     }
     
     public String getTagName() {
-        if (_rule != null) {
-            return _rule._tagName;
+        if (_tag != null) {
+            return _tag._nodeName;
         }
         return "";
     }
@@ -50,7 +45,7 @@ public class CCParameters extends MXWrapList<String> {
     }
 
     public CCRuleForAttribute getAttributeRule(String attrName) {
-        for (CCRuleForAttribute attr : _rule.listAttributes()) {
+        for (CCRuleForAttribute attr : _tag._tagRule.listAttributes()) {
             if (attr._name.equals(attrName)) {
                 return attr;
             }
@@ -67,13 +62,5 @@ public class CCParameters extends MXWrapList<String> {
             MXWrap<String> data = super.get(x);
             data.value = value;
         }
-    }
-
-    public CCRuleForAttribute setupAttributeMust(String name, CCValueRule rule) {
-        return _rule.setupAttributeMust(name, rule);
-    }
-
-    public CCRuleForAttribute setupAttribute(String name, String defaultValue, CCValueRule rule) {
-        return _rule.setupAttribute(name, defaultValue, rule);
     }
 }

@@ -26,7 +26,6 @@ import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
@@ -36,7 +35,6 @@ import jp.synthtarou.midimixer.libs.midi.MXTemplate;
  * @author Syntarou YOSHIDA
  */
 public class MXMessageCapturePanel extends javax.swing.JPanel {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MXMessageCapturePanel.class);
     
     public GateInfomation _selected = null;
     MXMessageCapture _capture = null;
@@ -222,7 +220,6 @@ public class MXMessageCapturePanel extends javax.swing.JPanel {
 
             MXUtil.getOwnerWindow(this).setVisible(false);
             MXMain.setCapture(null);
-            MXUtil.closeOwnerWindow(this);
         }else {
             JOptionPane.showMessageDialog(this, "Choose 1 from List", "Please", JOptionPane.OK_OPTION);
         }
@@ -232,7 +229,6 @@ public class MXMessageCapturePanel extends javax.swing.JPanel {
         _selected = null;
         MXUtil.getOwnerWindow(this).setVisible(false);
         MXMain.setCapture(null);
-        MXUtil.closeOwnerWindow(this);
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
     private void jToggleBuittonScanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleBuittonScanActionPerformed

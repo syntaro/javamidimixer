@@ -33,24 +33,21 @@ import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInForPlayer;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFCallback;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
-import jp.synthtarou.midimixer.libs.swing.MXFileFilter;
-import jp.synthtarou.midimixer.libs.swing.MXSwingFolderBrowser;
+import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
+import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
+import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXSwingFolderBrowser;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MX00View extends javax.swing.JPanel implements SMFCallback {
-
-    private static final MXDebugPrint _debug = new MXDebugPrint(MX00View.class);
-
     static int DRUM_CH = 10 - 1;
 
     MX00PianoPanel[] _listKeyboard;
@@ -471,7 +468,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
 
     private void jButtonAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddActionPerformed
         if (true) {
-            MXFileFilter filter = new MXFileFilter();
+            FileFilterListExt filter = new FileFilterListExt();
             filter.addExtension(".MID");
 
             File root = new File("C:/midi");
@@ -480,9 +477,14 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                 root = null;
             }
 
-            MXSwingFolderBrowser folders = new MXSwingFolderBrowser(root, filter);
-            if (folders.showOpenDialog(this)) {
-                File file = folders.getSelectedFile();
+            MXSwingFolderBrowser folders = new MXSwingFolderBrowser(root, filter, null);
+            MXModalFrame.showAsDialog(this, folders, "Select MIDI File");
+            File[] selected = folders.getSelectedFileList();
+            if (selected == null) {
+                return;
+            }
+            for (File file : selected) {
+                System.out.println("addFile "+ file);
                 _process._playListModel.addElement(new FileWithId(file));
             }
         } else {

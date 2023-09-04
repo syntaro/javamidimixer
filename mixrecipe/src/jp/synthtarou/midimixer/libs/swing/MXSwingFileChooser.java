@@ -21,7 +21,6 @@ import javax.swing.JFileChooser;
 import java.io.File;
 import java.util.ArrayList;
 import javax.swing.filechooser.FileFilter;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.settings.MXSettingUtil;
 
 /**
@@ -85,7 +84,6 @@ public class MXSwingFileChooser extends JFileChooser {
     }
 
     public static void main(String[] args) {
-        MXDebugPrint.globalSwitchOn();
         JFileChooser chooser = new MXSwingFileChooser();
         chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {

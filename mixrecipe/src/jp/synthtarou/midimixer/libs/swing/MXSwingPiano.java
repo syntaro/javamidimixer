@@ -35,7 +35,6 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 
 /**
  *
@@ -526,7 +525,6 @@ public class MXSwingPiano extends JComponent {
     }
     
     public static void main(String[] args) {
-        MXDebugPrint.globalSwitchOn();
         JFrame win = new JFrame("Piano");
         win.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         Insets ins = win.getInsets();

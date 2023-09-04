@@ -18,14 +18,12 @@ package jp.synthtarou.midimixer.libs.midi;
 
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public abstract class MXReceiver {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MXReceiver.class);
     private static MXMain _lock = MXMain.getMain();
     
     public abstract String getReceiverName();
@@ -62,8 +60,7 @@ public abstract class MXReceiver {
         if (_nextReceiver != null) {
             MXMain.getMain().messageDispatch(message, _nextReceiver);
         }else {
-            _debug.println("receiver not set " + message);
-            _debug.printStackTrace();
+            new Exception("receiver not set " + message).printStackTrace();
         }
     }
 

@@ -18,15 +18,12 @@ package jp.synthtarou.midimixer;
 
 import java.awt.Frame;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MXVersionDialog extends javax.swing.JDialog {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MXVersionDialog.class);
-
     public static MXVersionDialog showAsModal(Frame parent) {
         MXVersionDialog dialog = new MXVersionDialog(parent, true);
         dialog.setTitle("Thank YOU for Trial");

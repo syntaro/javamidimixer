@@ -25,7 +25,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 
@@ -34,7 +33,6 @@ import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
  * @author Syntarou YOSHIDA
  */
 public class MX10View extends javax.swing.JPanel {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MX10View.class);
     MX10Process _process;
     MX10MidiInListPanel _inPanel;
     JTableWithColumnHeader _jTableSkip;

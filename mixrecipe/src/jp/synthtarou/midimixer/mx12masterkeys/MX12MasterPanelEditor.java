@@ -282,11 +282,11 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         catchParameters();
-        MXUtil.closeOwnerWindow(this);
+        MXUtil.getOwnerWindow(this).setVisible(false);
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        MXUtil.closeOwnerWindow(this);
+        MXUtil.getOwnerWindow(this).setVisible(false);
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButtonResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonResetActionPerformed

@@ -48,8 +48,9 @@ import javax.swing.tree.TreePath;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.async.Transaction;
-import jp.synthtarou.midimixer.libs.swing.MXFileFilter;
-import jp.synthtarou.midimixer.libs.swing.MXSwingFolderBrowser;
+import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
+import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
+import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXSwingFolderBrowser;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 import jp.synthtarou.midimixer.windows.MXLIB02VST3;
@@ -59,8 +60,9 @@ import jp.synthtarou.midimixer.windows.MXLIB02VST3;
  * @author Syntarou YOSHIDA
  */
 public class MX80Panel extends javax.swing.JPanel {
+
     static MX80Panel _instance = new MX80Panel();
-    
+
     public static synchronized MX80Panel getInstance() {
         return _instance;
     }
@@ -69,13 +71,13 @@ public class MX80Panel extends javax.swing.JPanel {
 
     public static void main(String[] args) {
         MX80Panel panel = MX80Panel.getInstance();
-        
+
         panel.addFilter(new File("C:/Program Files/Common Files/VST3"));
-        panel.addFilter(new File("C:/Program Files/Steinberg" ));
-        
-        MXUtil.showAsDialog(null, panel, "VST Picker");
+        panel.addFilter(new File("C:/Program Files/Steinberg"));
+
+        MXModalFrame.showAsDialog(null, panel, "VST Picker");
     }
-    
+
     MXWrapList<Integer> _streamModel;
     MXWrapList<Integer> _sampleRateModel;
     MXWrapList<Integer> _latencyModel;
@@ -89,11 +91,11 @@ public class MX80Panel extends javax.swing.JPanel {
         jListSkip.setModel(createSkipListModel());
         updateLoadList();
         updateEffectList();
-        
+
         jLabelSpacer.setText("");
-        
+
         VSTStream stream = VSTStream.getInstance();
-        
+
         _streamModel = createStreamModel();
         jComboBoxStream.setModel(_streamModel);
         _streamModel.writeComboBox(jComboBoxStream, stream.getStream());
@@ -112,20 +114,20 @@ public class MX80Panel extends javax.swing.JPanel {
             return;
         }
         float vol1 = MXLIB02VST3.getInstance().getMasterVolume();
-        int vol1000 = (int)(vol1 * 1000);
+        int vol1000 = (int) (vol1 * 1000);
         jSliderMasterVolume.setMinimum(0);
         jSliderMasterVolume.setMaximum(1000);
         jSliderMasterVolume.setValue(vol1000);
         new MXAttachSliderSingleClick(jSliderMasterVolume);
         new MXAttachSliderLikeEclipse(jSliderMasterVolume);
         _initDone = true;
-        
+
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
                 Container cont = MXUtil.getOwnerWindow(MX80Panel.this);
                 if (cont != null && cont instanceof JDialog) {
-                    JDialog frame = (JDialog)cont;
+                    JDialog frame = (JDialog) cont;
                     System.out.println("Install Close Fook");
                     frame.addWindowListener(new WindowAdapter() {
                         @Override
@@ -147,32 +149,32 @@ public class MX80Panel extends javax.swing.JPanel {
     MXWrapList<Integer> createStreamModel() {
         MXWrapList<Integer> model = new MXWrapList();
         VSTStream stream = VSTStream.getInstance();
-        for (int i = 0; i < stream.count(); ++ i) {
+        for (int i = 0; i < stream.count(); ++i) {
             if (stream.getTypeName(i).equals(("ASIO"))) {
                 model.addNameAndValue(stream.getName(i), i);
             }
         }
-        
+
         return model;
     }
 
     MXWrapList<Integer> createLatencyModel() {
         MXWrapList<Integer> list = new MXWrapList();
-        int[] entry = {128, 256, 512, 1024, 2048, 4096 };
-        for (int i = 0; i < entry.length; ++ i) {
+        int[] entry = {128, 256, 512, 1024, 2048, 4096};
+        for (int i = 0; i < entry.length; ++i) {
             int x = entry[i];
             list.addNameAndValue(Integer.toString(x) + " samples", x);
         }
         return list;
     }
-    
+
     MXWrapList<Integer> createSampleRateModel() {
         MXWrapList<Integer> list = new MXWrapList();
-        list.addNameAndValue("22.05khz", (Integer)22050);
-        list.addNameAndValue("44.1khz", (Integer)44100);
-        list.addNameAndValue("48khz", (Integer)48000);
-        list.addNameAndValue("88.2khz", (Integer)88200);
-        list.addNameAndValue("96khz", (Integer)96000);
+        list.addNameAndValue("22.05khz", (Integer) 22050);
+        list.addNameAndValue("44.1khz", (Integer) 44100);
+        list.addNameAndValue("48khz", (Integer) 48000);
+        list.addNameAndValue("88.2khz", (Integer) 88200);
+        list.addNameAndValue("96khz", (Integer) 96000);
         return list;
     }
 
@@ -183,7 +185,7 @@ public class MX80Panel extends javax.swing.JPanel {
         }
         return -1;
     }
-    
+
     private int readPanelSampleRate() {
         Integer x = _sampleRateModel.readCombobox(jComboBoxSampleRate);
         if (x != null) {
@@ -201,33 +203,33 @@ public class MX80Panel extends javax.swing.JPanel {
                 jComboBoxSampleRate.setEnabled(false);
                 jComboBoxLatency.setEnabled(false);
                 jButtonOpenStream.setText("Close Stream");
-            }else {
+            } else {
                 jComboBoxStream.setEnabled(true);
                 jComboBoxSampleRate.setEnabled(true);
                 jComboBoxLatency.setEnabled(true);
                 jButtonOpenStream.setText("Open Stream");
-            }            
+            }
             jButtonOpenStream.setEnabled(true);
         }
     };
-    
+
     public void openStream(int x, int sampleRate, int blockSize) {
         jButtonOpenStream.setEnabled(false);
         _streamModel.writeComboBox(jComboBoxStream, x);
-        
+
         VSTStream stream = VSTStream.getInstance();
         stream.setStream(x);
         stream.setSampleRate(sampleRate);
         stream.setBlockSize(blockSize);
         stream.postOpenStream(streamHandler.copyWithNewTicket("postOpenStream"));
     }
-    
+
     public void closeStream() {
         jButtonOpenStream.setEnabled(false);
         VSTStream stream = VSTStream.getInstance();
         stream.postCloseStream(streamHandler.copyWithNewTicket("postCloseStream"));
     }
-    
+
     public TreeModel createInitialModel(String message) {
         DefaultMutableTreeNode root = new DefaultMutableTreeNode();
 
@@ -238,7 +240,7 @@ public class MX80Panel extends javax.swing.JPanel {
         TreeModel model = new DefaultTreeModel(root);
         return model;
     }
-    
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -554,15 +556,27 @@ public class MX80Panel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonStartQuickScanActionPerformed
 
     private void jButtonAddRootActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddRootActionPerformed
-        MXFileFilter filter = new MXFileFilter();
+        FileFilterListExt filter = new FileFilterListExt() {
+            public boolean acacept(File file) {
+                if (accept(file)) {
+                    return true;
+                }
+                return false;
+            }
+        };
         filter.addExtension("VST3");
-        MXSwingFolderBrowser browse = new MXSwingFolderBrowser(new File("C:\\Program Files"), filter);
-        browse.setOnlyDirectory(true);
-        MXUtil.showAsDialog(this, browse, "Select and Enter");
-        File f = browse.getSelectedFile();
-        if (f != null) {
-            addFilter(f);
+        filter._stopAllFile = true;
+        MXSwingFolderBrowser browse = new MXSwingFolderBrowser(new File("C:\\Program Files"), filter, null);
+        MXModalFrame.showAsDialog(this, browse, "Select and Enter");
+        File[] selected = browse.getSelectedFileList();
+        if (selected != null) {
+            for (File f : selected) {
+                if (f != null) {
+                    addFilter(f);
+                }
+            }
         }
+
     }//GEN-LAST:event_jButtonAddRootActionPerformed
 
     private void jButtonRemoveRootActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRemoveRootActionPerformed
@@ -573,17 +587,16 @@ public class MX80Panel extends javax.swing.JPanel {
         try {
             TreePath path = jTreeMain.getSelectionPath();
             if (path != null) {
-                System.out.println("pathcount " + path.getPathCount());
                 if (path.getPathCount() <= 2) {
                     int opt = JOptionPane.showConfirmDialog(this, "Remove " + file + " from List", "Confirm", JOptionPane.YES_NO_OPTION);
                     if (opt == JOptionPane.YES_OPTION) {
                         removeFilter(file);
                     }
-                }else {
+                } else {
                     JOptionPane.showMessageDialog(this, file + " is not Root Folder", "Error", JOptionPane.OK_OPTION);
                 }
             }
-        }catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }//GEN-LAST:event_jButtonRemoveRootActionPerformed
@@ -596,7 +609,7 @@ public class MX80Panel extends javax.swing.JPanel {
                 if (MX80Process.getInstance()._listSkip.contains(path) == false) {
                     addSkip(path);
                 }
-            }catch(Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -614,19 +627,20 @@ public class MX80Panel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonRemoveSkipActionPerformed
 
     private void jButtonAddSkipBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddSkipBrowseActionPerformed
-        MXFileFilter filter = new MXFileFilter();
+        FileFilterListExt filter = new FileFilterListExt();
         filter.addExtension("VST3");
-        MXSwingFolderBrowser browse = new MXSwingFolderBrowser(new File("C:\\Program Files"), filter);
-        browse.setOnlyDirectory(false);
-        MXUtil.showAsDialog(this, browse, "Select and Enter");
-        File f = browse.getSelectedFile();
-        if (f != null) {
+        MXSwingFolderBrowser browse = new MXSwingFolderBrowser(new File("C:\\Program Files"), filter, null);
+        MXModalFrame.showAsDialog(this, browse, "Select and Enter");
+        File[] selected = browse.getSelectedFileList();
+        if (selected != null) {
             try {
-                String path = f.getPath();
-                if (MX80Process.getInstance()._listSkip.contains(path) == false) {
-                    addSkip(path);
+                for (File path : selected) {
+                    String textPath = path.toString();
+                    if (MX80Process.getInstance()._listSkip.contains(textPath) == false) {
+                        addSkip(textPath);
+                    }
                 }
-            }catch(Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -639,7 +653,7 @@ public class MX80Panel extends javax.swing.JPanel {
     private void jButtonOpenStreamActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOpenStreamActionPerformed
         if (VSTStream.getInstance().isOpen()) {
             closeStream();
-        }else {
+        } else {
             MX80Process process = MX80Process.getInstance();
             int sel = _streamModel.readCombobox(jComboBoxStream);
             int sampleRate = _sampleRateModel.readCombobox(jComboBoxSampleRate);
@@ -649,7 +663,7 @@ public class MX80Panel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonOpenStreamActionPerformed
 
     private void jSliderMasterVolumeStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderMasterVolumeStateChanged
-        if (_initDone) {            
+        if (_initDone) {
             int vol1000 = jSliderMasterVolume.getValue();
             float vol1 = vol1000 * 0.001f;
             MXLIB02VST3.getInstance().setMasterVolume(vol1);
@@ -658,7 +672,7 @@ public class MX80Panel extends javax.swing.JPanel {
 
     private void jPanelSynthsContainerComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_jPanelSynthsContainerComponentResized
         // TODO add your handling code here:
-        onResizeSynth();        
+        onResizeSynth();
     }//GEN-LAST:event_jPanelSynthsContainerComponentResized
 
     private void jSplitPane1PropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_jSplitPane1PropertyChange
@@ -679,13 +693,13 @@ public class MX80Panel extends javax.swing.JPanel {
         }
         return getSelectedFile();
     }
-    
+
     public File getSelectedFile() {
         TreePath path = jTreeMain.getSelectionPath();
         if (path == null) {
             return null;
         }
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
         if (node == null) {
             return null;
         }
@@ -694,23 +708,23 @@ public class MX80Panel extends javax.swing.JPanel {
         if (obj == null) {
             return null;
         }
-        
+
         if (obj instanceof String) {
-            DefaultMutableTreeNode root = (DefaultMutableTreeNode)node.getParent();
+            DefaultMutableTreeNode root = (DefaultMutableTreeNode) node.getParent();
             Object user = root.getUserObject();
             if (user instanceof File) {
-                return new File((File)user, (String)obj);
+                return new File((File) user, (String) obj);
             }
             new Throwable(user.getClass() + "(" + user + ") is not file").printStackTrace();
             return null;
         }
         if (obj instanceof File) {
-            return (File)obj;
+            return (File) obj;
         }
         new Throwable(obj.getClass() + " unknown type").printStackTrace();
         return null;
     }
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButtonAddRoot;
@@ -757,12 +771,11 @@ public class MX80Panel extends javax.swing.JPanel {
         MX80Process.getInstance().addFolder(file);
         updateMainTree();
     }
- 
+
     public void removeFilter(File file) {
         MX80Process.getInstance().removeFolder(file);
         updateMainTree();
     }
-
 
     MX80Process.Callback _callback = new MX80Process.Callback() {
         @Override
@@ -781,48 +794,49 @@ public class MX80Panel extends javax.swing.JPanel {
             updateMainTree();
         }
     };
-    
+
     public void startScanDirectory(boolean quick) {
         MX80Process.getInstance()._callback = _callback;
         MX80Process.getInstance().startScan(quick);
     }
 
     static class SystemFilRenderer extends DefaultTreeCellRenderer {
+
         private TreeCellRenderer _defRenderer;
         private FileSystemView _view;
-        
+
         SystemFilRenderer() {
             _defRenderer = new JTree().getCellRenderer();
             _view = FileSystemView.getFileSystemView();
         }
 
         @Override
-        public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, 
+        public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected,
                 boolean expanded, boolean leaf, int row, boolean hasFocus) {
-           Component component = _defRenderer.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
-     
+            Component component = _defRenderer.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+
             if (false == (value instanceof DefaultMutableTreeNode)) {
                 return component;
             }
             DefaultMutableTreeNode node = null, parentNode = null, parentParentNode = null;
             Object user = null, parent = null, parentPanrent = null;
 
-            node = (DefaultMutableTreeNode)value;
+            node = (DefaultMutableTreeNode) value;
             user = node.getUserObject();
-            if (node != null) {                    
-                parentNode = (DefaultMutableTreeNode)node.getParent();
+            if (node != null) {
+                parentNode = (DefaultMutableTreeNode) node.getParent();
                 if (parentNode != null) {
-                    parent  = parentNode.getUserObject();
+                    parent = parentNode.getUserObject();
                 }
             }
             if (parentNode != null) {
-                parentParentNode = (DefaultMutableTreeNode)parentNode.getParent();
+                parentParentNode = (DefaultMutableTreeNode) parentNode.getParent();
                 if (parentParentNode != null) {
                     parentPanrent = parentParentNode.getUserObject();
                 }
             }
 
-            JLabel label = (JLabel)component;
+            JLabel label = (JLabel) component;
 
             String name = user.toString();
             Icon icon = null;
@@ -836,9 +850,9 @@ public class MX80Panel extends javax.swing.JPanel {
             }
 
             if (parent != null && (parent instanceof VSTFolder)) {
-                VSTFolder vst = (VSTFolder)parent;
+                VSTFolder vst = (VSTFolder) parent;
                 File folder = vst._rootDirectory;
-                File target = (File)user;
+                File target = (File) user;
                 name = VSTFolder.getAsAbsolute(folder, target);
                 label.setIcon(icon);
                 label.setText(name);
@@ -847,8 +861,8 @@ public class MX80Panel extends javax.swing.JPanel {
             }
 
             if (parent != null && (parent instanceof File)) {
-                File folder = (File)parent;
-                File target = (File)user;
+                File folder = (File) parent;
+                File target = (File) user;
 
                 name = VSTFolder.getAsAbsolute(folder, target);
                 icon = _view.getSystemIcon(target);
@@ -857,8 +871,7 @@ public class MX80Panel extends javax.swing.JPanel {
                 label.setText(name);
                 label.setToolTipText(path);
                 return label;
-            }
-            else {
+            } else {
                 return label;
             }
         }
@@ -871,11 +884,11 @@ public class MX80Panel extends javax.swing.JPanel {
                 jTreeMain.setModel(newModel);
                 jTreeMain.setRootVisible(false);
                 jTreeMain.setCellRenderer(new SystemFilRenderer());
-                
+
                 DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) newModel.getRoot();
-                for (int i = 0; i < rootNode.getChildCount(); ++ i) {
+                for (int i = 0; i < rootNode.getChildCount(); ++i) {
                     Object second = rootNode.getChildAt(i);
-                    TreePath path = new TreePath(new Object[] { rootNode, second });
+                    TreePath path = new TreePath(new Object[]{rootNode, second});
                     jTreeMain.expandPath(path);
                 }
             }
@@ -898,7 +911,7 @@ public class MX80Panel extends javax.swing.JPanel {
         }
         return model;
     }
-    
+
     public void updateLoadList() {
         if (SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(new Runnable() {
@@ -911,9 +924,9 @@ public class MX80Panel extends javax.swing.JPanel {
         }
         jPanelSynths.removeAll();
         jPanelSynths.setLayout(new GridBagLayout());
-        
-        for (int i = 0; i < MX80Process.getInstance()._listInstrumentPanel.size(); ++ i) {
-            VSTInstancePanel vstPanel  = MX80Process.getInstance()._listInstrumentPanel.get(i);
+
+        for (int i = 0; i < MX80Process.getInstance()._listInstrumentPanel.size(); ++i) {
+            VSTInstancePanel vstPanel = MX80Process.getInstance()._listInstrumentPanel.get(i);
             GridBagConstraints pos = new GridBagConstraints();
             vstPanel.setParent(this);
             pos.weightx = 1;
@@ -940,8 +953,8 @@ public class MX80Panel extends javax.swing.JPanel {
             return;
         }
         jPanelEffectsContainer.removeAll();
-        for (int i = 0; i < MX80Process.getInstance()._listEffect.size(); ++ i) {
-            VSTInstancePanel vstPanel  = MX80Process.getInstance()._listEffectPanel.get(i);
+        for (int i = 0; i < MX80Process.getInstance()._listEffect.size(); ++i) {
+            VSTInstancePanel vstPanel = MX80Process.getInstance()._listEffectPanel.get(i);
             vstPanel.setParent(this);
             jPanelEffectsContainer.add(vstPanel);
         }
@@ -953,14 +966,14 @@ public class MX80Panel extends javax.swing.JPanel {
 
     public TreeModel createFolderTreeModel() {
         DefaultMutableTreeNode realRootNode = new DefaultMutableTreeNode("Root");
-        
-        for (int i = 0; i < MX80Process.getInstance().countFolder(); ++ i) {
+
+        for (int i = 0; i < MX80Process.getInstance().countFolder(); ++i) {
             VSTFolder filter = MX80Process.getInstance().getFolder(i);
             File root = filter._rootDirectory;
             DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(root);
             rootNode.setAllowsChildren(true);
             realRootNode.add(rootNode);
-            
+
             if (filter.getListResult() == null) {
                 continue;
             }
@@ -978,28 +991,28 @@ public class MX80Panel extends javax.swing.JPanel {
                 }
                 rootNode.add(dirNode);
             }
-            
+
         }
 
         DefaultTreeModel model = new DefaultTreeModel(realRootNode);
         model.setAsksAllowsChildren(true);
         return model;
     }
-    
+
     public void onResizeSynth() {
         int width;
-        width = (int)jScrollPaneSynthContainer.getViewport().getViewRect().getWidth();
+        width = (int) jScrollPaneSynthContainer.getViewport().getViewRect().getWidth();
         jScrollPaneSynthContainer.getViewport().setMinimumSize(new Dimension(200, 100));
         Dimension parent = getParent().getSize();
         jPanelSynths.setMaximumSize(new Dimension(width, 20000));
-        for (int i = 0; i < MX80Process.getInstance()._listInstrumentPanel.size(); ++ i) {
-            VSTInstancePanel vstPanel  = MX80Process.getInstance()._listInstrumentPanel.get(i);
+        for (int i = 0; i < MX80Process.getInstance()._listInstrumentPanel.size(); ++i) {
+            VSTInstancePanel vstPanel = MX80Process.getInstance()._listInstrumentPanel.get(i);
             vstPanel.onResize(width);
         }
-        width = (int)((jPanelEffectsContainer.getSize().getWidth() / 2) - 2);
-        for (int i = 0; i < MX80Process.getInstance()._listEffect.size(); ++ i) {
-            VSTInstancePanel vstPanel  = MX80Process.getInstance()._listEffectPanel.get(i);
+        width = (int) ((jPanelEffectsContainer.getSize().getWidth() / 2) - 2);
+        for (int i = 0; i < MX80Process.getInstance()._listEffect.size(); ++i) {
+            VSTInstancePanel vstPanel = MX80Process.getInstance()._listEffectPanel.get(i);
             vstPanel.onResize(width);
-        }                
+        }
     }
 }

@@ -17,14 +17,12 @@
 package jp.synthtarou.midimixer.libs.settings;
 
 import java.util.ArrayList;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class StringPath extends ArrayList<String> implements Cloneable {
-    private static final MXDebugPrint _debug = new MXDebugPrint(StringPath.class);
 
     public StringPath() {
         super();
@@ -113,7 +111,7 @@ public class StringPath extends ArrayList<String> implements Cloneable {
                     try {
                         Integer.parseInt(part);
                     }catch(NumberFormatException e) {
-                        _debug.printStackTrace(e, part + " is not number");
+                        e.printStackTrace();
                         return null;
                     }
                 }

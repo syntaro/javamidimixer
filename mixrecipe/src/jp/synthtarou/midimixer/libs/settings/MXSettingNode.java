@@ -21,15 +21,12 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MXSettingNode {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MXSettingNode.class);
-
     protected MXSetting _setting;
     
     public String toString() {
@@ -252,7 +249,7 @@ public class MXSettingNode {
                 writer.write(text + "=" + _value + "\n");
             }
         }else if (_value != null) {
-            _debug.println("not registered " + text + "=" + _value);
+            System.out.println("not registered " + text + "=" + _value);
         }
 
         for (MXSettingNode e : _children) {

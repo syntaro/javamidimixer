@@ -26,7 +26,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Empty;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
@@ -38,7 +37,6 @@ import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
  * @author Syntarou YOSHIDA
  */
 public class MX10MidiInListPanel extends javax.swing.JPanel {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MX10MidiInListPanel.class);
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JTable jTableDevice;
 
@@ -162,7 +160,7 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
             //String newMaster = (String)newModel.getValueAt(i, 3);
             
             if (name.equals(newName) == false) {
-                _debug.println("any troubole?");
+                System.out.println("any troubole?");
                 break;
             }
             

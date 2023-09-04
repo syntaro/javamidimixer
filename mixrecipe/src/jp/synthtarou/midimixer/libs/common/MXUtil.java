@@ -56,6 +56,7 @@ import jp.synthtarou.midimixer.mx30controller.MGSlider;
  * @author Syntarou YOSHIDA
  */
 public class MXUtil {
+
     public static String toHexFF(int i) {
         String str = Integer.toHexString(i).toUpperCase();
         if (str.length() == 1) {
@@ -89,7 +90,7 @@ public class MXUtil {
         }
         return str.toString();
     }
- 
+
     public static boolean isNumberFormat(String text) {
         try {
             if (MXUtil.numberFromText(text, Integer.MIN_VALUE) == Integer.MIN_VALUE) {
@@ -104,7 +105,7 @@ public class MXUtil {
     public static final int numberFromText(String text) {
         return MXUtil.numberFromText(text, 0);
     }
-    
+
     public static final int numberFromText(String text, int errorNumber) {
         int mum = 10;
 
@@ -145,7 +146,7 @@ public class MXUtil {
         }
         return x;
     }
-    
+
     public static boolean searchTextIgnoreCase(String text, String words) {
         text = text.toLowerCase();
         words = words.toLowerCase();
@@ -184,15 +185,15 @@ public class MXUtil {
             }
         }
         if (c instanceof MGCircle) {
-            MGCircle circle = (MGCircle)c;
+            MGCircle circle = (MGCircle) c;
             circle.setValueChangeable(enable);
         }
         if (c instanceof MGSlider) {
-            MGSlider slider = (MGSlider)c;  
+            MGSlider slider = (MGSlider) c;
             slider.setValueChangeable(enable);
         }
         if (c instanceof MGPad) {
-            MGPad pad = (MGPad)c;
+            MGPad pad = (MGPad) c;
             pad.setValueChangeable(enable);
         }
     }
@@ -219,20 +220,6 @@ public class MXUtil {
         panel.requestFocusInWindow();
         dialog.setVisible(true);
     }
-    
-    public static void closeOwnerWindow(Component c) {
-        while(c != null) {
-            c = c.getParent();
-            if (c == null) {
-                break;
-            }
-            if (c instanceof Dialog || c instanceof Window) {
-                c.setVisible(false);
-                return;
-            }
-        }    
-    }
-
     public static void centerWindow(Component c) {
         Component owner = (c instanceof Window) ? ((Window) c).getOwner() : null;
         if (owner != null && !owner.isVisible()) {
@@ -255,9 +242,8 @@ public class MXUtil {
         loc.y += (screenSize.height - mySize.height) / 2;
         c.setLocation(loc);
     }
-    
 
-    public static Container getOwnerWindow(Component panel) {
+    public static Window getOwnerWindow(Component panel) {
         while (panel != null) {
             if (panel instanceof Window) {
                 return (Window) panel;
@@ -296,29 +282,28 @@ public class MXUtil {
         int rb = (int) (right.getBlue() * percent / 100);
         return new Color(lr + rr, lg + rg, lb + rb);
     }
-    
+
     public static void backgroundRecursive(Container container, Color color) {
         LinkedList<Container> listContainer = new LinkedList();
         listContainer.add(container);
-        
-        while(listContainer.isEmpty() == false) {
+
+        while (listContainer.isEmpty() == false) {
             Container cont = listContainer.remove();
             if (cont == null) {
                 continue;
             }
             cont.setBackground(color);
-            
+
             Component[] list = cont.getComponents();
             for (Component child : list) {
                 if (child instanceof Container) {
-                    listContainer.add((Container)child);
-                }else {
+                    listContainer.add((Container) child);
+                } else {
                     child.setBackground(color);
                 }
             }
         }
     }
-
 
     public static boolean isShrinkTarget(char c) {
         if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
@@ -348,23 +333,12 @@ public class MXUtil {
         return text.substring(start, end + 1);
     }
 
-    public static String getStackTraceAsString(Throwable th) {
-        StringBuffer ret = new StringBuffer();
-        StackTraceElement[] elems = th.getStackTrace();
-        ret.append(th.toString());
-        for (int i = 1; i < elems.length; ++i) {
-            StackTraceElement x = elems[i];
-            ret.append("\n    ");
-            ret.append(x.toString());
-        }
-        return ret.toString();
-    }
-
-
     public static File getAppBaseDirectory() {
         String fileName = null;
+
         try {
-            ProtectionDomain pd = MXUtil.class.getProtectionDomain();
+            ProtectionDomain pd = MXUtil.class
+                    .getProtectionDomain();
             CodeSource cs = pd.getCodeSource();
             URL location = cs.getLocation();
             URI uri = location.toURI();
@@ -404,7 +378,7 @@ public class MXUtil {
 
     public static File safeRenameToBackup(File target) {
         File parent = target.getParentFile();
-        
+
         parent = new File(parent, "Old");
         parent.mkdir();
 

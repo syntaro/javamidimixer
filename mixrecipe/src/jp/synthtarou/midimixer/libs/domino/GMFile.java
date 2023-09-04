@@ -148,6 +148,15 @@ public class GMFile {
         CCXMLNode mapTag = drumSetList.newTag("Map", true);
         mapTag._listAttributes.addNameAndValue("Name", "GM Drum");
 
+        CCXMLNode pcTag = mapTag.newTag("PC", true);
+        pcTag._listAttributes.addNameAndValue("Name", "Standard");
+        pcTag._listAttributes.addNameAndValue("PC", "1");
+
+        CCXMLNode bankTag = pcTag.newTag("Bank", true);
+        bankTag._listAttributes.addNameAndValue("Name", "Standard");
+        bankTag._listAttributes.addNameAndValue("MSB", "0");
+        bankTag._listAttributes.addNameAndValue("LSB", "0");
+
         try {
             while ((line = reader.readLine()) != null) {
                 if (line.startsWith("#")) {
@@ -156,15 +165,6 @@ public class GMFile {
                 }
 
                 MXUtil.split(line, cells, ',');
-
-                CCXMLNode pcTag = mapTag.newTag("PC", true);
-                pcTag._listAttributes.addNameAndValue("Name", "Standard");
-                pcTag._listAttributes.addNameAndValue("PC", "1");
-
-                CCXMLNode bankTag = pcTag.newTag("Bank", true);
-                bankTag._listAttributes.addNameAndValue("Name", "Standard");
-                bankTag._listAttributes.addNameAndValue("MSB", "0");
-                bankTag._listAttributes.addNameAndValue("LSB", "0");
 
                 if (cells.size() >= 4) {
                     String noteNumber = cells.get(0);
@@ -291,6 +291,7 @@ public class GMFile {
     }
 
     public String simpleFindDrum(int seekKey) {
+        _file._document.getChangeStamp(); //TODO
         List<CCXMLNode> listModuileData = _file._document.listChildren(CCRuleManager._instance.moduleData);
         List<CCXMLNode> listDrumSet = seekEveryonesChildren(listModuileData, "DrumSetList");
         List<CCXMLNode> listMap = seekEveryonesChildren(listDrumSet, "Map");

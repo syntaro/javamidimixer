@@ -32,12 +32,11 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.MXGlobalTimer;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.domino.PickerForProgram;
+import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
@@ -47,8 +46,6 @@ import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
  * @author Syntarou YOSHIDA
  */
 public class MX40View extends javax.swing.JPanel implements TableModelListener {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MX40View.class);
-
     public MX40Process _process;
     
     MX40Group _editingGroup;
@@ -1150,7 +1147,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         readGroupFromPanel(group);
         PickerForProgram picker = new PickerForProgram();
         picker.setDefault(group._watchingProgram, group._watchingBankMSB, group._watchingBankLSB);
-        MXUtil.showAsDialog(this, picker, "Select Program");
+        MXModalFrame.showAsDialog(this, picker, "Select Program");
         if (picker._returnProgram >= 0) {
             jSpinnerWatchProgram.setValue(picker._returnProgram);
             jSpinnerWatchBankMSB.setValue(picker._returnBankMSB);
@@ -1167,7 +1164,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         readLayerFromPanel(layer);
         PickerForProgram picker = new PickerForProgram();
         picker.setDefault(layer._fixedProgram, layer._fixedBankMSB, layer._fixedBankLSB);
-        MXUtil.showAsDialog(this, picker, "Select Program");
+        MXModalFrame.showAsDialog(this, picker, "Select Program");
         if (picker._returnProgram >= 0) {
             jSpinnerSendProgram.setValue(picker._returnProgram);
             jSpinnerSendBankMSB.setValue(picker._returnBankMSB);

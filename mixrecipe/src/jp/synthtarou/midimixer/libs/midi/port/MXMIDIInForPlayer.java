@@ -25,7 +25,6 @@ import javax.sound.midi.ShortMessage;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXThreadList;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXException;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
@@ -40,7 +39,6 @@ import jp.synthtarou.midimixer.libs.midi.smf.SMFCallback;
  * @author Syntarou YOSHIDA
  */
 public class MXMIDIInForPlayer extends MXMIDIIn {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MXMIDIInForPlayer.class);
  
     boolean[] _existNoteChannel = new boolean[16];
     

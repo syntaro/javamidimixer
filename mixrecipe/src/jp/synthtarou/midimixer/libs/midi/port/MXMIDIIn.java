@@ -20,11 +20,10 @@ import java.util.ArrayList;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.MXThreadList;
+import jp.synthtarou.midimixer.libs.MXQueue1;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
@@ -41,8 +40,6 @@ import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
  * @author Syntarou YOSHIDA
  */
 public class MXMIDIIn {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MXMIDIIn.class);
-
     public static final MXMIDIInForPlayer INTERNAL_PLAYER = new MXMIDIInForPlayer();
     
     private String _name;
@@ -330,22 +327,7 @@ public class MXMIDIIn {
         startMainPath(timing, -1, data);
     }
 
-    Thread lastSent = null;
-    Thread _attached = null;
-    
     private void startMainPath(MXTiming timing, int dword, byte[] data) {
-        if (Thread.currentThread() != _attached) {
-            _attached = Thread.currentThread();
-            MXThreadList.attachIfNeed("startMainPath", _attached);
-        }
-        if (lastSent != Thread.currentThread()) {
-            lastSent = Thread.currentThread();
-            if (Thread.currentThread().getPriority() != Thread.MAX_PRIORITY) {
-                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-                System.out.println("Thread MAX");
-            }
-        }
-
         int status = (dword >> 16) & 0xff;
         int data1 = (dword >> 8) & 0xff;
         int data2 = (dword) & 0xff;
@@ -413,8 +395,35 @@ public class MXMIDIIn {
             }
         }
     }
+    
+    static MXQueue1<MXMessage> _messageQueue = new MXQueue1<>();
+    static Thread _threadQueue = null;
 
     private void dispatchToPort(MXMessage message) {
+        if (_threadQueue == null || _threadQueue.isAlive() == false) {
+            _threadQueue = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (true) {
+                        try {   
+                            MXMessage messsage = _messageQueue.pop();
+                            if (message != null) {
+                                dispatchToPortMain(messsage);
+                            }
+                        }catch(Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+            _threadQueue.setDaemon(true);
+            _threadQueue.setPriority(Thread.MAX_PRIORITY);
+            _threadQueue.start();
+        }
+        _messageQueue.push(message);
+    }
+    
+    private void dispatchToPortMain(MXMessage message) {
         int port = message.getPort();
         synchronized(MXTiming.mutex) {
             if (message.isMessageTypeChannel()) {

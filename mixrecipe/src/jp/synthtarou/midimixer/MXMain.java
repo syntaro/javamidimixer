@@ -23,7 +23,6 @@ import java.util.LinkedList;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.capture.MXMessageCapture;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
@@ -116,7 +115,6 @@ public class MXMain  {
     public static void main(String[] args) throws Exception {
         try {
             MXUtil.fixConsoleEncoding();
-            MXDebugPrint.initDebugLine(args);
 
             //フォント描写でアンチエイリアスを有効にする
             System.setProperty("awt.useSystemAAFontSettings", "on");
@@ -244,6 +242,17 @@ public class MXMain  {
                 winLogo.showProgress(10, 10);
                 winLogo.setVisible(false);
                 _mainWindow.setEnabled(true);
+            }
+        });
+        
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+                }catch(Throwable e) {
+                    e.printStackTrace();
+                }
             }
         });
     }

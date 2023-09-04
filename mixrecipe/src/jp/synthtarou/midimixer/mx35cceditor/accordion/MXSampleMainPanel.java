@@ -23,8 +23,7 @@ import java.awt.Insets;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-
+import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 /**
  *
  * @author Syntarou YOSHIDA
@@ -34,7 +33,7 @@ public class MXSampleMainPanel extends javax.swing.JPanel {
 
     public static void main(String args[]) {
         
-        MXUtil.showAsDialog(null, new MXSampleMainPanel(), "test");
+        MXModalFrame.showAsDialog(null, new MXSampleMainPanel(), "test");
     }
 
     /**

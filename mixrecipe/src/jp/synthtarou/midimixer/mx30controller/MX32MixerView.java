@@ -37,9 +37,9 @@ import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
+import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 
 /**
@@ -47,8 +47,6 @@ import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
  * @author Syntarou YOSHIDA
  */
 public class MX32MixerView extends javax.swing.JPanel {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MX32MixerView.class);
-
     MX32MixerProcess _process;
     MXFocusGroup _focusGroup;
     MXWrapList<Integer> chainModel;
@@ -310,7 +308,7 @@ public class MX32MixerView extends javax.swing.JPanel {
     
     public void doInitializeMixer() {
         InitializeConfirmPanel panel = new InitializeConfirmPanel(_process);
-        MXUtil.showAsDialog(this, panel, "Initialize Mixer");
+        MXModalFrame.showAsDialog(this, panel, "Initialize Mixer");
         updateUI();
         _process._parent.globalContollerHidden();
     }
@@ -368,7 +366,7 @@ public class MX32MixerView extends javax.swing.JPanel {
     
     public void doResizeMixer() {
         MX30ResizeMixerSetting config = new MX30ResizeMixerSetting(_process._parent);
-        MXUtil.showAsDialog(this, config, "Resize Mixer");
+        MXModalFrame.showAsDialog(this, config, "Resize Mixer");
         if (config._okOption) {
             _process._parent.globalContollerHidden();
         }

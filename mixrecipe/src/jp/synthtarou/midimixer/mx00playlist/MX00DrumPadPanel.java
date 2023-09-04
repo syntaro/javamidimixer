@@ -33,7 +33,6 @@ public class MX00DrumPadPanel extends javax.swing.JPanel {
 
     public MX00DrumPadPanel() {
         initComponents();
-        System.err.println("MX00DrumPadPanel :: SwingUtilities.isEventDispatchThread() == false");
     }
     
     public void buttonLayout(JToggleButton btn) {

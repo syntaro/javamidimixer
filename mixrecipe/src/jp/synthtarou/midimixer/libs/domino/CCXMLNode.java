@@ -31,7 +31,7 @@ public class CCXMLNode  {
         _nodeName = name;
         _tagRule = rule;
         _parent = parent;
-        _listAttributes = new CCParameters(_tagRule);
+        _listAttributes = new CCXMLAttributes(this);
         _listAttributes.setIgnoreCase(true);
         _listChildTags = new ArrayList<>();
     }
@@ -44,8 +44,20 @@ public class CCXMLNode  {
     String _warningText;
     int _lineNumber;
     int _columnNumber;
+    private int _changeStamp;
 
-    public final CCParameters _listAttributes;
+    public int getChangeStamp() {
+        return _changeStamp;
+    }
+    
+    public void incrementChangeStamp() {
+        _changeStamp ++;
+        if (_parent  != null) {
+            _parent.incrementChangeStamp();
+        }
+    }
+   
+    public final CCXMLAttributes _listAttributes;
     ArrayList<CCXMLNode> _listChildTags;
     
     public String getWarningText() {
@@ -70,6 +82,7 @@ public class CCXMLNode  {
 
     public void setTextContent(String text) {
         _textContext = text;
+        incrementChangeStamp();
     }
     
     public CCRuleForTag getTagRule() {
@@ -211,6 +224,8 @@ public class CCXMLNode  {
     }
 
     public CCXMLNode newTag(String name, boolean strict) {
+        incrementChangeStamp();
+ 
         // 既存ルールを探索する
         CCRuleForTag newRule = _tagRule.getTag(name);
 

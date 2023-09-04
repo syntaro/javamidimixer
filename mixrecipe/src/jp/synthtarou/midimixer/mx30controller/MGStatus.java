@@ -17,11 +17,8 @@
 package jp.synthtarou.midimixer.mx30controller;
 
 import java.io.File;
-import java.time.temporal.Temporal;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
@@ -121,8 +118,6 @@ public class MGStatus implements Cloneable {
     public static final int SWITCH_TYPE_ONOFF = 2;
     public static final int SWITCH_TYPE_HARMONY = 4;
     public static final int SWITCH_TYPE_SEQUENCE = 5;
-
-    private static final MXDebugPrint _debug = new MXDebugPrint(MGStatus.class);
 
     public static final int TYPE_CIRCLE = 1;
     public static final int TYPE_SLIDER = 2;
@@ -249,7 +244,7 @@ public class MGStatus implements Cloneable {
             return message;
         }
         //TODO
-        _debug.println("Error getMXMessageDrumON:getSwitchOutOnType=" + getSwitchOutOnType());
+        System.out.println("Error getMXMessageDrumON:getSwitchOutOnType=" + getSwitchOutOnType());
         return null;
     }
 
@@ -296,7 +291,7 @@ public class MGStatus implements Cloneable {
             return message;
         }
         //TODO
-        _debug.println("Error getMXMessageDrumOff:getSwitchOutOffType=" + getSwitchOutOffType());
+        System.out.println("Error getMXMessageDrumOff:getSwitchOutOffType=" + getSwitchOutOffType());
         return null;
     }
 
@@ -502,7 +497,7 @@ public class MGStatus implements Cloneable {
                 }
                 return false;
         }
-        _debug.println("isDrumOn = " + getSwitchInputType());
+        System.out.println("isDrumOn = " + getSwitchInputType());
         return false;
     }
 

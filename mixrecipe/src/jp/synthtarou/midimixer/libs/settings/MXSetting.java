@@ -27,7 +27,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.TreeSet;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.text.MXLineReader;
 import jp.synthtarou.midimixer.libs.text.MXLineWriter;
 
@@ -36,10 +35,8 @@ import jp.synthtarou.midimixer.libs.text.MXLineWriter;
  * @author Syntarou YOSHIDA
  */
 public class MXSetting {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MXSetting.class);
 
     public static void main(String[] args) {
-        MXDebugPrint.globalSwitchOn();
         MXSetting root = new MXSetting("test");
          
         root.register("base.attribute");
@@ -147,7 +144,7 @@ public class MXSetting {
         try {
             _root.clearValues();
             fin = new FileInputStream(_settingFile);
-            _debug.println("reading " + _settingFile + " = " + _targetName);
+            System.out.println("reading " + _settingFile + " = " + _targetName);
             MXLineReader reader = new MXLineReader(fin, "utf-8");
             while(true) {
                 String line = reader.readLine();
@@ -170,11 +167,11 @@ public class MXSetting {
                 _root.setSetting(key, value);
             }
         }catch(FileNotFoundException e) {
-            _debug.println("First Time for [" + _settingFile + "]");
+            System.out.println("First Time for [" + _settingFile + "]");
         }catch(MXSettingException e) {
-            _debug.printStackTrace(e);
+            e.printStackTrace();
         }catch(IOException e) {
-            _debug.printStackTrace(e);
+            e.printStackTrace();
         }finally {
             if (fin != null) {
                 try {
@@ -198,7 +195,7 @@ public class MXSetting {
         }
         File temporary = MXSettingUtil.createTemporaryFile(_settingFile);
         MXLineWriter writer = null;
-        _debug.println("writing " + _settingFile + " = " + _targetName);
+        System.out.println("writing " + _settingFile + " = " + _targetName);
         
         try {
             writer = new MXLineWriter(temporary, "utf-8");
@@ -225,12 +222,12 @@ public class MXSetting {
             }
 
         }catch(IOException ioe) {
-            _debug.printStackTrace(ioe);
+            ioe.printStackTrace();
             if (writer != null) {
                 try {
                     writer.close();
                 }catch(Exception e) {
-                    _debug.printStackTrace(e);
+                    e.printStackTrace();
                 }
                 temporary.delete();
             }
@@ -260,7 +257,7 @@ public class MXSetting {
         try {
            return _root.setSetting(name, value);
         }catch(MXSettingException e) {
-            _debug.printStackTrace(e);
+            e.printStackTrace();
             return false;
         }
     }
@@ -296,7 +293,7 @@ public class MXSetting {
             p.addAll(StringPath.parsePath(name));
             register(p);
         }catch(MXSettingException e) {
-            _debug.println("Can't regist " + name +" for " + getFile());
+            System.out.println("Can't regist " + name +" for " + getFile());
         }
     }
 

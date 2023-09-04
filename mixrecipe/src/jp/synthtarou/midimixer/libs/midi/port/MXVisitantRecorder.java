@@ -23,7 +23,6 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -34,7 +33,6 @@ import jp.synthtarou.midimixer.libs.midi.MXTiming;
  * @author Syntarou YOSHIDA
  */
 public class MXVisitantRecorder implements TableModel {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MXVisitantRecorder.class);
     private ArrayList<MXVisitant16> _element;
 
     public MXVisitantRecorder() {

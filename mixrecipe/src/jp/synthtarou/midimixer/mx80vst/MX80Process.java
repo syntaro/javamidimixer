@@ -511,10 +511,11 @@ public class MX80Process extends MXReceiver implements MXSettingTarget {
         _thread = MXThreadList.newThread("MX80Process", new Runnable() {
             public void run() {
                 _scanRealTotal = 0;
-                for(VSTFolder filter : _listFolder) {
+                ArrayList<VSTFolder> copy = new ArrayList<>(_listFolder);
+                for(VSTFolder filter : copy) {
                     filter._cancelOperation = false;
                 }
-                for(VSTFolder filter : _listFolder) {
+                for(VSTFolder filter : copy) {
                     if (filter.isScanDone()) {
                         if (quick) {
                             continue;

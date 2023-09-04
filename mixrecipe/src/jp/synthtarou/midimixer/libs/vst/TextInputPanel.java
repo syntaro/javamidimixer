@@ -19,6 +19,7 @@ package jp.synthtarou.midimixer.libs.vst;
 import java.awt.Container;
 import java.awt.Dimension;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 
 /**
  *
@@ -41,7 +42,7 @@ public class TextInputPanel extends javax.swing.JPanel {
     public String showAsDialog(Container parent, String text) {
         _selfOwner = true;
         jTextField1.setText(text);
-        MXUtil.showAsDialog(parent, this, "Input Name");
+        MXModalFrame.showAsDialog(parent, this, "Input Name");
         _selfOwner = false;
         return _result;
     }

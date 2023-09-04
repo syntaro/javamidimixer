@@ -26,7 +26,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
@@ -36,7 +35,6 @@ import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
  * @author Syntarou YOSHIDA
  */
 public class MX11View extends javax.swing.JPanel {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MX11View.class);
     /**
      * Creates new form MXMidiChannelPanel
      */

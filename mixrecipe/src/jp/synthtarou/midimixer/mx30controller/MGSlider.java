@@ -26,9 +26,9 @@ import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
+import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.focus.MXFocusAble;
 import jp.synthtarou.midimixer.libs.swing.focus.MXFocusGroupElement;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
@@ -40,8 +40,6 @@ import jp.synthtarou.midimixer.libs.swing.themes.ThemeManager;
  * @author Syntarou YOSHIDA
  */
 public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWheelListener {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MGSlider.class);
-
     MX32MixerProcess _process;
     int _row, _column;
 
@@ -315,7 +313,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
         _process._parent.enterEditMode(false);
         MGStatus status = (MGStatus)getStatus().clone();
         MGStatusConfig config = new MGStatusConfig(_process, status);
-        MXUtil.showAsDialog(this, config, "Enter Edit Slider {row:" + _row + ", column:" + _column + "}");
+        MXModalFrame.showAsDialog(this, config, "Enter Edit Slider {row:" + _row + ", column:" + _column + "}");
         if (config._okOption) {
             setStatus(config._status);
             jLabelName.setText(config._status.getName());

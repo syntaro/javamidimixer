@@ -21,7 +21,6 @@ import java.io.File;
 import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.JPanel;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -33,7 +32,6 @@ import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
  * @author Syntarou YOSHIDA
  */
 public class MX00Process extends MXReceiver implements MXSettingTarget {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MX00Process.class);
 
     public MX00Process() {
         _playListModel = new DefaultListModel();
@@ -95,7 +93,7 @@ public class MX00Process extends MXReceiver implements MXSettingTarget {
                 if (x < min) min = x;
                 if (x > max) max = x;
             }catch(NumberFormatException e) {
-                _debug.printStackTrace(e);
+                e.printStackTrace();
             }
         }
         for (int x = min; x <= max; ++ x) {

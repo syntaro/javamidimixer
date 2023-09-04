@@ -24,11 +24,10 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
+import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.focus.MXFocusAble;
 import jp.synthtarou.midimixer.libs.swing.focus.MXFocusGroupElement;
 
@@ -37,8 +36,6 @@ import jp.synthtarou.midimixer.libs.swing.focus.MXFocusGroupElement;
  * @author Syntarou YOSHIDA
  */
 public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWheelListener {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MGCircle.class);
-
     MX32MixerProcess _process;
     int _row, _column;
     Color foreground = null;
@@ -235,7 +232,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
         _process._parent.enterEditMode(false);
         MGStatus status = (MGStatus)getStatus().clone();
         MGStatusConfig config = new MGStatusConfig(_process, status);
-        MXUtil.showAsDialog(this, config, "Enter Edit Circle {row:" + _row + ", column:" + _column + "}");
+        MXModalFrame.showAsDialog(this, config, "Enter Edit Circle {row:" + _row + ", column:" + _column + "}");
         if (config._okOption) {
             setStatus(config._status);
             jLabel1.setText(config._status.getName());

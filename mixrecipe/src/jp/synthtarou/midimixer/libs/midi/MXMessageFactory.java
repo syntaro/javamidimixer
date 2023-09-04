@@ -18,31 +18,25 @@ package jp.synthtarou.midimixer.libs.midi;
 
 import java.util.ArrayList;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MXMessageFactory {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MXMessageFactory.class);
-    
+
     static MXTemplateCache _cache = MXTemplateCache.getInstance();
-    
-    static {
-        _debug.switchOn();
-    }
-    
+
     public static MXMessage createDummy() {
         MXTemplate template = _cache.fromDword(0);
         return template.buildMessage(0, 0, RangedValue.ZERO7, RangedValue.ZERO7);
     }
 
     public static MXMessage fromClone(MXMessage old) {
-        MXMessage msg = (MXMessage)old.clone();
-        return msg; 
+        MXMessage msg = (MXMessage) old.clone();
+        return msg;
     }
-    
+
     public static MXMessage fromDWordMessage(int port, int dword) {
         int status = (dword >> 16) & 0xff;
         int data1 = (dword >> 8) & 0xff;
@@ -50,7 +44,7 @@ public class MXMessageFactory {
         return fromShortMessage(port, status, data1, data2);
     }
 
-    public static MXMessage fromMeta(int port, byte[] data) {        
+    public static MXMessage fromMeta(int port, byte[] data) {
         MXTemplate template = _cache.fromBinary(data);
 
         MXMessage message = new MXMessage(port, template, 0, RangedValue.ZERO7, RangedValue.ZERO7);
@@ -58,10 +52,10 @@ public class MXMessageFactory {
 
         String text = null;
         try {
-            text = new String(data, 2, data.length -2, "ASCII");
-            text = new String(data, 2, data.length -2);
-            text = new String(data, 2, data.length -2, "SJIS");
-        }catch(Exception e) {
+            text = new String(data, 2, data.length - 2, "ASCII");
+            text = new String(data, 2, data.length - 2);
+            text = new String(data, 2, data.length - 2, "SJIS");
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -69,27 +63,27 @@ public class MXMessageFactory {
         message._dataBytes = data;
         return message;
     }
-    
-    public static MXMessage fromBinary(int port, byte[] data)  {
+
+    public static MXMessage fromBinary(int port, byte[] data) {
         try {
             MXTemplate template = _cache.fromBinary(data);
             return template.buildMessage(port, 0, RangedValue.ZERO7, RangedValue.ZERO7);
-        }catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
-    }    
-    
+    }
+
     public static MXMessage fromShortMessage(int port, int status, int data1, int data2) {
         int dword = (status << 16) | (data1 << 8) | data2;
         MXTemplate template = _cache.fromDword(dword);
-        
+
         int valueLow = template.getBytePosValue();
         int valueHi = template.getBytePosHiValue();
-        
+
         int value = 0;
-        
-        switch(valueLow) {
+
+        switch (valueLow) {
             case 0:
                 value += status;
                 break;
@@ -101,7 +95,7 @@ public class MXMessageFactory {
                 break;
         }
 
-        switch(valueHi) {
+        switch (valueHi) {
             case 0:
                 value += status << 7;
                 break;
@@ -116,8 +110,8 @@ public class MXMessageFactory {
         int gateLow = template.getBytePosGate();
         int gateHi = template.getBytePosHiGate();
         int gate = 0;
-    
-        switch(gateLow) {
+
+        switch (gateLow) {
             case 0:
                 gate += status;
                 break;
@@ -129,7 +123,7 @@ public class MXMessageFactory {
                 break;
         }
 
-        switch(gateHi) {
+        switch (gateHi) {
             case 0:
                 gate += status << 7;
                 break;
@@ -151,28 +145,28 @@ public class MXMessageFactory {
         if (template.getBytePosHiValue() >= 0) {
             return template.buildMessage(port, channel, RangedValue.new7bit(gate), RangedValue.new14bit(value));
         }
-        
+
         return template.buildMessage(port, channel, RangedValue.new7bit(gate), RangedValue.new7bit(value));
     }
-    
-    public static MXTemplate fromDtext(String text, int channel)  {
+
+    public static MXTemplate fromDtext(String text, int channel) {
         if (text == null || text.length() == 0) {
             return null;
         }
-        
+
         while (text.startsWith(" ")) {
             text = text.substring(1);
         }
         while (text.endsWith(" ")) {
             text = text.substring(0, text.length() - 1);
         }
-        
+
         if (text.equals(MXTemplate.EXCOMMAND_PROGRAM_INC)) {
-            int[] template = { MXTemplate.DTEXT_PROGINC, channel };
+            int[] template = {MXTemplate.DTEXT_PROGINC, channel};
             return _cache.fromTemplate(template);
         }
         if (text.equals(MXTemplate.EXCOMMAND_PROGRAM_DEC)) {
-            int[] template = { MXTemplate.DTEXT_PROGDEC, channel };
+            int[] template = {MXTemplate.DTEXT_PROGDEC, channel};
             return _cache.fromTemplate(template);
         }
 
@@ -191,8 +185,8 @@ public class MXMessageFactory {
             ArrayList<String> separated = new ArrayList();
             boolean inChecksum = false;
 
-            while(readX < line.length) {
-                char ch = line[readX ++];
+            while (readX < line.length) {
+                char ch = line[readX++];
                 if (ch == '[') {
                     separated.add("#CHECKYSUM_START");
                     inChecksum = true;
@@ -206,20 +200,19 @@ public class MXMessageFactory {
                         }
                         separated.add("#CHECKSUM_SET");
                         wx = 0;
-                    }else {
-                        _debug.println("Checksum have not opened");
-                        _debug.printStackTrace();
+                    } else {
+                        new Exception("Checksum have not opened").printStackTrace();
                     }
                     continue;
                 }
-                if (ch == ' '|| ch == '\t' || ch == ',') {
+                if (ch == ' ' || ch == '\t' || ch == ',') {
                     if (wx != 0) {
                         separated.add(new String(word, 0, wx));
                     }
                     wx = 0;
                     continue;
                 }
-                word[wx ++] = ch;
+                word[wx++] = ch;
             }
 
             if (wx != 0) {
@@ -229,70 +222,64 @@ public class MXMessageFactory {
 
             if (text.contains("@")) {
                 ArrayList<String> sepa2 = new ArrayList();
-                for (int sx = 0; sx < separated.size(); ++ sx) {
+                for (int sx = 0; sx < separated.size(); ++sx) {
                     String str = separated.get(sx);
                     if (str.startsWith("@")) {
                         if (str.equalsIgnoreCase("@PB")) {
                             sepa2.add("#ECH");
-                            sepa2.add(separated.get(++ sx));
-                            sepa2.add(separated.get(++ sx));
-                        }
-                        else if (str.equalsIgnoreCase("@CP")) {
+                            sepa2.add(separated.get(++sx));
+                            sepa2.add(separated.get(++sx));
+                        } else if (str.equalsIgnoreCase("@CP")) {
                             sepa2.add("#DCH");
-                            sepa2.add(separated.get(++ sx));
+                            sepa2.add(separated.get(++sx));
                             sepa2.add("#NONE");
-                        }
-                        else if (str.equalsIgnoreCase("@PKP")) {
+                        } else if (str.equalsIgnoreCase("@PKP")) {
                             sepa2.add("#ACH");
                             String t = separated.get(++sx);
-                            if(t.startsWith("#")) {
+                            if (t.startsWith("#")) {
                                 sepa2.add(t);
-                            }else {
+                            } else {
                                 sepa2.add(t);
                             }
-                            sepa2.add(separated.get(++ sx));
-                        }
-                        else if (str.equalsIgnoreCase("@CC")) {
+                            sepa2.add(separated.get(++sx));
+                        } else if (str.equalsIgnoreCase("@CC")) {
                             sepa2.add("#BCH");
                             String t = separated.get(++sx);
                             sepa2.add(t);
-                            sx ++;
+                            sx++;
                             if (separated.size() <= sx) {
                                 return null;
                             }
                             sepa2.add(separated.get(sx));
-                        }
-                        else if (str.equalsIgnoreCase("@SYSEX")) {
+                        } else if (str.equalsIgnoreCase("@SYSEX")) {
                             //THRU (no need recompile)
-                        }
-                        else if (str.equalsIgnoreCase("@RPN")) {
-                            int  msb = MXTemplate.readAliasText(separated.get(++sx));
-                            int  lsb = MXTemplate.readAliasText(separated.get(++sx));
+                        } else if (str.equalsIgnoreCase("@RPN")) {
+                            int msb = MXTemplate.readAliasText(separated.get(++sx));
+                            int lsb = MXTemplate.readAliasText(separated.get(++sx));
                             int data = MXTemplate.readAliasText(separated.get(++sx));
-                            if (separated.size() >= sx +2) {
+                            if (separated.size() >= sx + 2) {
                                 data = data << 7;
                                 data |= MXTemplate.readAliasText(separated.get(++sx));
                             }
 
-                            int[] template = { MXTemplate.DTEXT_RPN, msb, lsb, data };
+                            int[] template = {MXTemplate.DTEXT_RPN, msb, lsb, data};
                             return _cache.fromTemplate(template);
-                        }
-                        else if (str.equalsIgnoreCase("@NRPN")) {
-                            int  msb = MXTemplate.readAliasText(separated.get(++sx));
-                            int  lsb = MXTemplate.readAliasText(separated.get(++sx));
+                        } else if (str.equalsIgnoreCase("@NRPN")) {
+                            int msb = MXTemplate.readAliasText(separated.get(++sx));
+                            int lsb = MXTemplate.readAliasText(separated.get(++sx));
                             int data = MXTemplate.readAliasText(separated.get(++sx));
-                            if (separated.size() >= sx +2) {
+                            if (separated.size() >= sx + 2) {
                                 data = data << 7;
                                 data |= MXTemplate.readAliasText(separated.get(++sx));
                             }
 
-                            int[] template = { MXTemplate.DTEXT_NRPN, msb, lsb, data };
+                            int[] template = {MXTemplate.DTEXT_NRPN, msb, lsb, data};
                             return _cache.fromTemplate(template);
-                        }else {
-                            _debug.println("Not Support [" + text + "]");
+                        } else {
+                            System.out.println("Not Support [" + text + "]");
                             return null;
                         }
-                    }else {
+                    } else {
                         sepa2.add(str);
                     }
                 }
@@ -303,8 +290,8 @@ public class MXMessageFactory {
             int[] compiled = new int[separated.size()];
             int cx = 0;
             int px = 0;
-            
-            for (int sx = 0; sx < separated.size(); ++ sx) {
+
+            for (int sx = 0; sx < separated.size(); ++sx) {
                 String str = separated.get(sx);
                 int code = MXTemplate.readAliasText(str);
                 if (code < 0) {
@@ -315,8 +302,8 @@ public class MXMessageFactory {
 
             MXTemplate temp = _cache.fromTemplate(compiled);
             return temp;
-        }catch(Exception e) {
-            _debug.printStackTrace(e);
+        } catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
     }

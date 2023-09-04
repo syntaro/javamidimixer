@@ -18,14 +18,12 @@ package jp.synthtarou.midimixer.libs;
 
 import java.util.LinkedList;
 import jp.synthtarou.midimixer.MXThreadList;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MXQueue1<T> {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MXQueue1.class);
 
     LinkedList<T> _queue;
     boolean _quit;
@@ -69,7 +67,6 @@ public class MXQueue1<T> {
     }
     
     public static void main(String[] args) {
-        MXDebugPrint.globalSwitchOn();
         final MXQueue1<Integer> que = new MXQueue1<Integer>();
         MXThreadList.newThread("MXQueue1", new Runnable() {
             public void run() {
@@ -77,23 +74,23 @@ public class MXQueue1<T> {
                     try {
                         Integer value = que.pop();
                         if (value == null) {
-                           _debug.println("Thread burn!");
+                           System.out.println("Thread burn!");
                            que.quit();
                            break;
                         }
-                        _debug.println("Thread got " + value);
+                        System.out.println("Thread got " + value);
                         if (value == 100) {
-                           _debug.println("Thread bingo!");
+                           System.out.println("Thread bingo!");
                            que.quit();
                            break;
                         }
                         try {
                             Thread.sleep(70);
                         } catch (InterruptedException ex) {
-                            _debug.printStackTrace(ex);
+                            ex.printStackTrace();
                         }
                     }catch(Throwable ex) {
-                        _debug.printStackTrace(ex);
+                        ex.printStackTrace();
                     }
                 }
             }
@@ -105,7 +102,7 @@ public class MXQueue1<T> {
                     try {
                         Thread.sleep(60);
                     } catch (InterruptedException ex) {
-                        _debug.printStackTrace(ex);
+                        ex.printStackTrace();
                     }
                 }
             }
@@ -114,20 +111,20 @@ public class MXQueue1<T> {
         while(true) {
             Integer value = que.pop();
             if (value == null) {
-                _debug.println("Main burn!");
+                System.out.println("Main burn!");
                 que.quit();
                 break;
             }
-            _debug.println("Main got " + value);
+            System.out.println("Main got " + value);
             if (value == 100) {
-                _debug.println("Main bingo!");
+                System.out.println("Main bingo!");
                 que.quit();
                 break;
             }
             try {
                 Thread.sleep(70);
             } catch (InterruptedException ex) {
-                _debug.printStackTrace(ex);
+                ex.printStackTrace();;
             }
         }
     }

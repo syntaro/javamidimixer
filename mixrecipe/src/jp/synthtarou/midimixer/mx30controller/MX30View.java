@@ -19,15 +19,12 @@ package jp.synthtarou.midimixer.mx30controller;
 import java.awt.Component;
 import javax.swing.JScrollPane;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MX30View extends javax.swing.JPanel {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MX30View.class);
-
     MX30Process _process;
 
     /**

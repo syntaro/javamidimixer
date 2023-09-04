@@ -144,7 +144,7 @@ public class InitializeConfirmPanel extends javax.swing.JPanel {
         }
         if (ret) {
             _process._view.initControllers();
-            MXUtil.closeOwnerWindow(this);
+        MXUtil.getOwnerWindow(this).setVisible(false);
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 

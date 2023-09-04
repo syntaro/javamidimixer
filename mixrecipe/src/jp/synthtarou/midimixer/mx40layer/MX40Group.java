@@ -19,11 +19,9 @@ package jp.synthtarou.midimixer.mx40layer;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitantRecorder;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import java.util.ArrayList;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 
 /**
@@ -31,7 +29,6 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
  * @author Syntarou YOSHIDA
  */
 public class MX40Group {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MX40Group.class);
 
     public ArrayList<MX40Layer> _listLayer = new ArrayList();
     

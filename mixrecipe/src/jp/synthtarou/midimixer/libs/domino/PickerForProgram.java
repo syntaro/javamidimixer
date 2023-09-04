@@ -27,12 +27,12 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.MXGlobalTimer;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
+import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
 
 /**
@@ -42,9 +42,8 @@ import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
 public class PickerForProgram extends javax.swing.JPanel {
 
     public static void main(String[] args) {
-        MXDebugPrint.globalSwitchOn();
         PickerForProgram picker = new PickerForProgram();
-        MXUtil.showAsDialog(null, picker, "Test");
+        MXModalFrame.showAsDialog(null, picker, "Test");
         System.exit(0);
     }
 
@@ -655,14 +654,14 @@ public class PickerForProgram extends javax.swing.JPanel {
 
         _returnBankMSB = intMSBLast;
         _returnBankLSB = intLSBLast;
-        MXUtil.closeOwnerWindow(this);
+        MXUtil.getOwnerWindow(this).setVisible(false);
     }//GEN-LAST:event_jButtonSelectActionPerformed
 
     private void jButtonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelActionPerformed
         _returnProgram = -1;
         _returnBankMSB = -1;
         _returnBankLSB = -1;
-        MXUtil.closeOwnerWindow(this);
+        MXUtil.getOwnerWindow(this).setVisible(false);
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
     private void jComboBoxMapItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxMapItemStateChanged
@@ -689,7 +688,7 @@ public class PickerForProgram extends javax.swing.JPanel {
         _modelBankList = new MXWrapList();
         if (_selectedProgram != null) {
             for (CCXMLNode bank : _selectedProgram.listChildren("Bank")) {
-                String name  = bank._listAttributes.valueOfName("Name");
+                String name = bank._listAttributes.valueOfName("Name");
                 int msb = bank._listAttributes.numberOfName("MSB", -1);
                 int lsb = bank._listAttributes.numberOfName("LSB", -1);
 

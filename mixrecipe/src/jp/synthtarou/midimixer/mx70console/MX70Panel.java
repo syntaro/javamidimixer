@@ -31,6 +31,7 @@ import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
+import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 
 /**
  *
@@ -574,7 +575,7 @@ public class MX70Panel extends javax.swing.JPanel {
 
     private void jButtonSysEXMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSysEXMenuActionPerformed
         MX70SysexPanel panel = _process.createSysexPanel();
-        MXUtil.showAsDialog(this, panel, "System Exclusive");
+        MXModalFrame.showAsDialog(this, panel, "System Exclusive");
     }//GEN-LAST:event_jButtonSysEXMenuActionPerformed
 
     private void jButtonRemoveTestActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRemoveTestActionPerformed

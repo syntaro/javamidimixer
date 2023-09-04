@@ -18,14 +18,12 @@ package jp.synthtarou.midimixer;
 
 import java.awt.Frame;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MXOpening extends javax.swing.JDialog {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MXOpening.class);
 
     public static MXOpening showAsStartup(Frame parent) {
         MXOpening dialog = new MXOpening(parent, false);

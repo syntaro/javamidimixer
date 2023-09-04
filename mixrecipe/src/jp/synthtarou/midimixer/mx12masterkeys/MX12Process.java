@@ -18,7 +18,6 @@ package jp.synthtarou.midimixer.mx12masterkeys;
 
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
@@ -32,9 +31,6 @@ import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
  * @author Syntarou YOSHIDA
  */
 public class MX12Process extends MXReceiver implements MXSettingTarget {
-
-
-    private static final MXDebugPrint _debug = new MXDebugPrint(MX12Process.class);
 
     private MXSetting _setting;
     MX12MasterkeysPanel _view;

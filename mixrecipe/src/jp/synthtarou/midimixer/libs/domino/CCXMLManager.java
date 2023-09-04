@@ -36,8 +36,8 @@ import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingNode;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 import jp.synthtarou.midimixer.libs.settings.MXSettingUtil;
-import jp.synthtarou.midimixer.libs.swing.MXFileFilter;
-import jp.synthtarou.midimixer.libs.swing.MXSwingFolderBrowser;
+import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
+import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXSwingFolderBrowser;
 
 /**
  *
@@ -105,18 +105,26 @@ public class CCXMLManager implements MXSettingTarget {
     ArrayList<CCXMLFile> _listLoaded = new ArrayList<>();
 
     public boolean browseAndImport(JComponent parent) {
-        FileFilter filter = new MXFileFilter(new String[]{".xml"});
-        MXSwingFolderBrowser chooser = new MXSwingFolderBrowser(getSaveDirectory(), filter);
+        FileFilter filter = new FileFilterListExt(new String[]{".xml"});
+        MXSwingFolderBrowser chooser = new MXSwingFolderBrowser(getSaveDirectory(), filter, null);
         CCPromptUtil.showPrompt(parent, chooser);
-        File file = chooser.getSelectedFile();
-        if (file == null) {
+        File[] selected = chooser.getSelectedFileList();
+        if (selected == null) {
             return false;
         }
-        if (file.isFile() == false) {
-            JOptionPane.showMessageDialog(parent, "Choose File");
-            return false;
+        for (File file : selected) {
+            if (file.isFile() == false) {
+                JOptionPane.showMessageDialog(parent, "Choose File");
+                return false;
+            }
         }
-        return importXMLFile(parent, file);
+        boolean ret = false;
+        for (File file : selected) {
+            if (importXMLFile(parent, file)) {
+                ret = true;
+            }
+        }
+        return ret;
     }
 
     public boolean copyFileNative(File from, File to) {

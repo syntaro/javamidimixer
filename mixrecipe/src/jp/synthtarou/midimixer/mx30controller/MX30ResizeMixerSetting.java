@@ -284,12 +284,14 @@ public class MX30ResizeMixerSetting extends javax.swing.JPanel {
             _process.setPadActive(r, activePad[r]);
         }
         
-        MXUtil.closeOwnerWindow(this);
+        MXUtil.getOwnerWindow(this).setVisible(false);
+
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         _okOption = false;
-        MXUtil.closeOwnerWindow(this);
+        MXUtil.getOwnerWindow(this).setVisible(false);
+
     }//GEN-LAST:event_jButton2ActionPerformed
 
 

@@ -26,7 +26,6 @@ import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
 
@@ -36,7 +35,6 @@ import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
  */
 public class MXNotePicker extends javax.swing.JPanel {
     public static void main(String[] args) {
-        MXDebugPrint.globalSwitchOn();
         new MXNotePicker().showAsModalDialog(null);
     }
 
@@ -203,12 +201,12 @@ public class MXNotePicker extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelActionPerformed
-        MXUtil.closeOwnerWindow(this);
+        MXUtil.getOwnerWindow(this).setVisible(false);
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
     private void jButtonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOKActionPerformed
         _closeOK = true;
-        MXUtil.closeOwnerWindow(this);
+        MXUtil.getOwnerWindow(this).setVisible(false);
     }//GEN-LAST:event_jButtonOKActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

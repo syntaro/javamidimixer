@@ -17,7 +17,6 @@
 package jp.synthtarou.midimixer.mx10input;
 
 import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 
@@ -26,8 +25,6 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
  * @author Syntarou YOSHIDA
  */
 public class MX10Data {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MX10Data.class);
-
     public static final int TYPE_NOTE = 1;
     public static final int TYPE_DAMPER_PEDAL = 2;
     public static final int TYPE_PITCH_BEND = 3; 

@@ -16,8 +16,6 @@
  */
 package jp.synthtarou.midimixer.mx80vst;
 
-import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.io.File;
@@ -25,11 +23,11 @@ import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.async.Transaction;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
+import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 import jp.synthtarou.midimixer.libs.vst.IndexedFile;
@@ -429,7 +427,7 @@ public class VSTInstancePanel extends javax.swing.JPanel {
                     return false;
                 }
             });
-            MXUtil.showAsDialog(this, panel, "Preset for Slot " + _instance.getSlot());
+            MXModalFrame.showAsDialog(this, panel, "Preset for Slot " + _instance.getSlot());
         }finally {
             root.releaseLock();
         }

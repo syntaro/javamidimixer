@@ -278,12 +278,12 @@ public class PickerForControlChange extends javax.swing.JPanel {
     }//GEN-LAST:event_jTree1ValueChanged
 
     private void jButtonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOKActionPerformed
-        MXUtil.closeOwnerWindow(this);
+        MXUtil.getOwnerWindow(this).setVisible(false);
     }//GEN-LAST:event_jButtonOKActionPerformed
 
     private void jButtonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelActionPerformed
         _textReturn = null;
-        MXUtil.closeOwnerWindow(this);
+        MXUtil.getOwnerWindow(this).setVisible(false);
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
     private void jButtonAddXMLActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddXMLActionPerformed

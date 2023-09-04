@@ -32,7 +32,6 @@ import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -46,7 +45,6 @@ import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
  */
 public class MX12MasterkeysPanel extends javax.swing.JPanel {
     public static void main(String[] args) {
-        MXDebugPrint.globalSwitchOn();
         JFrame win = new JFrame("Piano");
         win.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         Insets ins = win.getInsets();

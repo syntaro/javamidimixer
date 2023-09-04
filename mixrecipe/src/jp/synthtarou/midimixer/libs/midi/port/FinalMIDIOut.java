@@ -18,7 +18,6 @@ package jp.synthtarou.midimixer.libs.midi.port;
 
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 
@@ -28,7 +27,6 @@ import jp.synthtarou.midimixer.libs.midi.MXReceiver;
  */
 
 public class FinalMIDIOut extends MXReceiver {
-    private static final MXDebugPrint _debug = new MXDebugPrint(FinalMIDIOut.class);
 
     protected static final FinalMIDIOut _instance = new FinalMIDIOut();
     

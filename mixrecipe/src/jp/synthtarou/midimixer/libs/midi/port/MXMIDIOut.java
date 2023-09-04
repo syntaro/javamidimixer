@@ -19,7 +19,6 @@ package jp.synthtarou.midimixer.libs.midi.port;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.MXQueue1;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -36,7 +35,6 @@ import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_VSTi;
  * @author Syntarou YOSHIDA
  */
 public class MXMIDIOut {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MXMIDIOut.class);
     public static final MXMIDIOut OUTPUT_NONE = new MXMIDIOut(/* TODO*/ null, 0);
 
     private MXDriver _driver;
@@ -311,7 +309,7 @@ public class MXMIDIOut {
                 System.out.println("nothing to send : " + message);
             }
         }catch(Throwable e) {
-            _debug.printStackTrace(e);
+            e.printStackTrace();
         }
         
     }

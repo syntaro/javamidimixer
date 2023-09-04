@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
@@ -40,8 +39,6 @@ import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
  * @author Syntarou YOSHIDA
  */
 public class MX40Process extends MXReceiver implements MXSettingTarget {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MX40Process.class);
-
     MX40View _view;
     MXVisitantRecorder _inputInfo;
     MXVisitantRecorder _outputInfo;

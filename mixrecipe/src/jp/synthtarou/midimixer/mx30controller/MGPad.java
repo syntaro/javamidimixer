@@ -27,9 +27,8 @@ import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicButtonUI;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
+import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.focus.MXFocusAble;
 
 /**
@@ -37,7 +36,6 @@ import jp.synthtarou.midimixer.libs.swing.focus.MXFocusAble;
  * @author Syntarou YOSHIDA
  */
 public class MGPad extends javax.swing.JPanel implements MXFocusAble {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MGPad.class);
     final MX32MixerProcess _process;
     int _row, _column;
     boolean _dispFlag;
@@ -98,7 +96,7 @@ public class MGPad extends javax.swing.JPanel implements MXFocusAble {
         
         jButton1.setUI(new MyButtonUI());
 
-        //jSpinnerValue.setVisible(false);
+        //jSpinnerValue.doOpen(false);
 
         updateUI();
     }
@@ -201,7 +199,7 @@ public class MGPad extends javax.swing.JPanel implements MXFocusAble {
         _process._parent.enterEditMode(false);
         MGStatus status = (MGStatus)getStatus().clone();
         MGStatusConfig config = new MGStatusConfig(_process, status);
-        MXUtil.showAsDialog(this, config, "Enter Edit Pad {row:" + _row + ", column:" + _column + "}");
+        MXModalFrame.showAsDialog(this, config, "Enter Edit Pad {row:" + _row + ", column:" + _column + "}");
         _process.notifyCacheBroken();
 
         if (config._okOption) {

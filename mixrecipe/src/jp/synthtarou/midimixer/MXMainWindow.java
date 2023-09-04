@@ -38,7 +38,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.swing.themes.ThemeManagerDialog;
 import jp.synthtarou.midimixer.mx10input.MX10View;
 import jp.synthtarou.midimixer.mx35cceditor.MX35View;
@@ -50,8 +49,6 @@ import jp.synthtarou.midimixer.mx80vst.MX80Panel;
  * @author Syntarou YOSHIDA
  */
 public class MXMainWindow extends javax.swing.JFrame {
-
-    private static final MXDebugPrint _debug = new MXDebugPrint(MXMainWindow.class);
 
     MXMain _main;
     JTabbedPane jTabbedPane1;

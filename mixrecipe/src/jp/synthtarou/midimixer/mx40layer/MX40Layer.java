@@ -19,7 +19,6 @@ package jp.synthtarou.midimixer.mx40layer;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -90,8 +89,7 @@ public class MX40Layer {
             new Throwable("setAcceptKeyHighest 0").printStackTrace();
         }*/
     }
-    private static final MXDebugPrint _debug = new MXDebugPrint(MX40Layer.class);
-
+    
     public static final int MOD_NONE = 0;
     public static final int MOD_ASFROM = 1;
     public static final int MOD_FIXED = 2;

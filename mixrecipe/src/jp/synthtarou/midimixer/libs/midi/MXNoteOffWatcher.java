@@ -18,8 +18,6 @@ package jp.synthtarou.midimixer.libs.midi;
 
 import java.util.Iterator;
 import java.util.LinkedList;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 
 /**
  *
@@ -27,7 +25,6 @@ import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
  */
 
 public class MXNoteOffWatcher {
-    private static final MXDebugPrint _debug = new MXDebugPrint(MXNoteOffWatcher.class);
 
     public static interface Handler {
         public void onNoteOffEvent(MXMessage target);
@@ -53,7 +50,7 @@ public class MXNoteOffWatcher {
     public boolean setHandler(MXMessage noteOn, MXMessage noteOff, Handler listener) {
         synchronized(MXTiming.mutex) {
             if (noteOn.isCommand(MXMidi.COMMAND_NOTEON) == false) {
-                _debug.println("Its not note on " + noteOn);
+                System.out.println("Its not note on " + noteOn);
                 return false;
             }
             _lastHandler = listener;

@@ -19,7 +19,6 @@ package jp.synthtarou.midimixer.libs.midi;
 import java.io.PrintStream;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
-import jp.synthtarou.midimixer.libs.common.log.MXDebugPrint;
 import static jp.synthtarou.midimixer.libs.midi.MXTemplate.DTEXT_PROGDEC;
 import static jp.synthtarou.midimixer.libs.midi.MXTemplate.DTEXT_PROGINC;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
@@ -96,8 +95,6 @@ public final class MXMessage {
         _visitant = visitant;
         _dataBytes = null;
     }
-    
-    private static final MXDebugPrint _debug = new MXDebugPrint(MXMessage.class);
 
     public MXTiming _timing;
     int _port;
@@ -182,7 +179,7 @@ public final class MXMessage {
 
     public int getChannel() {
         if (_channel < 0 || _channel > 15) {
-            _debug.println("getAsChannel " + _channel);
+            System.out.println("getAsChannel " + _channel);
             return 0;
         }
         return _channel;
