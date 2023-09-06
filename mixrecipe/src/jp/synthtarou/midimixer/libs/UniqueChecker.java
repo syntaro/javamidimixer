@@ -18,6 +18,7 @@ package jp.synthtarou.midimixer.libs;
 
 import java.util.Comparator;
 import java.util.TreeSet;
+import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
@@ -30,9 +31,60 @@ import jp.synthtarou.midimixer.mx30controller.MGStatus;
  *
  * @author Syntarou YOSHIDA
  */
-public class UniqueChecker {
+public class UniqueChecker extends MXReceiver {
     TreeSet<MGStatus> _alreadyStatus = new TreeSet(new StatusComparator());
+
+    @Override
+    public String getReceiverName() {
+        return "Unique Filter";
+    }
+
+    @Override
+    public JPanel getReceiverView() {
+        return null;
+    }
+
+    @Override
+    protected void processMXMessageImpl(MXMessage message) {
+        sendOnlyOnce(message);
+    }
     
+    final MXReceiver _receiver;
+    
+    public UniqueChecker(MXReceiver receiver) {
+        _receiver = receiver;
+    }
+    
+    public boolean isStatusCanPathThru(MGStatus status) {
+        if (_alreadyStatus.contains(status)) {
+            return false;
+        }
+        push(status);
+        return true;
+    }
+    
+    public void push(MGStatus status) {
+        _alreadyStatus.add(status);
+    }
+    
+    public boolean sendOnlyOnce(MXMessage message) {
+        if (message.isCommand(MXMidi.COMMAND_NOTEON) && message.getValue()._var == 0) {
+            MXMessage message2 = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_NOTEOFF + message.getChannel(), message.getGate()._var, 0);
+            message2._timing = message._timing;
+            message = message2;
+        }
+        if (_receiver == null) {
+            //panel is under construction
+            return false;
+        }
+        if (_alreadyMessage.contains(message)) {
+            return false;
+        }
+        _alreadyMessage.add(message);
+        MXMain.getMain().messageDispatch(message, _receiver);
+        return true;
+    }
+
     static class StatusComparator implements Comparator<MGStatus> {
         @Override
         public int compare(MGStatus o1, MGStatus o2) {
@@ -103,11 +155,11 @@ public class UniqueChecker {
                 if (x < 0) return -1;
                 if (x > 0) return 1;
             }
-            /*
             x = o1.getPort() - o2.getPort();
             if (x < 0) return -1;
             if (x > 0) return 1;
 
+            /*
             x = o1.getStatus()- o2.getStatus();
             if (x < 0) return -1;
             if (x > 0) return 1;
@@ -123,35 +175,19 @@ public class UniqueChecker {
             return 0;
         }
     }
-    
-    final MXReceiver _receiver;
-    
-    public UniqueChecker(MXReceiver receiver) {
-        _receiver = receiver;
-    }
-    
-    public boolean checkAlready(MGStatus status) {
-        return _alreadyStatus.contains(status);
-    }
-    
-    public void push(MGStatus status) {
-        _alreadyStatus.add(status);
-    }
-    
-    public boolean sendOnlyNeed(MXMessage message) {
-        if (message.isCommand(MXMidi.COMMAND_NOTEON) && message.getValue()._var == 0) {
-            MXMessage message2 = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_NOTEOFF + message.getChannel(), message.getGate()._var, 0);
-            message2._timing = message._timing;
+
+    public TreeSet<MGStatus> skipAlreadyOne(TreeSet<MGStatus> target) {
+        if (target == null || target.isEmpty()) {
+            return null;
         }
-        if (_receiver == null) {
-            //panel is under construction
-            return false;
+        TreeSet<MGStatus> func = new TreeSet<>();
+        for (MGStatus status : target) {
+            if (_alreadyStatus.contains(status)) {
+            }
+            else {
+                func.add(status);
+            }
         }
-        if (_alreadyMessage.contains(message)) {
-            return false;
-        }
-        _alreadyMessage.add(message);
-        MXMain.getMain().messageDispatch(message, _receiver);
-        return true;
+        return func.isEmpty() ? null : func;
     }
 }

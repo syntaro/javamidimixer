@@ -27,7 +27,6 @@ import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.focus.MXFocusAble;
 import jp.synthtarou.midimixer.libs.swing.focus.MXFocusGroupElement;
@@ -192,33 +191,25 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
         if (_ignoreEvent) {
             return;
         }
-        _process.catchedValue(getStatus(), null, newValue, null);        
+        _process.controlByUI(getStatus(), newValue);        
     }//GEN-LAST:event_jSliderValueStateChanged
 
-    public void updateUIOnly(MXTiming timing, int newValue) {
-        if (jSliderValue.getValue() != newValue) {
-            jLabelValue.setText(String.valueOf(newValue));
-            getStatus().setValue(getStatus().getValue().updateValue(newValue));
-
-            if (SwingUtilities.isEventDispatchThread() == false) {
-                //new Throwable().printStackTrace();
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        synchronized(this) {
-                            _ignoreEvent = true;
-                            jSliderValue.setValue(newValue);
-                            _ignoreEvent = false;
-                        }
-                    }
-                });
-            }else {
-                synchronized(this) {
-                    _ignoreEvent = true;
-                    jSliderValue.setValue(newValue);
-                    _ignoreEvent = false;
+    public void updateByStatus() {
+        MGStatus status = getStatus();
+        if (SwingUtilities.isEventDispatchThread() == false) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    updateByStatus();
                 }
-            }
+            });
+            return;
         }
+        int newValue = status.getValue()._var;
+        _ignoreEvent = true;
+        jLabelValue.setText(String.valueOf(newValue));
+        jSliderValue.setValue(newValue);
+        _ignoreEvent = false;
     }
 
     public JLabel labelFor(int num, int max) {
@@ -269,7 +260,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
         MGStatus status = getStatus();
         RangedValue var = status.getValue().increment();
         if (var != null) {
-            _process.catchedValue(status, null, var._var, null);
+            _process.controlByUI(status, var._var);
         }
     }
     
@@ -277,7 +268,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
         MGStatus status = getStatus();
         RangedValue var = status.getValue().decrement();
         if (var != null) {
-            _process.catchedValue(status, null, var._var, null);
+            _process.controlByUI(status, var._var);
         }
     }
     
@@ -292,8 +283,8 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
                         int x = current * (5 - i) + value * i;
                         x /= 5;
                         Thread.sleep(70);
-                        getStatus().setValue(getStatus().getValue().updateValue(x));
-                        updateUIOnly(null, x);
+                        status.updateValue(x);
+                        updateByStatus();
                         if (x == value) { 
                             break;
                         }
@@ -301,8 +292,8 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
                 }catch(Exception e) {
                     e.printStackTrace();
                 }finally {
-                    getStatus().setValue(getStatus().getValue().updateValue(value));
-                    updateUIOnly(null, value);
+                    status.updateValue(value);
+                    updateByStatus();
                 }
             }
         });

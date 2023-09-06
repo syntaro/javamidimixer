@@ -156,34 +156,25 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
         if (_ignoreEvent) {
             return;
         }
-        _process.catchedValue(getStatus(), null, newValue, null);
+        _process.controlByUI(getStatus(), newValue);
     }                                         
 
     MXTiming _trackNumer;
     
-    public void changeUIOnly(MXTiming timing, int newValue) {
-        if (jCircleValue.getValue() != newValue) {
-            getStatus().setValue(getStatus().getValue().updateValue(newValue));
-
-            if (SwingUtilities.isEventDispatchThread() == false) {
-                //new Throwable().printStackTrace();
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        synchronized(this) {
-                            _ignoreEvent = true;
-                            jCircleValue.setValue(getStatus().getValue());
-                            _ignoreEvent = false;
-                        }
-                    }
-                });
-            }else {
-                synchronized(this) {
-                    _ignoreEvent = true;
-                    jCircleValue.setValue(getStatus().getValue());
-                    _ignoreEvent = false;
+    public void updateByStatus() {
+        MGStatus status = getStatus();
+        if (SwingUtilities.isEventDispatchThread() == false) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    updateByStatus();
                 }
-            }
+            });
+            return;
         }
+        _ignoreEvent = true;
+        jCircleValue.setValue(status.getValue());
+        _ignoreEvent = false;
     }
     
     // Variables declaration - do not modify                     
@@ -216,7 +207,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
         MGStatus status = getStatus();
         RangedValue var = status.getValue().increment();
         if (var != null) {
-            _process.catchedValue(status, null, var._var, null);
+            _process.controlByUI(status, var._var);
         }
     }
     
@@ -224,7 +215,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
         MGStatus status = getStatus();
         RangedValue var = status.getValue().decrement();
         if (var != null) {
-            _process.catchedValue(status, null, var._var, null);
+            _process.controlByUI(status, var._var);
         }
     }
 

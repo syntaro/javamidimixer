@@ -48,7 +48,7 @@ public class MXAppConfig {
     public static final int DRUM_CH = 9;
     
     static final MXAppConfig _setting = new MXAppConfig();
-    public static final int TOTAL_PORT_COUNT = 16;
+    public static final int TOTAL_PORT_COUNT = 16; // must <= 32 (bit calculation 1 << port should not overflow
 
     public static final int SLIDER_COLUMN_COUNT = 17;
     public static final int SLIDER_ROW_COUNT = 1;

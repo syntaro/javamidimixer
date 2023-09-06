@@ -17,6 +17,7 @@
 package jp.synthtarou.midimixer.mx30controller;
 
 import java.io.File;
+import java.util.LinkedList;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -34,7 +35,7 @@ import jp.synthtarou.midimixer.libs.midi.smf.SMFPlayer;
  *
  * @author Syntarou YOSHIDA
  */
-public class MGStatus implements Cloneable {
+public class MGStatus implements Cloneable, Comparable<MGStatus> {
 
     public int getSwitchOutPort() {
         return _switchSwitchOutPort;
@@ -79,7 +80,7 @@ public class MGStatus implements Cloneable {
     public void setDataroomLSB(int _dataentryLSB) {
         this._dataroomLSB = _dataentryLSB;
     }
-    
+
     public void setValuePairCC14(boolean flag) {
         _ccPair14 = flag;
     }
@@ -133,23 +134,23 @@ public class MGStatus implements Cloneable {
 
     private int _port;
     private int _uiType;
-    private int _row;
-    private int _column;
+    public final int _row;
+    public final int _column;
 
     private String _name = "";
     private String _memo = "";
     private MXTemplate _template = MXMessageFactory.createDummy().getTemplate();
-    
+
     private RangedValue _value = RangedValue.ZERO7;
     private int _valueHome = 0;
     private boolean _valueLastSent = false;
     private boolean _valueLastDetect = false;
-    
+
     private RangedValue _gate = RangedValue.ZERO7;
     private int _channel = 0;
-    
+
     private int _switchLastDetected;
-    
+
     private int _switchType = SWITCH_TYPE_ONOFF;
     private int _switchInputType = SWITCH_ON_IF_PLUS1;
     private int _switchOutOnType = SWITCH_OUT_ON_SAME_AS_INPUT;
@@ -157,7 +158,7 @@ public class MGStatus implements Cloneable {
     private int _switchOutOnValueFixed = 127;
     private String _switchOutOnText = "";
     private int _switchOutOnTextGate = 0;
-    
+
     MXTemplate _cacheOutOnMessage = null;
 
     private int _switchOutOffType = SWITCH_OUT_OFF_SAME_AS_INPUT;
@@ -187,25 +188,51 @@ public class MGStatus implements Cloneable {
 
     private boolean _ccPair14 = false;
 
+    public boolean _drumSwitch;
+    public LinkedList<Runnable> _drumAction = null;
+    
+    public synchronized void addDrumAction(Runnable run) {
+        if (_drumAction == null) {
+            _drumAction = new LinkedList<>();
+        }
+        _drumAction.add(run);
+    }
+    
+    public synchronized void invokeDrumAction() {
+        if (_drumAction != null) {
+            while (_drumAction.isEmpty() == false) {
+                try {
+                    _drumAction.remove().run();
+                }catch(Throwable e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     public MGStatus(int port, int uiType, int row, int column) {
         _port = port;
         _uiType = uiType;
         _row = row;
         _column = column;
     }
-    
+
     public MXTemplate getTemplate() {
         return _template;
     }
-    
+
     public synchronized MXMessage toMXMessage(MXTiming timing) {
+        if (_uiType == TYPE_DRUMPAD && _drumAction != null && _drumAction.isEmpty() == false) {
+            return null;
+        }
+
         MXTemplate template = getTemplate();
         MXMessage message = template.buildMessage(_port, _channel, _gate, _value);
         message._timing = timing;
         message.setValuePairCC14(isValuePairCC14());
-        
+
         if (template.get(0) == MXTemplate.DTEXT_RPN
-          ||template.get(0) == MXTemplate.DTEXT_NRPN) {
+                || template.get(0) == MXTemplate.DTEXT_NRPN) {
             MXVisitant visit = new MXVisitant();
             visit.setDataroomType(getDataroomType());
             visit.setDataroomMSB(getDataeroomMSB());
@@ -215,7 +242,7 @@ public class MGStatus implements Cloneable {
         }
         return message;
     }
-
+    
     public synchronized MXMessage toMXMessageCaseDrumOn(MXTiming traecNumber) {
         if (getSwitchOutOnType() == SWITCH_OUT_ON_SAME_AS_INPUT) {
             int value = getValueForSwitchOn();
@@ -248,9 +275,9 @@ public class MGStatus implements Cloneable {
         return null;
     }
 
-    public synchronized MXMessage toMXMessageCaseDrumOff(MXTiming timing) { 
+    public synchronized MXMessage toMXMessageCaseDrumOff(MXTiming timing) {
         if (getSwitchOutOffType() == SWITCH_OUT_OFF_NONE) {
-            return  null;
+            return null;
         }
         if (getSwitchOutOffType() == SWITCH_OUT_OFF_SAME_AS_INPUT) {
             int value = getValueForSwitchOff();
@@ -287,7 +314,7 @@ public class MGStatus implements Cloneable {
             int gate = getSwitchOutOffTextGate();
             MXMessage message = _cacheOutOffMessage.buildMessage(_port, ch, RangedValue.new7bit(gate), _value.updateValue(value));
             message._timing = timing;
-            
+
             return message;
         }
         //TODO
@@ -302,12 +329,12 @@ public class MGStatus implements Cloneable {
         status._channel = _channel;
         status._gate = _gate;
         status._value = _value;
-        
+
         status.setName(getName());
         status.setMemo(getMemo());
 
         status.setValue(_value);
-        status.setValueHome(_valueHome); 
+        status.setValueHome(_valueHome);
         status.setValueLastSent(_valueLastSent);
 
         status.setSwitchType(getSwitchType());
@@ -335,20 +362,20 @@ public class MGStatus implements Cloneable {
         status.setSwitchHarmonyNotes(getSwitchHarmonyNotes());
 
         status.setSwitchSequencerFile(getSwitchSequencerFile());
-        
+
         status.setDataroomType(getDataroomType());
         status.setDataroomMSB(getDataeroomMSB());
         status.setDataroomLSB(getDataroomLSB());
 
         status.setValuePairCC14(isValuePairCC14());
-        
+
         return status;
     }
 
     public synchronized void setTemplateAsText(String text, int channel) {
         setTemplate(MXMessageFactory.fromDtext(text, _channel));
     }
-    
+
     public void refillGate() {
         System.out.println("refillGate()- 1");
         switch (_template.get(0)) {
@@ -378,7 +405,7 @@ public class MGStatus implements Cloneable {
         }
         System.out.println("refillGate()- 3");
     }
-    
+
     public synchronized void setTemplate(MXTemplate template) {
         _template = template;
     }
@@ -405,50 +432,49 @@ public class MGStatus implements Cloneable {
         if (_name == null || _name.length() == 0) {
             if (message == null) {
                 name = "null";
+            } else {
+                name = message.toShortString();
             }
-            else {
-               name = message.toShortString();
-            }
-        }else {
+        } else {
             name = _name;
         }
-        return name + " (" +_memo + ")" + "\n"
-           + text + "[row " + (getRow()+1) + ", col " + (getColumn()+1) +"] "
-           + "\n" + message.toString() + (message.isValuePairCC14() ? " (=14bit)" : "");
+        return name + " (" + _memo + ")" + "\n"
+                + text + "[row " + (getRow() + 1) + ", col " + (getColumn() + 1) + "] "
+                + "\n" + message.toString() + (message.isValuePairCC14() ? " (=14bit)" : "");
     }
 
-    public boolean statusTryCatch(MXMessage message) {
+    public boolean controlByMessage(MXMessage message) {
         MXMessage target = toMXMessage(message._timing);
 
         if (haveSameStatusAndGate(message)) {
             MXVisitant visit = message.getVisitant();
             if (message.isDataentry()) {
                 int original = _value._var;
-                int value = visit.getDataentryValue14();
-                switch(message.getGate()._var) {
+                int newVar = visit.getDataentryValue14();
+                switch (message.getGate()._var) {
                     case MXMidi.DATA1_CC_DATAENTRY:
-                        if (value >= _value._min && value <= _value._max) {
-                        }else {
+                        if (newVar >= _value._min && newVar <= _value._max) {
+                        } else {
                             return false;
                         }
                         break;
                     case MXMidi.DATA1_CC_DATAINC:
-                        value = original + 1;
-                        if (value >= _value._min && value <= _value._max) {
-                        }else {
+                        newVar = original + 1;
+                        if (newVar >= _value._min && newVar <= _value._max) {
+                        } else {
                             return false;
                         }
                         break;
                     case MXMidi.DATA1_CC_DATADEC:
-                        value = original - 1;
-                        if (value >= _value._min && value <= _value._max) {
-                        }else {
+                        newVar = original - 1;
+                        if (newVar >= _value._min && newVar <= _value._max) {
+                        } else {
                             return false;
                         }
                         break;
                 }
-                if (value >= _value._min && value <= _value._max) {
-                    setValue(_value.updateValue(value));
+                if (newVar >= _value._min && newVar <= _value._max) {
+                    setValue(_value.updateValue(newVar));
                     return true;
                 }
                 return false;
@@ -456,7 +482,7 @@ public class MGStatus implements Cloneable {
 
             int value = message.getValue()._var;
             if (message.isCommand(MXMidi.COMMAND_NOTEOFF)) {
-                setValue(_value.updateValue(0));
+                setValue(_value.updateValue(value));
                 return true;
             }
             if (value >= _value._min && value <= _value._max) {
@@ -464,8 +490,7 @@ public class MGStatus implements Cloneable {
                 return true;
             }
             return false;
-        }
-        else if (isOnlyValueDifferent(message)) {
+        } else if (isOnlyValueDifferent(message)) {
             int value = message.getValue()._var;
             if (value >= _value._min && value <= _value._max) {
                 setValue(_value.updateValue(value));
@@ -477,42 +502,18 @@ public class MGStatus implements Cloneable {
         return false;
     }
 
-    public boolean isDrumOn(int value) {
-        switch(getSwitchInputType()) {
-            case SWITCH_ON_WHEN_ANY:
-                return true;
-            case SWITCH_ON_IF_PLUS1:
-                if (value >= _value._min + 1) {
-                    return true;
-                }
-                return false;
-            case SWITCH_ON_IF_OVER_HALF:
-                if (value >= (_value._min + _value._max) / 2) {
-                    return true;
-                }
-                return false;
-            case SWITCH_ON_IF_MAX:
-                if (value == _value._max) {
-                    return true;
-                }
-                return false;
-        }
-        System.out.println("isDrumOn = " + getSwitchInputType());
-        return false;
-    }
-
     public int getValueForSwitchOn() {
-        switch(getSwitchOutOnType()) {
+        switch (getSwitchOutOnType()) {
             case SWITCH_OUT_ON_SAME_AS_INPUT:
             case SWITCH_OUT_ON_CUSTOM:
-                switch(getSwitchOutOnTypeOfValue()) {
+                switch (getSwitchOutOnTypeOfValue()) {
                     case SWITCH_OUT_ON_VALUE_AS_INPUT:
                         return getSwitchLastDetected();
-                        
+
                     case SWITCH_OUT_ON_VALUE_AS_INPUT_PLUS1:
                         int x = getSwitchLastDetected();
                         if (x == _value._min && x < _value._max) {
-                            x ++;
+                            x++;
                         }
                         return x;
                     case SWITCH_OUT_ON_VALUE_FIXED:
@@ -523,13 +524,13 @@ public class MGStatus implements Cloneable {
     }
 
     public int getValueForSwitchOff() {
-        switch(getSwitchOutOffType()) {
+        switch (getSwitchOutOffType()) {
             case SWITCH_OUT_OFF_NONE:
                 return -1;
             case SWITCH_OUT_OFF_SAME_AS_INPUT:
             case SWITCH_OUT_OFF_SAME_AS_OUTPUT_ON:
             case SWITCH_OUT_OFF_CUSTOM:
-                switch(getSwitchOutOnTypeOfValue()) {
+                switch (getSwitchOutOnTypeOfValue()) {
                     case SWITCH_OUT_OFF_VALUE_0:
                         return 0;
 
@@ -541,7 +542,7 @@ public class MGStatus implements Cloneable {
 
                     case SWITCH_OUT_OFF_VALUE_SAME_AS_MIN:
                         return _value._min;
-                        
+
                 }
 
         }
@@ -725,7 +726,7 @@ public class MGStatus implements Cloneable {
                 try {
                     SMFPlayer player = new SMFPlayer(f);
                     _switchSequencer = player;
-                }catch(Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -781,25 +782,12 @@ public class MGStatus implements Cloneable {
         return _row;
     }
 
-    /**
-     * @param row the row to set
-     */
-    public synchronized void setRow(int row) {
-        _row = row;
-    }
 
-    /**
+    /*
      * @return the column
      */
     public int getColumn() {
         return _column;
-    }
-
-    /**
-     * @param column the column to set
-     */
-    public synchronized void setColumn(int column) {
-        _column = column;
     }
 
     /**
@@ -835,7 +823,14 @@ public class MGStatus implements Cloneable {
     }
 
     public void setValue(RangedValue value) {
+        if (_uiType == TYPE_DRUMPAD) {
+            _drumSwitch = isDrumOn(value._var);
+        }
         _value = value;
+    }
+    
+    public void updateValue(int value) {
+        _value = _value.updateValue(value);
     }
 
     /**
@@ -893,38 +888,35 @@ public class MGStatus implements Cloneable {
     public int getChannel() {
         return _channel;
     }
-    
+
     public boolean hasCustomRange() {
         int wishMax = getTemplate().getBytePosHiValue() >= 0 ? (128 * 128 - 1) : 127;
-        
+
         if (_ccPair14) {
-            wishMax = 128 * 128 -1;
+            wishMax = 128 * 128 - 1;
         }
-        
+
         if (_value._min == 0 && _value._max == wishMax) {
             return false;
-        }
-        else {
+        } else {
             return true;
         }
     }
-    
+
     public void resetCustomRange() {
         if (getTemplate().getBytePosHiValue() >= 0) {
-            _value = _value.modifyRangeTo(0, 128 * 128 -1);
-        }
-        else if (_ccPair14) {
-            _value = _value.modifyRangeTo(0, 128 * 128 -1);
-        }
-        else {
-            _value = _value.modifyRangeTo(0, 128 -1);
+            _value = _value.modifyRangeTo(0, 128 * 128 - 1);
+        } else if (_ccPair14) {
+            _value = _value.modifyRangeTo(0, 128 * 128 - 1);
+        } else {
+            _value = _value.modifyRangeTo(0, 128 - 1);
         }
     }
 
     public void setCustomRange(int min, int max) {
         _value = _value.modifyRangeTo(min, max);
     }
-   
+
     /**
      * @param channel the channel to set
      */
@@ -971,7 +963,8 @@ public class MGStatus implements Cloneable {
     }
 
     /**
-     * @param switchSequencerToSingltTrack the switchSequencerToSingltTrack to set
+     * @param switchSequencerToSingltTrack the switchSequencerToSingltTrack to
+     * set
      */
     public void setSwitchSequencerToSingltTrack(boolean switchSequencerToSingltTrack) {
         this._switchSequencerToSingltTrack = switchSequencerToSingltTrack;
@@ -990,18 +983,18 @@ public class MGStatus implements Cloneable {
     public void setSwitchSequencerFilterNote(boolean switchSequencerFilterNote) {
         this._switchSequencerFilterNote = switchSequencerFilterNote;
     }
-    
+
     public void startSequence() {
         if (_switchSequencer != null) {
             if (_switchSequencerToSingltTrack) {
                 _switchSequencer.setForceSingleChannel(_switchOutChannel);
-            }else {
+            } else {
                 _switchSequencer.setForceSingleChannel(-1);
             }
             _switchSequencer.setFilterNoteOnly(_switchSequencerFilterNote);
             if (_switchSequenceSeekStart) {
                 _switchSequencer.setStartPosition(_switchSequencer.getPositionOfFirstNote());
-            }else {
+            } else {
                 _switchSequencer.setStartPosition(0);
             }
             _switchSequencer.startPlayer(new SMFCallback() {
@@ -1072,14 +1065,14 @@ public class MGStatus implements Cloneable {
                     return false;
                 }
                 return true;
-            }else {
+            } else {
                 return false;
             }
         }
         if (message.isMessageTypeChannel()) {
             int command = message.getStatus() & 0xf0;
             int channel = message.getChannel();
-            
+
             if (_channel != channel) {
                 return false;
             }
@@ -1105,7 +1098,7 @@ public class MGStatus implements Cloneable {
         }
         return false;
     }
-    
+
     public boolean isOnlyValueDifferent(MXMessage message) {
         if (_channel != message.getChannel()) {
             return false;
@@ -1117,32 +1110,76 @@ public class MGStatus implements Cloneable {
 
         MXTemplate temp1 = getTemplate();
         MXTemplate temp2 = message.getTemplate();
-        
+
         if (temp1 != temp2) {
             if (temp1.size() != temp2.size()) {
                 return false;
             }
-            for (int i = 0; i < temp1.size(); ++ i) {
+            for (int i = 0; i < temp1.size(); ++i) {
                 int t1 = temp1.get(i);
                 int t2 = temp2.get(i);
-                
+
                 if (t1 == t2) {
                     continue;
                 }
-                
-                if (t1 == MXTemplate.DTEXT_VH || t1 == MXTemplate.DTEXT_VL 
-                  ||t2 == MXTemplate.DTEXT_VH || t2 == MXTemplate.DTEXT_VL) {
+
+                if (t1 == MXTemplate.DTEXT_VH || t1 == MXTemplate.DTEXT_VL
+                        || t2 == MXTemplate.DTEXT_VH || t2 == MXTemplate.DTEXT_VL) {
                     continue;
                 }
-                
+
                 return false;
             }
         }
-        
+
         return true;
     }
-    
+
     public String toTemplateText() {
         return _template.buildMessage(_port, _channel, _gate, _value).toTemplateText();
     }
+
+    public int compareTo(MGStatus another) {
+        if (this == another) {
+            return 0;
+        }
+        int x;
+
+        x = _port - another._port;
+        if (x == 0) {
+            x = _uiType - another._uiType;
+        }
+        if (x == 0) {
+            x = _row - another._row;
+        }
+        if (x == 0) {
+            x = _column - another._column;
+        }
+        return x;
+    }
+
+    public boolean isDrumOn(int value) {
+        switch (getSwitchInputType()) {
+            case SWITCH_ON_WHEN_ANY:
+                return true;
+            case SWITCH_ON_IF_PLUS1:
+                if (value >= _value._min + 1) {
+                    return true;
+                }
+                return false;
+            case SWITCH_ON_IF_OVER_HALF:
+                if (value >= (_value._min + _value._max) / 2) {
+                    return true;
+                }
+                return false;
+            case SWITCH_ON_IF_MAX:
+                if (value == _value._max) {
+                    return true;
+                }
+                return false;
+        }
+        System.out.println("isDrumOn = " + getSwitchInputType());
+        return false;
+    }
+
 }

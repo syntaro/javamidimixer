@@ -16,8 +16,10 @@
  */
 package jp.synthtarou.midimixer.libs.midi;
 
+import java.util.TreeSet;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXMain;
+import jp.synthtarou.midimixer.mx30controller.MGStatus;
 
 /**
  *

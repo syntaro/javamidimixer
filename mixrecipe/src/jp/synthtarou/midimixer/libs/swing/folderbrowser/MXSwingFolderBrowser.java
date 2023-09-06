@@ -120,14 +120,18 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
         }
 
         public final void launchUIThread(FileSystemCache.Element file) {
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        process(file);
-                    }
-                });
-            } catch (Throwable e) {
-                e.printStackTrace();
+            if (SwingUtilities.isEventDispatchThread()) {
+                process(file);
+            } else {
+                try {
+                    SwingUtilities.invokeAndWait(new Runnable() {
+                        public void run() {
+                            process(file);
+                        }
+                    });
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -215,7 +219,7 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
         _initialDir = initialDir;
         InitialRun init = new InitialRun();
 
-        init.launchProcess(_cache.addCache(null));
+        init.launchUIThread(_cache.addCache(null));
     }
 
     class DigRun extends Runnable2 {
@@ -420,7 +424,7 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
                             System.out.println(".windowClosed()");
                             _deepScan.noticeCancelScan();
                         }
-                    } );
+                    });
                 }
                 boolean flag = _deepScan.accept(seek);
                 if (_deepScan.isCanceled()) {
@@ -771,13 +775,18 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
         TreePath path = evt.getPath();
         DefaultMutableTreeNode last = (DefaultMutableTreeNode) path.getLastPathComponent();
 
+        jToggleButton1.setSelected(false);
+        if (_deepScan != null) {
+            _deepScan.pause(false);
+        }
         new StepRun().launchProcess((FileSystemCache.Element) last.getUserObject());
 
     }//GEN-LAST:event_jTree1TreeWillExpand
 
     private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton1ActionPerformed
-        // TODO add your handling code here:
-        _deepScan.pause(jToggleButton1.isSelected());
+        if (_deepScan != null) {
+            _deepScan.pause(jToggleButton1.isSelected());
+        }
     }//GEN-LAST:event_jToggleButton1ActionPerformed
 
     public void setResultAndClose(boolean accept) {
@@ -788,6 +797,10 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
         }
         ArrayList<File> safe = new ArrayList<File>();
         ArrayList<File> error = new ArrayList<File>();
+        if (_selection == null) {
+            JOptionPane.showMessageDialog(this, "Please, Select Files", "Notice", JOptionPane.OK_OPTION);
+            return;
+        }
         for (FileSystemCache.Element temp : _selection) {
             if (temp == null) {
                 continue;

@@ -30,6 +30,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -45,10 +46,11 @@ import java.util.LinkedList;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.text.MXLineReader;
 import jp.synthtarou.midimixer.mx30controller.MGCircle;
-import jp.synthtarou.midimixer.mx30controller.MGPad;
+import jp.synthtarou.midimixer.mx30controller.MGDrumPad;
 import jp.synthtarou.midimixer.mx30controller.MGSlider;
 
 /**
@@ -192,8 +194,8 @@ public class MXUtil {
             MGSlider slider = (MGSlider) c;
             slider.setValueChangeable(enable);
         }
-        if (c instanceof MGPad) {
-            MGPad pad = (MGPad) c;
+        if (c instanceof MGDrumPad) {
+            MGDrumPad pad = (MGDrumPad) c;
             pad.setValueChangeable(enable);
         }
     }
@@ -218,8 +220,10 @@ public class MXUtil {
         dialog.pack();
         centerWindow(dialog);
         panel.requestFocusInWindow();
+
         dialog.setVisible(true);
     }
+
     public static void centerWindow(Component c) {
         Component owner = (c instanceof Window) ? ((Window) c).getOwner() : null;
         if (owner != null && !owner.isVisible()) {

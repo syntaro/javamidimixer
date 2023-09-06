@@ -18,10 +18,10 @@ package jp.synthtarou.midimixer.mx30controller;
 
 import jp.synthtarou.midimixer.libs.UniqueChecker;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.TreeSet;
+import javax.imageio.metadata.IIOMetadataFormatImpl;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
@@ -40,27 +40,26 @@ import jp.synthtarou.midimixer.libs.midi.port.MXVisitant16;
  * @author Syntarou YOSHIDA
  */
 public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
+
     final int _port;
     final MX30Process _parent;
     final MX32MixerView _view;
     MXNoteOffWatcher _noteOff;
     MXSetting _setting;
-    
-    MXVisitant16 _visitant16 = new MXVisitant16();
-    
-    String _mixerName;
 
+    MXVisitant16 _visitant16 = new MXVisitant16();
+    String _mixerName;
     MX32MixerData _data;
 
     int _patchToMixer = -1;
-    boolean  _patchTogether = false;    
+    boolean _patchTogether = false;
 
     public MX32MixerProcess(MX30Process parent, int port) {
         _parent = parent;
         _port = port;
         _data = new MX32MixerData(this);
         _view = new MX32MixerView(this);
-        _setting = new MXSetting("Mixing" + (port+1));
+        _setting = new MXSetting("Mixing" + (port + 1));
         _setting.setTarget(this);
     }
 
@@ -81,17 +80,18 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
 
     @Override
     protected void processMXMessageImpl(MXMessage message) {
-        if (isUsingThisRecipe() == false) { 
-            sendToNext(message); return; 
+        if (isUsingThisRecipe() == false) {
+            sendToNext(message);
+            return;
         }
-        letsTryMessage(message, new UniqueChecker(_parent.getNextReceiver()));
+        controlProcessByMessage(message);
         //if (message.isDataentry() && message.getVisitant().getDataentryValue14() == 0 && message._trace == null) { message._trace = new Throwable(); }
     }
 
     @Override
     public void prepareSettingFields(MXSetting setting) {
         setting.register("PatchToMixer");
-        
+
         setting.register("Circle[].name");
         setting.register("Circle[].note");
         setting.register("Circle[].type");
@@ -182,7 +182,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
         _patchToMixer = setting.getSettingAsInt("PatchToMixer", -1);
         int x = 0;
         for (MXSettingNode node : children) {
-            ++ x;
+            ++x;
             int type = node.getSettingAsInt("type", -1);
             int row = node.getSettingAsInt("row", -1);
             int column = node.getSettingAsInt("column", -1);
@@ -194,9 +194,9 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 status.setName(node.getSetting("name"));
                 status.setMemo(node.getSetting("note"));
                 String msgText = node.getSetting("message");
-                int channel = node.getSettingAsInt("channel",0);
+                int channel = node.getSettingAsInt("channel", 0);
                 RangedValue gate = RangedValue.new7bit(node.getSettingAsInt("gate", 0));
-                RangedValue value = new RangedValue(node.getSettingAsInt("value", 0), 
+                RangedValue value = new RangedValue(node.getSettingAsInt("value", 0),
                         node.getSettingAsInt("valuemin", 0),
                         node.getSettingAsInt("valuemax", 127));
 
@@ -208,15 +208,15 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 status.setDataroomType(node.getSettingAsInt("dataentryType", MXVisitant.HAVE_VAL_NOT));
                 status.setDataroomMSB(node.getSettingAsInt("dataentryMSB", 0));
                 status.setDataroomLSB(node.getSettingAsInt("dataentryLSB", 0));
-                
+
                 status.setValuePairCC14(node.getSettingAsBoolean("isCCPair", false));
 
                 _data.setCircleStatus(row, column, status);
-            }catch(Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        
+
         children = setting.findByPath("Slider[]");
         for (MXSettingNode node : children) {
             int type = node.getSettingAsInt("type", -1);
@@ -231,9 +231,9 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 status.setMemo(node.getSetting("note"));
                 String msgText = node.getSetting("message");
 
-                int channel = node.getSettingAsInt("channel",0);
+                int channel = node.getSettingAsInt("channel", 0);
                 RangedValue gate = RangedValue.new7bit(node.getSettingAsInt("gate", 0));
-                RangedValue value = new RangedValue(node.getSettingAsInt("value", 0), 
+                RangedValue value = new RangedValue(node.getSettingAsInt("value", 0),
                         node.getSettingAsInt("valuemin", 0),
                         node.getSettingAsInt("valuemax", 127));
 
@@ -247,9 +247,9 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 status.setDataroomLSB(node.getSettingAsInt("dataentryLSB", 0));
 
                 status.setValuePairCC14(node.getSettingAsBoolean("isCCPair", false));
-                
+
                 _data.setSliderStatus(row, column, status);
-            }catch(Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -264,7 +264,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 break;
             }
             if (row == 0 && column == 0) {
-                count ++;
+                count++;
             }
             MGStatus status = new MGStatus(_port, type, row, column);
 
@@ -273,12 +273,12 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 status.setMemo(node.getSetting("note"));
                 msgText = node.getSetting("message");
 
-                int channel = node.getSettingAsInt("channel",0);
+                int channel = node.getSettingAsInt("channel", 0);
                 RangedValue gate = RangedValue.new7bit(node.getSettingAsInt("gate", 0));
-                RangedValue value = new RangedValue(node.getSettingAsInt("value", 0), 
+                RangedValue value = new RangedValue(node.getSettingAsInt("value", 0),
                         node.getSettingAsInt("valuemin", 0),
                         node.getSettingAsInt("valuemax", 127));
-                
+
                 status.setTemplateAsText(msgText, channel);
                 status.setChannel(channel);
                 status.setGate(gate);
@@ -315,7 +315,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 status.setSwitchOutChannel(node.getSettingAsInt("switchOutChannel", 0));
 
                 _data.setDrumPadStatus(row, column, status);
-            }catch(Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -326,8 +326,8 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
         int counter;
         counter = 1;
         setting.setSetting("PatchToMixer", _patchToMixer);
-        for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++ column) {
-            for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++ row) {
+        for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
+            for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++row) {
                 String prefix = "Circle[" + counter + "].";
                 MGStatus status = _data.getCircleStatus(row, column);
                 MXMessage message = status.toMXMessage(null);
@@ -347,12 +347,12 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 setting.setSetting(prefix + "dataentryMSB", status.getDataeroomMSB());
                 setting.setSetting(prefix + "dataentryLSB", status.getDataroomLSB());
                 setting.setSetting(prefix + "isCCPair", status.isValuePairCC14());
-                counter ++;
+                counter++;
             }
         }
         counter = 1;
-        for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++ column) {
-            for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++ row) {
+        for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
+            for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++row) {
                 String prefix = "Slider[" + counter + "].";
                 MGStatus status = _data.getSliderStatus(row, column);
                 MXMessage message = status.toMXMessage(null);
@@ -372,12 +372,12 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 setting.setSetting(prefix + "dataentryMSB", status.getDataeroomMSB());
                 setting.setSetting(prefix + "dataentryLSB", status.getDataroomLSB());
                 setting.setSetting(prefix + "isCCPair", status.isValuePairCC14());
-                counter ++;
+                counter++;
             }
         }
         counter = 1;
-        for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++ column) {
-            for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++ row) {
+        for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
+            for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++row) {
                 String prefix = "Pad[" + counter + "].";
                 MGStatus status = _data.getDrumPadStatus(row, column);
                 MXMessage message = status.toMXMessage(null);
@@ -420,351 +420,119 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 setting.setSetting(prefix + "switchSequencerSeekStart", status.isSwitchSequenceSeekStart());
                 setting.setSetting(prefix + "switchSequencerFilterNote", status.isSwitchSequencerFilterNote());
 
-                counter ++;
+                counter++;
             }
         }
     }
-    
-    public void catchedValue(MGStatus status, MXTiming timing, int newValue, UniqueChecker already) {
-        synchronized(MXTiming.mutex) {
+
+    public void updateUIByStatus(MGStatus status) {
+        if (status.getUiType() == MGStatus.TYPE_SLIDER) {
+            MGSlider slider = _data.getSlider(status._row, status._column);
+            slider.updateByStatus();
+        }
+        if (status.getUiType() == MGStatus.TYPE_CIRCLE) {
+            MGCircle circle = _data.getCircle(status._row, status._column);
+            circle.updateByStatus();
+        }
+        if (status.getUiType() == MGStatus.TYPE_DRUMPAD) {
+            MGDrumPad pad = _data.getDrumPad(status._row, status._column);
+            pad.updateUIByStatus();
+        }
+    }
+
+    public void controlByUI(MGStatus status, int newValue) {
+        controlByUI(status, newValue, null, null);
+    }
+
+    public void controlByUI(MGStatus status, int newValue, MXTiming timing, UniqueChecker uniqueChecker) {
+        if (timing == null) {
+            timing = new MXTiming();
+        }
+        if (uniqueChecker == null) {            
+            uniqueChecker = new UniqueChecker(getNextReceiver());
+        }
+        synchronized (MXTiming.mutex) {
             if (_data.ready() == false) {
                 //constructor
                 return;
             }
-            if (already == null) {
-                already = new UniqueChecker(getNextReceiver());
-            }
-            if (already.checkAlready(status)) {
-                return;
-            }
-            if (timing == null) {
-                timing = new MXTiming();
-            }
-
             int row = status.getRow(), column = status.getColumn();
+            int uiType = status.getUiType();
 
-            MGSlider slider = null; 
-            MGCircle circle  = null;
-            MGPad drumpad = null;
-
-            if (status.getUiType() == MGStatus.TYPE_SLIDER) {
-                slider = _data.getSlider(row, column);
-                already.push(status);
-                status.setValue(status.getValue().updateValue(newValue));
-                slider.updateUIOnly(timing, newValue);
-            }
-            if (status.getUiType() == MGStatus.TYPE_CIRCLE) {
-                circle = _data.getCircle(row, column);
-                already.push(status);
-                status.setValue(status.getValue().updateValue(newValue));
-                circle.changeUIOnly(timing, newValue);
-            }
-            if (status.getUiType() == MGStatus.TYPE_DRUMPAD) {
-                status.setValue(status.getValue().updateValue(newValue));
-                if (status.isDrumOn(newValue)) {
-                    catchedValueDrum(status, timing, true, newValue, already);
-                }else {
-                    catchedValueDrum(status, timing, false, 0, already);
-                }
+            if (uiType == MGStatus.TYPE_SLIDER) {
+                MGSlider slider = _data.getSlider(row, column);
+                status.updateValue(newValue);
+                slider.updateByStatus();
+            } else if (uiType == MGStatus.TYPE_CIRCLE) {
+                MGCircle circle = _data.getCircle(row, column);
+                status.updateValue(newValue);
+                circle.updateByStatus();
+            } else if (uiType == MGStatus.TYPE_DRUMPAD) {
+                // check have collect _drumSwitch value
+                MGDrumPad drumPad = _data.getDrumPad(row, column);
+                status.updateValue(newValue);
+                drumPad.updateUIByStatus();
+            } else {
+                new Throwable("Illegal State uiType unknown");
                 return;
             }
-
             if (_patchToMixer >= 0) {
                 MX32MixerProcess nextMixer = _parent.getPage(_patchToMixer);
-
                 MGStatus nextStatus = null;
-                switch(status.getUiType()) {
+                switch (status.getUiType()) {
                     case MGStatus.TYPE_SLIDER:
-                        nextStatus  = nextMixer._data.getSliderStatus(row, column);
+                        nextStatus = nextMixer._data.getSliderStatus(row, column);
                         break;
                     case MGStatus.TYPE_CIRCLE:
-                        nextStatus  = nextMixer._data.getCircleStatus(row, column);
+                        nextStatus = nextMixer._data.getCircleStatus(row, column);
                         break;
                     case MGStatus.TYPE_DRUMPAD:
-                        nextStatus  = nextMixer._data.getDrumPadStatus(row, column);
+                        nextStatus = nextMixer._data.getDrumPadStatus(row, column);
                         break;
                 }
 
                 int nextMin = nextStatus.getValue()._min;
                 int nextMax = nextStatus.getValue()._min;
                 newValue = status.getValue().modifyRangeTo(nextMin, nextMax)._var;
-                nextMixer.catchedValue(nextStatus, timing, newValue, already);
+                nextMixer.controlByUI(nextStatus, newValue, timing, uniqueChecker);
 
                 if (_patchTogether == false) {
                     return;
                 }
             }
 
-            MXMessage message = status.toMXMessage(timing);
-            if (message.getValue()._var == 0) {
-                //TODO whats this
-                message.setValue(newValue);
-            }
-            if (message != null) {
-                if (message.getValue()._var == 0 && message.isCommand(MXMidi.COMMAND_NOTEON)) {
-                    message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_NOTEOFF + message.getChannel(), message.getData1(), 0);
-                    message._timing = timing;
-                }
-            }
-            //if (message.isDataentry() && message.getVisitant().getDataentryValue14() == 0 && message._trace == null) { message._trace = new Throwable(); }
-
-            already.sendOnlyNeed(message);
-            letsTryMessage(message, already);
-        }
-    }
-    
-    public void catchedValueDrum(MGStatus status, MXTiming timing, boolean newValue, int velocity, UniqueChecker already) {
-        synchronized(MXTiming.mutex) {
-            if (already == null) {
-                already = new UniqueChecker(getNextReceiver());
-            }
-            if (already.checkAlready(status)) {
-                return;
-            }
-            already.push(status);
-            if (timing == null) {
-                timing = new MXTiming();
-            }
-
-            int row = status.getRow(), column = status.getColumn();
-
-            MGSlider slider = null; 
-            MGCircle circle  = null;
-            MGPad drumpad = null;
-
-            if (status.getUiType() == MGStatus.TYPE_DRUMPAD) {
-                drumpad = _data.getDrumPad(row, column);
-            }else {
-                throw new IllegalStateException();
-            }
-
-            if (_patchToMixer >= 0) {
-                MX32MixerProcess nextMixer = _parent.getPage(_patchToMixer);
-
-                MGStatus nextStatus = null;
-                switch(status.getUiType()) {
-                    case MGStatus.TYPE_SLIDER:
-                        nextStatus  = nextMixer._data.getSliderStatus(row, column);
-                        break;
-                    case MGStatus.TYPE_CIRCLE:
-                        nextStatus  = nextMixer._data.getCircleStatus(row, column);
-                        break;
-                    case MGStatus.TYPE_DRUMPAD:
-                        nextStatus  = nextMixer._data.getDrumPadStatus(row, column);
-                        break;
-                }
-
-                nextMixer.catchedValueDrum(nextStatus, timing, newValue, velocity, already);
-
-                if (_patchTogether == false) {
-                    return;
-                }
-            }
-
-            boolean now = newValue;
-            boolean prev = status.isValueLastDetect();
-
-            int value = status.getValue()._var;
-            if (status.toMXMessage(timing).isCommand(MXMidi.COMMAND_PROGRAMCHANGE)) {
-                value = 0;
-            }
-
-            status.setSwitchLastDetected(velocity);
-
-            boolean flag = (prev != now);
-
-            if (!flag && status.toMXMessage(timing).hasValueLowField() == false) {
-                flag = true;
-            }
-
-            if (!flag && status.getSwitchInputType() == MGStatus.SWITCH_ON_WHEN_ANY) {
-                flag = true;
-            }
-
-            if (flag) { // ワンショットまたは、画面上の数値が切り替わった (nowへ)
-                status.setValueLastDetect(now);
-                if (now) { // オンにきりかわった
-                    if (status.isSwitchWithToggle()) {
-                        boolean lastSent = status.isValueLastSent();
-                        now = !lastSent;
-                    }
-                }else { // オフにきりかわたｔ
-                    if (status.isSwitchWithToggle()) {
-                        //　トグルなら終了
-                        return;    
+            if (uiType == MGStatus.TYPE_DRUMPAD) {
+                status.invokeDrumAction();
+            } else {
+                MXMessage message = status.toMXMessage(timing);
+                if (message != null) {
+                    if (message.getValue()._var == 0 && message.isCommand(MXMidi.COMMAND_NOTEON)) {
+                        message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_NOTEOFF + message.getChannel(), message.getData1(), 0);
+                        message._timing = timing;
                     }
                 }
-                MXMessage message = null;
-                status.setValueLastSent(now);
-                drumpad.updateUIOnly(now);
-                if (now) {
-                    if (status.getSwitchType() == MGStatus.SWITCH_TYPE_SEQUENCE) {
-                        status.startSequence();
-                        return;
-                    }
-                    if (status.getSwitchType() == MGStatus.SWITCH_TYPE_HARMONY) {
-                        String notes = status.getSwitchHarmonyNotes();
-                        int veltype = status.getSwitchHarmonyVelocityType();
-                        if (veltype == MGStatus.SWITCH_HARMONY_VELOCITY_SAME_AS_INPUT) {
-                            if (value != 0) {
-                                velocity = value;
-                            }else {
-                                velocity = status.getSwitchHarmonyVelocityFixed();
-                            }
-                        }else if (veltype == MGStatus.SWITCH_HARMONY_VELOCITY_FIXED) {
-                            velocity = status.getSwitchHarmonyVelocityFixed();
-                        }else {
-                            throw  new IllegalStateException("velocity unknown");
-                        }
-                        int[] noteList = MXMidi.textToNoteList(notes);
-                        for (int note : noteList) {
-                            message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_NOTEON + status.getSwitchOutChannel(), note, velocity);
-                            message._timing = timing;
-                            already.sendOnlyNeed(message);
-                        }
-                        return;
-                    }
-                    message = status.toMXMessageCaseDrumOn(timing);
-                    if (message == null) {
-                        return;
-                    }
-                }else {
-                    if (status.getSwitchType() == MGStatus.SWITCH_TYPE_ON) {
-                        return;
-                    }
-                    if (status.getSwitchType() == MGStatus.SWITCH_TYPE_SEQUENCE) {
-                        status.stopSequence();
-                        return;
-                    }
-                    if (status.getSwitchType() == MGStatus.SWITCH_TYPE_HARMONY) {
-                        String notes = status.getSwitchHarmonyNotes();
-                        int[] noteList = MXMidi.textToNoteList(notes);
-                        for (int note : noteList) {
-                            message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_NOTEOFF + status.getSwitchOutChannel(), note, 0);
-                            message._timing = timing;
-                            already.sendOnlyNeed(message);
-                        }
-                        return;
-                    }
-                    message = status.toMXMessageCaseDrumOff(timing);
-                    if (message == null) {
-                        return;
-                    }
-                }
-                message = MXMessageFactory.fromClone(message);
-                if (message.isCommand(MXMidi.COMMAND_NOTEON) && message.getValue()._var == 0) {
-                    message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_NOTEOFF + message.getChannel(), message.getData1(), 0);
-                }
-                message._timing = timing;
-                letsTryMessage(message, already);
+                //if (message.isDataentry() && message.getVisitant().getDataentryValue14() == 0 && message._trace == null) { message._trace = new Throwable(); }
+
+                controlProcessByMessage(message);
             }
         }
     }
-    
 
-    public void makeCacheInternal1(MGStatus status) {
-        if (status == null) {
-            return;
-        }
-        
-        MXMessage message = status.toMXMessage(null);
-        if (message.isCommand(MXMidi.COMMAND_CONTROLCHANGE)) {
-            int data1 = message.getData1();
-            if (data1 == MXMidi.DATA1_CC_DATAENTRY || data1 == MXMidi.DATA1_CC_DATAINC || data1 == MXMidi.DATA1_CC_DATADEC) {
-                _data._cachedDataentry.add(status);
-                return;
-            }
-            if (_data._cachedControlChange[message.getChannel()][data1] == null) {
-                _data._cachedControlChange[message.getChannel()][data1] = new ArrayList();
-            }
-            _data._cachedControlChange[message.getChannel()][data1].add(status);
-            int data2 = -1;
-            if (data1 >= 0 && data1 <= 31 && status.isValuePairCC14()) {
-                data2 = data1 + 32;
-                if (_data._cachedControlChange[message.getChannel()][data2] == null) {
-                    _data._cachedControlChange[message.getChannel()][data2] = new ArrayList();
-                }
-                _data._cachedControlChange[message.getChannel()][data2].add(status);
-            }
-        }else if (message.isCommand(MXMidi.COMMAND_NOTEON) || message.isCommand(MXMidi.COMMAND_NOTEOFF)
-                ||message.isCommand(MXMidi.COMMAND_POLYPRESSURE)) {
-            int note = message.getData1();
-            if (_data._cachedNoteMessage[message.getChannel()][note] == null) {
-                _data._cachedNoteMessage[message.getChannel()][note] = new ArrayList();
-            }
-            _data._cachedNoteMessage[message.getChannel()][note].add(status);    
-        }else if (message.isMessageTypeChannel()) {
-            int command = message.getStatus() & 0xf0;
-            if (_data._cachedChannelMessage[message.getChannel()][command] == null) {
-                _data._cachedChannelMessage[message.getChannel()][command] = new ArrayList();
-            }
-            _data._cachedChannelMessage[message.getChannel()][command].add(status);
-        }else {
-            _data._cachedSystemMessage.add(status);
-        }
-    }
-
-    public synchronized List<MGStatus> getCachedList(MXMessage request) {
-        if (_data._cachedControlChange == null) {
-            _data._cachedControlChange = new ArrayList[16][256];
-            _data._cachedChannelMessage = new ArrayList[16][256];
-            _data._cachedNoteMessage = new ArrayList[16][256];
-            _data._cachedSystemMessage = new ArrayList();
-            _data._cachedDataentry = new ArrayList();
-            
-            for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++ row) {
-                for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
-                    makeCacheInternal1(_data.getSliderStatus(row, column));
-                }
-            }
-
-            for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++ row) {
-                for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
-                    makeCacheInternal1(_data.getCircleStatus(row, column));
-                }
-            }
-
-            for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++ row) {
-                for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
-                    MGStatus status = _data.getDrumPadStatus(row, column);
-                    makeCacheInternal1(status);
-                }
-            }
-        }
-        
-        if (request.isMessageTypeChannel()) {
-            int command = request.getStatus() & 0xf0;
-            if (command == MXMidi.COMMAND_CONTROLCHANGE) {
-                int data1 = request.getData1();
-                if (data1 == MXMidi.DATA1_CC_DATAENTRY || data1 == MXMidi.DATA1_CC_DATAINC || data1 == MXMidi.DATA1_CC_DATADEC) {
-                    return _data._cachedDataentry;
-                }
-                return _data._cachedControlChange[request.getChannel()][request.getGate()._var];
-            }else if (command == MXMidi.COMMAND_NOTEON || command == MXMidi.COMMAND_NOTEOFF
-                    || command == MXMidi.COMMAND_POLYPRESSURE) {
-                return _data._cachedNoteMessage[request.getChannel()][request.getGate()._var];
-            }
-
-            return _data._cachedChannelMessage[request.getChannel()][command];
-        }else {
-            return _data._cachedSystemMessage;
-        }
-    }
-    
+    /*
     MXMessage _poolFor14bit = null;
     MGStatus _poolFor14bitStatus = null;
     int _gotValue14bit = 0;
-    
+
     public boolean isPairToPooled14bit(MXMessage message) {
         if (_poolFor14bit != null) {
             if (message.isCommand(MXMidi.COMMAND_CONTROLCHANGE)) {
                 int gate = message.getGate()._var;
                 if (gate >= 0 && gate < 32) {
-                    if (gate +32 == _poolFor14bit.getGate()._var) {
+                    if (gate + 32 == _poolFor14bit.getGate()._var) {
                         return true;
                     }
-                }else if (gate >= 32 && gate < 64) {
-                    if (gate == _poolFor14bit.getGate()._var +32) {
+                } else if (gate >= 32 && gate < 64) {
+                    if (gate == _poolFor14bit.getGate()._var + 32) {
                         return true;
                     }
                 }
@@ -772,25 +540,25 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
         }
         return false;
     }
-    
+
     public int valueForPair(MXMessage message) {
         if (isPairToPooled14bit(message)) {
             if (message.isCommand(MXMidi.COMMAND_CONTROLCHANGE)) {
                 int gate = message.getGate()._var;
-                if (gate >= 0 && gate  < 32) {
-                    if (gate +32 == _poolFor14bit.getGate()._var) {
+                if (gate >= 0 && gate < 32) {
+                    if (gate + 32 == _poolFor14bit.getGate()._var) {
                         return message.getValue()._var * 128 + _poolFor14bit.getValue()._var;
                     }
-                }else if (gate >= 32 && message.getChannel() <= 64) {
-                    if (gate == _poolFor14bit.getGate()._var +32) {
-                        return message.getValue()._var + _poolFor14bit.getValue()._var  * 128;
+                } else if (gate >= 32 && message.getChannel() <= 64) {
+                    if (gate == _poolFor14bit.getGate()._var + 32) {
+                        return message.getValue()._var + _poolFor14bit.getValue()._var * 128;
                     }
                 }
             }
         }
         throw new IllegalStateException("valueForPair not work at the moment");
-    }
-
+    }*/
+ /*
     public boolean isSameToPooled14bit(MXMessage message) {
         if (_poolFor14bit != null) {
             if (message.isCommand(MXMidi.COMMAND_CONTROLCHANGE)) {
@@ -803,8 +571,8 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
     }
 
     long lastTick = 0;
-    
-    public synchronized  void clearPoolImpl() {
+
+    public synchronized void clearPoolImpl() {
         if (lastTick + 400 < System.currentTimeMillis()) {
             if (_poolFor14bit != null) {
                 MXMessage prev = _poolFor14bit;
@@ -814,79 +582,25 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 return;
             }
         }
-    }
-
-    public synchronized  void letsTryMessage(MXMessage message, UniqueChecker already) {
-        if (already == null) {
-            already = new UniqueChecker(getNextReceiver());
-        }
-        
-        int fail = 0;
-        int hit = 0;
-        if (_poolFor14bit != null) {
-            if (isPairToPooled14bit(message)) {
-                int value = valueForPair(message);
-                _poolFor14bit = null;
-                message = MXMessageFactory.fromClone(message);
-                message.setValuePairCC14(true);
-                message.setValue(value);
-                already.sendOnlyNeed(message);
-                catchedValue(_poolFor14bitStatus, message._timing, value, already);
-                return;
-            }else {
-                clearPoolImpl();
-            }
-        }
-        int port = message.getPort();
-        List<MGStatus> list = getCachedList(message);
-        if (list != null) {
-            boolean foundSome = false;
-            for (int i = 0; i < list.size(); ++ i) {
-                MGStatus status = list.get(i);
-                if (status.statusTryCatch(message)) {
-                    int gate = message.getGate()._var;
-                    if (message.isCommand(MXMidi.COMMAND_CONTROLCHANGE) && gate >= 0 && gate < 32 && status.isValuePairCC14()) {
-                        //TODO more logical
-                        if (gate == message.getGate()._var) {
-                            _poolFor14bit = message;
-                            _poolFor14bitStatus = status;
-                        }else if (gate + 32 == message.getGate()._var) {
-                            _poolFor14bit = message;
-                            _poolFor14bitStatus = status;
-                        }else {
-                            continue;
-                        }
-                        lastTick = System.currentTimeMillis();
-                        foundSome = true;
-                        hit ++;
-                        MXGlobalTimer.letsCountdown(500, new Runnable() {
-                            @Override
-                            public void run() {
-                                clearPoolImpl();
-                            }
-                        });
-                    }
-                    catchedValue(status, message._timing, status.getValue()._var, already);
-                    foundSome = true;
-                    hit ++;
-                }else {
-                    fail ++;
-                }
-            }
-            if (foundSome) {
-                return;
-            }
-        }
+    }*/
+    public synchronized void controlProcessByMessage(MXMessage message) {
+        //画面のコントロールをすべて更新する
         if (MXVisitant.isMesssageHaveVisitant(message)) {
             _visitant16.get(message.getChannel()).updateVisitantChannel(message);
         }
         if (message.isMessageTypeChannel()) {
             _visitant16.get(message.getChannel()).attachChannelVisitantToMessage(message);
         }
-        already.sendOnlyNeed(message);
+        TreeSet<MGStatus> listStatus = _data.controlStatusByMessage(message);
+        if (listStatus != null && listStatus.isEmpty() == false) {
+            for (MGStatus status : listStatus) {
+                updateUIByStatus(status);
+            }
+        }
+        sendToNext(message);
     }
 
     public void notifyCacheBroken() {
-        _data._cachedControlChange = null;
+        _data._finder = null;
     }
 }

@@ -587,7 +587,7 @@ static final int DTEXT_CCNUM = 0x1500;
         }
         return false;
     }
-
+    
     public boolean canReuseDword(int dword) {
         int status = (dword >> 16) & 0xff;
         int data1 = (dword >> 8) & 0xff;

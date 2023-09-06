@@ -18,7 +18,6 @@ package jp.synthtarou.midimixer.mx30controller;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -27,7 +26,6 @@ import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 
@@ -41,6 +39,23 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
     private MX32MixerProcess[] _pageProcess;
     boolean _editingControl;
     MXSetting _setting;
+    
+    MXReceiver mixerMix = new MXReceiver() {
+        @Override
+        public String getReceiverName() {
+            return "Mixer MIX";
+        }
+
+        @Override
+        public JPanel getReceiverView() {
+            return null;
+        }
+
+        @Override
+        protected void processMXMessageImpl(MXMessage message) {
+            MX30Process.this.sendToNext(message);
+        }
+    };
 
     public MX30Process() {
         _setting = new MXSetting("MixingGlobal");
@@ -50,6 +65,7 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
         _pageProcess = new MX32MixerProcess[MXAppConfig.TOTAL_PORT_COUNT];
         for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
             _pageProcess[i] = new MX32MixerProcess(this, i);
+            _pageProcess[i].setNextReceiver(mixerMix);
         }
     }
 
@@ -222,7 +238,7 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
                         MXUtil.backgroundRecursive(circle, c);
                         break;
                     case MGStatus.TYPE_DRUMPAD:
-                        MGPad drum = focus_data.getDrumPad(focus_row, focus_column);
+                        MGDrumPad drum = focus_data.getDrumPad(focus_row, focus_column);
                         MXUtil.backgroundRecursive(drum, c);
                         break;
                 }
@@ -250,7 +266,7 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
                     }
                     break;
                 case MGStatus.TYPE_DRUMPAD:
-                    MGPad drum = focus_data.getDrumPad(row, column);
+                    MGDrumPad drum = focus_data.getDrumPad(row, column);
                     value = focus_data.getDrumPadStatus(row, column).toString();
                     if (_editingControl) {
                         MXUtil.backgroundRecursive(drum, colorEdit);
@@ -371,7 +387,7 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
                             }
                             break;
                         case MGStatus.TYPE_DRUMPAD:
-                            MGPad drum = focus_data.getDrumPad(focus_row, focus_column);
+                            MGDrumPad drum = focus_data.getDrumPad(focus_row, focus_column);
                             switch(keyCode) {
                                 case ' ': drum.increment(null); break;
                                 case '\b': drum.decriment(null); break;

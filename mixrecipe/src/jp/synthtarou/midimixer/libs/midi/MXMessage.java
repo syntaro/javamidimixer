@@ -17,12 +17,15 @@
 package jp.synthtarou.midimixer.libs.midi;
 
 import java.io.PrintStream;
+import java.util.TreeSet;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
 import static jp.synthtarou.midimixer.libs.midi.MXTemplate.DTEXT_PROGDEC;
 import static jp.synthtarou.midimixer.libs.midi.MXTemplate.DTEXT_PROGINC;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import jp.synthtarou.midimixer.libs.console.ConsoleElement;
+import jp.synthtarou.midimixer.mx30controller.MGStatus;
 
 /**
  *
@@ -30,7 +33,22 @@ import jp.synthtarou.midimixer.libs.console.ConsoleElement;
  * infomation from g200kg Music & Software https://www.g200kg.com/
  */
 public final class MXMessage {
+    public MXTiming _timing;
+    int _port;
 
+    private RangedValue _value = RangedValue.ZERO7;
+    private RangedValue _gate = RangedValue.ZERO7;
+    private int _channel = 0;
+    
+    protected byte[] _dataBytes = null;
+    private boolean _valuePair14bit;
+
+    private final MXTemplate _template;
+
+    private int _metaType;
+    public String _metaText;
+    public TreeSet<MGStatus>_linkedStatus = null;
+    
     public boolean isBinMessage() {
         if (createBytes() == null) {
             return false;
@@ -96,21 +114,6 @@ public final class MXMessage {
         _dataBytes = null;
     }
 
-    public MXTiming _timing;
-    int _port;
-
-    private RangedValue _value = RangedValue.ZERO7;
-    private RangedValue _gate = RangedValue.ZERO7;
-    private int _channel = 0;
-    
-    protected byte[] _dataBytes = null;
-    private boolean _valuePair14bit;
-
-    private final MXTemplate _template;
-
-    private int _metaType;
-    public String _metaText;
-    
     public byte[] createBytes() {
         if (_dataBytes != null) {
             return _dataBytes;

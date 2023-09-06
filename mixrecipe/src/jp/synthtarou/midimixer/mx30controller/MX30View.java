@@ -102,6 +102,7 @@ public class MX30View extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jCheckBoxUseThisMixRecipeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxUseThisMixRecipeActionPerformed
+        _process.setUsingThisRecipe(jCheckBoxUseThisMixRecipe.isSelected());
         if (jCheckBoxUseThisMixRecipe.isSelected()) {
             MXUtil.swingTreeEnable(this, true);
         }else {

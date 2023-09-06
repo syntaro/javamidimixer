@@ -447,13 +447,13 @@ public class MX32MixerView extends javax.swing.JPanel {
             }
             grindY++;
 
-            ArrayList<MGPad>[] matrixPad = new ArrayList[MXAppConfig.DRUM_ROW_COUNT];
+            ArrayList<MGDrumPad>[] matrixPad = new ArrayList[MXAppConfig.DRUM_ROW_COUNT];
 
             for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++ row) {
-                ArrayList<MGPad> newPad = new ArrayList<MGPad>();
+                ArrayList<MGDrumPad> newPad = new ArrayList<MGDrumPad>();
                 for (int col = 0; col < MXAppConfig.SLIDER_COLUMN_COUNT; ++col) {
                     MGStatus number = mixer._data.getDrumPadStatus(row, col);
-                    MGPad rc1 = new MGPad(_process, row, col);
+                    MGDrumPad rc1 = new MGDrumPad(_process, row, col);
                     //rc1.initUIWithStatus(number);
 
                    _focusGroup.attach(rc1);
