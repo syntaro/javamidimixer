@@ -178,6 +178,11 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
         _pageProcess[port].processMXMessage(message);
         //if (message.isDataentry() && message.getVisitant().getDataentryValue14() == 0 && message._trace == null) { message._trace = new Throwable(); }
     }
+    
+    public void reenterMXMessageByUI(MXMessage message) {
+        int port = message.getPort();
+        _pageProcess[port].reenterMXMessageByUI(message);
+    }
 
     @Override
     public String getReceiverName() {

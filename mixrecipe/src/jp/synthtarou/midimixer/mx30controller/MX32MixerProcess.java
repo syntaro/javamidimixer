@@ -19,7 +19,6 @@ package jp.synthtarou.midimixer.mx30controller;
 import jp.synthtarou.midimixer.libs.UniqueChecker;
 import java.util.ArrayList;
 import java.util.TreeSet;
-import javax.imageio.metadata.IIOMetadataFormatImpl;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
@@ -428,15 +427,15 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
     public void updateUIByStatus(MGStatus status) {
         if (status.getUiType() == MGStatus.TYPE_SLIDER) {
             MGSlider slider = _data.getSlider(status._row, status._column);
-            slider.updateByStatus();
+            slider.updateUIByStatus();
         }
         if (status.getUiType() == MGStatus.TYPE_CIRCLE) {
             MGCircle circle = _data.getCircle(status._row, status._column);
-            circle.updateByStatus();
+            circle.updateUIByStatus();
         }
         if (status.getUiType() == MGStatus.TYPE_DRUMPAD) {
             MGDrumPad pad = _data.getDrumPad(status._row, status._column);
-            pad.updateUIByStatus();
+            pad.pickupTriggerStatus();
         }
     }
 
@@ -445,33 +444,32 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
     }
 
     public void controlByUI(MGStatus status, int newValue, MXTiming timing, UniqueChecker uniqueChecker) {
-        if (timing == null) {
-            timing = new MXTiming();
-        }
-        if (uniqueChecker == null) {            
-            uniqueChecker = new UniqueChecker(getNextReceiver());
-        }
         synchronized (MXTiming.mutex) {
             if (_data.ready() == false) {
                 //constructor
                 return;
             }
+            if (timing == null) {
+                timing = new MXTiming();
+            }
+            if (uniqueChecker == null) {            
+                uniqueChecker = new UniqueChecker(getNextReceiver());
+            }
             int row = status.getRow(), column = status.getColumn();
             int uiType = status.getUiType();
-
             if (uiType == MGStatus.TYPE_SLIDER) {
                 MGSlider slider = _data.getSlider(row, column);
                 status.updateValue(newValue);
-                slider.updateByStatus();
+                //slider.updateUIByStatus();
             } else if (uiType == MGStatus.TYPE_CIRCLE) {
                 MGCircle circle = _data.getCircle(row, column);
                 status.updateValue(newValue);
-                circle.updateByStatus();
+                //circle.updateUIByStatus();
             } else if (uiType == MGStatus.TYPE_DRUMPAD) {
                 // check have collect _drumSwitch value
                 MGDrumPad drumPad = _data.getDrumPad(row, column);
                 status.updateValue(newValue);
-                drumPad.updateUIByStatus();
+                drumPad.pickupTriggerStatus();
             } else {
                 new Throwable("Illegal State uiType unknown");
                 return;
@@ -502,7 +500,8 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             }
 
             if (uiType == MGStatus.TYPE_DRUMPAD) {
-                status.invokeDrumAction();
+                MGDrumPad drumPad = _data.getDrumPad(row, column);
+                drumPad.invokeDrumAction();
             } else {
                 MXMessage message = status.toMXMessage(timing);
                 if (message != null) {
@@ -513,7 +512,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 }
                 //if (message.isDataentry() && message.getVisitant().getDataentryValue14() == 0 && message._trace == null) { message._trace = new Throwable(); }
 
-                controlProcessByMessage(message);
+                reenterMXMessageByUI(message);
             }
         }
     }
@@ -583,14 +582,32 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             }
         }
     }*/
-    public synchronized void controlProcessByMessage(MXMessage message) {
-        //画面のコントロールをすべて更新する
+
+    public synchronized void reenterMXMessageByUI(MXMessage message) {
         if (MXVisitant.isMesssageHaveVisitant(message)) {
             _visitant16.get(message.getChannel()).updateVisitantChannel(message);
         }
         if (message.isMessageTypeChannel()) {
             _visitant16.get(message.getChannel()).attachChannelVisitantToMessage(message);
         }
+        //画面のコントロールをすべて更新する
+        TreeSet<MGStatus> listStatus = _data.controlStatusByMessage(message);
+        if (listStatus != null && listStatus.isEmpty() == false) {
+            for (MGStatus status : listStatus) {
+                updateUIByStatus(status);
+            }
+        }
+        sendToNext(message);
+    }
+
+    public synchronized void controlProcessByMessage(MXMessage message) {
+        if (MXVisitant.isMesssageHaveVisitant(message)) {
+            _visitant16.get(message.getChannel()).updateVisitantChannel(message);
+        }
+        if (message.isMessageTypeChannel()) {
+            _visitant16.get(message.getChannel()).attachChannelVisitantToMessage(message);
+        }
+        //画面のコントロールをすべて更新する
         TreeSet<MGStatus> listStatus = _data.controlStatusByMessage(message);
         if (listStatus != null && listStatus.isEmpty() == false) {
             for (MGStatus status : listStatus) {

@@ -194,13 +194,13 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
         _process.controlByUI(getStatus(), newValue);        
     }//GEN-LAST:event_jSliderValueStateChanged
 
-    public void updateByStatus() {
+    public void updateUIByStatus() {
         MGStatus status = getStatus();
         if (SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    updateByStatus();
+                    updateUIByStatus();
                 }
             });
             return;
@@ -284,7 +284,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
                         x /= 5;
                         Thread.sleep(70);
                         status.updateValue(x);
-                        updateByStatus();
+                        updateUIByStatus();
                         if (x == value) { 
                             break;
                         }
@@ -293,7 +293,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
                     e.printStackTrace();
                 }finally {
                     status.updateValue(value);
-                    updateByStatus();
+                    updateUIByStatus();
                 }
             }
         });

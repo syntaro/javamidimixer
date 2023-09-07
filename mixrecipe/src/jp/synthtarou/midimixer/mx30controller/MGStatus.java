@@ -17,8 +17,6 @@
 package jp.synthtarou.midimixer.mx30controller;
 
 import java.io.File;
-import java.util.LinkedList;
-import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
@@ -26,7 +24,6 @@ import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
-import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFCallback;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFPlayer;
@@ -90,7 +87,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     }
 
     //public static final int SWITCH_ON_IF_ONESHOT = 0;
-    public static final int SWITCH_ON_WHEN_ANY = 1;
+    public static final int SWITCH_ON_WHEN_MATCH = 1;
     public static final int SWITCH_ON_IF_PLUS1 = 2;
     public static final int SWITCH_ON_IF_OVER_HALF = 3;
     public static final int SWITCH_ON_IF_MAX = 4;
@@ -143,8 +140,6 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
 
     private RangedValue _value = RangedValue.ZERO7;
     private int _valueHome = 0;
-    private boolean _valueLastSent = false;
-    private boolean _valueLastDetect = false;
 
     private RangedValue _gate = RangedValue.ZERO7;
     private int _channel = 0;
@@ -187,28 +182,11 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     private int _dataroomLSB = -1;
 
     private boolean _ccPair14 = false;
-
-    public boolean _drumSwitch;
-    public LinkedList<Runnable> _drumAction = null;
     
-    public synchronized void addDrumAction(Runnable run) {
-        if (_drumAction == null) {
-            _drumAction = new LinkedList<>();
-        }
-        _drumAction.add(run);
-    }
-    
-    public synchronized void invokeDrumAction() {
-        if (_drumAction != null) {
-            while (_drumAction.isEmpty() == false) {
-                try {
-                    _drumAction.remove().run();
-                }catch(Throwable e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
+    public boolean _switchToSent = false;
+    public boolean _switchLastDetect = false;
+    public boolean _switchIncomming = false;
+    public boolean _switchNeedAction = false;
 
     public MGStatus(int port, int uiType, int row, int column) {
         _port = port;
@@ -222,10 +200,6 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     }
 
     public synchronized MXMessage toMXMessage(MXTiming timing) {
-        if (_uiType == TYPE_DRUMPAD && _drumAction != null && _drumAction.isEmpty() == false) {
-            return null;
-        }
-
         MXTemplate template = getTemplate();
         MXMessage message = template.buildMessage(_port, _channel, _gate, _value);
         message._timing = timing;
@@ -335,7 +309,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
 
         status.setValue(_value);
         status.setValueHome(_valueHome);
-        status.setValueLastSent(_valueLastSent);
+        status._switchToSent = _switchToSent;
 
         status.setSwitchType(getSwitchType());
         status.setSwitchInputType(getSwitchInputType());
@@ -437,6 +411,9 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
             }
         } else {
             name = _name;
+        }
+        if (message == null) {
+            message = MXMessageFactory.createDummy();
         }
         return name + " (" + _memo + ")" + "\n"
                 + text + "[row " + (getRow() + 1) + ", col " + (getColumn() + 1) + "] "
@@ -824,7 +801,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
 
     public void setValue(RangedValue value) {
         if (_uiType == TYPE_DRUMPAD) {
-            _drumSwitch = isDrumOn(value._var);
+            _switchIncomming = isDrumOn(value._var);
         }
         _value = value;
     }
@@ -851,23 +828,8 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
      * @return the valueLastSent
      */
     public boolean isValueLastSent() {
-        return _valueLastSent;
+        return _switchToSent;
     }
-
-    /**
-     * @param valueLastSent the valueLastSent to set
-     */
-    public synchronized void setValueLastSent(boolean valueLastSent) {
-        _valueLastSent = valueLastSent;
-    }
-
-    /**
-     * @param valueLastSent the valueLastSent to set
-     */
-    public boolean getValueLastSent() {
-        return _valueLastSent;
-    }
-
     /**
      * @return the gate
      */
@@ -984,7 +946,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         this._switchSequencerFilterNote = switchSequencerFilterNote;
     }
 
-    public void startSequence() {
+    public void startSequence(MX32MixerProcess process) {
         if (_switchSequencer != null) {
             if (_switchSequencerToSingltTrack) {
                 _switchSequencer.setForceSingleChannel(_switchOutChannel);
@@ -1000,9 +962,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
             _switchSequencer.startPlayer(new SMFCallback() {
                 @Override
                 public void smfPlayNote(SMFMessage e) {
-                    //tODO 
-                    MXReceiver process = MXMain.getMain().getKontrolProcess().getNextReceiver();
-                    process.processMXMessage(e.fromSMFtoMX(_port));
+                    process.reenterMXMessageByUI(e.fromSMFtoMX(_port));
                 }
 
                 @Override
@@ -1025,20 +985,6 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
             _switchSequencer.stopPlayer();
             _switchSequencer = null;
         }
-    }
-
-    /**
-     * @return the _valueLastDetect
-     */
-    public boolean isValueLastDetect() {
-        return _valueLastDetect;
-    }
-
-    /**
-     * @param _valueLastDetect the _valueLastDetect to set
-     */
-    public void setValueLastDetect(boolean _valueLastDetect) {
-        this._valueLastDetect = _valueLastDetect;
     }
 
     public boolean haveSameStatusAndGate(MXMessage message) {
@@ -1160,7 +1106,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
 
     public boolean isDrumOn(int value) {
         switch (getSwitchInputType()) {
-            case SWITCH_ON_WHEN_ANY:
+            case SWITCH_ON_WHEN_MATCH:
                 return true;
             case SWITCH_ON_IF_PLUS1:
                 if (value >= _value._min + 1) {

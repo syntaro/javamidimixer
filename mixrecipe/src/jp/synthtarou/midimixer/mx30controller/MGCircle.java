@@ -161,13 +161,13 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
 
     MXTiming _trackNumer;
     
-    public void updateByStatus() {
+    public void updateUIByStatus() {
         MGStatus status = getStatus();
         if (SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    updateByStatus();
+                    updateUIByStatus();
                 }
             });
             return;

@@ -414,6 +414,7 @@ public class MX32MixerData {
             status.setValue(RangedValue.ZERO7);
         }
         status.setSwitchType(MGStatus.SWITCH_TYPE_ON); // 1回のみで
+        status.setSwitchInputType(MGStatus.SWITCH_ON_WHEN_MATCH);
         status.setSwitchOutOnTypeOfValue(MGStatus.SWITCH_OUT_ON_VALUE_FIXED);
         status.setSwitchOutOnValueFixed(maxValue._var);
     }
@@ -442,6 +443,7 @@ public class MX32MixerData {
             status.setValue(middleValue);
         }
         status.setSwitchType(MGStatus.SWITCH_TYPE_ON); // 1回のみで
+        status.setSwitchInputType(MGStatus.SWITCH_ON_WHEN_MATCH);
         status.setSwitchOutOnTypeOfValue(MGStatus.SWITCH_OUT_ON_VALUE_FIXED);
         status.setSwitchOutOnValueFixed(middle);
     }
@@ -466,6 +468,7 @@ public class MX32MixerData {
             status.setValue(minValue);
         }
         status.setSwitchType(MGStatus.SWITCH_TYPE_ON); // 1回のみで
+        status.setSwitchInputType(MGStatus.SWITCH_ON_WHEN_MATCH);
         status.setSwitchOutOnTypeOfValue(MGStatus.SWITCH_OUT_ON_VALUE_FIXED);
         status.setSwitchOutOnValueFixed(min);
     }
