@@ -21,6 +21,7 @@ import java.util.List;
 import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.ListModel;
+import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
 /**
@@ -161,12 +162,15 @@ public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, Co
     }
 
     public boolean addNameAndValue(String name, T value) {
-        return add(new MXWrap(name, value));
+        boolean x = add(new MXWrap(name, value));
+        fireIntervalAdded(this, size() - 1, size() -1);
+        return x;
     }
     
     @Override
     public boolean add(MXWrap<T> value) {
         boolean x = super.add(value);
+        fireIntervalAdded(this, size() - 1, size() -1);
         return x;
     }
 
@@ -180,7 +184,8 @@ public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, Co
         return get(index);
     }
 
-    List<ListDataListener> _listeners = new ArrayList(); //Sorry Under Constructin / View Recload -> Your Self
+    List<ListDataListener> _listeners = new ArrayList<>();
+    
     Object _selected = null;
     
     @Override
@@ -191,6 +196,27 @@ public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, Co
     @Override
     public void removeListDataListener(ListDataListener l) {
         _listeners.remove(l);
+    }
+    
+    protected void fireContentsChanged(Object source, int index0, int index1) {
+        ListDataEvent e = new ListDataEvent(source, ListDataEvent.CONTENTS_CHANGED, index0, index1);
+        for (ListDataListener l : _listeners) {
+            l.contentsChanged(e);
+        }
+    }
+    
+    protected void fireIntervalAdded(Object source, int index0, int index1) {
+        ListDataEvent e = new ListDataEvent(source, ListDataEvent.INTERVAL_ADDED, index0, index1);
+        for (ListDataListener l : _listeners) {
+            l.intervalAdded(e);
+        }
+    }
+
+    protected void fireIntervalRemoved(Object source, int index0, int index1) {
+        ListDataEvent e = new ListDataEvent(source, ListDataEvent.INTERVAL_REMOVED, index0, index1);
+        for (ListDataListener l : _listeners) {
+            l.intervalRemoved(e);
+        }
     }
 
     @Override

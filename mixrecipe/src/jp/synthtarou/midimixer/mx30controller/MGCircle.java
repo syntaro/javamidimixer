@@ -64,9 +64,9 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
     public void updateUI() {
         MGStatus status = getStatus();
         if (status != null) {
-            jCircleValue.setValue(status.getValue());
+            jCircleValue.setValue(status._value);
 
-            if (status.getName() == null || status.getName().length() == 0) {
+            if (status._name == null || status._name.length() == 0) {
                 MXMessage message = status.toMXMessage(null);
                 if (message == null) {
                     jLabel1.setText("?");
@@ -74,7 +74,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
                     jLabel1.setText(message.toShortString());
                 }
             }else {
-                jLabel1.setText(status.getName());
+                jLabel1.setText(status._name);
             }
             focusStatusChanged(false);
         }
@@ -150,7 +150,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
 
     private void jCircleValueStateChanged(javax.swing.event.ChangeEvent evt) {                                          
         int newValue = jCircleValue.getValue();
-        if (getStatus().getValue()._var == newValue) {
+        if (getStatus()._value._var == newValue) {
             return;
         }
         if (_ignoreEvent) {
@@ -173,7 +173,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
             return;
         }
         _ignoreEvent = true;
-        jCircleValue.setValue(status.getValue());
+        jCircleValue.setValue(status._value);
         _ignoreEvent = false;
     }
     
@@ -205,7 +205,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
 
     public void increment() {
         MGStatus status = getStatus();
-        RangedValue var = status.getValue().increment();
+        RangedValue var = status._value.increment();
         if (var != null) {
             _process.controlByUI(status, var._var);
         }
@@ -213,7 +213,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
     
     public void decriment() {
         MGStatus status = getStatus();
-        RangedValue var = status.getValue().decrement();
+        RangedValue var = status._value.decrement();
         if (var != null) {
             _process.controlByUI(status, var._var);
         }
@@ -222,11 +222,11 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
     public void editContoller() { 
         _process._parent.enterEditMode(false);
         MGStatus status = (MGStatus)getStatus().clone();
-        MGStatusConfig config = new MGStatusConfig(_process, status);
-        MXModalFrame.showAsDialog(this, config, "Enter Edit Circle {row:" + _row + ", column:" + _column + "}");
-        if (config._okOption) {
-            setStatus(config._status);
-            jLabel1.setText(config._status.getName());
+        MGStatusPanel panel = new MGStatusPanel(_process, status);
+        MXModalFrame.showAsDialog(this, panel, "Enter Edit Circle {row:" + _row + ", column:" + _column + "}");
+        if (panel._okOption) {
+            setStatus(panel._status);
+            jLabel1.setText(panel._status._name);
             _process.notifyCacheBroken();
             updateUI();
         }

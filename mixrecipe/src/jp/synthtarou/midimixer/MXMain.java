@@ -282,6 +282,9 @@ public class MXMain  {
     
     public MXWrapList<MXReceiver> getReceiverList() {
         MXWrapList<MXReceiver> list = new MXWrapList();
+        if (_masterToList.size() == 0) {
+            _masterToList.addNameAndValue("Direct Output", FinalMIDIOut.getInstance());
+        }
         list.addAll(_masterToList);
         return list;
     }

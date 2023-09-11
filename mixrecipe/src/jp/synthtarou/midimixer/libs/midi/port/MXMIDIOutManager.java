@@ -16,17 +16,15 @@
  */
 package jp.synthtarou.midimixer.libs.midi.port;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.TreeMap;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
-import org.xml.sax.SAXException;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Empty;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_VSTi;
@@ -35,10 +33,10 @@ import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_VSTi;
  *
  * @author Syntarou YOSHIDA
  */
-
 public class MXMIDIOutManager implements MXSettingTarget {
+
     private static final MXMIDIOutManager _instance = new MXMIDIOutManager();
- 
+
     public static MXMIDIOutManager getManager() {
         return _instance;
     }
@@ -57,15 +55,15 @@ public class MXMIDIOutManager implements MXSettingTarget {
             _setting.readSettingFile();
 
             MXWrapList<MXMIDIOut> list = listAllOutput();
-            
+
             boolean assigned = false;
-            for (int i = 0; i < list.getSize(); ++ i) {
+            for (int i = 0; i < list.getSize(); ++i) {
                 MXMIDIOut out = list.valueOfIndex(i);
                 if (out.getPortAssignCount() > 0) {
                     assigned = true;
                 }
             }
-            
+
             if (!assigned) {
                 MXMIDIOut reserve = MXMIDIOutManager.getManager().findMIDIOutput("Gervill");
                 MXMIDIOut reserve2 = MXMIDIOutManager.getManager().findMIDIOutput("Microsoft GS Wavetable Synth");
@@ -77,7 +75,7 @@ public class MXMIDIOutManager implements MXSettingTarget {
                 if (reserve3 != null) {
                     reserve = reserve3;
                 }
-                
+
                 if (reserve != null) {
                     reserve.setPortAssigned(0, true);
                     reserve.openOutput(5);
@@ -92,53 +90,55 @@ public class MXMIDIOutManager implements MXSettingTarget {
     protected MXWrapList<MXMIDIOut> _listAllOutput;
     protected MXWrapList<MXMIDIOut> _selectedOutput = null;
     //protected MXMIDIOut[] _cache;
-    
-    public synchronized MXWrapList<MXMIDIOut> listAllOutput() {
-        if (_listAllOutput != null) {
-            return _listAllOutput;
-        }
 
-        MXWrapList<MXMIDIOut> temp = new MXWrapList<MXMIDIOut>();
-
-        MXDriver java = MXDriver_Java._instance;
-        for (int i = 0; i < java.OutputDevicesRoomSize(); i++) {
-            MXMIDIOut device = new MXMIDIOut(java, i);
-
-            String name = device.getName();
-            if (MXDriver_UWP._instance.isUsable()) {
-                if (name.equals("Real Time Sequencer") || name.equals("Unknown name")) {
-                    continue;
-                }
-                if (name.startsWith("Microsoft GS Wave")) {
-                    continue;
-                }
+    public MXWrapList<MXMIDIOut> listAllOutput() {
+        synchronized (MXTiming.mutex) {
+            if (_listAllOutput != null) {
+                return _listAllOutput;
             }
-            
-            temp.addNameAndValue(device.getName(), device);
-        }
-        if (MXDriver_UWP._instance.isUsable()) {
-            MXDriver uwp = MXDriver_UWP._instance;
-            for (int i = 0; i < uwp.OutputDevicesRoomSize(); i++) {
-                MXMIDIOut device = new MXMIDIOut(uwp, i);
-                //if (name.equals("MIDI")) {
-                //    continue;
-                //}
-                //if (temp.indexOfName(name) >= 0) {
-                //    continue;
-                //}
+
+            MXWrapList<MXMIDIOut> temp = new MXWrapList<MXMIDIOut>();
+
+            MXDriver java = MXDriver_Java._instance;
+            for (int i = 0; i < java.OutputDevicesRoomSize(); i++) {
+                MXMIDIOut device = new MXMIDIOut(java, i);
+
+                String name = device.getName();
+                if (MXDriver_UWP._instance.isUsable()) {
+                    if (name.equals("Real Time Sequencer") || name.equals("Unknown name")) {
+                        continue;
+                    }
+                    if (name.startsWith("Microsoft GS Wave")) {
+                        continue;
+                    }
+                }
+
                 temp.addNameAndValue(device.getName(), device);
             }
-        }
-        if (MXDriver_VSTi._instance.isUsable()) {
-            MXDriver vst = MXDriver_VSTi._instance;
-            for (int i = 0; i < vst.OutputDevicesRoomSize(); i++) {
-                MXMIDIOut out = new MXMIDIOut(MXDriver_VSTi._instance, i);
-                temp.addNameAndValue(out.getName(), out);
+            if (MXDriver_UWP._instance.isUsable()) {
+                MXDriver uwp = MXDriver_UWP._instance;
+                for (int i = 0; i < uwp.OutputDevicesRoomSize(); i++) {
+                    MXMIDIOut device = new MXMIDIOut(uwp, i);
+                    //if (name.equals("MIDI")) {
+                    //    continue;
+                    //}
+                    //if (temp.indexOfName(name) >= 0) {
+                    //    continue;
+                    //}
+                    temp.addNameAndValue(device.getName(), device);
+                }
             }
-        }
+            if (MXDriver_VSTi._instance.isUsable()) {
+                MXDriver vst = MXDriver_VSTi._instance;
+                for (int i = 0; i < vst.OutputDevicesRoomSize(); i++) {
+                    MXMIDIOut out = new MXMIDIOut(MXDriver_VSTi._instance, i);
+                    temp.addNameAndValue(out.getName(), out);
+                }
+            }
 
-        _listAllOutput = temp;
-        return _listAllOutput;
+            _listAllOutput = temp;
+            return _listAllOutput;
+        }
     }
 
     public MXMIDIOut findMIDIOutput(String deviceName) {
@@ -158,40 +158,48 @@ public class MXMIDIOutManager implements MXSettingTarget {
         }
         return ret;
     }
-    */
-
-    synchronized void onClose(MXMIDIOut output) {
-        clearMIDIOutCache();
-    }
-    
-    protected synchronized void clearMIDIOutCache() {
-        _selectedOutput = null;
-        //_cache = null;
+     */
+    void onClose(MXMIDIOut output) {
+        synchronized (MXTiming.mutex) {
+            clearMIDIOutCache();
+        }
     }
 
-    public synchronized MXWrapList<MXMIDIOut> listSelectedOutput() {
-        if (_selectedOutput != null) {
+    protected void clearMIDIOutCache() {
+        synchronized (MXTiming.mutex) {
+            _selectedOutput = null;
+            //_cache = null;
+        }
+    }
+
+    public MXWrapList<MXMIDIOut> listSelectedOutput() {
+        synchronized (MXTiming.mutex) {
+            if (_selectedOutput != null) {
+                return _selectedOutput;
+            }
+            _selectedOutput = new MXWrapList();
+            for (MXMIDIOut midi : listAllOutput().valueList()) {
+                if (midi.getPortAssignCount() == 0) {
+                    continue;
+                }
+                _selectedOutput.addNameAndValue(midi.getName(), midi);
+            }
             return _selectedOutput;
         }
-        _selectedOutput = new MXWrapList();
-        for (MXMIDIOut midi : listAllOutput().valueList()) {
-            if (midi.getPortAssignCount() == 0) {
-                continue;
-            }
-            _selectedOutput.addNameAndValue(midi.getName(), midi);
-        }
-        return _selectedOutput;
     }
-    
-    public synchronized void closeAll() {
-        for(MXMIDIOut output : listAllOutput().valueList()) {
-            if (output.isOpen()) {
-                System.out.println("closing output " + output);
-                output.close();
+
+    public void closeAll() {
+        synchronized (MXTiming.mutex) {
+            for (MXMIDIOut output : listAllOutput().valueList()) {
+                if (output.isOpen()) {
+                    System.out.println("closing output " + output);
+                    output.close();
+                    System.out.println("closing done " + output);
+                }
             }
         }
     }
-    
+
     @Override
     public void prepareSettingFields(MXSetting setting) {
         setting.register("device[].name");
@@ -202,12 +210,12 @@ public class MXMIDIOutManager implements MXSettingTarget {
     @Override
     public void afterReadSettingFile(MXSetting setting) {
         MXDriver_Empty dummy = MXDriver_Empty.getInstance();
-    
-        for (int seek = 0; seek < 1000; ++ seek) {
+
+        for (int seek = 0; seek < 1000; ++seek) {
             String deviceName = setting.getSetting("device[" + seek + "].name");
             String deviceOpen = setting.getSetting("device[" + seek + "].open");
             String devicePort = setting.getSetting("device[" + seek + "].port");
-            
+
             if (deviceName == null || deviceName.length() == 0) {
                 break;
             }
@@ -219,15 +227,15 @@ public class MXMIDIOutManager implements MXSettingTarget {
                     devicePort = String.valueOf(seek);
                 }
             }
-            
+
             MXWrapList<MXMIDIOut> detected = listAllOutput();
             MXMIDIOut out = detected.valueOfName(deviceName);
             if (out != null) {
                 if (deviceOpen.equals("1")) {
                     out.openOutput(5);
                 }
-            }else {
-                out  = new MXMIDIOut(dummy, dummy.OuputAddDevice(deviceName));
+            } else {
+                out = new MXMIDIOut(dummy, dummy.OuputAddDevice(deviceName));
                 detected.addNameAndValue(deviceName, out);
             }
             ArrayList<String> split = new ArrayList();
@@ -236,7 +244,7 @@ public class MXMIDIOutManager implements MXSettingTarget {
                 try {
                     int x = Integer.parseInt(t1);
                     out.setPortAssigned(x, true);
-                }catch(NumberFormatException e) {
+                } catch (NumberFormatException e) {
 
                 }
             }
@@ -250,7 +258,7 @@ public class MXMIDIOutManager implements MXSettingTarget {
         int x = 0;
         for (MXMIDIOut e : all.valueList()) {
             StringBuffer assigned = new StringBuffer();
-            for (int p = 0; p < MXAppConfig.TOTAL_PORT_COUNT; ++ p) {
+            for (int p = 0; p < MXAppConfig.TOTAL_PORT_COUNT; ++p) {
                 if (e.isPortAssigned(p)) {
                     if (assigned.length() > 0) {
                         assigned.append(",");
@@ -262,7 +270,7 @@ public class MXMIDIOutManager implements MXSettingTarget {
                 setting.setSetting("device[" + x + "].name", e.getName());
                 setting.setSetting("device[" + x + "].open", e.isOpen() ? "1" : "0");
                 setting.setSetting("device[" + x + "].port", assigned.toString());
-                x ++;
+                x++;
             }
         }
     }

@@ -254,6 +254,13 @@ public class MXDriver_Java implements MXDriver {
         if (!_listOutput.get(x).isOpen()) {
             return;
         }
+        try {
+            if (_listOutput.get(x).getDeviceInfo().getName().equals("Gervill")) {
+                return;
+            }
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
         _listOutput.get(x).close();
     }
     

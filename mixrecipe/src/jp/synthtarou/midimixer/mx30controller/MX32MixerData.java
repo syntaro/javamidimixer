@@ -25,13 +25,13 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MX32MixerData {
+
     MGStatusFinder _finder = null;
     MX32MixerProcess _process;
 
@@ -112,15 +112,15 @@ public class MX32MixerData {
                     text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
                     MXTemplate template = MXMessageFactory.fromDtext(text, 0);
                     status = new MGStatus(process._port, MGStatus.TYPE_SLIDER, row, column);
-                    status.setTemplate(template);
+                    status._template = template;
                     status.setValue(RangedValue.new14bit(128 * 128 - 1));
                 } else {
                     status = new MGStatus(process._port, MGStatus.TYPE_SLIDER, row, column);
                     message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CONTROLCHANGE + column, MXMidi.DATA1_CC_CHANNEL_VOLUME, 128 - 1);
-                    status.setChannel(message.getChannel());
-                    status.setTemplate(message.getTemplate());
-                    status.setGate(message.getGate());
-                    status.setValue(message.getValue());
+                    status._channel = message.getChannel();
+                    status._template = message.getTemplate();
+                    status._gate = message.getGate();
+                    status._value = message.getValue();
                 }
                 slider.add(status);
             }
@@ -142,17 +142,17 @@ public class MX32MixerData {
                     String text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
 
                     status.setTemplateAsText(text, 0);
-                    status.setGate(RangedValue.ZERO7);
+                    status._gate = RangedValue.ZERO7;
                     status.setValue(RangedValue.new14bit(128 * 128 - 1));
                     circle.add(status);
                     column++;
                 } else {
                     status = new MGStatus(process._port, MGStatus.TYPE_CIRCLE, row, column);
                     message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CONTROLCHANGE + column, ccCode[row], 64);
-                    status.setTemplate(message.getTemplate());
-                    status.setChannel(column);
-                    status.setGate(message.getGate());
-                    status.setValue(message.getValue());
+                    status._template = message.getTemplate();
+                    status._channel = column;
+                    status._gate = message.getGate();
+                    status._value = message.getValue();
                     circle.add(status);
 
                     column++;
@@ -191,9 +191,9 @@ public class MX32MixerData {
                 } else {
                     message = MXMessageFactory.createDummy();
                 }
-                status.setTemplate(message.getTemplate());
-                status.setGate(message.getGate());
-                status.setValue(message.getValue());
+                status._template = message.getTemplate();
+                status._gate = message.getGate();
+                status._value = message.getValue();
             }
         }
 
@@ -202,9 +202,9 @@ public class MX32MixerData {
                 status = data.getCircleStatus(row, col);
                 if (col < cclist2.length) {
                     message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CONTROLCHANGE + row, cclist2[col], 128 - 1);
-                    status.setTemplate(message.getTemplate());
-                    status.setGate(message.getGate());
-                    status.setValue(message.getValue());
+                    status._template = message.getTemplate();
+                    status._gate = message.getGate();
+                    status._value = message.getValue();
                 }
             }
         }
@@ -284,9 +284,9 @@ public class MX32MixerData {
                 } else {
                     message = MXMessageFactory.createDummy();
                 }
-                status.setTemplate(message.getTemplate());
-                status.setGate(message.getGate());
-                status.setValue(message.getValue());
+                status._template = message.getTemplate();
+                status._gate = message.getGate();
+                status._value = message.getValue();
             }
         }
 
@@ -298,9 +298,9 @@ public class MX32MixerData {
                 } else {
                     message = MXMessageFactory.createDummy();
                 }
-                status.setTemplate(message.getTemplate());
-                status.setGate(message.getGate());
-                status.setValue(message.getValue());
+                status._template = message.getTemplate();
+                status._gate = message.getGate();
+                status._value = message.getValue();
             }
         }
 
@@ -329,9 +329,9 @@ public class MX32MixerData {
                 } else {
                     message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CONTROLCHANGE + col, MXMidi.DATA1_CC_EXPRESSION, 128 - 1);
                 }
-                status.setTemplate(message.getTemplate());
-                status.setGate(message.getGate());
-                status.setValue(message.getValue());
+                status._template = message.getTemplate();
+                status._gate = message.getGate();
+                status._value = message.getValue();
             }
         }
 
@@ -350,9 +350,9 @@ public class MX32MixerData {
                 } else {
                     message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CONTROLCHANGE + col, ccCode[row], 64);
                 }
-                status.setTemplate(message.getTemplate());
-                status.setGate(message.getGate());
-                status.setValue(message.getValue());
+                status._template = message.getTemplate();
+                status._gate = message.getGate();
+                status._value = message.getValue();
             }
         }
 
@@ -387,10 +387,10 @@ public class MX32MixerData {
                         }
                         break;
                 }
-                status.setTemplate(message.getTemplate());
-                status.setChannel(message.getChannel());
-                status.setGate(message.getGate());
-                status.setValue(message.getValue());
+                status._template = message.getTemplate();
+                status._gate = message.getGate();
+                status._value = message.getValue();
+                status._channel = message.getChannel();
             }
         }
     }
@@ -399,78 +399,66 @@ public class MX32MixerData {
         MGStatus sliderStatus = _matrixSliderStatus[0].get(column);
         MXMessage message = sliderStatus.toMXMessage(null);
 
-        int x = sliderStatus.getValue()._max;
-        RangedValue maxValue = new RangedValue(x, x, x);
-
+        int x = sliderStatus._value._max;
         if (message != null) {
-            status.setTemplate(message.getTemplate());
-            status.setChannel(message.getChannel());
-            status.setGate(message.getGate());
-            status.setValue(maxValue);;
+            status._template = message.getTemplate();
+            status._gate = message.getGate();
+            status._value = message.getValue();
+            status._channel = message.getChannel();
         } else {
-            status.setTemplate(null);
-            status.setChannel(0);
-            status.setGate(RangedValue.ZERO7);
-            status.setValue(RangedValue.ZERO7);
+            status._template = null;
+            status._gate = RangedValue.ZERO7;
+            status._value = RangedValue.ZERO7;
+            status._channel = 0;
         }
-        status.setSwitchType(MGStatus.SWITCH_TYPE_ON); // 1回のみで
-        status.setSwitchInputType(MGStatus.SWITCH_ON_WHEN_MATCH);
-        status.setSwitchOutOnTypeOfValue(MGStatus.SWITCH_OUT_ON_VALUE_FIXED);
-        status.setSwitchOutOnValueFixed(maxValue._var);
+        status._drum._type = MGStatusForDrum.TYPE_SAME_CC;
+        status._drum._strikeZone = new RangedValue(x, x, x);
+        status._drum._mouseOnValue = x;
+        status._drum._dontSendOff = true;
     }
 
     public void fillMiddleOfSlider(MGStatus status, int column) {
         MGStatus sliderStatus = _matrixSliderStatus[0].get(column);
-
-        int max = sliderStatus.getValue()._max;
-        int min = sliderStatus.getValue()._min;
-        if (((max - min) % 2) != 0) {
-            max++;
-        }
-        int middle = (max + min) / 2;
-        RangedValue middleValue = new RangedValue(middle, middle, middle);
-
         MXMessage message = sliderStatus.toMXMessage(null);
+
+        int x = (sliderStatus._value._max + sliderStatus._value._min) /2;
         if (message != null) {
-            status.setTemplate(message.getTemplate());
-            status.setChannel(message.getChannel());
-            status.setGate(message.getGate());
-            status.setValue(middleValue);
+            status._template = message.getTemplate();
+            status._gate = message.getGate();
+            status._value = message.getValue();
+            status._channel = message.getChannel();
         } else {
-            status.setTemplate(null);
-            status.setChannel(0);
-            status.setGate(RangedValue.ZERO7);
-            status.setValue(middleValue);
+            status._template = null;
+            status._gate = RangedValue.ZERO7;
+            status._value = RangedValue.ZERO7;
+            status._channel = 0;
         }
-        status.setSwitchType(MGStatus.SWITCH_TYPE_ON); // 1回のみで
-        status.setSwitchInputType(MGStatus.SWITCH_ON_WHEN_MATCH);
-        status.setSwitchOutOnTypeOfValue(MGStatus.SWITCH_OUT_ON_VALUE_FIXED);
-        status.setSwitchOutOnValueFixed(middle);
+        status._drum._type = MGStatusForDrum.TYPE_SAME_CC;
+        status._drum._strikeZone = new RangedValue(x, x, x);
+        status._drum._mouseOnValue = x;
+        status._drum._dontSendOff = true;
     }
 
     public void fillMinOfSlider(MGStatus status, int column) {
         MGStatus sliderStatus = _matrixSliderStatus[0].get(column);
-
-        int max = sliderStatus.getValue()._max;
-        int min = sliderStatus.getValue()._min;
-        RangedValue minValue = new RangedValue(min, min, min);
-
         MXMessage message = sliderStatus.toMXMessage(null);
+
+        int x = sliderStatus._value._min;
         if (message != null) {
-            status.setTemplate(message.getTemplate());
-            status.setChannel(message.getChannel());
-            status.setGate(message.getGate());
-            status.setValue(minValue);
+            status._template = message.getTemplate();
+            status._gate = message.getGate();
+            status._value = message.getValue();
+            status._channel = message.getChannel();
         } else {
-            status.setTemplate(null);
-            status.setChannel(0);
-            status.setGate(RangedValue.ZERO7);
-            status.setValue(minValue);
+            status._template = null;
+            status._gate = RangedValue.ZERO7;
+            status._value = RangedValue.ZERO7;
+            status._channel = 0;
         }
-        status.setSwitchType(MGStatus.SWITCH_TYPE_ON); // 1回のみで
-        status.setSwitchInputType(MGStatus.SWITCH_ON_WHEN_MATCH);
-        status.setSwitchOutOnTypeOfValue(MGStatus.SWITCH_OUT_ON_VALUE_FIXED);
-        status.setSwitchOutOnValueFixed(min);
+        status._drum._type = MGStatusForDrum.TYPE_SAME_CC;
+        status._drum._strikeZone = new RangedValue(x, x, x);
+        status._drum._mouseOnValue = x;
+        status._drum._dontSendOff = true;
     }
 
     public void initDrumMinMidleMax() {
@@ -499,7 +487,6 @@ public class MX32MixerData {
             padMatrix[2].add(status);
             column++;
         }
-
         _matrixDrumStatus = padMatrix;
     }
 

@@ -201,9 +201,9 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
     Color colorFocus = null;
     
     public boolean isFocusControl(MGStatus status) {
-        if (status.getPort() == focus_port) {
-            if (status.getUiType() == focus_type) {
-                if (status.getRow() == focus_row && status.getColumn() == focus_column) {
+        if (status._port== focus_port) {
+            if (status._uiType == focus_type) {
+                if (status._row == focus_row && status._column == focus_column) {
                     return true;
                 }
             }

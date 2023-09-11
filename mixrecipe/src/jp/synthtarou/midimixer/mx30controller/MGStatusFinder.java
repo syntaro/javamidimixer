@@ -21,7 +21,6 @@ import java.util.TreeSet;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 
 /**
  *
@@ -72,7 +71,6 @@ public class MGStatusFinder {
         MXMessage message = status.toMXMessage(null);
         
         if (message == null) {
-            new Throwable("Status can't get message " + status).printStackTrace();
             return;
         }
         if (message.isCommand(MXMidi.COMMAND_CONTROLCHANGE)) {
@@ -86,7 +84,7 @@ public class MGStatusFinder {
             }
             _cachedControlChange[message.getChannel()][data1].add(status);
             int data2 = -1;
-            if (data1 >= 0 && data1 <= 31 && status.isValuePairCC14()) {
+            if (data1 >= 0 && data1 <= 31 && status._ccPair14) {
                 data2 = data1 + 32;
                 if (_cachedControlChange[message.getChannel()][data2] == null) {
                     _cachedControlChange[message.getChannel()][data2] = new ArrayList();

@@ -27,9 +27,9 @@ import jp.synthtarou.midimixer.mx35cceditor.accordion.Example1;
 import jp.synthtarou.midimixer.mx35cceditor.accordion.MXAccordionPanel;
 import jp.synthtarou.midimixer.mx35cceditor.accordion.MXListedContents;
 import jp.synthtarou.midimixer.mx35cceditor.accordion.MXListedContentsGroup;
-import jp.synthtarou.midimixer.mx35cceditor.prompt.PromptTableModel;
-import jp.synthtarou.midimixer.mx35cceditor.prompt.CCPromptUtil;
-import jp.synthtarou.midimixer.libs.domino.CCXMLManagerPanel;
+import jp.synthtarou.midimixer.mx35cceditor.ccxml.navigator.TableModelWithNavi;
+import jp.synthtarou.midimixer.mx35cceditor.ccxml.navigator.NavigatorUtil;
+import jp.synthtarou.midimixer.mx35cceditor.ccxml.CXFileListPanel;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 
@@ -324,11 +324,11 @@ public class DXControlPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonEdirXMLCCActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEdirXMLCCActionPerformed
-        CCXMLManagerPanel panel = new CCXMLManagerPanel();
-        CCPromptUtil.showPrompt(this, panel);
+        CXFileListPanel panel = new CXFileListPanel();
+        NavigatorUtil.showPrompt(this, panel);
     }//GEN-LAST:event_jButtonEdirXMLCCActionPerformed
     
-    PromptTableModel _model;
+    TableModelWithNavi _model;
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;

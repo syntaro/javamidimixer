@@ -28,6 +28,10 @@ public class FileFilterListExt implements FileFilter {
     public FileFilterListExt() {
     }
 
+    public FileFilterListExt(String ext) {
+        addExtension(ext);
+    }
+
     public FileFilterListExt(String[] list) {
         for (String ext : list) {
             addExtension(ext);

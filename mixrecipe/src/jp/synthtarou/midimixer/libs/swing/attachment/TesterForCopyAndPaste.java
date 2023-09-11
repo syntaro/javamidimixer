@@ -17,18 +17,16 @@
 package jp.synthtarou.midimixer.libs.swing.attachment;
 
 import java.awt.Dimension;
-import javax.swing.JPanel;
-import jp.synthtarou.midimixer.mx35cceditor.prompt.CCPromptUtil;
-import jp.synthtarou.midimixer.mx35cceditor.prompt.IPromptPanel;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class TesterForCopyAndPaste extends javax.swing.JPanel implements IPromptPanel {
+public class TesterForCopyAndPaste extends javax.swing.JPanel {
 
     public static void main(String[] args) {
-        CCPromptUtil.showPanelForTest(null, new TesterForCopyAndPaste());
+        MXUtil.showAsDialog(null, new TesterForCopyAndPaste(), "Test");
         System.exit(0);
     }
 
@@ -49,6 +47,8 @@ public class TesterForCopyAndPaste extends javax.swing.JPanel implements IPrompt
         new MXAttachCopyAndPaste(jTextFieldTest);
         new MXAttachCopyAndPaste(jTextFieldTestR);
         new MXAttachCopyAndPaste(jTextFieldTestRW);
+               
+        setPreferredSize(new Dimension(500, 400));
     }
 
     /**
@@ -170,19 +170,4 @@ public class TesterForCopyAndPaste extends javax.swing.JPanel implements IPrompt
     private javax.swing.JTextField jTextFieldTestR;
     private javax.swing.JTextField jTextFieldTestRW;
     // End of variables declaration//GEN-END:variables
-
-    @Override
-    public JPanel getAsPanel() {
-        return this;
-    }
-
-    @Override
-    public String getPanelTitle() {
-        return "Clipboard Test (Mouse PopupMenu)";
-    }
-
-    @Override
-    public Dimension getPanelSize() {
-        return new Dimension(500, 400);
-    }
 }

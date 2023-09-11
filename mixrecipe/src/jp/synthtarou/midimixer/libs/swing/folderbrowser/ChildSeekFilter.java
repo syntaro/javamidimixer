@@ -33,76 +33,82 @@ public class ChildSeekFilter implements FileFilter {
 
     public ChildSeekFilter(MXSwingFolderBrowser ownwer) {
         _owner = ownwer;
+        _cancelFlag = false;
     }
 
     static SingleThreadGroup _singleGroup = new SingleThreadGroup();
     static boolean _pause;
 
-    public boolean accept(File file) {
-        boolean isNewOrder = _singleGroup.addToTop(Thread.currentThread());
-
-        try {
-            if (_cancelFlag) {
-                return false; //any ok called should check cancelflag before result judge
-            }
-            if (_listFailed.contains(file.toString())) {
-                return false;
-            }
-            if (_listSuceed.contains(file.toString())) {
+    private boolean acceptImpl(File file) {
+        if (FileSystemCache._view.isLink(file)) {
+            return false;
+        }
+        if (file.isFile()) {
+            if (_owner.isVisibleFile(file)) {
                 return true;
             }
-            if ((++_step % 100) == 0) {
-                _owner.progress("Scan Go " + _singleGroup.countThread() + " tasks, count " + _step + ")" + file.toString());
-            }
-            try {
-                boolean hit = false;
-                File[] children = file.listFiles();
-                if (children == null) {
-                    return false;
-                }
-                _singleGroup.waitTillMyTurn();
-                if (_pause) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
+            return false;
+        }
 
-                    }
-                }
-                for (File child : children) {
-                    try {
-                        if (child.isFile()) {
-                            if (_owner.isVisibleFile(child)) {
-                                _listSuceed.add(child.toString());
-                                hit = true;
-                            }
-                        } else {
-                            if (accept(child)) {
-                                _listSuceed.add(child.toString());
-                                hit = true;
-                            }
-                        }
-                    } catch (Throwable e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                if (hit) {
-                    _listSuceed.add(file.toString());
-                } else {
-                    _listFailed.add(file.toString());
-                }
-                return hit;
-            } catch (Throwable e) {
-                e.printStackTrace();
+        if (_cancelFlag) {
+            return false; //any ok called should check cancelflag before result judge
+        }
+        if (_listFailed.contains(file.toString())) {
+            return false;
+        }
+        if (_listSuceed.contains(file.toString())) {
+            return true;
+        }
+        if ((++_step % 100) == 0) {
+            _owner.progress("Scanning " + _singleGroup.countThread() + " tasks, count " + _step + ")" + file.toString());
+        }
+        try {
+            boolean hit = false;
+            File[] children = file.listFiles();
+            if (children == null) {
+                return false;
             }
-            _listFailed.add(file.toString());
+            _singleGroup.waitTillMyTurn();
+            while (_pause) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+
+                }
+            }
+            for (File child : children) {
+                try {
+                    if (acceptImpl(child)) {
+                        hit = true;
+                    }
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (hit) {
+                _listSuceed.add(file.toString());
+            } else {
+                _listFailed.add(file.toString());
+            }
+            return hit;
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        _listFailed.add(file.toString());
+
+        return false;
+    }
+
+    public boolean accept(File file) {
+        boolean isNewOrder = _singleGroup.addToTop(Thread.currentThread());
+        try {
+            return acceptImpl(file);
         } finally {
             if (isNewOrder) {
                 _singleGroup.removeFromList(Thread.currentThread());
             }
         }
-
-        return false;
     }
 
     boolean _cancelFlag = false;

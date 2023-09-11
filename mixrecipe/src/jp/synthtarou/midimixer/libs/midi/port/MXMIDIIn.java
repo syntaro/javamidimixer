@@ -56,7 +56,7 @@ public class MXMIDIIn {
 
     public void close() {
         MXMIDIInManager manager = MXMIDIInManager.getManager();
-        synchronized(manager) {
+        synchronized(MXTiming.mutex) {
             if (isOpen()) {
                 allNoteOff();
                 manager.onClose(this);
@@ -118,7 +118,7 @@ public class MXMIDIIn {
     }
     
     public void setPortAssigned(int port, boolean flag) {
-        synchronized(MXMIDIInManager.getManager()) {
+        synchronized(MXTiming.mutex) {
             if (_assigned[port] != flag) {
                 if (!flag) {
                     _myNoteOff.allNoteOffToPort(new MXTiming(), port);
@@ -137,7 +137,7 @@ public class MXMIDIIn {
     }
     
     public void resetPortAssigned() {
-        synchronized(MXMIDIInManager.getManager()) {
+        synchronized(MXTiming.mutex) {
             for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
                 setPortAssigned(i, false);
             }
@@ -221,7 +221,7 @@ public class MXMIDIIn {
 
     public boolean openInput(long timeout) {
         MXMIDIInManager manager = MXMIDIInManager.getManager();
-        synchronized(manager) {
+        synchronized(MXTiming.mutex) {
             if (_driver == null) {
                 return false;
             }

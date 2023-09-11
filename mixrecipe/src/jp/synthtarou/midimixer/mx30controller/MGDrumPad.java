@@ -26,11 +26,9 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicButtonUI;
-import jp.synthtarou.midimixer.libs.UniqueChecker;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.focus.MXFocusAble;
 
@@ -42,22 +40,22 @@ public class MGDrumPad extends javax.swing.JPanel implements MXFocusAble {
 
     final MX32MixerProcess _process;
     int _row, _column;
-    boolean _dispFlag;
+
+    Color highlight = MXUtil.mixedColor(Color.white, Color.blue, 50);
+    Color normal = new JButton().getBackground();
 
     class MyButtonUI extends BasicButtonUI {
 
-        Color highlight = MXUtil.mixedColor(Color.white, Color.blue, 50);
-        Color normal = new JButton().getBackground();
+        boolean colorfull = false;
 
         public MyButtonUI() {
         }
 
         public void paint(Graphics g, JComponent c) {
-            MGStatus status = getStatus();
-            boolean sel = _dispFlag;
             JButton btn = (JButton)c;
 
-            if (sel) {
+            if (colorfull) {
+                System.out.println("+++++++++++" + getStatus());
                 btn.setBackground(highlight);
             }
             else {
@@ -89,29 +87,23 @@ public class MGDrumPad extends javax.swing.JPanel implements MXFocusAble {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     return;
                 }
-                MGStatus status = getStatus();
-                status._switchIncomming = true;
-                _process.controlByUI(status, status.getValue()._max);
+                getStatus()._drum.mouseDetected(new MXTiming(), true);
             }
 
             public void mouseReleased(MouseEvent e) {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     return;
                 }
-                MGStatus status = getStatus();
-                status._switchIncomming = false;
-                _process.controlByUI(status, status.getValue()._min);
+                getStatus()._drum.mouseDetected(new MXTiming(), false);
             }
         });
 
         updateUI();
-        if (jButton1 != null) {
-            jButton1.setUI(new MyButtonUI());
-        }
     }
 
-    public void updateUIOnly(boolean newValue) {
-        _dispFlag = newValue;
+    public void updateButtonUI(boolean newValue) {
+        MyButtonUI ui = (MyButtonUI)jButton1.getUI();
+        ui.colorfull = newValue;
         jButton1.repaint();
     }
 
@@ -120,17 +112,15 @@ public class MGDrumPad extends javax.swing.JPanel implements MXFocusAble {
         if (jButton1 != null) {
             MGStatus status = getStatus();
             jButton1.setUI(new MyButtonUI());
-            if (_process != null && _process != null) {
-                if (status.getName() == null || status.getName().length() == 0) {
-                    MXMessage message = status.toMXMessage(null);
-                    if (message == null) {
-                        jButton1.setText("?");
-                    } else {
-                        jButton1.setText(message.toShortString());
-                    }
+            if (status._name == null || status._name.length() == 0) {
+                MXMessage message = status.toMXMessage(null);
+                if (message == null) {
+                    jButton1.setText("?");
                 } else {
-                    jButton1.setText(status.getName());
+                    jButton1.setText(message.toShortString());
                 }
+            } else {
+                jButton1.setText(status._name);
             }
         }
     }
@@ -190,137 +180,25 @@ public class MGDrumPad extends javax.swing.JPanel implements MXFocusAble {
         _process._parent.showTextForFocus(MGStatus.TYPE_DRUMPAD, _process._port, _row, _column);
     }
 
-    public void increment(UniqueChecker already) {
-        _process.controlByUI(getStatus(), getStatus().getValue()._max);
+    public void increment(MXTiming timing) {
+        getStatus()._drum.mouseDetected(timing, true);
     }
 
-    public void decriment(UniqueChecker already) {
-        _process.controlByUI(getStatus(), getStatus().getValue()._min);
+    public void decriment(MXTiming timing) {
+        getStatus()._drum.mouseDetected(timing, false);
     }
 
     public void editContoller() {
         _process._parent.enterEditMode(false);
         MGStatus status = (MGStatus) getStatus().clone();
-        MGStatusConfig config = new MGStatusConfig(_process, status);
-        MXModalFrame.showAsDialog(this, config, "Enter Edit Pad {row:" + _row + ", column:" + _column + "}");
+        MGStatusPanel panel = new MGStatusPanel(_process, status);
+        MXModalFrame.showAsDialog(this, panel, "Enter Edit Pad {row:" + _row + ", column:" + _column + "}");
         _process.notifyCacheBroken();
 
-        if (config._okOption) {
-            setStatus(config._status);
+        if (panel._okOption) {
+            setStatus(panel._status);
             _process.notifyCacheBroken();
             updateUI();
-        }
-    }
-
-    public void invokeDrumAction() {
-        MGStatus status = getStatus();
-        
-        if (status._switchNeedAction == false) {
-            return;
-        }
-        status._switchNeedAction = false;
-
-        boolean newSwitch = status._switchToSent;
-
-        if (newSwitch) {
-            if (status.getSwitchType() == MGStatus.SWITCH_TYPE_SEQUENCE) {
-                status.startSequence(_process);
-            } else if (status.getSwitchType() == MGStatus.SWITCH_TYPE_HARMONY) {
-                int velocity = status.getSwitchLastDetected();
-
-                String notes = status.getSwitchHarmonyNotes();
-                int veltype = status.getSwitchHarmonyVelocityType();
-                int port = getStatus().getPort();
-
-                if (veltype == MGStatus.SWITCH_HARMONY_VELOCITY_SAME_AS_INPUT) {
-                    if (velocity == 0) {
-                        velocity = status.getSwitchHarmonyVelocityFixed();
-                    }
-                } else if (veltype == MGStatus.SWITCH_HARMONY_VELOCITY_FIXED) {
-                    velocity = status.getSwitchHarmonyVelocityFixed();
-                } else {
-                    throw new IllegalStateException("velocity unknown");
-                }
-                int[] noteList = MXMidi.textToNoteList(notes);
-                for (int note : noteList) {
-                    MXMessage message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_NOTEON + status.getSwitchOutChannel(), note, velocity);
-                    message._timing = null; //timing;
-                    _process.reenterMXMessageByUI(message);
-                }
-            }
-            else {//ON , ON-OFF
-                MXMessage message = status.toMXMessageCaseDrumOn(null);
-                if (message != null) {
-                    _process.reenterMXMessageByUI(message);
-                }
-            }
-        } else {
-            if (status.getSwitchType() == MGStatus.SWITCH_TYPE_ON) {
-            }
-            else if (status.getSwitchType() == MGStatus.SWITCH_TYPE_SEQUENCE) {
-                status.stopSequence();
-            }
-            else if (status.getSwitchType() == MGStatus.SWITCH_TYPE_HARMONY) {
-                String notes = status.getSwitchHarmonyNotes();
-                int[] noteList = MXMidi.textToNoteList(notes);
-                int port = status.getPort();
-                for (int note : noteList) {
-                    MXMessage message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_NOTEOFF + status.getSwitchOutChannel(), note, 0);
-                    //TODO message._timing = _timing;
-                    _process.reenterMXMessageByUI(message);
-                }
-            }
-            else { // ON-OFF
-                MXMessage message = status.toMXMessageCaseDrumOn(null);
-                if (message != null) {
-                    _process.reenterMXMessageByUI(message);
-                }
-            }
-        }
-    }
-
-    public void pickupTriggerStatus() {
-        MGStatus status = getStatus();
-        int velocity = status.getSwitchLastDetected();
-
-        boolean newSwitch = status._switchIncomming;
-        boolean oldSwitch = status._switchLastDetect;
-
-        int value = status.getValue()._var;
-        MXMessage checkTemp = status.toMXMessage(null);
-
-        if (checkTemp.isCommand(MXMidi.COMMAND_PROGRAMCHANGE)) {
-            value = 0;
-        }
-
-        status.setSwitchLastDetected(velocity);
-
-        boolean flag = (oldSwitch != newSwitch);
-
-        if (!flag && checkTemp.hasValueLowField() == false) {
-            flag = true;
-        }
-
-        if (!flag && status.getSwitchInputType() == MGStatus.SWITCH_ON_WHEN_MATCH) {
-            flag = true;
-        }
-
-        if (flag) { // ワンショットまたは、画面上の数値が切り替わった (nowへ)
-            status._switchLastDetect = newSwitch;
-            if (newSwitch) { // オンにきりかわった
-                if (status.isSwitchWithToggle()) {
-                    boolean lastSent = status.isValueLastSent();
-                    newSwitch = !lastSent;
-                }
-            } else { // オフにきりかわたｔ
-                if (status.isSwitchWithToggle()) {
-                    //　トグルなら終了
-                    return;
-                }
-            }
-            status._switchToSent = newSwitch;
-            updateUIOnly(newSwitch);
-            status._switchNeedAction = true;
         }
     }
 }

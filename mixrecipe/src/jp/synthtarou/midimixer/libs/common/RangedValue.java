@@ -213,6 +213,19 @@ public class RangedValue {
         test0(oldMax, oldMin, newMin, newMax);
         test0(oldMax, oldMin, newMax, newMin);
     }
+    
+    public boolean contains(int x) {
+        if (_min < _max) {
+            if (_min <= x && x <= _max) {
+                return true;
+            }
+        }else {
+            if (_max <= x && x <= _min) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public static void main(String[] args) {
         MXUtil.fixConsoleEncoding();

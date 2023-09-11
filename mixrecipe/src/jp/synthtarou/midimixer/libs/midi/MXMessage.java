@@ -18,7 +18,6 @@ package jp.synthtarou.midimixer.libs.midi;
 
 import java.io.PrintStream;
 import java.util.TreeSet;
-import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
 import static jp.synthtarou.midimixer.libs.midi.MXTemplate.DTEXT_PROGDEC;
@@ -670,5 +669,9 @@ public final class MXMessage {
         message.setValuePairCC14(isValuePairCC14());
 
         return message;
+    }
+    
+    public boolean takeTicket(int ticketNumber) {
+        return _timing.takeTicket(ticketNumber, this);
     }
 }

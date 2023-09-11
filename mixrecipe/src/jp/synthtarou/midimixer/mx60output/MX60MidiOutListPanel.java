@@ -152,12 +152,10 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
             String name = (String)model.getValueAt(i, 0);
             String asssign = (String)model.getValueAt(i, 1);
             String open = (String)model.getValueAt(i, 2);
-            String withD = (String)model.getValueAt(i, 3);
             
             String newName = (String)newModel.getValueAt(i, 0);
             String newAssign = (String)newModel.getValueAt(i, 1);
             String newOpen = (String)newModel.getValueAt(i, 2);
-            String newWithD = (String)newModel.getValueAt(i, 3);
             
             if (name.equals(newName) == false) {
                 System.out.println("any troubole?");
@@ -166,7 +164,6 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
             
             model.setValueAt(newAssign, i, 1);
             model.setValueAt(newOpen, i, 2);
-            model.setValueAt(newWithD, i, 3);
         }
     }
 

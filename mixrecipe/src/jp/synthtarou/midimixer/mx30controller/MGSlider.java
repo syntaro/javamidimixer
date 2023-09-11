@@ -48,7 +48,6 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
     }
     
     public void setStatus(MGStatus status) {
-        System.out.println("slider 14bit " + status.isValuePairCC14());
         _process._data.setSliderStatus(_row, _column, status);
     }
 
@@ -73,7 +72,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
             if (ThemeManager.getInstance().isColorfulMetalTheme()) {        
                 col = MXUtil.mixedColor(Color.red, Color.yellow, 30);
             }
-            RangedValue value = status.getValue();
+            RangedValue value = status._value;
             jLabelValue.setForeground(col);
             jLabelMin.setText(String.valueOf(value._min));
             jLabelMax.setText(String.valueOf(value._max));
@@ -82,7 +81,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
             jSliderValue.setPaintLabels(true);
             jSliderValue.setValue(value._var);
             jLabelValue.setText(String.valueOf(value._var));
-            if (status.getName() == null || status.getName().length() == 0) {
+            if (status._name == null || status._name.length() == 0) {
                 MXMessage message = status.toMXMessage(null);
                 if (message == null) {
                     jLabelName.setText("?");
@@ -90,7 +89,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
                     jLabelName.setText(message.toShortString());
                 }
             }else {
-                jLabelName.setText(status.getName());
+                jLabelName.setText(status._name);
             }
             focusStatusChanged(false);
         }
@@ -184,7 +183,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
     
     private void jSliderValueStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderValueStateChanged
         int newValue = jSliderValue.getValue();
-        if (getStatus().getValue()._var == newValue) {
+        if (getStatus()._value._var == newValue) {
             return;
         }
         jLabelValue.setText(String.valueOf(newValue));
@@ -205,7 +204,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
             });
             return;
         }
-        int newValue = status.getValue()._var;
+        int newValue = status._value._var;
         _ignoreEvent = true;
         jLabelValue.setText(String.valueOf(newValue));
         jSliderValue.setValue(newValue);
@@ -258,7 +257,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
 
     public void increment() {
         MGStatus status = getStatus();
-        RangedValue var = status.getValue().increment();
+        RangedValue var = status._value.increment();
         if (var != null) {
             _process.controlByUI(status, var._var);
         }
@@ -266,16 +265,16 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
     
     public void decriment() {
         MGStatus status = getStatus();
-        RangedValue var = status.getValue().decrement();
+        RangedValue var = status._value.decrement();
         if (var != null) {
             _process.controlByUI(status, var._var);
         }
     }
-    
+    /*
     public void doHomePosition() {
         final MGStatus status = getStatus();
-        final int current = status.getValue()._var;
-        final int value = status.getHomePosition();
+        final int current = status._value._var;
+        final int value = status._valueHome;
         Thread t = new Thread(new Runnable() {
             public void run() {
                 try {
@@ -298,16 +297,16 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
             }
         });
         t.start();
-    }
+    }*/
 
     public void editContoller() {
         _process._parent.enterEditMode(false);
         MGStatus status = (MGStatus)getStatus().clone();
-        MGStatusConfig config = new MGStatusConfig(_process, status);
-        MXModalFrame.showAsDialog(this, config, "Enter Edit Slider {row:" + _row + ", column:" + _column + "}");
-        if (config._okOption) {
-            setStatus(config._status);
-            jLabelName.setText(config._status.getName());
+        MGStatusPanel panel = new MGStatusPanel(_process, status);
+        MXModalFrame.showAsDialog(this, panel, "Enter Edit Slider {row:" + _row + ", column:" + _column + "}");
+        if (panel._okOption) {
+            setStatus(panel._status);
+            jLabelName.setText(panel._status._name);
             _process.notifyCacheBroken();
             updateUI();
         }

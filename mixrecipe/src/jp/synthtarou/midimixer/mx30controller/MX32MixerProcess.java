@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.mx30controller;
 
-import jp.synthtarou.midimixer.libs.UniqueChecker;
 import java.util.ArrayList;
 import java.util.TreeSet;
 import javax.swing.JPanel;
@@ -150,7 +149,8 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
 
         setting.register("Pad[].switchType");
         setting.register("Pad[].switchWithToggle");
-        setting.register("Pad[].switchInputType");
+        setting.register("Pad[].switchInputOnMin");
+        setting.register("Pad[].switchInputOnMax");
 
         setting.register("Pad[].switchOutPort");
         setting.register("Pad[].switchOutChannel");
@@ -190,8 +190,8 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             }
             MGStatus status = new MGStatus(_port, type, row, column);
             try {
-                status.setName(node.getSetting("name"));
-                status.setMemo(node.getSetting("note"));
+                status._name = node.getSetting("name");
+                status._memo = node.getSetting("note");
                 String msgText = node.getSetting("message");
                 int channel = node.getSettingAsInt("channel", 0);
                 RangedValue gate = RangedValue.new7bit(node.getSettingAsInt("gate", 0));
@@ -200,15 +200,15 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                         node.getSettingAsInt("valuemax", 127));
 
                 status.setTemplateAsText(msgText, channel);
-                status.setChannel(channel);
-                status.setGate(gate);
-                status.setValue(value);
+                status._channel = channel;
+                status._gate = gate;
+                status._value = value; // TODO
 
-                status.setDataroomType(node.getSettingAsInt("dataentryType", MXVisitant.HAVE_VAL_NOT));
-                status.setDataroomMSB(node.getSettingAsInt("dataentryMSB", 0));
-                status.setDataroomLSB(node.getSettingAsInt("dataentryLSB", 0));
+                status._dataroomType = node.getSettingAsInt("dataentryType", MXVisitant.HAVE_VAL_NOT);
+                status._dataroomMSB = node.getSettingAsInt("dataentryMSB", 0);
+                status._dataroomLSB = node.getSettingAsInt("dataentryLSB", 0);
 
-                status.setValuePairCC14(node.getSettingAsBoolean("isCCPair", false));
+                status._ccPair14 = node.getSettingAsBoolean("isCCPair", false);
 
                 _data.setCircleStatus(row, column, status);
             } catch (Exception e) {
@@ -226,8 +226,8 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             }
             MGStatus status = new MGStatus(_port, type, row, column);
             try {
-                status.setName(node.getSetting("name"));
-                status.setMemo(node.getSetting("note"));
+                status._name = node.getSetting("name");
+                status._memo = node.getSetting("note");
                 String msgText = node.getSetting("message");
 
                 int channel = node.getSettingAsInt("channel", 0);
@@ -237,15 +237,15 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                         node.getSettingAsInt("valuemax", 127));
 
                 status.setTemplateAsText(msgText, channel);
-                status.setChannel(channel);
-                status.setGate(gate);
-                status.setValue(value);
+                status._channel = channel;
+                status._gate = gate;
+                status._value = value;
 
-                status.setDataroomType(node.getSettingAsInt("dataentryType", MXVisitant.HAVE_VAL_NOT));
-                status.setDataroomMSB(node.getSettingAsInt("dataentryMSB", 0));
-                status.setDataroomLSB(node.getSettingAsInt("dataentryLSB", 0));
+                status._dataroomType = node.getSettingAsInt("dataentryType", MXVisitant.HAVE_VAL_NOT);
+                status._dataroomMSB = node.getSettingAsInt("dataentryMSB", 0);
+                status._dataroomLSB = node.getSettingAsInt("dataentryLSB", 0);
 
-                status.setValuePairCC14(node.getSettingAsBoolean("isCCPair", false));
+                status._ccPair14 = node.getSettingAsBoolean("isCCPair", false);
 
                 _data.setSliderStatus(row, column, status);
             } catch (Exception e) {
@@ -268,8 +268,8 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             MGStatus status = new MGStatus(_port, type, row, column);
 
             try {
-                status.setName(node.getSetting("name"));
-                status.setMemo(node.getSetting("note"));
+                status._name = node.getSetting("name");
+                status._memo = node.getSetting("note");
                 msgText = node.getSetting("message");
 
                 int channel = node.getSettingAsInt("channel", 0);
@@ -279,40 +279,17 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                         node.getSettingAsInt("valuemax", 127));
 
                 status.setTemplateAsText(msgText, channel);
-                status.setChannel(channel);
-                status.setGate(gate);
-                status.setValue(value);
+                status._channel = channel;
+                status._gate = gate;
+                status._value = value;
 
-                status.setDataroomType(node.getSettingAsInt("dataentryType", MXVisitant.HAVE_VAL_NOT));
-                status.setDataroomMSB(node.getSettingAsInt("dataentryMSB", 0));
-                status.setDataroomLSB(node.getSettingAsInt("dataentryLSB", 0));
+                status._dataroomType = node.getSettingAsInt("dataentryType", MXVisitant.HAVE_VAL_NOT);
+                status._dataroomMSB = node.getSettingAsInt("dataentryMSB", 0);
+                status._dataroomLSB = node.getSettingAsInt("dataentryLSB", 0);
 
-                status.setValuePairCC14(node.getSettingAsBoolean("isCCPair", false));
+                status._ccPair14 = node.getSettingAsBoolean("isCCPair", false);
 
-                status.setSwitchType(node.getSettingAsInt("switchType", MGStatus.SWITCH_TYPE_ONOFF));
-                status.setSwitchWithToggle(node.getSettingAsBoolean("switchWithToggle", false));
-                status.setSwitchInputType(node.getSettingAsInt("switchInputType", MGStatus.SWITCH_ON_IF_PLUS1));
-                status.setSwitchOutOnType(node.getSettingAsInt("switchOutOnType", MGStatus.SWITCH_OUT_ON_SAME_AS_INPUT));
-                status.setSwitchOutOnTypeOfValue(node.getSettingAsInt("switchOutOnValue", MGStatus.SWITCH_OUT_ON_VALUE_AS_INPUT));
-                status.setSwitchOutOnText(node.getSetting("switchOutOnText"));
-                status.setSwitchOutOnTextGate(node.getSettingAsInt("switchOutOnTextGate", 127));
-                status.setSwitchOutOnValueFixed(node.getSettingAsInt("switchOutOnValueFixed", 127));
-                status.setSwitchOutOffType(node.getSettingAsInt("switchOutOff", MGStatus.SWITCH_OUT_OFF_SAME_AS_INPUT));
-                status.setSwitchOutOffTypeOfValue(node.getSettingAsInt("switchOutOffValue", MGStatus.SWITCH_OUT_OFF_VALUE_0));
-                status.setSwitchOutOffText(node.getSetting("switchOutOffText"));
-                status.setSwitchOutOffTextGate(node.getSettingAsInt("switchOutOffTextGate", 0));
-                status.setSwitchOutChannel(node.getSettingAsInt("switchOutChannel", 0));
-                status.setSwitchHarmonyVelocityType(node.getSettingAsInt("switchHarmonyVelocityType", MGStatus.SWITCH_HARMONY_VELOCITY_FIXED));
-                status.setSwitchHarmonyVelocityFixed(node.getSettingAsInt("switchHarmonyVelocityFixed", 100));
-                status.setSwitchHarmonyNotes(node.getSetting("switchHarmonyNotes"));
-                status.setSwitchSequencerFile(node.getSetting("switchSequencerFile"));
-                status.setSwitchSequencerToSingltTrack(node.getSettingAsBoolean("switchSequencerSingltTrack", true));
-                status.setSwitchSequenceSeekStart(node.getSettingAsBoolean("switchSequencerSeekStart", true));
-                status.setSwitchSequencerFilterNote(node.getSettingAsBoolean("switchSequencerFilterNote", true));
-
-                status.setSwitchOutPort(node.getSettingAsInt("switchOutPort", 0));
-                status.setSwitchOutChannel(node.getSettingAsInt("switchOutChannel", 0));
-
+                /* TODO Drum */
                 _data.setDrumPadStatus(row, column, status);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -330,22 +307,22 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 String prefix = "Circle[" + counter + "].";
                 MGStatus status = _data.getCircleStatus(row, column);
                 MXMessage message = status.toMXMessage(null);
-                setting.setSetting(prefix + "name", status.getName());
-                setting.setSetting(prefix + "note", status.getMemo());
-                setting.setSetting(prefix + "type", status.getUiType());
+                setting.setSetting(prefix + "name", status._name);
+                setting.setSetting(prefix + "note", status._memo);
+                setting.setSetting(prefix + "type", status._uiType);
                 setting.setSetting(prefix + "row", row);
                 setting.setSetting(prefix + "column", column);
                 setting.setSetting(prefix + "message", status.toTemplateText());
                 setting.setSetting(prefix + "channel", message.getChannel());
                 setting.setSetting(prefix + "gate", message.getGate()._var);
-                setting.setSetting(prefix + "value", status.getValue()._var);
-                setting.setSetting(prefix + "valuemin", status.getValue()._min);
-                setting.setSetting(prefix + "valuemax", status.getValue()._max);
-                setting.setSetting(prefix + "isCCPair", status.isValuePairCC14());
-                setting.setSetting(prefix + "dataentryType", status.getDataroomType());
-                setting.setSetting(prefix + "dataentryMSB", status.getDataeroomMSB());
-                setting.setSetting(prefix + "dataentryLSB", status.getDataroomLSB());
-                setting.setSetting(prefix + "isCCPair", status.isValuePairCC14());
+                setting.setSetting(prefix + "value", status._value._var);
+                setting.setSetting(prefix + "valuemin", status._value._min);
+                setting.setSetting(prefix + "valuemax", status._value._max);
+                setting.setSetting(prefix + "isCCPair", status._ccPair14);
+                setting.setSetting(prefix + "dataentryType", status._dataroomType);
+                setting.setSetting(prefix + "dataentryMSB", status._dataroomMSB);
+                setting.setSetting(prefix + "dataentryLSB", status._dataroomLSB);
+                setting.setSetting(prefix + "isCCPair", status._ccPair14);
                 counter++;
             }
         }
@@ -355,22 +332,23 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 String prefix = "Slider[" + counter + "].";
                 MGStatus status = _data.getSliderStatus(row, column);
                 MXMessage message = status.toMXMessage(null);
-                setting.setSetting(prefix + "name", status.getName());
-                setting.setSetting(prefix + "note", status.getMemo());
-                setting.setSetting(prefix + "type", status.getUiType());
+                setting.setSetting(prefix + "name", status._name);
+                setting.setSetting(prefix + "note", status._memo);
+                setting.setSetting(prefix + "type", status._uiType);
                 setting.setSetting(prefix + "row", row);
                 setting.setSetting(prefix + "column", column);
                 setting.setSetting(prefix + "message", status.toTemplateText());
                 setting.setSetting(prefix + "channel", message.getChannel());
                 setting.setSetting(prefix + "gate", message.getGate()._var);
-                setting.setSetting(prefix + "value", status.getValue()._var);
-                setting.setSetting(prefix + "valuemin", status.getValue()._min);
-                setting.setSetting(prefix + "valuemax", status.getValue()._max);
-                setting.setSetting(prefix + "isCCPair", status.isValuePairCC14());
-                setting.setSetting(prefix + "dataentryType", status.getDataroomType());
-                setting.setSetting(prefix + "dataentryMSB", status.getDataeroomMSB());
-                setting.setSetting(prefix + "dataentryLSB", status.getDataroomLSB());
-                setting.setSetting(prefix + "isCCPair", status.isValuePairCC14());
+                setting.setSetting(prefix + "value", status._value._var);
+                setting.setSetting(prefix + "valuemin", status._value._min);
+                setting.setSetting(prefix + "valuemax", status._value._max);
+                setting.setSetting(prefix + "isCCPair", status._ccPair14);
+                setting.setSetting(prefix + "dataentryType", status._dataroomType);
+                setting.setSetting(prefix + "dataentryMSB", status._dataroomMSB);
+                setting.setSetting(prefix + "dataentryLSB", status._dataroomLSB);
+                setting.setSetting(prefix + "isCCPair", status._ccPair14);
+
                 counter++;
             }
         }
@@ -380,44 +358,24 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 String prefix = "Pad[" + counter + "].";
                 MGStatus status = _data.getDrumPadStatus(row, column);
                 MXMessage message = status.toMXMessage(null);
-                setting.setSetting(prefix + "name", status.getName());
-                setting.setSetting(prefix + "note", status.getMemo());
-                setting.setSetting(prefix + "type", status.getUiType());
+                setting.setSetting(prefix + "name", status._name);
+                setting.setSetting(prefix + "note", status._memo);
+                setting.setSetting(prefix + "type", status._uiType);
                 setting.setSetting(prefix + "row", row);
                 setting.setSetting(prefix + "column", column);
                 setting.setSetting(prefix + "message", status.toTemplateText());
                 setting.setSetting(prefix + "channel", message.getChannel());
                 setting.setSetting(prefix + "gate", message.getGate()._var);
-                setting.setSetting(prefix + "value", status.getValue()._var);
-                setting.setSetting(prefix + "valuemin", status.getValue()._min);
-                setting.setSetting(prefix + "valuemax", status.getValue()._max);
-                setting.setSetting(prefix + "isCCPair", status.isValuePairCC14());
-                setting.setSetting(prefix + "dataentryType", status.getDataroomType());
-                setting.setSetting(prefix + "dataentryMSB", status.getDataeroomMSB());
-                setting.setSetting(prefix + "dataentryLSB", status.getDataroomLSB());
-                setting.setSetting(prefix + "isCCPair", status.isValuePairCC14());
-
-                setting.setSetting(prefix + "switchType", status.getSwitchType());
-                setting.setSetting(prefix + "switchWithToggle", status.isSwitchWithToggle());
-                setting.setSetting(prefix + "switchInputType", status.getSwitchInputType());
-                setting.setSetting(prefix + "switchOutOnType", status.getSwitchOutOnType());
-                setting.setSetting(prefix + "switchOutOnValue", status.getSwitchOutOnTypeOfValue());
-                setting.setSetting(prefix + "switchOutOnValueFixed", status.getSwitchOutOnValueFixed());
-                setting.setSetting(prefix + "switchOutOnText", status.getSwitchOutOnText());
-                setting.setSetting(prefix + "switchOutOnTextGate", status.getSwitchOutOnTextGate());
-                setting.setSetting(prefix + "switchOutOff", status.getSwitchOutOffType());
-                setting.setSetting(prefix + "switchOutOffValue", status.getSwitchOutOffTypeOfValue());
-                setting.setSetting(prefix + "switchOutOffText", status.getSwitchOutOffText());
-                setting.setSetting(prefix + "switchOutOffTextGate", status.getSwitchOutOffTextGate());
-                setting.setSetting(prefix + "switchOutPort", status.getSwitchOutPort());
-                setting.setSetting(prefix + "switchOutChannel", status.getSwitchOutChannel());
-                setting.setSetting(prefix + "switchHarmonyVelocityType", status.getSwitchHarmonyVelocityType());
-                setting.setSetting(prefix + "switchHarmonyVelocityFixed", status.getSwitchHarmonyVelocityFixed());
-                setting.setSetting(prefix + "switchHarmonyNotes", status.getSwitchHarmonyNotes());
-                setting.setSetting(prefix + "switchSequencerFile", status.getSwitchSequencerFile());
-                setting.setSetting(prefix + "switchSequencerSingltTrack", status.isSwitchSequencerToSingltTrack());
-                setting.setSetting(prefix + "switchSequencerSeekStart", status.isSwitchSequenceSeekStart());
-                setting.setSetting(prefix + "switchSequencerFilterNote", status.isSwitchSequencerFilterNote());
+                setting.setSetting(prefix + "value", status._value._var);
+                setting.setSetting(prefix + "valuemin", status._value._min);
+                setting.setSetting(prefix + "valuemax", status._value._max);
+                setting.setSetting(prefix + "isCCPair", status._ccPair14);
+                setting.setSetting(prefix + "dataentryType", status._dataroomType);
+                setting.setSetting(prefix + "dataentryMSB", status._dataroomMSB);
+                setting.setSetting(prefix + "dataentryLSB", status._dataroomLSB);
+                setting.setSetting(prefix + "isCCPair", status._ccPair14);
+                
+                /* TODO SWITCH */
 
                 counter++;
             }
@@ -425,25 +383,24 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
     }
 
     public void updateUIByStatus(MGStatus status) {
-        if (status.getUiType() == MGStatus.TYPE_SLIDER) {
+        if (status._uiType == MGStatus.TYPE_SLIDER) {
             MGSlider slider = _data.getSlider(status._row, status._column);
             slider.updateUIByStatus();
         }
-        if (status.getUiType() == MGStatus.TYPE_CIRCLE) {
+        if (status._uiType == MGStatus.TYPE_CIRCLE) {
             MGCircle circle = _data.getCircle(status._row, status._column);
             circle.updateUIByStatus();
         }
-        if (status.getUiType() == MGStatus.TYPE_DRUMPAD) {
+        if (status._uiType == MGStatus.TYPE_DRUMPAD) {
             MGDrumPad pad = _data.getDrumPad(status._row, status._column);
-            pad.pickupTriggerStatus();
         }
     }
 
     public void controlByUI(MGStatus status, int newValue) {
-        controlByUI(status, newValue, null, null);
+        controlByUI(status, newValue, null);
     }
 
-    public void controlByUI(MGStatus status, int newValue, MXTiming timing, UniqueChecker uniqueChecker) {
+    public void controlByUI(MGStatus status, int newValue, MXTiming timing) {
         synchronized (MXTiming.mutex) {
             if (_data.ready() == false) {
                 //constructor
@@ -452,11 +409,8 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             if (timing == null) {
                 timing = new MXTiming();
             }
-            if (uniqueChecker == null) {            
-                uniqueChecker = new UniqueChecker(getNextReceiver());
-            }
-            int row = status.getRow(), column = status.getColumn();
-            int uiType = status.getUiType();
+            int row = status._row, column = status._column;
+            int uiType = status._uiType;
             if (uiType == MGStatus.TYPE_SLIDER) {
                 MGSlider slider = _data.getSlider(row, column);
                 status.updateValue(newValue);
@@ -466,10 +420,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 status.updateValue(newValue);
                 //circle.updateUIByStatus();
             } else if (uiType == MGStatus.TYPE_DRUMPAD) {
-                // check have collect _drumSwitch value
-                MGDrumPad drumPad = _data.getDrumPad(row, column);
-                status.updateValue(newValue);
-                drumPad.pickupTriggerStatus();
+                new IllegalStateException("Dont use this. See MGStatusForDrum.messageDetected");
             } else {
                 new Throwable("Illegal State uiType unknown");
                 return;
@@ -477,7 +428,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             if (_patchToMixer >= 0) {
                 MX32MixerProcess nextMixer = _parent.getPage(_patchToMixer);
                 MGStatus nextStatus = null;
-                switch (status.getUiType()) {
+                switch (status._uiType) {
                     case MGStatus.TYPE_SLIDER:
                         nextStatus = nextMixer._data.getSliderStatus(row, column);
                         break;
@@ -489,10 +440,10 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                         break;
                 }
 
-                int nextMin = nextStatus.getValue()._min;
-                int nextMax = nextStatus.getValue()._min;
-                newValue = status.getValue().modifyRangeTo(nextMin, nextMax)._var;
-                nextMixer.controlByUI(nextStatus, newValue, timing, uniqueChecker);
+                int nextMin = nextStatus._value._min;
+                int nextMax = nextStatus._value._min;
+                newValue = status._value.modifyRangeTo(nextMin, nextMax)._var;
+                nextMixer.controlByUI(nextStatus, newValue, timing);
 
                 if (_patchTogether == false) {
                     return;
@@ -500,8 +451,9 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             }
 
             if (uiType == MGStatus.TYPE_DRUMPAD) {
-                MGDrumPad drumPad = _data.getDrumPad(row, column);
-                drumPad.invokeDrumAction();
+                MGStatus drumStatus = _data.getDrumPadStatus(row, column);
+                //tODO
+                //drumStatus.invokeDrumAction();
             } else {
                 MXMessage message = status.toMXMessage(timing);
                 if (message != null) {

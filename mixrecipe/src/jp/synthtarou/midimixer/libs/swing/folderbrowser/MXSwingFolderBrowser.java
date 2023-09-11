@@ -39,13 +39,14 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
-import jp.synthtarou.midimixer.mx35cceditor.prompt.IPromptPanel;
+import jp.synthtarou.midimixer.mx35cceditor.ccxml.navigator.INavigator;
+import jp.synthtarou.midimixer.mx35cceditor.ccxml.navigator.ParamsOfNavigator;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptPanel {
+public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigator<FileList> {
 
     static final int DISKDRIVE_DEPTH = 20;
     /*
@@ -142,11 +143,9 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
 
     DefaultTreeModel _model;
     FileSystemCache.Element[] _selection;
-    File[] _result = null;
 
     FileFilter _filterOpenable = null;
     FileFilter _filterVisible = null;
-    File _curerntDirectory = null;
 
     ChildSeekFilter _deepScan = null;
 
@@ -170,13 +169,6 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
         System.exit(0);
     }
 
-    public static final boolean APPROVE_OPTION = true;
-    public static final boolean CANCEL_OPTION = false;
-
-    public File[] getSelectedFileList() {
-        return _result;
-    }
-
     public MXSwingFolderBrowser(File initialDir, FileFilter filterOpenable) {
         this(initialDir, filterOpenable, null);
     }
@@ -187,11 +179,8 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
     public MXSwingFolderBrowser(File initialDir, FileFilter filterOpenable, FileFilter filterVisible) {
         initComponents();
 
-        _curerntDirectory = initialDir;
         _filterOpenable = filterOpenable;
         _filterVisible = filterVisible;
-
-        jLabel2.setText("");
 
         FileSystemCache.Element root = _cache.addCache(null);
         _model = new DefaultTreeModel(root._pairNode, true);
@@ -220,6 +209,8 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
         InitialRun init = new InitialRun();
 
         init.launchUIThread(_cache.addCache(null));
+
+        setPreferredSize(new Dimension(500, 300));
     }
 
     class DigRun extends Runnable2 {
@@ -243,7 +234,7 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
             }
 
             FileSystemCache.Element lastParent = null;
-            System.out.println("Path To Build " + seekPath);
+            //System.out.println("Path To Build " + seekPath);
 
             while (seekPath.isEmpty() == false) {
                 File file = seekPath.removeLast();
@@ -557,19 +548,13 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
     }
 
     @Override
-    public JPanel getAsPanel() {
+    public JPanel getNavigatorPanel() {
         return this;
     }
 
     @Override
-    public String getPanelTitle() {
+    public String getNavigatorTitle() {
         return "Folder Browser";
-    }
-
-    @Override
-    public Dimension getPanelSize() {
-        return new Dimension(500, 300);
-
     }
 
     public void progress(String text) {
@@ -600,7 +585,6 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
         jLabelSelection = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTree1 = new javax.swing.JTree();
-        jLabel2 = new javax.swing.JLabel();
         jCheckBoxNetwork = new javax.swing.JCheckBox();
         jCheckBoxNested = new javax.swing.JCheckBox();
         jLabelScan = new javax.swing.JLabel();
@@ -622,7 +606,7 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jButtonOK, gridBagConstraints);
 
@@ -634,7 +618,7 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jButtonCancel, gridBagConstraints);
 
@@ -642,8 +626,9 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
         add(jLabelSelection, gridBagConstraints);
 
         jTree1.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -667,20 +652,12 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         add(jScrollPane1, gridBagConstraints);
-
-        jLabel2.setText("-hide");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        add(jLabel2, gridBagConstraints);
 
         jCheckBoxNetwork.setText("Unlock Network Access");
         jCheckBoxNetwork.addActionListener(new java.awt.event.ActionListener() {
@@ -689,28 +666,31 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jCheckBoxNetwork, gridBagConstraints);
 
-        jCheckBoxNested.setText("Rich Scan");
+        jCheckBoxNested.setText("Scan for Skip Folder Which Have No Contents");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jCheckBoxNested, gridBagConstraints);
 
-        jLabelScan.setText("-");
+        jLabelScan.setText("Scanning");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         add(jLabelScan, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jProgressBar1, gridBagConstraints);
@@ -723,7 +703,9 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         add(jToggleButton1, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
@@ -791,8 +773,7 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
 
     public void setResultAndClose(boolean accept) {
         if (accept == false) {
-            _result = null;
-            MXUtil.getOwnerWindow(this).setVisible(false);
+            getParamsOfNavigator().closeWithCancel(this);
             return;
         }
         ArrayList<File> safe = new ArrayList<File>();
@@ -819,9 +800,8 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
             JOptionPane.showMessageDialog(this, "Not selected", "Notice", JOptionPane.OK_OPTION);
             return;
         }
-        File[] finalAnswer = new File[safe.size()];
-        safe.toArray(finalAnswer);
-        _result = finalAnswer;
+
+        getParamsOfNavigator().closeWithApprove(this, new FileList(safe));
         MXUtil.getOwnerWindow(this).setVisible(false);
     }
 
@@ -830,7 +810,6 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
     private javax.swing.JButton jButtonOK;
     private javax.swing.JCheckBox jCheckBoxNested;
     private javax.swing.JCheckBox jCheckBoxNetwork;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabelScan;
     private javax.swing.JLabel jLabelSelection;
     private javax.swing.JProgressBar jProgressBar1;
@@ -838,4 +817,16 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements IPromptP
     private javax.swing.JToggleButton jToggleButton1;
     private javax.swing.JTree jTree1;
     // End of variables declaration//GEN-END:variables
+
+
+    ParamsOfNavigator<FileList> _params;
+    
+    @Override
+    public synchronized  ParamsOfNavigator<FileList> getParamsOfNavigator() {
+        if (_params == null) {            
+            _params = new ParamsOfNavigator<>();
+            _params._mode = ParamsOfNavigator.MODE_CHOOSER;
+        }
+        return _params;
+    }
 }

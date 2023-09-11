@@ -35,7 +35,7 @@ import jp.synthtarou.midimixer.libs.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.domino.PickerForProgram;
+import jp.synthtarou.midimixer.mx35cceditor.ccxml.EditorForInstrument;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
@@ -97,9 +97,13 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         jComboBoxModBank.setModel(_modBank);
         jComboBoxModProgram.setModel(_modProgram);
         
-        jSpinnerSendProgram.setModel(new SafeSpinnerNumberModel(0, 0, 127, 1));
-        jSpinnerSendBankMSB.setModel(new SafeSpinnerNumberModel(0, 0, 127, 1));
-        jSpinnerSendBankLSB.setModel(new SafeSpinnerNumberModel(0, 0, 127, 1));
+        jSpinnerSendProgram.setModel(new SafeSpinnerNumberModel(0, -1, 128, 1));
+        jSpinnerSendBankMSB.setModel(new SafeSpinnerNumberModel(0, -1, 127, 1));
+        jSpinnerSendBankLSB.setModel(new SafeSpinnerNumberModel(0, -1, 127, 1));
+
+        jSpinnerWatchProgram.setModel(new SafeSpinnerNumberModel(0, -1, 128, 1));
+        jSpinnerWatchBankMSB.setModel(new SafeSpinnerNumberModel(0, -1, 127, 1));
+        jSpinnerWatchBankLSB.setModel(new SafeSpinnerNumberModel(0, -1, 127, 1));
         
         jSpinnerSendFixedPan.setModel(new SafeSpinnerNumberModel(0, 0, 127, 1));
         jSpinnerSendAdjustExpression.setModel(new SafeSpinnerNumberModel(100, 0, 100, 1));
@@ -1145,13 +1149,13 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         }
         MX40Group group = new MX40Group(null);
         readGroupFromPanel(group);
-        PickerForProgram picker = new PickerForProgram();
-        picker.setDefault(group._watchingProgram, group._watchingBankMSB, group._watchingBankLSB);
+        EditorForInstrument picker = new EditorForInstrument();
+        picker.scan(0, group._watchingProgram, group._watchingBankMSB, group._watchingBankLSB);
         MXModalFrame.showAsDialog(this, picker, "Select Program");
-        if (picker._returnProgram >= 0) {
-            jSpinnerWatchProgram.setValue(picker._returnProgram);
-            jSpinnerWatchBankMSB.setValue(picker._returnBankMSB);
-            jSpinnerWatchBankLSB.setValue(picker._returnBankLSB);
+        if (picker._resultProgram != null && picker._resultBank != null) {
+            jSpinnerWatchProgram.setValue(picker._resultProgram._listAttributes.numberOfName("PC", -1));
+            jSpinnerWatchBankMSB.setValue(picker._resultBank._listAttributes.numberOfName("MSB", -1));
+            jSpinnerWatchBankLSB.setValue(picker._resultBank._listAttributes.numberOfName("LSB", -1));
             JOptionPane.showMessageDialog(this, "Push [Save Group] Please");
         }
     }//GEN-LAST:event_jButtonGroupProgramActionPerformed
@@ -1162,13 +1166,13 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         }
         MX40Layer layer = new MX40Layer(null, null);
         readLayerFromPanel(layer);
-        PickerForProgram picker = new PickerForProgram();
-        picker.setDefault(layer._fixedProgram, layer._fixedBankMSB, layer._fixedBankLSB);
+        EditorForInstrument picker = new EditorForInstrument();
+        picker.scan(0, layer._fixedProgram, layer._fixedBankMSB, layer._fixedBankLSB);
         MXModalFrame.showAsDialog(this, picker, "Select Program");
-        if (picker._returnProgram >= 0) {
-            jSpinnerSendProgram.setValue(picker._returnProgram);
-            jSpinnerSendBankMSB.setValue(picker._returnBankMSB);
-            jSpinnerSendBankLSB.setValue(picker._returnBankLSB);
+        if (picker._resultProgram != null) {
+            jSpinnerSendProgram.setValue(picker._resultProgram._listAttributes.numberOfName("PC", -1));
+            jSpinnerSendBankMSB.setValue(picker._resultBank._listAttributes.numberOfName("MSB", -1));
+            jSpinnerSendBankLSB.setValue(picker._resultBank._listAttributes.numberOfName("LSB", -1));
             JOptionPane.showMessageDialog(this, "Push [Save Layer] Please");
         }
     }//GEN-LAST:event_jButtonLayerProgramActionPerformed

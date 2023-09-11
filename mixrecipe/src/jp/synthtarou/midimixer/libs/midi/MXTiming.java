@@ -95,4 +95,13 @@ public class MXTiming implements Comparable<MXTiming>{
     public static long totalBottom(int selector) {
         return _totalBottom[selector];
     }
+    
+    MXEntrance _entrance;
+    
+    public synchronized  boolean takeTicket(int entrance, MXMessage message) {
+        if (_entrance == null) {
+            _entrance = new MXEntrance();
+        }
+        return _entrance.rideOn(entrance, message);
+    }
 }

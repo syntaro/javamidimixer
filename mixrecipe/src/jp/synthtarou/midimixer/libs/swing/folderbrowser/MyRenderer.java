@@ -17,9 +17,13 @@
 package jp.synthtarou.midimixer.libs.swing.folderbrowser;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.io.File;
+import javax.swing.Icon;
 import javax.swing.JLabel;
+import javax.swing.JScrollPane;
 import javax.swing.JTree;
+import javax.swing.JViewport;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -57,14 +61,27 @@ public class MyRenderer extends  DefaultTreeCellRenderer{
                     }
                     else if (user instanceof FileSystemCache.Element) {
                         FileSystemCache.Element element = (FileSystemCache.Element) node.getUserObject();
+                        Icon icon = element.getIcon();
                         JLabel label = (JLabel) component;
-                        label.setIcon(element.getIcon());
+                        label.setIcon(icon);
                         label.setText(element.getDisplayName());
                         //label.setToolTipText(file.getPath());
+                        if (icon != null) {                    
+                            int width = 200;
+                            /*
+                            try {
+                                JViewport port = (JViewport)tree.getParent();
+                                JScrollPane scroll = (JScrollPane)port.getParent();
+                                width = scroll.getWidth();
+                            }catch(Exception e) {
+                                e.printStackTrace();
+                            }*/
+                            component.setPreferredSize(new Dimension(width, icon.getIconHeight() + 4));
+                        }
                     }
                 }
             }
-
+            
             return component;
         }
 }

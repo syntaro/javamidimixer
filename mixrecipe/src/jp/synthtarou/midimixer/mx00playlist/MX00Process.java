@@ -70,10 +70,10 @@ public class MX00Process extends MXReceiver implements MXSettingTarget {
         return _view;
     }
     @Override
-    public void prepareSettingFields(jp.synthtarou.midimixer.libs.settings.MXSetting config) {
-        config.register("playAsLooped");
-        config.register("playAsChained");
-        config.register("song[]");
+    public void prepareSettingFields(MXSetting setting) {
+        setting.register("playAsLooped");
+        setting.register("playAsChained");
+        setting.register("song[]");
     }
 
     @Override

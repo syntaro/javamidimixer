@@ -77,7 +77,7 @@ public class FileSystemCache {
             }
             if (_icon == null) {
                 _icon = _view.getSystemIcon(_fileObject);
-            }
+             }
             return _icon;
         }
 
