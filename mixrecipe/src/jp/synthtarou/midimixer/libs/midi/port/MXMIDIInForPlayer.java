@@ -97,7 +97,7 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
 
             int command = status & 0xf0;
 
-            if (command == MXMidi.COMMAND_NOTEON) {
+            if (command == MXMidi.COMMAND_CH_NOTEON) {
                 if (firstNotePos < 0) {
                     firstNotePos = i;
                 }
@@ -219,7 +219,7 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
             int pos = 0;
             for (SMFMessage smf : list) {
                 int command = smf.getStatus(); 
-                if ((command & 0xf0) == MXMidi.COMMAND_NOTEON) {
+                if ((command & 0xf0) == MXMidi.COMMAND_CH_NOTEON) {
                     _firstNotePos = pos;
                     break;
                 }

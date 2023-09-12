@@ -64,7 +64,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
     public void updateUI() {
         MGStatus status = getStatus();
         if (status != null) {
-            jCircleValue.setValue(status._value);
+            jCircleValue.setValue(status._base.getValue());
 
             if (status._name == null || status._name.length() == 0) {
                 MXMessage message = status.toMXMessage(null);
@@ -150,7 +150,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
 
     private void jCircleValueStateChanged(javax.swing.event.ChangeEvent evt) {                                          
         int newValue = jCircleValue.getValue();
-        if (getStatus()._value._var == newValue) {
+        if (getStatus()._base.getValue()._var == newValue) {
             return;
         }
         if (_ignoreEvent) {
@@ -173,7 +173,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
             return;
         }
         _ignoreEvent = true;
-        jCircleValue.setValue(status._value);
+        jCircleValue.setValue(status._base.getValue());
         _ignoreEvent = false;
     }
     
@@ -205,7 +205,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
 
     public void increment() {
         MGStatus status = getStatus();
-        RangedValue var = status._value.increment();
+        RangedValue var = status._base.getValue().increment();
         if (var != null) {
             _process.controlByUI(status, var._var);
         }
@@ -213,7 +213,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
     
     public void decriment() {
         MGStatus status = getStatus();
-        RangedValue var = status._value.decrement();
+        RangedValue var = status._base.getValue().decrement();
         if (var != null) {
             _process.controlByUI(status, var._var);
         }

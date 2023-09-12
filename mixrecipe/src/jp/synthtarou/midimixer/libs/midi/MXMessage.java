@@ -20,8 +20,6 @@ import java.io.PrintStream;
 import java.util.TreeSet;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
-import static jp.synthtarou.midimixer.libs.midi.MXTemplate.DTEXT_PROGDEC;
-import static jp.synthtarou.midimixer.libs.midi.MXTemplate.DTEXT_PROGINC;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import jp.synthtarou.midimixer.libs.console.ConsoleElement;
 import jp.synthtarou.midimixer.mx30controller.MGStatus;
@@ -44,15 +42,13 @@ public final class MXMessage {
 
     private final MXTemplate _template;
 
-    private int _metaType;
-    public String _metaText;
     public TreeSet<MGStatus>_linkedStatus = null;
     
     public boolean isBinMessage() {
         if (createBytes() == null) {
             return false;
         }
-        if (_template.size() == 3) {
+        if (_dataBytes.length <= 3) {
             int b = _dataBytes[0] & 0xff;
             if (b >= 0x80 && b <= 0xff) {
                 switch(b) {
@@ -63,17 +59,21 @@ public final class MXMessage {
                 }
                 return false;
             }
-            int c = _template.get(0);
-            if (c == DTEXT_PROGINC || c== DTEXT_PROGDEC) {//TODO check all about this gimic
-                return false;
+            int command2 = _template.get(0) & 0xff00;
+            if (command2 != 0) {
+                switch(command2) {
+                    case MXMidi.COMMAND2_META:
+                        return true;
+                }
             }
+            return false;
         }
         return true;
     }
 
     //Utilitie
     public boolean isPairAbleCC14() {
-        if (isCommand(MXMidi.COMMAND_CONTROLCHANGE)) {
+        if (isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
             int cc = getGate()._var;
             if (cc >= 0 && cc <= 31) {
                 return true;
@@ -93,12 +93,6 @@ public final class MXMessage {
      * @param value14bit the it14bitCC to set
      */
     public void setValuePairCC14(boolean value14bit) {
-        if (_valuePair14bit != value14bit) {
-            int value = getValue()._var;
-            if (value14bit == false && value >= 128) {
-                setValue(127);
-            }
-        }
         this._valuePair14bit = value14bit;
     }
 
@@ -191,22 +185,20 @@ public final class MXMessage {
         return _value;
     }
 
-    public void setValue(int value) {
-        if (value != _value._var) {
-            _value = _value.updateValue(value);
-            _dataBytes = null;
-        }
+    public void setValue(RangedValue value) {
+        _value = value;
+        //TODO checksame
+        _dataBytes = null;
     }
 
     public RangedValue getGate() {
         return _gate;
     }
 
-    public void setGate(int gate) {
-        if (gate != _gate._var) {
-            _gate = _gate.updateValue(gate);
-            _dataBytes = null;
-        }
+    public void setGate(RangedValue gate) {
+        _gate = gate;
+        //TODO checksame
+        _dataBytes = null;
     }
 
     public boolean isMetaMessage() {
@@ -220,14 +212,26 @@ public final class MXMessage {
     }
 
     public int getMetaType() {
-        return _metaType;
+        if (_template.get(0) == 0xff) {
+            return _template.get(1);
+        }
+        return -1;
     }
 
-    public void setMetaType(int metaCode) {
-        if (metaCode != _metaType) {
-            _metaType = metaCode;
-            _dataBytes = null;
+    public String getMetaText() {
+        if (_template.get(0) == 0xff) {
+            String text = "";
+            byte[] data = getDataBytes();
+            try {
+                text = new String(data, 2, data.length - 2, "ASCII");
+                text = new String(data, 2, data.length - 2, "utf8");
+                text = new String(data, 2, data.length - 2, "SJIS");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return text;
         }
+        return null;
     }
 
     protected MXMessage(int port, MXTemplate template) {
@@ -243,12 +247,6 @@ public final class MXMessage {
         _channel = channel;
         _gate = gate;
         _value = value;
-        
-        if (_template != null && _template.size() > 0) {
-            if (_template.get(0) == 0xff) {
-                _metaType = _template.get(1);
-            }
-        }
     }
 
 
@@ -273,7 +271,7 @@ public final class MXMessage {
         if (_template.isDataentry()) {
             return true;
         }
-        if (isCommand(MXMidi.COMMAND_CONTROLCHANGE)) {
+        if (isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
             switch (getData1()) {
                 case MXMidi.DATA1_CC_DATAENTRY:
                 case MXMidi.DATA1_CC_DATAINC:
@@ -286,7 +284,7 @@ public final class MXMessage {
 
     public String toString() {
         String str = toStringHeader();
-        if (isCommand(MXMidi.COMMAND_PROGRAMCHANGE)) {
+        if (isCommand(MXMidi.COMMAND_CH_PROGRAMCHANGE)) {
             return str + "("+ getGate() + ")";
         }else {
             return str + "("+ getValue() + ")";
@@ -311,11 +309,11 @@ public final class MXMessage {
         
         switch ((int)_dataBytes[0]) {
             case 0xff:
-                return "Meta [" + this.getMetaType() + ":" + this._metaText + "]";
+                return "Meta [" + getMetaType() + ":" + getMetaText() + "]";
             case 0xf0:
-                return "Sysex [" + MXUtil.dumpHexFF(getDataBytes()) + "]";
+                return "Sysex [" + MXUtil.dumpHex(getDataBytes()) + "]";
             case 0xf7:
-                return "SysexSpecial [" + MXUtil.dumpHexFF(getDataBytes()) + "]";
+                return "SysexSpecial [" + MXUtil.dumpHex(getDataBytes()) + "]";
         }
         if (isDataentry()) {
             int r1 = toDataroomMSB1();
@@ -329,7 +327,7 @@ public final class MXMessage {
                  + ConsoleElement.toSegmentText(d2);
         }
         if (isBinMessage()) {
-            return "Binary[" + MXUtil.dumpHexFF(getDataBytes()) + "]";
+            return "Binary[" + MXUtil.dumpHex(getDataBytes()) + "]";
         }
 
         int dword = (((getStatus() << 8) | getData1()) << 8) | getData2();
@@ -368,7 +366,7 @@ public final class MXMessage {
             command &= 0xf0;
         }
         
-        if (command == MXMidi.COMMAND_CONTROLCHANGE) {
+        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
             int data1 = getData1();
             if (data1 == MXMidi.DATA1_CC_DATAENTRY && _visitant != null) {
                 if (_visitant.isHaveDataentryRPN()) {
@@ -393,35 +391,35 @@ public final class MXMessage {
             }
             return chname + MXMidi.nameOfControlChange(data1);
         }else {
-            if (command == MXMidi.COMMAND_NOTEOFF) {
+            if (command == MXMidi.COMMAND_CH_NOTEOFF) {
                 int note = getGate()._var;
                 int velocity = getValue()._var;
                 return  chname + MXMidi.nameOfNote(note) + "-";
             }
-            if (command == MXMidi.COMMAND_NOTEON) {
+            if (command == MXMidi.COMMAND_CH_NOTEON) {
                 int note = getGate()._var;
                 int velocity = getValue()._var;
                 return  chname + MXMidi.nameOfNote(note);
             }
-            if (command == MXMidi.COMMAND_POLYPRESSURE) {
+            if (command == MXMidi.COMMAND_CH_POLYPRESSURE) {
                 int note = getGate()._var;
                 int velocity = getValue()._var;
                 return  chname + "PPrs";
             }
-            if (command == MXMidi.COMMAND_PROGRAMCHANGE) {
+            if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
                 int program = getGate()._var;
                 return  chname + "PG" + program;
             }
-            if (command == MXMidi.COMMAND_CHANNELPRESSURE) {
+            if (command == MXMidi.COMMAND_CH_CHANNELPRESSURE) {
                 return  chname + "ChPrs";
             }
-            if (command == MXMidi.COMMAND_PITCHWHEEL) {
+            if (command == MXMidi.COMMAND_CH_PITCHWHEEL) {
                 return  chname + "Pitch";
             }
-            if (command == MXMidi.STATUS_SONGPOSITION) {
+            if (command == MXMidi.COMMAND_SONGPOSITION) {
                 return  chname + "Pos";
             }
-            if (command == MXMidi.STATUS_SONGSELECT) {
+            if (command == MXMidi.COMMAND_SONGSELECT) {
                 return  chname + "Song";
             }
         }
@@ -434,11 +432,10 @@ public final class MXMessage {
     }
     
     public static void main(String[] args) {
-        MXMessage message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_NOTEON + 0, 64, 127);
+        MXMessage message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_NOTEON + 0, 64, 127);
         String dtext = message._template.toDText(message);
 
-        MXTemplate template = MXMessageFactory.fromDtext(dtext, message.getChannel());
-        MXMessage msg = template.buildMessage(message.getPort(), message.getChannel(), message.getGate(), message.getValue());
+        MXMessage msg = MXTemplate.fromDtext(message.getPort(), dtext, message.getChannel(), message.getGate(), message.getValue());
 
         PrintStream output = System.out;
         
@@ -448,23 +445,22 @@ public final class MXMessage {
         
         msg.setPort(6);
         msg.setChannel(2);
-        msg.setValue(100);
+        msg.setValue(RangedValue.new7bit(100));
 
         output.println(msg);
         output.println("----------------");
 
-        MXMessage message2 = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CONTROLCHANGE + 1, MXMidi.DATA1_CC_CHANNEL_VOLUME, 127);
+        MXMessage message2 = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + 1, MXMidi.DATA1_CC_CHANNEL_VOLUME, 127);
         output.println(message2);
         String dtext2 = message2._template.toDText(message2);
-        MXTemplate template2 = MXMessageFactory.fromDtext(dtext2, message2.getChannel());
-        MXMessage msg2 = template.buildMessage(message2.getPort(), message2.getChannel(), message2.getGate(), message2.getValue());
+        MXMessage msg2 = MXTemplate.fromDtext(message2.getPort(), dtext2, message2.getChannel(), message2.getGate(), message2.getValue());
 
         output.println(dtext2);
         output.println(msg2);
         
         msg2.setPort(6);
         msg2.setChannel(2);
-        msg2.setValue(100);
+        msg2.setValue(RangedValue.new7bit(100));
 
         output.println(msg2);
         output.println("----------------");
@@ -499,10 +495,10 @@ public final class MXMessage {
 
         if (isBinMessage()) {
             if (_dataBytes[0] == 0xff) {
-                return _metaText;
+                return getMetaText();
             }
         }
-        return MXUtil.dumpHexFF(_dataBytes);
+        return MXUtil.dumpHex(_dataBytes);
     }
     
     public int getDwordCount() {
@@ -523,10 +519,12 @@ public final class MXMessage {
         if (_template.size() == 0) {
             return 0;
         }
-        if (_template.get(0) == DTEXT_PROGINC || _template.get(0) == DTEXT_PROGDEC) {
+        //TOOD
+        if (_template.get(0) == MXMidi.COMMAND2_CH_PROGRAM_INC 
+          || _template.get(0) == MXMidi.COMMAND2_CH_PROGRAM_DEC) {
             return 3;
         }
-        if (isCommand(MXMidi.COMMAND_CONTROLCHANGE) && isValuePairCC14()) {
+        if (isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE) && isValuePairCC14()) {
             return 2;
         }
         return 1;
@@ -550,7 +548,7 @@ public final class MXMessage {
             int status = getStatus();
             int data1 = getData1();
             int data2 = getData2();
-            if ((getStatus() & 0xf0)== MXMidi.COMMAND_CONTROLCHANGE && isValuePairCC14()) {
+            if ((getStatus() & 0xf0)== MXMidi.COMMAND_CH_CONTROLCHANGE && isValuePairCC14()) {
                 if (column == 0)  {
                     data2 = (getValue()._var >> 7) & 0x7f;
                 }else {
@@ -569,12 +567,12 @@ public final class MXMessage {
         }
         int status, data1, data2;
         if (getVisitant().isHaveDataentryRPN()){
-            status =MXMidi.COMMAND_CONTROLCHANGE + getChannel();
+            status =MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_RPN_MSB;
             data2 = getVisitant().getDataroomMSB();
             return (((status << 8) | data1) << 8) | data2;
         }else if (getVisitant().isHaveDataentryNRPN()) {
-            status =MXMidi.COMMAND_CONTROLCHANGE + getChannel();
+            status =MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_NRPN_MSB;
             data2 = getVisitant().getDataroomMSB();
             return (((status << 8) | data1) << 8) | data2;
@@ -589,12 +587,12 @@ public final class MXMessage {
         }
         int status, data1, data2;
         if (getVisitant().isHaveDataentryRPN()){
-            status =MXMidi.COMMAND_CONTROLCHANGE + getChannel();
+            status =MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_RPN_LSB;
             data2 = getVisitant().getDataroomLSB();
             return (((status << 8) | data1) << 8) | data2;
         }else if (getVisitant().isHaveDataentryNRPN()) {
-            status =MXMidi.COMMAND_CONTROLCHANGE + getChannel();
+            status =MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_NRPN_LSB;
             data2 = getVisitant().getDataroomLSB();
             return (((status << 8) | data1) << 8) | data2;
@@ -609,7 +607,7 @@ public final class MXMessage {
         }
         int status, data1, data2;
         if (getVisitant().isHaveDataentryRPN() || getVisitant().isHaveDataentryNRPN()) {
-            status =MXMidi.COMMAND_CONTROLCHANGE + getChannel();
+            status =MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_DATAENTRY;
             data2 = getVisitant().getDataentryMSB();
             return (((status << 8) | data1) << 8) | data2;
@@ -624,7 +622,7 @@ public final class MXMessage {
         }
         int status, data1, data2;
         if (getVisitant().isHaveDataentryRPN() || getVisitant().isHaveDataentryNRPN()) {
-            status = MXMidi.COMMAND_CONTROLCHANGE + getChannel();
+            status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_DATAENTRY + 0x20;
             data2 = getVisitant().getDataentryLSB();
             return (((status << 8) | data1) << 8) | data2;
@@ -674,4 +672,173 @@ public final class MXMessage {
     public boolean takeTicket(int ticketNumber) {
         return _timing.takeTicket(ticketNumber, this);
     }
+
+    public boolean isSameTemplate(int dword) {
+        return true;
+    }
+    
+    public boolean readDataForValues(byte[] data) {
+        MXTemplate me = _template;
+        
+        boolean checkMatch = false;
+        boolean cantRead = false;
+
+        switch(me.get(0)) {
+            case MXMidi.COMMAND2_NONE:
+                if (data.length == 0) {
+                    return true;
+                }
+                cantRead = true;
+                break;
+            case MXMidi.COMMAND2_CH_RPN:
+                cantRead = true;
+                break;
+            case MXMidi.COMMAND2_CH_NRPN:
+                cantRead = true;
+                break;
+            case MXMidi.COMMAND2_CH_PROGRAM_INC:
+                cantRead = true;
+                break;
+            case MXMidi.COMMAND2_CH_PROGRAM_DEC:
+                cantRead = true;
+                break;
+            case MXMidi.COMMAND2_META:
+                checkMatch = true;
+                break;
+            case MXMidi.COMMAND2_SYSTEM:
+                checkMatch = true;
+                break;
+            default: //Command1 
+                checkMatch = true;
+                break;
+        }
+        
+        
+        if (checkMatch) {
+            int gateLo = -1, gateHi = -1;
+            int valueLo = -1, valueHi = -1;
+
+            int dataSeek = 0;
+            int templateSeek = 0;
+
+            while (templateSeek < me.size() && dataSeek < data.length) {
+                int c1 = me.get(templateSeek);
+                templateSeek ++;
+
+                if (c1 == MXTemplate.DTEXT_CHECKSUM_START) {
+                    continue;
+                }
+                if (c1 == MXTemplate.DTEXT_CHECKSUM_SET) {
+                    //any ok
+                    dataSeek ++;
+                    continue;
+                }
+                int c2 = data[dataSeek ++] & 0xff;
+                if (templateSeek == 1 && c2 >= 0x80 && c2 <= 0xef) {
+                    setChannel(c2 & 0x0f);
+                    c1 = c1 & 0xf0;
+                    c2 = c2 & 0xf0;
+                }
+                if (c1 != c2) {
+                    switch(c1) {                        
+                        case MXTemplate.DTEXT_GL:
+                            gateLo = c2;
+                            break;
+                        case MXTemplate.DTEXT_GH:
+                            gateHi = c2;
+                            break;
+                        case MXTemplate.DTEXT_VL:
+                            valueLo = c2;
+                            break;
+                        case MXTemplate.DTEXT_VH:
+                            valueHi = c2;
+                            break;
+                        default:
+                            if ((c1 & 0xff00) == 0) {
+                                return false;
+                            }
+                            break;
+                    }
+                }
+            }
+
+            if (gateLo >= 0 || gateHi >= 0) {
+                if (gateLo < 0) {
+                    gateLo = 0;
+                }
+                if (gateHi < 0) {
+                    gateHi = 0;
+                    _gate = RangedValue.new7bit(gateLo);
+                }
+                else {
+                    _gate = RangedValue.new14bit((gateHi << 7) | gateLo);
+                }
+            }
+            if (valueLo >= 0 || valueHi >= 0) {
+                if (valueLo < 0) {
+                    valueLo = 0;
+                }
+                if (valueHi < 0) {
+                    valueHi = 0;
+                    _value = RangedValue.new7bit(valueLo);
+                }
+                else {
+                    _value = RangedValue.new14bit((valueHi << 7) | valueLo);
+                }
+            }
+            boolean readed = (valueLo >= 0 || valueHi >= 0 || gateLo >= 0 || gateHi >= 0);
+            return readed;
+        }
+        
+        if (cantRead) {
+            return false;
+        }
+        //TODO another case
+        return false;
+    }
+
+    byte[] dwordBuffer = new byte[3];    
+    
+    public synchronized boolean readDwordForValues(int dword) {
+        int status = (dword >> 16) & 0xff;
+        int data1 = (dword >> 8) & 0xff;
+        int data2 = dword & 0xff;
+        
+        dwordBuffer[0] = (byte)status;
+        dwordBuffer[1] = (byte)data1;
+        dwordBuffer[2] = (byte)data2;
+        
+        return readDataForValues(dwordBuffer);
+    }
+
+    public MXMessage refillGate() {
+        MXTemplate temp = _template;
+        switch (temp.get(0)) {
+            case MXMidi.COMMAND_CH_NOTEON: // noteon
+            case MXMidi.COMMAND_CH_NOTEOFF: // noteoff
+            case MXMidi.COMMAND_CH_CONTROLCHANGE: // controlchange
+            case MXMidi.COMMAND_CH_POLYPRESSURE: // polyPressure
+            case MXMidi.COMMAND_CH_PROGRAMCHANGE: // progrramChange
+                if ((temp.get(1) & 0xff00) == 0) {
+                    int[] newTemplate = new int[]{
+                        temp.get(0),
+                        MXTemplate.DTEXT_GL,
+                        temp.get(2)
+                    };
+                    int newGate = temp.get(1);
+                    MXTemplate newTemp = new MXTemplate(newTemplate);
+                    MXMessage message = new MXMessage(_port, newTemp, _channel, RangedValue.new7bit(newGate), _value);
+
+                    message._timing = this._timing;
+
+                    message.setVisitant(getVisitant());
+                    message.setValuePairCC14(isValuePairCC14());
+
+                    return message;
+                }
+                break;
+        }
+        return null;
+    }
+
 }

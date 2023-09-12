@@ -221,7 +221,7 @@ public class SysEXFile {
         for (byte[] data : _contents) {
             text.append(count + " = " + data.length + " bytes)\n");
             count ++;
-            text.append(MXUtil.dumpHexFF(data));
+            text.append(MXUtil.dumpHex(data));
             text.append("\n");
         }
         area.setEditable(false);

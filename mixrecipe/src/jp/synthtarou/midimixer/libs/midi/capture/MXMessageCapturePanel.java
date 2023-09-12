@@ -251,8 +251,7 @@ public class MXMessageCapturePanel extends javax.swing.JPanel {
                 int lowvalue = wrap.value._hitLoValue;
                 int hivalue = wrap.value._hitHiValue;
 
-                MXTemplate template = MXMessageFactory.fromDtext(dtext, channel);
-                MXMessage msg = template.buildMessage(0, channel, RangedValue.new7bit(gate), RangedValue.new7bit(hivalue));
+                MXMessage msg = MXTemplate.fromDtext(0, dtext, channel, RangedValue.new7bit(gate), RangedValue.ZERO7);
                 String text = msg.toStringHeader(lowvalue, hivalue);
                 jTextFieldCommandText.setText(text);
             }catch(Exception e) {

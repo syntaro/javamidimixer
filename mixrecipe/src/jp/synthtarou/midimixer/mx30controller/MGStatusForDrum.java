@@ -137,7 +137,6 @@ public class MGStatusForDrum {
     boolean _dontSendOff = false;
 
     void mouseDetected(MXTiming timing, boolean push) {
-        System.out.println("mouseDetected(" + push + ")");
         int velocity;
         if (push) {
             velocity = _mouseOnValue;
@@ -149,14 +148,12 @@ public class MGStatusForDrum {
         }
         
         MXMessage message = _status.toMXMessage(timing);
-        message.setValue(velocity);
+        message.setValue(message.getValue().updateValue(velocity));
         messageDetected(message);
     }
 
     void messageDetected(MXMessage message) {
-        if (message.takeTicket(0) == false) {
-            return;
-        }
+        // ここでも、二重エンターを、Statusでも絞り込めば可能だが、オーバーヘッドがかかるので、やらない
         if (_strikeZone.contains(message.getValue()._var)) {
             doSwitching(message._timing, true, message.getValue()._var);
         }
@@ -182,8 +179,7 @@ public class MGStatusForDrum {
         createMessage(timing, flag, velocity);
     }
     
-    MXTemplate _customTemplate = null;
-    int _customTemplateGate;
+    MXMessage _customTemplate = null;
     int _customOutOnValue = -1;
     int _customOutOffValue = -1;
     int _jumpTo = 64;
@@ -193,7 +189,6 @@ public class MGStatusForDrum {
     int _bankLSB = 0;
     
     boolean _lastSent = false;
-    
     
     void createMessage(MXTiming timing, boolean flag, int velocity) {
         MXMessage message, message2, message3;
@@ -217,32 +212,30 @@ public class MGStatusForDrum {
         MX32MixerProcess process = parentProcess.getPage(_status._port);
         MGDrumPad pad = process._data.getDrumPad(_status._row, _status._column);
         if (flag) {
-            System.out.println("pad(" + _status._row +"," + _status._column + ") = TRUE");
             pad.updateButtonUI(true);
         }else {
-            System.out.println("pad(" + _status._row +"," + _status._column + ") = FALSE");
             pad.updateButtonUI(false);
         }
         if (flag) {
             switch(_type) {
                 case TYPE_SAME_CC:
                     message = _status.toMXMessage(timing);
-                    message.setValue(velocity);
-                    System.out.println("velocity " + velocity);
+                    message.setValue(message.getValue().updateValue(velocity));
                     dispatchCurrentLayer(message);
                     break;
                 case TYPE_CUSTOM_CC:
                     if (_customTemplate != null) {
-                        message = _status.toMXMessage(_customTemplate, timing);
-                        message.setValue(velocity);
-                        message.setGate(_customTemplateGate);
+                        message = (MXMessage)_customTemplate.clone();
+                        message._timing = timing;
+                        message.setValue(RangedValue.new7bit(velocity));
+                        message.setGate(_customTemplate.getGate());
                         dispatchCurrentLayer(message);
                     }
                     break;
                 case TYPE_NOTES:
                     int[] noteList = MXMidi.textToNoteList(_notesNoteList);
                     for (int note : noteList) {
-                        message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_NOTEON + _channel, note, velocity);
+                        message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_NOTEON + _channel, note, velocity);
                         message._timing = timing; 
                         dispatchNextLayer(message);
                     }
@@ -252,13 +245,13 @@ public class MGStatusForDrum {
                 case TYPE_JUMP:
                     int column = _status._column;
                     MGStatus slider = process._data.getSliderStatus(0, column);
-                    slider.setValue(slider._value.updateValue(_jumpTo));
+                    slider.setValue(slider._base.getValue().updateValue(_jumpTo));
                     dispatchCurrentLayer(slider.toMXMessage(null));
                     break;
                 case TYPE_PROGRAM:
-                    message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_PROGRAMCHANGE + _channel, _programNumber, 0);
-                    message2 = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CONTROLCHANGE + _channel, MXMidi.DATA1_CC_BANKSELECT, _bankMSB);
-                    message3 = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CONTROLCHANGE + _channel, MXMidi.DATA1_CC_BANKSELECT+ 0x20, _bankLSB);
+                    message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_PROGRAMCHANGE + _channel, _programNumber, 0);
+                    message2 = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_CONTROLCHANGE + _channel, MXMidi.DATA1_CC_BANKSELECT, _bankMSB);
+                    message3 = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_CONTROLCHANGE + _channel, MXMidi.DATA1_CC_BANKSELECT+ 0x20, _bankLSB);
                     synchronized (MXTiming.mutex) {
                         message._timing = timing;
                         message2._timing = timing;
@@ -274,19 +267,20 @@ public class MGStatusForDrum {
             switch(_type) {
                 case TYPE_SAME_CC:
                     message = _status.toMXMessage(timing);
-                    message.setValue(velocity);
+                    message.setValue(message.getValue().updateValue(velocity));
                     dispatchCurrentLayer(message);
                     break;
                 case TYPE_CUSTOM_CC:
                     if (_customTemplate != null) {
-                        message = _status.toMXMessage(_customTemplate, timing);
+                        message = (MXMessage)_customTemplate.clone();
+                        _customTemplate._timing = timing;
                         dispatchCurrentLayer(message);
                     }
                     break;
                 case TYPE_NOTES:
                     int[] noteList = MXMidi.textToNoteList(_notesNoteList);
                     for (int note : noteList) {
-                        message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_NOTEOFF + _channel, note, 0);
+                        message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_NOTEOFF + _channel, note, 0);
                         message._timing = timing; 
                         dispatchNextLayer(message);
                     }
@@ -307,6 +301,9 @@ public class MGStatusForDrum {
     }
 
     void dispatchNextLayer(MXMessage message) {
+        if (message.takeTicket(0) == false) {
+            return;
+        }
         MX30Process parentProcess = MXMain.getMain().getKontrolProcess();
         parentProcess.getNextReceiver().processMXMessage(message);
     }

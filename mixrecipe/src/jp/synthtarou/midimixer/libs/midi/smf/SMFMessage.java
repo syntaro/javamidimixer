@@ -118,14 +118,8 @@ public class SMFMessage implements Comparable<SMFMessage> {
        if (status>= 0x80 && status <= 0xef) {
             message = MXMessageFactory.fromShortMessage(port, getStatus(), getData1(), getData2());
         }
-        else if (status == 0xf0 || status == 0xf7) {
-            message = MXMessageFactory.fromBinary(port, getBinary());
-        }
-        else if (status == 0xff) {
-            message = MXMessageFactory.fromMeta(port, getBinary());
-        }
-        else {
-            //Bug
+       else {
+           message = MXMessageFactory.fromBinary(port, getBinary());
         }
         return message;
     }
@@ -146,10 +140,10 @@ public class SMFMessage implements Comparable<SMFMessage> {
 
         //System.out.println("Unreach " + x + ", " + y + ", " + z);
         
-        boolean isProg1 = (o1.getStatus() & 0xf0) == MXMidi.COMMAND_PROGRAMCHANGE;
-        boolean isProg2 = (o2.getStatus() & 0xf0) == MXMidi.COMMAND_PROGRAMCHANGE;
-        boolean isBank1 = (o1.getStatus() & 0xf0) == MXMidi.COMMAND_CONTROLCHANGE && (o1.getData1() == 0 || o1.getData1() == 32);
-        boolean isBank2 = (o2.getStatus() & 0xf0) == MXMidi.COMMAND_CONTROLCHANGE && (o2.getData1() == 0 || o2.getData1() == 32);
+        boolean isProg1 = (o1.getStatus() & 0xf0) == MXMidi.COMMAND_CH_PROGRAMCHANGE;
+        boolean isProg2 = (o2.getStatus() & 0xf0) == MXMidi.COMMAND_CH_PROGRAMCHANGE;
+        boolean isBank1 = (o1.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE && (o1.getData1() == 0 || o1.getData1() == 32);
+        boolean isBank2 = (o2.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE && (o2.getData1() == 0 || o2.getData1() == 32);
 
         /* バンクとプログラムは早めに送信する */
 

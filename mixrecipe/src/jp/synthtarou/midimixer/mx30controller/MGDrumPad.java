@@ -55,7 +55,6 @@ public class MGDrumPad extends javax.swing.JPanel implements MXFocusAble {
             JButton btn = (JButton)c;
 
             if (colorfull) {
-                System.out.println("+++++++++++" + getStatus());
                 btn.setBackground(highlight);
             }
             else {

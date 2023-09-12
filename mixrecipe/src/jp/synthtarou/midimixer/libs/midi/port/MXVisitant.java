@@ -402,10 +402,10 @@ public class MXVisitant implements Cloneable {
 
     public static boolean isMesssageHaveVisitant(MXMessage message) {
         if (message.isMessageTypeChannel()) {
-            if (message.isCommand(MXMidi.COMMAND_PROGRAMCHANGE)) {
+            if (message.isCommand(MXMidi.COMMAND_CH_PROGRAMCHANGE)) {
                 return true;
             }
-            if (message.isCommand(MXMidi.COMMAND_CONTROLCHANGE)) {
+            if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
                 switch (message.getData1()) {
                     case MXMidi.DATA1_CC_DATAENTRY:
                     case MXMidi.DATA1_CC_DATAENTRY + 32:
@@ -441,7 +441,7 @@ public class MXVisitant implements Cloneable {
     }
 
     public synchronized boolean updateVisitantChannel(MXMessage message) {
-        if (message.isCommand(MXMidi.COMMAND_PROGRAMCHANGE)) {
+        if (message.isCommand(MXMidi.COMMAND_CH_PROGRAMCHANGE)) {
             int gate = message.getGate()._var;
             if (gate >= 0 && gate <= 127) { // for Tricky Ghost Number
                 setHavingProgram(true);
@@ -451,7 +451,7 @@ public class MXVisitant implements Cloneable {
             return true;
 
         }
-        if (message.isCommand(MXMidi.COMMAND_CONTROLCHANGE)) {
+        if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
             int oldValue, newValue;
             int gate = message.getGate()._var;
             int value = message.getValue()._var;

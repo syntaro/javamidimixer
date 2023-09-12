@@ -26,9 +26,9 @@ import jp.synthtarou.midimixer.libs.midi.MXTiming;
  * @author Syntarou YOSHIDA
  */
 public class ConsoleElement implements Comparable<ConsoleElement>{
-    public static final int TYPE_DWORD = 1;
-    public static final int TYPE_DATA = 2;
-    public static final int TYPE_MESSAGE = 3;
+    public static final int CONSOLE_DWORD = 1;
+    public static final int CONSOLE_DATA = 2;
+    public static final int CONSOLE_MESSAGE = 3;
 
     private MXTiming  _timing;
     private int _port;
@@ -38,7 +38,7 @@ public class ConsoleElement implements Comparable<ConsoleElement>{
     private MXMessage _message;
     
     public ConsoleElement(MXTiming timing, int port, int dword) {
-        _type = TYPE_DWORD;
+        _type = CONSOLE_DWORD;
         _port = port;
         _dword = dword;
         _timing = timing;
@@ -48,14 +48,14 @@ public class ConsoleElement implements Comparable<ConsoleElement>{
         if (data == null) {
             throw new NullPointerException("data is null");
         }
-        _type = TYPE_DATA;
+        _type = CONSOLE_DATA;
         _port = port;
         _data = data;
         _timing = timing;
     }
 
     public ConsoleElement(MXMessage message) {
-        _type = TYPE_MESSAGE;
+        _type = CONSOLE_MESSAGE;
         _message = message;
         _port = message.getPort();
         _timing = message._timing;
@@ -70,21 +70,21 @@ public class ConsoleElement implements Comparable<ConsoleElement>{
     }
 
     public int getDword() {
-        if (_type != TYPE_DWORD) {
+        if (_type != CONSOLE_DWORD) {
             throw new IllegalStateException("getDowrd <> not DWORD type");
         }
         return _dword;
     }
 
     public byte[] getData() {
-        if (_type != TYPE_DATA) {
+        if (_type != CONSOLE_DATA) {
             throw new IllegalStateException("getDowrd <> not DWORD type");
         }
         return _data;
     }
 
     public MXMessage getMessage() {
-        if (_type != TYPE_MESSAGE) {
+        if (_type != CONSOLE_MESSAGE) {
             throw new IllegalStateException("getDowrd <> not DWORD type");
         }
         return _message;
@@ -92,20 +92,20 @@ public class ConsoleElement implements Comparable<ConsoleElement>{
     
     public String formatMessageDump() {
         switch (_type) {
-            case TYPE_DWORD: {
+            case CONSOLE_DWORD: {
                 int status = (_dword >> 16) & 0xff;
                 int data1 = (_dword >> 8) & 0xff;
                 int data2 = (_dword) & 0xff;
                 return MXUtil.toHexFF(status) +" " + MXUtil.toHexFF(data1) + " " + MXUtil.toHexFF(data2);
             }
-            case TYPE_DATA: {
-                return MXUtil.dumpHexFF(_data);
+            case CONSOLE_DATA: {
+                return MXUtil.dumpHex(_data);
             }
-            case TYPE_MESSAGE: {
+            case CONSOLE_MESSAGE: {
                 String exString = "";
                 if (_message.isBinMessage()) {
                     byte[] data = _message.getDataBytes();
-                    return MXUtil.dumpHexFF(data);
+                    return MXUtil.dumpHex(data);
                 }else {
                     int status = _message.getStatus();
                     int data1 = _message.getData1();
@@ -122,13 +122,13 @@ public class ConsoleElement implements Comparable<ConsoleElement>{
         String timing = "";//#" + _timing.toString();
         String dump = formatMessageDump() + "  ";
         switch(_type) {
-            case TYPE_DWORD: {
+            case CONSOLE_DWORD: {
                 return port + dump + toSegmentText(_dword) + timing;
             }
-            case TYPE_DATA: {
+            case CONSOLE_DATA: {
                 return port + dump + "[Binary]" + timing;
             }
-            case TYPE_MESSAGE: {
+            case CONSOLE_MESSAGE: {
                 String exString = "";
                 if(_message.isBinMessage() == false || _message.isDataentry()) {
                     int col = _message.getDwordCount();
@@ -155,7 +155,7 @@ public class ConsoleElement implements Comparable<ConsoleElement>{
     }
 
     public static String toSegmentText(byte[] data) {
-        return "[" + MXUtil.dumpHexFF(data) + "]]";
+        return "[" + MXUtil.dumpHex(data) + "]]";
     }
 
     public static String toSegmentText(int dword) {
@@ -173,31 +173,31 @@ public class ConsoleElement implements Comparable<ConsoleElement>{
             channel = "";
         }
 
-        if (command == MXMidi.COMMAND_NOTEON) {
+        if (command == MXMidi.COMMAND_CH_NOTEON) {
             return  "[On " + channel + ":" + MXMidi.nameOfNote(data1) + "=" + data2 + "]";
         }
-        if (command == MXMidi.COMMAND_NOTEOFF) {
+        if (command == MXMidi.COMMAND_CH_NOTEOFF) {
             return  "[Off " + channel + ":" + MXMidi.nameOfNote(data1) + "=" + data2 + "]";
         }
-        if (command == MXMidi.COMMAND_POLYPRESSURE) {
+        if (command == MXMidi.COMMAND_CH_POLYPRESSURE) {
             return  "[PolyPress " + channel + ":" + MXMidi.nameOfNote(data1) + "=" + data2 + "]";
         }
-        if (command == MXMidi.COMMAND_PROGRAMCHANGE) {
+        if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
             return  "[Program " + channel + ":" + data1 + "]";
         }
-        if (command == MXMidi.COMMAND_CHANNELPRESSURE) {
+        if (command == MXMidi.COMMAND_CH_CHANNELPRESSURE) {
             return  "[ChannelPress " + channel + ":" + data1 + "]";
         }
-        if (command == MXMidi.COMMAND_PITCHWHEEL) {
+        if (command == MXMidi.COMMAND_CH_PITCHWHEEL) {
             return  "[Pitch " + channel + ":" + MXUtil.toHexFF(data1) + MXUtil.toHexFF(data2) +"=" + (data2 << 7 + data1) + "]";
         }
-        if (command == MXMidi.STATUS_SONGPOSITION) {
+        if (command == MXMidi.COMMAND_SONGPOSITION) {
             return  "[SongPos " + data1 + "]";
         }
-        if (command == MXMidi.STATUS_SONGSELECT) {
+        if (command == MXMidi.COMMAND_SONGSELECT) {
             return  "[SongSel " + data1 + "]";
         }
-        if (command == MXMidi.COMMAND_CONTROLCHANGE) {
+        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
             String ccname = MXMidi.nameOfControlChange(data1);
             return  "[CC-" + ccname + " " + channel + ":" + MXUtil.toHexFF(data2) + "]";
         }

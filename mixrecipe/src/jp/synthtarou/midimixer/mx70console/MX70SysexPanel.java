@@ -286,11 +286,11 @@ public class MX70SysexPanel extends javax.swing.JPanel {
             for (int i = 0; i < index.length; ++ i) {
                 ConsoleElement e = _list.getConsoleElement(index[i]);
                 switch (e.getType()) {
-                    case ConsoleElement.TYPE_DATA:
+                    case ConsoleElement.CONSOLE_DATA:
                         byte[] data = e.getData();
                         _file.add(data, jTextArea1);
                         break;
-                    case ConsoleElement.TYPE_MESSAGE:
+                    case ConsoleElement.CONSOLE_MESSAGE:
                         byte[] data2 =  e.getMessage().getDataBytes();
                         _file.add(data2, jTextArea1);
                         break;

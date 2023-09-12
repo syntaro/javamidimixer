@@ -78,7 +78,7 @@ public class MXVisitantRecorder implements TableModel {
         }else {
             return null;
         }
-        MXMessage message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_PROGRAMCHANGE + channel, e.getProgram(), 0);
+        MXMessage message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, e.getProgram(), 0);
         message._timing = timing;
         return message;
     }
@@ -91,7 +91,7 @@ public class MXVisitantRecorder implements TableModel {
         }else {
             return null;
         }
-        MXMessage message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_PROGRAMCHANGE + channel, e.getProgram(), 0);
+        MXMessage message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, e.getProgram(), 0);
         message._timing = timing;
         return message;
     }

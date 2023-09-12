@@ -71,27 +71,27 @@ public class MX10Data {
 
         int data1 = message.getGate()._var;
     
-        if (command == MXMidi.COMMAND_NOTEON || command == MXMidi.COMMAND_NOTEOFF) {
+        if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF) {
             type = TYPE_NOTE;
-        }else if (command == MXMidi.COMMAND_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_DAMPERPEDAL) {
+        }else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_DAMPERPEDAL) {
                 type = TYPE_DAMPER_PEDAL;
-        }else if (command == MXMidi.COMMAND_PITCHWHEEL) {
+        }else if (command == MXMidi.COMMAND_CH_PITCHWHEEL) {
             type = TYPE_PITCH_BEND;
-        }else if (command == MXMidi.COMMAND_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_MODULATION) {
+        }else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_MODULATION) {
             type = TYPE_MOD_WHEEL;
-        }else if (command == MXMidi.COMMAND_CONTROLCHANGE && (data1 == MXMidi.DATA1_CC_BANKSELECT || data1 == MXMidi.DATA1_CC_BANKSELECT + 0x20)) {
+        }else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && (data1 == MXMidi.DATA1_CC_BANKSELECT || data1 == MXMidi.DATA1_CC_BANKSELECT + 0x20)) {
             type = TYPE_BANK_SELECT;
-        }else if (command == MXMidi.COMMAND_PROGRAMCHANGE) {
+        }else if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
             type = TYPE_PROGRAM_CHANGE;
-        }else if (command == MXMidi.COMMAND_CONTROLCHANGE && (data1 == MXMidi.DATA1_CC_DATAENTRY || data1 == MXMidi.DATA1_CC_DATAINC || data1 == MXMidi.DATA1_CC_DATADEC)) {
+        }else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && (data1 == MXMidi.DATA1_CC_DATAENTRY || data1 == MXMidi.DATA1_CC_DATAINC || data1 == MXMidi.DATA1_CC_DATADEC)) {
             type = TYPE_DATA_ENTRY;
-        }else if (command == MXMidi.COMMAND_CONTROLCHANGE && data1 >= MXMidi.DATA1_CC_NRPN_LSB && data1 <= MXMidi.DATA1_CC_RPN_MSB) {
+        }else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 >= MXMidi.DATA1_CC_NRPN_LSB && data1 <= MXMidi.DATA1_CC_RPN_MSB) {
             type = TYPE_DATA_ENTRY;
-        }else if (command == MXMidi.COMMAND_CONTROLCHANGE) {
+        }else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
             type = TYPE_ANOTHER_CC;
         } else if (command == 0xf0 || command == 0xf7) {
             type = TYPE_SYSEX;
-        } else  if (command == MXMidi.STATUS_ACTIVESENSING || command == MXMidi.STATUS_MIDICLOCK) {
+        } else  if (command == MXMidi.COMMAND_ACTIVESENSING || command == MXMidi.COMMAND_MIDICLOCK) {
             type = TYPE_ACTIVE_SENSING;
         }
         return isSkip(port, type);

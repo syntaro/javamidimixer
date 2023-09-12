@@ -73,7 +73,7 @@ public class MGStatusFinder {
         if (message == null) {
             return;
         }
-        if (message.isCommand(MXMidi.COMMAND_CONTROLCHANGE)) {
+        if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
             int data1 = message.getData1();
             if (data1 == MXMidi.DATA1_CC_DATAENTRY || data1 == MXMidi.DATA1_CC_DATAINC || data1 == MXMidi.DATA1_CC_DATADEC) {
                 _cachedDataentry.add(status);
@@ -91,8 +91,8 @@ public class MGStatusFinder {
                 }
                 _cachedControlChange[message.getChannel()][data2].add(status);
             }
-        } else if (message.isCommand(MXMidi.COMMAND_NOTEON) || message.isCommand(MXMidi.COMMAND_NOTEOFF)
-                || message.isCommand(MXMidi.COMMAND_POLYPRESSURE)) {
+        } else if (message.isCommand(MXMidi.COMMAND_CH_NOTEON) || message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)
+                || message.isCommand(MXMidi.COMMAND_CH_POLYPRESSURE)) {
             int note = message.getData1();
             if (_cachedNoteMessage[message.getChannel()][note] == null) {
                 _cachedNoteMessage[message.getChannel()][note] = new ArrayList();
@@ -112,14 +112,14 @@ public class MGStatusFinder {
     public synchronized ArrayList<MGStatus> findCandidate(MXMessage request) {
         if (request.isMessageTypeChannel()) {
             int command = request.getStatus() & 0xf0;
-            if (command == MXMidi.COMMAND_CONTROLCHANGE) {
+            if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
                 int data1 = request.getData1();
                 if (data1 == MXMidi.DATA1_CC_DATAENTRY || data1 == MXMidi.DATA1_CC_DATAINC || data1 == MXMidi.DATA1_CC_DATADEC) {
                     return _cachedDataentry;
                 }
                 return _cachedControlChange[request.getChannel()][request.getGate()._var];
-            } else if (command == MXMidi.COMMAND_NOTEON || command == MXMidi.COMMAND_NOTEOFF
-                    || command == MXMidi.COMMAND_POLYPRESSURE) {
+            } else if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF
+                    || command == MXMidi.COMMAND_CH_POLYPRESSURE) {
                 return _cachedNoteMessage[request.getChannel()][request.getGate()._var];
             }
 

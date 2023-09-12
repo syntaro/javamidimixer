@@ -133,13 +133,13 @@ public class SMFPlayer {
             int data1 = smf.getData1();
 
             if (firstNote[channel] == null) {
-                if (command == MXMidi.COMMAND_PROGRAMCHANGE) {
+                if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
                     firstProgram[channel] = smf;
-                } else if (command == MXMidi.COMMAND_CONTROLCHANGE && data1 == 0) {
+                } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == 0) {
                     firstBank0[channel] = smf;
-                } else if (command == MXMidi.COMMAND_CONTROLCHANGE && data1 == 32) {
+                } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == 32) {
                     firstBank32[channel] = smf;
-                } else if (command == MXMidi.COMMAND_NOTEON) {
+                } else if (command == MXMidi.COMMAND_CH_NOTEON) {
                     firstNote[channel] = smf;
                     doneCh++;
                     if (doneCh >= 16) {
@@ -229,10 +229,10 @@ public class SMFPlayer {
 
                     if (firstNote != null) {
                         if (firstNote[channel] != null) {
-                            if (command == MXMidi.COMMAND_PROGRAMCHANGE
-                                    || (command == MXMidi.COMMAND_CONTROLCHANGE && (data1 == 0 || data1 == 32))) {
+                            if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE
+                                    || (command == MXMidi.COMMAND_CH_CONTROLCHANGE && (data1 == 0 || data1 == 32))) {
                                 continue;
-                            } else if (command == MXMidi.COMMAND_NOTEON) {
+                            } else if (command == MXMidi.COMMAND_CH_NOTEON) {
                                 if (firstNote[channel] == currentEvent) {
                                     firstNote[channel] = null;
                                 }
@@ -319,10 +319,10 @@ public class SMFPlayer {
 
                     if (firstNote != null) {
                         if (firstNote[channel] != null) {
-                            if (command == MXMidi.COMMAND_PROGRAMCHANGE
-                                    || (command == MXMidi.COMMAND_CONTROLCHANGE && (data1 == 0 || data1 == 32))) {
+                            if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE
+                                    || (command == MXMidi.COMMAND_CH_CONTROLCHANGE && (data1 == 0 || data1 == 32))) {
                                 continue;
-                            } else if (command == MXMidi.COMMAND_NOTEON) {
+                            } else if (command == MXMidi.COMMAND_CH_NOTEON) {
                                 if (firstNote[channel] == currentEvent) {
                                     firstNote[channel] = null;
                                 }
@@ -369,13 +369,13 @@ public class SMFPlayer {
                 end = _forceSingleChannel;
             }
             for (int i = start; i <= end; ++i) {
-                SMFMessage message = new SMFMessage(0, MXMidi.COMMAND_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
+                SMFMessage message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
                 smfPlayNote(message);
-                message = new SMFMessage(0, MXMidi.COMMAND_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 127);
+                message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 127);
                 smfPlayNote(message);
-                message = new SMFMessage(0, MXMidi.COMMAND_CONTROLCHANGE + i, MXMidi.DATA1_CC_EXPRESSION, 127);
+                message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_EXPRESSION, 127);
                 smfPlayNote(message);
-                message = new SMFMessage(0, MXMidi.COMMAND_CONTROLCHANGE + i, MXMidi.DATA1_CC_CHANNEL_VOLUME, 127);
+                message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_CHANNEL_VOLUME, 127);
                 smfPlayNote(message);
             }
         }
@@ -392,11 +392,11 @@ public class SMFPlayer {
         }
         for (int i = chFrom; i <= chTo; ++i) {
             SMFMessage message;
-            message = new SMFMessage(0, MXMidi.COMMAND_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
+            message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
             smfPlayNote(message);
-            message = new SMFMessage(0, MXMidi.COMMAND_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 127);
+            message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 127);
             smfPlayNote(message);
-            message = new SMFMessage(0, MXMidi.COMMAND_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLSOUNDOFF, 127);
+            message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLSOUNDOFF, 127);
             smfPlayNote(message);
         }
     }
@@ -444,12 +444,12 @@ public class SMFPlayer {
                     }
 
                     switch(status & 0xf0) {
-                        case MXMidi.COMMAND_NOTEON:
-                        case MXMidi.COMMAND_NOTEOFF:
-                        case MXMidi.COMMAND_PITCHWHEEL:
+                        case MXMidi.COMMAND_CH_NOTEON:
+                        case MXMidi.COMMAND_CH_NOTEOFF:
+                        case MXMidi.COMMAND_CH_PITCHWHEEL:
                             skip = false;
                             break;
-                        case MXMidi.COMMAND_CONTROLCHANGE:
+                        case MXMidi.COMMAND_CH_CONTROLCHANGE:
                             if (data1 == MXMidi.DATA1_CC_DAMPERPEDAL
                             || data1 == MXMidi.DATA1_CC_MODULATION
                             || data1 == MXMidi.DATA1_CC_ALLNOTEOFF
@@ -487,7 +487,7 @@ public class SMFPlayer {
         int pos = 0;
         for (SMFMessage smf : list) {
             int command = smf.getStatus() & 0xf0; 
-            if (command == MXMidi.COMMAND_NOTEON) {
+            if (command == MXMidi.COMMAND_CH_NOTEON) {
                 return pos;
             }
             pos ++;

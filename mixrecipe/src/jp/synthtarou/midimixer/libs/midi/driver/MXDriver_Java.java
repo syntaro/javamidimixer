@@ -172,7 +172,7 @@ public class MXDriver_Java implements MXDriver {
                 int status = shortMsg.getStatus() & 0xff;
                 int data1 = shortMsg.getData1() & 0xff;
                 int data2 = shortMsg.getData2() & 0xff;
-                if (status == MXMidi.STATUS_RESET || status == MXMidi.STATUS_ACTIVESENSING) {
+                if (status == MXMidi.COMMAND_META_OR_RESET || status == MXMidi.COMMAND_ACTIVESENSING) {
                     return;
                 }
                 

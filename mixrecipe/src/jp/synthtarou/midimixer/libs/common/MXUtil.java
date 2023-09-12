@@ -71,7 +71,7 @@ public class MXUtil {
         return str;
     }
 
-    public static String dumpHexFF(byte[] data) {
+    public static String dumpHex(byte[] data) {
         StringBuffer str = new StringBuffer();
         for (int i = 0; i < data.length; ++i) {
             if (i != 0) {

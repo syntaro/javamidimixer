@@ -151,21 +151,21 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
                 if (message == null) {
                     return;
                 }
-                if (message.isCommand(MXMidi.COMMAND_NOTEON) && message.getData2() == 0) {
-                    message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_NOTEOFF + message.getChannel(), message.getData1(), 0);
+                if (message.isCommand(MXMidi.COMMAND_CH_NOTEON) && message.getData2() == 0) {
+                    message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_NOTEOFF + message.getChannel(), message.getData1(), 0);
                 }
-                if (message.isCommand(MXMidi.COMMAND_NOTEOFF)) {
+                if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
                     if (_noteOff.raiseHandler(message.getPort(), message._timing, message.getChannel(), message.getData1())) {
                         return;
                     }
                 }
-                if (message.isCommand(MXMidi.COMMAND_NOTEON)) {
+                if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
                     _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
                         @Override
                         public void onNoteOffEvent(MXMessage target) {
                             MXMessage noteOff = MXMessageFactory.fromShortMessage(
                                     target.getPort(), 
-                                    MXMidi.COMMAND_NOTEOFF + target.getChannel(), 
+                                    MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(), 
                                     target.getData1(), 
                                     0);
                             sendToNext(target);

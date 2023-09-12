@@ -28,15 +28,12 @@ import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
  */
 public class MXTemplate {
 
-    private final int[] _template;
+    private final int[] _commands;
     private int _bytePosGate;
     private int _bytePosHiGate;
     private int _bytePosValue;
     private int _bytePosHiValue;
     private int _checksumCount;
-
-    public static final String EXCOMMAND_PROGRAM_INC = "@PROG_INC";
-    public static final String EXCOMMAND_PROGRAM_DEC = "@PROG_DEC";
 
     public static final int DTEXT_NONE = 0x100;
     public static final int DTEXT_VL = 0x200;
@@ -74,47 +71,29 @@ public class MXTemplate {
     public static final int DTEXT_CHECKSUM_SET = 0x2600;
     public static final int DTEXT_CHECKSUM_START = 0x2700;
 
-    public static final int DTEXT_4CH = 0x2700;
-    public static final int DTEXT_5CH = 0x2800;
-    public static final int DTEXT_6CH = 0x2900;
-    public static final int DTEXT_7CH = 0x2a00;
-    public static final int DTEXT_8CH = 0x2b00;
-    public static final int DTEXT_9CH = 0x2c00;
-    public static final int DTEXT_ACH = 0x2d00;
-    public static final int DTEXT_BCH = 0x2e00;
-    public static final int DTEXT_CCH = 0x2f00;
-    public static final int DTEXT_DCH = 0x3000;
-    public static final int DTEXT_ECH = 0x3100;
-    public static final int DTEXT_FCH = 0x3200;
-
-    public static final int DTEXT_RPN = 0x4000;
-    public static final int DTEXT_NRPN = 0x4100;
-
-    public static final int DTEXT_PROGINC = 0x5000;
-    public static final int DTEXT_PROGDEC = 0x5100;
-
+    static MXWrapList<Integer> textCommand = new MXWrapList();
     static MXWrapList<Integer> textAlias = new MXWrapList();
 
     public MXTemplate(int[] template) {
-        _template = template;
+        _commands = template;
         initFields();
     }
-
+    
     public int get(int pos) {
-        if (_template == null) {
+        if (_commands == null) {
             return 0;
         }
-        if (pos < 0 || pos >= _template.length) {
+        if (pos < 0 || pos >= _commands.length) {
             return 0;
         }
-        return _template[pos];
+        return _commands[pos];
     }
 
     public int size() {
-        if (_template == null) {
+        if (_commands == null) {
             return 0;
         }
-        return _template.length;
+        return _commands.length;
     }
 
     private void initFields() {
@@ -124,8 +103,8 @@ public class MXTemplate {
         _bytePosHiGate = -1;
         _checksumCount = 0;
 
-        for (int i = 0; i < _template.length; ++i) {
-            switch (_template[i]) {
+        for (int i = 0; i < _commands.length; ++i) {
+            switch (_commands[i]) {
                 case DTEXT_VL:
                     _bytePosValue = i;
                     break;
@@ -146,14 +125,14 @@ public class MXTemplate {
     }
 
     public byte[] makeBytes(byte[] data, MXMessage message) {
-        int dataLength = _template.length - _checksumCount;
+        int dataLength = _commands.length - _checksumCount;
 
         if (data == null || data.length != dataLength) {
             data = new byte[dataLength];
         }
 
         if (isDataentry()) {//TODO VISITANT
-            data[0] = (byte) (MXMidi.COMMAND_CONTROLCHANGE + message.getChannel());
+            data[0] = (byte) (MXMidi.COMMAND_CH_CONTROLCHANGE + message.getChannel());
             data[1] = MXMidi.DATA1_CC_DATAENTRY;
             data[2] = 0;
         } else {
@@ -161,8 +140,8 @@ public class MXTemplate {
             int sumChecksum = 0;
             int dpos = 0;
 
-            for (int i = 0; i < _template.length; ++i) {
-                int x = _template[i];
+            for (int i = 0; i < _commands.length; ++i) {
+                int x = _commands[i];
                 if ((x & 0xff00) != 0) {
                     if (x == DTEXT_CHECKSUM_START) {
                         sumChecksum = 0;
@@ -201,13 +180,9 @@ public class MXTemplate {
         int value = message.getValue()._var;
         int channel = message.getChannel();
 
-        String str = fromD(alias);
+        String str = fromAlias(alias);
 
         switch (alias & 0xff00) {
-            case DTEXT_RPN:
-            case DTEXT_NRPN:
-            case DTEXT_PROGINC:
-            case DTEXT_PROGDEC:
             case DTEXT_NONE:
                 return 0;
             case DTEXT_VL:
@@ -233,42 +208,6 @@ public class MXTemplate {
                 break;
             case DTEXT_3CH:
                 alias = 0x30 + channel;
-                break;
-            case DTEXT_4CH:
-                alias = 0x40 + channel;
-                break;
-            case DTEXT_5CH:
-                alias = 0x50 + channel;
-                break;
-            case DTEXT_6CH:
-                alias = 0x60 + channel;
-                break;
-            case DTEXT_7CH:
-                alias = 0x70 + channel;
-                break;
-            case DTEXT_8CH:
-                alias = 0x80 + channel;
-                break;
-            case DTEXT_9CH:
-                alias = 0x90 + channel;
-                break;
-            case DTEXT_ACH:
-                alias = 0xA0 + channel;
-                break;
-            case DTEXT_BCH:
-                alias = 0xB0 + channel;
-                break;
-            case DTEXT_CCH:
-                alias = 0xC0 + channel;
-                break;
-            case DTEXT_DCH:
-                alias = 0xD0 + channel;
-                break;
-            case DTEXT_ECH:
-                alias = 0xE0 + channel;
-                break;
-            case DTEXT_FCH:
-                alias = 0xF0 + channel;
                 break;
             case DTEXT_PCH:
                 if (message.getPort() >= 0 && message.getPort() <= 3) {
@@ -332,12 +271,21 @@ static final int DTEXT_CCNUM = 0x1500;
 
             default:
                 boolean haveEx = false;
-                throw new IllegalArgumentException("something wrong " + Integer.toHexString(alias) + " , " + fromD(alias));
+                throw new IllegalArgumentException("something wrong " + Integer.toHexString(alias) + " , " + fromAlias(alias));
         }
         return (byte) alias;
     }
 
-    public static String fromD(int dtext) {
+    public static String fromType(int command) {
+        int index = textCommand.indexOfValue(command);
+        System.out.println("index  = " + index + ", command = " + Integer.toHexString(command));
+        if (index < 0 && command == 0) {
+            index = textCommand.indexOfValue(MXMidi.COMMAND2_NONE);
+        }
+        return textCommand.get(index).name;
+    }
+
+    public static String fromAlias(int dtext) {
         int index = textAlias.indexOfValue(dtext);
         if (index >= 0) {
             return textAlias.get(index).name;
@@ -371,28 +319,19 @@ static final int DTEXT_CCNUM = 0x1500;
     public ArrayList<String> toDArray(MXMessage message) {
         ArrayList<String> texts = new ArrayList();
 
-        if (_template == null) {
+        if (_commands == null) {
             return texts;
         }
-        if (_template[0] == MXTemplate.DTEXT_PROGINC) {
-            texts.add(EXCOMMAND_PROGRAM_INC);
-            return texts;
-        }
-        if (_template[0] == MXTemplate.DTEXT_PROGDEC) {
-            texts.add(EXCOMMAND_PROGRAM_DEC);
-            return texts;
-        }
+
+        texts.add(fromType(_commands[0]));
+
         if (isDataentry()) {
-            if (_template[0] == DTEXT_RPN) {
-                texts.add("@RPN");
-            } else {
-                texts.add("@NRPN");
-            }
             MXVisitant visitant = message.getVisitant();
             if (visitant != null) {
-                texts.add(fromD(visitant.getDataentryMSB()));
-                texts.add(fromD(visitant.getDataentryLSB()));
-                texts.add(fromD(message.getValue()._var));
+                texts.add(fromAlias(visitant.getDataentryMSB()));
+                texts.add(fromAlias(visitant.getDataentryLSB()));
+                texts.add(fromAlias(message.getValue()._var & 0x7f));
+                texts.add(fromAlias((message.getValue()._var >> 7) & 0x7f));
                 return texts;
             } else {
                 new Exception("RPN have no DATA").printStackTrace();
@@ -401,47 +340,63 @@ static final int DTEXT_CCNUM = 0x1500;
         }
 
         if (message.isMessageTypeChannel()) {
-            int status = message.getStatus();
+            int status = _commands[0];
             int command = status;
-            int channel = 0;
+            int channel = message.getChannel();
 
-            if (command >= 0x80 && command <= 0xef) {
-                command = command & 0xf0;
-                channel = status & 0x0f;
-            }
             int data1 = message.getData1();
             int data2 = message.getData2();
-            if (command == MXMidi.COMMAND_PITCHWHEEL) {
-                texts.add("@PB");
-                texts.add(fromD(_template[1]));
-                texts.add(fromD(_template[2]));
-                return texts;
+            
+            switch(command) {
+                case MXMidi.COMMAND_CH_NOTEOFF:
+                case MXMidi.COMMAND_CH_NOTEON:
+                case MXMidi.COMMAND_CH_POLYPRESSURE:
+                case MXMidi.COMMAND_CH_CONTROLCHANGE:
+                case MXMidi.COMMAND_SONGPOSITION:
+                    texts.add(fromAlias(_commands[1]));
+                    texts.add(fromAlias(_commands[2]));
+                    return texts;
+                case MXMidi.COMMAND_CH_PROGRAMCHANGE:
+                case MXMidi.COMMAND_CH_CHANNELPRESSURE:
+                case MXMidi.COMMAND_SONGSELECT:
+                case MXMidi.COMMAND_MIDITIMECODE:
+                    texts.add(fromAlias(_commands[1]));
+                    return texts;
+                case MXMidi.COMMAND_F4:
+                case MXMidi.COMMAND_F5:
+                case MXMidi.COMMAND_TUNEREQUEST:
+                case MXMidi.COMMAND_MIDICLOCK:
+                case MXMidi.COMMAND_F9:
+                case MXMidi.COMMAND_SEQSTART:
+                case MXMidi.COMMAND_SEQCONTINUE:
+                case MXMidi.COMMAND_SEQSTOP:
+                case MXMidi.COMMAND_FD:
+                case MXMidi.COMMAND_ACTIVESENSING:
+                case MXMidi.COMMAND_META_OR_RESET:
+                    return texts;
+                case MXMidi.COMMAND_SYSEX:
+                case MXMidi.COMMAND_SYSEX_END:
+                    break;
+
+                case MXMidi.COMMAND2_CH_RPN:
+                case MXMidi.COMMAND2_CH_NRPN:
+                    texts.add(fromAlias(_commands[1]));
+                    texts.add(fromAlias(_commands[2]));
+                    texts.add(fromAlias(_commands[3]));
+                    texts.add(fromAlias(_commands[4]));
+                    return texts;
+                case MXMidi.COMMAND2_NONE:
+                case MXMidi.COMMAND2_CH_PROGRAM_INC:
+                case MXMidi.COMMAND2_CH_PROGRAM_DEC:
+                    return texts;
+                case MXMidi.COMMAND2_SYSTEM:
+                case MXMidi.COMMAND2_META:
+                    break;
             }
-            if (command == MXMidi.COMMAND_CHANNELPRESSURE) {
-                texts.add("@CP");
-                texts.add(fromD(_template[1]));
-                return texts;
-            }
-            if (command == MXMidi.COMMAND_POLYPRESSURE) {
-                texts.add("@PKP");
-                texts.add(fromD(_template[1]));
-                texts.add(fromD(_template[2]));
-                return texts;
-            }
-            if (command == MXMidi.COMMAND_CONTROLCHANGE) {
-                texts.add("@CC");
-                texts.add(fromD(_template[1]));
-                texts.add(fromD(_template[2]));
-                return texts;
-            }
-            /*
-                @RPN [RPN MSB] [RPN LSB] [Data MSB] [Data LSB] 	RPNを送信します。
-                @NRPN [NRPN MSB] [NRPN LSB] [Data MSB] [Data LSB] 	NRPNを送信します。 
-             */
         }
 
-        for (int i = 0; i < _template.length; ++i) {
-            int code = _template[i];
+        for (int i = 0; i < _commands.length; ++i) {
+            int code = _commands[i];
             if (i == 0 && message.isMessageTypeChannel()) {
                 code &= 0xf0;
             }
@@ -453,7 +408,7 @@ static final int DTEXT_CCNUM = 0x1500;
                 texts.add("]");
                 continue;
             }
-            texts.add(fromD(code));
+            texts.add(fromAlias(code));
         }
         return texts;
     }
@@ -491,29 +446,41 @@ static final int DTEXT_CCNUM = 0x1500;
         textAlias.addNameAndValue("#RSCTPT1P", DTEXT_RSCTPT1P);
         textAlias.addNameAndValue("#RSCTPT2P", DTEXT_RSCTPT2P);
         textAlias.addNameAndValue("#RSCTPT3P", DTEXT_RSCTPT3P);
-        textAlias.addNameAndValue("#CHECKSUM_START", DTEXT_CHECKSUM_START);
-        textAlias.addNameAndValue("#CHECKSUM_SET", DTEXT_CHECKSUM_SET);
+        textAlias.addNameAndValue("[", DTEXT_CHECKSUM_START);
+        textAlias.addNameAndValue("]", DTEXT_CHECKSUM_SET);
 
-        textAlias.addNameAndValue("#4CH", DTEXT_4CH);
-        textAlias.addNameAndValue("#5CH", DTEXT_5CH);
-        textAlias.addNameAndValue("#6CH", DTEXT_6CH);
-        textAlias.addNameAndValue("#7CH", DTEXT_7CH);
-        textAlias.addNameAndValue("#8CH", DTEXT_8CH);
-        textAlias.addNameAndValue("#9CH", DTEXT_9CH);
-        textAlias.addNameAndValue("#ACH", DTEXT_ACH);
-        textAlias.addNameAndValue("#BCH", DTEXT_BCH);
-        textAlias.addNameAndValue("#CCH", DTEXT_CCH);
-        textAlias.addNameAndValue("#DCH", DTEXT_DCH);
-        textAlias.addNameAndValue("#ECH", DTEXT_ECH);
-        textAlias.addNameAndValue("#FCH", DTEXT_FCH);
+        textCommand.addNameAndValue("@NONE", MXMidi.COMMAND2_NONE);
+        textCommand.addNameAndValue("@PB", MXMidi.COMMAND_CH_PITCHWHEEL);
+        textCommand.addNameAndValue("@CC", MXMidi.COMMAND_CH_CONTROLCHANGE);
+        textCommand.addNameAndValue("@CP", MXMidi.COMMAND_CH_CHANNELPRESSURE);
+        textCommand.addNameAndValue("@PKP", MXMidi.COMMAND_CH_POLYPRESSURE);
+        textCommand.addNameAndValue("@SYSEX",MXMidi.COMMAND_SYSEX);
+        textCommand.addNameAndValue("@RPN", MXMidi.COMMAND2_CH_RPN); //@RPN [RPN MSB] [RPN LSB] [Data MSB] [Data LSB]
+        textCommand.addNameAndValue("@NRPN", MXMidi.COMMAND2_CH_NRPN); //@NRPN [NRPN MSB] [NRPN LSB] [Data MSB] [Data LSB]
 
-        textAlias.addNameAndValue("#RPN", DTEXT_RPN); //@RPN [RPN MSB] [RPN LSB] [Data MSB] [Data LSB]
-        textAlias.addNameAndValue("#NRPN", DTEXT_NRPN); //@NRPN [NRPN MSB] [NRPN LSB] [Data MSB] [Data LSB]
+        textCommand.addNameAndValue("@PROG_INC", MXMidi.COMMAND2_CH_PROGRAM_INC);
+        textCommand.addNameAndValue("@PROG_DEC", MXMidi.COMMAND2_CH_PROGRAM_DEC);
+        textCommand.addNameAndValue("@ON", MXMidi.COMMAND_CH_NOTEON);
+        textCommand.addNameAndValue("@OFF", MXMidi.COMMAND_CH_NOTEOFF);
+        textCommand.addNameAndValue("@PROGRAM", MXMidi.COMMAND_CH_PROGRAMCHANGE);
+        textCommand.addNameAndValue("@META",  MXMidi.COMMAND_META_OR_RESET);
+    }
+
+    public static int readCommandText(String str) {
+        int code = -1;
+        if (str.startsWith("@")) {
+            int find = textCommand.indexOfName(str);
+            if (find >= 0) {
+                code = textCommand.get(find).value.intValue();
+                return code & 0xff00;
+            }
+        }
+        return code;
     }
 
     public static int readAliasText(String str) {
         int code = -1;
-        if (str.startsWith("#")) {
+        if (str.startsWith("#") || str.equals("[") || str.equals("]")) {
             int find = textAlias.indexOfName(str);
             if (find >= 0) {
                 code = textAlias.get(find).value.intValue();
@@ -560,13 +527,13 @@ static final int DTEXT_CCNUM = 0x1500;
     }
 
     public String toString() {
-        if (_template == null) {
+        if (_commands == null) {
             return "null";
         } else {
             StringBuffer str = new StringBuffer();
-            for (int i = 0; i < _template.length; ++i) {
-                int x = _template[i];
-                String seg = fromD(x);
+            for (int i = 0; i < _commands.length; ++i) {
+                int x = _commands[i];
+                String seg = fromAlias(x);
                 if (seg == null) {
                     seg = Integer.toHexString(x);
                 }
@@ -580,53 +547,20 @@ static final int DTEXT_CCNUM = 0x1500;
     }
 
     public boolean isDataentry() {
-        if (_template.length > 0) {
-            if (_template[0] == DTEXT_RPN || _template[0] == DTEXT_NRPN) {
+        if (_commands.length > 0) {
+            if (_commands[0] == MXMidi.COMMAND2_CH_RPN 
+             || _commands[0] == MXMidi.COMMAND2_CH_NRPN) {
                 return true;
             }
         }
         return false;
     }
-    
-    public boolean canReuseDword(int dword) {
-        int status = (dword >> 16) & 0xff;
-        int data1 = (dword >> 8) & 0xff;
-        int data2 = (dword) & 0xff;
-
-        if (_template.length == 3) {
-            int seek;
-            seek = _template[0];
-            if (status >= 0x80 && status <= 0xef) {
-                status = status & 0xf0;
-            }
-
-            if (seek != status) {
-                return false;
-            }
-            seek = _template[1];
-            if (seek != data1) {
-                if (seek != DTEXT_VH && seek != DTEXT_VL
-                        && seek != DTEXT_GH && seek != DTEXT_GL) {
-                    return false;
-                }
-            }
-            seek = _template[2];
-            if (seek != data2) {
-                if (seek != DTEXT_VH && seek != DTEXT_VL
-                        && seek != DTEXT_GH && seek != DTEXT_GL) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
-    }
 
     public boolean canReuseBinary(byte[] data) {
-        if (_template.length - _checksumCount == data.length) {
+        if (_commands.length - _checksumCount == data.length) {
             int dpos = 0;
-            for (int tpos = 0; tpos < _template.length; ++tpos) {
-                int seek = _template[tpos];
+            for (int tpos = 0; tpos < _commands.length; ++tpos) {
+                int seek = _commands[tpos];
                 if (seek == DTEXT_CHECKSUM_START) {
                     continue;
                 }
@@ -646,9 +580,9 @@ static final int DTEXT_CCNUM = 0x1500;
     }
 
     public boolean canReuseTemplate(int[] template) {
-        if (_template.length == template.length) {
+        if (_commands.length == template.length) {
             for (int i = 0; i < template.length; ++i) {
-                int seek = _template[i];
+                int seek = _commands[i];
                 int d1 = template[i];
                 if (seek != d1) {
                     return false;
@@ -657,5 +591,140 @@ static final int DTEXT_CCNUM = 0x1500;
             return true;
         }
         return false;
+    }
+
+    public static MXTemplate fromDword1(int dword) {
+        int status = (dword >> 16) & 0xff;
+        int data1 = (dword >> 8) & 0xff;
+        int data2 = dword & 0xff;
+        int[] template = null;
+
+        if (status >= 0x80 && status <= 0xef) {
+            status = status & 0xf0;
+            switch (status) {
+                case MXMidi.COMMAND_CH_PITCHWHEEL:
+                    template = new int[]{MXMidi.COMMAND_CH_PITCHWHEEL, MXTemplate.DTEXT_VL, MXTemplate.DTEXT_VH};
+                    break;
+                case MXMidi.COMMAND_CH_CHANNELPRESSURE:
+                    template = new int[]{MXMidi.COMMAND_CH_CHANNELPRESSURE, MXTemplate.DTEXT_VL};
+                    break;
+                case MXMidi.COMMAND_CH_POLYPRESSURE:
+                    template = new int[]{MXMidi.COMMAND_CH_POLYPRESSURE, MXTemplate.DTEXT_GL, MXTemplate.DTEXT_VL};
+                    break;
+                case MXMidi.COMMAND_CH_CONTROLCHANGE:
+                    template = new int[]{MXMidi.COMMAND_CH_CONTROLCHANGE, MXTemplate.DTEXT_GL, MXTemplate.DTEXT_VL};
+                    break;
+                case MXMidi.COMMAND_CH_NOTEON:
+                    template = new int[]{MXMidi.COMMAND_CH_NOTEON, MXTemplate.DTEXT_GL, MXTemplate.DTEXT_VL};
+                    break;
+                case MXMidi.COMMAND_CH_NOTEOFF:
+                    template = new int[]{MXMidi.COMMAND_CH_NOTEOFF, MXTemplate.DTEXT_GL, MXTemplate.DTEXT_VL};
+                    break;
+                case MXMidi.COMMAND_CH_PROGRAMCHANGE:
+                    template = new int[]{MXMidi.COMMAND_CH_PROGRAMCHANGE, MXTemplate.DTEXT_GL};
+                    break;
+            }
+        }else {
+            switch(status) {
+                case MXMidi.COMMAND_SYSEX: //sysex
+            }
+        }
+
+        if (template == null) {
+            return null;
+        }
+        return new MXTemplate(template);
+    }
+
+    public static MXMessage fromDtext(int port, String text, int channel, RangedValue gate, RangedValue value) {
+        if (text == null || text.length() == 0) {
+            return null;
+        }
+
+        while (text.startsWith(" ")) {
+            text = text.substring(1);
+        }
+        while (text.endsWith(" ")) {
+            text = text.substring(0, text.length() - 1);
+        }
+
+        try {
+            int rpn_msb;
+            int rpn_lsb;
+            int nrpn_msb;
+            int nrpn_lsb;
+
+            char[] line = text.toCharArray();
+
+            char[] word = new char[line.length];
+            int wx = 0;
+
+            int readX = 0;
+            ArrayList<String> separated = new ArrayList();
+            boolean inChecksum = false;
+
+            while (readX < line.length) {
+                char ch = line[readX++];
+                if (ch == '[') {
+                    separated.add("[");
+                    inChecksum = true;
+                    continue;
+                }
+                if (ch == ']') {
+                    if (inChecksum) {
+                        inChecksum = false;
+                        if (wx != 0) {
+                            separated.add(new String(word, 0, wx));
+                        }
+                        separated.add("]");
+                        wx = 0;
+                    } else {
+                        new Exception("Checksum have not opened").printStackTrace();
+                    }
+                    continue;
+                }
+                if (ch == ' ' || ch == '\t' || ch == ',') {
+                    if (wx != 0) {
+                        separated.add(new String(word, 0, wx));
+                    }
+                    wx = 0;
+                    continue;
+                }
+                word[wx++] = ch;
+            }
+
+            if (wx != 0) {
+                separated.add(new String(word, 0, wx));
+                wx = 0;
+            }
+
+            if (separated.size() <= 0) {
+                return null;
+            }
+            
+            // cleanup
+            int type = MXTemplate.readCommandText(separated.get(0));
+            int[] compiled = new int[separated.size()];
+            int cx = 0;
+            int px = 0;
+
+            for (int sx = 0; sx < separated.size(); ++sx) {
+                String str = separated.get(sx);
+                int code = MXTemplate.readAliasText(str);
+                if (code < 0) {
+                    return null;
+                }
+                compiled[px++] = code;
+            }
+
+            MXMessage temp = MXMessageFactory.fromTemplate(port, compiled);
+            temp.setChannel(channel);
+            temp.setGate(gate);
+            temp.setValue(value);
+            return temp;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

@@ -91,11 +91,10 @@ public class MXMessageCapture {
 
     public String nameOf(GateInfomation gate) {
         TextInformation text = gate._parent;
+        //TODO
 
         int port = 0;
-        MXTemplate template = MXMessageFactory.fromDtext(text.dtext, gate._parent.channel);
-        MXMessage message = template.buildMessage(0, 0, RangedValue.ZERO7, RangedValue.ZERO7);
-
+        MXMessage message = MXTemplate.fromDtext(0, text.dtext, gate._parent.channel, RangedValue.ZERO7, RangedValue.ZERO7);
         return  message.toStringHeader(gate._hitLoValue, gate._hitHiValue);
     }
     

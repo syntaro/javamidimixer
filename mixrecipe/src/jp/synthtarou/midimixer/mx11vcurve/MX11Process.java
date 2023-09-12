@@ -44,7 +44,7 @@ public class MX11Process extends MXReceiver {
     protected  void processMXMessageImpl(MXMessage message) {
         if (isUsingThisRecipe() == false) { sendToNext(message); return; }
 
-        if (message.isCommand(MXMidi.COMMAND_NOTEON)) {
+        if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
             int port = message.getPort();
             int velocity = message.getGate()._var;
             int newVelocity = _data.transform(port, velocity);
@@ -53,7 +53,7 @@ public class MX11Process extends MXReceiver {
             }else {
                 int channel = message.getChannel();
                 int note = message.getGate()._var;
-                MXMessage newMessage = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_NOTEON + channel, note, newVelocity);
+                MXMessage newMessage = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEON + channel, note, newVelocity);
                 newMessage._timing = message._timing;
                 sendToNext(newMessage);
             }

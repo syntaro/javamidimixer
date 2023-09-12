@@ -49,7 +49,7 @@ public class MXNoteOffWatcher {
 
     public boolean setHandler(MXMessage noteOn, MXMessage noteOff, Handler listener) {
         synchronized(MXTiming.mutex) {
-            if (noteOn.isCommand(MXMidi.COMMAND_NOTEON) == false) {
+            if (noteOn.isCommand(MXMidi.COMMAND_CH_NOTEON) == false) {
                 System.out.println("Its not note on " + noteOn);
                 return false;
             }
@@ -67,7 +67,7 @@ public class MXNoteOffWatcher {
         synchronized(MXTiming.mutex) {
             for (Element e : _list) {
                 MXMessage base = e.sendSide;
-                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_NOTEOFF + base.getChannel(), base.getGate()._var, 0);
+                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_CH_NOTEOFF + base.getChannel(), base.getGate()._var, 0);
                 msg._timing = timing;
                 e.listener.onNoteOffEvent(msg);
             }
@@ -85,7 +85,7 @@ public class MXNoteOffWatcher {
                 }
                 //it.remove();
                 MXMessage base = e.sendSide;
-                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_NOTEOFF + base.getChannel(), base.getGate()._var, 0);
+                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_CH_NOTEOFF + base.getChannel(), base.getGate()._var, 0);
                 msg._timing = timing;
                 e.listener.onNoteOffEvent(msg);
             }
@@ -103,7 +103,7 @@ public class MXNoteOffWatcher {
                 }
                 //it.remove();
                 MXMessage base = e.sendSide;
-                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_NOTEOFF + base.getChannel(), base.getGate()._var, 0);
+                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_CH_NOTEOFF + base.getChannel(), base.getGate()._var, 0);
                 msg._timing = timing;
                 e.listener.onNoteOffEvent(msg);
             }
@@ -126,7 +126,7 @@ public class MXNoteOffWatcher {
                  && e.catchSide.getData1()== note) {
                     MXMessage noteOff = MXMessageFactory.fromShortMessage(
                             e.sendSide.getPort(), 
-                            MXMidi.COMMAND_NOTEOFF + e.sendSide.getChannel(), 
+                            MXMidi.COMMAND_CH_NOTEOFF + e.sendSide.getChannel(), 
                             e.sendSide.getData1(), 0);
                     noteOff._timing = timing;
                     e.listener.onNoteOffEvent(noteOff);

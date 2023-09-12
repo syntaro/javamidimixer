@@ -31,7 +31,6 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
-import jp.synthtarou.midimixer.libs.midi.MXTemplateCache;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
 
@@ -205,7 +204,7 @@ public class MXMIDIIn {
             _myNoteOff.allNoteOff(timing);
         }
         for (int ch = 0; ch < 16; ++ ch) {
-            int status  = MXMidi.COMMAND_CONTROLCHANGE | ch;
+            int status  = MXMidi.COMMAND_CH_CONTROLCHANGE | ch;
             int data1 = MXMidi.DATA1_CC_ALLNOTEOFF;
             receiveShortMessage(timing, (status << 16) | (data1 << 8));
             data1 = MXMidi.DATA1_CC_ALLSOUNDOFF;
@@ -340,9 +339,9 @@ public class MXMIDIIn {
             return;
         }*/
         
-        if (command == MXMidi.COMMAND_NOTEON) {
+        if (command == MXMidi.COMMAND_CH_NOTEON) {
             if (data2 == 0) {
-                command = MXMidi.COMMAND_NOTEOFF;
+                command = MXMidi.COMMAND_CH_NOTEOFF;
                 status = command | channel;
                 dword = (status << 16) | (data1 << 8) | data2;
             }
@@ -351,7 +350,7 @@ public class MXMIDIIn {
             MXMain.getMain().getPlayListProcess().updatePianoKeys(dword);
         }
 
-        else if (command == MXMidi.COMMAND_NOTEOFF) {
+        else if (command == MXMidi.COMMAND_CH_NOTEOFF) {
             if (this == INTERNAL_PLAYER) {
                 MXMain.getMain().getPlayListProcess().updatePianoKeys(dword);
             }
@@ -359,10 +358,10 @@ public class MXMIDIIn {
                 return;
             }
         }
-        else if (command == MXMidi.COMMAND_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_ALLNOTEOFF) {
+        else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_ALLNOTEOFF) {
             _myNoteOff.allNoteOff(timing);
         }
-        else if (command == MXMidi.COMMAND_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_ALLSOUNDOFF) {
+        else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_ALLSOUNDOFF) {
             _myNoteOff.allNoteOff(timing);
         }
 
@@ -373,10 +372,10 @@ public class MXMIDIIn {
             MXMessage message = null;
             if (data == null) {
                 message = MXMessageFactory.fromShortMessage(port, status, data1, data2);
-                if ((status & 0xf0) == MXMidi.COMMAND_NOTEON) {
+                if ((status & 0xf0) == MXMidi.COMMAND_CH_NOTEON) {
                     MXMessage noteon = MXMessageFactory.fromShortMessage(0, status, data1, data2);
                     noteon._timing = timing;
-                    MXMessage noteoff = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_NOTEOFF + message.getChannel(), data1, 0);
+                    MXMessage noteoff = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + message.getChannel(), data1, 0);
                     _myNoteOff.setHandler(noteon, noteoff, new MXNoteOffWatcher.Handler() {
                         @Override
                         public void onNoteOffEvent(MXMessage target) {  
@@ -442,7 +441,7 @@ public class MXMIDIIn {
                 visit.updateVisitantChannel(message);
                 message.setVisitant(visit.getSnapShot());
 
-                if (command == MXMidi.COMMAND_CONTROLCHANGE) {
+                if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
                     if (gate == MXMidi.DATA1_CC_BANKSELECT || gate == (MXMidi.DATA1_CC_BANKSELECT + 0x20)) {
                         if (visit.isHavingBank()) {
                             MXMessage message2 = MXMessageFactory.fromShortMessage(port, command + ch, MXMidi.DATA1_CC_BANKSELECT, 0);
@@ -454,15 +453,11 @@ public class MXMIDIIn {
                     }
                     if (gate == MXMidi.DATA1_CC_DATAENTRY || gate == MXMidi.DATA1_CC_DATAENTRY + 0x20) {
                         if (visit.isHaveDataentryRPN()) {
-                            int[] temp0 = { MXTemplate.DTEXT_RPN, 0, 0, 0 };
-                            MXTemplate template = MXTemplateCache.getInstance().fromTemplate(temp0);
-                            message = template.buildMessage(port, ch, RangedValue.ZERO7, RangedValue.ZERO7);
+                            message = MXTemplate.fromDtext(port, "@RPN #GH #GL #VH #VL", ch, RangedValue.ZERO7, RangedValue.ZERO7);
                             message.setVisitant(visit.getSnapShot());
                             dispatchMainPath(message);
                         }else if (visit.isHaveDataentryNRPN()) {
-                            int[] temp0 = { MXTemplate.DTEXT_NRPN, 0, 0, 0};
-                            MXTemplate template = MXTemplateCache.getInstance().fromTemplate(temp0);
-                            message = template.buildMessage(port, ch, RangedValue.ZERO7, RangedValue.ZERO7);
+                            message = MXTemplate.fromDtext(port, "@NRPN #GH #GL #VH #VL", ch, RangedValue.ZERO7, RangedValue.ZERO7);
                             message.setVisitant(visit.getSnapShot());
                             dispatchMainPath(message);
                         }else {
@@ -477,7 +472,7 @@ public class MXMIDIIn {
                 }
 
                 if (visit.isIncompleteBankInfo()) {
-                    if (command == MXMidi.COMMAND_CONTROLCHANGE && (gate == MXMidi.DATA1_CC_BANKSELECT || gate == (MXMidi.DATA1_CC_BANKSELECT + 0x20))) {
+                    if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && (gate == MXMidi.DATA1_CC_BANKSELECT || gate == (MXMidi.DATA1_CC_BANKSELECT + 0x20))) {
                         ;
                     }else {
                         visit.forceCompleteBankInfo();
@@ -485,7 +480,7 @@ public class MXMIDIIn {
                 }
 
                 if (visit.isIncomplemteDataentry()) {
-                    if (command == MXMidi.COMMAND_CONTROLCHANGE && (gate == MXMidi.DATA1_CC_DATAENTRY || (gate == MXMidi.DATA1_CC_DATAENTRY + 0x20))) { 
+                    if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && (gate == MXMidi.DATA1_CC_DATAENTRY || (gate == MXMidi.DATA1_CC_DATAENTRY + 0x20))) { 
                         ;
                     }else {
                         visit.forceCompleteBankDataentry();
@@ -493,7 +488,7 @@ public class MXMIDIIn {
                 }
 
                 if (visit.isIncomplemteDataroom()) {
-                    if (command == MXMidi.COMMAND_CONTROLCHANGE
+                    if (command == MXMidi.COMMAND_CH_CONTROLCHANGE
                       && (gate == MXMidi.DATA1_CC_RPN_LSB || gate == MXMidi.DATA1_CC_RPN_MSB
                         ||gate == MXMidi.DATA1_CC_NRPN_LSB || gate == MXMidi.DATA1_CC_NRPN_MSB)) {
                         ;

@@ -140,11 +140,11 @@ public class MX12Process extends MXReceiver implements MXSettingTarget {
             int data2 = message.getData2();
             int command = status & 0xf0;
 
-            if (command == MXMidi.COMMAND_NOTEON && data2 == 0) {
-                command = MXMidi.COMMAND_NOTEOFF;
+            if (command == MXMidi.COMMAND_CH_NOTEON && data2 == 0) {
+                command = MXMidi.COMMAND_CH_NOTEOFF;
             }
 
-            if (command == MXMidi.COMMAND_NOTEOFF) {
+            if (command == MXMidi.COMMAND_CH_NOTEOFF) {
                if (_noteOff.raiseHandler(port, message._timing, ch, data1)) {
                     return;
                 }
@@ -159,18 +159,18 @@ public class MX12Process extends MXReceiver implements MXSettingTarget {
                 }
             }
 
-            if (command == MXMidi.COMMAND_NOTEON) {
+            if (command == MXMidi.COMMAND_CH_NOTEON) {
                 _view._piano.noteOn(data1);
                 if (newMessage != null) {
                     _noteOff.setHandler(message, newMessage, new MyNoteOffHandler(getNextReceiver()));
                 }else {
                     _noteOff.setHandler(message, message, new MyNoteOffHandler(getNextReceiver()));
                 }
-            }else if (command == MXMidi.COMMAND_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_DAMPERPEDAL) {
+            }else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_DAMPERPEDAL) {
                 _view._piano.sustain(data2);
-            }else if (command == MXMidi.COMMAND_PITCHWHEEL) {
+            }else if (command == MXMidi.COMMAND_CH_PITCHWHEEL) {
                 _view.setPitchBend(message.getValue()._var);
-            }else if (command == MXMidi.COMMAND_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_MODULATION) {
+            }else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_MODULATION) {
                 _view.setModulatoinWheel(message.getValue()._var);
             }
             if (newMessage != null) {

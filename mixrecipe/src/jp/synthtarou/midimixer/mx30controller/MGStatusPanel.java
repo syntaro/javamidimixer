@@ -64,7 +64,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
     MXWrapList<Integer> _rpnMSBModel;
     MXWrapList<Integer> _rpnLSBModel;
 
-    MXTemplate _templateStartWith;
+    String _templateStartWith;
 
     protected MGStatus _status;
     /**
@@ -81,24 +81,26 @@ public class MGStatusPanel extends javax.swing.JPanel {
 
         _process = process;
         _status = status;
-        _templateStartWith = _status.getTemplate();
+        _templateStartWith = _status._base.getTemplate().toDText(_status._base);
 
         jLabelStartWith.setText(_templateStartWith.toString());
-        jLabelBlank1.setText("");
 
         setPreferredSize(new Dimension(900, 700));
         ButtonGroup group = new ButtonGroup();
         group.add(jRadioButtonDrumTypeSame);
         group.add(jRadioButtonDrumTypeNotes);
         group.add(jRadioButtonDrumTypeSong);
-        group.add(jRadioButtonDrumTypeJump);
         group.add(jRadioButtonDrumTypeProgram);
-        group.add(jRadioButtonDrumTypeJump);
+        group.add(jRadioButtonDrumTypeDontSend);
+        group.add(jRadioButtonDrumTypeCustom);
+        group.add(jRadioButtonDrumTypeLink);
 
         ButtonGroup group2 = new ButtonGroup();
-        group2.add(jRadioButtonDrumProgDec);
-        group2.add(jRadioButtonDrumProgInc);
-        group2.add(jRadioButtonDrumProgFixed);
+        group2.add(jRadioButtonLinkKnob1);
+        group2.add(jRadioButtonLinkKnob2);
+        group2.add(jRadioButtonLinkKnob3);
+        group2.add(jRadioButtonLinkKnob4);
+        group2.add(jRadioButtonSlider);
         
         if (_status._uiType == MGStatus.TYPE_DRUMPAD) {
             jTabbedPane1.setEnabledAt(1, true);
@@ -116,6 +118,13 @@ public class MGStatusPanel extends javax.swing.JPanel {
 
         jComboBoxDrumOutPort.setModel(_drumOutPort);
         jComboBoxDrumOutChannel.setModel(_drumOutChannel);
+
+        jLabelBlank1.setText("");
+        jLabelBlank2.setText("");
+        jLabelBlank3.setText("");
+        jLabelBlank4.setText("");
+        jLabelBlank5.setText("");
+        jLabelBlank6.setText("");
 
         writeBufferToPanelSlider();
         writeBufferToPanelDrum();
@@ -143,20 +152,17 @@ public class MGStatusPanel extends javax.swing.JPanel {
             if (_status._name == null) {
                 _status._name = "";
             }
-            if (jTextFieldName.getText().equals(_status._name) == false) {
-                jTextFieldName.setText(_status._name);
-            }
             if (_status._memo == null) {
                 _status._memo = "";
             }
-            if (jTextFieldMemo.getText().equals(_status._memo) == false) {
-                jTextFieldMemo.setText(_status._memo);
+            if (jTextFieldName.getText().equals(_status._memo) == false) {
+                jTextFieldName.setText(_status._memo);
             }
 
-            jTextFieldTextCommand.setText(_status.toTemplateText());
+            jTextFieldMemo.setText(_status.toTemplateText());
             jLabelStartWith.setText(_templateStartWith.toString());
 
-            _channelModel.writeComboBox(jComboBoxChannel, _status._channel);
+            _channelModel.writeComboBox(jComboBoxChannel, _status._base.getChannel());
 
             MXMessage message = _status.toMXMessage(null);
             boolean initTurn = true;
@@ -164,19 +170,19 @@ public class MGStatusPanel extends javax.swing.JPanel {
                 initTurn = false;
             }
 
-            jLabelNameDefault.setText("Empty means-> '" + message.toShortString() + "'");
+            jLabelDefaultName.setText("Empty means-> '" + message.toShortString() + "'");
 
             int command = message.getStatus() & 0xf0;
-            int gateValue = _status._gate._var;
+            int gateValue = _status._base.getGate()._var;
 
-            if (command == MXMidi.COMMAND_CHANNELPRESSURE
-                    || command == MXMidi.COMMAND_NOTEON
-                    || command == MXMidi.COMMAND_NOTEOFF) {
+            if (command == MXMidi.COMMAND_CH_CHANNELPRESSURE
+                    || command == MXMidi.COMMAND_CH_NOTEON
+                    || command == MXMidi.COMMAND_CH_NOTEOFF) {
                 jComboBoxGate.setModel(_keyGateModel);
                 if (initTurn || ((MXWrap<Integer>) jComboBoxGate.getSelectedItem()).value != gateValue) {
                     _keyGateModel.writeComboBox(jComboBoxGate, gateValue);
                 }
-            } else if (command == MXMidi.COMMAND_CONTROLCHANGE) {
+            } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
                 jComboBoxGate.setModel(_ccGateModel);
                 if (initTurn || ((MXWrap<Integer>) jComboBoxGate.getSelectedItem()).value != gateValue) {
                     _ccGateModel.writeComboBox(jComboBoxGate, gateValue);
@@ -191,8 +197,8 @@ public class MGStatusPanel extends javax.swing.JPanel {
             jSpinnerOutOnValueFixed.setModel(new SafeSpinnerNumberModel(_status.getSwitchOutOnValueFixed(), 0, 16383, 1));
             jSpinnerOutOffValueFixed.setModel(new SafeSpinnerNumberModel(_status.getSwitchOutOffValueFixed(), 0, 16383, 1));
 */
-            jSpinnerMin.setModel(new SafeSpinnerNumberModel(_status._value._min, 0, 128 * 128 - 1, 1));
-            jSpinnerMax.setModel(new SafeSpinnerNumberModel(_status._value._max, 0, 128 * 128 - 1, 1));
+            jSpinnerMin.setModel(new SafeSpinnerNumberModel(_status._base.getValue()._min, 0, 128 * 128 - 1, 1));
+            jSpinnerMax.setModel(new SafeSpinnerNumberModel(_status._base.getValue()._max, 0, 128 * 128 - 1, 1));
 
             _rpnMSBModel.writeComboBox(jComboBoxMSB, _status._dataroomMSB);
             _rpnLSBModel.writeComboBox(jComboBoxLSB, _status._dataroomLSB);
@@ -203,7 +209,6 @@ public class MGStatusPanel extends javax.swing.JPanel {
         }
 
         disableUnusedOnPanel();
-        jLabelBlank.setText("");
         updateUI();
     }
 
@@ -242,16 +247,16 @@ public class MGStatusPanel extends javax.swing.JPanel {
                     } else if (message.getVisitant() != null && (message.getVisitant().isHaveDataentryRPN() || message.getVisitant().isHaveDataentryNRPN())) {
                         //OK
                     }
-                } else if (message.isMessageTypeChannel() && message.isCommand(MXMidi.COMMAND_CONTROLCHANGE) && !message.isDataentry()) {
+                } else if (message.isMessageTypeChannel() && message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE) && !message.isDataentry()) {
                     String newText = "@CC #GL #VL";
                     if (data.toTemplateText().equals(newText) == false) {
                         String errorText = "ControlChange's Text Command can be '" + newText + "'";
                         if (canDialog && JOptionPane.showConfirmDialog(this, errorText, "Smart Replace", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                             skipDataExchange = true;
-                            data.setTemplateAsText(newText, message.getChannel());
-                            jTextFieldTextCommand.setText(newText);
-                            data._gate = message.getGate();
-                            _ccGateModel.writeComboBox(jComboBoxGate, data._gate._var);
+                            message = message.refillGate();
+                            data.setBaseMessage(message);
+                            jTextFieldMemo.setText(newText);
+                            _ccGateModel.writeComboBox(jComboBoxGate, data._base.getGate()._var);
                             skipDataExchange = false;
                         } else {
                             result.add(errorText);
@@ -262,10 +267,6 @@ public class MGStatusPanel extends javax.swing.JPanel {
             } catch (Exception e) {
                 result.add("TextCommand [" + data.getTemplate() + "] is not valid.");
             }
-        }
-
-        if (data._channel >= 0 && data._channel < 16) {
-            //ok
         }
 
         validateBufferSubDrum(result);
@@ -331,9 +332,9 @@ public class MGStatusPanel extends javax.swing.JPanel {
 
         boolean isdataentry = false;
 
-        MXTemplate temp = _status.getTemplate();
-        if (temp.get(0) == MXTemplate.DTEXT_RPN
-                || temp.get(0) == MXTemplate.DTEXT_NRPN) {
+        MXTemplate temp = _status.getTemplate().getTemplate();
+        if (temp.get(0) == MXMidi.COMMAND2_CH_RPN
+                || temp.get(0) == MXMidi.COMMAND2_CH_NRPN) {
             isdataentry = true;
         }
         jComboBoxLSB.setEnabled(isdataentry);
@@ -467,12 +468,9 @@ public class MGStatusPanel extends javax.swing.JPanel {
         if (skipDataExchange) {
             return;
         }
-        _status._name = jTextFieldName.getText();
-        _status._memo = jTextFieldMemo.getText();
-        _status._channel = (int) _channelModel.readCombobox(this.jComboBoxChannel);
-        _status.setTemplateAsText(jTextFieldTextCommand.getText(), _status._channel);
+        _status._memo = jTextFieldName.getText();
         MXWrap<Integer> x = (MXWrap<Integer>) jComboBoxGate.getSelectedItem();
-        _status._gate = RangedValue.new7bit(x.value);
+        _status._base.setGate(RangedValue.new7bit(x.value));
 
         if (jCheckBoxCustomRange.isSelected()) {
             int min = (Integer) jSpinnerMin.getValue();
@@ -488,21 +486,15 @@ public class MGStatusPanel extends javax.swing.JPanel {
         boolean changed = false;
         try {
             _status._dataroomType = MXVisitant.ROOMTYPE_NODATA;
-            MXTemplate template = _status.getTemplate();
-            MXMessage message = template.buildMessage(_status._port, _status._channel, _status._gate, _status._value);
+            MXMessage message = (MXMessage)_status.getTemplate().clone();
             skipDataExchange = true;
-
-            if (message.getGate()._var != _status._gate._var) {
-                _status._gate = message.getGate();
-                changed = true;
-            }
 
             int d = message.getTemplate().get(0);
 
-            if (d == MXTemplate.DTEXT_RPN) {
+            if (d == MXMidi.COMMAND2_CH_RPN) {
                 _status._dataroomType = MXVisitant.ROOMTYPE_RPN;
                 changed = true;
-            } else if (d == MXTemplate.DTEXT_NRPN) {
+            } else if (d == MXMidi.COMMAND2_CH_NRPN) {
                 _status._dataroomType = MXVisitant.ROOMTYPE_NRPN;
                 changed = true;
             }
@@ -516,8 +508,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
         }
         MXMessage msg = _status.toMXMessage(null);
         boolean canHave14bit = false;
-        if (msg.isCommand(MXMidi.COMMAND_CONTROLCHANGE)) {
-            System.out.println("data1 = " + msg.getData1());
+        if (msg.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
             if (msg.getData1() >= 0 && msg.getData1() < 32) {
                 canHave14bit = true;
             }
@@ -576,107 +567,126 @@ public class MGStatusPanel extends javax.swing.JPanel {
         java.awt.GridBagConstraints gridBagConstraints;
 
         jTabbedPane1 = new javax.swing.JTabbedPane();
-        jPanel2 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jTextFieldTextCommand = new javax.swing.JTextField();
-        jButtonFromBefore = new javax.swing.JButton();
-        jButtonFromList = new javax.swing.JButton();
-        jLabel2 = new javax.swing.JLabel();
-        jTextFieldName = new javax.swing.JTextField();
-        jLabel7 = new javax.swing.JLabel();
-        jTextFieldMemo = new javax.swing.JTextField();
-        jButtonInternalCommand = new javax.swing.JButton();
-        jLabelStartWith = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
-        jLabel9 = new javax.swing.JLabel();
-        jSpinnerMax = new javax.swing.JSpinner();
-        jButtonActionQuickMenu = new javax.swing.JButton();
+        jPanelPage1 = new javax.swing.JPanel();
         jLabel10 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        jSpinnerMin = new javax.swing.JSpinner();
-        jComboBoxGate = new javax.swing.JComboBox<>();
-        jLabel5 = new javax.swing.JLabel();
-        jComboBoxChannel = new javax.swing.JComboBox<>();
-        jLabel12 = new javax.swing.JLabel();
-        jLabelBlank1 = new javax.swing.JLabel();
-        jLabelNameDefault = new javax.swing.JLabel();
         jSeparator5 = new javax.swing.JSeparator();
-        jComboBoxMSB = new javax.swing.JComboBox<>();
+        jLabel33 = new javax.swing.JLabel();
+        jLabel31 = new javax.swing.JLabel();
+        jLabelBlank1 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        jTextFieldName = new javax.swing.JTextField();
+        jTextFieldMemo = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jButtonFromList = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
+        jButtonInternalCommand = new javax.swing.JButton();
+        jButtonActionQuickMenu = new javax.swing.JButton();
+        jButtonTemplateInput = new javax.swing.JButton();
+        jLabelDefaultName = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
+        jLabelStartWith = new javax.swing.JLabel();
+        jComboBoxChannel = new javax.swing.JComboBox<>();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
+        jComboBoxGate = new javax.swing.JComboBox<>();
+        jCheckBoxCustomRange = new javax.swing.JCheckBox();
+        jLabel29 = new javax.swing.JLabel();
+        jSpinnerMin = new javax.swing.JSpinner();
+        jSpinnerMax = new javax.swing.JSpinner();
+        jCheckBoxCC14bit = new javax.swing.JCheckBox();
         jComboBoxLSB = new javax.swing.JComboBox<>();
         jLabel23 = new javax.swing.JLabel();
-        jLabel33 = new javax.swing.JLabel();
-        jSeparator6 = new javax.swing.JSeparator();
+        jComboBoxMSB = new javax.swing.JComboBox<>();
         jLabel15 = new javax.swing.JLabel();
-        jCheckBoxCC14bit = new javax.swing.JCheckBox();
-        jLabel29 = new javax.swing.JLabel();
-        jCheckBoxCustomRange = new javax.swing.JCheckBox();
-        jLabel31 = new javax.swing.JLabel();
-        jButtonUpdateCommand = new javax.swing.JButton();
-        jPanel3 = new javax.swing.JPanel();
+        jLabel44 = new javax.swing.JLabel();
+        jCheckBox1 = new javax.swing.JCheckBox();
+        jLabelTemplateText = new javax.swing.JLabel();
+        jPanelPage2 = new javax.swing.JPanel();
+        jPanelValue = new javax.swing.JPanel();
         jCheckBoxDrumInToggle = new javax.swing.JCheckBox();
+        jSpinnerDrumInMax = new javax.swing.JSpinner();
+        jLabelInputText = new javax.swing.JLabel();
+        jSpinnerDrumInMin = new javax.swing.JSpinner();
+        jSpinnerDrumInMouse = new javax.swing.JSpinner();
+        jLabel11 = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
-        jRadioButtonDrumTypeNotes = new javax.swing.JRadioButton();
-        jRadioButtonDrumTypeSong = new javax.swing.JRadioButton();
-        jLabel6 = new javax.swing.JLabel();
-        jRadioButtonDrumTypeSame = new javax.swing.JRadioButton();
-        jLabel24 = new javax.swing.JLabel();
-        jTextFieldHarmonyNoteList = new javax.swing.JTextField();
-        jButtonSequenceFileBrowse = new javax.swing.JButton();
-        jLabel26 = new javax.swing.JLabel();
+        jSpinner1 = new javax.swing.JSpinner();
+        jLabel19 = new javax.swing.JLabel();
+        jLabel25 = new javax.swing.JLabel();
+        jLabel39 = new javax.swing.JLabel();
+        jTabbedPane2 = new javax.swing.JTabbedPane();
+        jPanelTabTemplate = new javax.swing.JPanel();
+        jLabel8 = new javax.swing.JLabel();
+        jTextField1 = new javax.swing.JTextField();
+        jLabel16 = new javax.swing.JLabel();
+        jLabel18 = new javax.swing.JLabel();
+        jLabel36 = new javax.swing.JLabel();
+        jButton2 = new javax.swing.JButton();
+        jLabelBlank6 = new javax.swing.JLabel();
+        jButton5 = new javax.swing.JButton();
+        jLabel42 = new javax.swing.JLabel();
+        jPanelTabProgram = new javax.swing.JPanel();
+        jLabel17 = new javax.swing.JLabel();
+        jLabel20 = new javax.swing.JLabel();
+        jSpinnerDurmProgMSB = new javax.swing.JSpinner();
+        jSpinnerDrumProgPC = new javax.swing.JSpinner();
+        jSpinnerDrumProgLSB = new javax.swing.JSpinner();
+        jLabel21 = new javax.swing.JLabel();
+        jButton3 = new javax.swing.JButton();
+        jLabelBlank3 = new javax.swing.JLabel();
+        jComboBox5 = new javax.swing.JComboBox<>();
+        jLabel37 = new javax.swing.JLabel();
+        jLabel38 = new javax.swing.JLabel();
+        jLabel40 = new javax.swing.JLabel();
+        jLabel41 = new javax.swing.JLabel();
+        jPanelTabNotes = new javax.swing.JPanel();
         jLabel27 = new javax.swing.JLabel();
+        jTextFieldHarmonyNoteList = new javax.swing.JTextField();
+        jLabel14 = new javax.swing.JLabel();
         jLabel28 = new javax.swing.JLabel();
+        jButtonNotesKeys = new javax.swing.JButton();
+        jLabelBlank2 = new javax.swing.JLabel();
+        jPanelTabSequener = new javax.swing.JPanel();
         jTextFieldSequenceFile = new javax.swing.JTextField();
         jLabel30 = new javax.swing.JLabel();
-        jComboBoxDrumOutChannel = new javax.swing.JComboBox<>();
-        jButtonHarmonyEdit = new javax.swing.JButton();
-        jSeparator1 = new javax.swing.JSeparator();
-        jSeparator2 = new javax.swing.JSeparator();
-        jSeparator3 = new javax.swing.JSeparator();
-        jSeparator4 = new javax.swing.JSeparator();
-        jLabelInputText = new javax.swing.JLabel();
-        jComboBoxDrumOutPort = new javax.swing.JComboBox<>();
+        jButtonSequenceFileBrowse = new javax.swing.JButton();
         jCheckBoxSequencerSeekStart = new javax.swing.JCheckBox();
         jCheckBoxSequencerSingleTrack = new javax.swing.JCheckBox();
         jCheckBoxSequencerFilterNote = new javax.swing.JCheckBox();
         jLabel32 = new javax.swing.JLabel();
-        jSpinnerDrumInMin = new javax.swing.JSpinner();
-        jSpinnerDrumInMax = new javax.swing.JSpinner();
-        jSpinnerDrumInMouse = new javax.swing.JSpinner();
-        jLabel11 = new javax.swing.JLabel();
-        jRadioButtonDrumTypeCustom = new javax.swing.JRadioButton();
-        jRadioButtonDrumTypeJump = new javax.swing.JRadioButton();
-        jSeparator7 = new javax.swing.JSeparator();
-        jSpinnerDrumOutOnCustom = new javax.swing.JSpinner();
-        jSpinnerDrumOutOffCustom = new javax.swing.JSpinner();
-        jLabel18 = new javax.swing.JLabel();
-        jLabel34 = new javax.swing.JLabel();
-        jCheckBoxDrumOutOnSameAs = new javax.swing.JCheckBox();
-        jCheckBoxDrumOutOffSameAs = new javax.swing.JCheckBox();
-        jRadioButtonDrumTypeProgram = new javax.swing.JRadioButton();
-        jLabel8 = new javax.swing.JLabel();
-        jLabelDrumOutTemplate = new javax.swing.JLabel();
-        jButtonDrumOutTemplate = new javax.swing.JButton();
-        jLabel16 = new javax.swing.JLabel();
-        jSpinnerDrumSliderJump = new javax.swing.JSpinner();
-        jRadioButtonDrumProgInc = new javax.swing.JRadioButton();
-        jRadioButtonDrumProgDec = new javax.swing.JRadioButton();
-        jRadioButtonDrumProgFixed = new javax.swing.JRadioButton();
-        jLabel17 = new javax.swing.JLabel();
-        jSpinnerDrumProgPC = new javax.swing.JSpinner();
-        jSpinnerDurmProgMSB = new javax.swing.JSpinner();
-        jSpinnerDrumProgLSB = new javax.swing.JSpinner();
-        jLabel20 = new javax.swing.JLabel();
-        jLabel21 = new javax.swing.JLabel();
-        jSeparator8 = new javax.swing.JSeparator();
+        jLabelBlank4 = new javax.swing.JLabel();
+        jPanelTabLink = new javax.swing.JPanel();
         jLabel22 = new javax.swing.JLabel();
-        jButton3 = new javax.swing.JButton();
-        jSliderDrumSliderJump = new javax.swing.JSlider();
-        jLabel14 = new javax.swing.JLabel();
-        jCheckBoxDontSendOff = new javax.swing.JCheckBox();
+        jLabel24 = new javax.swing.JLabel();
+        jRadioButtonLinkKnob1 = new javax.swing.JRadioButton();
+        jRadioButtonLinkKnob2 = new javax.swing.JRadioButton();
+        jRadioButtonLinkKnob3 = new javax.swing.JRadioButton();
+        jRadioButtonLinkKnob4 = new javax.swing.JRadioButton();
+        jRadioButtonSlider = new javax.swing.JRadioButton();
+        jComboBox1 = new javax.swing.JComboBox<>();
+        jLabel34 = new javax.swing.JLabel();
+        jLabelBlank5 = new javax.swing.JLabel();
+        jLabel43 = new javax.swing.JLabel();
+        jPanelOutput = new javax.swing.JPanel();
+        jRadioButtonDrumTypeNotes = new javax.swing.JRadioButton();
+        jRadioButtonDrumTypeProgram = new javax.swing.JRadioButton();
+        jRadioButtonDrumTypeSong = new javax.swing.JRadioButton();
+        jRadioButtonDrumTypeCustom = new javax.swing.JRadioButton();
+        jRadioButtonDrumTypeSame = new javax.swing.JRadioButton();
+        jRadioButtonDrumTypeDontSend = new javax.swing.JRadioButton();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel26 = new javax.swing.JLabel();
+        jComboBoxDrumOutPort = new javax.swing.JComboBox<>();
+        jComboBoxDrumOutChannel = new javax.swing.JComboBox<>();
+        jRadioButtonDrumTypeLink = new javax.swing.JRadioButton();
+        jLabel35 = new javax.swing.JLabel();
+        jLabel1Blan2 = new javax.swing.JLabel();
+        jComboBox3 = new javax.swing.JComboBox<>();
+        jComboBox4 = new javax.swing.JComboBox<>();
         jButtonCancel = new javax.swing.JButton();
         jButtonOK = new javax.swing.JButton();
-        jLabelBlank = new javax.swing.JLabel();
 
         setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
         setLayout(new java.awt.GridBagLayout());
@@ -687,109 +697,96 @@ public class MGStatusPanel extends javax.swing.JPanel {
             }
         });
 
-        jPanel2.setLayout(new java.awt.GridBagLayout());
+        jPanelPage1.setLayout(new java.awt.GridBagLayout());
 
-        jLabel1.setText("Start was");
+        jLabel10.setText("...");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelPage1.add(jLabel10, gridBagConstraints);
+        jPanelPage1.add(jSeparator5, new java.awt.GridBagConstraints());
+
+        jLabel33.setText("LSB");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 17;
+        jPanelPage1.add(jLabel33, gridBagConstraints);
+
+        jLabel31.setText(" to ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelPage1.add(jLabel31, gridBagConstraints);
+
+        jLabelBlank1.setText("jLabelBlank1");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 20;
+        gridBagConstraints.gridwidth = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        jPanelPage1.add(jLabelBlank1, gridBagConstraints);
+
+        jLabel7.setText("Memo (Popup?)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        jPanel2.add(jLabel1, gridBagConstraints);
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelPage1.add(jLabel7, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelPage1.add(jTextFieldName, gridBagConstraints);
 
-        jLabel3.setText("Command Text");
+        jTextFieldMemo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextFieldMemoActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelPage1.add(jTextFieldMemo, gridBagConstraints);
+
+        jLabel3.setText("Template");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelPage1.add(jLabel3, gridBagConstraints);
+
+        jLabel9.setText("  Name when Blank");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        jPanel2.add(jLabel3, gridBagConstraints);
-
-        jTextFieldTextCommand.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextFieldTextCommandActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 3.0;
-        jPanel2.add(jTextFieldTextCommand, gridBagConstraints);
+        jPanelPage1.add(jLabel9, gridBagConstraints);
 
-        jButtonFromBefore.setText("Reset Command Text To When Start");
-        jButtonFromBefore.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonFromBeforeActionPerformed(evt);
-            }
-        });
+        jLabel2.setText("Name");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 6;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jButtonFromBefore, gridBagConstraints);
+        jPanelPage1.add(jLabel2, gridBagConstraints);
 
-        jButtonFromList.setText("Domino XML");
+        jButtonFromList.setText("From Domino");
         jButtonFromList.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonFromListActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 7;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel2.add(jButtonFromList, gridBagConstraints);
-
-        jLabel2.setText("Name");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel2.add(jLabel2, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 3.0;
-        jPanel2.add(jTextFieldName, gridBagConstraints);
-
-        jLabel7.setText("Memo");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel2.add(jLabel7, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 6;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 3.0;
-        jPanel2.add(jTextFieldMemo, gridBagConstraints);
-
-        jButtonInternalCommand.setText("From Internal");
-        jButtonInternalCommand.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonInternalCommandActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 7;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel2.add(jButtonInternalCommand, gridBagConstraints);
-
-        jLabelStartWith.setText("F7 00 F0");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        jPanel2.add(jLabelStartWith, gridBagConstraints);
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        jPanelPage1.add(jButtonFromList, gridBagConstraints);
 
         jButton1.setText("From Capture");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -798,24 +795,20 @@ public class MGStatusPanel extends javax.swing.JPanel {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 7;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel2.add(jButton1, gridBagConstraints);
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
+        jPanelPage1.add(jButton1, gridBagConstraints);
 
-        jLabel9.setText("Information");
+        jButtonInternalCommand.setText("From Internal");
+        jButtonInternalCommand.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonInternalCommandActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 4;
-        jPanel2.add(jLabel9, gridBagConstraints);
-
-        jSpinnerMax.setModel(new javax.swing.SpinnerNumberModel(0, 0, 16383, 1));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jSpinnerMax, gridBagConstraints);
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 6;
+        jPanelPage1.add(jButtonInternalCommand, gridBagConstraints);
 
         jButtonActionQuickMenu.setText("Quick Menu");
         jButtonActionQuickMenu.addActionListener(new java.awt.event.ActionListener() {
@@ -824,50 +817,45 @@ public class MGStatusPanel extends javax.swing.JPanel {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 7;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel2.add(jButtonActionQuickMenu, gridBagConstraints);
-
-        jLabel10.setText("...");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jLabel10, gridBagConstraints);
+        jPanelPage1.add(jButtonActionQuickMenu, gridBagConstraints);
 
-        jLabel4.setText("Channel");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel2.add(jLabel4, gridBagConstraints);
-
-        jSpinnerMin.setModel(new javax.swing.SpinnerNumberModel(0, 0, 16383, 1));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jSpinnerMin, gridBagConstraints);
-
-        jComboBoxGate.addActionListener(new java.awt.event.ActionListener() {
+        jButtonTemplateInput.setText("...");
+        jButtonTemplateInput.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBoxGateActionPerformed(evt);
+                jButtonTemplateInputActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.gridwidth = 6;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel2.add(jComboBoxGate, gridBagConstraints);
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        jPanelPage1.add(jButtonTemplateInput, gridBagConstraints);
 
-        jLabel5.setText("Gate");
+        jLabelDefaultName.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelPage1.add(jLabelDefaultName, gridBagConstraints);
+
+        jLabel1.setText(" when Start Editing");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel2.add(jLabel5, gridBagConstraints);
+        jPanelPage1.add(jLabel1, gridBagConstraints);
+
+        jLabelStartWith.setText("F7 00 F0");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelPage1.add(jLabelStartWith, gridBagConstraints);
 
         jComboBoxChannel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -877,93 +865,69 @@ public class MGStatusPanel extends javax.swing.JPanel {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridwidth = 6;
+        gridBagConstraints.gridwidth = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel2.add(jComboBoxChannel, gridBagConstraints);
+        jPanelPage1.add(jComboBoxChannel, gridBagConstraints);
 
-        jLabel12.setText("I/O Data (Common)");
+        jLabel4.setText("Channel");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 7;
-        jPanel2.add(jLabel12, gridBagConstraints);
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelPage1.add(jLabel4, gridBagConstraints);
 
-        jLabelBlank1.setText("BLANK");
+        jLabel5.setText("Gate");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 18;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.weighty = 1.0;
-        jPanel2.add(jLabelBlank1, gridBagConstraints);
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelPage1.add(jLabel5, gridBagConstraints);
 
-        jLabelNameDefault.setText("-");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 6;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jLabelNameDefault, gridBagConstraints);
-        jPanel2.add(jSeparator5, new java.awt.GridBagConstraints());
-
-        jComboBoxMSB.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                jComboBoxMSBItemStateChanged(evt);
-            }
-        });
-        jComboBoxMSB.addActionListener(new java.awt.event.ActionListener() {
+        jComboBoxGate.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBoxMSBActionPerformed(evt);
+                jComboBoxGateActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 15;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jComboBoxMSB, gridBagConstraints);
-
-        jComboBoxLSB.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                jComboBoxLSBItemStateChanged(evt);
-            }
-        });
-        jComboBoxLSB.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBoxLSBActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 15;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jComboBoxLSB, gridBagConstraints);
-
-        jLabel23.setText("DataEntry MSB");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 15;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jLabel23, gridBagConstraints);
-
-        jLabel33.setText("LSB");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 15;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridwidth = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        jPanel2.add(jLabel33, gridBagConstraints);
+        jPanelPage1.add(jComboBoxGate, gridBagConstraints);
+
+        jCheckBoxCustomRange.setText("Use Custom, If not custom signal's Min ~ Max = [#VL 0-127]  [#VH #VL = 0 - 16383]");
+        jCheckBoxCustomRange.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxCustomRangeActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelPage1.add(jCheckBoxCustomRange, gridBagConstraints);
+
+        jLabel29.setText("Value Range");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 10;
-        gridBagConstraints.gridwidth = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel2.add(jSeparator6, gridBagConstraints);
+        jPanelPage1.add(jLabel29, gridBagConstraints);
 
-        jLabel15.setText("ControlChange");
+        jSpinnerMin.setModel(new javax.swing.SpinnerNumberModel(0, 0, 16383, 1));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 13;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jLabel15, gridBagConstraints);
+        jPanelPage1.add(jSpinnerMin, gridBagConstraints);
+
+        jSpinnerMax.setModel(new javax.swing.SpinnerNumberModel(0, 0, 16383, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelPage1.add(jSpinnerMax, gridBagConstraints);
 
         jCheckBoxCC14bit.setText("Enable 14 bit with +32CC (CC: 0 to 31 can pair with #+32)");
         jCheckBoxCC14bit.addActionListener(new java.awt.event.ActionListener() {
@@ -976,61 +940,570 @@ public class MGStatusPanel extends javax.swing.JPanel {
         gridBagConstraints.gridy = 13;
         gridBagConstraints.gridwidth = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jCheckBoxCC14bit, gridBagConstraints);
+        jPanelPage1.add(jCheckBoxCC14bit, gridBagConstraints);
 
-        jLabel29.setText("Value Range");
+        jComboBoxLSB.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jComboBoxLSBItemStateChanged(evt);
+            }
+        });
+        jComboBoxLSB.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxLSBActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 17;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelPage1.add(jComboBoxLSB, gridBagConstraints);
+
+        jLabel23.setText("DataEntry");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel2.add(jLabel29, gridBagConstraints);
+        gridBagConstraints.gridy = 15;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelPage1.add(jLabel23, gridBagConstraints);
 
-        jCheckBoxCustomRange.setText("Use Custom");
-        jCheckBoxCustomRange.addActionListener(new java.awt.event.ActionListener() {
+        jComboBoxMSB.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jComboBoxMSBItemStateChanged(evt);
+            }
+        });
+        jComboBoxMSB.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxCustomRangeActionPerformed(evt);
+                jComboBoxMSBActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 16;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelPage1.add(jComboBoxMSB, gridBagConstraints);
+
+        jLabel15.setText("ControlChange");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 13;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelPage1.add(jLabel15, gridBagConstraints);
+
+        jLabel44.setText("MSB");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 16;
+        jPanelPage1.add(jLabel44, gridBagConstraints);
+
+        jCheckBox1.setText("Make This CC As DataEntry");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 15;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelPage1.add(jCheckBox1, gridBagConstraints);
+
+        jLabelTemplateText.setText("jLabel12");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelPage1.add(jLabelTemplateText, gridBagConstraints);
+
+        jTabbedPane1.addTab("Input Config", jPanelPage1);
+
+        jPanelPage2.setLayout(new java.awt.GridBagLayout());
+
+        jPanelValue.setBorder(javax.swing.BorderFactory.createTitledBorder("Value"));
+        jPanelValue.setLayout(new java.awt.GridBagLayout());
+
+        jCheckBoxDrumInToggle.setText("Switch When On");
+        jCheckBoxDrumInToggle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxDrumInToggleActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 11;
-        jPanel2.add(jCheckBoxCustomRange, gridBagConstraints);
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        jPanelValue.add(jCheckBoxDrumInToggle, gridBagConstraints);
 
-        jLabel31.setText(" to ");
+        jSpinnerDrumInMax.setModel(new javax.swing.SpinnerNumberModel(127, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelValue.add(jSpinnerDrumInMax, gridBagConstraints);
+
+        jLabelInputText.setText("<=");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jLabel31, gridBagConstraints);
+        gridBagConstraints.gridy = 1;
+        jPanelValue.add(jLabelInputText, gridBagConstraints);
 
-        jButtonUpdateCommand.setText("UpdateCommand");
-        jButtonUpdateCommand.addActionListener(new java.awt.event.ActionListener() {
+        jSpinnerDrumInMin.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelValue.add(jSpinnerDrumInMin, gridBagConstraints);
+
+        jSpinnerDrumInMouse.setModel(new javax.swing.SpinnerNumberModel(127, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelValue.add(jSpinnerDrumInMouse, gridBagConstraints);
+
+        jLabel11.setText("Mouse");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelValue.add(jLabel11, gridBagConstraints);
+
+        jLabel13.setText("Value When On");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelValue.add(jLabel13, gridBagConstraints);
+
+        jSpinner1.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        jPanelValue.add(jSpinner1, gridBagConstraints);
+
+        jLabel19.setText("Click(ON)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelValue.add(jLabel19, gridBagConstraints);
+
+        jLabel25.setText("Release(OFF)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelValue.add(jLabel25, gridBagConstraints);
+
+        jLabel39.setText("Toggle");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelValue.add(jLabel39, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        jPanelPage2.add(jPanelValue, gridBagConstraints);
+
+        jPanelTabTemplate.setBorder(javax.swing.BorderFactory.createTitledBorder("Output Template"));
+        jPanelTabTemplate.setLayout(new java.awt.GridBagLayout());
+
+        jLabel8.setText("CC Template");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelTabTemplate.add(jLabel8, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        jPanelTabTemplate.add(jTextField1, gridBagConstraints);
+
+        jLabel16.setText("Gate");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelTabTemplate.add(jLabel16, gridBagConstraints);
+
+        jLabel18.setText("Value");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelTabTemplate.add(jLabel18, gridBagConstraints);
+
+        jLabel36.setText("jLabel36");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelTabTemplate.add(jLabel36, gridBagConstraints);
+
+        jButton2.setText("...");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        jPanelTabTemplate.add(jButton2, gridBagConstraints);
+
+        jLabelBlank6.setText("Blank6");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        jPanelTabTemplate.add(jLabelBlank6, gridBagConstraints);
+
+        jButton5.setText("...");
+        jPanelTabTemplate.add(jButton5, new java.awt.GridBagConstraints());
+
+        jLabel42.setText(" = See [Out On Value]");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelTabTemplate.add(jLabel42, gridBagConstraints);
+
+        jTabbedPane2.addTab("Template", jPanelTabTemplate);
+
+        jPanelTabProgram.setBorder(javax.swing.BorderFactory.createTitledBorder("Output - Program"));
+        jPanelTabProgram.setLayout(new java.awt.GridBagLayout());
+
+        jLabel17.setText("PC");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelTabProgram.add(jLabel17, gridBagConstraints);
+
+        jLabel20.setText("MSB");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelTabProgram.add(jLabel20, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelTabProgram.add(jSpinnerDurmProgMSB, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelTabProgram.add(jSpinnerDrumProgPC, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelTabProgram.add(jSpinnerDrumProgLSB, gridBagConstraints);
+
+        jLabel21.setText("LSB");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        jPanelTabProgram.add(jLabel21, gridBagConstraints);
+
+        jButton3.setText("...");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelTabProgram.add(jButton3, gridBagConstraints);
+
+        jLabelBlank3.setText("Blank3");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        jPanelTabProgram.add(jLabelBlank3, gridBagConstraints);
+
+        jComboBox5.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Increment (+1)", "Decremnt I(-1)", "Fixed Program" }));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelTabProgram.add(jComboBox5, gridBagConstraints);
+
+        jLabel37.setText("jLabel37");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelTabProgram.add(jLabel37, gridBagConstraints);
+
+        jLabel38.setText("Program Numbrer");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelTabProgram.add(jLabel38, gridBagConstraints);
+
+        jLabel40.setText("Program Change");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelTabProgram.add(jLabel40, gridBagConstraints);
+
+        jLabel41.setText("Name");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelTabProgram.add(jLabel41, gridBagConstraints);
+
+        jTabbedPane2.addTab("Program", jPanelTabProgram);
+
+        jPanelTabNotes.setBorder(javax.swing.BorderFactory.createTitledBorder("Output Notess"));
+        jPanelTabNotes.setLayout(new java.awt.GridBagLayout());
+
+        jLabel27.setText("List Notes");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        jPanelTabNotes.add(jLabel27, gridBagConstraints);
+
+        jTextFieldHarmonyNoteList.setEditable(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        jPanelTabNotes.add(jTextFieldHarmonyNoteList, gridBagConstraints);
+
+        jLabel14.setText(" = See [Out On Value]");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelTabNotes.add(jLabel14, gridBagConstraints);
+
+        jLabel28.setText("Velocity");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        jPanelTabNotes.add(jLabel28, gridBagConstraints);
+
+        jButtonNotesKeys.setText("...");
+        jButtonNotesKeys.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonUpdateCommandActionPerformed(evt);
+                jButtonNotesKeysActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        jPanelTabNotes.add(jButtonNotesKeys, gridBagConstraints);
+
+        jLabelBlank2.setText("Blank6");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        jPanelTabNotes.add(jLabelBlank2, gridBagConstraints);
+
+        jTabbedPane2.addTab("Notes", jPanelTabNotes);
+
+        jPanelTabSequener.setBorder(javax.swing.BorderFactory.createTitledBorder("Output Sequencer"));
+        jPanelTabSequener.setLayout(new java.awt.GridBagLayout());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        jPanelTabSequener.add(jTextFieldSequenceFile, gridBagConstraints);
+
+        jLabel30.setText("SMF File");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        jPanelTabSequener.add(jLabel30, gridBagConstraints);
+
+        jButtonSequenceFileBrowse.setText("...");
+        jButtonSequenceFileBrowse.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonSequenceFileBrowseActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 3;
-        jPanel2.add(jButtonUpdateCommand, gridBagConstraints);
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        jPanelTabSequener.add(jButtonSequenceFileBrowse, gridBagConstraints);
 
-        jTabbedPane1.addTab("Input Config", jPanel2);
-
-        jPanel3.setLayout(new java.awt.GridBagLayout());
-
-        jCheckBoxDrumInToggle.setText("Toggle Switch");
+        jCheckBoxSequencerSeekStart.setText("Play Start Timing = 1st Note");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jCheckBoxDrumInToggle, gridBagConstraints);
+        jPanelTabSequener.add(jCheckBoxSequencerSeekStart, gridBagConstraints);
 
-        jLabel13.setText("When Input is ON");
+        jCheckBoxSequencerSingleTrack.setText("Play in Single Channel (Port / Ch = Output Section)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelTabSequener.add(jCheckBoxSequencerSingleTrack, gridBagConstraints);
+
+        jCheckBoxSequencerFilterNote.setText("Only Play Note+Pitch+Wheel (IgnoreCC)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanelTabSequener.add(jCheckBoxSequencerFilterNote, gridBagConstraints);
+
+        jLabel32.setText("Play Option");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        jPanelTabSequener.add(jLabel32, gridBagConstraints);
+
+        jLabelBlank4.setText("Blank4");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        jPanelTabSequener.add(jLabelBlank4, gridBagConstraints);
+
+        jTabbedPane2.addTab("Sequencer", jPanelTabSequener);
+
+        jPanelTabLink.setBorder(javax.swing.BorderFactory.createTitledBorder("Output - Link Slider / Knob"));
+        jPanelTabLink.setLayout(new java.awt.GridBagLayout());
+
+        jLabel22.setText("Row");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelTabLink.add(jLabel22, gridBagConstraints);
+
+        jLabel24.setText("Column");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelTabLink.add(jLabel24, gridBagConstraints);
+
+        jRadioButtonLinkKnob1.setText("Knob1");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelTabLink.add(jRadioButtonLinkKnob1, gridBagConstraints);
+
+        jRadioButtonLinkKnob2.setText("Knob2");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelTabLink.add(jRadioButtonLinkKnob2, gridBagConstraints);
+
+        jRadioButtonLinkKnob3.setText("Knob3");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelTabLink.add(jRadioButtonLinkKnob3, gridBagConstraints);
+
+        jRadioButtonLinkKnob4.setText("Knob4");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelTabLink.add(jRadioButtonLinkKnob4, gridBagConstraints);
+
+        jRadioButtonSlider.setText("Slider");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelTabLink.add(jRadioButtonSlider, gridBagConstraints);
+
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Same Column (Pad)", "1", "2", "3", "..." }));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        jPanelTabLink.add(jComboBox1, gridBagConstraints);
+
+        jLabel34.setText("Value");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelTabLink.add(jLabel34, gridBagConstraints);
+
+        jLabelBlank5.setText("Blank5");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        jPanelTabLink.add(jLabelBlank5, gridBagConstraints);
+
+        jLabel43.setText(" = See [Out On Value]");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        jPanelTabLink.add(jLabel43, gridBagConstraints);
+
+        jTabbedPane2.addTab("Link Slider / Knob", jPanelTabLink);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jLabel13, gridBagConstraints);
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        jPanelPage2.add(jTabbedPane2, gridBagConstraints);
+
+        jPanelOutput.setBorder(javax.swing.BorderFactory.createTitledBorder("Output"));
+        jPanelOutput.setLayout(new java.awt.GridBagLayout());
 
         jRadioButtonDrumTypeNotes.setText("Notes");
         jRadioButtonDrumTypeNotes.addActionListener(new java.awt.event.ActionListener() {
@@ -1039,10 +1512,17 @@ public class MGStatusPanel extends javax.swing.JPanel {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jRadioButtonDrumTypeNotes, gridBagConstraints);
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jRadioButtonDrumTypeNotes, gridBagConstraints);
+
+        jRadioButtonDrumTypeProgram.setText("Program");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jRadioButtonDrumTypeProgram, gridBagConstraints);
 
         jRadioButtonDrumTypeSong.setText("Sequence");
         jRadioButtonDrumTypeSong.addActionListener(new java.awt.event.ActionListener() {
@@ -1051,20 +1531,19 @@ public class MGStatusPanel extends javax.swing.JPanel {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jRadioButtonDrumTypeSong, gridBagConstraints);
-
-        jLabel6.setText("Output Type");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jLabel6, gridBagConstraints);
+        jPanelOutput.add(jRadioButtonDrumTypeSong, gridBagConstraints);
 
-        jRadioButtonDrumTypeSame.setText("Same CC-Template As Input");
+        jRadioButtonDrumTypeCustom.setText("Custom Template");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jRadioButtonDrumTypeCustom, gridBagConstraints);
+
+        jRadioButtonDrumTypeSame.setText("Same Template As Input");
         jRadioButtonDrumTypeSame.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jRadioButtonDrumTypeSameActionPerformed(evt);
@@ -1072,74 +1551,39 @@ public class MGStatusPanel extends javax.swing.JPanel {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jRadioButtonDrumTypeSame, gridBagConstraints);
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jRadioButtonDrumTypeSame, gridBagConstraints);
 
-        jLabel24.setText("Notes / Sequence");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 26;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jLabel24, gridBagConstraints);
-
-        jTextFieldHarmonyNoteList.setEditable(false);
+        jRadioButtonDrumTypeDontSend.setText("Don't Send");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 27;
-        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        jPanel3.add(jTextFieldHarmonyNoteList, gridBagConstraints);
+        jPanelOutput.add(jRadioButtonDrumTypeDontSend, gridBagConstraints);
 
-        jButtonSequenceFileBrowse.setText("Browse");
-        jButtonSequenceFileBrowse.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonSequenceFileBrowseActionPerformed(evt);
-            }
-        });
+        jLabel6.setText("Type");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 28;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        jPanel3.add(jButtonSequenceFileBrowse, gridBagConstraints);
+        jPanelOutput.add(jLabel6, gridBagConstraints);
 
-        jLabel26.setText("Out Port / Ch");
+        jLabel26.setText("Port / Channel");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jLabel26, gridBagConstraints);
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jLabel26, gridBagConstraints);
 
-        jLabel27.setText("List Notes");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 27;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        jPanel3.add(jLabel27, gridBagConstraints);
-
-        jLabel28.setText("Velocity");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 29;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        jPanel3.add(jLabel28, gridBagConstraints);
+        jComboBoxDrumOutPort.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "As Input", "A", "B", "C", "D", "..." }));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 28;
-        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        jPanel3.add(jTextFieldSequenceFile, gridBagConstraints);
+        jPanelOutput.add(jComboBoxDrumOutPort, gridBagConstraints);
 
-        jLabel30.setText("SMF File");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 28;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        jPanel3.add(jLabel30, gridBagConstraints);
-
+        jComboBoxDrumOutChannel.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "As Input", "1", "2", "3", "4", "5", "..", "16" }));
         jComboBoxDrumOutChannel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jComboBoxDrumOutChannelActionPerformed(evt);
@@ -1147,319 +1591,64 @@ public class MGStatusPanel extends javax.swing.JPanel {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jComboBoxDrumOutChannel, gridBagConstraints);
+        jPanelOutput.add(jComboBoxDrumOutChannel, gridBagConstraints);
 
-        jButtonHarmonyEdit.setText("Edit");
-        jButtonHarmonyEdit.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonHarmonyEditActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 27;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        jPanel3.add(jButtonHarmonyEdit, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 6;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jSeparator1, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 25;
-        gridBagConstraints.gridwidth = 6;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel3.add(jSeparator2, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 13;
-        gridBagConstraints.gridwidth = 6;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel3.add(jSeparator3, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 21;
-        gridBagConstraints.gridwidth = 6;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel3.add(jSeparator4, gridBagConstraints);
-
-        jLabelInputText.setText("to");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jLabelInputText, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jComboBoxDrumOutPort, gridBagConstraints);
-
-        jCheckBoxSequencerSeekStart.setText("Play Start Timing = 1st Note");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 32;
-        gridBagConstraints.gridwidth = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jCheckBoxSequencerSeekStart, gridBagConstraints);
-
-        jCheckBoxSequencerSingleTrack.setText("Play in Single  Track");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 33;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jCheckBoxSequencerSingleTrack, gridBagConstraints);
-
-        jCheckBoxSequencerFilterNote.setText("Only Play Note+Pitch+Wheel (IgnoreCC)");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 34;
-        gridBagConstraints.gridwidth = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jCheckBoxSequencerFilterNote, gridBagConstraints);
-
-        jLabel32.setText("Play Option");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 32;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        jPanel3.add(jLabel32, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jSpinnerDrumInMin, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jSpinnerDrumInMax, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jSpinnerDrumInMouse, gridBagConstraints);
-
-        jLabel11.setText("Mouse Clicked - ON");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jLabel11, gridBagConstraints);
-
-        jRadioButtonDrumTypeCustom.setText("Custom CC-Template");
+        jRadioButtonDrumTypeLink.setText("Link Slider/Knob");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jRadioButtonDrumTypeCustom, gridBagConstraints);
-
-        jRadioButtonDrumTypeJump.setText("Same Column Slider Jump");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jRadioButtonDrumTypeJump, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 6;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jSeparator7, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jSpinnerDrumOutOnCustom, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jSpinnerDrumOutOffCustom, gridBagConstraints);
+        jPanelOutput.add(jRadioButtonDrumTypeLink, gridBagConstraints);
 
-        jLabel18.setText("Out Off Value");
+        jLabel35.setText("Output Value");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jLabel35, gridBagConstraints);
+
+        jLabel1Blan2.setText("Blank2");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 9;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jLabel18, gridBagConstraints);
-
-        jLabel34.setText("Out On Value");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jLabel34, gridBagConstraints);
-
-        jCheckBoxDrumOutOnSameAs.setText("Same as Input");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jCheckBoxDrumOutOnSameAs, gridBagConstraints);
-
-        jCheckBoxDrumOutOffSameAs.setText("Same as Input");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jCheckBoxDrumOutOffSameAs, gridBagConstraints);
-
-        jRadioButtonDrumTypeProgram.setText("Program");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jRadioButtonDrumTypeProgram, gridBagConstraints);
-
-        jLabel8.setText("CC Template");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 14;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jLabel8, gridBagConstraints);
-
-        jLabelDrumOutTemplate.setText("-----------------");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 14;
         gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel3.add(jLabelDrumOutTemplate, gridBagConstraints);
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        jPanelOutput.add(jLabel1Blan2, gridBagConstraints);
 
-        jButtonDrumOutTemplate.setText("From List");
+        jComboBox3.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "On Value As Input", "On Value As [Mouse Click]" }));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 14;
-        jPanel3.add(jButtonDrumOutTemplate, gridBagConstraints);
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jComboBox3, gridBagConstraints);
 
-        jLabel16.setText("Slider Jump");
+        jComboBox4.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Off Value As Input", "Off Value As [Mouse Release]", "Off Value is Notihng to Send" }));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jComboBox4, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 22;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jLabel16, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 22;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jSpinnerDrumSliderJump, gridBagConstraints);
-
-        jRadioButtonDrumProgInc.setText("INC");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 16;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jRadioButtonDrumProgInc, gridBagConstraints);
-
-        jRadioButtonDrumProgDec.setText("DEC");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 16;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jRadioButtonDrumProgDec, gridBagConstraints);
-
-        jRadioButtonDrumProgFixed.setText("Fixed");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 16;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jRadioButtonDrumProgFixed, gridBagConstraints);
-
-        jLabel17.setText("Program");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 17;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jLabel17, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 18;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jSpinnerDrumProgPC, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 18;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jSpinnerDurmProgMSB, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 18;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jSpinnerDrumProgLSB, gridBagConstraints);
-
-        jLabel20.setText("MSB");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 17;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jLabel20, gridBagConstraints);
-
-        jLabel21.setText("LSB");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 17;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jLabel21, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 15;
-        gridBagConstraints.gridwidth = 6;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel3.add(jSeparator8, gridBagConstraints);
-
-        jLabel22.setText("Program");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 16;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jLabel22, gridBagConstraints);
-
-        jButton3.setText("Browse");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 16;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jButton3, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 22;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel3.add(jSliderDrumSliderJump, gridBagConstraints);
-
-        jLabel14.setText(" = See [Out On Value]");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 29;
-        gridBagConstraints.gridwidth = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jLabel14, gridBagConstraints);
-
-        jCheckBoxDontSendOff.setText("Dont send When OFF");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jCheckBoxDontSendOff, gridBagConstraints);
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        jPanelPage2.add(jPanelOutput, gridBagConstraints);
 
-        jTabbedPane1.addTab("Drum Config", jPanel3);
+        jTabbedPane1.addTab("Drum Transform", jPanelPage2);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
         add(jTabbedPane1, gridBagConstraints);
 
         jButtonCancel.setText("Cancel Edit");
@@ -1485,18 +1674,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         add(jButtonOK, gridBagConstraints);
-
-        jLabelBlank.setText("BLANK");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.weighty = 1.0;
-        add(jLabelBlank, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
-
-    private void jButtonFromBeforeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonFromBeforeActionPerformed
-        jTextFieldTextCommand.setText(jLabelStartWith.getText());
-    }//GEN-LAST:event_jButtonFromBeforeActionPerformed
 
     private void jButtonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOKActionPerformed
         readBufferFromPanelSlider();
@@ -1529,10 +1707,12 @@ public class MGStatusPanel extends javax.swing.JPanel {
             try {
                 String textData = x.firstChildsTextContext("Data");
 
-                MXTemplate template = MXMessageFactory.fromDtext(textData, this._channelModel.readCombobox(jComboBoxChannel).intValue());
-                _status._template = template;
+                //TODO 
+                /*
+                MXTemplate template = MXTemplate.fromDtext(textData, this._channelModel.readCombobox(jComboBoxChannel).intValue());
+                _status._base = template;
                 _status.refillGate();
-
+                */
                 CXNode value = x.firstChild("Value");
                 if (value != null) {
                     int minValue = value._listAttributes.numberOfName("Min", -1);
@@ -1574,7 +1754,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
         Object sel = jComboBoxGate.getModel().getSelectedItem();
         MXWrap<Integer> wrap = (MXWrap<Integer>) sel;
         int newGate = wrap.value;
-        int oldGate = _status._gate._var;
+        int oldGate = _status._base.getGate()._var;
 
         readBufferFromPanelSlider();
         if (oldGate != newGate) {
@@ -1591,14 +1771,14 @@ public class MGStatusPanel extends javax.swing.JPanel {
         Object sel = jComboBoxChannel.getModel().getSelectedItem();
         MXWrap<Integer> wrap = (MXWrap<Integer>) sel;
         int channel = wrap.value;
-        if (_status._channel != channel) {
-            _status._channel = channel;
+        if (_status._base.getChannel() != channel) {
+            _status._base.setChannel(channel);
             writeBufferToPanelSlider();
         }
     }//GEN-LAST:event_jComboBoxChannelActionPerformed
 
-    private void jTextFieldTextCommandActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldTextCommandActionPerformed
-    }//GEN-LAST:event_jTextFieldTextCommandActionPerformed
+    private void jTextFieldMemoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldMemoActionPerformed
+    }//GEN-LAST:event_jTextFieldMemoActionPerformed
 
     static final String PROG_INC = "Program INC";
     static final String PROG_DEC = "Program DEC";
@@ -1623,16 +1803,17 @@ public class MGStatusPanel extends javax.swing.JPanel {
         MXModalFrame.showAsDialog(this, panel, "Capture ...");
         GateInfomation retval = panel._selected;
         if (retval != null) {
-            _status._channel = retval._parent.channel;
-            _status._template = MXMessageFactory.fromDtext(retval._parent.dtext, _status._channel);
+            /* TODO
+            _status._base = retval._parent.channel;
+            _status._base = MXTemplate.fromDtext(_status._port, retval._parent.dtext, _status._channel);
             _status._gate = new RangedValue(retval._gate, retval._hitLoValue, retval._hitHiValue);
-
+            */
             String dtext = retval._parent.dtext;
 
             writeBufferToPanelSlider();
             MXMessage message = _status.toMXMessage(new MXTiming());
 
-            if (message.isCommand(MXMidi.COMMAND_NOTEOFF)) {
+            if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
                 int z = JOptionPane.showConfirmDialog(
                         this,
                          "Seems you choiced Note Off\n"
@@ -1640,11 +1821,8 @@ public class MGStatusPanel extends javax.swing.JPanel {
                          "Offer (adjust value range)",
                          JOptionPane.YES_NO_OPTION);
                 if (z == JOptionPane.YES_OPTION) {
-                    message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_NOTEON + message.getChannel(), message.getData1(), 127);
-                    _status._channel = message.getChannel();
-                    _status._template = message.getTemplate();
-                    _status._gate = message.getGate();
-                    _status._value = message.getValue();
+                    message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_NOTEON + message.getChannel(), message.getData1(), 127);
+                    _status.setBaseMessage(message);
                 }
             } else {
                 int max = 128 - 1;
@@ -1689,7 +1867,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
 
     private void jButtonActionQuickMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonActionQuickMenuActionPerformed
         JPopupMenu popup = new JPopupMenu();
-        String text = jTextFieldTextCommand.getText();
+        String text = jTextFieldMemo.getText();
         JMenuItem menu = new JMenuItem("Rest ValueRange as 7bit / 14bit");
         menu.addActionListener(new ActionListener() {
             @Override
@@ -1818,38 +1996,15 @@ public class MGStatusPanel extends javax.swing.JPanel {
         jSpinnerMax.setEnabled(sel);
     }//GEN-LAST:event_jCheckBoxCustomRangeActionPerformed
 
-    private void jButtonUpdateCommandActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonUpdateCommandActionPerformed
-        MXTemplate temp = MXMessageFactory.fromDtext(jTextFieldTextCommand.getText(), 0);
-        _status._template = temp;
-    }//GEN-LAST:event_jButtonUpdateCommandActionPerformed
-
-    private void jButtonHarmonyEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonHarmonyEditActionPerformed
-        MXNotePicker picker = new MXNotePicker();
-        picker.setSelectedNoteList(MXMidi.textToNoteList(jTextFieldHarmonyNoteList.getText()));
-        if (picker.showAsModalDialog(this)) {
-            int[] note = picker.getSelectedNoteList();
-            String text = MXMidi.noteListToText(note);
-            jTextFieldHarmonyNoteList.setText(text);
-        }
-    }//GEN-LAST:event_jButtonHarmonyEditActionPerformed
+    private void jButtonTemplateInputActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonTemplateInputActionPerformed
+        /* TODO MXTemplate temp = MXTemplate.fromDtext(_status._port, jTextFieldMemo.getText(), 0);
+        _status._base = temp; */
+    }//GEN-LAST:event_jButtonTemplateInputActionPerformed
 
     private void jComboBoxDrumOutChannelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxDrumOutChannelActionPerformed
         //TODO _status.setSwitchOutChannel(_drumOutChannel.readCombobox(jComboBoxDrumOutChannel));
         disableUnusedOnPanel();
     }//GEN-LAST:event_jComboBoxDrumOutChannelActionPerformed
-
-    private void jButtonSequenceFileBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSequenceFileBrowseActionPerformed
-        MXSwingFileChooser chooser = new MXSwingFileChooser();
-        MXSwingFolderBrowser browser = new MXSwingFolderBrowser(null, new FileFilterListExt(".Mid"));
-        MXUtil.showAsDialog(this, browser, "Choose Standard MIDI File");
-        FileList list = browser.getParamsOfNavigator().getApprovedValue();
-        if (list == null || list.isEmpty()) {
-            return;
-        }
-        String file = list.get(0).getAbsolutePath();
-        jTextFieldSequenceFile.setText(file);
-        //TODO _status.setSwitchSequencerFile(file);
-    }//GEN-LAST:event_jButtonSequenceFileBrowseActionPerformed
 
     private void jRadioButtonDrumTypeSameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonDrumTypeSameActionPerformed
         //_status.setSwitchType(MGStatus.SWITCH_TYPE_ON);
@@ -1865,6 +2020,27 @@ public class MGStatusPanel extends javax.swing.JPanel {
         //_status.setSwitchType(MGStatus.SWITCH_TYPE_HARMONY);
         disableUnusedOnPanel();
     }//GEN-LAST:event_jRadioButtonDrumTypeNotesActionPerformed
+
+    private void jCheckBoxDrumInToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxDrumInToggleActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jCheckBoxDrumInToggleActionPerformed
+
+    private void jButtonSequenceFileBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSequenceFileBrowseActionPerformed
+        MXSwingFileChooser chooser = new MXSwingFileChooser();
+        MXSwingFolderBrowser browser = new MXSwingFolderBrowser(null, new FileFilterListExt(".Mid"));
+        MXUtil.showAsDialog(this, browser, "Choose Standard MIDI File");
+        FileList list = browser.getParamsOfNavigator().getApprovedValue();
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+        String file = list.get(0).getAbsolutePath();
+        jTextFieldSequenceFile.setText(file);
+        //TODO _status.setSwitchSequencerFile(file);
+    }//GEN-LAST:event_jButtonSequenceFileBrowseActionPerformed
+
+    private void jButtonNotesKeysActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNotesKeysActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButtonNotesKeysActionPerformed
 
     public int getDrumType() {/*
         if (jRadioButtonDrumTypeSame.isSelected()) {
@@ -1886,13 +2062,15 @@ public class MGStatusPanel extends javax.swing.JPanel {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (e.getActionCommand().equals(PROG_INC)) {
-                _status.setTemplateAsText(MXTemplate.EXCOMMAND_PROGRAM_INC, 0);
+                MXMessage message = MXTemplate.fromDtext(_status._port, "@PROG_INC", _status._base.getChannel(), RangedValue.ZERO7, RangedValue.ZERO7);
+                _status.setBaseMessage(message);
                 MGStatusPanel.this.writeBufferToPanelSlider();
                 disableUnusedOnPanel();
                 return;
             }
             if (e.getActionCommand().equals(PROG_DEC)) {
-                _status.setTemplateAsText(MXTemplate.EXCOMMAND_PROGRAM_DEC, 0);
+                MXMessage message = MXTemplate.fromDtext(_status._port, "@PROG_DEC", _status._base.getChannel(), RangedValue.ZERO7, RangedValue.ZERO7);
+                _status.setBaseMessage(message);
                 MGStatusPanel.this.writeBufferToPanelSlider();
                 disableUnusedOnPanel();
                 return;
@@ -1902,26 +2080,28 @@ public class MGStatusPanel extends javax.swing.JPanel {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton5;
     private javax.swing.JButton jButtonActionQuickMenu;
     private javax.swing.JButton jButtonCancel;
-    private javax.swing.JButton jButtonDrumOutTemplate;
-    private javax.swing.JButton jButtonFromBefore;
     private javax.swing.JButton jButtonFromList;
-    private javax.swing.JButton jButtonHarmonyEdit;
     private javax.swing.JButton jButtonInternalCommand;
+    private javax.swing.JButton jButtonNotesKeys;
     private javax.swing.JButton jButtonOK;
     private javax.swing.JButton jButtonSequenceFileBrowse;
-    private javax.swing.JButton jButtonUpdateCommand;
+    private javax.swing.JButton jButtonTemplateInput;
+    private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JCheckBox jCheckBoxCC14bit;
     private javax.swing.JCheckBox jCheckBoxCustomRange;
-    private javax.swing.JCheckBox jCheckBoxDontSendOff;
     private javax.swing.JCheckBox jCheckBoxDrumInToggle;
-    private javax.swing.JCheckBox jCheckBoxDrumOutOffSameAs;
-    private javax.swing.JCheckBox jCheckBoxDrumOutOnSameAs;
     private javax.swing.JCheckBox jCheckBoxSequencerFilterNote;
     private javax.swing.JCheckBox jCheckBoxSequencerSeekStart;
     private javax.swing.JCheckBox jCheckBoxSequencerSingleTrack;
+    private javax.swing.JComboBox<String> jComboBox1;
+    private javax.swing.JComboBox<String> jComboBox3;
+    private javax.swing.JComboBox<String> jComboBox4;
+    private javax.swing.JComboBox<String> jComboBox5;
     private javax.swing.JComboBox<String> jComboBoxChannel;
     private javax.swing.JComboBox<String> jComboBoxDrumOutChannel;
     private javax.swing.JComboBox<String> jComboBoxDrumOutPort;
@@ -1931,19 +2111,21 @@ public class MGStatusPanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel18;
+    private javax.swing.JLabel jLabel19;
+    private javax.swing.JLabel jLabel1Blan2;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel22;
     private javax.swing.JLabel jLabel23;
     private javax.swing.JLabel jLabel24;
+    private javax.swing.JLabel jLabel25;
     private javax.swing.JLabel jLabel26;
     private javax.swing.JLabel jLabel27;
     private javax.swing.JLabel jLabel28;
@@ -1954,55 +2136,70 @@ public class MGStatusPanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel32;
     private javax.swing.JLabel jLabel33;
     private javax.swing.JLabel jLabel34;
+    private javax.swing.JLabel jLabel35;
+    private javax.swing.JLabel jLabel36;
+    private javax.swing.JLabel jLabel37;
+    private javax.swing.JLabel jLabel38;
+    private javax.swing.JLabel jLabel39;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel40;
+    private javax.swing.JLabel jLabel41;
+    private javax.swing.JLabel jLabel42;
+    private javax.swing.JLabel jLabel43;
+    private javax.swing.JLabel jLabel44;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JLabel jLabelBlank;
     private javax.swing.JLabel jLabelBlank1;
-    private javax.swing.JLabel jLabelDrumOutTemplate;
+    private javax.swing.JLabel jLabelBlank2;
+    private javax.swing.JLabel jLabelBlank3;
+    private javax.swing.JLabel jLabelBlank4;
+    private javax.swing.JLabel jLabelBlank5;
+    private javax.swing.JLabel jLabelBlank6;
+    private javax.swing.JLabel jLabelDefaultName;
     private javax.swing.JLabel jLabelInputText;
-    private javax.swing.JLabel jLabelNameDefault;
     private javax.swing.JLabel jLabelStartWith;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JRadioButton jRadioButtonDrumProgDec;
-    private javax.swing.JRadioButton jRadioButtonDrumProgFixed;
-    private javax.swing.JRadioButton jRadioButtonDrumProgInc;
+    private javax.swing.JLabel jLabelTemplateText;
+    private javax.swing.JPanel jPanelOutput;
+    private javax.swing.JPanel jPanelPage1;
+    private javax.swing.JPanel jPanelPage2;
+    private javax.swing.JPanel jPanelTabLink;
+    private javax.swing.JPanel jPanelTabNotes;
+    private javax.swing.JPanel jPanelTabProgram;
+    private javax.swing.JPanel jPanelTabSequener;
+    private javax.swing.JPanel jPanelTabTemplate;
+    private javax.swing.JPanel jPanelValue;
     private javax.swing.JRadioButton jRadioButtonDrumTypeCustom;
-    private javax.swing.JRadioButton jRadioButtonDrumTypeJump;
+    private javax.swing.JRadioButton jRadioButtonDrumTypeDontSend;
+    private javax.swing.JRadioButton jRadioButtonDrumTypeLink;
     private javax.swing.JRadioButton jRadioButtonDrumTypeNotes;
     private javax.swing.JRadioButton jRadioButtonDrumTypeProgram;
     private javax.swing.JRadioButton jRadioButtonDrumTypeSame;
     private javax.swing.JRadioButton jRadioButtonDrumTypeSong;
-    private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JSeparator jSeparator2;
-    private javax.swing.JSeparator jSeparator3;
-    private javax.swing.JSeparator jSeparator4;
+    private javax.swing.JRadioButton jRadioButtonLinkKnob1;
+    private javax.swing.JRadioButton jRadioButtonLinkKnob2;
+    private javax.swing.JRadioButton jRadioButtonLinkKnob3;
+    private javax.swing.JRadioButton jRadioButtonLinkKnob4;
+    private javax.swing.JRadioButton jRadioButtonSlider;
     private javax.swing.JSeparator jSeparator5;
-    private javax.swing.JSeparator jSeparator6;
-    private javax.swing.JSeparator jSeparator7;
-    private javax.swing.JSeparator jSeparator8;
-    private javax.swing.JSlider jSliderDrumSliderJump;
+    private javax.swing.JSpinner jSpinner1;
     private javax.swing.JSpinner jSpinnerDrumInMax;
     private javax.swing.JSpinner jSpinnerDrumInMin;
     private javax.swing.JSpinner jSpinnerDrumInMouse;
-    private javax.swing.JSpinner jSpinnerDrumOutOffCustom;
-    private javax.swing.JSpinner jSpinnerDrumOutOnCustom;
     private javax.swing.JSpinner jSpinnerDrumProgLSB;
     private javax.swing.JSpinner jSpinnerDrumProgPC;
-    private javax.swing.JSpinner jSpinnerDrumSliderJump;
     private javax.swing.JSpinner jSpinnerDurmProgMSB;
     private javax.swing.JSpinner jSpinnerMax;
     private javax.swing.JSpinner jSpinnerMin;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JTabbedPane jTabbedPane2;
+    private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextFieldHarmonyNoteList;
     private javax.swing.JTextField jTextFieldMemo;
     private javax.swing.JTextField jTextFieldName;
     private javax.swing.JTextField jTextFieldSequenceFile;
-    private javax.swing.JTextField jTextFieldTextCommand;
     // End of variables declaration//GEN-END:variables
 
     public void showsub1() {

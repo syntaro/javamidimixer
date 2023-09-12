@@ -17,6 +17,9 @@
 package jp.synthtarou.midimixer.libs.midi;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import javax.sound.midi.MidiMessage;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
 
 /**
@@ -24,12 +27,119 @@ import jp.synthtarou.midimixer.libs.common.RangedValue;
  * @author Syntarou YOSHIDA
  */
 public class MXMessageFactory {
+    private static MXMessageFactory _instance = new MXMessageFactory();
+    
+    public MXMessageFactory() {
+    }
+    
+    
+    public MXTemplate[] _cacheCommand = new MXTemplate[256];
+    public MXTemplate[] _cacheControlChange = new MXTemplate[256];
+    
+    synchronized MXMessage fromDword2(int port, int dword) {
+        if (dword == 0) {
+            return null;
+        }
 
-    static MXTemplateCache _cache = MXTemplateCache.getInstance();
+        int status = (dword >> 16) & 0xff;
+        int data1 = (dword >> 8) & 0xff;
+        int data2 = dword & 0xff;
+        MXTemplate found = null;
+
+        if (status >= 0x80 && status <= 0xef) {
+            int command = status & 0xf0;
+            
+            if (command == 0xB0) { //ControlChange
+                if (_cacheControlChange[data1] == null) {
+                    _cacheControlChange[data1] = MXTemplate.fromDword1(dword);
+                }
+                found = _cacheControlChange[data1];
+            }
+            else {
+                if (_cacheCommand[command] == null) {
+                    _cacheCommand[command] = MXTemplate.fromDword1(dword);
+                    System.out.println("cache commamdn " + _cacheCommand[command]);
+                }
+                found = _cacheCommand[command];
+            }
+        }
+        
+        if (status >= 0xf1 && status <= 0xfe) {
+            int command = status;
+            
+            if (_cacheCommand[command] == null) {
+                _cacheCommand[command] = MXTemplate.fromDword1(dword);
+            }
+            found = _cacheCommand[command];
+        }
+        
+        if (found == null) {
+            int[] template = new int[3];
+            template[0] = status;
+            template[1] = data1;
+            template[2] = data2;
+            found = new MXTemplate(template);
+        }
+        
+        MXMessage message = new MXMessage(port, found);
+        if (message.readDwordForValues(dword) == false) {
+            System.out.println("can't read " + Integer.toHexString(dword) + " -> " + found + " <- " + "(" + message.getChannel() + ")" + message.getGate()+ ", " + message.getValue());
+        }
+        return message;
+    }
+    
+    static final MXTemplate ZERO = new MXTemplate(new int[]{ MXMidi.COMMAND2_NONE, 0, 0 });
+    
+    LinkedList<MXTemplate> _cachedTemplate = new LinkedList();
+    
+    public static synchronized MXMessage fromTemplate(int port, int[] template) {
+        if (template == null || template.length == 0 || template[0] == 0) {
+            template = new int[] { 0, 0, 0 };
+        }
+
+        MXTemplate t = new MXTemplate(template);
+        MXMessage message = new MXMessage(port, t);
+        return message;
+    }
+ 
+    public static synchronized MXMessage fromBinary(int port, byte[] data) {
+        if (data == null || data.length == 0 || data[0] == 0) {
+            return null;
+        }
+
+        if (data.length == 3) {
+            int status = data[0] & 0xff;
+            int data1 = data[1] & 0xff;
+            int data2 = data[2] & 0xff;
+            
+            if (status >= 0x80 && status <= 0xef) {
+                return fromShortMessage(0, status, data1, data2);
+            }
+            if (status >= 0xf1 && status <= 0xfe) {
+                return fromShortMessage(0, status, data1, data2);
+            }
+        }
+
+        int c = data[0] & 0xff;
+        
+        boolean seekCache = true;
+        
+        if (c == 0xff && data.length >= 100) {
+            seekCache = false;
+        }
+        if (c == 0xf0 && data.length >= 100) {
+            seekCache = false;
+        }
+
+        int[] template= new int[data.length];
+        for (int i = 0; i < data.length; ++ i) {
+            template[i] = data[i] & 0xff;
+        }
+        return fromTemplate(port, template);
+    }
 
     public static MXMessage createDummy() {
-        MXTemplate template = _cache.fromDword(0);
-        return template.buildMessage(0, 0, RangedValue.ZERO7, RangedValue.ZERO7);
+        return _instance.fromDWordMessage(0, 0);
     }
 
     public static MXMessage fromClone(MXMessage old) {
@@ -37,274 +147,15 @@ public class MXMessageFactory {
         return msg;
     }
 
-    public static MXMessage fromDWordMessage(int port, int dword) {
+    public MXMessage fromDWordMessage(int port, int dword) {
         int status = (dword >> 16) & 0xff;
         int data1 = (dword >> 8) & 0xff;
         int data2 = dword & 0xff;
         return fromShortMessage(port, status, data1, data2);
     }
 
-    public static MXMessage fromMeta(int port, byte[] data) {
-        MXTemplate template = _cache.fromBinary(data);
-
-        MXMessage message = new MXMessage(port, template, 0, RangedValue.ZERO7, RangedValue.ZERO7);
-        message.setMetaType(data[1] & 0xff);
-
-        String text = null;
-        try {
-            text = new String(data, 2, data.length - 2, "ASCII");
-            text = new String(data, 2, data.length - 2);
-            text = new String(data, 2, data.length - 2, "SJIS");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        message._metaText = text;
-        message._dataBytes = data;
-        return message;
-    }
-
-    public static MXMessage fromBinary(int port, byte[] data) {
-        try {
-            MXTemplate template = _cache.fromBinary(data);
-            return template.buildMessage(port, 0, RangedValue.ZERO7, RangedValue.ZERO7);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
     public static MXMessage fromShortMessage(int port, int status, int data1, int data2) {
         int dword = (status << 16) | (data1 << 8) | data2;
-        MXTemplate template = _cache.fromDword(dword);
-
-        int valueLow = template.getBytePosValue();
-        int valueHi = template.getBytePosHiValue();
-
-        int value = 0;
-
-        switch (valueLow) {
-            case 0:
-                value += status;
-                break;
-            case 1:
-                value += data1;
-                break;
-            case 2:
-                value += data2;
-                break;
-        }
-
-        switch (valueHi) {
-            case 0:
-                value += status << 7;
-                break;
-            case 1:
-                value += data1 << 7;
-                break;
-            case 2:
-                value += data2 << 7;
-                break;
-        }
-
-        int gateLow = template.getBytePosGate();
-        int gateHi = template.getBytePosHiGate();
-        int gate = 0;
-
-        switch (gateLow) {
-            case 0:
-                gate += status;
-                break;
-            case 1:
-                gate += data1;
-                break;
-            case 2:
-                gate += data2;
-                break;
-        }
-
-        switch (gateHi) {
-            case 0:
-                gate += status << 7;
-                break;
-            case 1:
-                gate += data1 << 7;
-                break;
-            case 2:
-                gate += data2 << 7;
-                break;
-        }
-
-        int command = status;
-        int channel = 0;
-        if (status >= 0x80 && status <= 0xef) {
-            command = status & 0xf0;
-            channel = status & 0x0f;
-        }
-
-        if (template.getBytePosHiValue() >= 0) {
-            return template.buildMessage(port, channel, RangedValue.new7bit(gate), RangedValue.new14bit(value));
-        }
-
-        return template.buildMessage(port, channel, RangedValue.new7bit(gate), RangedValue.new7bit(value));
-    }
-
-    public static MXTemplate fromDtext(String text, int channel) {
-        if (text == null || text.length() == 0) {
-            return null;
-        }
-
-        while (text.startsWith(" ")) {
-            text = text.substring(1);
-        }
-        while (text.endsWith(" ")) {
-            text = text.substring(0, text.length() - 1);
-        }
-
-        if (text.equals(MXTemplate.EXCOMMAND_PROGRAM_INC)) {
-            int[] template = {MXTemplate.DTEXT_PROGINC, channel};
-            return _cache.fromTemplate(template);
-        }
-        if (text.equals(MXTemplate.EXCOMMAND_PROGRAM_DEC)) {
-            int[] template = {MXTemplate.DTEXT_PROGDEC, channel};
-            return _cache.fromTemplate(template);
-        }
-
-        try {
-            int rpn_msb;
-            int rpn_lsb;
-            int nrpn_msb;
-            int nrpn_lsb;
-
-            char[] line = text.toCharArray();
-
-            char[] word = new char[line.length];
-            int wx = 0;
-
-            int readX = 0;
-            ArrayList<String> separated = new ArrayList();
-            boolean inChecksum = false;
-
-            while (readX < line.length) {
-                char ch = line[readX++];
-                if (ch == '[') {
-                    separated.add("#CHECKYSUM_START");
-                    inChecksum = true;
-                    continue;
-                }
-                if (ch == ']') {
-                    if (inChecksum) {
-                        inChecksum = false;
-                        if (wx != 0) {
-                            separated.add(new String(word, 0, wx));
-                        }
-                        separated.add("#CHECKSUM_SET");
-                        wx = 0;
-                    } else {
-                        new Exception("Checksum have not opened").printStackTrace();
-                    }
-                    continue;
-                }
-                if (ch == ' ' || ch == '\t' || ch == ',') {
-                    if (wx != 0) {
-                        separated.add(new String(word, 0, wx));
-                    }
-                    wx = 0;
-                    continue;
-                }
-                word[wx++] = ch;
-            }
-
-            if (wx != 0) {
-                separated.add(new String(word, 0, wx));
-                wx = 0;
-            }
-
-            if (text.contains("@")) {
-                ArrayList<String> sepa2 = new ArrayList();
-                for (int sx = 0; sx < separated.size(); ++sx) {
-                    String str = separated.get(sx);
-                    if (str.startsWith("@")) {
-                        if (str.equalsIgnoreCase("@PB")) {
-                            sepa2.add("#ECH");
-                            sepa2.add(separated.get(++sx));
-                            sepa2.add(separated.get(++sx));
-                        } else if (str.equalsIgnoreCase("@CP")) {
-                            sepa2.add("#DCH");
-                            sepa2.add(separated.get(++sx));
-                            sepa2.add("#NONE");
-                        } else if (str.equalsIgnoreCase("@PKP")) {
-                            sepa2.add("#ACH");
-                            String t = separated.get(++sx);
-                            if (t.startsWith("#")) {
-                                sepa2.add(t);
-                            } else {
-                                sepa2.add(t);
-                            }
-                            sepa2.add(separated.get(++sx));
-                        } else if (str.equalsIgnoreCase("@CC")) {
-                            sepa2.add("#BCH");
-                            String t = separated.get(++sx);
-                            sepa2.add(t);
-                            sx++;
-                            if (separated.size() <= sx) {
-                                return null;
-                            }
-                            sepa2.add(separated.get(sx));
-                        } else if (str.equalsIgnoreCase("@SYSEX")) {
-                            //THRU (no need recompile)
-                        } else if (str.equalsIgnoreCase("@RPN")) {
-                            int msb = MXTemplate.readAliasText(separated.get(++sx));
-                            int lsb = MXTemplate.readAliasText(separated.get(++sx));
-                            int data = MXTemplate.readAliasText(separated.get(++sx));
-                            if (separated.size() >= sx + 2) {
-                                data = data << 7;
-                                data |= MXTemplate.readAliasText(separated.get(++sx));
-                            }
-
-                            int[] template = {MXTemplate.DTEXT_RPN, msb, lsb, data};
-                            return _cache.fromTemplate(template);
-                        } else if (str.equalsIgnoreCase("@NRPN")) {
-                            int msb = MXTemplate.readAliasText(separated.get(++sx));
-                            int lsb = MXTemplate.readAliasText(separated.get(++sx));
-                            int data = MXTemplate.readAliasText(separated.get(++sx));
-                            if (separated.size() >= sx + 2) {
-                                data = data << 7;
-                                data |= MXTemplate.readAliasText(separated.get(++sx));
-                            }
-
-                            int[] template = {MXTemplate.DTEXT_NRPN, msb, lsb, data};
-                            return _cache.fromTemplate(template);
-                        } else {
-                            System.out.println("Not Support [" + text + "]");
-                            return null;
-                        }
-                    } else {
-                        sepa2.add(str);
-                    }
-                }
-                separated = sepa2;
-            }
-
-            // cleanup
-            int[] compiled = new int[separated.size()];
-            int cx = 0;
-            int px = 0;
-
-            for (int sx = 0; sx < separated.size(); ++sx) {
-                String str = separated.get(sx);
-                int code = MXTemplate.readAliasText(str);
-                if (code < 0) {
-                    return null;
-                }
-                compiled[px++] = code;
-            }
-
-            MXTemplate temp = _cache.fromTemplate(compiled);
-            return temp;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return _instance.fromDword2(port, dword);
     }
 }

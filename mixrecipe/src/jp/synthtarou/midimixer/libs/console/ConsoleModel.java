@@ -207,37 +207,37 @@ public class ConsoleModel implements ListModel<String> {
         /* Ignore */
         if (_recordClock == false) {
             switch (e.getType()) {
-                case ConsoleElement.TYPE_DWORD: {
+                case ConsoleElement.CONSOLE_DWORD: {
                     int dword = e.getDword();
                     int status = (dword >> 16) & 0xff;
                     int data1 = (dword >> 8) & 0xff;
                     int data2 = (dword) & 0xff;
-                    if (status == MXMidi.STATUS_ACTIVESENSING
-                            || status == MXMidi.STATUS_MIDICLOCK
-                            || status == MXMidi.STATUS_MIDITIMECODE) {
+                    if (status == MXMidi.COMMAND_ACTIVESENSING
+                            || status == MXMidi.COMMAND_MIDICLOCK
+                            || status == MXMidi.COMMAND_MIDITIMECODE) {
                         return;
                     }
                     break;
                 }
-                case ConsoleElement.TYPE_DATA: {
+                case ConsoleElement.CONSOLE_DATA: {
                     byte[] data = e.getData();
                     if (data.length > 0) {
                         int status = data[0] & 0xff;
-                        if (status == MXMidi.STATUS_ACTIVESENSING
-                                || status == MXMidi.STATUS_MIDICLOCK
-                                || status == MXMidi.STATUS_MIDITIMECODE) {
+                        if (status == MXMidi.COMMAND_ACTIVESENSING
+                                || status == MXMidi.COMMAND_MIDICLOCK
+                                || status == MXMidi.COMMAND_MIDITIMECODE) {
                             return;
                         }
                     }
                     break;
                 }
-                case ConsoleElement.TYPE_MESSAGE: {
+                case ConsoleElement.CONSOLE_MESSAGE: {
                     byte[] data = e.getMessage().createBytes();
                     if (data.length > 0) {
                         int status2 = data[0] & 0xff;
-                        if (status2 == MXMidi.STATUS_ACTIVESENSING
-                                || status2 == MXMidi.STATUS_MIDICLOCK
-                                || status2 == MXMidi.STATUS_MIDITIMECODE) {
+                        if (status2 == MXMidi.COMMAND_ACTIVESENSING
+                                || status2 == MXMidi.COMMAND_MIDICLOCK
+                                || status2 == MXMidi.COMMAND_MIDITIMECODE) {
                             return;
                         }
                     }
@@ -477,8 +477,8 @@ public class ConsoleModel implements ListModel<String> {
                 String text ="-";
                 if (value != null) {
                     byte[] data = value.getData();
-                    System.out.println("data = " + data.length + MXUtil.dumpHexFF(data));
-                    text = MXUtil.dumpHexFF(data);
+                    System.out.println("data = " + data.length + MXUtil.dumpHex(data));
+                    text = MXUtil.dumpHex(data);
                 }
                 
                 JViewport port = (JViewport)_refList.getParent();

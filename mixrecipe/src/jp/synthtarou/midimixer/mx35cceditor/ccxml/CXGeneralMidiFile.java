@@ -187,7 +187,7 @@ public class CXGeneralMidiFile {
 
         for (MXWrap<Integer> wrap : MXMidi.listupCommand()) {
             int command = wrap.value;
-            if (command == MXMidi.COMMAND_CONTROLCHANGE) {
+            if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
                 continue;
             }
             String name = MXMidi.nameOfChannelMessage(command);

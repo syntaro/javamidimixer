@@ -155,12 +155,12 @@ public class EditorForInstrument extends javax.swing.JPanel {
 
         @Override
         public void noteOn(int note) {
-            sendMessageToReceiver(MXMidi.COMMAND_NOTEON, note, getVelocity());
+            sendMessageToReceiver(MXMidi.COMMAND_CH_NOTEON, note, getVelocity());
         }
 
         @Override
         public void noteOff(int note) {
-            sendMessageToReceiver(MXMidi.COMMAND_NOTEOFF, note, 0);
+            sendMessageToReceiver(MXMidi.COMMAND_CH_NOTEOFF, note, 0);
         }
 
         @Override
@@ -879,8 +879,8 @@ public class EditorForInstrument extends javax.swing.JPanel {
         int lsb = MXUtil.numberFromText(bankLSB, -1);
 
         if (msb > 0 && lsb > 0) {
-            sendMessageToReceiver(MXMidi.COMMAND_CONTROLCHANGE, MXMidi.DATA1_CC_BANKSELECT, msb);
-            sendMessageToReceiver(MXMidi.COMMAND_CONTROLCHANGE, MXMidi.DATA1_CC_BANKSELECT + 32, lsb);
+            sendMessageToReceiver(MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_BANKSELECT, msb);
+            sendMessageToReceiver(MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_BANKSELECT + 32, lsb);
             try {
                 Thread.sleep(500);
             } catch (Exception e) {
@@ -895,7 +895,7 @@ public class EditorForInstrument extends javax.swing.JPanel {
 
         if (pc >= 1 && pc <= 128) {
             jLabelBankProgram.setText(pcPC + ": " + pcName);
-            sendMessageToReceiver(MXMidi.COMMAND_PROGRAMCHANGE, pc - 1, 0);
+            sendMessageToReceiver(MXMidi.COMMAND_CH_PROGRAMCHANGE, pc - 1, 0);
         }
     }
 

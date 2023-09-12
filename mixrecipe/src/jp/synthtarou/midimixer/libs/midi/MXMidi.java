@@ -105,15 +105,39 @@ public class MXMidi {
     }
     
     
-    public static final int COMMAND_NOTEOFF = 0x80;
-    public static final int COMMAND_NOTEON = 0x90;
-    public static final int COMMAND_POLYPRESSURE = 0xa0;
-    public static final int COMMAND_CONTROLCHANGE = 0xb0;
-    public static final int COMMAND_PROGRAMCHANGE = 0xc0;
-    public static final int COMMAND_CHANNELPRESSURE = 0xd0;
-    public static final int COMMAND_PITCHWHEEL = 0xe0;
-    public static final int COMMAND_SYSEX = 0xf0;
+    public static final int COMMAND_CH_NOTEOFF = 0x80; 
+    public static final int COMMAND_CH_NOTEON = 0x90;
+    public static final int COMMAND_CH_POLYPRESSURE = 0xa0;
+    public static final int COMMAND_CH_CONTROLCHANGE = 0xb0;
+    public static final int COMMAND_CH_PROGRAMCHANGE = 0xc0;
+    public static final int COMMAND_CH_CHANNELPRESSURE = 0xd0;
+    public static final int COMMAND_CH_PITCHWHEEL = 0xe0;
     
+    public static final int COMMAND_SYSEX = 0xf0;
+    public static final int COMMAND_MIDITIMECODE = 0xf1;
+    public static final int COMMAND_SONGPOSITION = 0xf2;
+    public static final int COMMAND_SONGSELECT = 0xf3;
+    public static final int COMMAND_F4 = 0xf4;
+    public static final int COMMAND_F5 = 0xf5;
+    public static final int COMMAND_TUNEREQUEST = 0xf6;
+    public static final int COMMAND_SYSEX_END = 0xf7;
+    public static final int COMMAND_MIDICLOCK = 0xf8;
+    public static final int COMMAND_F9 = 0xf9;
+    public static final int COMMAND_SEQSTART = 0xfa;
+    public static final int COMMAND_SEQCONTINUE = 0xfb;
+    public static final int COMMAND_SEQSTOP = 0xfc;
+    public static final int COMMAND_FD = 0xfd;
+    public static final int COMMAND_ACTIVESENSING = 0xfe;
+    public static final int COMMAND_META_OR_RESET = 0xff;
+
+    public static final int COMMAND2_NONE = 0x5400; /* no param */
+    public static final int COMMAND2_CH_RPN = 0x5500; /* msb lsb datamsb datalsb */
+    public static final int COMMAND2_CH_NRPN = 0x5600; /* msb lsb datamsb datalsb */
+    public static final int COMMAND2_CH_PROGRAM_INC = 0x6000; /* no param */
+    public static final int COMMAND2_CH_PROGRAM_DEC = 0x6100; /* no param */
+    public static final int COMMAND2_META = 0x6500; /* ff --- */
+    public static final int COMMAND2_SYSTEM = 0x6600; /* f0~fe nn nn */
+
     public static final int DATA1_CC_BANKSELECT = 0;
     public static final int DATA1_CC_MODULATION = 1;
     public static final int DATA1_CC_BREATH = 2;
@@ -180,22 +204,6 @@ public class MXMidi {
     public static final int DATA1_CC_OMNI_ON = 125;
     public static final int DATA1_CC_MONOMODE = 126;
     public static final int DATA1_CC_POLYMODE = 127;
-    public static final int STATUS_SYSEXSTART = 240; //0xf0
-    public static final int STATUS_MIDITIMECODE = 241;
-    public static final int STATUS_SONGPOSITION = 242;
-    public static final int STATUS_SONGSELECT = 243;
-    public static final int STATUS_F4 = 244;
-    public static final int STATUS_F5 = 245;
-    public static final int STATUS_TUNEREQUEST = 246;
-    public static final int STATUS_SYSEXFIN = 247;
-    public static final int STATUS_MIDICLOCK = 248;
-    public static final int STATUS_F9 = 249;
-    public static final int STATUS_SEQSTART = 250;
-    public static final int STATUS_SEQCONTINUE = 251;
-    public static final int STATUS_SEQSTOP = 252;
-    public static final int STATUS_FD = 253;
-    public static final int STATUS_ACTIVESENSING = 254;
-    public static final int STATUS_RESET = 255;
 
     public static final int MSB3D_AZIMUTH_ANGLE = 0;
     public static final int MSB3D_ELEVATION_ANGLE = 1;
@@ -367,22 +375,20 @@ public class MXMidi {
     
     public static final String nameOfChannelMessage(int command) {
         switch (command) {
-            case MXMidi.COMMAND_NOTEON:
+            case MXMidi.COMMAND_CH_NOTEON:
                 return "ON   ";
-            case MXMidi.COMMAND_NOTEOFF:
+            case MXMidi.COMMAND_CH_NOTEOFF:
                 return "OFF  ";
-            case MXMidi.COMMAND_POLYPRESSURE:
+            case MXMidi.COMMAND_CH_POLYPRESSURE:
                 return "PresP";
-            case MXMidi.COMMAND_CONTROLCHANGE:
+            case MXMidi.COMMAND_CH_CONTROLCHANGE:
                 return "CC   ";
-            case MXMidi.COMMAND_PROGRAMCHANGE:
+            case MXMidi.COMMAND_CH_PROGRAMCHANGE:
                 return "PROG ";
-            case MXMidi.COMMAND_CHANNELPRESSURE:
+            case MXMidi.COMMAND_CH_CHANNELPRESSURE:
                 return "Press";
-            case MXMidi.COMMAND_PITCHWHEEL:
+            case MXMidi.COMMAND_CH_PITCHWHEEL:
                 return "PITCH";
-            case MXMidi.STATUS_SYSEXSTART:
-                return "SYSEX";
         }
         return null;
     }
@@ -557,22 +563,22 @@ public class MXMidi {
 
     public static String nameOfSystemRealtimeMessage(int command) {
         switch (command) {
-            case MXMidi.STATUS_MIDICLOCK:
+            case MXMidi.COMMAND_MIDICLOCK:
                 return "Clock";
-            case MXMidi.STATUS_F9:
+            case MXMidi.COMMAND_F9:
                 return "#F9";
-            case MXMidi.STATUS_SEQSTART:
+            case MXMidi.COMMAND_SEQSTART:
                 return "Seq Start";
-            case MXMidi.STATUS_SEQCONTINUE:
+            case MXMidi.COMMAND_SEQCONTINUE:
                 return "Seq Cont";
-            case MXMidi.STATUS_SEQSTOP:
+            case MXMidi.COMMAND_SEQSTOP:
                 return "Seq Stop";
-            case MXMidi.STATUS_FD:
+            case MXMidi.COMMAND_FD:
                 return "#FD";
-            case MXMidi.STATUS_ACTIVESENSING:
+            case MXMidi.COMMAND_ACTIVESENSING:
                 return "Active";
-            case MXMidi.STATUS_RESET:
-                return "Reset";
+            case MXMidi.COMMAND_META_OR_RESET:
+                return "Meta/Reset";
         }
         return null;
     }
@@ -603,29 +609,29 @@ public class MXMidi {
 
     public static String nameOfSystemCommonMessage(int status) {
         switch (status) {
-            case MXMidi.STATUS_SYSEXSTART:
+            case MXMidi.COMMAND_SYSEX:
                 return "SysEx[";
-            case MXMidi.STATUS_MIDITIMECODE:
+            case MXMidi.COMMAND_MIDITIMECODE:
                 return "Time  ";
-            case MXMidi.STATUS_SONGPOSITION:
+            case MXMidi.COMMAND_SONGPOSITION:
                 return "SngPos";
-            case MXMidi.STATUS_SONGSELECT:
+            case MXMidi.COMMAND_SONGSELECT:
                 return "SngNum";
-            case MXMidi.STATUS_F4:
+            case MXMidi.COMMAND_F4:
                 return "Sys F4";
-            case MXMidi.STATUS_F5:
+            case MXMidi.COMMAND_F5:
                 return "Sys F5";
-            case MXMidi.STATUS_TUNEREQUEST:
+            case MXMidi.COMMAND_TUNEREQUEST:
                 return "Tuner ";
-            case MXMidi.STATUS_SYSEXFIN:
-                return "]SysEx";
+            case MXMidi.COMMAND_SYSEX_END:
+                return "]EndEx";
         }
         return null;
     }
 
     public static String nameOfMessage(int status, int data1, int data2) {
         int command = status & 240;
-        if (command == MXMidi.COMMAND_CONTROLCHANGE) {
+        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
             if (data1 == MXMidi.DATA1_CC_DATAINC) {
                 return "INC";
             }
@@ -639,7 +645,7 @@ public class MXMidi {
         }
         if (command >= 128 && command <= 224) {
             String name = nameOfChannelMessage(command);
-            if (command == MXMidi.COMMAND_NOTEON || command == MXMidi.COMMAND_NOTEOFF || command == MXMidi.COMMAND_POLYPRESSURE) {
+            if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF || command == MXMidi.COMMAND_CH_POLYPRESSURE) {
                 return name;
             } else {
                 return name;

@@ -101,6 +101,7 @@ public class MXEntrance {
             if (contains(message)) {
                 return false;
             }
+            System.out.println("ride on" + message);
             add(message);
             return true;
         }

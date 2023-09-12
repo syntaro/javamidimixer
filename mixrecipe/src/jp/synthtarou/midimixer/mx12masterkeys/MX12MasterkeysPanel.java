@@ -32,6 +32,7 @@ import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -121,12 +122,12 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
 
         _piano.setHandler(new MXSwingPiano.Handler() {
             public void noteOn(int note) {
-                MXMessage message = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_NOTEON + _process.getMouseChannel(), note, _process.getMouseVelocity());
+                MXMessage message = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_NOTEON + _process.getMouseChannel(), note, _process.getMouseVelocity());
                 _process.mouseMessage(message);
             }
 
             public void noteOff(int note) {
-                MXMessage message = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_NOTEOFF + _process.getMouseChannel(), note, 0);
+                MXMessage message = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_NOTEOFF + _process.getMouseChannel(), note, 0);
                 _process.mouseMessage(message);
             }
 
@@ -328,8 +329,8 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
         int value = jSliderModwheel.getValue();
         _valueModulation = value;
         synchronized(MXTiming.mutex) {            
-            MXMessage msg = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CONTROLCHANGE + _process.getMouseChannel(), MXMidi.DATA1_CC_MODULATION, 0);
-            msg.setValue(value);
+            MXMessage msg = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_CONTROLCHANGE + _process.getMouseChannel(), MXMidi.DATA1_CC_MODULATION, 0);
+            msg.setValue(RangedValue.new7bit(value));
             _process.mouseMessage(msg);
         }
 
@@ -345,8 +346,8 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
         int value = jSliderPitch.getValue();
         _valuePitch = value;
         synchronized(MXTiming.mutex) {            
-            MXMessage msg = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_PITCHWHEEL + _process.getMouseChannel(), 0, 0);
-            msg.setValue(value);
+            MXMessage msg = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_PITCHWHEEL + _process.getMouseChannel(), 0, 0);
+            msg.setValue(RangedValue.new7bit(value));
             _process.mouseMessage(msg);
         }
     }//GEN-LAST:event_jSliderPitchStateChanged
