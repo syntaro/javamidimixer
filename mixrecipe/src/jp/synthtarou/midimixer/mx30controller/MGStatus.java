@@ -43,7 +43,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
 
     String _name = "";
     String _memo = "";
-    MXMessage _base = MXMessageFactory.fromTemplate(0, null);
+    MXMessage _base = MXMessageFactory.fromTemplate(0, null, 0, RangedValue.ZERO7, RangedValue.ZERO7);
 
     int _dataroomType = MXVisitant.ROOMTYPE_NODATA;
     int _dataroomMSB = -1;
@@ -73,7 +73,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         if (template == null) {
             return null;
         }
-        MXMessage message = template.buildMessage(_port, _base.getChannel(), _base.getGate(), _base.getValue());
+        MXMessage message = new MXMessage(_port, template, _base.getChannel(), _base.getGate(), _base.getValue());
         message._timing = timing;
         message.setValuePairCC14(_ccPair14);
 

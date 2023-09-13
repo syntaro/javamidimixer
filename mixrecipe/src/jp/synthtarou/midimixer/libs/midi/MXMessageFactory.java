@@ -16,10 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
-import javax.sound.midi.MidiMessage;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
 
 /**
@@ -37,17 +34,15 @@ public class MXMessageFactory {
     public MXTemplate[] _cacheControlChange = new MXTemplate[256];
     
     synchronized MXMessage fromDword2(int port, int dword) {
-        if (dword == 0) {
-            return null;
-        }
-
         int status = (dword >> 16) & 0xff;
         int data1 = (dword >> 8) & 0xff;
         int data2 = dword & 0xff;
+        int channel = -1;
         MXTemplate found = null;
 
         if (status >= 0x80 && status <= 0xef) {
             int command = status & 0xf0;
+            channel = status & 0x0f;
             
             if (command == 0xB0) { //ControlChange
                 if (_cacheControlChange[data1] == null) {
@@ -81,9 +76,9 @@ public class MXMessageFactory {
             found = new MXTemplate(template);
         }
         
-        MXMessage message = new MXMessage(port, found);
-        if (message.readDwordForValues(dword) == false) {
-            System.out.println("can't read " + Integer.toHexString(dword) + " -> " + found + " <- " + "(" + message.getChannel() + ")" + message.getGate()+ ", " + message.getValue());
+        MXMessage message = found.readDwordForChGateValue(port, dword);
+        if (message == null) {
+            message = new MXMessage(port, found);
         }
         return message;
     }
@@ -92,13 +87,16 @@ public class MXMessageFactory {
     
     LinkedList<MXTemplate> _cachedTemplate = new LinkedList();
     
-    public static synchronized MXMessage fromTemplate(int port, int[] template) {
+    public static synchronized MXMessage fromTemplate(int port, int[] template, int channel, RangedValue gate, RangedValue value) {
         if (template == null || template.length == 0 || template[0] == 0) {
             template = new int[] { 0, 0, 0 };
         }
 
         MXTemplate t = new MXTemplate(template);
         MXMessage message = new MXMessage(port, t);
+        message.setChannel(channel);
+        message.setGate(gate);
+        message.setValue(value);
         return message;
     }
  
@@ -135,7 +133,7 @@ public class MXMessageFactory {
         for (int i = 0; i < data.length; ++ i) {
             template[i] = data[i] & 0xff;
         }
-        return fromTemplate(port, template);
+        return fromTemplate(port, template, 0, RangedValue.ZERO7, RangedValue.ZERO7);
     }
 
     public static MXMessage createDummy() {

@@ -234,11 +234,11 @@ public final class MXMessage {
         return null;
     }
 
-    protected MXMessage(int port, MXTemplate template) {
+    public MXMessage(int port, MXTemplate template) {
         this(port, template, 0, RangedValue.ZERO7, RangedValue.ZERO7);
     }
 
-    protected MXMessage(int port, MXTemplate template, int channel, RangedValue gate, RangedValue value) {
+    public MXMessage(int port, MXTemplate template, int channel, RangedValue gate, RangedValue value) {
         if (template == null) {
             throw new NullPointerException();
         }
@@ -249,17 +249,15 @@ public final class MXMessage {
         _value = value;
     }
 
-
     public byte[] getDataBytes() {
         createBytes();
         return _dataBytes;        //SYSEXの場合１バイト目は、STATUSに入る
     }
 
     public boolean isMessageTypeChannel() {
-        createBytes();
-        if (isBinMessage() == false) {
-            int status = getStatus();
-            if (status >= 0x80 && status <= 0xef) {
+        if (_template.size() > 0) {
+            int code = _template.get(0);
+            if (code >= 0x80 && code <= 0xef) {
                 return true;
             }
         }
@@ -677,140 +675,6 @@ public final class MXMessage {
         return true;
     }
     
-    public boolean readDataForValues(byte[] data) {
-        MXTemplate me = _template;
-        
-        boolean checkMatch = false;
-        boolean cantRead = false;
-
-        switch(me.get(0)) {
-            case MXMidi.COMMAND2_NONE:
-                if (data.length == 0) {
-                    return true;
-                }
-                cantRead = true;
-                break;
-            case MXMidi.COMMAND2_CH_RPN:
-                cantRead = true;
-                break;
-            case MXMidi.COMMAND2_CH_NRPN:
-                cantRead = true;
-                break;
-            case MXMidi.COMMAND2_CH_PROGRAM_INC:
-                cantRead = true;
-                break;
-            case MXMidi.COMMAND2_CH_PROGRAM_DEC:
-                cantRead = true;
-                break;
-            case MXMidi.COMMAND2_META:
-                checkMatch = true;
-                break;
-            case MXMidi.COMMAND2_SYSTEM:
-                checkMatch = true;
-                break;
-            default: //Command1 
-                checkMatch = true;
-                break;
-        }
-        
-        
-        if (checkMatch) {
-            int gateLo = -1, gateHi = -1;
-            int valueLo = -1, valueHi = -1;
-
-            int dataSeek = 0;
-            int templateSeek = 0;
-
-            while (templateSeek < me.size() && dataSeek < data.length) {
-                int c1 = me.get(templateSeek);
-                templateSeek ++;
-
-                if (c1 == MXTemplate.DTEXT_CHECKSUM_START) {
-                    continue;
-                }
-                if (c1 == MXTemplate.DTEXT_CHECKSUM_SET) {
-                    //any ok
-                    dataSeek ++;
-                    continue;
-                }
-                int c2 = data[dataSeek ++] & 0xff;
-                if (templateSeek == 1 && c2 >= 0x80 && c2 <= 0xef) {
-                    setChannel(c2 & 0x0f);
-                    c1 = c1 & 0xf0;
-                    c2 = c2 & 0xf0;
-                }
-                if (c1 != c2) {
-                    switch(c1) {                        
-                        case MXTemplate.DTEXT_GL:
-                            gateLo = c2;
-                            break;
-                        case MXTemplate.DTEXT_GH:
-                            gateHi = c2;
-                            break;
-                        case MXTemplate.DTEXT_VL:
-                            valueLo = c2;
-                            break;
-                        case MXTemplate.DTEXT_VH:
-                            valueHi = c2;
-                            break;
-                        default:
-                            if ((c1 & 0xff00) == 0) {
-                                return false;
-                            }
-                            break;
-                    }
-                }
-            }
-
-            if (gateLo >= 0 || gateHi >= 0) {
-                if (gateLo < 0) {
-                    gateLo = 0;
-                }
-                if (gateHi < 0) {
-                    gateHi = 0;
-                    _gate = RangedValue.new7bit(gateLo);
-                }
-                else {
-                    _gate = RangedValue.new14bit((gateHi << 7) | gateLo);
-                }
-            }
-            if (valueLo >= 0 || valueHi >= 0) {
-                if (valueLo < 0) {
-                    valueLo = 0;
-                }
-                if (valueHi < 0) {
-                    valueHi = 0;
-                    _value = RangedValue.new7bit(valueLo);
-                }
-                else {
-                    _value = RangedValue.new14bit((valueHi << 7) | valueLo);
-                }
-            }
-            boolean readed = (valueLo >= 0 || valueHi >= 0 || gateLo >= 0 || gateHi >= 0);
-            return readed;
-        }
-        
-        if (cantRead) {
-            return false;
-        }
-        //TODO another case
-        return false;
-    }
-
-    byte[] dwordBuffer = new byte[3];    
-    
-    public synchronized boolean readDwordForValues(int dword) {
-        int status = (dword >> 16) & 0xff;
-        int data1 = (dword >> 8) & 0xff;
-        int data2 = dword & 0xff;
-        
-        dwordBuffer[0] = (byte)status;
-        dwordBuffer[1] = (byte)data1;
-        dwordBuffer[2] = (byte)data2;
-        
-        return readDataForValues(dwordBuffer);
-    }
-
     public MXMessage refillGate() {
         MXTemplate temp = _template;
         switch (temp.get(0)) {

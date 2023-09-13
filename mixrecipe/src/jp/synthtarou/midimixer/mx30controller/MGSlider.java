@@ -270,34 +270,6 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
             _process.controlByUI(status, var._var);
         }
     }
-    /*
-    public void doHomePosition() {
-        final MGStatus status = getStatus();
-        final int current = status._value._var;
-        final int value = status._valueHome;
-        Thread t = new Thread(new Runnable() {
-            public void run() {
-                try {
-                    for (int i = 0; i < 5; ++ i) {
-                        int x = current * (5 - i) + value * i;
-                        x /= 5;
-                        Thread.sleep(70);
-                        status.updateValue(x);
-                        updateUIByStatus();
-                        if (x == value) { 
-                            break;
-                        }
-                    }
-                }catch(Exception e) {
-                    e.printStackTrace();
-                }finally {
-                    status.updateValue(value);
-                    updateUIByStatus();
-                }
-            }
-        });
-        t.start();
-    }*/
 
     public void editContoller() {
         _process._parent.enterEditMode(false);

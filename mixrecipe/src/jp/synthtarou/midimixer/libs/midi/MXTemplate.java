@@ -278,7 +278,6 @@ static final int DTEXT_CCNUM = 0x1500;
 
     public static String fromType(int command) {
         int index = textCommand.indexOfValue(command);
-        System.out.println("index  = " + index + ", command = " + Integer.toHexString(command));
         if (index < 0 && command == 0) {
             index = textCommand.indexOfValue(MXMidi.COMMAND2_NONE);
         }
@@ -492,10 +491,6 @@ static final int DTEXT_CCNUM = 0x1500;
             return x & 0xff;
         }
         return 0;
-    }
-
-    public MXMessage buildMessage(int port, int channel, RangedValue gate, RangedValue value) {
-        return new MXMessage(port, this, channel, gate, value);
     }
 
     /**
@@ -717,14 +712,141 @@ static final int DTEXT_CCNUM = 0x1500;
                 compiled[px++] = code;
             }
 
-            MXMessage temp = MXMessageFactory.fromTemplate(port, compiled);
-            temp.setChannel(channel);
-            temp.setGate(gate);
-            temp.setValue(value);
+            MXMessage temp = MXMessageFactory.fromTemplate(port, compiled, channel, gate, value);
             return temp;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public MXMessage readDataForChGateValue(int port, byte[] data) {
+        MXTemplate me = this;
+        
+        boolean checkMatch = false;
+        MXTemplate found = null;
+        
+        int channel  = 0;
+        RangedValue gate = RangedValue.ZERO7;
+        RangedValue value = RangedValue.ZERO7;
+
+        switch(me.get(0)) {
+            case MXMidi.COMMAND2_NONE:
+                if (data.length == 0) {
+                    //TODO cache
+                    return new MXMessage(port, me);
+                }
+                return null;
+            case MXMidi.COMMAND2_CH_RPN:
+                //TODO
+                return null;
+            case MXMidi.COMMAND2_CH_NRPN:
+                //TODO
+                return null;
+            case MXMidi.COMMAND2_CH_PROGRAM_INC:
+                return null;
+            case MXMidi.COMMAND2_CH_PROGRAM_DEC:
+                return null;
+            case MXMidi.COMMAND2_META:
+                checkMatch = true;
+                break;
+            case MXMidi.COMMAND2_SYSTEM:
+                checkMatch = true;
+                break;
+            default: //Command1 
+                checkMatch = true;
+                break;
+        }
+        
+        if (checkMatch) {
+            int gateLo = -1, gateHi = -1;
+            int valueLo = -1, valueHi = -1;
+
+            int dataSeek = 0;
+            int templateSeek = 0;
+
+            while (templateSeek < me.size() && dataSeek < data.length) {
+                int c1 = me.get(templateSeek);
+                templateSeek ++;
+
+                if (c1 == MXTemplate.DTEXT_CHECKSUM_START) {
+                    continue;
+                }
+                if (c1 == MXTemplate.DTEXT_CHECKSUM_SET) {
+                    //any ok
+                    dataSeek ++;
+                    continue;
+                }
+                int c2 = data[dataSeek ++] & 0xff;
+                if (templateSeek == 1 && c2 >= 0x80 && c2 <= 0xef) {
+                    channel = c2 & 0x0f;
+                    c1 = c1 & 0xf0;
+                    c2 = c2 & 0xf0;
+                }
+                if (c1 != c2) {
+                    switch(c1) {                        
+                        case MXTemplate.DTEXT_GL:
+                            gateLo = c2;
+                            break;
+                        case MXTemplate.DTEXT_GH:
+                            gateHi = c2;
+                            break;
+                        case MXTemplate.DTEXT_VL:
+                            valueLo = c2;
+                            break;
+                        case MXTemplate.DTEXT_VH:
+                            valueHi = c2;
+                            break;
+                        default:
+                            if ((c1 & 0xff00) == 0) {
+                                return null;
+                            }
+                            break;
+                    }
+                }
+            }
+
+            if (gateLo >= 0 || gateHi >= 0) {
+                if (gateLo < 0) {
+                    gateLo = 0;
+                }
+                if (gateHi < 0) {
+                    gateHi = 0;
+                    gate = RangedValue.new7bit(gateLo);
+                }
+                else {
+                    gate = RangedValue.new14bit((gateHi << 7) | gateLo);
+                }
+            }
+            if (valueLo >= 0 || valueHi >= 0) {
+                if (valueLo < 0) {
+                    valueLo = 0;
+                }
+                if (valueHi < 0) {
+                    valueHi = 0;
+                    value = RangedValue.new7bit(valueLo);
+                }
+                else {
+                    value = RangedValue.new14bit((valueHi << 7) | valueLo);
+                }
+            }
+            return new MXMessage(port, me, channel, gate, value);
+        }
+        
+        return null;
+    }
+
+    byte[] dwordBuffer = new byte[3];    
+    
+    public synchronized MXMessage readDwordForChGateValue(int port, int dword) {
+        int status = (dword >> 16) & 0xff;
+        int data1 = (dword >> 8) & 0xff;
+        int data2 = dword & 0xff;
+        
+        dwordBuffer[0] = (byte)status;
+        dwordBuffer[1] = (byte)data1;
+        dwordBuffer[2] = (byte)data2;
+        
+        return readDataForChGateValue(port, dwordBuffer);
     }
 }

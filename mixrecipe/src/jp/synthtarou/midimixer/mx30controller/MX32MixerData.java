@@ -88,7 +88,6 @@ public class MX32MixerData {
         ArrayList<MGStatus>[] circleMatrix = new ArrayList[MXAppConfig.CIRCLE_ROW_COUNT];
         ArrayList<MGStatus>[] sliderMatrix = new ArrayList[MXAppConfig.SLIDER_ROW_COUNT];
 
-        int port = process._port;
         int column;
 
         circleMatrix[0] = new ArrayList();
@@ -115,7 +114,7 @@ public class MX32MixerData {
                     status._base = base;
                     status.setValue(RangedValue.new14bit(128 * 128 - 1));
                 } else {
-                    MXMessage base = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_CONTROLCHANGE + column, MXMidi.DATA1_CC_CHANNEL_VOLUME, 128 - 1);
+                    MXMessage base = MXMessageFactory.fromShortMessage(process._port, MXMidi.COMMAND_CH_CONTROLCHANGE + column, MXMidi.DATA1_CC_CHANNEL_VOLUME, 128 - 1);
                     status = new MGStatus(process._port, MGStatus.TYPE_SLIDER, row, column);
                     status._base = base;
                 }
@@ -138,13 +137,13 @@ public class MX32MixerData {
                     status = new MGStatus(process._port, MGStatus.TYPE_CIRCLE, row, column);
                     String text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
 
-                    MXMessage base = MXTemplate.fromDtext(port, text, 0, RangedValue.ZERO7, RangedValue.new14bit(16383));
+                    MXMessage base = MXTemplate.fromDtext(process._port, text, 0, RangedValue.ZERO7, RangedValue.new14bit(16383));
                     status.setBaseMessage(base);
                     circle.add(status);
                     column++;
                 } else {
                     status = new MGStatus(process._port, MGStatus.TYPE_CIRCLE, row, column);
-                    message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_CONTROLCHANGE + column, ccCode[row], 64);
+                    message = MXMessageFactory.fromShortMessage(process._port, MXMidi.COMMAND_CH_CONTROLCHANGE + column, ccCode[row], 64);
                     status._base = message;
                     circle.add(status);
 
