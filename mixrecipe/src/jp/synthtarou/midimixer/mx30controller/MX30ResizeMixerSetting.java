@@ -43,7 +43,7 @@ public class MX30ResizeMixerSetting extends javax.swing.JPanel {
         buttonGroupLines.add(jRadioButtonLine16);
         buttonGroupLines.add(jRadioButtonLine17);
 
-        activeLines = process.getActiveLines();
+        activeLines = process.getVisibleLineCount();
         switch(activeLines) {
             case 4:
                 jRadioButtonLine4.setSelected(true);
@@ -63,7 +63,7 @@ public class MX30ResizeMixerSetting extends javax.swing.JPanel {
                 
         }
         for (int r = 0; r < MXAppConfig.CIRCLE_ROW_COUNT; ++ r) {
-            activeKnob[r] = process.isKnobActive(r);
+            activeKnob[r] = process.isKnobVisible(r);
             switch(r) {
                 case 0:
                     jCheckBoxKnob1.setSelected(activeKnob[r]);
@@ -80,7 +80,7 @@ public class MX30ResizeMixerSetting extends javax.swing.JPanel {
             }
         }
         for (int r = 0; r < MXAppConfig.DRUM_ROW_COUNT; ++ r) {
-            activePad[r] = process.isPadActive(r);
+            activePad[r] = process.isPadVisible(r);
             switch(r) {
                 case 0:
                     jCheckBoxPad1.setSelected(activePad[r]);
@@ -130,13 +130,15 @@ public class MX30ResizeMixerSetting extends javax.swing.JPanel {
 
         jLabel1.setText("Knob");
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jLabel1, gridBagConstraints);
 
         jLabel2.setText("Lines");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jLabel2, gridBagConstraints);
 
@@ -147,69 +149,77 @@ public class MX30ResizeMixerSetting extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jLabel3, gridBagConstraints);
 
-        jCheckBoxKnob1.setText("1");
+        jCheckBoxKnob1.setText("A");
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jCheckBoxKnob1, gridBagConstraints);
 
-        jCheckBoxKnob2.setText("2");
+        jCheckBoxKnob2.setText("B");
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jCheckBoxKnob2, gridBagConstraints);
 
-        jCheckBoxKnob3.setText("3");
+        jCheckBoxKnob3.setText("C");
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jCheckBoxKnob3, gridBagConstraints);
 
-        jCheckBoxKnob4.setText("4");
+        jCheckBoxKnob4.setText("D");
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jCheckBoxKnob4, gridBagConstraints);
 
         jRadioButtonLine4.setText("4");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jRadioButtonLine4, gridBagConstraints);
 
         jRadioButtonLine8.setText("8");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jRadioButtonLine8, gridBagConstraints);
 
         jRadioButtonLine9.setText("9");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jRadioButtonLine9, gridBagConstraints);
 
         jRadioButtonLine16.setText("16");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jRadioButtonLine16, gridBagConstraints);
 
-        jCheckBoxPad1.setText("1");
+        jCheckBoxPad1.setText("X");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jCheckBoxPad1, gridBagConstraints);
 
-        jCheckBoxPad2.setText("2");
+        jCheckBoxPad2.setText("Y");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jCheckBoxPad2, gridBagConstraints);
 
-        jCheckBoxPad3.setText("3");
+        jCheckBoxPad3.setText("Z");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 2;
@@ -242,7 +252,7 @@ public class MX30ResizeMixerSetting extends javax.swing.JPanel {
         jRadioButtonLine17.setText("17");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jRadioButtonLine17, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
@@ -265,7 +275,7 @@ public class MX30ResizeMixerSetting extends javax.swing.JPanel {
             activeLines = 17;
         }
 
-        _process.setActiveLines(activeLines);
+        _process.setVisibleLineCount(activeLines);
 
         activeKnob[0] = jCheckBoxKnob1.isSelected();
         activeKnob[1] = jCheckBoxKnob2.isSelected();
@@ -273,15 +283,15 @@ public class MX30ResizeMixerSetting extends javax.swing.JPanel {
         activeKnob[3] = jCheckBoxKnob4.isSelected();
 
         for (int r = 0; r < MXAppConfig.CIRCLE_ROW_COUNT; ++ r) {
-            _process.setKnobActive(r, activeKnob[r]);
+            _process.setKnobVisible(r, activeKnob[r]);
         }
         
         activePad[0] = jCheckBoxPad1.isSelected();
         activePad[1] = jCheckBoxPad2.isSelected();
-        //activePad[2] = jCheckBoxPad3.isSelected();
+        activePad[2] = jCheckBoxPad3.isSelected();
 
         for (int r = 0; r < MXAppConfig.DRUM_ROW_COUNT; ++ r) {
-            _process.setPadActive(r, activePad[r]);
+            _process.setPadVisible(r, activePad[r]);
         }
         
         MXUtil.getOwnerWindow(this).setVisible(false);

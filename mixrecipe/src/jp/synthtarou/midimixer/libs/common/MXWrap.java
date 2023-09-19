@@ -21,19 +21,19 @@ package jp.synthtarou.midimixer.libs.common;
  * @author Syntarou YOSHIDA
  */
 public class MXWrap<T> {
-    public String name;
-    public T value;
+    public String _name;
+    public T _value;
     
     public MXWrap() {
         
     }
     
     public MXWrap(String name, T value) {
-        this.name = name;
-        this.value = value;
+        this._name = name;
+        this._value = value;
     }
     
     public String toString() {
-        return name;
+        return _name;
     }
 }

@@ -27,8 +27,8 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.TreeSet;
-import jp.synthtarou.midimixer.libs.text.MXLineReader;
-import jp.synthtarou.midimixer.libs.text.MXLineWriter;
+import jp.synthtarou.midimixer.libs.common.MXLineReader;
+import jp.synthtarou.midimixer.libs.common.MXLineWriter;
 
 /**
  *

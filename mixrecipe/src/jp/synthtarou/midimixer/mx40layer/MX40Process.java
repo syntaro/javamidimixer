@@ -25,7 +25,6 @@ import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
@@ -104,7 +103,7 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
             command &= 0xf0;
         }
         
-        int first = message.getTemplate().get(0);
+        int first = message.getTemplateAsPlain(0);
 
         if (first == MXMidi.COMMAND2_CH_PROGRAM_INC) {
             int x = message.getVisitant().getProgram() + 1;

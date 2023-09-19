@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 user0001
+ * Copyright (C) 2023 Syntarou YOSHIDA
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,7 @@ import java.awt.Dimension;
 import java.io.File;
 import javax.swing.Icon;
 import javax.swing.JLabel;
-import javax.swing.JScrollPane;
 import javax.swing.JTree;
-import javax.swing.JViewport;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -31,7 +29,7 @@ import javax.swing.tree.TreeCellRenderer;
 
 /**
  *
- * @author user0001
+ * @author Syntarou YOSHIDA
  */
 public class MyRenderer extends  DefaultTreeCellRenderer{
 

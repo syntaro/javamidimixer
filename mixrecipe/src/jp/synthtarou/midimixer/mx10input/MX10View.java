@@ -38,7 +38,7 @@ public class MX10View extends javax.swing.JPanel {
     JTableWithColumnHeader _jTableSkip;
     
     /**
-     * Creates new form MX10
+     * Creates new form MX10View
      */
     public MX10View(MX10Process process) {
         _process = process; 

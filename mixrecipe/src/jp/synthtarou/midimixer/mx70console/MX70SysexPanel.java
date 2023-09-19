@@ -24,9 +24,9 @@ import javax.swing.JOptionPane;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.console.ConsoleElement;
-import jp.synthtarou.midimixer.libs.console.ConsoleModel;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
+import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
+import jp.synthtarou.midimixer.libs.midi.MXMidiWrapList;
 import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 
 /**
@@ -34,14 +34,14 @@ import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
  * @author Syntarou YOSHIDA
  */
 public class MX70SysexPanel extends javax.swing.JPanel {
-    ConsoleModel _list;
+    MXMidiConsole _list;
     SysEXFile _file;
-    MXWrapList<Integer> _listPort = MXMidi.listupPortAssigned(false);
+    MXWrapList<Integer> _listPort = MXMidiWrapList.listupPortAssigned(false);
 
     /**
      * Creates new form MX70SysexPanel
      */
-    public MX70SysexPanel(ConsoleModel sysex) {
+    public MX70SysexPanel(MXMidiConsole sysex) {
         initComponents();
         _list = sysex;
         _list.bind(jListScan); // 更新も自動
@@ -284,13 +284,13 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         int[] index = jListScan.getSelectedIndices();
         if (index != null & index.length >= 1) {
             for (int i = 0; i < index.length; ++ i) {
-                ConsoleElement e = _list.getConsoleElement(index[i]);
+                MXMidiConsoleElement e = _list.getConsoleElement(index[i]);
                 switch (e.getType()) {
-                    case ConsoleElement.CONSOLE_DATA:
+                    case MXMidiConsoleElement.CONSOLE_DATA:
                         byte[] data = e.getData();
                         _file.add(data, jTextArea1);
                         break;
-                    case ConsoleElement.CONSOLE_MESSAGE:
+                    case MXMidiConsoleElement.CONSOLE_MESSAGE:
                         byte[] data2 =  e.getMessage().getDataBytes();
                         _file.add(data2, jTextArea1);
                         break;

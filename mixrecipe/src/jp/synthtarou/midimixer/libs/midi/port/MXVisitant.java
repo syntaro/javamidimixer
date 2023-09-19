@@ -402,26 +402,31 @@ public class MXVisitant implements Cloneable {
 
     public static boolean isMesssageHaveVisitant(MXMessage message) {
         if (message.isMessageTypeChannel()) {
-            if (message.isCommand(MXMidi.COMMAND_CH_PROGRAMCHANGE)) {
-                return true;
-            }
-            if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
-                switch (message.getData1()) {
-                    case MXMidi.DATA1_CC_DATAENTRY:
-                    case MXMidi.DATA1_CC_DATAENTRY + 32:
-                    case MXMidi.DATA1_CC_DATAINC:
-                    case MXMidi.DATA1_CC_DATADEC:
-                    case MXMidi.DATA1_CC_BANKSELECT:
-                    case MXMidi.DATA1_CC_BANKSELECT + 32:
-                    case MXMidi.DATA1_CC_RPN_LSB:
-                    case MXMidi.DATA1_CC_RPN_MSB:
-                    case MXMidi.DATA1_CC_NRPN_LSB:
-                    case MXMidi.DATA1_CC_NRPN_MSB:
-                    case MXMidi.DATA1_CC_PANPOT:
-                    case MXMidi.DATA1_CC_EXPRESSION:
-                    case MXMidi.DATA1_CC_CHANNEL_VOLUME:
-                        return true;
-                }
+            switch (message.getStatus() & 0xf0) {
+                case MXMidi.COMMAND_CH_PROGRAMCHANGE:
+                    return true;
+                case MXMidi.COMMAND2_CH_RPN:
+                case MXMidi.COMMAND2_CH_NRPN:
+                case MXMidi.COMMAND2_CH_PROGRAM_DEC:
+                case MXMidi.COMMAND2_CH_PROGRAM_INC:
+                    return true;
+                case MXMidi.COMMAND_CH_CONTROLCHANGE:
+                    switch (message.getData1()) {
+                        case MXMidi.DATA1_CC_DATAENTRY:
+                        case MXMidi.DATA1_CC_DATAENTRY + 32:
+                        case MXMidi.DATA1_CC_DATAINC:
+                        case MXMidi.DATA1_CC_DATADEC:
+                        case MXMidi.DATA1_CC_BANKSELECT:
+                        case MXMidi.DATA1_CC_BANKSELECT + 32:
+                        case MXMidi.DATA1_CC_RPN_LSB:
+                        case MXMidi.DATA1_CC_RPN_MSB:
+                        case MXMidi.DATA1_CC_NRPN_LSB:
+                        case MXMidi.DATA1_CC_NRPN_MSB:
+                        case MXMidi.DATA1_CC_PANPOT:
+                        case MXMidi.DATA1_CC_EXPRESSION:
+                        case MXMidi.DATA1_CC_CHANNEL_VOLUME:
+                            return true;
+                    }
             }
         }
         return false;
@@ -441,192 +446,220 @@ public class MXVisitant implements Cloneable {
     }
 
     public synchronized boolean updateVisitantChannel(MXMessage message) {
-        if (message.isCommand(MXMidi.COMMAND_CH_PROGRAMCHANGE)) {
-            int gate = message.getGate()._var;
-            if (gate >= 0 && gate <= 127) { // for Tricky Ghost Number
-                setHavingProgram(true);
-                setProgram(gate);
-                _currentAge++;
-            }
-            return true;
-
-        }
-        if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
-            int oldValue, newValue;
+        if (message.isMessageTypeChannel()) {
             int gate = message.getGate()._var;
             int value = message.getValue()._var;
-            switch (gate) {
-                case MXMidi.DATA1_CC_DATAENTRY:
-                    this.setDataentryMSB(value);
-                    _currentAge++;
-                    return true;
-                case MXMidi.DATA1_CC_DATAENTRY + 32:
-                    this.setDataentryLSB(value);
-                    _currentAge++;
-                    return true;
-                case MXMidi.DATA1_CC_DATAINC:
-                    oldValue = getDataentryValue14();
-                    newValue = oldValue + 1;
-                    if (newValue >= 128) {
-                        newValue = 127;
+            
+            switch (message.getStatus() & 0xfff0) {
+                case MXMidi.COMMAND_CH_PROGRAMCHANGE:
+                    if (gate >= 0 && gate <= 127) { // for Tricky Ghost Number
+                        setHavingProgram(true);
+                        setProgram(gate);
+                        _currentAge++;
                     }
-                    setDataentry14(newValue);
-                    _currentAge++;
                     return true;
-                case MXMidi.DATA1_CC_DATADEC:
-                    oldValue = getDataentryValue14();
-                    newValue = oldValue - 1;
-                    if (newValue < 0) {
-                        newValue = 0;
+                case MXMidi.COMMAND2_CH_RPN:
+                case MXMidi.COMMAND2_CH_NRPN:
+                    if (message.getTemplateSize() >= 5) {
+                        int type = 0, msb = 0, lsb = 0, datamsb = 0, datalsb = 0;
+                        type = message.getTemplateAsParsed(0);
+                        msb = message.getTemplateAsParsed(1);
+                        lsb = message.getTemplateAsParsed(2);
+                        datamsb = message.getTemplateAsParsed(3);
+                        datalsb = message.getTemplateAsParsed(4);
+                        if (type == MXMidi.COMMAND2_CH_RPN) {
+                            setDataroomType(ROOMTYPE_RPN);
+                        }
+                        else {
+                            setDataroomType(ROOMTYPE_NRPN);
+                        }
+                        setDataroomMSB(msb);
+                        setDataroomLSB(msb);
+                        setDataentryMSB(datamsb);
+                        setDataentryLSB(datamsb);
                     }
-                    setDataentry14(newValue);
-                    _currentAge++;
                     return true;
-                case MXMidi.DATA1_CC_BANKSELECT:
-                    setBankMSB(value);
-                    _currentAge++;
+                case MXMidi.COMMAND2_CH_PROGRAM_DEC:
+                    int programD = isHavingProgram() ? getProgram() -  1: 0;
+                    setHavingProgram(true);
+                    setProgram(programD);
                     return true;
-                case MXMidi.DATA1_CC_BANKSELECT + 32:
-                    setBankLSB(value);
-                    forceCompleteBankInfo();
-                    _currentAge++;
+                case MXMidi.COMMAND2_CH_PROGRAM_INC:
+                    int programI = isHavingProgram() ? getProgram() +  1: 0;
+                    setHavingProgram(true);
+                    setProgram(programI);
                     return true;
-                case MXMidi.DATA1_CC_RPN_MSB:
-                    setDataroomType(ROOMTYPE_RPN);
-                    setDataroomMSB(value);
-                    _currentAge++;
-                    return true;
-                case MXMidi.DATA1_CC_RPN_LSB:
-                    setDataroomType(ROOMTYPE_RPN);
-                    setDataroomLSB(value);
-                    _currentAge++;
-                    return true;
-                case MXMidi.DATA1_CC_NRPN_MSB:
-                    setDataroomType(ROOMTYPE_NRPN);
-                    setDataroomMSB(value);
-                    return true;
-                case MXMidi.DATA1_CC_NRPN_LSB:
-                    setDataroomType(ROOMTYPE_NRPN);
-                    setDataroomLSB(value);
-                    _currentAge++;
-                    return true;
-                case MXMidi.DATA1_CC_PANPOT:
-                    setHavingPan(true);
-                    setInfoPan(value);
-                    _currentAge++;
-                    return true;
-                case MXMidi.DATA1_CC_EXPRESSION:
-                    setHavingExpression(true);
-                    setInfoExpression(value);
-                    _currentAge++;
-                    return true;
-                case MXMidi.DATA1_CC_CHANNEL_VOLUME:
-                    setHavingVolume(true);
-                    setInfoVolume(value);
-                    _currentAge++;
-                    return true;
+                case MXMidi.COMMAND_CH_CONTROLCHANGE:
+                    switch (message.getData1()) {
+                        case MXMidi.DATA1_CC_DATAENTRY:
+                            setDataentryMSB(value);
+                            _currentAge++;
+                            return true;
+                        case MXMidi.DATA1_CC_DATAENTRY + 32:
+                            setDataentryLSB(value);
+                            _currentAge++;
+                            return true;
+                        case MXMidi.DATA1_CC_DATAINC:
+                            value = getDataentryValue14() + 1;
+                            if (value >= 16384) {
+                                value = 16383;
+                            }
+                            setDataentry14(value);
+                            _currentAge++;
+                            return true;
+                        case MXMidi.DATA1_CC_DATADEC:
+                            value = getDataentryValue14() - 1;
+                            if (value < 0) {
+                                value = 0;
+                            }
+                            setDataentry14(value);
+                            _currentAge++;
+                            return true;
+                        case MXMidi.DATA1_CC_BANKSELECT:
+                            setBankMSB(value);
+                            _currentAge++;
+                            return true;
+                        case MXMidi.DATA1_CC_BANKSELECT + 32:
+                            setBankLSB(value);
+                            forceCompleteBankInfo();
+                            _currentAge++;
+                            return true;
+                        case MXMidi.DATA1_CC_RPN_MSB:
+                            setDataroomType(ROOMTYPE_RPN);
+                            setDataroomMSB(value);
+                            _currentAge++;
+                            return true;
+                        case MXMidi.DATA1_CC_RPN_LSB:
+                            setDataroomType(ROOMTYPE_RPN);
+                            setDataroomLSB(value);
+                            _currentAge++;
+                            return true;
+                        case MXMidi.DATA1_CC_NRPN_MSB:
+                            setDataroomType(ROOMTYPE_NRPN);
+                            setDataroomMSB(value);
+                            return true;
+                        case MXMidi.DATA1_CC_NRPN_LSB:
+                            setDataroomType(ROOMTYPE_NRPN);
+                            setDataroomLSB(value);
+                            _currentAge++;
+                            return true;
+                        case MXMidi.DATA1_CC_PANPOT:
+                            setHavingPan(true);
+                            setInfoPan(value);
+                            _currentAge++;
+                            return true;
+                        case MXMidi.DATA1_CC_EXPRESSION:
+                            setHavingExpression(true);
+                            setInfoExpression(value);
+                            _currentAge++;
+                            return true;
+                        case MXMidi.DATA1_CC_CHANNEL_VOLUME:
+                            setHavingVolume(true);
+                            setInfoVolume(value);
+                            _currentAge++;
+                            return true;
+                    }
             }
         }
         return false;
     }
-    
 
     public void attachChannelVisitantToMessage(MXMessage message) {
-        message.setVisitant(this.getSnapShot());
+        message.setVisitant(getSnapShot());
     }
 
     public boolean isHavingProgram() {
         return _havingProgram;
     }
 
-    public void setHavingProgram(boolean _havingProgram) {
+    public void setHavingProgram(boolean havingProgram) {
         if (_isImmutable) {
             throw new IllegalStateException("Immutable can't change");
         }
-        this._havingProgram = _havingProgram;
+        _havingProgram = havingProgram;
     }
 
     public int getProgram() {
         return _program;
     }
 
-    public void setProgram(int _program) {
+    public void setProgram(int program) {
         if (_isImmutable) {
             throw new IllegalStateException("Immutable can't change");
         }
-        this._program = _program;
+        _program = program;
     }
 
-    public void setHavingBank(int _havingBank) {
+    public void setHavingBank(int havingBank) {
         if (_isImmutable) {
             throw new IllegalStateException("Immutable can't change");
         }
-        this._havingBank = _havingBank;
+        _havingBank = havingBank;
     }
 
     public boolean isHavingVolume() {
         return _havingVolume;
     }
 
-    public void setHavingVolume(boolean _havingVolume) {
+    public void setHavingVolume(boolean havingVolume) {
         if (_isImmutable) {
             throw new IllegalStateException("Immutable can't change");
         }
-        this._havingVolume = _havingVolume;
+        _havingVolume = havingVolume;
     }
 
     public int getInfoVolume() {
         return _infoVolume;
     }
 
-    public void setInfoVolume(int _infoVolume) {
+    public void setInfoVolume(int infoVolume) {
         if (_isImmutable) {
             throw new IllegalStateException("Immutable can't change");
         }
-        this._infoVolume = _infoVolume;
+        _infoVolume = infoVolume;
     }
 
     public boolean isHavingExpression() {
         return _havingExpression;
     }
 
-    public void setHavingExpression(boolean _havingExpression) {
+    public void setHavingExpression(boolean havingExpression) {
         if (_isImmutable) {
             throw new IllegalStateException("Immutable can't change");
         }
-        this._havingExpression = _havingExpression;
+        _havingExpression = havingExpression;
     }
 
     public int getInfoExpression() {
         return _infoExpression;
     }
 
-    public void setInfoExpression(int _infoExpression) {
+    public void setInfoExpression(int infoExpression) {
         if (_isImmutable) {
             throw new IllegalStateException("Immutable can't change");
         }
-        this._infoExpression = _infoExpression;
+        _infoExpression = infoExpression;
     }
 
     public boolean isHavingPan() {
         return _havingPan;
     }
 
-    public void setHavingPan(boolean _havingPan) {
+    public void setHavingPan(boolean havingPan) {
         if (_isImmutable) {
             throw new IllegalStateException("Immutable can't change");
         }
-        this._havingPan = _havingPan;
+        _havingPan = havingPan;
     }
 
     public int getInfoPan() {
         return _infoPan;
     }
 
-    public void setInfoPan(int _infoPan) {
+    public void setInfoPan(int infoPan) {
         if (_isImmutable) {
             throw new IllegalStateException("Immutable can't change");
         }
-        this._infoPan = _infoPan;
+        _infoPan = infoPan;
     }
 }

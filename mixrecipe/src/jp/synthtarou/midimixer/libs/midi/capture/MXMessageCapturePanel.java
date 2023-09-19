@@ -28,7 +28,6 @@ import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 
 /**
  *.
@@ -216,7 +215,7 @@ public class MXMessageCapturePanel extends javax.swing.JPanel {
     
         if (x >= 0) {
             MXWrap<GateInfomation> wrap = (MXWrap)_templateModel.get(x);
-            _selected = wrap.value;
+            _selected = wrap._value;
 
             MXUtil.getOwnerWindow(this).setVisible(false);
             MXMain.setCapture(null);
@@ -245,13 +244,14 @@ public class MXMessageCapturePanel extends javax.swing.JPanel {
         if (x >= 0) {
             try {
                 MXWrap<GateInfomation> wrap = (MXWrap)_templateModel.get(x);
-                int channel = wrap.value._parent.channel;
-                String dtext = wrap.value._parent.dtext;
-                int gate = wrap.value._gate;
-                int lowvalue = wrap.value._hitLoValue;
-                int hivalue = wrap.value._hitHiValue;
+                int channel = wrap._value._parent.channel;
+                String dtext = wrap._value._parent.dtext;
+                int gate = wrap._value._gate;
+                int lowvalue = wrap._value._hitLoValue;
+                int hivalue = wrap._value._hitHiValue;
+                //TODO
 
-                MXMessage msg = MXTemplate.fromDtext(0, dtext, channel, RangedValue.new7bit(gate), RangedValue.ZERO7);
+                MXMessage msg = MXMessageFactory.fromCCXMLText(0, dtext, channel, RangedValue.new7bit(gate), null);
                 String text = msg.toStringHeader(lowvalue, hivalue);
                 jTextFieldCommandText.setText(text);
             }catch(Exception e) {

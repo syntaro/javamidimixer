@@ -22,7 +22,7 @@ import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 
@@ -62,7 +62,7 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
     MXWrapList<MXReceiver> _receiverModel;
 
     /**
-     * Creates new form MX12MasterEditor
+     * Creates new form MX12MasterPanelEditor
      */
     public MX12MasterPanelEditor(MX12Process process) {
         initComponents();
@@ -76,10 +76,10 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
         _receiverModel = MXMain.getMain().getReceiverList();
         _receiverModel.writeComboBox(jComboBoxReciever, _process.getNextReceiver());
 
-        _portModel = MXMidi.listupPortAssigned(false);
+        _portModel = MXMidiWrapList.listupPortAssigned(false);
         _portModel.writeComboBox(jComboBoxPort, _process.getMousePort());
         
-        _channelModel = MXMidi.listupChannel(false);
+        _channelModel = MXMidiWrapList.listupChannel(false);
         _channelModel.writeComboBox(jComboBoxChannel, _process.getMouseChannel());
         
         jSpinnerMouseVelocity.setModel(new SafeSpinnerNumberModel(_process.getMouseVelocity(), 1, 127, 1));
@@ -91,9 +91,9 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
     }
     
     public void catchParameters() {
-        _process.setNextReceiver(_receiverModel.get(jComboBoxReciever.getSelectedIndex()).value);
-        _process.setMousePort((int) _portModel.get(jComboBoxPort.getSelectedIndex()).value);
-        _process.setMouseChannel((int) _channelModel.get(jComboBoxChannel.getSelectedIndex()).value);
+        _process.setNextReceiver(_receiverModel.get(jComboBoxReciever.getSelectedIndex())._value);
+        _process.setMousePort((int) _portModel.get(jComboBoxPort.getSelectedIndex())._value);
+        _process.setMouseChannel((int) _channelModel.get(jComboBoxChannel.getSelectedIndex())._value);
         _process.setMouseVelocity((int)jSpinnerMouseVelocity.getValue());
         _process.setOverwriteInputChannel(this.jCheckBoxAdjustPort.isSelected());
         _process.setAcceptInputPanelSignal(jCheckBoxInputPagePort.isSelected());

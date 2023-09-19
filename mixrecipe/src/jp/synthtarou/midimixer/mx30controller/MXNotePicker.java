@@ -27,6 +27,7 @@ import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiWrapList;
 import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
 
 /**
@@ -71,8 +72,8 @@ public class MXNotePicker extends javax.swing.JPanel {
     }
 
     MXSwingPiano _piano;
-    MXWrapList<Integer> _watchPort = MXMidi.listupPortAssigned(true);
-    MXWrapList<Integer> _watchChannel = MXMidi.listupChannel(false);
+    MXWrapList<Integer> _watchPort = MXMidiWrapList.listupPortAssigned(true);
+    MXWrapList<Integer> _watchChannel = MXMidiWrapList.listupChannel(false);
     boolean _closeOK = false;
     int[] _retNote = null;
     
@@ -80,7 +81,7 @@ public class MXNotePicker extends javax.swing.JPanel {
     int _valueModulation = -1;
 
     /**
-     * Creates new form MX00MasterKey
+     * Creates new form MXNotePicker
      */
     public MXNotePicker() {
         initComponents();

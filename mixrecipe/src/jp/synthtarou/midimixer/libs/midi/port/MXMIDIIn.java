@@ -23,10 +23,8 @@ import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.MXQueue1;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
@@ -453,11 +451,11 @@ public class MXMIDIIn {
                     }
                     if (gate == MXMidi.DATA1_CC_DATAENTRY || gate == MXMidi.DATA1_CC_DATAENTRY + 0x20) {
                         if (visit.isHaveDataentryRPN()) {
-                            message = MXTemplate.fromDtext(port, "@RPN #GH #GL #VH #VL", ch, RangedValue.ZERO7, RangedValue.ZERO7);
+                            message = MXMessageFactory.fromCCXMLText(port, "@RPN #GH #GL #VH #VL", ch);
                             message.setVisitant(visit.getSnapShot());
                             dispatchMainPath(message);
                         }else if (visit.isHaveDataentryNRPN()) {
-                            message = MXTemplate.fromDtext(port, "@NRPN #GH #GL #VH #VL", ch, RangedValue.ZERO7, RangedValue.ZERO7);
+                            message = MXMessageFactory.fromCCXMLText(port, "@NRPN #GH #GL #VH #VL", ch);
                             message.setVisitant(visit.getSnapShot());
                             dispatchMainPath(message);
                         }else {

@@ -47,7 +47,7 @@ public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, Co
     public List<String> nameList() {
         ArrayList<String> list = new ArrayList();
         for (MXWrap<T> e : this) {
-            list.add(e.name);
+            list.add(e._name);
         }
         return list;
     }
@@ -55,26 +55,26 @@ public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, Co
     public List<T> valueList() {
         ArrayList<T> list = new ArrayList();
         for (MXWrap<T> e : this) {
-            list.add(e.value);
+            list.add(e._value);
         }
         return list;
     }
    
     public String nameOfIndex(int x) {
-        return get(x).name;
+        return get(x)._name;
     }
 
     public boolean existsName(String name) {
         if (_ignoreCase) {
             for (MXWrap<T> e : this) {
-                if(e.name.equalsIgnoreCase(name)) {
+                if(e._name.equalsIgnoreCase(name)) {
                     return true;
                 }
             }
             return false;
         }else {
             for (MXWrap<T> e : this) {
-                if(e.name.equals(name)) {
+                if(e._name.equals(name)) {
                     return true;
                 }
             }
@@ -86,7 +86,7 @@ public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, Co
         if (_ignoreCase) {
             int x = 0;
             for (MXWrap<T> e : this) {
-                if(e.name.equalsIgnoreCase(name)) {
+                if(e._name.equalsIgnoreCase(name)) {
                     return x;
                 }
                 x ++;
@@ -95,7 +95,7 @@ public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, Co
         }else {
             int x = 0;
             for (MXWrap<T> e : this) {
-                if(e.name.equals(name)) {
+                if(e._name.equals(name)) {
                     return x;
                 }
                 x ++;
@@ -109,7 +109,7 @@ public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, Co
         if (_ignoreCase) {
             int x = 0;
             for (MXWrap<T> e : this) {
-                String name2 = MXUtil.shrinkText(e.name);
+                String name2 = MXUtil.shrinkText(e._name);
                 if(name2.equalsIgnoreCase(name)) {
                     return x;
                 }
@@ -119,7 +119,7 @@ public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, Co
         }else {
             int x = 0;
             for (MXWrap<T> e : this) {
-                String name2 = MXUtil.shrinkText(e.name);
+                String name2 = MXUtil.shrinkText(e._name);
                 if(name2.equalsIgnoreCase(name)) {
                     return x;
                 }
@@ -130,7 +130,7 @@ public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, Co
     }
 
     public T valueOfIndex(int x) {
-        return get(x).value;
+        return get(x)._value;
     }
     
     public T valueOfName(String name) {
@@ -138,21 +138,29 @@ public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, Co
         if (x < 0) {
             return null;
         }
-        return get(x).value;
+        return get(x)._value;
+    }
+
+    public String nameOfValue(T value) {
+        int x = indexOfValue(value);
+        if (x < 0) {
+            return null;
+        }
+        return get(x)._name;
     }
 
     public int indexOfValue(T value) {
         int x = 0;
         for (MXWrap<T> e : this) {
-            if(e.value == value) {
+            if(e._value == value) {
                 return x;
             }
             x ++;
         }
         x = 0;
         for (MXWrap<T> e : this) {
-            if(e.value != null && value != null) {
-                if (e.value.equals(value)) {
+            if(e._value != null && value != null) {
+                if (e._value.equals(value)) {
                     return x;
                 }
             }
@@ -239,7 +247,7 @@ public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, Co
         ComboBoxModel model = box.getModel();
         MXWrap<T> item = (MXWrap)model.getSelectedItem();
         if (item != null) {
-            return item.value;
+            return item._value;
         }
         return null;
     }
@@ -251,22 +259,22 @@ public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, Co
             MXWrap<T> item = (MXWrap)model.getElementAt(i);
             if (item != null) {
                 if (value == null) {
-                    if (item.value == null) {
+                    if (item._value == null) {
                         box.setSelectedIndex(i);
                         return;
                     }
                 }else if (value.getClass().isPrimitive()) {
-                    if (item.value == value) {
+                    if (item._value == value) {
                         box.setSelectedIndex(i);
                         return;
                     }
                 }else {
-                    if (item.value == null && value == null) {
+                    if (item._value == null && value == null) {
                         box.setSelectedIndex(i);
                         return;
                     }
-                    if (item.value != null && value != null) {
-                        if (item.value.equals(value)) {
+                    if (item._value != null && value != null) {
+                        if (item._value.equals(value)) {
                             box.setSelectedIndex(i);
                             return;
                         }

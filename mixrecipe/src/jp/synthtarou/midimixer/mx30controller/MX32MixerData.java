@@ -23,7 +23,6 @@ import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 
 /**
@@ -109,7 +108,7 @@ public class MX32MixerData {
                 if (column >= 16) {
                     //F0H，7FH，7FH，04H，01H，00H，mm，F7H
                     text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
-                    MXMessage base = MXTemplate.fromDtext(process._port, text, 0, RangedValue.ZERO7, RangedValue.new14bit(16383));
+                    MXMessage base = MXMessageFactory.fromCCXMLText(process._port, text, 0);
                     status = new MGStatus(process._port, MGStatus.TYPE_SLIDER, row, column);
                     status._base = base;
                     status.setValue(RangedValue.new14bit(128 * 128 - 1));
@@ -137,7 +136,7 @@ public class MX32MixerData {
                     status = new MGStatus(process._port, MGStatus.TYPE_CIRCLE, row, column);
                     String text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
 
-                    MXMessage base = MXTemplate.fromDtext(process._port, text, 0, RangedValue.ZERO7, RangedValue.new14bit(16383));
+                    MXMessage base = MXMessageFactory.fromCCXMLText(process._port, text, 0);
                     status.setBaseMessage(base);
                     circle.add(status);
                     column++;
@@ -308,7 +307,7 @@ public class MX32MixerData {
                 status = data.getSliderStatus(row, col);
                 if (col >= 16) {
                     String text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
-                    message = MXTemplate.fromDtext(port, text, 0, RangedValue.ZERO7, RangedValue.new14bit(0));
+                    message = MXMessageFactory.fromCCXMLText(port, text, 0);
                 } else {
                     message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_CONTROLCHANGE + col, MXMidi.DATA1_CC_EXPRESSION, 128 - 1);
                 }
@@ -326,7 +325,7 @@ public class MX32MixerData {
                 status = data.getSliderStatus(row, col);
                 if (col >= 16) {
                     String text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
-                    message = MXTemplate.fromDtext(port, text, 0, RangedValue.ZERO7, RangedValue.new14bit(0));
+                    message = MXMessageFactory.fromCCXMLText(port, text, 0, RangedValue.ZERO7, RangedValue.new14bit(0));
                 } else {
                     message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_CONTROLCHANGE + col, ccCode[row], 64);
                 }

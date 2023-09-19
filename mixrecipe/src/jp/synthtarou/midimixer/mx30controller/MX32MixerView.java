@@ -47,6 +47,7 @@ import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
  * @author Syntarou YOSHIDA
  */
 public class MX32MixerView extends javax.swing.JPanel {
+
     MX32MixerProcess _process;
     MXFocusGroup _focusGroup;
     MXWrapList<Integer> chainModel;
@@ -54,13 +55,13 @@ public class MX32MixerView extends javax.swing.JPanel {
     public MX32MixerView(MX32MixerProcess process) {
         int port = process._port;
         _process = process;
-        
+
         initComponents();
-        
+
         // following must here (late bind not work)
         chainModel = new MXWrapList<Integer>();
         chainModel.addNameAndValue(MXMidi.nameOfPortShort(-1), -1);
-        for (int p2 = 0; p2 < MXAppConfig.TOTAL_PORT_COUNT; ++ p2) {
+        for (int p2 = 0; p2 < MXAppConfig.TOTAL_PORT_COUNT; ++p2) {
             if (p2 == port) {
                 continue;
             }
@@ -72,7 +73,7 @@ public class MX32MixerView extends javax.swing.JPanel {
         if (port == 0) {
             MXMain.getMain().addLaunchSequence(new Runnable() {
                 public void run() {
-                    _process._parent.showTextForFocus(MGStatus.TYPE_SLIDER,  0, 0, 0);
+                    _process._parent.showTextForFocus(MGStatus.TYPE_SLIDER, 0, 0, 0);
                 }
             });
         }
@@ -80,7 +81,7 @@ public class MX32MixerView extends javax.swing.JPanel {
         jSplitPane1.setDividerLocation(getWidth() - 250);
         updateUI();
     }
-  
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -212,9 +213,9 @@ public class MX32MixerView extends javax.swing.JPanel {
 
         add(jSplitPane1);
     }// </editor-fold>//GEN-END:initComponents
-        
+
     private void jComboBoxChainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxChainActionPerformed
-        Integer sel = (Integer)((MXWrap)jComboBoxChain.getSelectedItem()).value;
+        Integer sel = (Integer) ((MXWrap) jComboBoxChain.getSelectedItem())._value;
         int x = -1;
         if (sel != null) {
             x = sel;
@@ -228,8 +229,7 @@ public class MX32MixerView extends javax.swing.JPanel {
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         JPopupMenu popup = new JPopupMenu();
-        JRadioButtonMenuItem item1 = new JRadioButtonMenuItem("Edit Contoller");
-        item1.setSelected(true);
+        JMenuItem item1 = new JMenuItem("Edit Contoller");
         popup.add(item1);
         item1.addActionListener(new ActionListener() {
             @Override
@@ -277,7 +277,7 @@ public class MX32MixerView extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jLabelKeyTrackerKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jLabelKeyTrackerKeyPressed
-        switch(evt.getKeyCode()) {
+        switch (evt.getKeyCode()) {
             case 38: //UP
             case 40: //DOWN
             case 37: //LEFT
@@ -288,7 +288,7 @@ public class MX32MixerView extends javax.swing.JPanel {
                 _process._parent.goNextFocus(_process._port, evt.getKeyCode());
                 break;
         }
-        
+
     }//GEN-LAST:event_jLabelKeyTrackerKeyPressed
 
     private void jLabelKeyTrackerFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jLabelKeyTrackerFocusGained
@@ -305,14 +305,14 @@ public class MX32MixerView extends javax.swing.JPanel {
     private void formFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_formFocusGained
         jLabelKeyTracker.requestFocusInWindow();
     }//GEN-LAST:event_formFocusGained
-    
+
     public void doInitializeMixer() {
         InitializeConfirmPanel panel = new InitializeConfirmPanel(_process);
         MXModalFrame.showAsDialog(this, panel, "Initialize Mixer");
         updateUI();
         _process._parent.globalContollerHidden();
     }
-    
+
     public void updateUI() {
         super.updateUI();
         SwingUtilities.invokeLater(new Runnable() {
@@ -320,24 +320,24 @@ public class MX32MixerView extends javax.swing.JPanel {
             public void run() {
                 try {
                     MX32MixerData data = _process._data;
-                    for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++ column) {
+                    for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
                         Color c = MXAppConfig.sliderColor(column);
-                        for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++ row) {
+                        for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++row) {
                             MXUtil.backgroundRecursive(data.getCircle(row, column), c);
                         }
-                        for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++ row) {
+                        for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++row) {
                             MXUtil.backgroundRecursive(data.getSlider(row, column), c);
                         }
-                        for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++ row) {
+                        for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++row) {
                             MXUtil.backgroundRecursive(data.getDrumPad(row, column), c);
                         }
                     }
-                }catch(NullPointerException e) {
+                } catch (NullPointerException e) {
                 }
             }
         });
     }
-    
+
     public void doImportMixer() {
         MXSwingFileChooser chooser = new MXSwingFileChooser();
         chooser.addExtension(".xml", "XML File");
@@ -346,13 +346,13 @@ public class MX32MixerView extends javax.swing.JPanel {
             File file = chooser.getSelectedFile();
             MXSetting setting = new MXSetting(file, false);
             setting.setTarget(_process);
-            setting.readSettingFile();   
+            setting.readSettingFile();
             updateUI();
             JOptionPane.showMessageDialog(this, "Succeed Import [" + file + "]");
             updateSliderFromStatus();
         }
     }
-    
+
     public void doExportMixer() {
         JFileChooser chooser = new JFileChooser();
         if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -361,21 +361,21 @@ public class MX32MixerView extends javax.swing.JPanel {
             setting.setTarget(_process);
             setting.writeSettingFile();
             JOptionPane.showMessageDialog(this, "Succeed Export [" + file + "]");
-        }  
+        }
     }
-    
+
     public void doResizeMixer() {
         MX30ResizeMixerSetting config = new MX30ResizeMixerSetting(_process._parent);
         MXModalFrame.showAsDialog(this, config, "Resize Mixer");
         if (config._okOption) {
             _process._parent.globalContollerHidden();
         }
-     }
-    
+    }
+
     public void doStartEditMixer() {
         _process._parent.enterEditMode(true);
     }
-    
+
     public JPanel getControllerCase() {
         return jPanelControllers;
     }
@@ -393,22 +393,55 @@ public class MX32MixerView extends javax.swing.JPanel {
             java.awt.GridBagConstraints gbc;
             panel001.removeAll();
             panel001.setLayout(new GridBagLayout());
+            
+            columnLabel = new JLabel[MXAppConfig.SLIDER_COLUMN_COUNT];
+            circleLabel = new JLabel[MXAppConfig.CIRCLE_ROW_COUNT];
+            sliderLabel = new JLabel[MXAppConfig.SLIDER_ROW_COUNT];
+            drumLabel = new JLabel[MXAppConfig.DRUM_ROW_COUNT];
 
-            int grindY = 0;
+            for (int col = 0; col < MXAppConfig.SLIDER_COLUMN_COUNT; col++) {
+                String text = Integer.toString(col + 1);
+                JLabel label = new JLabel(text);
+                columnLabel[col] = label;
+
+                gbc = new java.awt.GridBagConstraints();
+                gbc.gridx = col + 1;
+                gbc.gridy = MXAppConfig.CIRCLE_ROW_COUNT + MXAppConfig.SLIDER_ROW_COUNT + MXAppConfig.DRUM_ROW_COUNT;
+                gbc.fill = java.awt.GridBagConstraints.NONE;
+                gbc.anchor = java.awt.GridBagConstraints.CENTER;
+                gbc.weightx = 1.0;
+                gbc.weighty = 0;
+
+                panel001.add(label, gbc);
+            }
 
             ArrayList<MGCircle>[] matrixCircle = new ArrayList[MXAppConfig.CIRCLE_ROW_COUNT];
 
-            for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++ row) {
+            int positionY = 0;
+
+            for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++row) {
                 ArrayList<MGCircle> newCircle = new ArrayList<MGCircle>();
-                for (int col = 0; col < MXAppConfig.SLIDER_COLUMN_COUNT; col ++) {
+    
+                JLabel label = new JLabel(Character.toString('A' + row));
+                circleLabel[row] = label;
+                gbc = new java.awt.GridBagConstraints();
+                gbc.gridx = 0;
+                gbc.gridy = row;
+                gbc.fill = java.awt.GridBagConstraints.NONE;
+                gbc.anchor = java.awt.GridBagConstraints.CENTER;
+                gbc.weightx = 1.0;
+                gbc.weighty = 0;
+                panel001.add(label, gbc);
+
+                for (int col = 0; col < MXAppConfig.SLIDER_COLUMN_COUNT; col++) {
                     MGCircle cc1 = new MGCircle(_process, row, col);
 
                     cc1.setSize(50, 50);
                     _focusGroup.attach(cc1);
 
                     gbc = new java.awt.GridBagConstraints();
-                    gbc.gridx = col;
-                    gbc.gridy = grindY;
+                    gbc.gridx = col + 1;
+                    gbc.gridy = positionY + row;
                     gbc.fill = java.awt.GridBagConstraints.BOTH;
                     gbc.anchor = java.awt.GridBagConstraints.CENTER;
                     gbc.weightx = 0;
@@ -418,15 +451,26 @@ public class MX32MixerView extends javax.swing.JPanel {
                     newCircle.add(cc1);
                 }
                 matrixCircle[row] = newCircle;
-                grindY ++;
             }
+            positionY = MXAppConfig.CIRCLE_ROW_COUNT;
 
             ArrayList<MGSlider>[] matrixSlider = new ArrayList[MXAppConfig.SLIDER_ROW_COUNT];
 
-            for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++ row) {
+            for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++row) {
                 ArrayList<MGSlider> newSlider = new ArrayList<MGSlider>();
                 matrixSlider[row] = newSlider;
-                
+
+                JLabel label = new JLabel(Character.toString('S' + row));
+                sliderLabel[row] = label;
+                gbc = new java.awt.GridBagConstraints();
+                gbc.gridx = 0;
+                gbc.gridy = row + positionY;
+                gbc.fill = java.awt.GridBagConstraints.NONE;
+                gbc.anchor = java.awt.GridBagConstraints.CENTER;
+                gbc.weightx = 1.0;
+                gbc.weighty = 0;
+                panel001.add(label, gbc);
+
                 for (int col = 0; col < MXAppConfig.SLIDER_COLUMN_COUNT; ++col) {
                     MGSlider sc1 = new MGSlider(_process, row, col);
                     _focusGroup.attach(sc1);
@@ -434,8 +478,8 @@ public class MX32MixerView extends javax.swing.JPanel {
                     sc1.setSize(50, 100);
 
                     gbc = new java.awt.GridBagConstraints();
-                    gbc.gridx = col;
-                    gbc.gridy = grindY;
+                    gbc.gridx = col + 1;
+                    gbc.gridy = positionY + row;
                     gbc.fill = java.awt.GridBagConstraints.BOTH;
                     gbc.anchor = java.awt.GridBagConstraints.CENTER;
                     gbc.weightx = 1.0;
@@ -445,25 +489,37 @@ public class MX32MixerView extends javax.swing.JPanel {
                     newSlider.add(sc1);
                 }
             }
-            grindY++;
+            positionY = MXAppConfig.CIRCLE_ROW_COUNT + MXAppConfig.SLIDER_ROW_COUNT;
 
             ArrayList<MGDrumPad>[] matrixPad = new ArrayList[MXAppConfig.DRUM_ROW_COUNT];
 
-            for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++ row) {
+            for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++row) {
+                JLabel label = new JLabel(Character.toString('X' + row));
+                drumLabel[row] = label;
+                
+                gbc = new java.awt.GridBagConstraints();
+                gbc.gridx = 0;
+                gbc.gridy = row + positionY;
+                gbc.fill = java.awt.GridBagConstraints.NONE;
+                gbc.anchor = java.awt.GridBagConstraints.CENTER;
+                gbc.weightx = 1.0;
+                gbc.weighty = 0;
+                panel001.add(label, gbc);
+
                 ArrayList<MGDrumPad> newPad = new ArrayList<MGDrumPad>();
                 for (int col = 0; col < MXAppConfig.SLIDER_COLUMN_COUNT; ++col) {
                     MGStatus number = mixer._data.getDrumPadStatus(row, col);
                     MGDrumPad rc1 = new MGDrumPad(_process, row, col);
                     //rc1.initUIWithStatus(number);
 
-                   _focusGroup.attach(rc1);
+                    _focusGroup.attach(rc1);
 
                     newPad.add(rc1);
                     rc1.setSize(50, 50);
 
                     gbc = new java.awt.GridBagConstraints();
-                    gbc.gridx = col;
-                    gbc.gridy = grindY;
+                    gbc.gridx = col + 1;
+                    gbc.gridy = positionY + row;
                     gbc.fill = java.awt.GridBagConstraints.BOTH;
                     gbc.anchor = java.awt.GridBagConstraints.CENTER;
                     gbc.weightx = 1.0;
@@ -472,8 +528,10 @@ public class MX32MixerView extends javax.swing.JPanel {
                     panel001.add(rc1, gbc);
                 }
                 matrixPad[row] = newPad;
-                grindY++;
             }
+
+            positionY = MXAppConfig.CIRCLE_ROW_COUNT + MXAppConfig.SLIDER_ROW_COUNT + MXAppConfig.DRUM_ROW_COUNT;
+
             _focusGroup.setFocusEnabled(true);
 
             int x = chainModel.indexOfValue(mixer._patchToMixer);
@@ -482,7 +540,7 @@ public class MX32MixerView extends javax.swing.JPanel {
             mixer._data.setEveryComponents(matrixSlider, matrixCircle, matrixPad);
 
             jCheckBoxSyncTogether.setSelected(mixer._patchTogether);
-        }finally {
+        } finally {
             //data._underInit = false;
             updateUI();
         }
@@ -491,7 +549,7 @@ public class MX32MixerView extends javax.swing.JPanel {
     public void updateSliderFromStatus() {
         initControllers();
     }
-    
+
     public void setFocusString(String str) {
         ArrayList<String> list = new ArrayList();
         MXUtil.split(str, list, '\n');
@@ -502,7 +560,7 @@ public class MX32MixerView extends javax.swing.JPanel {
         jListABC.setModel(model);
         jLabelKeyTracker.requestFocus();
     }
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton3;
     private javax.swing.JCheckBox jCheckBoxSyncTogether;
@@ -517,30 +575,44 @@ public class MX32MixerView extends javax.swing.JPanel {
     private javax.swing.JSplitPane jSplitPane1;
     // End of variables declaration//GEN-END:variables
 
-    public void globalControllerHidden() {       
+
+    JLabel[] columnLabel;
+    JLabel[] circleLabel;
+    JLabel[] sliderLabel;
+    JLabel[] drumLabel;    
+
+    public void globalControllerHidden() {
         MX32MixerData data = _process._data;
-        int lines = _process._parent.getActiveLines();
-        for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++ column) {
-            for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++ row) {
-                if (_process._parent.isKnobActive(row) && column < lines) {
-                    data.getCircle(row, column).setVisible(true);
-                }else {
-                    data.getCircle(row, column).setVisible(false);
-                }                       
+        int lines = _process._parent.getVisibleLineCount();
+        boolean ranged;
+        for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++row) {
+            ranged = _process._parent.isKnobVisible(row);
+            circleLabel[row].setVisible(ranged);
+        }
+        for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++row) {
+            ranged = true;
+            sliderLabel[row].setVisible(ranged);
+        }
+        for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++row) {
+            ranged = _process._parent.isPadVisible(row);
+            drumLabel[row].setVisible(ranged);
+        }
+
+        for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
+            ranged = column < lines;
+            columnLabel[column].setVisible(ranged);
+            
+            for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++row) {
+                ranged = _process._parent.isKnobVisible(row) && column < lines;
+                data.getCircle(row, column).setVisible(ranged);
             }
-            for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++ row) {
-                if (column < lines) {
-                    data.getSlider(row, column).setVisible(true);
-                }else {
-                    data.getSlider(row, column).setVisible(false);
-                }                       
+            for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++row) {
+                ranged = column < lines;
+                data.getSlider(row, column).setVisible(ranged);
             }
-            for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++ row) {
-                if (_process._parent.isPadActive(row) && column < lines) {
-                    data.getDrumPad(row, column).setVisible(true);
-                }else {
-                    data.getDrumPad(row, column).setVisible(false);
-                }                       
+            for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++row) {
+                ranged = _process._parent.isPadVisible(row) && column < lines;
+                data.getDrumPad(row, column).setVisible(ranged);
             }
         }
         updateUI();

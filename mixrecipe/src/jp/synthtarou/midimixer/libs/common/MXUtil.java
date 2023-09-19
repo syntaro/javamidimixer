@@ -48,7 +48,6 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.text.MXLineReader;
 import jp.synthtarou.midimixer.mx30controller.MGCircle;
 import jp.synthtarou.midimixer.mx30controller.MGDrumPad;
 import jp.synthtarou.midimixer.mx30controller.MGSlider;

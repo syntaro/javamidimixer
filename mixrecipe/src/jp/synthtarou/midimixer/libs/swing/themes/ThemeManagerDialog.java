@@ -54,7 +54,7 @@ public class ThemeManagerDialog extends javax.swing.JDialog {
         
         MXWrapList<String> listLaf = config.getLookAndFeelModel();
         for (MXWrap<String> elem : listLaf) {
-            String name = elem.name;
+            String name = elem._name;
             JButton button = new JButton(name);
             button.addActionListener(new LookAndFeelThemeAction(name));
             jPanelSystemTheme.add(button);

@@ -16,7 +16,9 @@
  */
 package jp.synthtarou.midimixer.libs.midi;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
 
 /**
@@ -95,11 +97,135 @@ public class MXMessageFactory {
         MXTemplate t = new MXTemplate(template);
         MXMessage message = new MXMessage(port, t);
         message.setChannel(channel);
+        if (gate == null) {
+            if (message.hasGateHiField()) {
+                gate = RangedValue.new14bit(0);
+            }else if (message.hasGateLowField()) {
+                gate = RangedValue.new7bit(0);
+            }else {
+                gate = RangedValue.new7bit(0);
+            }
+        }
         message.setGate(gate);
+        if (value == null) {
+            if (message.hasValueHiField()) {
+                value = RangedValue.new14bit(0);
+            }else if (message.hasValueLowField()) {
+                value = RangedValue.new7bit(0);
+            }else {
+                value = RangedValue.new7bit(0);
+            }
+        }
         message.setValue(value);
         return message;
     }
  
+    public static MXMessage fromCCXMLText(int port, String text, int channel) {
+        return fromCCXMLText(port, text, channel, null, null);
+    }
+
+    public static MXMessage fromCCXMLText(int port, String text, int channel, RangedValue gate, RangedValue value) {
+        if (text == null || text.length() == 0) {
+            return null;
+        }
+
+        while (text.startsWith(" ")) {
+            text = text.substring(1);
+        }
+        while (text.endsWith(" ")) {
+            text = text.substring(0, text.length() - 1);
+        }
+
+        try {
+            int rpn_msb;
+            int rpn_lsb;
+            int nrpn_msb;
+            int nrpn_lsb;
+
+            char[] line = text.toCharArray();
+
+            char[] word = new char[line.length];
+            int wx = 0;
+
+            int readX = 0;
+            ArrayList<String> separated = new ArrayList();
+            boolean inChecksum = false;
+
+            while (readX < line.length) {
+                char ch = line[readX++];
+                if (ch == '[') {
+                    separated.add("[");
+                    inChecksum = true;
+                    continue;
+                }
+                if (ch == ']') {
+                    if (inChecksum) {
+                        inChecksum = false;
+                        if (wx != 0) {
+                            separated.add(new String(word, 0, wx));
+                        }
+                        separated.add("]");
+                        wx = 0;
+                    } else {
+                        new Exception("Checksum have not opened").printStackTrace();
+                    }
+                    continue;
+                }
+                if (ch == ' ' || ch == '\t' || ch == ',') {
+                    if (wx != 0) {
+                        separated.add(new String(word, 0, wx));
+                    }
+                    wx = 0;
+                    continue;
+                }
+                word[wx++] = ch;
+            }
+
+            if (wx != 0) {
+                separated.add(new String(word, 0, wx));
+                wx = 0;
+            }
+
+            if (separated.size() <= 0) {
+                return null;
+            }
+            
+            // cleanup
+            int[] compiled = new int[separated.size()];
+            int cx = 0;
+            int px = 0;
+
+            for (int sx = 0; sx < separated.size(); ++sx) {
+                String str = separated.get(sx);
+                int code;
+                if (str.startsWith("@")) {
+                    code = MXTemplate.readCommandText(str);
+                    if (code < 0) {
+                        System.out.println("can't parse " + str);
+                        return null;
+                    }
+                }else if (str.startsWith("#")) {
+                    code = MXTemplate.readAliasText(str);
+                    if (code < 0) {
+                        System.out.println("can't parse " + str);
+                        return null;
+                    }
+                }else if (str.equals("[") || str.equals("]")) {
+                    code = MXTemplate.readAliasText(str);
+                }else {
+                    code = MXUtil.numberFromText(str);
+                }
+                compiled[px++] = code;
+            }
+
+            MXMessage temp = MXMessageFactory.fromTemplate(port, compiled, channel, gate, value);
+            return temp;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public static synchronized MXMessage fromBinary(int port, byte[] data) {
         if (data == null || data.length == 0 || data[0] == 0) {
             return null;

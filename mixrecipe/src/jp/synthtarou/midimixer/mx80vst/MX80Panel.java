@@ -54,7 +54,7 @@ import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXSwingFolderBrowser;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
-import jp.synthtarou.midimixer.mx35cceditor.ccxml.navigator.ParamsOfNavigator;
+import jp.synthtarou.midimixer.libs.navigator.ParamsOfNavigator;
 import jp.synthtarou.midimixer.windows.MXLIB02VST3;
 
 /**
@@ -85,7 +85,7 @@ public class MX80Panel extends javax.swing.JPanel {
     MXWrapList<Integer> _latencyModel;
 
     /**
-     * Creates new form FileExtensionFilterPanel
+     * Creates new form MX80Panel
      */
     MX80Panel() {
         initComponents();

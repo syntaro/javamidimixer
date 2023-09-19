@@ -18,10 +18,8 @@ package jp.synthtarou.midimixer.libs.midi.capture;
 
 import java.util.TreeMap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 
 /**
  *
@@ -44,7 +42,7 @@ public class MXMessageCapture {
         int channel = message.getChannel();
         int gate = message.getGate()._var;
         int value = message.getValue()._var;
-        String dtext = message.toTemplateText();
+        String dtext = message.getTemplateAsText();
 
         synchronized(this) {
             TextInformation textNode = _captureData.get(dtext + channel);
@@ -94,7 +92,7 @@ public class MXMessageCapture {
         //TODO
 
         int port = 0;
-        MXMessage message = MXTemplate.fromDtext(0, text.dtext, gate._parent.channel, RangedValue.ZERO7, RangedValue.ZERO7);
+        MXMessage message = MXMessageFactory.fromCCXMLText(0, text.dtext, gate._parent.channel);
         return  message.toStringHeader(gate._hitLoValue, gate._hitHiValue);
     }
     

@@ -23,7 +23,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.console.ConsoleElement;
+import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
@@ -264,12 +264,12 @@ public class MXMIDIOut {
                         public void onNoteOffEvent(MXMessage target) {
                             int dword = target.getAsDword(0);
                             _driver.OutputShortMessage(_driverOrder, dword);
-                            MXMain.addOutsideOutput(new ConsoleElement(target._timing, target.getPort(), dword));
+                            MXMain.addOutsideOutput(new MXMidiConsoleElement(target._timing, target.getPort(), dword));
                         }
                     });
                     int dword = message.getAsDword(0);
                     _driver.OutputShortMessage(_driverOrder, dword);
-                    MXMain.addOutsideOutput(new ConsoleElement(message._timing, message.getPort(), dword));
+                    MXMain.addOutsideOutput(new MXMidiConsoleElement(message._timing, message.getPort(), dword));
                     return;
                 } else if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
                     if (_myNoteOff.raiseHandler(message)) {
@@ -284,12 +284,12 @@ public class MXMIDIOut {
                 if (col == 0) {
                     byte[] data = message.getDataBytes();
                     _driver.OutputLongMessage(_driverOrder, data);
-                    MXMain.addOutsideOutput(new ConsoleElement(message._timing, message.getPort(), data));
+                    MXMain.addOutsideOutput(new MXMidiConsoleElement(message._timing, message.getPort(), data));
                 } else if (col > 0) {
                     for (int i = 0; i < col; ++i) {
                         int dword = message.getAsDword(i);
                         _driver.OutputShortMessage(_driverOrder, dword);
-                        MXMain.addOutsideOutput(new ConsoleElement(message._timing, message.getPort(), dword));
+                        MXMain.addOutsideOutput(new MXMidiConsoleElement(message._timing, message.getPort(), dword));
                     }
                 } else {
                     if (message.isDataentry()) {

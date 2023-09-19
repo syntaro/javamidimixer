@@ -23,10 +23,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
-import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.text.MXLineReader;
+import jp.synthtarou.midimixer.libs.common.MXLineReader;
 
 /**
  *
@@ -137,6 +135,42 @@ public class MXMidi {
     public static final int COMMAND2_CH_PROGRAM_DEC = 0x6100; /* no param */
     public static final int COMMAND2_META = 0x6500; /* ff --- */
     public static final int COMMAND2_SYSTEM = 0x6600; /* f0~fe nn nn */
+    
+    public static final int CCXML_NONE = 0x100;
+    public static final int CCXML_VL = 0x200;
+    public static final int CCXML_VH = 0x300;
+    public static final int CCXML_GL = 0x400;
+    public static final int CCXML_GH = 0x500;
+    public static final int CCXML_CH = 0x600;
+    public static final int CCXML_1CH = 0x700;
+    public static final int CCXML_2CH = 0x800;
+    public static final int CCXML_3CH = 0x900;
+    public static final int CCXML_PCH = 0xA00;
+    public static final int CCXML_1RCH = 0xB00;
+    public static final int CCXML_2RCH = 0xC00;
+    public static final int CCXML_3RCH = 0xD00;
+    public static final int CCXML_4RCH = 0xE00;
+    public static final int CCXML_VF1 = 0xF00;
+    public static final int CCXML_VF2 = 0x1000;
+    public static final int CCXML_VF3 = 0x1100;
+    public static final int CCXML_VF4 = 0x1200;
+    public static final int CCXML_VPGL = 0x1300;
+    public static final int CCXML_VPGH = 0x1400;
+    public static final int CCXML_CCNUM = 0x1500;
+    public static final int CCXML_RSCTRT1 = 0x1A00;
+    public static final int CCXML_RSCTRT2 = 0x1B00;
+    public static final int CCXML_RSCTRT3 = 0x1C00;
+    public static final int CCXML_RSCTRT1P = 0x1D00;
+    public static final int CCXML_RSCTRT2P = 0x1E00;
+    public static final int CCXML_RSCTRT3P = 0x1F00;
+    public static final int CCXML_RSCTPT1 = 0x2000;
+    public static final int CCXML_RSCTPT2 = 0x2100;
+    public static final int CCXML_RSCTPT3 = 0x2200;
+    public static final int CCXML_RSCTPT1P = 0x2300;
+    public static final int CCXML_RSCTPT2P = 0x2400;
+    public static final int CCXML_RSCTPT3P = 0x2500;
+    public static final int CCXML_CHECKSUM_SET = 0x2600;
+    public static final int CCXML_CHECKSUM_START = 0x2700;
 
     public static final int DATA1_CC_BANKSELECT = 0;
     public static final int DATA1_CC_MODULATION = 1;
@@ -223,155 +257,6 @@ public class MXMidi {
 
     protected static final String[] noteSymbols = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
 
-    public static MXWrapList<Integer> listupGate7Bit() {
-        MXWrapList<Integer> newList = new MXWrapList<>();
-        for(int i = 0; i < 128; ++ i) {
-            newList.addNameAndValue(String.valueOf(i) , i);
-        }
-        return newList;
-    }
-    
-    public static MXWrapList<Integer> listupProgramNumber() {
-        //GMProgramList list = GMProgramList.getInstance();
-        MXWrapList<Integer> newList = new MXWrapList<>();
-        for (int i = 0; i < 128; ++i) {
-            Integer number = i;
-            //String name = list.nameOfIndex(i);
-            newList.addNameAndValue("" + number, number);
-        }
-        return newList;
-    }
-
-    public static MXWrapList<Integer> listupVelocity() {
-        MXWrapList<Integer> list = new MXWrapList<Integer>();
-        for (int i = 0; i <= 127; ++i) {
-            list.addNameAndValue(String.valueOf(i), i);
-        }
-        return list;
-    }
-
-    public static MXWrapList<Boolean> listupSendFilter() {
-        MXWrapList<Boolean> list = new MXWrapList<Boolean>();
-        list.addNameAndValue("Send", Boolean.TRUE);
-        list.addNameAndValue("Don't send", Boolean.FALSE);
-        return list;
-    }
-
-    public static MXWrapList<Integer> listupXSB() {
-        MXWrapList<Integer> newList = new MXWrapList<>();
-        for (int i = 0; i < 256; ++i) {
-            String name = MXUtil.toHexFF(i);
-            Integer number = i;
-            newList.addNameAndValue(name, number);
-        }
-        return newList;
-    }
-
-    public static MXWrapList<Integer> listupCommand() {
-        MXWrapList<Integer> list = new MXWrapList<>();
-        for (int i = 128; i <= 240; i += 16) {
-            String name = nameOfChannelMessage(i);
-            String title = Integer.valueOf(i) + " " + name;
-            list.addNameAndValue(title, i);
-        }
-        return list;
-    }
-
-    public static MXWrapList<Integer> listupSystemModeOneShot() {
-        MXWrapList<Integer> list = new MXWrapList<>();
-        for (int i = 240; i <= 247; ++i) {
-            String name = nameOfSystemCommonMessage(i);
-            list.addNameAndValue(name + "(" + i + ")", i);
-        }
-        for (int i = 248; i <= 255; ++i) {
-            String name = nameOfSystemRealtimeMessage(i);
-            list.addNameAndValue(name + "(" + i + ")", i);
-        }
-        return list;
-    }
-
-    public static MXWrapList<Integer> listupChannel(boolean addOmni) {
-        MXWrapList<Integer> list = new MXWrapList();
-        if (addOmni) {
-            list.addNameAndValue("any", -1);
-        }
-        for (int i = 0; i < 16; ++i) {
-            list.addNameAndValue(String.valueOf(i + 1), i);
-        }
-        return list;
-    }
-
-    public static MXWrapList<Integer> listChannelModeSlider() {
-        MXWrapList<Integer> list = new MXWrapList<>();
-        for (int i = 120; i <= 127; ++i) {
-            if (i == 122) {
-                String name = nameOfControlChange(i);
-                list.addNameAndValue(name + "(" + i + ")", i);
-            }
-        }
-        return list;
-    }
-
-    public static MXWrapList<Integer> listupPercent() {
-        MXWrapList<Integer> list = new MXWrapList();
-        for (int i = 100; i >= 0; i -= 10) {
-            list.addNameAndValue(String.valueOf(i) + "%", i);
-        }
-        return list;
-    }
-    
-    public static MXWrapList<Integer> listupPortShort() {
-        MXWrapList<Integer> list = new MXWrapList();
-        for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++i) {
-            list.addNameAndValue(Character.toString('A' + i), i);
-        }
-        return list;
-    }
-
-    public static MXWrapList<Integer> listupPortAssigned(boolean addOmni) {
-        MXWrapList<Integer> list = new MXWrapList();
-        if (addOmni) {
-            list.addNameAndValue("Any ", -1);
-        }
-        for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++i) {
-            list.addNameAndValue(Character.toString('A' + i), i);
-        }
-        return list;
-    }
-
-    public static MXWrapList<Integer> listupChannelModeOnShot() {
-        MXWrapList<Integer> list = new MXWrapList<>();
-        for (int i = 120; i <= 127; ++i) {
-            if (i != 122) {
-                String name = nameOfControlChange(i);
-                list.addNameAndValue(name + "(" + i + ")", i);
-            }
-        }
-        return list;
-    }
-
-    public static MXWrapList<Integer> listupControlChange() {
-        MXWrapList<Integer> list = new MXWrapList<>();
-        for (int i = 0; i <= 119; ++i) {
-            String name = nameOfControlChange(i);
-            list.addNameAndValue(name + "(" + i + ")", i);
-        }
-        return list;
-    }
-
-    public static MXWrapList<Integer> listupNoteNo() {
-        MXWrapList<Integer> list = new MXWrapList();
-        for (int i = 0; i <= 127; ++i) {
-            list.addNameAndValue(nameOfNote(i), i);
-        }
-        return list;
-    }
-
-    public static MXWrapList<Integer> listupZero() {
-        MXWrapList<Integer> list = new MXWrapList<Integer>();
-        list.addNameAndValue("---", 0);
-        return list;
-    }
     
     public static final String nameOfChannelMessage(int command) {
         switch (command) {

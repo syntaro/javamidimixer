@@ -200,7 +200,7 @@ public class Example1 extends javax.swing.JPanel {
     }
 
     /**
-     * Creates new form MXSwingAccordingSample
+     * Creates new form Example1
      */
     public Example1() {
         initComponents();

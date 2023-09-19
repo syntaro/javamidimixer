@@ -25,7 +25,7 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
 public class InitializeConfirmPanel extends javax.swing.JPanel {
     MX32MixerProcess _process;
     /**
-     * Creates new form InitializeConfirmPanel2
+     * Creates new form InitializeConfirmPanel
      */
     public InitializeConfirmPanel(MX32MixerProcess process) {
         _process = process;

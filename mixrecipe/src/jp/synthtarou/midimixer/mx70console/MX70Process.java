@@ -16,8 +16,8 @@
  */
 package jp.synthtarou.midimixer.mx70console;
 
-import jp.synthtarou.midimixer.libs.console.ConsoleModel;
-import jp.synthtarou.midimixer.libs.console.ConsoleElement;
+import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
+import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
@@ -29,11 +29,11 @@ import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 public class MX70Process implements MXSettingTarget {
     MXSetting _setting;
     MX70Panel _view;
-    ConsoleModel _outsideInput = new ConsoleModel();
-    ConsoleModel _insideInput = new ConsoleModel();
-    ConsoleModel _insideOutput = new ConsoleModel();
-    ConsoleModel _outsideOutput = new ConsoleModel();
-    ConsoleModel _listBinary = new ConsoleModel();
+    MXMidiConsole _outsideInput = new MXMidiConsole();
+    MXMidiConsole _insideInput = new MXMidiConsole();
+    MXMidiConsole _insideOutput = new MXMidiConsole();
+    MXMidiConsole _outsideOutput = new MXMidiConsole();
+    MXMidiConsole _listBinary = new MXMidiConsole();
 
     public MX70Process() {
         _setting = new MXSetting("FreeConsole");
@@ -54,13 +54,13 @@ public class MX70Process implements MXSettingTarget {
         _view.showAsWindow();
     }
 
-    public void addOutsideInput(ConsoleElement e) {
+    public void addOutsideInput(MXMidiConsoleElement e) {
         _outsideInput.add(e);
         e.getTiming().recordWrap(0);
     }
 
     public void addInsideInput(MXMessage msg) {
-        ConsoleElement e = new ConsoleElement(msg);
+        MXMidiConsoleElement e = new MXMidiConsoleElement(msg);
         _insideInput.add(e);
         e.getTiming().recordWrap(1);
         if (msg.isBinMessage()) {
@@ -69,7 +69,7 @@ public class MX70Process implements MXSettingTarget {
     }
 
     public void addInsideOutput(MXMessage msg) {
-        ConsoleElement e = new ConsoleElement(msg);
+        MXMidiConsoleElement e = new MXMidiConsoleElement(msg);
         _insideOutput.add(e);
         try {
             e.getTiming().recordWrap(2);
@@ -78,7 +78,7 @@ public class MX70Process implements MXSettingTarget {
         }
     }
 
-    public void addOutsideOutput(ConsoleElement e) {
+    public void addOutsideOutput(MXMidiConsoleElement e) {
         _outsideOutput.add(e);
         e.getTiming().recordWrap(3);
     }

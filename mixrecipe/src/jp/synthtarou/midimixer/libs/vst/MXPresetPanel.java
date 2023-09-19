@@ -30,7 +30,7 @@ import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
  */
 public class MXPresetPanel extends javax.swing.JPanel {
     /**
-     * Creates new form TotalRecallPanel
+     * Creates new form MXPresetPanel
      */
     public MXPresetPanel(IndexedFile file, MXPresetAction action) {
         initComponents();
@@ -206,7 +206,7 @@ public class MXPresetPanel extends javax.swing.JPanel {
                 return;
             }
             String title = _file.getTitle(x);
-            TextInputPanel panel = new TextInputPanel();
+            PresetNamePanel panel = new PresetNamePanel();
             String ret = panel.showAsDialog(this, title);
             if (ret != null) {
                 title = ret;

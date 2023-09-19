@@ -133,7 +133,7 @@ public class VSTInstancePanel extends javax.swing.JPanel {
         }
     };
     /**
-     * Creates new form InstancePanel
+     * Creates new form VSTInstancePanel
      */
     public VSTInstancePanel(VSTInstance vst) {
         initComponents();

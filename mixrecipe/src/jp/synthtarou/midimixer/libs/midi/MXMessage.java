@@ -21,29 +21,30 @@ import java.util.TreeSet;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
-import jp.synthtarou.midimixer.libs.console.ConsoleElement;
+import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.mx30controller.MGStatus;
 
 /**
  *
- * @author Syntarou YOSHIDA
- * infomation from g200kg Music & Software https://www.g200kg.com/
+ * @author Syntarou YOSHIDA infomation from g200kg Music & Software
+ * https://www.g200kg.com/
  */
 public final class MXMessage {
+
     public MXTiming _timing;
     int _port;
 
     private RangedValue _value = RangedValue.ZERO7;
     private RangedValue _gate = RangedValue.ZERO7;
     private int _channel = 0;
-    
+
     protected byte[] _dataBytes = null;
     private boolean _valuePair14bit;
 
     private final MXTemplate _template;
 
-    public TreeSet<MGStatus>_linkedStatus = null;
-    
+    public TreeSet<MGStatus> _linkedStatus = null;
+
     public boolean isBinMessage() {
         if (createBytes() == null) {
             return false;
@@ -51,7 +52,7 @@ public final class MXMessage {
         if (_dataBytes.length <= 3) {
             int b = _dataBytes[0] & 0xff;
             if (b >= 0x80 && b <= 0xff) {
-                switch(b) {
+                switch (b) {
                     case 0xf0:
                     case 0xf7:
                     case 0xff:
@@ -61,7 +62,7 @@ public final class MXMessage {
             }
             int command2 = _template.get(0) & 0xff00;
             if (command2 != 0) {
-                switch(command2) {
+                switch (command2) {
                     case MXMidi.COMMAND2_META:
                         return true;
                 }
@@ -88,7 +89,7 @@ public final class MXMessage {
     public boolean isValuePairCC14() {
         return _valuePair14bit;
     }
-    
+
     /**
      * @param value14bit the it14bitCC to set
      */
@@ -121,13 +122,13 @@ public final class MXMessage {
     public int getPort() {
         return _port;
     }
-    
+
     public void setPort(int port) {
         if (_port != port) {
             _port = port;
         }
     }
- 
+
     public int getStatus() {
         if (createBytes() == null) {
             return 0;
@@ -135,7 +136,7 @@ public final class MXMessage {
         int status = _dataBytes[0] & 0xff;
         return status;
     }
-    
+
     public boolean isCommand(int command) {
         int status = getStatus();
         if (status >= 0x80 && status <= 0xef) {
@@ -148,17 +149,17 @@ public final class MXMessage {
 
     public void setChannel(int channel) {
         if (_channel != channel) {
-             _dataBytes = null;
+            _dataBytes = null;
             _channel = channel;
         }
     }
-    
+
     public int getData1() {
         if (createBytes() == null) {
             return 0;
         }
         if (_dataBytes.length > 1) {
-            return _dataBytes[1] & 0xff;    
+            return _dataBytes[1] & 0xff;
         }
         return 0;
     }
@@ -180,7 +181,7 @@ public final class MXMessage {
         }
         return _channel;
     }
-    
+
     public RangedValue getValue() {
         return _value;
     }
@@ -265,10 +266,19 @@ public final class MXMessage {
     }
 
     public boolean isDataentry() {
-        createBytes();
-        if (_template.isDataentry()) {
+        if (_template.get(0) == MXMidi.COMMAND2_CH_RPN
+                || _template.get(0) == MXMidi.COMMAND2_CH_NRPN) {
             return true;
         }
+        return isUnknwonDataentry();
+    }
+
+    public boolean isUnknwonDataentry() {
+        if (_template.get(0) == MXMidi.COMMAND2_CH_RPN
+                || _template.get(0) == MXMidi.COMMAND2_CH_NRPN) {
+            return false;
+        }
+        createBytes();
         if (isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
             switch (getData1()) {
                 case MXMidi.DATA1_CC_DATAENTRY:
@@ -283,29 +293,29 @@ public final class MXMessage {
     public String toString() {
         String str = toStringHeader();
         if (isCommand(MXMidi.COMMAND_CH_PROGRAMCHANGE)) {
-            return str + "("+ getGate() + ")";
-        }else {
-            return str + "("+ getValue() + ")";
+            return str + "(" + getGate() + ")";
+        } else {
+            return str + "(" + getValue() + ")";
         }
     }
-        
+
     public String toStringHeader(int min, int max) {
         String str = toStringHeader();
         if (min != max) {
             return str + "= Range" + min + " to " + max;
-        }else {
+        } else {
             return str + "= " + max;
         }
     }
-    
+
     public String toStringHeader() {
         if (createBytes() == null) {
             return "";
         }
-        
+
         int port = getPort();
-        
-        switch ((int)_dataBytes[0]) {
+
+        switch ((int) _dataBytes[0]) {
             case 0xff:
                 return "Meta [" + getMetaType() + ":" + getMetaText() + "]";
             case 0xf0:
@@ -318,35 +328,34 @@ public final class MXMessage {
             int r2 = toDataroomLSB2();
             int d1 = toDatavalueMSB1();
             int d2 = toDatavalueLSB2();
-            
-            return ConsoleElement.toSegmentText(r1)
-                 + ConsoleElement.toSegmentText(r2)
-                 + ConsoleElement.toSegmentText(d1)
-                 + ConsoleElement.toSegmentText(d2);
+
+            return MXMidiConsoleElement.toSegmentText(r1)
+                    + MXMidiConsoleElement.toSegmentText(r2)
+                    + MXMidiConsoleElement.toSegmentText(d1)
+                    + MXMidiConsoleElement.toSegmentText(d2);
         }
         if (isBinMessage()) {
             return "Binary[" + MXUtil.dumpHex(getDataBytes()) + "]";
         }
 
         int dword = (((getStatus() << 8) | getData1()) << 8) | getData2();
-        return ConsoleElement.toSegmentText(dword);
+        return MXMidiConsoleElement.toSegmentText(dword);
     }
-    
-    
-    public String toShortString() {
+
+    public String toStringForUI() {
         if (createBytes() == null) {
             return "";
         }
-        
+
         String chname;
         if (isMessageTypeChannel()) {
             int channel = getChannel();
-            chname = "" + (channel+1);
-        }else {
+            chname = "" + (channel + 1);
+        } else {
             chname = "";
         }
 
-        switch((int)_dataBytes[0]) {
+        switch ((int) _dataBytes[0]) {
             case 0xf0:
                 return "Sys";
             case 0xf7:
@@ -357,90 +366,67 @@ public final class MXMessage {
         if (isBinMessage()) {
             return "???";
         }
- 
+
         int status = getStatus();
         int command = status;
         if (command >= 0x80 && command <= 0xef) {
             command &= 0xf0;
         }
-        
+
         if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
             int data1 = getData1();
-            if (data1 == MXMidi.DATA1_CC_DATAENTRY && _visitant != null) {
-                if (_visitant.isHaveDataentryRPN()) {
-                    return chname + "RPN[" + MXUtil.toHexFF(_visitant.getDataroomMSB()) + ":" + MXUtil.toHexFF(_visitant.getDataroomLSB()) + "]";
-                }else if (_visitant.isHaveDataentryNRPN()) {
-                    return chname + "NRPN[" + MXUtil.toHexFF(_visitant.getDataroomMSB()) + ":" + MXUtil.toHexFF(_visitant.getDataroomLSB()) + "]";
-                }
-            }else 
-            if (data1 == MXMidi.DATA1_CC_DATAINC && _visitant != null) {
-                if (_visitant.isHaveDataentryRPN()) {
-                    return chname + "RPN[" + MXUtil.toHexFF(_visitant.getDataroomMSB()) + ":" + MXUtil.toHexFF(_visitant.getDataroomLSB()) + "]+";
-                }else if (_visitant.isHaveDataentryNRPN()) {
-                    return chname + "NRPN[" + MXUtil.toHexFF(_visitant.getDataroomMSB()) + ":" + MXUtil.toHexFF(_visitant.getDataroomLSB()) + "]+";
-                }            
-            }else 
-            if (data1 == MXMidi.DATA1_CC_DATADEC && _visitant != null) {
-                if (_visitant.isHaveDataentryRPN()) {
-                    return chname + "RPN[" + MXUtil.toHexFF(_visitant.getDataroomMSB()) + ":" + MXUtil.toHexFF(_visitant.getDataroomLSB()) + "]-";
-                }else if (_visitant.isHaveDataentryNRPN()) {
-                    return chname + "NRPN[" + MXUtil.toHexFF(_visitant.getDataroomMSB()) + ":" + MXUtil.toHexFF(_visitant.getDataroomLSB()) + "]-";
-                }            
-            }
             return chname + MXMidi.nameOfControlChange(data1);
-        }else {
-            if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-                int note = getGate()._var;
-                int velocity = getValue()._var;
-                return  chname + MXMidi.nameOfNote(note) + "-";
-            }
-            if (command == MXMidi.COMMAND_CH_NOTEON) {
-                int note = getGate()._var;
-                int velocity = getValue()._var;
-                return  chname + MXMidi.nameOfNote(note);
-            }
-            if (command == MXMidi.COMMAND_CH_POLYPRESSURE) {
-                int note = getGate()._var;
-                int velocity = getValue()._var;
-                return  chname + "PPrs";
-            }
-            if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
-                int program = getGate()._var;
-                return  chname + "PG" + program;
-            }
-            if (command == MXMidi.COMMAND_CH_CHANNELPRESSURE) {
-                return  chname + "ChPrs";
-            }
-            if (command == MXMidi.COMMAND_CH_PITCHWHEEL) {
-                return  chname + "Pitch";
-            }
-            if (command == MXMidi.COMMAND_SONGPOSITION) {
-                return  chname + "Pos";
-            }
-            if (command == MXMidi.COMMAND_SONGSELECT) {
-                return  chname + "Song";
-            }
+        } else if (command == MXMidi.COMMAND_CH_NOTEOFF) {
+            int note = getGate()._var;
+            int velocity = getValue()._var;
+            return chname + MXMidi.nameOfNote(note) + "-";
+        }
+        if (command == MXMidi.COMMAND_CH_NOTEON) {
+            int note = getGate()._var;
+            int velocity = getValue()._var;
+            return chname + MXMidi.nameOfNote(note);
+        }
+        if (command == MXMidi.COMMAND_CH_POLYPRESSURE) {
+            int note = getGate()._var;
+            int velocity = getValue()._var;
+            return chname + "PPrs";
+        }
+        if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
+            int program = getGate()._var;
+            return chname + "PG" + program;
+        }
+        if (command == MXMidi.COMMAND_CH_CHANNELPRESSURE) {
+            return chname + "ChPrs";
+        }
+        if (command == MXMidi.COMMAND_CH_PITCHWHEEL) {
+            return chname + "Pitch";
+        }
+        if (command == MXMidi.COMMAND_SONGPOSITION) {
+            return chname + "Pos";
+        }
+        if (command == MXMidi.COMMAND_SONGSELECT) {
+            return chname + "Song";
         }
 
         if (isMessageTypeChannel()) {
-            return  chname + MXMidi.nameOfMessage(getStatus(), getData1(), getData2());
-        }else {
-            return  MXMidi.nameOfMessage(getStatus(), getData1(), getData2());
+            return chname + MXMidi.nameOfMessage(getStatus(), getData1(), getData2());
+        } else {
+            return MXMidi.nameOfMessage(getStatus(), getData1(), getData2());
         }
     }
-    
+
     public static void main(String[] args) {
         MXMessage message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_NOTEON + 0, 64, 127);
         String dtext = message._template.toDText(message);
 
-        MXMessage msg = MXTemplate.fromDtext(message.getPort(), dtext, message.getChannel(), message.getGate(), message.getValue());
+        MXMessage msg = MXMessageFactory.fromCCXMLText(message.getPort(), dtext, message.getChannel(), message.getGate(), message.getValue());
 
         PrintStream output = System.out;
-        
+
         output.println(message);
         output.println(dtext);
         output.println(msg);
-        
+
         msg.setPort(6);
         msg.setChannel(2);
         msg.setValue(RangedValue.new7bit(100));
@@ -451,11 +437,11 @@ public final class MXMessage {
         MXMessage message2 = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + 1, MXMidi.DATA1_CC_CHANNEL_VOLUME, 127);
         output.println(message2);
         String dtext2 = message2._template.toDText(message2);
-        MXMessage msg2 = MXTemplate.fromDtext(message2.getPort(), dtext2, message2.getChannel(), message2.getGate(), message2.getValue());
+        MXMessage msg2 = MXMessageFactory.fromCCXMLText(message2.getPort(), dtext2, message2.getChannel(), message2.getGate(), message2.getValue());
 
         output.println(dtext2);
         output.println(msg2);
-        
+
         msg2.setPort(6);
         msg2.setChannel(2);
         msg2.setValue(RangedValue.new7bit(100));
@@ -463,7 +449,7 @@ public final class MXMessage {
         output.println(msg2);
         output.println("----------------");
     }
-    
+
     public void debugDump(String func) {
         PrintStream output = System.out;
         StringBuffer buf = new StringBuffer();
@@ -471,7 +457,7 @@ public final class MXMessage {
         buf.append(_template.toDArray(this));
         buf.append("] bytes = [ ");
         byte[] b = getDataBytes();
-        for (int i = 0; i < b.length; ++ i) {
+        for (int i = 0; i < b.length; ++i) {
             buf.append(MXUtil.toHexFF(b[i]) + " ");
         }
         buf.append("]");
@@ -479,15 +465,15 @@ public final class MXMessage {
         buf.append(" value = " + getValue());
         output.println(buf);
     }
-    
+
     public String toDumpString() {
         createBytes();
-        
+
         String chname;
         if (isMessageTypeChannel()) {
             int channel = getChannel();
-            chname = Integer.toString(channel+1);
-        }else {
+            chname = Integer.toString(channel + 1);
+        } else {
             chname = "";
         }
 
@@ -498,29 +484,32 @@ public final class MXMessage {
         }
         return MXUtil.dumpHex(_dataBytes);
     }
-    
+
     public int getDwordCount() {
-        if (isDataentry()) {
-            MXVisitant visit = getVisitant();
-            if (visit != null) {
-                if (visit.isHaveDataentryRPN()) {
-                    return 4;
-                }else if (visit.isHaveDataentryNRPN()) {
-                    return 4;
-                }
-            }
-            return -1;
-        }
         if (isBinMessage()) {
             return 0;
         }
         if (_template.size() == 0) {
             return 0;
         }
-        //TOOD
-        if (_template.get(0) == MXMidi.COMMAND2_CH_PROGRAM_INC 
-          || _template.get(0) == MXMidi.COMMAND2_CH_PROGRAM_DEC) {
+        if (_template.get(0) == MXMidi.COMMAND2_CH_PROGRAM_INC
+                || _template.get(0) == MXMidi.COMMAND2_CH_PROGRAM_DEC) {
             return 3;
+        }
+        if (_template.get(0) == MXMidi.COMMAND2_CH_RPN
+                || _template.get(0) == MXMidi.COMMAND2_CH_NRPN) {
+            return 4;
+        }
+        if (isUnknwonDataentry()) {
+            MXVisitant visit = getVisitant();
+            if (visit != null) {
+                if (visit.isHaveDataentryRPN()) {
+                    return 4;
+                } else if (visit.isHaveDataentryNRPN()) {
+                    return 4;
+                }
+            }
+            return -1;
         }
         if (isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE) && isValuePairCC14()) {
             return 2;
@@ -530,7 +519,7 @@ public final class MXMessage {
 
     public int getAsDword(int column) {
         if (isDataentry()) {
-            switch(column) {
+            switch (column) {
                 case 0:
                     return toDataroomMSB1();
                 case 1:
@@ -546,10 +535,10 @@ public final class MXMessage {
             int status = getStatus();
             int data1 = getData1();
             int data2 = getData2();
-            if ((getStatus() & 0xf0)== MXMidi.COMMAND_CH_CONTROLCHANGE && isValuePairCC14()) {
-                if (column == 0)  {
+            if ((getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE && isValuePairCC14()) {
+                if (column == 0) {
                     data2 = (getValue()._var >> 7) & 0x7f;
-                }else {
+                } else {
                     data1 += 0x20;
                     data2 = getValue()._var & 0x7f;
                 }
@@ -560,17 +549,29 @@ public final class MXMessage {
     }
 
     public int toDataroomMSB1() {
-        if (getVisitant() == null) {
-            return  0;
-        }
         int status, data1, data2;
-        if (getVisitant().isHaveDataentryRPN()){
-            status =MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
+
+        if (getTemplateAsPlain(0) == MXMidi.COMMAND2_CH_RPN) {
+            status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
+            data1 = MXMidi.DATA1_CC_RPN_MSB;
+            data2 = getTemplateAsParsed(1);
+            return (((status << 8) | data1) << 8) | data2;
+        } else if (getTemplateAsPlain(0) == MXMidi.COMMAND2_CH_NRPN) {
+            status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
+            data1 = MXMidi.DATA1_CC_NRPN_MSB;
+            data2 = getTemplateAsParsed(1);
+            return (((status << 8) | data1) << 8) | data2;
+        }
+        if (getVisitant() == null) {
+            return 0;
+        }
+        if (getVisitant().isHaveDataentryRPN()) {
+            status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_RPN_MSB;
             data2 = getVisitant().getDataroomMSB();
             return (((status << 8) | data1) << 8) | data2;
-        }else if (getVisitant().isHaveDataentryNRPN()) {
-            status =MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
+        } else if (getVisitant().isHaveDataentryNRPN()) {
+            status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_NRPN_MSB;
             data2 = getVisitant().getDataroomMSB();
             return (((status << 8) | data1) << 8) | data2;
@@ -578,19 +579,31 @@ public final class MXMessage {
         return 0;
     }
 
-    public int toDataroomLSB2()  {
+    public int toDataroomLSB2() {
+        int status, data1, data2;
+
+        if (getTemplateAsPlain(0) == MXMidi.COMMAND2_CH_RPN) {
+            status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
+            data1 = MXMidi.DATA1_CC_RPN_LSB;
+            data2 = getTemplateAsParsed(2);
+            return (((status << 8) | data1) << 8) | data2;
+        } else if (getTemplateAsPlain(0) == MXMidi.COMMAND2_CH_NRPN) {
+            status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
+            data1 = MXMidi.DATA1_CC_NRPN_LSB;
+            data2 = getTemplateAsParsed(2);
+            return (((status << 8) | data1) << 8) | data2;
+        }
         if (getVisitant() == null) {
             //System.out.println("DATAENTRY ERROR");
-            return  0;
+            return 0;
         }
-        int status, data1, data2;
-        if (getVisitant().isHaveDataentryRPN()){
-            status =MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
+        if (getVisitant().isHaveDataentryRPN()) {
+            status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_RPN_LSB;
             data2 = getVisitant().getDataroomLSB();
             return (((status << 8) | data1) << 8) | data2;
-        }else if (getVisitant().isHaveDataentryNRPN()) {
-            status =MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
+        } else if (getVisitant().isHaveDataentryNRPN()) {
+            status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_NRPN_LSB;
             data2 = getVisitant().getDataroomLSB();
             return (((status << 8) | data1) << 8) | data2;
@@ -599,13 +612,19 @@ public final class MXMessage {
     }
 
     public int toDatavalueMSB1() {
+        int status, data1, data2;
+        if (getTemplateAsPlain(0) == MXMidi.COMMAND2_CH_RPN || getTemplateAsPlain(0) == MXMidi.COMMAND2_CH_NRPN) {
+            status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
+            data1 = MXMidi.DATA1_CC_DATAENTRY;
+            data2 = getTemplateAsParsed(3);
+            return (((status << 8) | data1) << 8) | data2;
+        }
         if (getVisitant() == null) {
             //System.out.println("DATAENTRY ERROR");
-            return  0;
+            return 0;
         }
-        int status, data1, data2;
         if (getVisitant().isHaveDataentryRPN() || getVisitant().isHaveDataentryNRPN()) {
-            status =MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
+            status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_DATAENTRY;
             data2 = getVisitant().getDataentryMSB();
             return (((status << 8) | data1) << 8) | data2;
@@ -613,12 +632,18 @@ public final class MXMessage {
         return 0;
     }
 
-    public int toDatavalueLSB2()  {
+    public int toDatavalueLSB2() {
+        int status, data1, data2;
+        if (getTemplateAsPlain(0) == MXMidi.COMMAND2_CH_RPN || getTemplateAsPlain(0) == MXMidi.COMMAND2_CH_NRPN) {
+            status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
+            data1 = MXMidi.DATA1_CC_DATAENTRY + 0x20;
+            data2 = getTemplateAsParsed(4);
+            return (((status << 8) | data1) << 8) | data2;
+        }
         if (getVisitant() == null) {
             //System.out.println("DATAENTRY ERROR");
-            return  0;
+            return 0;
         }
-        int status, data1, data2;
         if (getVisitant().isHaveDataentryRPN() || getVisitant().isHaveDataentryNRPN()) {
             status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_DATAENTRY + 0x20;
@@ -627,7 +652,7 @@ public final class MXMessage {
         }
         return 0;
     }
-    
+
     public boolean hasValueHiField() {
         return _template.getBytePosHiValue() >= 0;
     }
@@ -646,19 +671,15 @@ public final class MXMessage {
         }
         return _template.getBytePosHiGate() >= 0;
     }
-    
-    public String toTemplateText() {
-        return _template.toDText(this);
-    }
-    
-    public MXTemplate getTemplate() {
+
+    MXTemplate getTemplate() {
         return _template;
     }
-    
+
     public Object clone() {
         MXMessage message;
         message = new MXMessage(_port, _template, _channel, _gate, _value);
-        
+
         message._timing = this._timing;
 
         message.setVisitant(getVisitant());
@@ -666,7 +687,7 @@ public final class MXMessage {
 
         return message;
     }
-    
+
     public boolean takeTicket(int ticketNumber) {
         return _timing.takeTicket(ticketNumber, this);
     }
@@ -674,7 +695,7 @@ public final class MXMessage {
     public boolean isSameTemplate(int dword) {
         return true;
     }
-    
+
     public MXMessage refillGate() {
         MXTemplate temp = _template;
         switch (temp.get(0)) {
@@ -686,7 +707,7 @@ public final class MXMessage {
                 if ((temp.get(1) & 0xff00) == 0) {
                     int[] newTemplate = new int[]{
                         temp.get(0),
-                        MXTemplate.DTEXT_GL,
+                        MXMidi.CCXML_GL,
                         temp.get(2)
                     };
                     int newGate = temp.get(1);
@@ -705,4 +726,62 @@ public final class MXMessage {
         return null;
     }
 
+    public int getTemplateSize() {
+        return getTemplate().size();
+    }
+
+    public int getTemplateAsParsed(int pos) {
+        return getTemplate().parseDAlias(getTemplate().get(pos), this);
+    }
+
+    public int getTemplateAsPlain(int pos) {
+        return getTemplate().get(pos);
+    }
+
+    public String getTemplateAsText() {
+        return _template.toDText(this);
+    }
+
+    public boolean hasSameTemplate(MXMessage message) {
+        MXTemplate temp1 = getTemplate();
+        MXTemplate temp2 = message.getTemplate();
+
+        if (temp1 != temp2) {
+            if (temp1.size() != temp2.size()) {
+                return false;
+            }
+            for (int i = 0; i < temp1.size(); ++i) {
+                int t1 = temp1.get(i);
+                int t2 = temp2.get(i);
+
+                if (t1 == t2) {
+                    continue;
+                }
+
+                if (t1 == MXMidi.CCXML_VH || t1 == MXMidi.CCXML_VL
+                        || t2 == MXMidi.CCXML_VH || t2 == MXMidi.CCXML_VL) {
+                    continue;
+                }
+
+                int gate1 = getGate()._var;
+                int gate2 = message.getGate()._var;
+
+                if (t1 == MXMidi.CCXML_GL || t2 == MXMidi.CCXML_GL) {
+                    if (t1 != MXMidi.CCXML_GL) {
+                        gate1 = t1;
+                    }
+                    if (t2 != MXMidi.CCXML_GL) {
+                        gate2 = t2;
+                    }
+                    if (gate1 == gate2) {
+                        continue;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

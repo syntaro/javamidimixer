@@ -36,7 +36,7 @@ public class MXAccordionPanel extends javax.swing.JPanel {
     }
 
     /**
-     * Creates new form MXAAccordionPanel2
+     * Creates new form MXAccordionPanel
      */
     public MXAccordionPanel() {
         initComponents();

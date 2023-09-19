@@ -35,7 +35,8 @@ import jp.synthtarou.midimixer.libs.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.mx35cceditor.ccxml.EditorForInstrument;
+import jp.synthtarou.midimixer.libs.ccxml.EditorForInstrument;
+import jp.synthtarou.midimixer.libs.midi.MXMidiWrapList;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
@@ -52,8 +53,8 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
     MX40Layer _editingLayer;
 
     //MXWrapList<Integer> _watchPort = MXMidi.createPortShort();
-    MXWrapList<Integer> _watchChannel = MXMidi.listupChannel(false);
-    MXWrapList<Integer> _watchProgram = MXMidi.listupProgramNumber();
+    MXWrapList<Integer> _watchChannel = MXMidiWrapList.listupChannel(false);
+    MXWrapList<Integer> _watchProgram = MXMidiWrapList.listupProgramNumber(true);
 
     MXWrapList<Integer> _modPort = MX40Layer.createSendOption(false);
     MXWrapList<Integer> _modChannel = MX40Layer.createSendOption(false);
@@ -61,16 +62,16 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
     MXWrapList<Integer> _modProgram = MX40Layer.createSendOption(true);
 
     //MXWrapList<Integer> _changePort = MXMidi.createPortShort();
-    MXWrapList<Integer> _changeChannel = MXMidi.listupChannel(false);
-    MXWrapList<Integer> _changeProgram = MXMidi.listupProgramNumber();
-    MXWrapList<Integer> _changeVolume = MXMidi.listupPercent();
-    MXWrapList<Integer> _changeExpression = MXMidi.listupPercent();
+    MXWrapList<Integer> _changeChannel = MXMidiWrapList.listupChannel(false);
+    MXWrapList<Integer> _changeProgram = MXMidiWrapList.listupProgramNumber(true);
+    MXWrapList<Integer> _changeVolume = MXMidiWrapList.listupPercent();
+    MXWrapList<Integer> _changeExpression = MXMidiWrapList.listupPercent();
 
-    MXWrapList<Integer> _changeLowNote = MXMidi.listupNoteNo();
-    MXWrapList<Integer> _changeHighNote = MXMidi.listupNoteNo();
+    MXWrapList<Integer> _changeLowNote = MXMidiWrapList.listupNoteNo(false);
+    MXWrapList<Integer> _changeHighNote = MXMidiWrapList.listupNoteNo(false);
 
-    MXWrapList<Integer> _changeLowVelocity = MXMidi.listupVelocity();
-    MXWrapList<Integer> _changeHighVelocity = MXMidi.listupVelocity();
+    MXWrapList<Integer> _changeLowVelocity = MXMidiWrapList.listupVelocity();
+    MXWrapList<Integer> _changeHighVelocity = MXMidiWrapList.listupVelocity();
 
     MXWrapList<MX40Group> _groupsModel = null;
     MXWrapList<MX40Layer> _layersModel = null;
@@ -1561,7 +1562,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         String text=  jButtonWatchPort.getText();
         int watchPort = text.length() >= 1 ? text.charAt(0) - 'A' : -1;
         group._watchingPort = watchPort;
-        group._watchingChannel = (int)((MXWrap)jComboBoxWatchChannel.getSelectedItem()).value;
+        group._watchingChannel = (int)((MXWrap)jComboBoxWatchChannel.getSelectedItem())._value;
         group._watchingProgram = (int)jSpinnerWatchProgram.getValue();
         group._watchingBankMSB = (int)jSpinnerWatchBankMSB.getValue();
         group._watchingBankLSB = (int)jSpinnerWatchBankLSB.getValue();

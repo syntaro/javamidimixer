@@ -16,14 +16,13 @@
  */
 package jp.synthtarou.midimixer.mx30controller;
 
-import java.awt.Color;
 import java.io.File;
 import jp.synthtarou.midimixer.MXMain;
+import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFCallback;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
@@ -38,9 +37,35 @@ public class MGStatusForDrum {
     public static final int TYPE_CUSTOM_CC = 11;
     public static final int TYPE_NOTES = 12;
     public static final int TYPE_SONG = 13;
-    public static final int TYPE_JUMP = 14;
+    public static final int TYPE_SLIDERJUMP = 14;
     public static final int TYPE_PROGRAM = 15;
 
+    static MXWrapList<Integer> _typeMap = new MXWrapList();
+    
+    static {
+        _typeMap.addNameAndValue("CC", TYPE_CUSTOM_CC);
+        _typeMap.addNameAndValue("Note", TYPE_NOTES);
+        _typeMap.addNameAndValue("Song", TYPE_SONG);
+        _typeMap.addNameAndValue("SliderJump", TYPE_SLIDERJUMP);
+        _typeMap.addNameAndValue("ProgramChange", TYPE_PROGRAM);
+    }
+
+    public String getTypeAsText() {
+        int x = _typeMap.indexOfValue(_type);
+        if (x >= 0) {
+            return _typeMap.nameOfIndex(x);
+        }
+        return "?";
+    }
+    
+    public void setTypeByText(String name) {
+        int x = _typeMap.indexOfName(name);
+        if (x >= 0) {
+            _type = _typeMap.valueOfIndex(x);
+        }
+        _type = TYPE_PROGRAM;
+    }
+    
     MGStatus _status;
     
     public MGStatusForDrum(MGStatus status) {
@@ -56,7 +81,7 @@ public class MGStatusForDrum {
     boolean _songSeekFirstNote = true;
     boolean _songSingleTrack = true;
     boolean _songFilterCC = true;
-    SMFPlayer _switchSequencer = null;
+    SMFPlayer _songFilePlayer = null;
 
     int _port = 0;
     int _channel = 0;
@@ -65,25 +90,25 @@ public class MGStatusForDrum {
     boolean _modeToggle = false;
     RangedValue _strikeZone = new RangedValue(1, 1, 127);
 
-    protected void setSwitchSequencerFile(String switchSequencerFile) {
-        if (switchSequencerFile != null) {
+    protected void setSwitchSongFile(String switchSongFile) {
+        if (switchSongFile != null) {
             if (_songFile != null) {
-                if (switchSequencerFile.equals(_songFile)) {
+                if (switchSongFile.equals(_songFile)) {
                     return;
                 }
             }
         }
-        _songFile = switchSequencerFile;
-        if (_switchSequencer != null) {
-            _switchSequencer.stopPlayer();
+        _songFile = switchSongFile;
+        if (_songFilePlayer != null) {
+            _songFilePlayer.stopPlayer();
         }
-        _switchSequencer = null;
-        if (switchSequencerFile != null && switchSequencerFile.isEmpty() == false) {
-            File f = new File(switchSequencerFile);
+        _songFilePlayer = null;
+        if (switchSongFile != null && switchSongFile.isEmpty() == false) {
+            File f = new File(switchSongFile);
             if (f.exists()) {
                 try {
                     SMFPlayer player = new SMFPlayer(f);
-                    _switchSequencer = player;
+                    _songFilePlayer = player;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -91,20 +116,20 @@ public class MGStatusForDrum {
         }
     }
 
-    public void startSequence() {
-        if (_switchSequencer != null) {
+    public void startSongPlayer() {
+        if (_songFilePlayer != null) {
             if (_songSingleTrack) {
-                _switchSequencer.setForceSingleChannel(_channel);
+                _songFilePlayer.setForceSingleChannel(_channel);
             } else {
-                _switchSequencer.setForceSingleChannel(-1);
+                _songFilePlayer.setForceSingleChannel(-1);
             }
-            _switchSequencer.setFilterNoteOnly(_songFilterCC);
+            _songFilePlayer.setFilterNoteOnly(_songFilterCC);
             if (_songSeekFirstNote) {
-                _switchSequencer.setStartPosition(_switchSequencer.getPositionOfFirstNote());
+                _songFilePlayer.setStartPosition(_songFilePlayer.getPositionOfFirstNote());
             } else {
-                _switchSequencer.setStartPosition(0);
+                _songFilePlayer.setStartPosition(0);
             }
-            _switchSequencer.startPlayer(new SMFCallback() {
+            _songFilePlayer.startPlayer(new SMFCallback() {
                 @Override
                 public void smfPlayNote(SMFMessage e) {
                     dispatchNextLayer(e.fromSMFtoMX(_port));
@@ -125,10 +150,10 @@ public class MGStatusForDrum {
         }
     }
 
-    public void stopSequence() {
-        if (_switchSequencer != null) {
-            _switchSequencer.stopPlayer();
-            _switchSequencer = null;
+    public void stopSongPlayer() {
+        if (_songFilePlayer != null) {
+            _songFilePlayer.stopPlayer();
+            _songFilePlayer = null;
         }
     }
 
@@ -240,9 +265,9 @@ public class MGStatusForDrum {
                         dispatchNextLayer(message);
                     }
                 case TYPE_SONG:
-                    startSequence();
+                    startSongPlayer();
                     break;
-                case TYPE_JUMP:
+                case TYPE_SLIDERJUMP:
                     int column = _status._column;
                     MGStatus slider = process._data.getSliderStatus(0, column);
                     slider.setValue(slider._base.getValue().updateValue(_jumpTo));
@@ -285,9 +310,9 @@ public class MGStatusForDrum {
                         dispatchNextLayer(message);
                     }
                 case TYPE_SONG:
-                    stopSequence();
+                    stopSongPlayer();
                     break;
-                case TYPE_JUMP:
+                case TYPE_SLIDERJUMP:
                     break;
                 case TYPE_PROGRAM:
                     break;

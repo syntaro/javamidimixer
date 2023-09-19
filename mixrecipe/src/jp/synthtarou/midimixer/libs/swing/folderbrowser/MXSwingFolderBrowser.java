@@ -39,8 +39,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
-import jp.synthtarou.midimixer.mx35cceditor.ccxml.navigator.INavigator;
-import jp.synthtarou.midimixer.mx35cceditor.ccxml.navigator.ParamsOfNavigator;
+import jp.synthtarou.midimixer.libs.navigator.INavigator;
+import jp.synthtarou.midimixer.libs.navigator.ParamsOfNavigator;
 
 /**
  *
@@ -824,7 +824,7 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
     @Override
     public synchronized  ParamsOfNavigator<FileList> getParamsOfNavigator() {
         if (_params == null) {            
-            _params = new ParamsOfNavigator<>();
+            _params = new ParamsOfNavigator<>(this);
             _params._mode = ParamsOfNavigator.MODE_CHOOSER;
         }
         return _params;

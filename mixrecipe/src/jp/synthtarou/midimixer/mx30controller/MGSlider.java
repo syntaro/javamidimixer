@@ -72,7 +72,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
             if (ThemeManager.getInstance().isColorfulMetalTheme()) {        
                 col = MXUtil.mixedColor(Color.red, Color.yellow, 30);
             }
-            RangedValue value = status.getTemplate().getValue();
+            RangedValue value = status.getBaseMessage().getValue();
             jLabelValue.setForeground(col);
             jLabelMin.setText(String.valueOf(value._min));
             jLabelMax.setText(String.valueOf(value._max));
@@ -86,7 +86,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
                 if (message == null) {
                     jLabelName.setText("?");
                 }else {
-                    jLabelName.setText(message.toShortString());
+                    jLabelName.setText(message.toStringForUI());
                 }
             }else {
                 jLabelName.setText(status._name);
@@ -183,7 +183,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
     
     private void jSliderValueStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderValueStateChanged
         int newValue = jSliderValue.getValue();
-        if (getStatus().getTemplate().getValue()._var == newValue) {
+        if (getStatus().getBaseMessage().getValue()._var == newValue) {
             return;
         }
         jLabelValue.setText(String.valueOf(newValue));
@@ -204,7 +204,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
             });
             return;
         }
-        int newValue = status.getTemplate().getValue()._var;
+        int newValue = status.getBaseMessage().getValue()._var;
         _ignoreEvent = true;
         jLabelValue.setText(String.valueOf(newValue));
         jSliderValue.setValue(newValue);
@@ -257,7 +257,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
 
     public void increment() {
         MGStatus status = getStatus();
-        RangedValue var = status.getTemplate().getValue().increment();
+        RangedValue var = status.getBaseMessage().getValue().increment();
         if (var != null) {
             _process.controlByUI(status, var._var);
         }
@@ -265,7 +265,7 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
     
     public void decriment() {
         MGStatus status = getStatus();
-        RangedValue var = status.getTemplate().getValue().decrement();
+        RangedValue var = status.getBaseMessage().getValue().decrement();
         if (var != null) {
             _process.controlByUI(status, var._var);
         }

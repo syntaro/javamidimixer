@@ -31,7 +31,7 @@ public class TesterForCopyAndPaste extends javax.swing.JPanel {
     }
 
     /**
-     * Creates new form ClipboardTestPanel
+     * Creates new form TesterForCopyAndPaste
      */
     public TesterForCopyAndPaste() {
         initComponents();

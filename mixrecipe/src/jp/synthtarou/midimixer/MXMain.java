@@ -38,7 +38,7 @@ import jp.synthtarou.midimixer.mx10input.MX10Process;
 import jp.synthtarou.midimixer.mx30controller.MX30Process;
 import jp.synthtarou.midimixer.mx40layer.MX40Process;
 import jp.synthtarou.midimixer.mx60output.MX60Process;
-import jp.synthtarou.midimixer.libs.console.ConsoleElement;
+import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.vst.VSTInstance;
@@ -69,7 +69,7 @@ public class MXMain  {
 
     public static void addOutsideInput(MXMessage msg) {
         if (getMain()._mx70CosoleProcess != null) {
-            getMain()._mx70CosoleProcess.addOutsideInput(new ConsoleElement(msg));
+            getMain()._mx70CosoleProcess.addOutsideInput(new MXMidiConsoleElement(msg));
         }
     }
 
@@ -85,7 +85,7 @@ public class MXMain  {
         }
     }
 
-    public static void addOutsideOutput(ConsoleElement msg) {
+    public static void addOutsideOutput(MXMidiConsoleElement msg) {
         if (getMain()._mx70CosoleProcess != null) {
             getMain()._mx70CosoleProcess.addOutsideOutput(msg);
         }

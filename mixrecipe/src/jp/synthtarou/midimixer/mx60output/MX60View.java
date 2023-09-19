@@ -44,7 +44,7 @@ public class MX60View extends javax.swing.JPanel {
     ButtonGroup _recorderGroup;
     
     /**
-     * Creates new form MX50
+     * Creates new form MX60View
      */
     public MX60View(MX60Process process) {
         _process = process; 

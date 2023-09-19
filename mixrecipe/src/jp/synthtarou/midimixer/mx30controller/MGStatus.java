@@ -30,7 +30,6 @@ import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
  * @author Syntarou YOSHIDA
  */
 public class MGStatus implements Cloneable, Comparable<MGStatus> {
-
     public static final int TYPE_CIRCLE = 1;
     public static final int TYPE_SLIDER = 2;
     public static final int TYPE_DRUMPAD = 3;
@@ -44,17 +43,17 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     String _name = "";
     String _memo = "";
     MXMessage _base = MXMessageFactory.fromTemplate(0, null, 0, RangedValue.ZERO7, RangedValue.ZERO7);
-
+/*
     int _dataroomType = MXVisitant.ROOMTYPE_NODATA;
     int _dataroomMSB = -1;
     int _dataroomLSB = -1;
-
+*/
     boolean _ccPair14 = false;
 
     MGStatusForDrum _drum = null;
 
     public MGStatus(int port, int uiType, int row, int column) {
-        initOpts();
+        clearAll();
         _port = port;
         _uiType = uiType;
         _row = row;
@@ -65,28 +64,8 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         }
     }
 
-    public MXMessage getTemplate() {
+    public MXMessage getBaseMessage() {
         return _base;
-    }
-
-    public MXMessage toMXMessage(MXTemplate template, MXTiming timing) {
-        if (template == null) {
-            return null;
-        }
-        MXMessage message = new MXMessage(_port, template, _base.getChannel(), _base.getGate(), _base.getValue());
-        message._timing = timing;
-        message.setValuePairCC14(_ccPair14);
-
-        if (template.get(0) == MXMidi.COMMAND2_CH_RPN
-                || template.get(0) == MXMidi.COMMAND2_CH_NRPN) {
-            MXVisitant visit = new MXVisitant();
-            visit.setDataroomType(_dataroomType);
-            visit.setDataroomMSB(_dataroomMSB);
-            visit.setDataroomLSB(_dataroomLSB);
-            visit.setDataentry14(_base.getValue()._var);
-            message.setVisitant(visit);
-        }
-        return message;
     }
 
     public MXMessage toMXMessage(MXTiming timing) {
@@ -110,10 +89,6 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
 
         status._name = _name;
         status._memo = _memo;
-
-        status._dataroomType = _dataroomType;
-        status._dataroomMSB = _dataroomMSB;
-        status._dataroomLSB = _dataroomLSB;
 
         status._ccPair14 = _ccPair14;
 
@@ -152,7 +127,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
             if (message == null) {
                 name = "null";
             } else {
-                name = message.toShortString();
+                name = message.toStringForUI();
             }
         } else {
             name = _name;
@@ -166,11 +141,11 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     }
 
     public boolean controlByMessage(MXMessage message) {
-        if (haveSameStatusAndGate(message)) {
+        if (_base.hasSameTemplate(message)) {
             RangedValue value = _base.getValue();
-
             MXVisitant visit = message.getVisitant();
-            if (message.isDataentry()) {
+
+            if (message.isUnknwonDataentry()) {
                 int original = value._var;
                 int newVar = visit.getDataentryValue14();
                 switch (message.getGate()._var) {
@@ -253,7 +228,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         if (hasCustomRange()) {
             
         }
-        if (getTemplate().hasValueHiField()) {
+        if (getBaseMessage().hasValueHiField()) {
             _base.setValue(_base.getValue().modifyRangeTo(0, 128 * 128 - 1));
         } else if (_ccPair14) {
             _base.setValue(_base.getValue().modifyRangeTo(0, 128 * 128 - 1));
@@ -265,10 +240,11 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     public void setCustomRange(int min, int max) {
         _base.setValue(_base.getValue().modifyRangeTo(min, max));
     }
+    /*
 
     public boolean haveSameStatusAndGate(MXMessage message) {
         MXMessage from = toMXMessage(null);
-
+        
         if (from.isDataentry() || message.isDataentry()) {
             if (from.isDataentry() == message.isDataentry()) {
                 //不完全な状態
@@ -322,7 +298,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
             return false;
         }
         return false;
-    }
+    }*/
 
     public boolean isOnlyValueDifferent(MXMessage message) {
         if (_base.getChannel() != message.getChannel()) {
@@ -332,36 +308,12 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         if (_base.getGate()._var != message.getGate()._var) {
             return false;
         }
-
-        MXTemplate temp1 = getTemplate().getTemplate();
-        MXTemplate temp2 = message.getTemplate();
-
-        if (temp1 != temp2) {
-            if (temp1.size() != temp2.size()) {
-                return false;
-            }
-            for (int i = 0; i < temp1.size(); ++i) {
-                int t1 = temp1.get(i);
-                int t2 = temp2.get(i);
-
-                if (t1 == t2) {
-                    continue;
-                }
-
-                if (t1 == MXTemplate.DTEXT_VH || t1 == MXTemplate.DTEXT_VL
-                        || t2 == MXTemplate.DTEXT_VH || t2 == MXTemplate.DTEXT_VL) {
-                    continue;
-                }
-
-                return false;
-            }
+        
+        if (_base.hasSameTemplate(message)) {
+            return true;
         }
-
-        return true;
-    }
-
-    public String toTemplateText() {
-        return _base.toTemplateText();
+        
+        return false;
     }
 
     public int compareTo(MGStatus another) {
@@ -384,52 +336,51 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     }
 
     public void fillControlChange() {
-        initOpts();
-        MXMessage message = MXTemplate.fromDtext(_port, "@CC #GL #VL", _base.getChannel(), RangedValue.new7bit(127), RangedValue.ZERO7);
+        clearAll();
+        MXMessage message = MXMessageFactory.fromCCXMLText(_port, "@CC #GL #VL", 0);
         setBaseMessage(message);
     }
 
-    public void fillDataentry(int dataroomType) {
-        initOpts();
-        String msb = MXUtil.toHexFF(_dataroomMSB) + "h";
-        String lsb = MXUtil.toHexFF(_dataroomLSB) + "h";
-        _dataroomType = dataroomType;
-        if (dataroomType == MXVisitant.ROOMTYPE_RPN) {
-            setBaseMessage(MXTemplate.fromDtext(_port, "@RPN " + msb + " " + lsb + " #VH #VL", _base.getChannel(), RangedValue.ZERO7, RangedValue.ZERO7));
-        } else if (dataroomType == MXVisitant.ROOMTYPE_NRPN) {
-            setBaseMessage(MXTemplate.fromDtext(_port, "@NRPN " + msb + " " + lsb + " #VH #VL", _base.getChannel(), RangedValue.ZERO7, RangedValue.ZERO7));
-        } else {
-            new IllegalStateException().printStackTrace();
+    public void fillDataentry(boolean isRPN, int msb, int lsb, RangedValue value) {
+        clearAll();
+        String type = isRPN ? "@RPN" : "@NRPN";
+        String msb2 = MXUtil.toHexFF(msb) + "h";
+        String lsb2 = MXUtil.toHexFF(lsb) + "h";
+ 
+        RangedValue gate2 = new RangedValue(0, 0, 127);
+        
+        if (value._max <= 127) {
+            setBaseMessage(MXMessageFactory.fromCCXMLText(_port, type + " " + msb2 + " " + lsb2 + " #VL 0", 0, gate2, value));
+        }
+        else {
+            setBaseMessage(MXMessageFactory.fromCCXMLText(_port, type + " " + msb2 + " " + lsb2 + " #VH #VL", 0, gate2, value));
         }
     }
 
     public void fillTogglePedal() {
-        initOpts();
+        clearAll();
         fillNote(12 * 4);
         _drum._type = MGStatusForDrum.TYPE_CUSTOM_CC;
         _drum._modeToggle = true;
         _drum._currentSwitch = false;
         _drum._strikeZone = new RangedValue(127, 1, 127);
-        _drum._customTemplate = MXTemplate.fromDtext(_port, "@CC #GL #VL", 0, RangedValue.ZERO7, RangedValue.ZERO7);
+        _drum._customTemplate = MXMessageFactory.fromCCXMLText(_port, "@CC #GL #VL", 0);
         _drum._customOutOnValue = 127;
         _drum._customOutOffValue = 0;
 
     }
 
     public void fillNote(int note) {
-        initOpts();
-        setBaseMessage(MXTemplate.fromDtext(_port, "90h #GL #VL", 0, RangedValue.ZERO7, RangedValue.ZERO7));
+        clearAll();
+        setBaseMessage(MXMessageFactory.fromCCXMLText(_port, "90h #GL #VL", 0, new RangedValue(note, 0, 127), null));
         _name = "note";
     }
 
-    public void initOpts() {
-        setBaseMessage(MXTemplate.fromDtext(_port,null, 0, RangedValue.ZERO7, RangedValue.ZERO7));
+    public void clearAll() {
+        setBaseMessage(MXMessageFactory.fromCCXMLText(_port,null, 0));
         _name = "";
         _memo = "";
 
-        _dataroomType = MXVisitant.ROOMTYPE_NODATA;
-        _dataroomMSB = -1;
-        _dataroomLSB = -1;
         _ccPair14 = false;
 
         if (_uiType == TYPE_DRUMPAD || _uiType == TYPE_DRUMPAD_OUTSIGNAL) {

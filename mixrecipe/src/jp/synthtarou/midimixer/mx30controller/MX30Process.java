@@ -105,11 +105,11 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
         }
         ArrayList<String> circleList = new ArrayList();
         MXUtil.split(circle, circleList, ',');
-        _activeKnob = new boolean[4];
+        _visibleKnob = new boolean[4];
         for (String str : circleList) {
             str = str.trim();
             try {
-                _activeKnob[Integer.parseInt(str)-1] = true;
+                _visibleKnob[Integer.parseInt(str)-1] = true;
             }catch(Exception e) {
 
             }
@@ -123,7 +123,7 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
             }
         }catch(Exception e) {
         }
-        this._activeLines = lineNum;
+        this._visibleLineCount = lineNum;
         String pad = setting.getSetting("ActivePad");
         if (pad == null) {
             pad = "1, 2, 3";
@@ -131,11 +131,11 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
         
         ArrayList<String> padList = new ArrayList();
         MXUtil.split(pad, padList, ',');
-        _activePad = new boolean[4];
+        _visiblePad = new boolean[4];
         for (String str : padList) {
             str = str.trim();
             try {
-                _activePad[Integer.parseInt(str)-1] = true;
+                _visiblePad[Integer.parseInt(str)-1] = true;
             }catch(Exception e) {
 
             }
@@ -146,21 +146,21 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
     public void beforeWriteSettingFile(MXSetting setting) {
         setting.clearValue();
         StringBuffer circle = new StringBuffer();
-        for (int i = 0; i < _activeKnob.length; ++ i) {
-            if (_activeKnob[i]) {
+        for (int i = 0; i < _visibleKnob.length; ++ i) {
+            if (_visibleKnob[i]) {
                 if (circle.length() != 0) circle.append(",");
                 circle.append(i+1);
             }
         }
         StringBuffer pad = new StringBuffer();
-        for (int i = 0; i < _activePad.length; ++ i) {
-            if (_activePad[i]) {
+        for (int i = 0; i < _visiblePad.length; ++ i) {
+            if (_visiblePad[i]) {
                 if (pad.length() != 0) pad.append(",");
                 pad.append(i+1);
             }
         }
         setting.setSetting("ActiveCircle", circle.toString());
-        setting.setSetting("ActiveLine", _activeLines);
+        setting.setSetting("ActiveLine", _visibleLineCount);
         setting.setSetting("ActivePad", pad.toString());
     }
        
@@ -421,45 +421,45 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
     }
 
     protected void prepareActiveSlider() {
-        if (_activeLines == 0) {
-            _activeLines = 17;
-            _activeKnob = new boolean[4];
-            for (int i = 0; i < _activeKnob.length; ++ i) {
-                _activeKnob[i] = true;
+        if (_visibleLineCount == 0) {
+            _visibleLineCount = 17;
+            _visibleKnob = new boolean[4];
+            for (int i = 0; i < _visibleKnob.length; ++ i) {
+                _visibleKnob[i] = true;
             }
-            _activePad = new boolean[3];
-            for (int i = 0; i < _activePad.length; ++ i) {
-                _activePad[i] = true;
+            _visiblePad = new boolean[3];
+            for (int i = 0; i < _visiblePad.length; ++ i) {
+                _visiblePad[i] = true;
             }
         }
     }
     
-    private boolean[] _activeKnob;
-    private boolean[] _activePad;
-    private int _activeLines;
+    private boolean[] _visibleKnob;
+    private boolean[] _visiblePad;
+    private int _visibleLineCount;
 
-    public int getActiveLines() {
-        return _activeLines;
+    public int getVisibleLineCount() {
+        return _visibleLineCount;
     }
 
-    public void setActiveLines(int _activeLines) {
-        this._activeLines = _activeLines;
+    public void setVisibleLineCount(int lines) {
+        this._visibleLineCount = lines;
     }
 
-    public boolean isKnobActive(int r) {
-        return _activeKnob[r];
+    public boolean isKnobVisible(int r) {
+        return _visibleKnob[r];
     }
 
-    public void setKnobActive(int r, boolean active) {
-        _activeKnob[r] = active;
+    public void setKnobVisible(int r, boolean visible) {
+        _visibleKnob[r] = visible;
     }
 
-    public boolean isPadActive(int r) {
-        return _activePad[r];
+    public boolean isPadVisible(int r) {
+        return _visiblePad[r];
     }
 
-    public void setPadActive(int r, boolean active) {
-        _activePad[r] = active;
+    public void setPadVisible(int r, boolean visible) {
+        _visiblePad[r] = visible;
     }
     
     public void globalContollerHidden() {

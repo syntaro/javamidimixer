@@ -71,7 +71,7 @@ public class MGCircle extends javax.swing.JPanel implements MXFocusAble, MouseWh
                 if (message == null) {
                     jLabel1.setText("?");
                 }else {
-                    jLabel1.setText(message.toShortString());
+                    jLabel1.setText(message.toStringForUI());
                 }
             }else {
                 jLabel1.setText(status._name);

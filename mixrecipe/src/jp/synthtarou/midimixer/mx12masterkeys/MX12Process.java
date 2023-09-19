@@ -79,7 +79,7 @@ public class MX12Process extends MXReceiver implements MXSettingTarget {
         if (receiverName != null) {
             int x = MXMain.getMain().getReceiverList().indexOfName(receiverName);
             if (x >= 0) {
-                setNextReceiver(MXMain.getMain().getReceiverList().get(x).value);
+                setNextReceiver(MXMain.getMain().getReceiverList().get(x)._value);
             }
         }
         setOverwriteInputChannel(setting.getSettingAsInt("overwriteControllerChannel", 0) != 0);        

@@ -16,8 +16,8 @@
  */
 package jp.synthtarou.midimixer.mx70console;
 
-import jp.synthtarou.midimixer.libs.console.ConsoleModel;
-import jp.synthtarou.midimixer.libs.console.ConsoleElement;
+import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
+import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.Dimension;
@@ -42,7 +42,7 @@ public class MX70Panel extends javax.swing.JPanel {
     MX70Process _process;
 
     /**
-     * Creates new form MX70Console
+     * Creates new form MX70Panel
      */
     public MX70Panel(MX70Process process) {
         _process = process;
@@ -456,7 +456,7 @@ public class MX70Panel extends javax.swing.JPanel {
     private void jListOutsideInputValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListOutsideInputValueChanged
         int index = jListOutsideInput.getSelectedIndex();
         if (index >= 0) {
-            ConsoleElement e = _process._outsideInput.getConsoleElement(index);
+            MXMidiConsoleElement e = _process._outsideInput.getConsoleElement(index);
             if (e != null) {
                 selectByTimingCall(jListOutsideInput, e.getTiming());
                 jTextFieldTestName.setText("" + e.getTiming() + " => "
@@ -474,7 +474,7 @@ public class MX70Panel extends javax.swing.JPanel {
     private void jListInsideInputValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListInsideInputValueChanged
         int index = jListInsideInput.getSelectedIndex();
         if (index >= 0) {
-            ConsoleElement e = _process._insideInput.getConsoleElement(index);
+            MXMidiConsoleElement e = _process._insideInput.getConsoleElement(index);
             if (e != null) {
                 selectByTimingCall(jListInsideInput, e.getTiming());
                 jTextFieldTestName.setText("" + e.getTiming() + " => "
@@ -492,7 +492,7 @@ public class MX70Panel extends javax.swing.JPanel {
     private void jListInsideOutputValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListInsideOutputValueChanged
         int index = jListInsideOutput.getSelectedIndex();
         if (index >= 0) {
-            ConsoleElement e = _process._insideOutput.getConsoleElement(index);
+            MXMidiConsoleElement e = _process._insideOutput.getConsoleElement(index);
             if (e != null) {
                 selectByTimingCall(jListInsideOutput, e.getTiming());
                 jTextFieldTestName.setText("" + e.getTiming() + " => "
@@ -510,7 +510,7 @@ public class MX70Panel extends javax.swing.JPanel {
     private void jListOutsideOutputValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListOutsideOutputValueChanged
         int index = jListOutsideOutput.getSelectedIndex();
         if (index >= 0) {
-            ConsoleElement e = _process._outsideOutput.getConsoleElement(index);
+            MXMidiConsoleElement e = _process._outsideOutput.getConsoleElement(index);
             if (e != null) {
                 selectByTimingCall(jListOutsideOutput, e.getTiming());
                 jTextFieldTestName.setText("" + e.getTiming() + " => "
@@ -528,7 +528,7 @@ public class MX70Panel extends javax.swing.JPanel {
     private void jListOutsideInputMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jListOutsideInputMousePressed
         int index = jListOutsideInput.getSelectedIndex();
         if (index >= 0) {
-            ConsoleElement e = _process._outsideInput.getConsoleElement(index);
+            MXMidiConsoleElement e = _process._outsideInput.getConsoleElement(index);
             if (e != null) {
                 selectByTimingCall(jListOutsideInput, e.getTiming());
             } else {
@@ -540,7 +540,7 @@ public class MX70Panel extends javax.swing.JPanel {
     private void jListInsideInputMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jListInsideInputMousePressed
         int index = jListInsideInput.getSelectedIndex();
         if (index >= 0) {
-            ConsoleElement e = _process._insideInput.getConsoleElement(index);
+            MXMidiConsoleElement e = _process._insideInput.getConsoleElement(index);
             if (e != null) {
                 selectByTimingCall(jListInsideInput, e.getTiming());
             } else {
@@ -552,7 +552,7 @@ public class MX70Panel extends javax.swing.JPanel {
     private void jListInsideOutputMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jListInsideOutputMousePressed
         int index = jListInsideOutput.getSelectedIndex();
         if (index >= 0) {
-            ConsoleElement e = _process._insideOutput.getConsoleElement(index);
+            MXMidiConsoleElement e = _process._insideOutput.getConsoleElement(index);
             if (e != null) {
                 selectByTimingCall(jListInsideOutput, e.getTiming());
             } else {
@@ -564,7 +564,7 @@ public class MX70Panel extends javax.swing.JPanel {
     private void jListOutsideOutputMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jListOutsideOutputMousePressed
         int index = jListOutsideOutput.getSelectedIndex();
         if (index >= 0) {
-            ConsoleElement e = _process._outsideOutput.getConsoleElement(index);
+            MXMidiConsoleElement e = _process._outsideOutput.getConsoleElement(index);
             if (e != null) {
                 selectByTimingCall(jListOutsideOutput, e.getTiming());
             } else {
@@ -740,7 +740,7 @@ public class MX70Panel extends javax.swing.JPanel {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                int count = ConsoleModel.getGlobalCapacity() - 1;
+                int count = MXMidiConsole.getGlobalCapacity() - 1;
                 jListOutsideInput.ensureIndexIsVisible(count);
                 jListInsideInput.ensureIndexIsVisible(count);
                 jListInsideOutput.ensureIndexIsVisible(count);

@@ -34,7 +34,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.driver.SysexSplitter;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.smf.MidiByteReader;
-import jp.synthtarou.midimixer.libs.text.MXLineReader;
+import jp.synthtarou.midimixer.libs.common.MXLineReader;
 
 /**
  *

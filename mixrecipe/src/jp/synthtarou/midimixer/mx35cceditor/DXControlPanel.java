@@ -27,9 +27,9 @@ import jp.synthtarou.midimixer.mx35cceditor.accordion.Example1;
 import jp.synthtarou.midimixer.mx35cceditor.accordion.MXAccordionPanel;
 import jp.synthtarou.midimixer.mx35cceditor.accordion.MXListedContents;
 import jp.synthtarou.midimixer.mx35cceditor.accordion.MXListedContentsGroup;
-import jp.synthtarou.midimixer.mx35cceditor.ccxml.navigator.TableModelWithNavi;
-import jp.synthtarou.midimixer.mx35cceditor.ccxml.navigator.NavigatorUtil;
-import jp.synthtarou.midimixer.mx35cceditor.ccxml.CXFileListPanel;
+import jp.synthtarou.midimixer.libs.navigator.TableModelWithNavi;
+import jp.synthtarou.midimixer.libs.navigator.NavigatorUtil;
+import jp.synthtarou.midimixer.libs.ccxml.CXFileListPanel;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 
@@ -41,7 +41,7 @@ public class DXControlPanel extends javax.swing.JPanel {
     MXListedContentsGroup _group = new MXListedContentsGroup();
     
     /**
-     * Creates new form Panel03ControllerList
+     * Creates new form DXControlPanel
      */
     public DXControlPanel() {
         initComponents();

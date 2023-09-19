@@ -37,7 +37,7 @@ public class MXSampleMainPanel extends javax.swing.JPanel {
     }
 
     /**
-     * Creates new form MXAccordionOwnerPanel
+     * Creates new form MXSampleMainPanel
      */
     public MXSampleMainPanel() {
         initComponents();

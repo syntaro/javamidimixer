@@ -36,6 +36,7 @@ import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
@@ -59,15 +60,15 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
 
     MX12Process _process;
     MXSwingPiano _piano;
-    MXWrapList<Integer> _watchPort = MXMidi.listupPortAssigned(false);
-    MXWrapList<Integer> _watchChannel = MXMidi.listupChannel(false);
+    MXWrapList<Integer> _watchPort = MXMidiWrapList.listupPortAssigned(false);
+    MXWrapList<Integer> _watchChannel = MXMidiWrapList.listupChannel(false);
     
     int _valuePitch = -1;
     int _valueModulation = -1;
     boolean _beforeBuild = true;
     
     /**
-     * Creates new form MX00MasterKey
+     * Creates new form MX12MasterkeysPanel
      */
     public MX12MasterkeysPanel(MX12Process process) {
         initComponents();

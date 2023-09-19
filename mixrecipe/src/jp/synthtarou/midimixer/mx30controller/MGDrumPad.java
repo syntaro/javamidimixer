@@ -116,7 +116,7 @@ public class MGDrumPad extends javax.swing.JPanel implements MXFocusAble {
                 if (message == null) {
                     jButton1.setText("?");
                 } else {
-                    jButton1.setText(message.toShortString());
+                    jButton1.setText(message.toStringForUI());
                 }
             } else {
                 jButton1.setText(status._name);

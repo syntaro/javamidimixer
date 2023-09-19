@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
-import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 
 /**
  *
@@ -35,46 +34,11 @@ public class MXTemplate {
     private int _bytePosHiValue;
     private int _checksumCount;
 
-    public static final int DTEXT_NONE = 0x100;
-    public static final int DTEXT_VL = 0x200;
-    public static final int DTEXT_VH = 0x300;
-    public static final int DTEXT_GL = 0x400;
-    public static final int DTEXT_GH = 0x500;
-    public static final int DTEXT_CH = 0x600;
-    public static final int DTEXT_1CH = 0x700;
-    public static final int DTEXT_2CH = 0x800;
-    public static final int DTEXT_3CH = 0x900;
-    public static final int DTEXT_PCH = 0xA00;
-    public static final int DTEXT_1RCH = 0xB00;
-    public static final int DTEXT_2RCH = 0xC00;
-    public static final int DTEXT_3RCH = 0xD00;
-    public static final int DTEXT_4RCH = 0xE00;
-    public static final int DTEXT_VF1 = 0xF00;
-    public static final int DTEXT_VF2 = 0x1000;
-    public static final int DTEXT_VF3 = 0x1100;
-    public static final int DTEXT_VF4 = 0x1200;
-    public static final int DTEXT_VPGL = 0x1300;
-    public static final int DTEXT_VPGH = 0x1400;
-    public static final int DTEXT_CCNUM = 0x1500;
-    public static final int DTEXT_RSCTRT1 = 0x1A00;
-    public static final int DTEXT_RSCTRT2 = 0x1B00;
-    public static final int DTEXT_RSCTRT3 = 0x1C00;
-    public static final int DTEXT_RSCTRT1P = 0x1D00;
-    public static final int DTEXT_RSCTRT2P = 0x1E00;
-    public static final int DTEXT_RSCTRT3P = 0x1F00;
-    public static final int DTEXT_RSCTPT1 = 0x2000;
-    public static final int DTEXT_RSCTPT2 = 0x2100;
-    public static final int DTEXT_RSCTPT3 = 0x2200;
-    public static final int DTEXT_RSCTPT1P = 0x2300;
-    public static final int DTEXT_RSCTPT2P = 0x2400;
-    public static final int DTEXT_RSCTPT3P = 0x2500;
-    public static final int DTEXT_CHECKSUM_SET = 0x2600;
-    public static final int DTEXT_CHECKSUM_START = 0x2700;
 
     static MXWrapList<Integer> textCommand = new MXWrapList();
     static MXWrapList<Integer> textAlias = new MXWrapList();
 
-    public MXTemplate(int[] template) {
+    MXTemplate(int[] template) {
         _commands = template;
         initFields();
     }
@@ -105,19 +69,19 @@ public class MXTemplate {
 
         for (int i = 0; i < _commands.length; ++i) {
             switch (_commands[i]) {
-                case DTEXT_VL:
+                case MXMidi.CCXML_VL:
                     _bytePosValue = i;
                     break;
-                case DTEXT_VH:
+                case MXMidi.CCXML_VH:
                     _bytePosHiValue = i;
                     break;
-                case DTEXT_GL:
+                case MXMidi.CCXML_GL:
                     _bytePosGate = i;
                     break;
-                case DTEXT_GH:
+                case MXMidi.CCXML_GH:
                     _bytePosHiGate = i;
                     break;
-                case DTEXT_CHECKSUM_START:
+                case MXMidi.CCXML_CHECKSUM_START:
                     _checksumCount++;
                     break;
             }
@@ -131,51 +95,49 @@ public class MXTemplate {
             data = new byte[dataLength];
         }
 
-        if (isDataentry()) {//TODO VISITANT
-            data[0] = (byte) (MXMidi.COMMAND_CH_CONTROLCHANGE + message.getChannel());
-            data[1] = MXMidi.DATA1_CC_DATAENTRY;
-            data[2] = 0;
-        } else {
-            boolean inChecksum = false;
-            int sumChecksum = 0;
-            int dpos = 0;
+        if ((_commands[0] & 0xff00) != 0) {
+            //TODO illigual
+            return null;
+        }
+        boolean inChecksum = false;
+        int sumChecksum = 0;
+        int dpos = 0;
 
-            for (int i = 0; i < _commands.length; ++i) {
-                int x = _commands[i];
-                if ((x & 0xff00) != 0) {
-                    if (x == DTEXT_CHECKSUM_START) {
-                        sumChecksum = 0;
-                        inChecksum = true;
-                        continue;
-                    } else if (x == DTEXT_CHECKSUM_SET) {
-                        sumChecksum &= 0x7f;
-                        sumChecksum = 128 - sumChecksum;
-                        sumChecksum &= 0x7f;
-                        x = sumChecksum;
-                        inChecksum = false;
-                    } else {
-                        try {
-                            x = getDValue(x, message);
-                        } catch (IllegalArgumentException e) {
-                            throw e;
-                        }
+        for (int i = 0; i < _commands.length; ++i) {
+            int x = _commands[i];
+            if ((x & 0xff00) != 0) {
+                if (x == MXMidi.CCXML_CHECKSUM_START) {
+                    sumChecksum = 0;
+                    inChecksum = true;
+                    continue;
+                } else if (x == MXMidi.CCXML_CHECKSUM_SET) {
+                    sumChecksum &= 0x7f;
+                    sumChecksum = 128 - sumChecksum;
+                    sumChecksum &= 0x7f;
+                    x = sumChecksum;
+                    inChecksum = false;
+                } else {
+                    try {
+                        x = parseDAlias(x, message);
+                    } catch (IllegalArgumentException e) {
+                        throw e;
                     }
                 }
-                data[dpos++] = (byte) (x & 0xff);
-                if (inChecksum) {
-                    sumChecksum += x;
-                }
             }
+            data[dpos++] = (byte) (x & 0xff);
+            if (inChecksum) {
+                sumChecksum += x;
+            }
+        }
 
-            int command = data[0] & 0xff;
-            if (command >= 0x80 && command <= 0xef) {
-                data[0] = (byte) ((command & 0xf0) + message.getChannel());
-            }
+        int command = data[0] & 0xff;
+        if (command >= 0x80 && command <= 0xef) {
+            data[0] = (byte) ((command & 0xf0) + message.getChannel());
         }
         return data;
     }
 
-    public static int getDValue(int alias, MXMessage message) {
+    static int parseDAlias(int alias, MXMessage message) {
         int gate = message.getGate()._var;
         int value = message.getValue()._var;
         int channel = message.getChannel();
@@ -183,87 +145,87 @@ public class MXTemplate {
         String str = fromAlias(alias);
 
         switch (alias & 0xff00) {
-            case DTEXT_NONE:
+            case MXMidi.CCXML_NONE:
                 return 0;
-            case DTEXT_VL:
+            case MXMidi.CCXML_VL:
                 alias = value & 0x7f;
                 break;
-            case DTEXT_VH:
+            case MXMidi.CCXML_VH:
                 alias = (value >> 7) & 0x7f;
                 break;
-            case DTEXT_GL:
+            case MXMidi.CCXML_GL:
                 alias = gate & 0x7f;
                 break;
-            case DTEXT_GH:
+            case MXMidi.CCXML_GH:
                 alias = (gate >> 7) & 0x7f;
                 break;
-            case DTEXT_CH:
+            case MXMidi.CCXML_CH:
                 alias = channel;
                 break;
-            case DTEXT_1CH:
+            case MXMidi.CCXML_1CH:
                 alias = 0x10 + channel;
                 break;
-            case DTEXT_2CH:
+            case MXMidi.CCXML_2CH:
                 alias = 0x20 + channel;
                 break;
-            case DTEXT_3CH:
+            case MXMidi.CCXML_3CH:
                 alias = 0x30 + channel;
                 break;
-            case DTEXT_PCH:
+            case MXMidi.CCXML_PCH:
                 if (message.getPort() >= 0 && message.getPort() <= 3) {
                     alias = message.getPort() * 0x10 + channel;
                 } else {
                     alias = 0x30 + channel;
                 }
                 break;
-            case DTEXT_1RCH:
-            case DTEXT_2RCH:
-            case DTEXT_3RCH:
-            case DTEXT_4RCH:
+            case MXMidi.CCXML_1RCH:
+            case MXMidi.CCXML_2RCH:
+            case MXMidi.CCXML_3RCH:
+            case MXMidi.CCXML_4RCH:
                 throw new IllegalArgumentException("1RCH, 2RCH, 3RCH, 4RCH not supported.");
             //break;
-            case DTEXT_VF1:
+            case MXMidi.CCXML_VF1:
                 alias = (value) & 0x0f;
                 break;
-            case DTEXT_VF2:
+            case MXMidi.CCXML_VF2:
                 alias = (value >> 4) & 0x0f;
                 break;
-            case DTEXT_VF3:
+            case MXMidi.CCXML_VF3:
                 alias = (value >> 8) & 0x0f;
                 break;
-            case DTEXT_VF4:
+            case MXMidi.CCXML_VF4:
                 alias = (value >> 12) & 0x0f;
                 break;
-            case DTEXT_VPGL:
+            case MXMidi.CCXML_VPGL:
                 alias = (value + gate) & 0x7f;
                 break;
-            case DTEXT_VPGH:
+            case MXMidi.CCXML_VPGH:
                 alias = ((value + gate) >> 7) & 0x7f;
                 break;
-            case DTEXT_RSCTRT1:
-            case DTEXT_RSCTRT2:
-            case DTEXT_RSCTRT3:
+            case MXMidi.CCXML_RSCTRT1:
+            case MXMidi.CCXML_RSCTRT2:
+            case MXMidi.CCXML_RSCTRT3:
                 throw new IllegalArgumentException("RSCTRT1, RSCTRT2, RSCTRT3 not supported.");
             //break;
-            case DTEXT_RSCTRT1P:
-            case DTEXT_RSCTRT2P:
-            case DTEXT_RSCTRT3P:
+            case MXMidi.CCXML_RSCTRT1P:
+            case MXMidi.CCXML_RSCTRT2P:
+            case MXMidi.CCXML_RSCTRT3P:
                 throw new IllegalArgumentException("RSCTRT1P, RSCTRT2P, RSCTRT3P not supported.");
             //break;
-            case DTEXT_RSCTPT1:
-            case DTEXT_RSCTPT2:
-            case DTEXT_RSCTPT3:
+            case MXMidi.CCXML_RSCTPT1:
+            case MXMidi.CCXML_RSCTPT2:
+            case MXMidi.CCXML_RSCTPT3:
                 throw new IllegalArgumentException("RSCTPT1, RSCTPT2, RSCTPT3 not supported.");
             //break;
-            case DTEXT_RSCTPT1P:
-            case DTEXT_RSCTPT2P:
-            case DTEXT_RSCTPT3P:
+            case MXMidi.CCXML_RSCTPT1P:
+            case MXMidi.CCXML_RSCTPT2P:
+            case MXMidi.CCXML_RSCTPT3P:
                 throw new IllegalArgumentException("RSCTPT1P, RSCTPT2P, RSCTPT3P not supported.");
             //break;
 /*
-static final int DTEXT_CCNUM = 0x1500;
+static final int MXMidi.CCXML_CCNUM = 0x1500;
              */
-            case DTEXT_CHECKSUM_SET:
+            case MXMidi.CCXML_CHECKSUM_SET:
                 return 0;
 
             case 0:
@@ -276,21 +238,20 @@ static final int DTEXT_CCNUM = 0x1500;
         return (byte) alias;
     }
 
-    public static String fromType(int command) {
-        int index = textCommand.indexOfValue(command);
-        if (index < 0 && command == 0) {
-            index = textCommand.indexOfValue(MXMidi.COMMAND2_NONE);
+    public static String fromType(int code) {
+        int index = textCommand.indexOfValue(code);
+        if (index >= 0) {
+            return textCommand.get(index)._name;
         }
-        return textCommand.get(index).name;
+        return Integer.toHexString(code) + "h";
     }
 
-    public static String fromAlias(int dtext) {
-        int index = textAlias.indexOfValue(dtext);
+    public static String fromAlias(int code) {
+        int index = textAlias.indexOfValue(code);
         if (index >= 0) {
-            return textAlias.get(index).name;
+            return textAlias.get(index)._name;
         }
-        //return MXUtil.toHexFF(dtext) + "h";
-        return Integer.toHexString(dtext) + "h";
+        return Integer.toHexString(code) + "h";
     }
 
     public String toDText(MXMessage message) {
@@ -323,20 +284,6 @@ static final int DTEXT_CCNUM = 0x1500;
         }
 
         texts.add(fromType(_commands[0]));
-
-        if (isDataentry()) {
-            MXVisitant visitant = message.getVisitant();
-            if (visitant != null) {
-                texts.add(fromAlias(visitant.getDataentryMSB()));
-                texts.add(fromAlias(visitant.getDataentryLSB()));
-                texts.add(fromAlias(message.getValue()._var & 0x7f));
-                texts.add(fromAlias((message.getValue()._var >> 7) & 0x7f));
-                return texts;
-            } else {
-                new Exception("RPN have no DATA").printStackTrace();
-                return null;
-            }
-        }
 
         if (message.isMessageTypeChannel()) {
             int status = _commands[0];
@@ -393,17 +340,26 @@ static final int DTEXT_CCNUM = 0x1500;
                     break;
             }
         }
-
+        
+        texts.clear();
         for (int i = 0; i < _commands.length; ++i) {
             int code = _commands[i];
+            if (i == 0) {           
+                String str1 = fromType(_commands[0]);
+                if (str1 != null) {
+                    texts.add(str1);
+                    continue;
+                }
+            }
+
             if (i == 0 && message.isMessageTypeChannel()) {
                 code &= 0xf0;
             }
-            if (code == DTEXT_CHECKSUM_START) {
+            if (code == MXMidi.CCXML_CHECKSUM_START) {
                 texts.add("[");
                 continue;
             }
-            if (code == DTEXT_CHECKSUM_SET) {
+            if (code == MXMidi.CCXML_CHECKSUM_SET) {
                 texts.add("]");
                 continue;
             }
@@ -413,40 +369,40 @@ static final int DTEXT_CCNUM = 0x1500;
     }
 
     static {
-        textAlias.addNameAndValue("#NONE", DTEXT_NONE);
-        textAlias.addNameAndValue("#VL", DTEXT_VL);
-        textAlias.addNameAndValue("#VH", DTEXT_VH);
-        textAlias.addNameAndValue("#GL", DTEXT_GL);
-        textAlias.addNameAndValue("#GH", DTEXT_GH);
-        textAlias.addNameAndValue("#CH", DTEXT_CH);
-        textAlias.addNameAndValue("#1CH", DTEXT_1CH);
-        textAlias.addNameAndValue("#2CH", DTEXT_2CH);
-        textAlias.addNameAndValue("#3CH", DTEXT_3CH);
-        textAlias.addNameAndValue("#PCH", DTEXT_PCH);
-        textAlias.addNameAndValue("#1RCH", DTEXT_1RCH);
-        textAlias.addNameAndValue("#2RCH", DTEXT_2RCH);
-        textAlias.addNameAndValue("#3RCH", DTEXT_3RCH);
-        textAlias.addNameAndValue("#4RCH", DTEXT_4RCH);
-        textAlias.addNameAndValue("#VF1", DTEXT_VF1);
-        textAlias.addNameAndValue("#VF2", DTEXT_VF2);
-        textAlias.addNameAndValue("#VF3", DTEXT_VF3);
-        textAlias.addNameAndValue("#VF4", DTEXT_VF4);
-        textAlias.addNameAndValue("#VPGL", DTEXT_VPGL);
-        textAlias.addNameAndValue("#VPGH", DTEXT_VPGH);
-        textAlias.addNameAndValue("#RSCTRT1", DTEXT_RSCTRT1);
-        textAlias.addNameAndValue("#RSCTRT2", DTEXT_RSCTRT2);
-        textAlias.addNameAndValue("#RSCTRT3", DTEXT_RSCTRT3);
-        textAlias.addNameAndValue("#RSCTRT1P", DTEXT_RSCTRT1P);
-        textAlias.addNameAndValue("#RSCTRT2P", DTEXT_RSCTRT2P);
-        textAlias.addNameAndValue("#RSCTRT3P", DTEXT_RSCTRT3P);
-        textAlias.addNameAndValue("#RSCTPT1", DTEXT_RSCTPT1);
-        textAlias.addNameAndValue("#RSCTPT2", DTEXT_RSCTPT2);
-        textAlias.addNameAndValue("#RSCTPT3", DTEXT_RSCTPT3);
-        textAlias.addNameAndValue("#RSCTPT1P", DTEXT_RSCTPT1P);
-        textAlias.addNameAndValue("#RSCTPT2P", DTEXT_RSCTPT2P);
-        textAlias.addNameAndValue("#RSCTPT3P", DTEXT_RSCTPT3P);
-        textAlias.addNameAndValue("[", DTEXT_CHECKSUM_START);
-        textAlias.addNameAndValue("]", DTEXT_CHECKSUM_SET);
+        textAlias.addNameAndValue("#NONE", MXMidi.CCXML_NONE);
+        textAlias.addNameAndValue("#VL", MXMidi.CCXML_VL);
+        textAlias.addNameAndValue("#VH", MXMidi.CCXML_VH);
+        textAlias.addNameAndValue("#GL", MXMidi.CCXML_GL);
+        textAlias.addNameAndValue("#GH", MXMidi.CCXML_GH);
+        textAlias.addNameAndValue("#CH", MXMidi.CCXML_CH);
+        textAlias.addNameAndValue("#1CH", MXMidi.CCXML_1CH);
+        textAlias.addNameAndValue("#2CH", MXMidi.CCXML_2CH);
+        textAlias.addNameAndValue("#3CH", MXMidi.CCXML_3CH);
+        textAlias.addNameAndValue("#PCH", MXMidi.CCXML_PCH);
+        textAlias.addNameAndValue("#1RCH", MXMidi.CCXML_1RCH);
+        textAlias.addNameAndValue("#2RCH", MXMidi.CCXML_2RCH);
+        textAlias.addNameAndValue("#3RCH", MXMidi.CCXML_3RCH);
+        textAlias.addNameAndValue("#4RCH", MXMidi.CCXML_4RCH);
+        textAlias.addNameAndValue("#VF1", MXMidi.CCXML_VF1);
+        textAlias.addNameAndValue("#VF2", MXMidi.CCXML_VF2);
+        textAlias.addNameAndValue("#VF3", MXMidi.CCXML_VF3);
+        textAlias.addNameAndValue("#VF4", MXMidi.CCXML_VF4);
+        textAlias.addNameAndValue("#VPGL", MXMidi.CCXML_VPGL);
+        textAlias.addNameAndValue("#VPGH", MXMidi.CCXML_VPGH);
+        textAlias.addNameAndValue("#RSCTRT1", MXMidi.CCXML_RSCTRT1);
+        textAlias.addNameAndValue("#RSCTRT2", MXMidi.CCXML_RSCTRT2);
+        textAlias.addNameAndValue("#RSCTRT3", MXMidi.CCXML_RSCTRT3);
+        textAlias.addNameAndValue("#RSCTRT1P", MXMidi.CCXML_RSCTRT1P);
+        textAlias.addNameAndValue("#RSCTRT2P", MXMidi.CCXML_RSCTRT2P);
+        textAlias.addNameAndValue("#RSCTRT3P", MXMidi.CCXML_RSCTRT3P);
+        textAlias.addNameAndValue("#RSCTPT1", MXMidi.CCXML_RSCTPT1);
+        textAlias.addNameAndValue("#RSCTPT2", MXMidi.CCXML_RSCTPT2);
+        textAlias.addNameAndValue("#RSCTPT3", MXMidi.CCXML_RSCTPT3);
+        textAlias.addNameAndValue("#RSCTPT1P", MXMidi.CCXML_RSCTPT1P);
+        textAlias.addNameAndValue("#RSCTPT2P", MXMidi.CCXML_RSCTPT2P);
+        textAlias.addNameAndValue("#RSCTPT3P", MXMidi.CCXML_RSCTPT3P);
+        textAlias.addNameAndValue("[", MXMidi.CCXML_CHECKSUM_START);
+        textAlias.addNameAndValue("]", MXMidi.CCXML_CHECKSUM_SET);
 
         textCommand.addNameAndValue("@NONE", MXMidi.COMMAND2_NONE);
         textCommand.addNameAndValue("@PB", MXMidi.COMMAND_CH_PITCHWHEEL);
@@ -466,31 +422,32 @@ static final int DTEXT_CCNUM = 0x1500;
     }
 
     public static int readCommandText(String str) {
-        int code = -1;
         if (str.startsWith("@")) {
             int find = textCommand.indexOfName(str);
-            if (find >= 0) {
-                code = textCommand.get(find).value.intValue();
-                return code & 0xff00;
+            if (find < 0) {
+                return -1;
             }
+                
+            int code = textCommand.get(find)._value.intValue();
+            return code;
         }
-        return code;
+        return -1;
     }
 
     public static int readAliasText(String str) {
-        int code = -1;
         if (str.startsWith("#") || str.equals("[") || str.equals("]")) {
             int find = textAlias.indexOfName(str);
-            if (find >= 0) {
-                code = textAlias.get(find).value.intValue();
-                return code & 0xff00;
+            if (find < 0) {
+                return -1;
             }
+            int code = textAlias.get(find)._value.intValue();
+            return code;
         }
         int x = MXUtil.numberFromText(str);
         if (x >= 0) {
             return x & 0xff;
         }
-        return 0;
+        return -1;
     }
 
     /**
@@ -541,30 +498,20 @@ static final int DTEXT_CCNUM = 0x1500;
         }
     }
 
-    public boolean isDataentry() {
-        if (_commands.length > 0) {
-            if (_commands[0] == MXMidi.COMMAND2_CH_RPN 
-             || _commands[0] == MXMidi.COMMAND2_CH_NRPN) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public boolean canReuseBinary(byte[] data) {
         if (_commands.length - _checksumCount == data.length) {
             int dpos = 0;
             for (int tpos = 0; tpos < _commands.length; ++tpos) {
                 int seek = _commands[tpos];
-                if (seek == DTEXT_CHECKSUM_START) {
+                if (seek == MXMidi.CCXML_CHECKSUM_START) {
                     continue;
                 }
                 int d1 = data[dpos++] & 0xff;
                 if (seek != d1) {
-                    if (seek != DTEXT_VH && seek != DTEXT_VL) {
+                    if (seek != MXMidi.CCXML_VH && seek != MXMidi.CCXML_VL) {
                         return false;
                     }
-                    if (seek != DTEXT_CHECKSUM_SET) {
+                    if (seek != MXMidi.CCXML_CHECKSUM_SET) {
                         return false;
                     }
                 }
@@ -598,25 +545,25 @@ static final int DTEXT_CCNUM = 0x1500;
             status = status & 0xf0;
             switch (status) {
                 case MXMidi.COMMAND_CH_PITCHWHEEL:
-                    template = new int[]{MXMidi.COMMAND_CH_PITCHWHEEL, MXTemplate.DTEXT_VL, MXTemplate.DTEXT_VH};
+                    template = new int[]{MXMidi.COMMAND_CH_PITCHWHEEL, MXMidi.CCXML_VL, MXMidi.CCXML_VH};
                     break;
                 case MXMidi.COMMAND_CH_CHANNELPRESSURE:
-                    template = new int[]{MXMidi.COMMAND_CH_CHANNELPRESSURE, MXTemplate.DTEXT_VL};
+                    template = new int[]{MXMidi.COMMAND_CH_CHANNELPRESSURE, MXMidi.CCXML_VL};
                     break;
                 case MXMidi.COMMAND_CH_POLYPRESSURE:
-                    template = new int[]{MXMidi.COMMAND_CH_POLYPRESSURE, MXTemplate.DTEXT_GL, MXTemplate.DTEXT_VL};
+                    template = new int[]{MXMidi.COMMAND_CH_POLYPRESSURE, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
                     break;
                 case MXMidi.COMMAND_CH_CONTROLCHANGE:
-                    template = new int[]{MXMidi.COMMAND_CH_CONTROLCHANGE, MXTemplate.DTEXT_GL, MXTemplate.DTEXT_VL};
+                    template = new int[]{MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
                     break;
                 case MXMidi.COMMAND_CH_NOTEON:
-                    template = new int[]{MXMidi.COMMAND_CH_NOTEON, MXTemplate.DTEXT_GL, MXTemplate.DTEXT_VL};
+                    template = new int[]{MXMidi.COMMAND_CH_NOTEON, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
                     break;
                 case MXMidi.COMMAND_CH_NOTEOFF:
-                    template = new int[]{MXMidi.COMMAND_CH_NOTEOFF, MXTemplate.DTEXT_GL, MXTemplate.DTEXT_VL};
+                    template = new int[]{MXMidi.COMMAND_CH_NOTEOFF, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
                     break;
                 case MXMidi.COMMAND_CH_PROGRAMCHANGE:
-                    template = new int[]{MXMidi.COMMAND_CH_PROGRAMCHANGE, MXTemplate.DTEXT_GL};
+                    template = new int[]{MXMidi.COMMAND_CH_PROGRAMCHANGE, MXMidi.CCXML_GL};
                     break;
             }
         }else {
@@ -629,95 +576,6 @@ static final int DTEXT_CCNUM = 0x1500;
             return null;
         }
         return new MXTemplate(template);
-    }
-
-    public static MXMessage fromDtext(int port, String text, int channel, RangedValue gate, RangedValue value) {
-        if (text == null || text.length() == 0) {
-            return null;
-        }
-
-        while (text.startsWith(" ")) {
-            text = text.substring(1);
-        }
-        while (text.endsWith(" ")) {
-            text = text.substring(0, text.length() - 1);
-        }
-
-        try {
-            int rpn_msb;
-            int rpn_lsb;
-            int nrpn_msb;
-            int nrpn_lsb;
-
-            char[] line = text.toCharArray();
-
-            char[] word = new char[line.length];
-            int wx = 0;
-
-            int readX = 0;
-            ArrayList<String> separated = new ArrayList();
-            boolean inChecksum = false;
-
-            while (readX < line.length) {
-                char ch = line[readX++];
-                if (ch == '[') {
-                    separated.add("[");
-                    inChecksum = true;
-                    continue;
-                }
-                if (ch == ']') {
-                    if (inChecksum) {
-                        inChecksum = false;
-                        if (wx != 0) {
-                            separated.add(new String(word, 0, wx));
-                        }
-                        separated.add("]");
-                        wx = 0;
-                    } else {
-                        new Exception("Checksum have not opened").printStackTrace();
-                    }
-                    continue;
-                }
-                if (ch == ' ' || ch == '\t' || ch == ',') {
-                    if (wx != 0) {
-                        separated.add(new String(word, 0, wx));
-                    }
-                    wx = 0;
-                    continue;
-                }
-                word[wx++] = ch;
-            }
-
-            if (wx != 0) {
-                separated.add(new String(word, 0, wx));
-                wx = 0;
-            }
-
-            if (separated.size() <= 0) {
-                return null;
-            }
-            
-            // cleanup
-            int type = MXTemplate.readCommandText(separated.get(0));
-            int[] compiled = new int[separated.size()];
-            int cx = 0;
-            int px = 0;
-
-            for (int sx = 0; sx < separated.size(); ++sx) {
-                String str = separated.get(sx);
-                int code = MXTemplate.readAliasText(str);
-                if (code < 0) {
-                    return null;
-                }
-                compiled[px++] = code;
-            }
-
-            MXMessage temp = MXMessageFactory.fromTemplate(port, compiled, channel, gate, value);
-            return temp;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 
     public MXMessage readDataForChGateValue(int port, byte[] data) {
@@ -769,10 +627,10 @@ static final int DTEXT_CCNUM = 0x1500;
                 int c1 = me.get(templateSeek);
                 templateSeek ++;
 
-                if (c1 == MXTemplate.DTEXT_CHECKSUM_START) {
+                if (c1 == MXMidi.CCXML_CHECKSUM_START) {
                     continue;
                 }
-                if (c1 == MXTemplate.DTEXT_CHECKSUM_SET) {
+                if (c1 == MXMidi.CCXML_CHECKSUM_SET) {
                     //any ok
                     dataSeek ++;
                     continue;
@@ -785,16 +643,16 @@ static final int DTEXT_CCNUM = 0x1500;
                 }
                 if (c1 != c2) {
                     switch(c1) {                        
-                        case MXTemplate.DTEXT_GL:
+                        case MXMidi.CCXML_GL:
                             gateLo = c2;
                             break;
-                        case MXTemplate.DTEXT_GH:
+                        case MXMidi.CCXML_GH:
                             gateHi = c2;
                             break;
-                        case MXTemplate.DTEXT_VL:
+                        case MXMidi.CCXML_VL:
                             valueLo = c2;
                             break;
-                        case MXTemplate.DTEXT_VH:
+                        case MXMidi.CCXML_VH:
                             valueHi = c2;
                             break;
                         default:

@@ -35,13 +35,13 @@ import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
  * @author Syntarou YOSHIDA
  */
 public class MX11View extends javax.swing.JPanel {
-    /**
-     * Creates new form MXMidiChannelPanel
-     */
     JTableWithFooter jTableVelocity;
     
     MX11Process _process;
     
+    /**
+     * Creates new form MX11View
+     */
     public MX11View(MX11Process process) {
         _process = process;
 

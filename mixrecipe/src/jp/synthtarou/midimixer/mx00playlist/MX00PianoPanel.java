@@ -19,7 +19,8 @@ package jp.synthtarou.midimixer.mx00playlist;
 import java.awt.Dimension;
 import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
 import javax.swing.BorderFactory;
-import jp.synthtarou.midimixer.mx35cceditor.ccxml.CXGeneralMidiFile;
+import jp.synthtarou.midimixer.libs.ccxml.CXGeneralMidiFile;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 
 /**
  *
@@ -56,7 +57,8 @@ public class MX00PianoPanel extends javax.swing.JPanel {
 
     public void updateProgramNumber(int program) {
         String name = CXGeneralMidiFile.getInstance().simpleFindProgram(program);
-        setBorder(BorderFactory.createTitledBorder("TR "  + (_channel + 1) + " " + name + "(" + program + ")"));
+        name = "(" + (program) + ")" + name;
+        setBorder(BorderFactory.createTitledBorder("TR "  + (_channel + 1) + " " + name));
     }
     
     /**

@@ -20,7 +20,7 @@ import java.awt.Dimension;
 import java.util.ArrayList;
 import javax.swing.JToggleButton;
 import jp.synthtarou.midimixer.libs.MXGlobalTimer;
-import jp.synthtarou.midimixer.mx35cceditor.ccxml.CXGeneralMidiFile;
+import jp.synthtarou.midimixer.libs.ccxml.CXGeneralMidiFile;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 
 /**
@@ -85,6 +85,7 @@ public class MX00DrumPadPanel extends javax.swing.JPanel {
             if (drumNote != null) {
                 noteName = drumNote;
             }
+            noteName = "(" + note + ")" +  noteName;
             JToggleButton button = new JToggleButton(noteName);
             button.setPreferredSize(new Dimension(150, 40));
             listDrums[note] = button;

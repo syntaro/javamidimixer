@@ -261,7 +261,7 @@ public class ThemeManager implements MXSettingTarget {
 
         for (int i = 0; i < model.size(); i++) {
             MXWrap<Integer> wrap = model.get(i);
-            if (wrap.value == fontStyle) {
+            if (wrap._value == fontStyle) {
                 model.setSelectedItem(wrap);
             }
         }
@@ -275,7 +275,7 @@ public class ThemeManager implements MXSettingTarget {
         }
         for (int i = 0; i < model.size(); i++) {
             MXWrap<Integer> wrap = model.get(i);
-            if (wrap.value == fontSize) {
+            if (wrap._value == fontSize) {
                 model.setSelectedItem(wrap);
             }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 user0001
+ * Copyright (C) 2023 Syntarou YOSHIDA
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,12 +18,12 @@ package jp.synthtarou.midimixer.mx35cceditor;
 
 /**
  *
- * @author user0001
+ * @author Syntarou YOSHIDA
  */
 public class DXControlElement extends javax.swing.JPanel {
 
     /**
-     * Creates new form CCV14KontollerElement
+     * Creates new form DXControlElement
      */
     public DXControlElement() {
         initComponents();
