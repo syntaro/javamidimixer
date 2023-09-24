@@ -112,12 +112,8 @@ public class MGDrumPad extends javax.swing.JPanel implements MXFocusAble {
             MGStatus status = getStatus();
             jButton1.setUI(new MyButtonUI());
             if (status._name == null || status._name.length() == 0) {
-                MXMessage message = status.toMXMessage(null);
-                if (message == null) {
-                    jButton1.setText("?");
-                } else {
-                    jButton1.setText(message.toStringForUI());
-                }
+                MXMessage message = status._base;
+                jButton1.setText(message.toStringForUI());
             } else {
                 jButton1.setText(status._name);
             }

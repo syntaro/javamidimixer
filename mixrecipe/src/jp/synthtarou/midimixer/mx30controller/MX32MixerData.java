@@ -371,11 +371,11 @@ public class MX32MixerData {
 
     public void fillMaxOfSlider(MGStatus status, int column) {
         MGStatus sliderStatus = _matrixSliderStatus[0].get(column);
-        MXMessage message = sliderStatus.toMXMessage(null);
+        MXMessage base = (MXMessage)sliderStatus._base.clone();
 
         int x = sliderStatus._base.getValue()._max;
-        status._base = message;
-        status._drum._type = MGStatusForDrum.TYPE_SAME_CC;
+        status._base = base;
+        status._drum._outStyle = MGStatusForDrum.STYLE_SAME_CC;
         status._drum._strikeZone = new RangedValue(x, x, x);
         status._drum._mouseOnValue = x;
         status._drum._dontSendOff = true;
@@ -383,11 +383,11 @@ public class MX32MixerData {
 
     public void fillMiddleOfSlider(MGStatus status, int column) {
         MGStatus sliderStatus = _matrixSliderStatus[0].get(column);
-        MXMessage message = sliderStatus.toMXMessage(null);
+        MXMessage base = (MXMessage)sliderStatus._base.clone();
 
         int x = (sliderStatus._base.getValue()._max + sliderStatus._base.getValue()._min) /2;
-        status._base = message;
-        status._drum._type = MGStatusForDrum.TYPE_SAME_CC;
+        status._base = base;
+        status._drum._outStyle = MGStatusForDrum.STYLE_SAME_CC;
         status._drum._strikeZone = new RangedValue(x, x, x);
         status._drum._mouseOnValue = x;
         status._drum._dontSendOff = true;
@@ -395,11 +395,11 @@ public class MX32MixerData {
 
     public void fillMinOfSlider(MGStatus status, int column) {
         MGStatus sliderStatus = _matrixSliderStatus[0].get(column);
-        MXMessage message = sliderStatus.toMXMessage(null);
+        MXMessage base = (MXMessage)sliderStatus._base.clone();
 
         int x = sliderStatus._base.getValue()._min;
-        status._base = message;
-        status._drum._type = MGStatusForDrum.TYPE_SAME_CC;
+        status._base = base;
+        status._drum._outStyle = MGStatusForDrum.STYLE_SAME_CC;
         status._drum._strikeZone = new RangedValue(x, x, x);
         status._drum._mouseOnValue = x;
         status._drum._dontSendOff = true;

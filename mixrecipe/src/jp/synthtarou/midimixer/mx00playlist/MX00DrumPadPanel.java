@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.mx00playlist;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import javax.swing.JToggleButton;
-import jp.synthtarou.midimixer.libs.MXGlobalTimer;
+import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.ccxml.CXGeneralMidiFile;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 

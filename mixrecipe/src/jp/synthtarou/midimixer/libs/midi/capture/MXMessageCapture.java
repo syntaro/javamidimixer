@@ -20,6 +20,7 @@ import java.util.TreeMap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
+import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 
 /**
  *
@@ -92,7 +93,7 @@ public class MXMessageCapture {
         //TODO
 
         int port = 0;
-        MXMessage message = MXMessageFactory.fromCCXMLText(0, text.dtext, gate._parent.channel);
+        MXMessage message = MXMessageFactory.fromTemplate(0, new MXTemplate(text.dtext), gate._parent.channel, null, null);
         return  message.toStringHeader(gate._hitLoValue, gate._hitHiValue);
     }
     

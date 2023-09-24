@@ -26,7 +26,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.libs.MXGlobalTimer;
+import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
 
 /**
  *

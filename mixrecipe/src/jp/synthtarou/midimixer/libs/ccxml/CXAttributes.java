@@ -60,7 +60,8 @@ public class CXAttributes extends MXWrapList<String> {
         }
         else {
             MXWrap<String> data = super.get(x);
-            data._value = value;
+            MXWrap<String> newData = new MXWrap(attrName, value);
+            super.set(x, newData);
         }
     }
 }

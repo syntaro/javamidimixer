@@ -60,10 +60,6 @@ public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, Co
         return list;
     }
    
-    public String nameOfIndex(int x) {
-        return get(x)._name;
-    }
-
     public boolean existsName(String name) {
         if (_ignoreCase) {
             for (MXWrap<T> e : this) {
@@ -129,26 +125,6 @@ public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, Co
         }
     }
 
-    public T valueOfIndex(int x) {
-        return get(x)._value;
-    }
-    
-    public T valueOfName(String name) {
-        int x = indexOfName(name);
-        if (x < 0) {
-            return null;
-        }
-        return get(x)._value;
-    }
-
-    public String nameOfValue(T value) {
-        int x = indexOfValue(value);
-        if (x < 0) {
-            return null;
-        }
-        return get(x)._name;
-    }
-
     public int indexOfValue(T value) {
         int x = 0;
         for (MXWrap<T> e : this) {
@@ -169,9 +145,32 @@ public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, Co
         return -1;
     }
 
+    public String nameOfIndex(int x) {
+        return get(x)._name;
+    }
+
+    public T valueOfIndex(int x) {
+        return get(x)._value;
+    }
+    
+    public T valueOfName(String name) {
+        int x = indexOfName(name);
+        if (x < 0) {
+            return null;
+        }
+        return get(x)._value;
+    }
+
+    public String nameOfValue(T value) {
+        int x = indexOfValue(value);
+        if (x < 0) {
+            return null;
+        }
+        return get(x)._name;
+    }
+
     public boolean addNameAndValue(String name, T value) {
         boolean x = add(new MXWrap(name, value));
-        fireIntervalAdded(this, size() - 1, size() -1);
         return x;
     }
     

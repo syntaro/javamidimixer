@@ -17,6 +17,7 @@
 package jp.synthtarou.midimixer.libs.midi;
 
 import java.util.ArrayList;
+import java.util.IllegalFormatException;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
@@ -34,15 +35,117 @@ public class MXTemplate {
     private int _bytePosHiValue;
     private int _checksumCount;
 
-
     static MXWrapList<Integer> textCommand = new MXWrapList();
     static MXWrapList<Integer> textAlias = new MXWrapList();
 
-    MXTemplate(int[] template) {
-        _commands = template;
+    public MXTemplate(int[] template) {
+        if (template == null || template.length == 0 || template[0] == 0) {
+            _commands = new int[]{0, 0, 0};
+        } else {
+            _commands = template;
+        }
         initFields();
     }
-    
+
+    public MXTemplate(String text) throws IllegalFormatException {
+        if (text == null || text.length() == 0) {
+            _commands = new int[]{0, 0, 0};
+            initFields();
+            return;
+        }
+
+        while (text.startsWith(" ")) {
+            text = text.substring(1);
+        }
+        while (text.endsWith(" ")) {
+            text = text.substring(0, text.length() - 1);
+        }
+
+        int rpn_msb;
+        int rpn_lsb;
+        int nrpn_msb;
+        int nrpn_lsb;
+
+        char[] line = text.toCharArray();
+
+        char[] word = new char[line.length];
+        int wx = 0;
+
+        int readX = 0;
+        ArrayList<String> separated = new ArrayList();
+        boolean inChecksum = false;
+
+        while (readX < line.length) {
+            char ch = line[readX++];
+            if (ch == '[') {
+                separated.add("[");
+                inChecksum = true;
+                continue;
+            }
+            if (ch == ']') {
+                if (inChecksum) {
+                    inChecksum = false;
+                    if (wx != 0) {
+                        separated.add(new String(word, 0, wx));
+                    }
+                    separated.add("]");
+                    wx = 0;
+                } else {
+                    throw new IllegalArgumentException("Checksum not opened" + text);
+                }
+                continue;
+            }
+            if (ch == ' ' || ch == '\t' || ch == ',') {
+                if (wx != 0) {
+                    separated.add(new String(word, 0, wx));
+                }
+                wx = 0;
+                continue;
+            }
+            word[wx++] = ch;
+        }
+
+        if (wx != 0) {
+            separated.add(new String(word, 0, wx));
+            wx = 0;
+        }
+
+        if (separated.size() <= 0) {
+            _commands = new int[]{0, 0, 0};
+            initFields();
+            return;
+        }
+
+        // cleanup
+        int[] compiled = new int[separated.size()];
+        int cx = 0;
+        int px = 0;
+
+        for (int sx = 0; sx < separated.size(); ++sx) {
+            String str = separated.get(sx);
+            int code;
+            if (str.startsWith("@")) {
+                code = MXTemplate.readCommandText(str);
+                if (code < 0) {
+                    throw new IllegalArgumentException("can't parse " + str);
+                }
+            } else if (str.startsWith("#")) {
+                code = MXTemplate.readAliasText(str);
+                if (code < 0) {
+                    throw new IllegalArgumentException("can't parse " + str);
+                }
+            } else if (str.equals("[") || str.equals("]")) {
+                code = MXTemplate.readAliasText(str);
+            } else {
+                code = MXUtil.numberFromText(str);
+            }
+            compiled[px++] = code;
+        }
+
+        _commands = compiled;
+        initFields();
+    }
+
     public int get(int pos) {
         if (_commands == null) {
             return 0;
@@ -292,8 +395,8 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
 
             int data1 = message.getData1();
             int data2 = message.getData2();
-            
-            switch(command) {
+
+            switch (command) {
                 case MXMidi.COMMAND_CH_NOTEOFF:
                 case MXMidi.COMMAND_CH_NOTEON:
                 case MXMidi.COMMAND_CH_POLYPRESSURE:
@@ -340,11 +443,11 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
                     break;
             }
         }
-        
+
         texts.clear();
         for (int i = 0; i < _commands.length; ++i) {
             int code = _commands[i];
-            if (i == 0) {           
+            if (i == 0) {
                 String str1 = fromType(_commands[0]);
                 if (str1 != null) {
                     texts.add(str1);
@@ -409,7 +512,7 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
         textCommand.addNameAndValue("@CC", MXMidi.COMMAND_CH_CONTROLCHANGE);
         textCommand.addNameAndValue("@CP", MXMidi.COMMAND_CH_CHANNELPRESSURE);
         textCommand.addNameAndValue("@PKP", MXMidi.COMMAND_CH_POLYPRESSURE);
-        textCommand.addNameAndValue("@SYSEX",MXMidi.COMMAND_SYSEX);
+        textCommand.addNameAndValue("@SYSEX", MXMidi.COMMAND_SYSEX);
         textCommand.addNameAndValue("@RPN", MXMidi.COMMAND2_CH_RPN); //@RPN [RPN MSB] [RPN LSB] [Data MSB] [Data LSB]
         textCommand.addNameAndValue("@NRPN", MXMidi.COMMAND2_CH_NRPN); //@NRPN [NRPN MSB] [NRPN LSB] [Data MSB] [Data LSB]
 
@@ -418,7 +521,7 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
         textCommand.addNameAndValue("@ON", MXMidi.COMMAND_CH_NOTEON);
         textCommand.addNameAndValue("@OFF", MXMidi.COMMAND_CH_NOTEOFF);
         textCommand.addNameAndValue("@PROGRAM", MXMidi.COMMAND_CH_PROGRAMCHANGE);
-        textCommand.addNameAndValue("@META",  MXMidi.COMMAND_META_OR_RESET);
+        textCommand.addNameAndValue("@META", MXMidi.COMMAND_META_OR_RESET);
     }
 
     public static int readCommandText(String str) {
@@ -427,7 +530,7 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
             if (find < 0) {
                 return -1;
             }
-                
+
             int code = textCommand.get(find)._value.intValue();
             return code;
         }
@@ -566,8 +669,8 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
                     template = new int[]{MXMidi.COMMAND_CH_PROGRAMCHANGE, MXMidi.CCXML_GL};
                     break;
             }
-        }else {
-            switch(status) {
+        } else {
+            switch (status) {
                 case MXMidi.COMMAND_SYSEX: //sysex
             }
         }
@@ -580,15 +683,15 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
 
     public MXMessage readDataForChGateValue(int port, byte[] data) {
         MXTemplate me = this;
-        
+
         boolean checkMatch = false;
         MXTemplate found = null;
-        
-        int channel  = 0;
+
+        int channel = 0;
         RangedValue gate = RangedValue.ZERO7;
         RangedValue value = RangedValue.ZERO7;
 
-        switch(me.get(0)) {
+        switch (me.get(0)) {
             case MXMidi.COMMAND2_NONE:
                 if (data.length == 0) {
                     //TODO cache
@@ -615,7 +718,7 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
                 checkMatch = true;
                 break;
         }
-        
+
         if (checkMatch) {
             int gateLo = -1, gateHi = -1;
             int valueLo = -1, valueHi = -1;
@@ -625,24 +728,24 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
 
             while (templateSeek < me.size() && dataSeek < data.length) {
                 int c1 = me.get(templateSeek);
-                templateSeek ++;
+                templateSeek++;
 
                 if (c1 == MXMidi.CCXML_CHECKSUM_START) {
                     continue;
                 }
                 if (c1 == MXMidi.CCXML_CHECKSUM_SET) {
                     //any ok
-                    dataSeek ++;
+                    dataSeek++;
                     continue;
                 }
-                int c2 = data[dataSeek ++] & 0xff;
+                int c2 = data[dataSeek++] & 0xff;
                 if (templateSeek == 1 && c2 >= 0x80 && c2 <= 0xef) {
                     channel = c2 & 0x0f;
                     c1 = c1 & 0xf0;
                     c2 = c2 & 0xf0;
                 }
                 if (c1 != c2) {
-                    switch(c1) {                        
+                    switch (c1) {
                         case MXMidi.CCXML_GL:
                             gateLo = c2;
                             break;
@@ -671,8 +774,7 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
                 if (gateHi < 0) {
                     gateHi = 0;
                     gate = RangedValue.new7bit(gateLo);
-                }
-                else {
+                } else {
                     gate = RangedValue.new14bit((gateHi << 7) | gateLo);
                 }
             }
@@ -683,28 +785,27 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
                 if (valueHi < 0) {
                     valueHi = 0;
                     value = RangedValue.new7bit(valueLo);
-                }
-                else {
+                } else {
                     value = RangedValue.new14bit((valueHi << 7) | valueLo);
                 }
             }
             return new MXMessage(port, me, channel, gate, value);
         }
-        
+
         return null;
     }
 
-    byte[] dwordBuffer = new byte[3];    
-    
+    byte[] dwordBuffer = new byte[3];
+
     public synchronized MXMessage readDwordForChGateValue(int port, int dword) {
         int status = (dword >> 16) & 0xff;
         int data1 = (dword >> 8) & 0xff;
         int data2 = dword & 0xff;
-        
-        dwordBuffer[0] = (byte)status;
-        dwordBuffer[1] = (byte)data1;
-        dwordBuffer[2] = (byte)data2;
-        
+
+        dwordBuffer[0] = (byte) status;
+        dwordBuffer[1] = (byte) data1;
+        dwordBuffer[2] = (byte) data2;
+
         return readDataForChGateValue(port, dwordBuffer);
     }
 }

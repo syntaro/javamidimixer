@@ -26,7 +26,7 @@ import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.MXGlobalTimer;
+import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
@@ -58,8 +58,8 @@ public class EditorForInstrument extends javax.swing.JPanel {
     public EditorForInstrument() {
         initComponents();
 
-        jComboBoxTestPort.setModel(MXMidiWrapList.listupPortAssigned(false));
-        jComboBoxTestChannel.setModel(MXMidiWrapList.listupChannel(false));
+        jComboBoxTestPort.setModel(MXMidiWrapList.listupPortAssigned(null));
+        jComboBoxTestChannel.setModel(MXMidiWrapList.listupChannel(null));
         _listXMLFile = CXFileList.getInstance()._listLoaded;
 
         _scanXMLFile = null;

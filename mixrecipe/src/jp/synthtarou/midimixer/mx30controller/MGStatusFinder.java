@@ -68,7 +68,7 @@ public class MGStatusFinder {
             return;
         }
 
-        MXMessage message = status.toMXMessage(null);
+        MXMessage message = status._base;
         
         if (message == null) {
             return;

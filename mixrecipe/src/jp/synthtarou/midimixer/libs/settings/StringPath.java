@@ -34,7 +34,7 @@ public class StringPath extends ArrayList<String> implements Cloneable {
         return p;
     }
     
-    public static StringPath parsePath(String name) throws MXSettingException {
+    public static StringPath parsePath(String name) {
         StringPath path = new StringPath();
 
         char[]buffer = name.toCharArray();
@@ -50,7 +50,8 @@ public class StringPath extends ArrayList<String> implements Cloneable {
                         try {
                             Integer.parseInt(part);
                         }catch(NumberFormatException e) {
-                            throw new MXSettingException (e);
+                            e.printStackTrace();
+                            return null;
                         }
                     }
                     path.add(part);
@@ -66,7 +67,8 @@ public class StringPath extends ArrayList<String> implements Cloneable {
                             try {
                                 Integer.parseInt(part);
                             }catch(NumberFormatException e) {
-                                throw new MXSettingException (e);
+                                e.printStackTrace();
+                                return null;
                             }
                         }
                         path.add(part);
@@ -88,10 +90,11 @@ public class StringPath extends ArrayList<String> implements Cloneable {
                         Integer.parseInt(number);
                         path.add(number);
                     }catch(NumberFormatException e) {
-                        throw new MXSettingException (number);
+                        e.printStackTrace();
+                        return null;
                     }
                 }else {
-                    throw new MXSettingException ("???");
+                    throw new NumberFormatException("length < 0");
                 }
                 if (nextClose + 1 < buffer.length) {
                     if (buffer[nextClose + 1] == '.') {
@@ -111,8 +114,7 @@ public class StringPath extends ArrayList<String> implements Cloneable {
                     try {
                         Integer.parseInt(part);
                     }catch(NumberFormatException e) {
-                        e.printStackTrace();
-                        return null;
+                        throw e;
                     }
                 }
                 path.add(part);

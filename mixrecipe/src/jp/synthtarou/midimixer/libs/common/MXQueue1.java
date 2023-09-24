@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs;
+package jp.synthtarou.midimixer.libs.common;
 
 import java.util.LinkedList;
 import jp.synthtarou.midimixer.MXThreadList;

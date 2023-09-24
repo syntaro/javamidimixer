@@ -49,7 +49,7 @@ public class MXSetting {
         root.setSetting("base.attribute[1].text", "a1");
         root.setSetting("base.attribute[2].text", "a2");
         root.setSetting("base.attribute[3].text", "a3");
-        
+
         root.setSetting("base[12].position", "12");
         root.setSetting("base.[13].position", "13");
         root.setSetting("base[14]position", "14");
@@ -166,12 +166,8 @@ public class MXSetting {
                 String value = line.substring(index + 1);
                 _root.setSetting(key, value);
             }
-        }catch(FileNotFoundException e) {
-            System.out.println("First Time for [" + _settingFile + "]");
-        }catch(MXSettingException e) {
-            e.printStackTrace();
         }catch(IOException e) {
-            e.printStackTrace();
+            System.out.println("First Time for [" + _settingFile + "]");
         }finally {
             if (fin != null) {
                 try {
@@ -254,12 +250,7 @@ public class MXSetting {
     }
     
     public boolean setSetting(String name, String value) {
-        try {
-           return _root.setSetting(name, value);
-        }catch(MXSettingException e) {
-            e.printStackTrace();
-            return false;
-        }
+        return _root.setSetting(name, value);
     }
     
     public boolean isEmpty() {
@@ -288,13 +279,9 @@ public class MXSetting {
     }
     
     public void register(String name) {
-        try {
-            StringPath p = _root.getPath().clone();
-            p.addAll(StringPath.parsePath(name));
-            register(p);
-        }catch(MXSettingException e) {
-            System.out.println("Can't regist " + name +" for " + getFile());
-        }
+        StringPath p = _root.getPath().clone();
+        p.addAll(StringPath.parsePath(name));
+        register(p);
     }
 
     public void register(StringPath path) {
@@ -303,13 +290,8 @@ public class MXSetting {
 
     public boolean isRegistered(String name) {
         StringPath p = _root.getPath().clone();
-        try {
-            p.addAll(StringPath.parsePath(name));
-            return isRegistered(p);
-        }catch(MXSettingException e) {
-            e.printStackTrace();
-            return false;
-        }
+        p.addAll(StringPath.parsePath(name));
+        return isRegistered(p);
     }
 
     public boolean isRegistered(StringPath path) {
@@ -350,13 +332,7 @@ public class MXSetting {
     };
     
     public ArrayList<MXSettingNode> findByPath(String name) {
-        StringPath path = null;
-        try {
-            path = StringPath.parsePath(name);
-        }catch(MXSettingException e) {
-            e.printStackTrace();
-            return null;
-        }
+        StringPath path = StringPath.parsePath(name);
     
         ArrayList<MXSettingNode> seeking = new ArrayList();
         seeking.add(_root);

@@ -110,10 +110,10 @@ public class MXMidiWrapList {
         return list;
     }
 
-    public static MXWrapList<Integer> listupChannel(boolean addOmni) {
+    public static MXWrapList<Integer> listupChannel(String addMinusOne) {
         MXWrapList<Integer> list = new MXWrapList();
-        if (addOmni) {
-            list.addNameAndValue("OMNI", -1);
+        if (addMinusOne != null) {
+            list.addNameAndValue(addMinusOne, -1);
         }
         for (int i = 0; i < 16; ++i) {
             list.addNameAndValue(String.valueOf(i + 1), i);
@@ -148,10 +148,10 @@ public class MXMidiWrapList {
         return list;
     }
 
-    public static MXWrapList<Integer> listupPortAssigned(boolean addOmni) {
+    public static MXWrapList<Integer> listupPortAssigned(String addMinusOne) {
         MXWrapList<Integer> list = new MXWrapList();
-        if (addOmni) {
-            list.addNameAndValue("Any ", -1);
+        if (addMinusOne != null) {
+            list.addNameAndValue(addMinusOne, -1);
         }
         for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++i) {
             list.addNameAndValue(Character.toString('A' + i), i);

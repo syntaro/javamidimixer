@@ -82,12 +82,8 @@ public class MGSlider extends javax.swing.JPanel implements MXFocusAble, MouseWh
             jSliderValue.setValue(value._var);
             jLabelValue.setText(String.valueOf(value._var));
             if (status._name == null || status._name.length() == 0) {
-                MXMessage message = status.toMXMessage(null);
-                if (message == null) {
-                    jLabelName.setText("?");
-                }else {
-                    jLabelName.setText(message.toStringForUI());
-                }
+                MXMessage message = status._base;
+                jLabelName.setText(message.toStringForUI());
             }else {
                 jLabelName.setText(status._name);
             }

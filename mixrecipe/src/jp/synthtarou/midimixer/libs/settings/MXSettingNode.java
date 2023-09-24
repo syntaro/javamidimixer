@@ -34,24 +34,15 @@ public class MXSettingNode {
     }
 
     public void register(String name) {
-        try {
-            StringPath p = _path.clone();
-            p.addAll(StringPath.parsePath(name));
-            _setting.register(p);
-        }catch(MXSettingException e) {
-            e.printStackTrace();
-        }
+        StringPath p = _path.clone();
+        p.addAll(StringPath.parsePath(name));
+        _setting.register(p);
     }
 
     public boolean isRegistered(String name) {
-        try { 
-            StringPath p = _path.clone();
-            p.addAll(StringPath.parsePath(name));
-            return _setting.isRegistered(p);
-        }catch(MXSettingException e) {
-            e.printStackTrace();
-            return false;
-        }
+        StringPath p = _path.clone();
+        p.addAll(StringPath.parsePath(name));
+        return _setting.isRegistered(p);
     }
 
     private final StringPath _path;
@@ -129,21 +120,16 @@ public class MXSettingNode {
     }
     
     public MXSettingNode findNode(String name) {
-        try {
-            StringPath path = StringPath.parsePath(name);
-            MXSettingNode node = this;
-            for (String text : path) {
-                MXSettingNode e = node.childByKey(text);
-                if (e == null) {
-                    return null;
-                }
-                node = e;
+        StringPath path = StringPath.parsePath(name);
+        MXSettingNode node = this;
+        for (String text : path) {
+            MXSettingNode e = node.childByKey(text);
+            if (e == null) {
+                return null;
             }
-            return node;
-        }catch(MXSettingException e) {
-            e.printStackTrace();
-            return null;
+            node = e;
         }
+        return node;
     }
     
     public List<MXSettingNode> findNumbers() {
@@ -177,18 +163,71 @@ public class MXSettingNode {
         }
         return defval;
     }
+
+    public Integer getSettingAsInt(String name) {
+        MXSettingNode node = findNode(name);
+        if (node != null) {
+            String text = node._value;
+            try {
+                return Integer.valueOf(text);
+            }catch(NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /*
+    public Integer getSettingAsWrappedInteger(String name, MXWrapList<Integer> table) {
+        MXSettingNode node = findNode(name);
+        if (node != null) {
+            String text = node._value;
+            try {
+                Integer x = table.valueOfName(text);
+                if (x == null) {
+                    return null;
+                }
+                return x;
+            }catch(NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
+    }
+    */
     
     public boolean getSettingAsBoolean(String name, boolean defval) {
         if (defval) {
-            return getSettingAsInt(name, 1) != 0;
+            return MXSettingNode.this.getSettingAsInt(name, 1) != 0;
         }else {
-            return getSettingAsInt(name, 0) != 0;
+            return MXSettingNode.this.getSettingAsInt(name, 0) != 0;
         }
     }
+
+    /*
+    public Boolean getSettingAsBoolean(String name) {
+        Integer x = getSettingAsInt(name);
+        if (x != null) {
+            return x == 0 ? Boolean.FALSE : Boolean.TRUE;
+        }
+        return null;
+    }
+    */
     
-    public boolean setSetting(String name, String value) throws MXSettingException {
+/*
+    public boolean setSetting(String name, MXWrapList<Integer> table, int value) {
+        String valueText = table.nameOfValue(value);
+        if (valueText == null) {
+            throw new MXSettingException("setSetting Not Found Name Of Value " + value);
+        }
+        return setSetting(name, valueText);
+    }
+*/
+    
+    public boolean setSetting(String name, String value) {
         if (isRegistered(name) == false) {
-            throw new MXSettingException("setSetting Not registered " + name + " = " + value);
+            new Throwable("setSetting Not registered " + name + " = " + value).printStackTrace();
+            return false;
         }
 
         StringPath child = StringPath.parsePath(name);
@@ -208,6 +247,18 @@ public class MXSettingNode {
         return true;
     }
     
+    public boolean setSetting(String name, int value) {
+        return setSetting(name, String.valueOf(value));
+    }
+    
+    public boolean setSetting(String name, boolean value) {
+        if (value) {
+            return setSetting(name, "1");
+        }else {            
+            return setSetting(name, "0");
+        }
+    }
+
     public boolean havingName(String name) {
         return childByKey(name) != null;
     }

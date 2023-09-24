@@ -187,7 +187,7 @@ public class ThemeManager implements MXSettingTarget {
         setting.register("fontName");
         setting.register("fontSize");
         setting.register("fontStyle");
-        setting.register("circleIsCircce");
+        setting.register("circleIsCircle");
     }
 
     @Override
@@ -205,7 +205,7 @@ public class ThemeManager implements MXSettingTarget {
         fontStyle = setting.getSettingAsInt("fontStyle", Font.PLAIN);
         setFont(fontName, fontStyle, fontSize);
         setUITheme(themeName);
-        CurvedSlider.setMouseCircleIsCircle(setting.getSettingAsBoolean("circleIsCircce", true));
+        CurvedSlider.setMouseCircleIsCircle(setting.getSettingAsBoolean("circleIsCircle", true));
         updateUITree();
     }
 
@@ -216,7 +216,7 @@ public class ThemeManager implements MXSettingTarget {
         setting.setSetting("fontName", fontName);
         setting.setSetting("fontSize", fontSize);
         setting.setSetting("fontStyle", fontStyle);
-        setting.setSetting("circleIsCircce", CurvedSlider.isMouseCircleIsCircle());
+        setting.setSetting("circleIsCircle", CurvedSlider.isMouseCircleIsCircle());
     }
     
 

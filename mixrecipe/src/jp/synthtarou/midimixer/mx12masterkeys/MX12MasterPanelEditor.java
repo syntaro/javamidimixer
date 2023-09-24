@@ -76,10 +76,10 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
         _receiverModel = MXMain.getMain().getReceiverList();
         _receiverModel.writeComboBox(jComboBoxReciever, _process.getNextReceiver());
 
-        _portModel = MXMidiWrapList.listupPortAssigned(false);
+        _portModel = MXMidiWrapList.listupPortAssigned(null);
         _portModel.writeComboBox(jComboBoxPort, _process.getMousePort());
         
-        _channelModel = MXMidiWrapList.listupChannel(false);
+        _channelModel = MXMidiWrapList.listupChannel(null);
         _channelModel.writeComboBox(jComboBoxChannel, _process.getMouseChannel());
         
         jSpinnerMouseVelocity.setModel(new SafeSpinnerNumberModel(_process.getMouseVelocity(), 1, 127, 1));

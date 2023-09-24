@@ -235,13 +235,31 @@ public final class MXMessage {
         return null;
     }
 
-    public MXMessage(int port, MXTemplate template) {
+    MXMessage(int port, MXTemplate template) {
         this(port, template, 0, RangedValue.ZERO7, RangedValue.ZERO7);
     }
 
-    public MXMessage(int port, MXTemplate template, int channel, RangedValue gate, RangedValue value) {
+    MXMessage(int port, MXTemplate template, int channel, RangedValue gate, RangedValue value) {
         if (template == null) {
             throw new NullPointerException();
+        }
+        if (gate == null) {
+            if (template.getBytePosHiGate() >= 0) {
+                gate = RangedValue.new14bit(0);
+            }else if (template.getBytePosGate() >= 0) {
+                gate = RangedValue.new7bit(0);
+            }else {
+                gate = RangedValue.new7bit(0);
+            }
+        }
+        if (value == null) {
+            if (template.getBytePosHiValue() >= 0) {
+                value = RangedValue.new14bit(0);
+            }else if (template.getBytePosValue() >= 0) {
+                value = RangedValue.new7bit(0);
+            }else {
+                value = RangedValue.new7bit(0);
+            }
         }
         _port = port;
         _template = template;
@@ -270,10 +288,10 @@ public final class MXMessage {
                 || _template.get(0) == MXMidi.COMMAND2_CH_NRPN) {
             return true;
         }
-        return isUnknwonDataentry();
+        return isDataentryByCC();
     }
 
-    public boolean isUnknwonDataentry() {
+    public boolean isDataentryByCC() {
         if (_template.get(0) == MXMidi.COMMAND2_CH_RPN
                 || _template.get(0) == MXMidi.COMMAND2_CH_NRPN) {
             return false;
@@ -418,8 +436,7 @@ public final class MXMessage {
     public static void main(String[] args) {
         MXMessage message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_NOTEON + 0, 64, 127);
         String dtext = message._template.toDText(message);
-
-        MXMessage msg = MXMessageFactory.fromCCXMLText(message.getPort(), dtext, message.getChannel(), message.getGate(), message.getValue());
+        MXMessage msg = MXMessageFactory.fromTemplate(message.getPort(), new MXTemplate(dtext), message.getChannel(), message.getGate(), message.getValue());
 
         PrintStream output = System.out;
 
@@ -437,7 +454,7 @@ public final class MXMessage {
         MXMessage message2 = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + 1, MXMidi.DATA1_CC_CHANNEL_VOLUME, 127);
         output.println(message2);
         String dtext2 = message2._template.toDText(message2);
-        MXMessage msg2 = MXMessageFactory.fromCCXMLText(message2.getPort(), dtext2, message2.getChannel(), message2.getGate(), message2.getValue());
+        MXMessage msg2 = MXMessageFactory.fromTemplate(message2.getPort(), new MXTemplate(dtext2), message2.getChannel(), message2.getGate(), message2.getValue());
 
         output.println(dtext2);
         output.println(msg2);
@@ -500,7 +517,7 @@ public final class MXMessage {
                 || _template.get(0) == MXMidi.COMMAND2_CH_NRPN) {
             return 4;
         }
-        if (isUnknwonDataentry()) {
+        if (isDataentryByCC()) {
             MXVisitant visit = getVisitant();
             if (visit != null) {
                 if (visit.isHaveDataentryRPN()) {

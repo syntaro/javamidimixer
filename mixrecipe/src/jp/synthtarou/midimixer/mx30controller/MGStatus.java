@@ -16,13 +16,11 @@
  */
 package jp.synthtarou.midimixer.mx30controller;
 
-import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
+import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 
 /**
@@ -42,7 +40,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
 
     String _name = "";
     String _memo = "";
-    MXMessage _base = MXMessageFactory.fromTemplate(0, null, 0, RangedValue.ZERO7, RangedValue.ZERO7);
+    MXMessage _base = MXMessageFactory.fromTemplate(0, new MXTemplate(""), 0, null, null);
 /*
     int _dataroomType = MXVisitant.ROOMTYPE_NODATA;
     int _dataroomMSB = -1;
@@ -67,7 +65,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     public MXMessage getBaseMessage() {
         return _base;
     }
-
+/*
     public MXMessage toMXMessage(MXTiming timing) {
         if (_base == null) {
             return null;
@@ -76,7 +74,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         message._timing = timing;
         return message;
     }
-
+*/
     public RangedValue updateValue(int value) {
         _base.setValue(_base.getValue().updateValue(value));
         return _base.getValue();
@@ -95,6 +93,20 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         return status;
     }
 
+    public void setBaseMessage(MXTemplate template) {
+        MXMessage message = MXMessageFactory.fromTemplate(_port, template, 0, null, null);
+        _base = message;
+    }
+
+    public void setBaseMessage(String text) {
+        try {  
+            MXTemplate template = new MXTemplate(text);
+            setBaseMessage(template);
+        }catch(IllegalArgumentException e) {
+            e.printStackTrace();;
+        }
+    }
+    
     public void setBaseMessage(MXMessage base) {
         if (base == null) {
             _base = null;
@@ -105,7 +117,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     }
 
     public String toString() {
-        MXMessage message = toMXMessage(null);
+        MXMessage message = _base;
         String text;
         switch (_uiType) {
             case TYPE_CIRCLE:
@@ -132,9 +144,6 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         } else {
             name = _name;
         }
-        if (message == null) {
-            message = MXMessageFactory.createDummy();
-        }
         return name + " (" + _memo + ")" + "\n"
                 + text + "[row " + (_row + 1) + ", col " + (_column + 1) + "] "
                 + "\n" + message.toString() + (message.isValuePairCC14() ? " (=14bit)" : "");
@@ -145,7 +154,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
             RangedValue value = _base.getValue();
             MXVisitant visit = message.getVisitant();
 
-            if (message.isUnknwonDataentry()) {
+            if (message.isDataentryByCC()) {
                 int original = value._var;
                 int newVar = visit.getDataentryValue14();
                 switch (message.getGate()._var) {
@@ -240,65 +249,6 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     public void setCustomRange(int min, int max) {
         _base.setValue(_base.getValue().modifyRangeTo(min, max));
     }
-    /*
-
-    public boolean haveSameStatusAndGate(MXMessage message) {
-        MXMessage from = toMXMessage(null);
-        
-        if (from.isDataentry() || message.isDataentry()) {
-            if (from.isDataentry() == message.isDataentry()) {
-                //不完全な状態
-                if (from.getVisitant().getBankLSB() == message.getVisitant().getBankLSB()) {
-                    if (from.getVisitant().getBankMSB() == message.getVisitant().getBankMSB()) {
-                        if (from.getVisitant().getDataroomType() == message.getVisitant().getDataroomType()) {
-                            if (_base.getChannel() == message.getChannel()) {
-                                return true;
-                            }
-                        }
-                    }
-                }
-                return false;
-            }
-        }
-        if (from.isCommand(MXMidi.COMMAND_CH_NOTEON) || from.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
-            if (message.isCommand(MXMidi.COMMAND_CH_NOTEON) || message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
-                if (from.getGate() != message.getGate()) {
-                    return false;
-                }
-                return true;
-            } else {
-                return false;
-            }
-        }
-        if (message.isMessageTypeChannel()) {
-            int command = message.getStatus() & 0xf0;
-            int channel = message.getChannel();
-
-            if (_base.getChannel() != channel) {
-                return false;
-            }
-            if (from.isCommand(command)) {
-                if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
-                    int cc1 = from.getGate()._var;
-                    int cc2 = message.getGate()._var;
-                    if (cc1 != cc2) {
-                        if (from.isValuePairCC14() && message.isValuePairCC14()) {
-                            if (cc1 >= 0 && cc1 <= 31 && cc1 + 32 == cc2) {
-                                return true;
-                            }
-                            if (cc2 >= 0 && cc2 <= 31 && cc2 + 32 == cc1) {
-                                return true;
-                            }
-                        }
-                        return false;
-                    }
-                }
-                return true;
-            }
-            return false;
-        }
-        return false;
-    }*/
 
     public boolean isOnlyValueDifferent(MXMessage message) {
         if (_base.getChannel() != message.getChannel()) {
@@ -308,8 +258,9 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         if (_base.getGate()._var != message.getGate()._var) {
             return false;
         }
-        
+
         if (_base.hasSameTemplate(message)) {
+
             return true;
         }
         
@@ -335,49 +286,24 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         return x;
     }
 
-    public void fillControlChange() {
-        clearAll();
-        MXMessage message = MXMessageFactory.fromCCXMLText(_port, "@CC #GL #VL", 0);
-        setBaseMessage(message);
-    }
-
-    public void fillDataentry(boolean isRPN, int msb, int lsb, RangedValue value) {
-        clearAll();
-        String type = isRPN ? "@RPN" : "@NRPN";
-        String msb2 = MXUtil.toHexFF(msb) + "h";
-        String lsb2 = MXUtil.toHexFF(lsb) + "h";
- 
-        RangedValue gate2 = new RangedValue(0, 0, 127);
-        
-        if (value._max <= 127) {
-            setBaseMessage(MXMessageFactory.fromCCXMLText(_port, type + " " + msb2 + " " + lsb2 + " #VL 0", 0, gate2, value));
-        }
-        else {
-            setBaseMessage(MXMessageFactory.fromCCXMLText(_port, type + " " + msb2 + " " + lsb2 + " #VH #VL", 0, gate2, value));
-        }
-    }
-
     public void fillTogglePedal() {
         clearAll();
-        fillNote(12 * 4);
-        _drum._type = MGStatusForDrum.TYPE_CUSTOM_CC;
+        setBaseMessage("90h #GL #VL");
+        _base.setGate(new RangedValue(12*5, 0, 127));
+        _name = "note";
+        _drum._outStyle = MGStatusForDrum.STYLE_CUSTOM_CC;
         _drum._modeToggle = true;
         _drum._currentSwitch = false;
         _drum._strikeZone = new RangedValue(127, 1, 127);
-        _drum._customTemplate = MXMessageFactory.fromCCXMLText(_port, "@CC #GL #VL", 0);
+        _drum._customTemplate = new MXTemplate("@CC #GL #VL");
         _drum._customOutOnValue = 127;
         _drum._customOutOffValue = 0;
 
     }
 
-    public void fillNote(int note) {
-        clearAll();
-        setBaseMessage(MXMessageFactory.fromCCXMLText(_port, "90h #GL #VL", 0, new RangedValue(note, 0, 127), null));
-        _name = "note";
-    }
-
     public void clearAll() {
-        setBaseMessage(MXMessageFactory.fromCCXMLText(_port,null, 0));
+        setBaseMessage("");
+
         _name = "";
         _memo = "";
 
@@ -385,6 +311,9 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
 
         if (_uiType == TYPE_DRUMPAD || _uiType == TYPE_DRUMPAD_OUTSIGNAL) {
             _drum = new MGStatusForDrum(this);
+        }
+        else {
+            _drum = null;
         }
     }
 }
