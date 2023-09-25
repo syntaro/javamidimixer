@@ -340,7 +340,7 @@ public class MX70SysexPanel extends javax.swing.JPanel {
 
     private void jButtonDumpSysexActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDumpSysexActionPerformed
         // TODO add your handling code here:
-        Integer port  = _listPort.readCombobox(jComboBoxPort);
+        Integer port  = _listPort.readComboBox(jComboBoxPort);
         if (port != null) {
             _file.sendSysexTo(port, new SysexProgress() {
                 @Override

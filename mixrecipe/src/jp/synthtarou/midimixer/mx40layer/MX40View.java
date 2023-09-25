@@ -1595,17 +1595,17 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
     public void readLayerFromPanel(MX40Layer layer) {
         layer._title = jTextFieldLayerName.getText();
 
-        layer._modPort = _modPort.readCombobox(jComboBoxModPort);
-        layer._modChannel = _modChannel.readCombobox(jComboBoxModChannel);
-        layer._modBank = _modBank.readCombobox(jComboBoxModBank);
-        layer._modProgram = _modProgram.readCombobox(jComboBoxModProgram);
+        layer._modPort = _modPort.readComboBox(jComboBoxModPort);
+        layer._modChannel = _modChannel.readComboBox(jComboBoxModChannel);
+        layer._modBank = _modBank.readComboBox(jComboBoxModBank);
+        layer._modProgram = _modProgram.readComboBox(jComboBoxModProgram);
         layer._modPan = jCheckBoxFixPan.isSelected() ? MX40Layer.MOD_FIXED : MX40Layer.MOD_ASFROM;
         
         String text= jButtonSendPort.getText();
         int sendPort = text.length() >= 1 ? text.charAt(0) - 'A' : -1;
         layer._fixedPort = sendPort;
         //layer._fixedPort = _changePort.readCombobox(jComboBoxSendPort);
-        layer._fixedChannel = _changeChannel.readCombobox(jComboBoxSendChannel);
+        layer._fixedChannel = _changeChannel.readComboBox(jComboBoxSendChannel);
         layer._fixedBankMSB = (int)jSpinnerSendBankMSB.getValue();
         layer._fixedBankLSB = (int)jSpinnerSendBankLSB.getValue();
         layer._fixedProgram = (int)jSpinnerSendProgram.getValue();
@@ -1614,11 +1614,11 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         layer._adjustVelocity = (Integer)jSpinnerSendAdjustVelocity.getValue();
         layer._adjustExpression = (Integer)jSpinnerSendAdjustExpression.getValue();
 
-        layer.setAcceptKeyLowest((int) _changeLowNote.readCombobox(jComboBoxSendNoteLow));
-        layer.setAcceptKeyHighest((int) _changeHighNote.readCombobox(jComboBoxSendNoteHigh));
+        layer.setAcceptKeyLowest((int) _changeLowNote.readComboBox(jComboBoxSendNoteLow));
+        layer.setAcceptKeyHighest((int) _changeHighNote.readComboBox(jComboBoxSendNoteHigh));
 
-        layer.setAcceptVelocityLowest((int) _changeLowVelocity.readCombobox(jComboBoxSendVelocityLow));
-        layer.setAcceptVelocityHighest((int) _changeHighVelocity.readCombobox(jComboBoxSendVelocityHi));
+        layer.setAcceptVelocityLowest((int) _changeLowVelocity.readComboBox(jComboBoxSendVelocityLow));
+        layer.setAcceptVelocityHighest((int) _changeHighVelocity.readComboBox(jComboBoxSendVelocityHi));
     }
     
     public void writeLayerToPanel(MX40Layer layer) {

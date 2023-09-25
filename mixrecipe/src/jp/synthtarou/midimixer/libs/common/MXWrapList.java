@@ -242,7 +242,7 @@ public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, Co
         return _selected;
     }
     
-    public T readCombobox(JComboBox box) {
+    public T readComboBox(JComboBox box) {
         ComboBoxModel model = box.getModel();
         MXWrap<T> item = (MXWrap)model.getSelectedItem();
         if (item != null) {
@@ -251,7 +251,7 @@ public class MXWrapList<T> extends ArrayList<MXWrap<T>> implements ListModel, Co
         return null;
     }
 
-    public void writeComboBox(JComboBox box, T value) {
+    public void writeComboBox(JComboBox<?> box, T value) {
         ComboBoxModel model = this;
         box.setModel(this);
         for (int i = 0; i < model.getSize(); ++ i) {

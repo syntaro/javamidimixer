@@ -111,13 +111,6 @@ public class MXNotePicker extends javax.swing.JPanel {
                 noteSelectionChanged();
             }
         });
-
-        final String title = "Select Output to Connect.";
-
-        MXMain.getMain().addLaunchSequence(new Runnable() {
-            public void run() {
-            }
-        });
     }
     
     public void scrollToCenter() {

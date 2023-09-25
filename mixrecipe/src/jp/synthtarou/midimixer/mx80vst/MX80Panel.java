@@ -181,7 +181,7 @@ public class MX80Panel extends javax.swing.JPanel {
     }
 
     private int readPanelLatency() {
-        Integer x = _latencyModel.readCombobox(jComboBoxLatency);
+        Integer x = _latencyModel.readComboBox(jComboBoxLatency);
         if (x != null) {
             return x;
         }
@@ -189,7 +189,7 @@ public class MX80Panel extends javax.swing.JPanel {
     }
 
     private int readPanelSampleRate() {
-        Integer x = _sampleRateModel.readCombobox(jComboBoxSampleRate);
+        Integer x = _sampleRateModel.readComboBox(jComboBoxSampleRate);
         if (x != null) {
             return x;
         }
@@ -657,9 +657,9 @@ public class MX80Panel extends javax.swing.JPanel {
             closeStream();
         } else {
             MX80Process process = MX80Process.getInstance();
-            int sel = _streamModel.readCombobox(jComboBoxStream);
-            int sampleRate = _sampleRateModel.readCombobox(jComboBoxSampleRate);
-            int blockSize = _latencyModel.readCombobox(jComboBoxLatency);
+            int sel = _streamModel.readComboBox(jComboBoxStream);
+            int sampleRate = _sampleRateModel.readComboBox(jComboBoxSampleRate);
+            int blockSize = _latencyModel.readComboBox(jComboBoxLatency);
             openStream(sel, sampleRate, blockSize);
         }
     }//GEN-LAST:event_jButtonOpenStreamActionPerformed

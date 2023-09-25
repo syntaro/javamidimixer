@@ -856,7 +856,7 @@ public class EditorForInstrument extends javax.swing.JPanel {
         if (_listReceiver == null) {
             return;
         }
-        MXReceiver receiver = _listReceiver.readCombobox(jComboBoxTestReceiver);
+        MXReceiver receiver = _listReceiver.readComboBox(jComboBoxTestReceiver);
         if (receiver == null) {
             return;
         }
@@ -905,7 +905,7 @@ public class EditorForInstrument extends javax.swing.JPanel {
         MXWrap<Integer> portObj = (MXWrap) jComboBoxTestPort.getSelectedItem();
         MXWrap<Integer> channelObj = (MXWrap) jComboBoxTestChannel.getSelectedItem();
 
-        MXReceiver receiver = _listReceiver.readCombobox(jComboBoxTestReceiver);
+        MXReceiver receiver = _listReceiver.readComboBox(jComboBoxTestReceiver);
         int port = portObj._value;
         int channel = channelObj._value;
 

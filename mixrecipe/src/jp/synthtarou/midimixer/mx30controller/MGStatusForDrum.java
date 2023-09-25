@@ -357,4 +357,12 @@ public class MGStatusForDrum {
         MX30Process parentProcess = MXMain.getMain().getKontrolProcess();
         parentProcess.getNextReceiver().processMXMessage(message);
     }
+    
+    public int[] getHarmonyNotesAsArray() {
+        return MXMidi.textToNoteList(_harmonyNotes);
+    }
+    
+    public void setHarmoyNotesAsArray(int[] array) {
+        _harmonyNotes = MXMidi.noteListToText(array);
+    }
 }

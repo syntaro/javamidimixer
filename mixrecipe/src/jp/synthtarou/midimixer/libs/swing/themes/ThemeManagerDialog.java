@@ -271,17 +271,17 @@ public class ThemeManagerDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_jButtonStoneActionPerformed
 
     private void jComboBoxFontSizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxFontSizeActionPerformed
-        config.fontSize = _listModelFontSize.readCombobox(jComboBoxFontSize);
+        config.fontSize = _listModelFontSize.readComboBox(jComboBoxFontSize);
         updateLookAndFeel();
     }//GEN-LAST:event_jComboBoxFontSizeActionPerformed
 
     private void jComboBoxFontNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxFontNameActionPerformed
-        config.fontName = _listModelFontName.readCombobox(jComboBoxFontName);
+        config.fontName = _listModelFontName.readComboBox(jComboBoxFontName);
         updateLookAndFeel();
     }//GEN-LAST:event_jComboBoxFontNameActionPerformed
 
     private void jComboBoxFontStyleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxFontStyleActionPerformed
-        config.fontStyle = _listModelFontSyle.readCombobox(jComboBoxFontStyle);
+        config.fontStyle = _listModelFontSyle.readComboBox(jComboBoxFontStyle);
         updateLookAndFeel();
     }//GEN-LAST:event_jComboBoxFontStyleActionPerformed
 

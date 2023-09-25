@@ -20,11 +20,13 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.IllegalFormatException;
 import javax.swing.ButtonGroup;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.SpinnerNumberModel;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
@@ -41,6 +43,7 @@ import jp.synthtarou.midimixer.libs.midi.capture.MXMessageCapturePanel;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXMidiWrapList;
+import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.capture.GateInfomation;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
@@ -65,6 +68,8 @@ public class MGStatusPanel extends javax.swing.JPanel {
     MXWrapList<Integer> _normalGateModel;
     MXWrapList<Integer> _switchOutTypeOn;
     MXWrapList<Integer> _switchOutTypeOff;
+    MXWrapList<Integer> _switchOutProgramType;
+    MXWrapList<Integer> _switchLinkColumn;
 
     String _templateStartWith;
 
@@ -102,7 +107,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
         group2.add(jRadioButtonLinkKnob2);
         group2.add(jRadioButtonLinkKnob3);
         group2.add(jRadioButtonLinkKnob4);
-        group2.add(jRadioButtonSlider);
+        group2.add(jRadioButtonLinkSlider);
 
         if (_status._uiType == MGStatus.TYPE_DRUMPAD) {
             jTabbedPane1.setEnabledAt(1, true);
@@ -114,8 +119,8 @@ public class MGStatusPanel extends javax.swing.JPanel {
 
         jSpinnerDrumOnRangeMin.setModel(new SpinnerNumberModel(1, 0, 127, 1));
         jSpinnerDrumOnRangeMax.setModel(new SpinnerNumberModel(127, 0, 127, 1));
-        jSpinnerDrumClickOn.setModel(new SpinnerNumberModel(100, 0, 127, 1));
-        jSpinnerDrumClickOff.setModel(new SpinnerNumberModel(0, 0, 127, 1));
+        jSpinnerDrumMouseOnValue.setModel(new SpinnerNumberModel(100, 0, 127, 1));
+        jSpinnerDrumMouseOffValue.setModel(new SpinnerNumberModel(0, 0, 127, 1));
 
         _drumOutPort = MXMidiWrapList.listupPortAssigned("as Input");
         _drumOutChannel = MXMidiWrapList.listupChannel("as Input");
@@ -156,6 +161,16 @@ public class MGStatusPanel extends javax.swing.JPanel {
                 _switchOutTypeOff.addNameAndValue("Off value as Input", MGStatusForDrum.VALUETYPE_AS_INPUT);
                 _switchOutTypeOff.addNameAndValue("Off value as Mouse", MGStatusForDrum.VALUETYPE_AS_MOUSE);
                 _switchOutTypeOff.addNameAndValue("Off value is Nothing to send", MGStatusForDrum.VALUETYPE_NOTHING);
+                _switchOutProgramType = new MXWrapList<>();
+                _switchOutProgramType.addNameAndValue("Program Set", MGStatusForDrum.PROGRAM_SET);
+                _switchOutProgramType.addNameAndValue("Program +1", MGStatusForDrum.PROGRAM_INC);
+                _switchOutProgramType.addNameAndValue("Program -1", MGStatusForDrum.PROGRAM_DEC);
+                _switchLinkColumn = new MXWrapList<>();
+                _switchLinkColumn.addNameAndValue("Same Column", -1);
+                for (int i = 0; i < MXAppConfig.SLIDER_COLUMN_COUNT; ++ i) {
+                    String text = Integer.toHexString(i);
+                    _switchLinkColumn.addNameAndValue(text, i);
+                }
             }
 
             if (_status._name == null) {
@@ -319,9 +334,9 @@ public class MGStatusPanel extends javax.swing.JPanel {
         if (_status._uiType != MGStatus.TYPE_DRUMPAD) {
             return;
         }
+        /*
         int type = getDrumType();
 
-        /*
         boolean zoneX = false;
         boolean zoneA = false;
         boolean zoneB = false;
@@ -407,14 +422,18 @@ public class MGStatusPanel extends javax.swing.JPanel {
         if (_status._uiType != MGStatus.TYPE_DRUMPAD) {
             return;
         }
+        if (_status._drum == null) {
+            return;
+        }
 
         /* Drum */
         jSpinnerDrumOnRangeMin.setValue(_status._drum._strikeZone._min);
         jSpinnerDrumOnRangeMax.setValue(_status._drum._strikeZone._max);
-        jSpinnerDrumClickOn.setValue(_status._drum._mouseOnValue);
-        jSpinnerDrumClickOff.setValue(_status._drum._mouseOffValue);
-        jCheckBoxDrumInToggle.setSelected(_status._drum._modeToggle);
+        jSpinnerDrumMouseOnValue.setValue(_status._drum._mouseOnValue);
+        jSpinnerDrumMouseOffValue.setValue(_status._drum._mouseOffValue);
+        jCheckBoxDrumModeToggle.setSelected(_status._drum._modeToggle);
         jCheckBoxDrumOnlySwitch.setSelected(_status._drum._onlySwitched);
+
         /* Drum Output */
         switch(_status._drum._outStyle) {
             case MGStatusForDrum.STYLE_SAME_CC:
@@ -449,11 +468,44 @@ public class MGStatusPanel extends javax.swing.JPanel {
         _drumOutChannel.writeComboBox(jComboBoxOutChannel, _status._drum._outChannel);
 
         /* Template*/
-        if (_status._drum != null) {
-            jTextFieldTemplateText.setText(_status._drum._customTemplate.toString());
-            jLabelTemplateTextGate.setText(Integer.toString(_status._drum._teplateTextGate));
+        jTextFieldTemplateText.setText(_status._drum._customTemplate.toString());
+        jLabelTemplateTextGate.setText(Integer.toString(_status._drum._teplateTextGate));
+
+        /* Program */
+        _switchOutProgramType.writeComboBox(jComboBoxProgram, _status._drum._programType);
+        jSpinnerDrumProgPC.setModel(new SpinnerNumberModel(_status._drum._programType, 0, 127, 1));
+        jSpinnerDrumProgMSB.setModel(new SpinnerNumberModel(_status._drum._programMSB, 0, 127, 1));
+        jSpinnerDrumProgLSB.setModel(new SpinnerNumberModel(_status._drum._programLSB, 0, 127, 1));
+        
+        /* Note */
+        jTextFieldHarmonyNoteList.setText(_status._drum._harmonyNotes);
+        
+        /* Sequence */
+        jTextFieldSequenceFile.setText(_status._drum._sequencerFile);
+        jCheckBoxSequencerSeekStart.setSelected(_status._drum._sequencerSeekStart);
+        jCheckBoxSequencerSingleTrack.setSelected(_status._drum._sequencerSingleTrack);
+        jCheckBoxSequencerFilterNote.setSelected(_status._drum._sequencerFilterNote);
+        
+        /* Link */
+
+        _switchLinkColumn.writeComboBox(jComboBoxLinkColumn, _status._drum._LinkColumn);
+        switch(_status._drum._LinkRow) {
+            case 0:
+                jRadioButtonLinkSlider.setSelected(true);
+                break;
+            case 1:
+                jRadioButtonLinkKnob1.setSelected(true);
+                break;
+            case 2:
+                jRadioButtonLinkKnob2.setSelected(true);
+                break;
+            case 3:
+                jRadioButtonLinkKnob3.setSelected(true);
+                break;
+            case 4:
+                jRadioButtonLinkKnob4.setSelected(true);
+                break;
         }
-        /* TODO ここから */
     }
 
     public void buildStatusFromPanelSlider() {
@@ -497,6 +549,10 @@ public class MGStatusPanel extends javax.swing.JPanel {
         if (_status._uiType != MGStatus.TYPE_DRUMPAD) {
             return;
         }
+        if (_status._drum == null) {
+            return;
+        }
+
         int style = 0;
         if (jRadioButtonDrumTypeSame.isSelected()) {
             style = MGStatusForDrum.STYLE_SAME_CC;
@@ -515,30 +571,96 @@ public class MGStatusPanel extends javax.swing.JPanel {
         }else {
             style = MGStatusForDrum.STYLE_SAME_CC;
         }
-        /*
-        MGStatus data = _status;
-        data.setSwitchType(getDrumType());
-        int min = (Integer)jSpinnerDrumInMin.getValue();
-        int max = (Integer)jSpinnerDrumInMax.getValue();
-        data.setValueDrumOn(new RangedValue((min+max)/2, min, max));
-        data.setSwitchOutOnType(_drumOutOnType.readCombobox(jComboBoxOutputOnType));
-        data.setSwitchOutOnTypeOfValue(_drumOutOnValue.readCombobox(jComboBoxOutputOnValue));
-        data.setSwitchOutOnValueFixed((int) jSpinnerOutOnValueFixed.getValue());
-        data.setSwitchOutOffType(_drumOutOffType.readCombobox(jComboBoxOutputOffType));
-        data.setSwitchOutOffTypeOfValue(_drumOutOffValue.readCombobox(jComboBoxOutputOffValue));
-        data.setSwitchOutOffValueFixed((int) jSpinnerOutOffValueFixed.getValue());
-        data.setSwitchWithToggle(jCheckBoxDrumInToggle.isSelected());
-        data.setSwitchOutPort(_drumOutPort.readCombobox(jComboBoxDrumOutPort));
-        data.setSwitchOutChannel(_drumOutChannel.readCombobox(jComboBoxDrumOutChannel));
-        data.setSwitchHarmonyVelocityType(_drumHarmonyVelocityType.readCombobox(jComboBoxHarmonyVelocityType));
-        data.setSwitchHarmonyVelocityFixed((int) jSpinnerHarmonyVelocityFixed.getValue());
-        data.setSwitchHarmonyNotes(jTextFieldHarmonyNoteList.getText());
-        data.setSwitchSequencerFile(jTextFieldSequenceFile.getText());
 
-        data.setSwitchSequenceSeekStart(jCheckBoxSequencerSeekStart.isSelected());
-        data.setSwitchSequencerToSingltTrack(jCheckBoxSequencerSingleTrack.isSelected());
-        data.setSwitchSequencerFilterNote(jCheckBoxSequencerFilterNote.isSelected());
-         */
+        /* Drum */
+        int onRagneMin = (Integer)jSpinnerDrumOnRangeMin.getValue();
+        int onRagneMax = (Integer)jSpinnerDrumOnRangeMax.getValue();
+        _status._drum._strikeZone = new RangedValue(0, onRagneMin, onRagneMax);
+
+        _status._drum._mouseOnValue = (Integer)jSpinnerDrumMouseOnValue.getValue();
+        _status._drum._mouseOffValue = (Integer)jSpinnerDrumMouseOffValue.getValue();
+        _status._drum._modeToggle = jCheckBoxDrumModeToggle.isSelected();
+        _status._drum._onlySwitched = jCheckBoxDrumOnlySwitch.isSelected();
+
+        /* Drum Output */
+        int x = 0; 
+        if (jRadioButtonDrumTypeSame.isSelected()) {
+            x = MGStatusForDrum.STYLE_SAME_CC;
+        }
+        else if (jRadioButtonDrumTypeCustom.isSelected()) {
+            x = MGStatusForDrum.STYLE_CUSTOM_CC;
+        }
+        else if (jRadioButtonDrumTypeProgram.isSelected()) {
+            x = MGStatusForDrum.STYLE_PROGRAM_CHANGE;
+        }
+        else if (jRadioButtonDrumTypeNotes.isSelected()) {
+            x = MGStatusForDrum.STYLE_NOTES;
+        }
+        else if (jRadioButtonDrumTypeSequence.isSelected()) {
+            x = MGStatusForDrum.STYLE_SEQUENCE;
+        }
+        else if (jRadioButtonDrumTypeLinkSlider.isSelected()) {
+            x = MGStatusForDrum.STYLE_LINK_SLIDER;
+        }
+        else if (jRadioButtonDrumTypeDontSend.isSelected()) {
+            x = MGStatusForDrum.STYLE_DONT_SEND;
+        }
+        else { /* optional */
+            x = MGStatusForDrum.STYLE_SAME_CC;
+        }
+        _status._drum._outStyle = x;
+
+        _status._drum._outValueTypeOn = _switchOutTypeOn.readComboBox(jComboBoxOutTypeOn);
+        _status._drum._outValueTypeOff=  _switchOutTypeOff.readComboBox(jComboBoxOutTypeOff);
+
+        _status._drum._outPort = _drumOutPort.readComboBox(jComboBoxOutPort);
+        _status._drum._outChannel = _drumOutChannel.readComboBox(jComboBoxOutChannel);
+
+        /* Template*/
+        try {
+            _status._drum._customTemplate = new MXTemplate(jTextFieldTemplateText.getText());
+        }catch(IllegalFormatException e) {
+            e.printStackTrace();
+            _status._drum._customTemplate = null;
+        }
+        _status._drum._teplateTextGate = MXUtil.numberFromText(jLabelTemplateTextGate.getText(), -1);
+        
+
+        /* Program */
+        _status._drum._programType = _switchOutProgramType.readComboBox(jComboBoxProgram);
+        _status._drum._programNumber = (Integer)jSpinnerDrumProgPC.getValue();
+        _status._drum._programMSB = (Integer)jSpinnerDrumProgMSB.getValue();
+        _status._drum._programLSB = (Integer)jSpinnerDrumProgLSB.getValue();
+        
+        /* Note */
+        _status._drum._harmonyNotes = jTextFieldHarmonyNoteList.getText();
+        
+        /* Sequence */
+        _status._drum._sequencerFile = jTextFieldSequenceFile.getText();
+        _status._drum._sequencerSeekStart = jCheckBoxSequencerSeekStart.isSelected();
+        _status._drum._sequencerSingleTrack = jCheckBoxSequencerSingleTrack.isSelected();
+        _status._drum._sequencerFilterNote = jCheckBoxSequencerFilterNote.isSelected();
+        
+        /* Link */
+
+        _status._drum._LinkColumn = _switchLinkColumn.readComboBox(jComboBoxLinkColumn);
+        int y = 0;
+        if (jRadioButtonLinkSlider.isSelected()) {
+            y = 0;
+        }
+        else if (jRadioButtonLinkKnob1.isSelected()) {
+            y = 1;
+        }
+        else if (jRadioButtonLinkKnob2.isSelected()) {
+            y = 2;
+        }
+        else if (jRadioButtonLinkKnob3.isSelected()) {
+            y = 3;
+        }
+        else if (jRadioButtonLinkKnob4.isSelected()) {
+            y = 4;
+        }
+        _status._drum._LinkRow = y;
     }
 
     /**
@@ -583,12 +705,12 @@ public class MGStatusPanel extends javax.swing.JPanel {
         jTextFieldTemplate = new javax.swing.JTextField();
         jPanelPage2 = new javax.swing.JPanel();
         jPanelValue = new javax.swing.JPanel();
-        jCheckBoxDrumInToggle = new javax.swing.JCheckBox();
+        jCheckBoxDrumModeToggle = new javax.swing.JCheckBox();
         jCheckBoxDrumOnlySwitch = new javax.swing.JCheckBox();
         jSpinnerDrumOnRangeMax = new javax.swing.JSpinner();
         jLabelInputText = new javax.swing.JLabel();
-        jSpinnerDrumClickOff = new javax.swing.JSpinner();
-        jSpinnerDrumClickOn = new javax.swing.JSpinner();
+        jSpinnerDrumMouseOffValue = new javax.swing.JSpinner();
+        jSpinnerDrumMouseOnValue = new javax.swing.JSpinner();
         jLabel11 = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
         jSpinnerDrumOnRangeMin = new javax.swing.JSpinner();
@@ -612,13 +734,13 @@ public class MGStatusPanel extends javax.swing.JPanel {
         jPanelTabProgram = new javax.swing.JPanel();
         jLabel17 = new javax.swing.JLabel();
         jLabel20 = new javax.swing.JLabel();
-        jSpinnerDurmProgMSB = new javax.swing.JSpinner();
+        jSpinnerDrumProgMSB = new javax.swing.JSpinner();
         jSpinnerDrumProgPC = new javax.swing.JSpinner();
         jSpinnerDrumProgLSB = new javax.swing.JSpinner();
         jLabel21 = new javax.swing.JLabel();
         jButton3 = new javax.swing.JButton();
         jLabelBlank3 = new javax.swing.JLabel();
-        jComboBox5 = new javax.swing.JComboBox<>();
+        jComboBoxProgram = new javax.swing.JComboBox<>();
         jLabel37 = new javax.swing.JLabel();
         jLabel38 = new javax.swing.JLabel();
         jLabel40 = new javax.swing.JLabel();
@@ -646,8 +768,8 @@ public class MGStatusPanel extends javax.swing.JPanel {
         jRadioButtonLinkKnob2 = new javax.swing.JRadioButton();
         jRadioButtonLinkKnob3 = new javax.swing.JRadioButton();
         jRadioButtonLinkKnob4 = new javax.swing.JRadioButton();
-        jRadioButtonSlider = new javax.swing.JRadioButton();
-        jComboBox1 = new javax.swing.JComboBox<>();
+        jRadioButtonLinkSlider = new javax.swing.JRadioButton();
+        jComboBoxLinkColumn = new javax.swing.JComboBox<>();
         jLabel34 = new javax.swing.JLabel();
         jLabelBlank5 = new javax.swing.JLabel();
         jLabel43 = new javax.swing.JLabel();
@@ -934,10 +1056,10 @@ public class MGStatusPanel extends javax.swing.JPanel {
         jPanelValue.setBorder(javax.swing.BorderFactory.createTitledBorder("Value"));
         jPanelValue.setLayout(new java.awt.GridBagLayout());
 
-        jCheckBoxDrumInToggle.setText("Singal ON -> Toggle ON/OFF");
-        jCheckBoxDrumInToggle.addActionListener(new java.awt.event.ActionListener() {
+        jCheckBoxDrumModeToggle.setText("Singal ON -> Toggle ON/OFF");
+        jCheckBoxDrumModeToggle.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxDrumInToggleActionPerformed(evt);
+                jCheckBoxDrumModeToggleActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -947,7 +1069,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        jPanelValue.add(jCheckBoxDrumInToggle, gridBagConstraints);
+        jPanelValue.add(jCheckBoxDrumModeToggle, gridBagConstraints);
 
         jCheckBoxDrumOnlySwitch.setSelected(true);
         jCheckBoxDrumOnlySwitch.setText("Detect Only Turning ON/OFF");
@@ -971,21 +1093,21 @@ public class MGStatusPanel extends javax.swing.JPanel {
         gridBagConstraints.gridy = 1;
         jPanelValue.add(jLabelInputText, gridBagConstraints);
 
-        jSpinnerDrumClickOff.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        jSpinnerDrumMouseOffValue.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanelValue.add(jSpinnerDrumClickOff, gridBagConstraints);
+        jPanelValue.add(jSpinnerDrumMouseOffValue, gridBagConstraints);
 
-        jSpinnerDrumClickOn.setModel(new javax.swing.SpinnerNumberModel(127, 0, 127, 1));
+        jSpinnerDrumMouseOnValue.setModel(new javax.swing.SpinnerNumberModel(127, 0, 127, 1));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanelValue.add(jSpinnerDrumClickOn, gridBagConstraints);
+        jPanelValue.add(jSpinnerDrumMouseOnValue, gridBagConstraints);
 
         jLabel11.setText("Mouse");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1066,6 +1188,8 @@ public class MGStatusPanel extends javax.swing.JPanel {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         jPanelTabTemplate.add(jLabel8, gridBagConstraints);
+
+        jTextFieldTemplateText.setEditable(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
@@ -1153,7 +1277,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
         gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanelTabProgram.add(jSpinnerDurmProgMSB, gridBagConstraints);
+        jPanelTabProgram.add(jSpinnerDrumProgMSB, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
@@ -1194,13 +1318,13 @@ public class MGStatusPanel extends javax.swing.JPanel {
         gridBagConstraints.weighty = 1.0;
         jPanelTabProgram.add(jLabelBlank3, gridBagConstraints);
 
-        jComboBox5.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Increment (+1)", "Decremnt I(-1)", "Fixed Program" }));
+        jComboBoxProgram.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Increment (+1)", "Decremnt I(-1)", "Fixed Program" }));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanelTabProgram.add(jComboBox5, gridBagConstraints);
+        jPanelTabProgram.add(jComboBoxProgram, gridBagConstraints);
 
         jLabel37.setText("jLabel37");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1293,6 +1417,8 @@ public class MGStatusPanel extends javax.swing.JPanel {
 
         jPanelTabSequener.setBorder(javax.swing.BorderFactory.createTitledBorder("Output Sequencer"));
         jPanelTabSequener.setLayout(new java.awt.GridBagLayout());
+
+        jTextFieldSequenceFile.setEditable(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
@@ -1409,20 +1535,20 @@ public class MGStatusPanel extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         jPanelTabLink.add(jRadioButtonLinkKnob4, gridBagConstraints);
 
-        jRadioButtonSlider.setText("Slider");
+        jRadioButtonLinkSlider.setText("Slider");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanelTabLink.add(jRadioButtonSlider, gridBagConstraints);
+        jPanelTabLink.add(jRadioButtonLinkSlider, gridBagConstraints);
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Same Column (Pad)", "1", "2", "3", "..." }));
+        jComboBoxLinkColumn.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Same Column (Pad)", "1", "2", "3", "..." }));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        jPanelTabLink.add(jComboBox1, gridBagConstraints);
+        jPanelTabLink.add(jComboBoxLinkColumn, gridBagConstraints);
 
         jLabel34.setText("Value");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1974,9 +2100,9 @@ public class MGStatusPanel extends javax.swing.JPanel {
         disableUnusedOnPanel();
     }//GEN-LAST:event_jRadioButtonDrumTypeNotesActionPerformed
 
-    private void jCheckBoxDrumInToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxDrumInToggleActionPerformed
+    private void jCheckBoxDrumModeToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxDrumModeToggleActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jCheckBoxDrumInToggleActionPerformed
+    }//GEN-LAST:event_jCheckBoxDrumModeToggleActionPerformed
 
     private void jButtonSequenceFileBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSequenceFileBrowseActionPerformed
         MXSwingFileChooser chooser = new MXSwingFileChooser();
@@ -1992,7 +2118,13 @@ public class MGStatusPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonSequenceFileBrowseActionPerformed
 
     private void jButtonNotesKeysActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNotesKeysActionPerformed
-        // TODO add your handling code here:
+        if (_status._drum != null) {
+            MXNotePicker picker = new MXNotePicker();
+            picker.setSelectedNoteList(_status._drum.getHarmonyNotesAsArray());
+            if (picker.showAsModalDialog(this)) {
+                _status._drum.setHarmoyNotesAsArray(picker._retNote);
+            }
+        }
     }//GEN-LAST:event_jButtonNotesKeysActionPerformed
 
     private void jButtonResetValueRangeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonResetValueRangeActionPerformed
@@ -2004,22 +2136,6 @@ public class MGStatusPanel extends javax.swing.JPanel {
     private void jButtonCCTemplateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCCTemplateActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jButtonCCTemplateActionPerformed
-
-    public int getDrumType() {/*
-        if (jRadioButtonDrumTypeSame.isSelected()) {
-            return MGStatus.SWITCH_TYPE_ON;
-        }
-        if (jRadioButtonOnOff.isSelected()) {
-            return MGStatus.SWITCH_TYPE_ONOFF;
-        }
-        if (jRadioButtonDrumTypeNotes.isSelected()) {
-            return MGStatus.SWITCH_TYPE_HARMONY;
-        }
-        if (jRadioButtonDrumTypeSong.isSelected()) {
-            return MGStatus.SWITCH_TYPE_SEQUENCE;
-        }*/
-        return 0;
-    }
 
     ActionListener selectInternalCommand = new ActionListener() {
         @Override
@@ -2069,19 +2185,19 @@ public class MGStatusPanel extends javax.swing.JPanel {
     private javax.swing.JButton jButtonTemplateInput;
     private javax.swing.JCheckBox jCheckBoxCC14bit;
     private javax.swing.JCheckBox jCheckBoxCustomRange;
-    private javax.swing.JCheckBox jCheckBoxDrumInToggle;
+    private javax.swing.JCheckBox jCheckBoxDrumModeToggle;
     private javax.swing.JCheckBox jCheckBoxDrumOnlySwitch;
     private javax.swing.JCheckBox jCheckBoxSequencerFilterNote;
     private javax.swing.JCheckBox jCheckBoxSequencerSeekStart;
     private javax.swing.JCheckBox jCheckBoxSequencerSingleTrack;
-    private javax.swing.JComboBox<String> jComboBox1;
-    private javax.swing.JComboBox<String> jComboBox5;
     private javax.swing.JComboBox<String> jComboBoxChannel;
     private javax.swing.JComboBox<String> jComboBoxGate;
+    private javax.swing.JComboBox<String> jComboBoxLinkColumn;
     private javax.swing.JComboBox<String> jComboBoxOutChannel;
     private javax.swing.JComboBox<String> jComboBoxOutPort;
     private javax.swing.JComboBox<String> jComboBoxOutTypeOff;
     private javax.swing.JComboBox<String> jComboBoxOutTypeOn;
+    private javax.swing.JComboBox<String> jComboBoxProgram;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -2154,15 +2270,15 @@ public class MGStatusPanel extends javax.swing.JPanel {
     private javax.swing.JRadioButton jRadioButtonLinkKnob2;
     private javax.swing.JRadioButton jRadioButtonLinkKnob3;
     private javax.swing.JRadioButton jRadioButtonLinkKnob4;
-    private javax.swing.JRadioButton jRadioButtonSlider;
+    private javax.swing.JRadioButton jRadioButtonLinkSlider;
     private javax.swing.JSeparator jSeparator5;
-    private javax.swing.JSpinner jSpinnerDrumClickOff;
-    private javax.swing.JSpinner jSpinnerDrumClickOn;
+    private javax.swing.JSpinner jSpinnerDrumMouseOffValue;
+    private javax.swing.JSpinner jSpinnerDrumMouseOnValue;
     private javax.swing.JSpinner jSpinnerDrumOnRangeMax;
     private javax.swing.JSpinner jSpinnerDrumOnRangeMin;
     private javax.swing.JSpinner jSpinnerDrumProgLSB;
+    private javax.swing.JSpinner jSpinnerDrumProgMSB;
     private javax.swing.JSpinner jSpinnerDrumProgPC;
-    private javax.swing.JSpinner jSpinnerDurmProgMSB;
     private javax.swing.JSpinner jSpinnerMax;
     private javax.swing.JSpinner jSpinnerMin;
     private javax.swing.JTabbedPane jTabbedPane1;

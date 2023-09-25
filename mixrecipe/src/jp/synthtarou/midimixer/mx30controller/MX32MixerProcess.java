@@ -317,7 +317,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 int switchTemplateTextGate = node.getSettingAsInt("switchTemplateTextGate", 0);
                 drum._teplateTextGate = switchTemplateTextGate;
 
-                /* program TODO */
+                /* program */
                 int switchProgramType = node.getSettingAsInt("switchProgramType", MGStatusForDrum.STYLE_PROGRAM_CHANGE);
                 int switchProgramNumber  = node.getSettingAsInt("switchProgramNumber", 0);
                 int switchProgramMSB = node.getSettingAsInt("switchProgramMSB", 0);
