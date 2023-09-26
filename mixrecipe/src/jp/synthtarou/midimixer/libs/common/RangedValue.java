@@ -281,6 +281,6 @@ public class RangedValue {
     }
 
     public String toString() {
-        return String.valueOf(_var);
+        return "" + _var + " (" + _min + "-"  + _max + ")";
     }
 }

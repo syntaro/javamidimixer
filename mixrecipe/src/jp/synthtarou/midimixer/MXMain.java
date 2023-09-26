@@ -21,6 +21,7 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import javax.swing.SwingUtilities;
+import jp.synthtarou.midimixer.libs.common.MXLog;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -132,6 +133,9 @@ public class MXMain  {
     }
     
     public void startUI()  {
+        
+        MXLog._logger.info("starting program");
+        
         _mainWindow = new MXMainWindow(this);
 
         MXOpening winLogo = MXOpening.showAsStartup(_mainWindow);        

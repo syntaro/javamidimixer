@@ -89,6 +89,11 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         status._memo = _memo;
 
         status._ccPair14 = _ccPair14;
+        
+        if (_drum != null) {
+            status._drum = (MGStatusForDrum)_drum.clone();
+            status._drum._status = status;
+        }
 
         return status;
     }

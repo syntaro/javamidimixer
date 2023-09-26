@@ -33,7 +33,8 @@ import jp.synthtarou.midimixer.libs.midi.smf.SMFPlayer;
  *
  * @author Syntarou YOSHIDA
  */
-public class MGStatusForDrum {
+public class MGStatusForDrum implements Cloneable {
+
     public static final int STYLE_SAME_CC = 10;
     public static final int STYLE_CUSTOM_CC = 11;
     public static final int STYLE_NOTES = 12;
@@ -51,7 +52,7 @@ public class MGStatusForDrum {
     public static final int PROGRAM_DEC = 32;
 
     static MXWrapList<Integer> _typeMap = new MXWrapList();
-    
+
     int _outStyle = STYLE_SAME_CC;
     int _outValueTypeOn = VALUETYPE_AS_INPUT;
     int _outValueTypeOff = VALUETYPE_AS_INPUT;
@@ -66,7 +67,7 @@ public class MGStatusForDrum {
 
     int _outPort = 0;
     int _outChannel = 0;
-    
+
     boolean _currentSwitch = false;
     boolean _modeToggle = false;
     boolean _onlySwitched = false; //TODO
@@ -81,7 +82,8 @@ public class MGStatusForDrum {
 
     int _LinkRow = 0; //slider = 0; knob = 1~4
     int _LinkColumn = -1; // -1=same, 0~16;
-    
+    MGStatus _status;
+
     static {
         _typeMap.addNameAndValue("CC", STYLE_CUSTOM_CC);
         _typeMap.addNameAndValue("Note", STYLE_NOTES);
@@ -97,7 +99,7 @@ public class MGStatusForDrum {
         }
         return "?";
     }
-    
+
     public void setTypeByText(String name) {
         int x = _typeMap.indexOfName(name);
         if (x >= 0) {
@@ -106,14 +108,12 @@ public class MGStatusForDrum {
         }
         _outStyle = STYLE_PROGRAM_CHANGE;
     }
-    
-    MGStatus _status;
-    
+
     public MGStatusForDrum(MGStatus status) {
         _status = status;
         _customTemplate = new MXTemplate("");
     }
-    
+
     protected void setSwitchSongFile(String switchSongFile) {
         if (switchSongFile != null) {
             if (_sequencerFile != null) {
@@ -185,13 +185,13 @@ public class MGStatusForDrum {
         int velocity;
         if (push) {
             velocity = _mouseOnValue;
-        }else {
+        } else {
             velocity = _mouseOffValue;
             if (_dontSendOff) {
                 return;
             }
         }
-        
+
         MXMessage message = (MXMessage) _status._base.clone();
         message._timing = timing;
         message.setValue(message.getValue().updateValue(velocity));
@@ -202,15 +202,14 @@ public class MGStatusForDrum {
         // ここでも、二重エンターを、Statusでも絞り込めば可能だが、オーバーヘッドがかかるので、やらない
         if (_strikeZone.contains(message.getValue()._var)) {
             doSwitching(message._timing, true, message.getValue()._var);
-        }
-        else {
-            doSwitching(message._timing,false, message.getValue()._var);
+        } else {
+            doSwitching(message._timing, false, message.getValue()._var);
         }
     }
 
     boolean _lastDetected = false;
     boolean _lastToggled = false;
-    
+
     void doSwitching(MXTiming timing, boolean flag, int velocity) {
         if (flag == _lastDetected) {
             return;
@@ -224,20 +223,20 @@ public class MGStatusForDrum {
         }
         createMessage(timing, flag, velocity);
     }
-    
+
     MXTemplate _customTemplate = null;
     RangedValue _customGate = RangedValue.ZERO7; // TODO
     int _customOutOnValue = -1;
     int _customOutOffValue = -1;
     int _jumpTo = 64;
-    
+
     int _programType = 0;
     int _programNumber = 0;
     int _programMSB = 0;
     int _programLSB = 0;
-    
+
     boolean _lastSent = false;
-    
+
     void createMessage(MXTiming timing, boolean flag, int velocity) {
         MXMessage message, message2, message3;
 
@@ -245,12 +244,12 @@ public class MGStatusForDrum {
             return;
         }
         _lastSent = flag;
-        
+
         if (flag) {
             if (_customOutOnValue >= 0) {
                 velocity = _customOutOnValue;
             }
-        }else {
+        } else {
             if (_customOutOffValue >= 0) {
                 velocity = _customOutOffValue;
             }
@@ -261,13 +260,13 @@ public class MGStatusForDrum {
         MGDrumPad pad = process._data.getDrumPad(_status._row, _status._column);
         if (flag) {
             pad.updateButtonUI(true);
-        }else {
+        } else {
             pad.updateButtonUI(false);
         }
         if (flag) {
-            switch(_outStyle) {
+            switch (_outStyle) {
                 case STYLE_SAME_CC:
-                    message = (MXMessage)_status._base.clone();
+                    message = (MXMessage) _status._base.clone();
                     message._timing = timing;
                     message.setValue(message.getValue().updateValue(velocity));
                     dispatchCurrentLayer(message);
@@ -275,7 +274,7 @@ public class MGStatusForDrum {
                 case STYLE_CUSTOM_CC:
                     if (_customTemplate != null) {
                         message = MXMessageFactory.fromTemplate(_outPort, _customTemplate, _outChannel, _customGate, RangedValue.new7bit(velocity));
-                        message._timing = timing; 
+                        message._timing = timing;
                         dispatchCurrentLayer(message);
                     }
                     break;
@@ -283,7 +282,7 @@ public class MGStatusForDrum {
                     int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
                     for (int note : noteList) {
                         message = MXMessageFactory.fromShortMessage(_outPort, MXMidi.COMMAND_CH_NOTEON + _outChannel, note, velocity);
-                        message._timing = timing; 
+                        message._timing = timing;
                         dispatchNextLayer(message);
                     }
                 case STYLE_SEQUENCE:
@@ -293,14 +292,14 @@ public class MGStatusForDrum {
                     int column = _status._column;
                     MGStatus slider = process._data.getSliderStatus(0, column);
                     slider.setValue(slider._base.getValue().updateValue(_jumpTo));
-                    message = (MXMessage)slider._base.clone();
+                    message = (MXMessage) slider._base.clone();
                     message._timing = timing;
                     dispatchCurrentLayer(message);
                     break;
                 case STYLE_PROGRAM_CHANGE:
                     message = MXMessageFactory.fromShortMessage(_outPort, MXMidi.COMMAND_CH_PROGRAMCHANGE + _outChannel, _programNumber, 0);
                     message2 = MXMessageFactory.fromShortMessage(_outPort, MXMidi.COMMAND_CH_CONTROLCHANGE + _outChannel, MXMidi.DATA1_CC_BANKSELECT, _programMSB);
-                    message3 = MXMessageFactory.fromShortMessage(_outPort, MXMidi.COMMAND_CH_CONTROLCHANGE + _outChannel, MXMidi.DATA1_CC_BANKSELECT+ 0x20, _programLSB);
+                    message3 = MXMessageFactory.fromShortMessage(_outPort, MXMidi.COMMAND_CH_CONTROLCHANGE + _outChannel, MXMidi.DATA1_CC_BANKSELECT + 0x20, _programLSB);
                     synchronized (MXTiming.mutex) {
                         message._timing = timing;
                         message2._timing = timing;
@@ -311,11 +310,10 @@ public class MGStatusForDrum {
                     }
                     break;
             }
-        }
-        else {
-            switch(_outStyle) {
+        } else {
+            switch (_outStyle) {
                 case STYLE_SAME_CC:
-                    message = (MXMessage)_status._base.clone();
+                    message = (MXMessage) _status._base.clone();
                     message._timing = timing;
                     message.setValue(message.getValue().updateValue(velocity));
                     dispatchCurrentLayer(message);
@@ -331,7 +329,7 @@ public class MGStatusForDrum {
                     int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
                     for (int note : noteList) {
                         message = MXMessageFactory.fromShortMessage(_outPort, MXMidi.COMMAND_CH_NOTEOFF + _outChannel, note, 0);
-                        message._timing = timing; 
+                        message._timing = timing;
                         dispatchNextLayer(message);
                     }
                 case STYLE_SEQUENCE:
@@ -344,7 +342,7 @@ public class MGStatusForDrum {
             }
         }
     }
-    
+
     void dispatchCurrentLayer(MXMessage message) {
         MX30Process parentProcess = MXMain.getMain().getKontrolProcess();
         parentProcess.processMXMessage(message);
@@ -357,12 +355,49 @@ public class MGStatusForDrum {
         MX30Process parentProcess = MXMain.getMain().getKontrolProcess();
         parentProcess.getNextReceiver().processMXMessage(message);
     }
-    
+
     public int[] getHarmonyNotesAsArray() {
         return MXMidi.textToNoteList(_harmonyNotes);
     }
-    
+
     public void setHarmoyNotesAsArray(int[] array) {
         _harmonyNotes = MXMidi.noteListToText(array);
+    }
+
+    public Object clone() {
+        MGStatusForDrum drumStatus = new MGStatusForDrum(_status);
+
+        drumStatus._outChannel = _outChannel;
+        drumStatus._outStyle = _outStyle;
+        drumStatus._outValueTypeOn = _outValueTypeOn;
+        drumStatus._outValueTypeOff = _outValueTypeOff;
+
+        drumStatus._harmonyNotes = _harmonyNotes;
+
+        drumStatus._sequencerFile = _sequencerFile;
+        drumStatus._sequencerSeekStart = _sequencerSeekStart;
+        drumStatus._sequencerSingleTrack = _sequencerSingleTrack;
+        drumStatus._sequencerFilterNote = _sequencerFilterNote;
+        drumStatus._songFilePlayer = _songFilePlayer;
+
+        drumStatus._outPort = _outPort;
+        drumStatus._outChannel = _outChannel;
+
+        drumStatus._currentSwitch = _currentSwitch;
+        drumStatus._modeToggle = _modeToggle;
+        drumStatus._onlySwitched = _onlySwitched;
+        drumStatus._strikeZone = new RangedValue(_strikeZone._var, _strikeZone._min, _strikeZone._max);
+
+        drumStatus._mouseOnValue = _mouseOnValue;
+        drumStatus._mouseOffValue = _mouseOffValue;
+        drumStatus._dontSendOff = _dontSendOff;
+
+        drumStatus._templateText = _templateText;
+        drumStatus._teplateTextGate = _teplateTextGate;
+
+        drumStatus._LinkRow = _LinkRow;
+        drumStatus._LinkColumn = _LinkColumn;
+        
+        return drumStatus;
     }
 }
