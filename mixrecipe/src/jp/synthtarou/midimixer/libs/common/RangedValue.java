@@ -23,7 +23,7 @@ import java.util.TreeMap;
  *
  * @author Syntarou YOSHIDA
  */
-public class RangedValue {
+public class RangedValue implements Comparable<RangedValue>{
 
     public static RangedValue[] _cache128;
 
@@ -293,5 +293,19 @@ public class RangedValue {
             }
         }
         return false;
+    }
+
+    @Override
+    public int compareTo(RangedValue o) {
+        int x = this._var - o._var;
+        if (x == 0) {
+            x = this._min - o._min;
+            if (x == 0) {
+                x = this._max - o._max;
+            }
+        }
+        if (x < 0) return -1;
+        if (x > 0) return 1;
+        return 0;
     }
 }

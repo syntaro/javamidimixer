@@ -16,8 +16,8 @@
  */
 package jp.synthtarou.midimixer.mx30surface;
 
+import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import java.util.ArrayList;
-import java.util.TreeSet;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
@@ -33,7 +33,6 @@ import jp.synthtarou.midimixer.libs.settings.MXSettingNode;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant16;
-import jp.synthtarou.midimixer.mx36ccmapping.MX36Status;
 
 /**
  *
@@ -84,65 +83,7 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
             return;
         }
 
-        processOnlyOnce(MXMessageFactory.createDummy(), message, null);
-    }
-
-    public void processOnlyOnce(MXMessage twice, MXMessage message, MGStatus status) {
-        if (message == null) {
-            return;
-        }
-
-        if (status != null) {            
-            if (twice.containsRelation(status)) {
-                System.out.println("Regain()");
-                return;
-            }
-        }
-        twice.addRelation(this, message, status);
-
-        if (message.isEmpty()) {
-            if (status != null) {
-                message.addRelation(this, message, status);
-                sendToNext(message);
-            }
-            return;
-        }
-        if (MXVisitant.isMesssageHaveVisitant(message)) {
-            _visitant16.get(message.getChannel()).updateVisitantChannel(message);
-        }
-        if (message.isMessageTypeChannel()) {
-            _visitant16.get(message.getChannel()).attachChannelVisitantToMessage(message);
-        }
-
-        TreeSet<MGStatus> listStatus;
-        synchronized (this) {
-            if (_finder == null) {
-                _finder = new MGStatusFinder(this);
-            }
-        }
-        listStatus = _finder.updateEveryStatus0(twice, message);
-        if (listStatus != null && listStatus.isEmpty() == false) {
-            for (MGStatus seek : listStatus) {
-                if (message.containsRelation(seek)) {
-                    continue;
-                }
-                message.addRelation(this, message, seek);
-                if (seek._uiType == MGStatus.TYPE_SLIDER) {
-                    MGSlider slider = getSlider(seek._row, seek._column);
-                    slider.publishUI();
-                }
-                if (seek._uiType == MGStatus.TYPE_CIRCLE) {
-                    MGCircle circle = getCircle(seek._row, seek._column);
-                    circle.publishUI();
-                }
-                if (seek._uiType == MGStatus.TYPE_DRUMPAD) {
-                    MGDrumPad pad = getDrumPad(seek._row, seek._column);
-                    pad.publishUI();
-                }
-            }
-        }
-
-        sendToNext(message);
+        startProcess(message);
     }
 
     @Override
@@ -575,6 +516,7 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
 
             if (_patchToMixer < 0 || _patchTogether) {
                 if (message != null) {
+                    message._mx30result = new MGStatus[] { status };
                     processMXMessage(message);
                 }
             }
@@ -723,5 +665,67 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
         _matrixDrumComponent = drum;
 
         notifyCacheBroken();
+    }
+
+    public void startProcess(MXMessage message) {
+        if (message == null) {
+            return;
+        }
+
+        if (message.isEmpty()) {
+            sendToNext(message);
+            return;
+        }
+        if (MXVisitant.isMesssageHaveVisitant(message)) {
+            _visitant16.get(message.getChannel()).updateVisitantChannel(message);
+        }
+        if (message.isMessageTypeChannel()) {
+            _visitant16.get(message.getChannel()).attachChannelVisitantToMessage(message);
+        }
+
+        synchronized (this) {
+            if (_finder == null) {
+                _finder = new MGStatusFinder(this);
+            }
+        }
+
+        MXMessageBag bag = new MXMessageBag();
+        bag.addQueue(message);
+
+        while (true) {
+            message = bag.popQueue();
+            if (message == null) {
+                break;
+            }
+            ArrayList<MGStatus> listStatus = _finder.findCandidate(message);
+            MXMessageBag segment = new MXMessageBag();
+            if (listStatus != null && listStatus.isEmpty() == false) {
+                for (MGStatus seek : listStatus) {
+                    if (seek.controlByMessage(message, segment)) {
+                        segment.addTouochedStatus(seek);
+                        if (seek._uiType == MGStatus.TYPE_SLIDER) {
+                            MGSlider slider = (MGSlider)seek.getComponent();
+                            slider.publishUI();
+                        }
+                        if (seek._uiType == MGStatus.TYPE_CIRCLE) {
+                            MGCircle circle = (MGCircle)seek.getComponent();
+                            circle.publishUI();
+                        }
+                        if (seek._uiType == MGStatus.TYPE_DRUMPAD) {
+                        }
+                    }
+                }
+            }
+            message._mx30result = segment.listTouchedStatus();
+            sendToNext(message);
+            while(true) {
+                MXMessage message2 = segment.popTranslated();
+                if (message2 == null) {
+                    break;
+                }
+                message2._timing = message._timing;
+                sendToNext(message2);
+            }
+        }
     }
 }

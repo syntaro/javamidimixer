@@ -23,7 +23,7 @@ import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
-import jp.synthtarou.midimixer.mx30surface.MX32Relation;
+import jp.synthtarou.midimixer.mx36ccmapping.MX36StatusList.Folder;
 
 /**
  *
@@ -56,33 +56,23 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
 
     @Override
     public void processMXMessage(MXMessage message) {
-        MX32Relation relation = message.getRelation();
-        if (relation != null) {
-            while (relation != null) {
-                for (MGStatus mxstatus : relation._listStatus) {
-                    if (mxstatus._uiType == MGStatus.TYPE_DRUMPAD) {
-                        continue;
-                    }
-                    MX36Status found = null;
-                    for (MX36StatusList.Folder folder : _list._listFolder) {
-                        found = folder.findBySurfacePosition(mxstatus);
-                        if (found != null) {
-                            break;
-                        }
-                    }
-                    if (found == null) {
-                        MX36Status newStatus = MX36Status.fromMGStatus(mxstatus);
-                        _list.setFolder(_list._autoDetectedFolder, newStatus);
-                    } else {
-                        updateSurfaceValue(found, mxstatus.getValue());
-                    }
+        MGStatus[] result = message._mx30result;
+        if (result != null && result.length > 0) {
+            for (MGStatus status : result) {
+                if (status._uiType == MGStatus.TYPE_DRUMPAD) {
+                    continue;
                 }
-                sendToNext(relation._base);
-                relation = relation._chanMessage;
+                MX36Status status2 = MX36StatusList._instance._autoDetectedFolder.findBySurfacePosition(status);
+                if(status2 == null) {                    
+                    status2 =  MX36Status.fromMGStatus(status);
+                    MX36StatusList._instance.setFolder(MX36StatusList._instance._autoDetectedFolder, status2);
+                }
+                else {
+                    updateSurfaceValue(status2, status.getValue());
+                }
             }
-        }else {
-            sendToNext(message);
         }
+        sendToNext(message);
     }
 
     @Override

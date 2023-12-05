@@ -26,7 +26,7 @@ import jp.synthtarou.midimixer.libs.common.RangedValue;
  *
  * @author Syntarou YOSHIDA
  */
-public class MXTemplate {
+public class MXTemplate implements Comparable<MXTemplate>{
 
     private final int[] _commands;
     private int _bytePosGate;
@@ -814,5 +814,22 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
         dwordBuffer[2] = (byte) data2;
 
         return readDataForChGateValue(port, dwordBuffer);
+    }
+
+    @Override
+    public int compareTo(MXTemplate o) {
+        if (_commands == o._commands) {
+            return 0;
+        }
+        int x = _commands.length - o._commands.length;
+        if (x < 0) return -1;
+        if (x > 0) return 1;
+        
+        for (int n = 0; n < _commands.length; ++ n) {
+            x = _commands[n] - o._commands[n];
+            if (x < 0) return -1;
+            if (x > 0) return 1;
+        }
+        return 0;
     }
 }

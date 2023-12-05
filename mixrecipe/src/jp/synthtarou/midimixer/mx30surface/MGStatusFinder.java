@@ -129,24 +129,4 @@ public class MGStatusFinder {
         }
     }
 
-    private static final TreeSet<MGStatus> NONE = new TreeSet();
-
-    public TreeSet<MGStatus> updateEveryStatus0(MXMessage twice, MXMessage message) {
-        TreeSet<MGStatus> messageStatus = new TreeSet();
-
-        ArrayList<MGStatus> table = findCandidate(message);
-        if (table == null) {
-            return null;
-        }
-
-        for (MGStatus seek : table) {
-            if (seek.controlByMessage(twice, message)) {
-                messageStatus.add(seek);
-            }
-        }
-        if (messageStatus.isEmpty()) {
-            return null;
-        }
-        return messageStatus;
-    }
 }

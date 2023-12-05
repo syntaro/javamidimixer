@@ -19,6 +19,7 @@ package jp.synthtarou.midimixer.mx30surface;
 import javax.swing.JComponent;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
+import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
@@ -175,7 +176,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
                 + message.toString() + (message.isValuePairCC14() ? " (=14bit)" : "");
     }
 
-    public boolean controlByMessage(MXMessage twice, MXMessage message) {
+    public boolean controlByMessage(MXMessage message, MXMessageBag result) {
         if (message.isEmpty()) {
             return false;
         }
@@ -226,11 +227,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
             if (newValue >= value._min && newValue <= value._max) {
                 setMessageValue(newValue);
                 if (_drum != null) {
-                    message = _drum.messageDetected();
-                    if (message != null) {
-                        _mixer.processOnlyOnce(twice, message, this);
-                        return true;
-                    }
+                    _drum.messageDetected(result);
                     return true;
                 }
                 else {

@@ -776,10 +776,10 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
                             MGDrumPad drum = _mixer.getDrumPad(row, column);
                             switch (keyCode) {
                                 case ' ':
-                                    drum.increment(null);
+                                    drum.increment();
                                     break;
                                 case '\b':
-                                    drum.decriment(null);
+                                    drum.decriment();
                                     break;
                                 case '\n':
                                     drum.editContoller();

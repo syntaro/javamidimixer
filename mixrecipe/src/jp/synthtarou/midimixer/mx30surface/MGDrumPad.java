@@ -20,7 +20,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
+import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 
 /**
@@ -31,7 +31,7 @@ public class MGDrumPad extends javax.swing.JPanel {
 
     final MX32Mixer _mixer;
     int _row, _column;
-    
+
     boolean _focusSelected = false;
 
     public MGStatus getStatus() {
@@ -42,10 +42,6 @@ public class MGDrumPad extends javax.swing.JPanel {
         _mixer.setStatus(MGStatus.TYPE_DRUMPAD, _row, _column, status);
     }
 
-    public void publishUI() {
-        getStatus()._drum.messageDetected();
-   }
-    
     public MGDrumPad(MX32Mixer process, int row, int column) {
         _mixer = process;
         _row = row;
@@ -57,10 +53,7 @@ public class MGDrumPad extends javax.swing.JPanel {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     return;
                 }
-                MXMessage message = getStatus()._drum.mouseDetected(null, true);
-                if (message != null) {
-                    _mixer.processMXMessage(message);
-                }
+                increment();
             }
 
             @Override
@@ -68,10 +61,7 @@ public class MGDrumPad extends javax.swing.JPanel {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     return;
                 }
-                MXMessage message = getStatus()._drum.mouseDetected(null, false);
-                if (message != null) {
-                    _mixer.processMXMessage(message);
-                }
+                decriment();
             }
         });
         updateUI();
@@ -80,11 +70,10 @@ public class MGDrumPad extends javax.swing.JPanel {
     public void setDrumActive(boolean newValue) {
         if (newValue) {
             _focusSelected = true;
-            _mixer._view._focusGroup.setBackgroundAuto(this); 
-        }
-        else {
-            _focusSelected= false;
-            _mixer._view._focusGroup.setBackgroundAuto(this); 
+            _mixer._view._focusGroup.setBackgroundAuto(this);
+        } else {
+            _focusSelected = false;
+            _mixer._view._focusGroup.setBackgroundAuto(this);
         }
     }
 
@@ -129,12 +118,28 @@ public class MGDrumPad extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
 
-    public void increment(MXTiming timing) {
-        _mixer.processMXMessage(getStatus()._drum.mouseDetected(timing, true));
+    public void increment() {
+        MXMessageBag bag = new MXMessageBag();
+        getStatus()._drum.mouseDetected(true, bag);
+        while (true) {
+            MXMessage message = bag.popTranslated();
+            if (message == null) {
+                break;
+            }
+            _mixer.startProcess(message);
+        }
     }
 
-    public void decriment(MXTiming timing) {
-        _mixer.processMXMessage(getStatus()._drum.mouseDetected(timing, false));
+    public void decriment() {
+        MXMessageBag bag = new MXMessageBag();
+        getStatus()._drum.mouseDetected(false, bag);
+        while (true) {
+            MXMessage message = bag.popTranslated();
+            if (message == null) {
+                break;
+            }
+            _mixer.startProcess(message);
+        }
     }
 
     public void editContoller() {

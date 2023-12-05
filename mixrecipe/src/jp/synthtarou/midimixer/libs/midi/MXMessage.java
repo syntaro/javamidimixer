@@ -22,24 +22,23 @@ import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
-import jp.synthtarou.midimixer.mx30surface.MX32Mixer;
-import jp.synthtarou.midimixer.mx30surface.MX32Relation;
 
 /**
  *
  * @author Syntarou YOSHIDA infomation from g200kg Music & Software
  * https://www.g200kg.com/
  */
-public final class MXMessage {
+public final class MXMessage implements Comparable<MXMessage> {
 
     int _progBankMSB = -1;
     int _progBankLSB = -1;
+    
+    public MGStatus[] _mx30result = null;
 
     public void setProgramBank(int msb, int lsb) {
         _progBankMSB = msb;
         _progBankLSB = lsb;
     }
-
 
     public MXTiming _timing;
     int _port;
@@ -52,35 +51,9 @@ public final class MXMessage {
     private boolean _valuePair14bit;
 
     private final MXTemplate _template;
-    
-    MX32Relation _relation = null;
-    
+
     public boolean isEmpty() {
         return _template.isEmpty();
-    }
-    
-    public MX32Relation getRelation() {
-        return _relation;
-    }
-    
-    public boolean containsRelation(MGStatus status) {
-        MX32Relation relation = _relation;
-        while (relation != null) {
-            if (relation._listStatus.contains(status)) {
-                return true;
-            }
-            relation = relation._chanMessage;
-        }
-        return false;
-    }
-
-    public void addRelation(MX32Mixer mixer, MXMessage message, MGStatus status) {
-        if (_relation == null) {
-            _relation = new MX32Relation(mixer, message, status);
-        }
-        else {
-            _relation.addRelation(message, status);
-        }
     }
 
     public boolean isBinMessage() {
@@ -295,18 +268,18 @@ public final class MXMessage {
         if (gate == null) {
             if (template.getBytePosHiGate() >= 0) {
                 gate = RangedValue.new14bit(0);
-            }else if (template.getBytePosGate() >= 0) {
+            } else if (template.getBytePosGate() >= 0) {
                 gate = RangedValue.new7bit(0);
-            }else {
+            } else {
                 gate = RangedValue.new7bit(0);
             }
         }
         if (value == null) {
             if (template.getBytePosHiValue() >= 0) {
                 value = RangedValue.new14bit(0);
-            }else if (template.getBytePosValue() >= 0) {
+            } else if (template.getBytePosValue() >= 0) {
                 value = RangedValue.new7bit(0);
-            }else {
+            } else {
                 value = RangedValue.new7bit(0);
             }
         }
@@ -605,14 +578,12 @@ public final class MXMessage {
                     int data1 = getData1();
                     int data2 = getData2();
                     return (status << 16) | (data1 << 8) | data2;
-                }
-                else if (column == 1) {
+                } else if (column == 1) {
                     int status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
                     int data1 = MXMidi.DATA1_CC_BANKSELECT;
                     int data2 = _progBankMSB;
                     return (status << 16) | (data1 << 8) | data2;
-                }
-                else if (column == 2) {
+                } else if (column == 2) {
                     int status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
                     int data1 = MXMidi.DATA1_CC_BANKSELECT + 0x20;
                     int data2 = _progBankLSB;
@@ -770,10 +741,10 @@ public final class MXMessage {
         message = new MXMessage(_port, _template, _channel, _gate, _value);
 
         message._timing = _timing;
-        message._relation = _relation;
 
         message._visitant = _visitant;
         message._valuePair14bit = _valuePair14bit;
+        message._mx30result = _mx30result;
 
         return message;
     }
@@ -835,7 +806,7 @@ public final class MXMessage {
     public boolean hasSameTemplate(MXMessage message) {
         MXTemplate temp1 = getTemplate();
         MXTemplate temp2 = message.getTemplate();
-        
+
         if (temp1.isEmpty() || temp2.isEmpty()) {
             return false;
         }
@@ -877,5 +848,42 @@ public final class MXMessage {
         }
 
         return true;
+    }
+
+    @Override
+    public int compareTo(MXMessage o) {
+        if (this == o) {
+            return 0;
+        }
+
+        int x = _template.compareTo(o._template);
+        if (x < 0) {
+            return -1;
+        }
+        if (x > 0) {
+            return 1;
+        }
+
+        x = _port - o._port;
+
+        if (x == 0) {
+            x = _port - o._port;
+            if (x == 0) {
+                x = _channel - o._channel;
+                if (x == 0) {
+                    x = _gate.compareTo(o._gate);
+                    if (x == 0) {
+                        x = _value.compareTo(o._value);
+                    }
+                }
+            }
+        }
+        if (x < 0) {
+            return -1;
+        }
+        if (x > 0) {
+            return 1;
+        }
+        return 0;
     }
 }
