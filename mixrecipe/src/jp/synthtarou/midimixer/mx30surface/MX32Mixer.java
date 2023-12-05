@@ -33,6 +33,7 @@ import jp.synthtarou.midimixer.libs.settings.MXSettingNode;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant16;
+import jp.synthtarou.midimixer.mx36ccmapping.MX36Status;
 
 /**
  *
@@ -82,8 +83,66 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
             sendToNext(message);
             return;
         }
-        handlingMessage(message, null);
-        //if (message.isDataentry() && message.getVisitant().getDataentryValue14() == 0 && message._trace == null) { message._trace = new Throwable(); }
+
+        processOnlyOnce(MXMessageFactory.createDummy(), message, null);
+    }
+
+    public void processOnlyOnce(MXMessage twice, MXMessage message, MGStatus status) {
+        if (message == null) {
+            return;
+        }
+
+        if (status != null) {            
+            if (twice.containsRelation(status)) {
+                System.out.println("Regain()");
+                return;
+            }
+        }
+        twice.addRelation(this, message, status);
+
+        if (message.isEmpty()) {
+            if (status != null) {
+                message.addRelation(this, message, status);
+                sendToNext(message);
+            }
+            return;
+        }
+        if (MXVisitant.isMesssageHaveVisitant(message)) {
+            _visitant16.get(message.getChannel()).updateVisitantChannel(message);
+        }
+        if (message.isMessageTypeChannel()) {
+            _visitant16.get(message.getChannel()).attachChannelVisitantToMessage(message);
+        }
+
+        TreeSet<MGStatus> listStatus;
+        synchronized (this) {
+            if (_finder == null) {
+                _finder = new MGStatusFinder(this);
+            }
+        }
+        listStatus = _finder.updateEveryStatus0(twice, message);
+        if (listStatus != null && listStatus.isEmpty() == false) {
+            for (MGStatus seek : listStatus) {
+                if (message.containsRelation(seek)) {
+                    continue;
+                }
+                message.addRelation(this, message, seek);
+                if (seek._uiType == MGStatus.TYPE_SLIDER) {
+                    MGSlider slider = getSlider(seek._row, seek._column);
+                    slider.publishUI();
+                }
+                if (seek._uiType == MGStatus.TYPE_CIRCLE) {
+                    MGCircle circle = getCircle(seek._row, seek._column);
+                    circle.publishUI();
+                }
+                if (seek._uiType == MGStatus.TYPE_DRUMPAD) {
+                    MGDrumPad pad = getDrumPad(seek._row, seek._column);
+                    pad.publishUI();
+                }
+            }
+        }
+
+        sendToNext(message);
     }
 
     @Override
@@ -479,30 +538,31 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
         }
     }
 
-    void handlingMouse(MGStatus status, int newValue, MXTiming timing) {
-        if (_parent._underInit) {
-            return;
+    MXMessage updateStatusAndSend(MGStatus status, int newValue, MXTiming timing) {
+        if (_parent._underConstruction) {
+            return null;
         }
         synchronized (MXTiming.mutex) {
             if (timing == null) {
                 timing = new MXTiming();
             }
+            MXMessage message = null;
             int row = status._row, column = status._column;
             int uiType = status._uiType;
             if (uiType == MGStatus.TYPE_SLIDER) {
                 MGSlider slider = getSlider(row, column);
-                status.setStatusValue(status.getValue().changeValue(newValue));
+                status.setMessageValue(status.getValue().changeValue(newValue));
+                message = (MXMessage) status._base.clone();
                 slider.publishUI();
             } else if (uiType == MGStatus.TYPE_CIRCLE) {
                 MGCircle circle = getCircle(row, column);
-                status.setStatusValue(status.getValue().changeValue(newValue));
+                status.setMessageValue(status.getValue().changeValue(newValue));
+                message = (MXMessage) status._base.clone();
                 circle.publishUI();
-            } else if (uiType == MGStatus.TYPE_DRUMPAD) {
-                new IllegalStateException("Dont use this. See MGStatusForDrum.messageDetected").printStackTrace();
             } else {
-                new Throwable("Illegal State uiType unknown");
-                return;
+                new IllegalStateException("Dont use this. See MGStatusForDrum.messageDetected").printStackTrace();
             }
+
             if (_patchToMixer >= 0) {
                 MX32Mixer nextMixer = _parent.getPage(_patchToMixer);
                 MGStatus nextStatus = nextMixer.getStatus(status._uiType, row, column);
@@ -510,18 +570,16 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
                 int nextMin = nextStatus._base.getValue()._min;
                 int nextMax = nextStatus._base.getValue()._max;
                 newValue = status._base.getValue().changeRange(nextMin, nextMax)._var;
-                nextMixer.handlingMouse(nextStatus, newValue, timing);
+                nextMixer.updateStatusAndSend(nextStatus, newValue, timing);
+            }
 
-                if (_patchTogether == false) {
-                    return;
+            if (_patchToMixer < 0 || _patchTogether) {
+                if (message != null) {
+                    processMXMessage(message);
                 }
             }
-
-            if (uiType != MGStatus.TYPE_DRUMPAD) {
-                sendToNext((MXMessage)status._base.clone());
-            }
-            //TODO
         }
+        return null;
     }
 
     MXMessage _poolFor14bit = null;
@@ -585,56 +643,6 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
                 sendToNext(prev);
             }
         }
-    }
-
-    public void handlingMessage(MXMessage message, MGStatus base) {
-        if (message.getRelation() == null) {
-            message.setRelation(new MX32Relation(this, message));
-        }
-        MX32Relation relation = message.getRelation();
-        if (message.isEmpty()) {
-            if (base != null) {
-                relation.push(message, base);
-                sendToNext(message);
-            }
-            return;
-        }
-        if (MXVisitant.isMesssageHaveVisitant(message)) {
-            _visitant16.get(message.getChannel()).updateVisitantChannel(message);
-        }
-        if (message.isMessageTypeChannel()) {
-            _visitant16.get(message.getChannel()).attachChannelVisitantToMessage(message);
-        }
-
-        //画面のコントロールをすべて更新する
-        TreeSet<MGStatus> listStatus;
-        synchronized (this) {
-            if (_finder == null) {
-                _finder = new MGStatusFinder(this);
-            }
-        }
-        listStatus = _finder.updateEveryStatus0(message);
-        if (listStatus != null && listStatus.isEmpty() == false) {
-            for (MGStatus seek : listStatus) {
-                if (relation.contains(seek)) {
-                    continue;
-                }
-                relation.push(message, seek);
-                if (seek._uiType == MGStatus.TYPE_SLIDER) {
-                    MGSlider slider = getSlider(seek._row, seek._column);
-                    slider.publishUI();
-                }
-                if (seek._uiType == MGStatus.TYPE_CIRCLE) {
-                    MGCircle circle = getCircle(seek._row, seek._column);
-                    circle.publishUI();
-                }
-                if (seek._uiType == MGStatus.TYPE_DRUMPAD) {
-                    MGDrumPad pad = getDrumPad(seek._row, seek._column);
-                    seek._drum.messageDetected(message);
-                }
-            }
-        }
-        sendToNext(message);
     }
 
     public void notifyCacheBroken() {

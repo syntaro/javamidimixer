@@ -34,10 +34,10 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
     private MX30View _rootView;
     private MX32Mixer[] _pageProcess;
     MXSetting _setting;
-    boolean _underInit;
+    boolean _underConstruction;
     
     public MX30Process() {
-        _underInit = true;
+        _underConstruction = true;
         _setting = new MXSetting("MixingGlobal");
         _setting.setTarget(this);
         prepareActiveSlider();
@@ -46,7 +46,7 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
         for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
             _pageProcess[i] = new MX32Mixer(this, i);
         }
-        _underInit = false;
+        _underConstruction = false;
     }
 
     @Override    

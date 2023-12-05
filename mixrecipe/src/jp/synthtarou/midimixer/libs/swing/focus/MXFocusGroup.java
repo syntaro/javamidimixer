@@ -20,12 +20,9 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import javax.swing.JComponent;
-import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.mx30surface.MGCircle;
-import jp.synthtarou.midimixer.mx30surface.MGDrumPad;
-import jp.synthtarou.midimixer.mx30surface.MGSlider;
 
 /**
  *
@@ -68,7 +65,7 @@ public class MXFocusGroup{
         return _focusedControl;
     }
 
-    static ArrayList<JComponent> _haveColored = new ArrayList<>();
+    static HashSet<JComponent> _haveColored = new HashSet<>();
 
     private void resetColor(JComponent exclude) {
         ArrayList<JComponent> clearedSelected = new ArrayList<>();
@@ -103,10 +100,12 @@ public class MXFocusGroup{
         }
     }
 
-    public void setFocus(JComponent comp) {
+    public void setBackgroundAuto(JComponent comp) {
         resetColor(comp);
         Color color = null;
-        _haveColored.add(comp);
+        if (_haveColored.contains(comp) == false) {
+            _haveColored.add(comp);
+        }
 
         if (_handler.isFocusWithSelected(comp)) {
             color = Color.yellow;

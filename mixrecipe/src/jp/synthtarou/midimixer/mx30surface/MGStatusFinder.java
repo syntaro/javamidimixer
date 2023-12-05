@@ -131,7 +131,7 @@ public class MGStatusFinder {
 
     private static final TreeSet<MGStatus> NONE = new TreeSet();
 
-    public TreeSet<MGStatus> updateEveryStatus0(MXMessage message) {
+    public TreeSet<MGStatus> updateEveryStatus0(MXMessage twice, MXMessage message) {
         TreeSet<MGStatus> messageStatus = new TreeSet();
 
         ArrayList<MGStatus> table = findCandidate(message);
@@ -139,12 +139,8 @@ public class MGStatusFinder {
             return null;
         }
 
-        MX32Relation relation = message.getRelation();
         for (MGStatus seek : table) {
-            if (relation.contains(seek)) {
-                continue;
-            }
-            if (seek.controlByMessage(message)) {
+            if (seek.controlByMessage(twice, message)) {
                 messageStatus.add(seek);
             }
         }

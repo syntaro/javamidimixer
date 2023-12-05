@@ -175,7 +175,13 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
                 + message.toString() + (message.isValuePairCC14() ? " (=14bit)" : "");
     }
 
-    public boolean controlByMessage(MXMessage message) {
+    public boolean controlByMessage(MXMessage twice, MXMessage message) {
+        if (message.isEmpty()) {
+            return false;
+        }
+        if (_base.isEmpty()) {
+            return false;
+        }
         if (_base.hasSameTemplate(message)) {
             RangedValue value = getValue();
             MXVisitant visit = message.getVisitant();
@@ -206,7 +212,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
                         break;
                 }
                 if (newVar >= value._min && newVar <= value._max) {
-                    setStatusValue(value.changeValue(newVar));
+                    setMessageValue(value.changeValue(newVar));
                     return true;
                 }
                 return false;
@@ -218,13 +224,17 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
                 newValue = 0;
             }
             if (newValue >= value._min && newValue <= value._max) {
+                setMessageValue(newValue);
                 if (_drum != null) {
-                    if (_drum.messageDetected(message)) {
+                    message = _drum.messageDetected();
+                    if (message != null) {
+                        _mixer.processOnlyOnce(twice, message, this);
                         return true;
                     }
+                    return true;
                 }
                 else {
-                    setStatusValue(value.changeValue(newValue));
+                    setMessageValue(value.changeValue(newValue));
                     return true;
                 }
             }
@@ -233,7 +243,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
             RangedValue value = _base.getValue();
             int newValue = message.getValue()._var;
             if (newValue >= value._min && newValue <= value._max) {
-                setStatusValue(value.changeValue(newValue));
+                setMessageValue(value.changeValue(newValue));
                 return true;
             }
             return false;
@@ -246,8 +256,12 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         return _base.getValue();
     }
 
-    public void setStatusValue(RangedValue value) {
+    public void setMessageValue(RangedValue value) {
         _base.setValue(value);
+    }
+
+    public void setMessageValue(int value) {
+        _base.setValue(_base.getValue().changeValue(value));
     }
 
     public boolean hasCustomRange() {
@@ -270,16 +284,16 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
             
         }
         if (_base.hasValueHiField()) {
-            setStatusValue(_base.getValue().changeRange(0, 128 * 128 - 1));
+            setMessageValue(_base.getValue().changeRange(0, 128 * 128 - 1));
         } else if (_ccPair14) {
-            setStatusValue(_base.getValue().changeRange(0, 128 * 128 - 1));
+            setMessageValue(_base.getValue().changeRange(0, 128 * 128 - 1));
         } else {
-            setStatusValue(_base.getValue().changeRange(0, 128 - 1));
+            setMessageValue(_base.getValue().changeRange(0, 128 - 1));
         }
     }
 
     public void setCustomRange(int min, int max) {
-        setStatusValue(_base.getValue().changeRange(min, max));
+        setMessageValue(_base.getValue().changeRange(min, max));
     }
 
     public boolean isOnlyValueDifferent(MXMessage message) {

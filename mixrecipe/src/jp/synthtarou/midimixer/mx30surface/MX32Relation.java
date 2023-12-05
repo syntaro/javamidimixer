@@ -49,24 +49,19 @@ public class MX32Relation {
     };
     
     MX32Mixer _mixer;
-    MGStatus _creator;
     public MXMessage _base;
     public MX32Relation _chanMessage;
     public TreeSet<MGStatus> _listStatus = new TreeSet(_comp);
 
-    public MX32Relation(MX32Mixer mixer) {
+    public MX32Relation(MX32Mixer mixer, MXMessage message, MGStatus status) {
         _mixer = mixer;
-        _creator = null;
-        _base = null;
-    }
-
-    public MX32Relation(MX32Mixer mixer, MXMessage message) {
-        _mixer = mixer;
-        _creator = null;
         _base = message;
+        if (status != null) {
+            _listStatus.add(status);
+        }
     }
 
-    public void push(MXMessage message, MGStatus status) {
+    public void addRelation(MXMessage message, MGStatus status) {
         MX32Relation relation = this;
         while (relation != null) {
             if (relation._base == message) {
@@ -79,18 +74,6 @@ public class MX32Relation {
         while (last._chanMessage != null){
             last = last._chanMessage;
         }
-        last._chanMessage = new MX32Relation(_mixer, message);
-        last._chanMessage.push(message, status);
-    }
-    
-    public boolean contains(MGStatus status) {
-        MX32Relation relation = this;
-        while (relation != null) {
-            if (relation._listStatus.contains(status)) {
-                return true;
-            }
-            relation = relation._chanMessage;
-        }
-        return false;
+        last._chanMessage = new MX32Relation(_mixer, message, status);
     }
 }

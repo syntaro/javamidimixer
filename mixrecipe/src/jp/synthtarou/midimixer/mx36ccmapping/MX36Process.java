@@ -60,10 +60,10 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
         if (relation != null) {
             while (relation != null) {
                 for (MGStatus mxstatus : relation._listStatus) {
-                    MX36Status found = null;
                     if (mxstatus._uiType == MGStatus.TYPE_DRUMPAD) {
                         continue;
                     }
+                    MX36Status found = null;
                     for (MX36StatusList.Folder folder : _list._listFolder) {
                         found = folder.findBySurfacePosition(mxstatus);
                         if (found != null) {
@@ -74,7 +74,7 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                         MX36Status newStatus = MX36Status.fromMGStatus(mxstatus);
                         _list.setFolder(_list._autoDetectedFolder, newStatus);
                     } else {
-                        updateSurfaceValue(found, relation._base.getValue());
+                        updateSurfaceValue(found, mxstatus.getValue());
                     }
                 }
                 sendToNext(relation._base);

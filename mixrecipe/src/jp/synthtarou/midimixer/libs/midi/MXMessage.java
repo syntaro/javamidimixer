@@ -21,6 +21,8 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
+import jp.synthtarou.midimixer.mx30surface.MGStatus;
+import jp.synthtarou.midimixer.mx30surface.MX32Mixer;
 import jp.synthtarou.midimixer.mx30surface.MX32Relation;
 
 /**
@@ -29,6 +31,15 @@ import jp.synthtarou.midimixer.mx30surface.MX32Relation;
  * https://www.g200kg.com/
  */
 public final class MXMessage {
+
+    int _progBankMSB = -1;
+    int _progBankLSB = -1;
+
+    public void setProgramBank(int msb, int lsb) {
+        _progBankMSB = msb;
+        _progBankLSB = lsb;
+    }
+
 
     public MXTiming _timing;
     int _port;
@@ -51,9 +62,25 @@ public final class MXMessage {
     public MX32Relation getRelation() {
         return _relation;
     }
+    
+    public boolean containsRelation(MGStatus status) {
+        MX32Relation relation = _relation;
+        while (relation != null) {
+            if (relation._listStatus.contains(status)) {
+                return true;
+            }
+            relation = relation._chanMessage;
+        }
+        return false;
+    }
 
-    public void setRelation(MX32Relation relation) {
-        _relation = relation;
+    public void addRelation(MX32Mixer mixer, MXMessage message, MGStatus status) {
+        if (_relation == null) {
+            _relation = new MX32Relation(mixer, message, status);
+        }
+        else {
+            _relation.addRelation(message, status);
+        }
     }
 
     public boolean isBinMessage() {
@@ -187,7 +214,6 @@ public final class MXMessage {
 
     public int getChannel() {
         if (_channel < 0 || _channel > 15) {
-            System.out.println("getAsChannel " + _channel);
             return 0;
         }
         return _channel;
@@ -204,6 +230,14 @@ public final class MXMessage {
             }
         }
         _value = value;
+        _dataBytes = null;
+    }
+
+    public void setValue(int value) {
+        if (_value._var == value) {
+            return;
+        }
+        _value = _value.changeValue(value);
         _dataBytes = null;
     }
 
@@ -524,13 +558,14 @@ public final class MXMessage {
         if (_template.size() == 0) {
             return 0;
         }
-        if (_template.get(0) == MXMidi.COMMAND2_CH_PROGRAM_INC
-                || _template.get(0) == MXMidi.COMMAND2_CH_PROGRAM_DEC) {
-            return 3;
-        }
         if (_template.get(0) == MXMidi.COMMAND2_CH_RPN
                 || _template.get(0) == MXMidi.COMMAND2_CH_NRPN) {
             return 4;
+        }
+        if ((getStatus() & 0xf0) == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
+            if (_progBankLSB >= 0 & _progBankMSB >= 0) {
+                return 3;
+            }
         }
         if (isDataentryByCC()) {
             MXVisitant visit = getVisitant();
@@ -562,6 +597,28 @@ public final class MXMessage {
                     return toDatavalueLSB2();
             }
             return 0;
+        }
+        if ((getStatus() & 0xf0) == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
+            if (_progBankLSB >= 0 & _progBankMSB >= 0) {
+                if (column == 0) {
+                    int status = getStatus();
+                    int data1 = getData1();
+                    int data2 = getData2();
+                    return (status << 16) | (data1 << 8) | data2;
+                }
+                else if (column == 1) {
+                    int status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
+                    int data1 = MXMidi.DATA1_CC_BANKSELECT;
+                    int data2 = _progBankMSB;
+                    return (status << 16) | (data1 << 8) | data2;
+                }
+                else if (column == 2) {
+                    int status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
+                    int data1 = MXMidi.DATA1_CC_BANKSELECT + 0x20;
+                    int data2 = _progBankLSB;
+                    return (status << 16) | (data1 << 8) | data2;
+                }
+            }
         }
         if (isBinMessage() == false) {
             int status = getStatus();
@@ -778,6 +835,10 @@ public final class MXMessage {
     public boolean hasSameTemplate(MXMessage message) {
         MXTemplate temp1 = getTemplate();
         MXTemplate temp2 = message.getTemplate();
+        
+        if (temp1.isEmpty() || temp2.isEmpty()) {
+            return false;
+        }
 
         if (temp1 != temp2) {
             if (temp1.size() != temp2.size()) {

@@ -91,7 +91,7 @@ public class MX32MixerInitializer {
                     MXMessage base = MXMessageFactory.fromCCXMLText(port, text, 0);
                     status = new MGStatus(_mixer,  MGStatus.TYPE_SLIDER, row, slider.size());
                     status._base = base;
-                    status.setStatusValue(RangedValue.new14bit(128 * 128 - 1));
+                    status.setMessageValue(RangedValue.new14bit(128 * 128 - 1));
                 } else {
                     MXMessage base = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_CONTROLCHANGE + slider.size(), MXMidi.DATA1_CC_CHANNEL_VOLUME, 128 - 1);
                     status = new MGStatus(_mixer,  MGStatus.TYPE_SLIDER, row, slider.size());
@@ -341,12 +341,16 @@ public class MX32MixerInitializer {
         MXMessage base = (MXMessage)sliderStatus._base.clone();
 
         int x = sliderStatus.getValue()._max;
+        RangedValue hit = new RangedValue(x, x, x);
         status._base = base;
         status._drum._outStyle = MGStatusForDrum.STYLE_LINK_SLIDER;
         status._drum._linkKontrolType = MGStatus.TYPE_SLIDER;
         status._drum._linkMode = MGStatusForDrum.LINKMODE_MAX;
         status._drum._linkRow = 0;
         status._drum._linkColumn = -1;
+        status._drum._strikeZone = hit;
+        status._drum._mouseOnValue = x;
+        status._drum._outValueTypeOn = MGStatusForDrum.VALUETYPE_AS_INPUT;
         status._drum._outValueTypeOff = MGStatusForDrum.VALUETYPE_NOTHING;
     }
 
@@ -354,50 +358,17 @@ public class MX32MixerInitializer {
         MGStatus sliderStatus = _mixer._matrixSliderStatus[0].get(column);
         MXMessage base = (MXMessage)sliderStatus._base.clone();
 
-        int x = (sliderStatus.getValue()._max + sliderStatus.getValue()._min) /2;
+        int x = (int)Math.round((sliderStatus.getValue()._max + sliderStatus.getValue()._min) /2.0);
+        RangedValue hit = new RangedValue(x, x, x);
         status._base = base;
         status._drum._outStyle = MGStatusForDrum.STYLE_LINK_SLIDER;
         status._drum._linkKontrolType = MGStatus.TYPE_SLIDER;
         status._drum._linkMode = MGStatusForDrum.LINKMODE_MIDDLE;
         status._drum._linkRow = 0;
         status._drum._linkColumn = -1;
-        status._drum._outValueTypeOff = MGStatusForDrum.VALUETYPE_NOTHING;
-    }
-
-    public void fillMinOfSlider(MGStatus status, int column) {
-        MGStatus sliderStatus = _mixer._matrixSliderStatus[0].get(column);
-        MXMessage base = (MXMessage)sliderStatus._base.clone();
-
-        status._base = base;
-        status._drum._outStyle = MGStatusForDrum.STYLE_LINK_SLIDER;
-        status._drum._linkKontrolType = MGStatus.TYPE_SLIDER;
-        status._drum._linkMode = MGStatusForDrum.LINKMODE_MIN;
-        status._drum._linkRow = 0;
-        status._drum._linkColumn = -1;
-        status._drum._outValueTypeOff = MGStatusForDrum.VALUETYPE_NOTHING;
-    }
-/*
-    public void fillMaxOfSlider(MGStatus status, int column) {
-        MGStatus sliderStatus = _mixer._matrixSliderStatus[0].get(column);
-        MXMessage base = (MXMessage)sliderStatus._base.clone();
-
-        int x = sliderStatus.getValue()._max;
-        status._base = base;
-        status._drum._outStyle = MGStatusForDrum.STYLE_SAME_CC;
-        status._drum._strikeZone = new RangedValue(x, x, x);
+        status._drum._strikeZone = hit;
         status._drum._mouseOnValue = x;
-        status._drum._outValueTypeOff = MGStatusForDrum.VALUETYPE_NOTHING;
-    }
-
-    public void fillMiddleOfSlider(MGStatus status, int column) {
-        MGStatus sliderStatus = _mixer._matrixSliderStatus[0].get(column);
-        MXMessage base = (MXMessage)sliderStatus._base.clone();
-
-        int x = (sliderStatus.getValue()._max + sliderStatus.getValue()._min) /2;
-        status._base = base;
-        status._drum._outStyle = MGStatusForDrum.STYLE_SAME_CC;
-        status._drum._strikeZone = new RangedValue(x, x, x);
-        status._drum._mouseOnValue = x;
+        status._drum._outValueTypeOn = MGStatusForDrum.VALUETYPE_AS_INPUT;
         status._drum._outValueTypeOff = MGStatusForDrum.VALUETYPE_NOTHING;
     }
 
@@ -406,12 +377,18 @@ public class MX32MixerInitializer {
         MXMessage base = (MXMessage)sliderStatus._base.clone();
 
         int x = sliderStatus.getValue()._min;
+        RangedValue hit = new RangedValue(x, x, x);
         status._base = base;
-        status._drum._outStyle = MGStatusForDrum.STYLE_SAME_CC;
-        status._drum._strikeZone = new RangedValue(x, x, x);
+        status._drum._outStyle = MGStatusForDrum.STYLE_LINK_SLIDER;
+        status._drum._linkKontrolType = MGStatus.TYPE_SLIDER;
+        status._drum._linkMode = MGStatusForDrum.LINKMODE_MIN;
+        status._drum._linkRow = 0;
+        status._drum._linkColumn = -1;
+        status._drum._strikeZone = hit;
         status._drum._mouseOnValue = x;
+        status._drum._outValueTypeOn = MGStatusForDrum.VALUETYPE_AS_INPUT;
         status._drum._outValueTypeOff = MGStatusForDrum.VALUETYPE_NOTHING;
-    }*/
+    }
 
     public void initDrumMinMidleMax() {
         ArrayList<MGStatus>[] sliderMatrix = _mixer._matrixSliderStatus;

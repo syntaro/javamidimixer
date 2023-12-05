@@ -132,7 +132,7 @@ public class MXFocusTargetInfo {
                     _group.resetFocus();
                 }
                 _group._focusedControl = MXFocusTargetInfo.this;
-                _group.setFocus(_root);
+                _group.setBackgroundAuto(_root);
             }
         }
 

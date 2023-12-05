@@ -842,9 +842,7 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
     public boolean isFocusWithSelected(JComponent comp) {
         if (comp instanceof MGDrumPad) {
             MGDrumPad c2 = (MGDrumPad)comp;
-            if (c2._switchActive) {
-                return true;
-            }
+            return c2._focusSelected;
         }
         return false;
     }
