@@ -23,6 +23,7 @@ import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXTiming;
 
 /**
  *
@@ -228,7 +229,8 @@ public class MX40Group {
         }
 
         @Override
-        public void onNoteOffEvent(MXMessage target) {
+        public void onNoteOffEvent(MXTiming timing, MXMessage target) {
+            target._timing = timing;
             _layer.processByLayer(target);
             if (_rotatePos >= 0) {
                 _rotateCount[_rotatePos] --;

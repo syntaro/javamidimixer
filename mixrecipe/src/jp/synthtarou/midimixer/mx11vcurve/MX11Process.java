@@ -41,7 +41,7 @@ public class MX11Process extends MXReceiver {
     }
 
     @Override
-    protected  void processMXMessageImpl(MXMessage message) {
+    public void processMXMessage(MXMessage message) {
         if (isUsingThisRecipe() == false) { sendToNext(message); return; }
 
         if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {

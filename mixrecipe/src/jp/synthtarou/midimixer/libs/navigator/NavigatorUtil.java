@@ -16,16 +16,12 @@
  */
 package jp.synthtarou.midimixer.libs.navigator;
 
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
-import java.awt.Frame;
 import java.awt.Window;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
@@ -35,90 +31,26 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
  * @author Syntarou YOSHIDA
  */
 public class NavigatorUtil {
-
-    public static void showPanelForTest(Container parent, JPanel panel) {
-        Container cont = MXUtil.getOwnerWindow(parent);
-        String title = MXAppConfig.MX_APPNAME;
-
-        JDialog modal = null;
-        if (cont instanceof Frame) {
-            Frame F = (Frame) cont;
-            modal = new JDialog(F);
-        } else if (cont instanceof Dialog) {
-            Dialog D = (Dialog) cont;
-            modal = new JDialog(D);
-        } else if (cont instanceof Window) {
-            Window W = (Window) cont;
-            modal = new JDialog(W);
-        } else {
-            modal = new JDialog();
-        }
-        modal.add(panel);
-        modal.pack();
-        modal.setModal(true);
-        if (panel instanceof INavigator) {
-            INavigator prompt = (INavigator) panel;
-            modal.setTitle(prompt.getNavigatorTitle());
-        }
-        MXUtil.centerWindow(modal);
-        panel.requestFocusInWindow();
-        modal.setVisible(true);
-    }
-
-    public static void closeOwnerWindow(INavigator prompt) {
-        Component c = prompt.getNavigatorPanel();
-        while (c != null) {
-            c = c.getParent();
-            if (c == null) {
-                break;
-            }
-            if (c instanceof Dialog || c instanceof Window) {
-                c.setVisible(false);
-                return;
-            }
-        }
-    }
-
-    public static void showFrame(JPanel panel) {
-        String title = MXAppConfig.MX_APPNAME;
-
-        JFrame child = null;
-        child = new JFrame(title);
-        child.getContentPane().add(panel, "Center");
-        child.pack();
-
-        MXUtil.centerWindow(child);
-        panel.requestFocusInWindow();
-        child.setVisible(true);
-    }
-
     static class CloseFook extends WindowAdapter {
 
         JDialog _owner;
-        INavigator2 _input;
+        INavigator _input;
 
-        CloseFook(JDialog owner, INavigator2 input) {
+        CloseFook(JDialog owner, INavigator input) {
             _owner = owner;
             _input = input;
         }
 
         @Override
         public void windowClosing(WindowEvent e) {
-            //if (_input.validatePromptResult()) {
-            //    _owner.dispose();
-            //}
+            if (_input.validateWithNavigator(null)) {
+                _owner.dispose();
+            }
         }
     }
 
-    public static Object showPrompt(Container parent, INavigator prompt) {
+    public static void showNavigator(Container parent, INavigator navi, String title) {
         Container cont = MXUtil.getOwnerWindow(parent);
-        String title = prompt.getNavigatorTitle();
-
-        INavigator2 _asInput = null;
-
-        if (prompt instanceof INavigator2) {
-            _asInput = (INavigator2) prompt;
-        }
 
         JDialog child = null;
         if (title == null) {
@@ -133,19 +65,16 @@ public class NavigatorUtil {
         } else {
             child = new JDialog((Window) parent, title);
         }
-        JPanel navi = prompt.getNavigatorPanel();
+
         child.setModal(true);
-        child.getContentPane().add(navi, "Center");
+        child.getContentPane().add(navi.getNavigatorPanel(), "Center");
         child.pack();
 
         MXUtil.centerWindow(child);
-        navi.requestFocusInWindow();
+        navi.getNavigatorPanel().requestFocusInWindow();
 
-        if (_asInput != null) {
-            child.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-            child.addWindowListener(new CloseFook(child, _asInput));
-        }
+        child.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        child.addWindowListener(new CloseFook(child, navi));
         child.setVisible(true);
-        return prompt.getParamsOfNavigator().getApprovedValue();
     }
 }

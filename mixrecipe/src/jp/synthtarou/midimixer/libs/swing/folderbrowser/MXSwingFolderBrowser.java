@@ -40,7 +40,6 @@ import javax.swing.tree.TreePath;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.navigator.INavigator;
-import jp.synthtarou.midimixer.libs.navigator.ParamsOfNavigator;
 
 /**
  *
@@ -54,6 +53,34 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
      * RELESAE = false
      */
     static boolean _disableThreading = false;
+
+    @Override
+    public int getNavigatorType() {
+        return INavigator.TYPE_SELECTOR;
+    }
+
+    @Override
+    public boolean isNavigatorRemovable() {
+        return false;
+    }
+
+    @Override
+    public boolean validateWithNavigator(FileList result) {
+        return true;
+    }
+
+    FileList _returnValue = null;
+    int _returnStatus = INavigator.RETURN_STATUS_NOTSET;
+
+    @Override
+    public int getReturnStatus() {
+        return _returnStatus;
+    }
+
+    @Override
+    public FileList getReturnValue() {
+        return _returnValue;
+    }
 
     class Alive {
 
@@ -203,14 +230,12 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
         jTree1.setRequestFocusEnabled(true);
         jTree1.requestFocusInWindow();
 
-        setPreferredSize(new Dimension(550, 350));
-
         _initialDir = initialDir;
         InitialRun init = new InitialRun();
 
         init.launchUIThread(_cache.addCache(null));
 
-        setPreferredSize(new Dimension(500, 300));
+        setPreferredSize(new Dimension(600, 400));
     }
 
     class DigRun extends Runnable2 {
@@ -552,11 +577,6 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
         return this;
     }
 
-    @Override
-    public String getNavigatorTitle() {
-        return "Folder Browser";
-    }
-
     public void progress(String text) {
         if (SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(new Runnable() {
@@ -773,7 +793,8 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
 
     public void setResultAndClose(boolean accept) {
         if (accept == false) {
-            getParamsOfNavigator().closeWithCancel(this);
+            _returnStatus = INavigator.RETURN_STATUS_CANCELED;
+            MXUtil.getOwnerWindow(this).setVisible(false);
             return;
         }
         ArrayList<File> safe = new ArrayList<File>();
@@ -801,7 +822,8 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
             return;
         }
 
-        getParamsOfNavigator().closeWithApprove(this, new FileList(safe));
+        _returnStatus = INavigator.RETURN_STATUS_APPROVED; 
+        _returnValue = new FileList(safe);
         MXUtil.getOwnerWindow(this).setVisible(false);
     }
 
@@ -818,15 +840,4 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
     private javax.swing.JTree jTree1;
     // End of variables declaration//GEN-END:variables
 
-
-    ParamsOfNavigator<FileList> _params;
-    
-    @Override
-    public synchronized  ParamsOfNavigator<FileList> getParamsOfNavigator() {
-        if (_params == null) {            
-            _params = new ParamsOfNavigator<>(this);
-            _params._mode = ParamsOfNavigator.MODE_CHOOSER;
-        }
-        return _params;
-    }
 }

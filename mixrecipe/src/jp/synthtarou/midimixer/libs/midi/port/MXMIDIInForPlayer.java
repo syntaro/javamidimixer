@@ -59,7 +59,7 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
         String fileName = file.toString();
  
         if (_sequencer != null) {
-           _sequencer.allNoteOff();;
+           _sequencer.allNoteOff(null);
            
            if (_sequencer.getLastFile().equals(file)) {
                return;
@@ -242,17 +242,17 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
         _sequencer.startPlayer(new SMFCallback() {
             Thread _last;
             @Override
-            public void smfPlayNote(SMFMessage smf) {
+            public void smfPlayNote(MXTiming timing, SMFMessage smf) {
                  try {
                     if (_last != Thread.currentThread()) {
                         _last = Thread.currentThread();
                         MXThreadList.attachIfNeed("smfPlayNote", _last);
                     }
                     if (smf.isBinaryMessage()) {
-                        receiveLongMessage(new MXTiming(), smf.getBinary());
+                        receiveLongMessage(timing, smf.getBinary());
                     }else {
                         int dword = smf.toDwordMessage();
-                        receiveShortMessage(new MXTiming(), dword);
+                        receiveShortMessage(timing, dword);
                     }
                 }catch(Throwable e) {
                     e.printStackTrace();
@@ -286,7 +286,7 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
     public synchronized void stopSequencer() {
         if (_sequencer != null) {
             _sequencer.stopPlayer();
-            allNoteOff();
+            allNoteOff(null);
         }
     }
 }

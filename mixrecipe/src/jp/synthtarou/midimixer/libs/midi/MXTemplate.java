@@ -46,6 +46,13 @@ public class MXTemplate {
         }
         initFields();
     }
+    
+    public boolean isEmpty() {
+        if (_commands[0] == 0) {
+            return true;
+        }
+        return false;
+    }
 
     public MXTemplate(String text) throws IllegalFormatException {
         if (text == null || text.length() == 0) {

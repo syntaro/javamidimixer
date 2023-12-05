@@ -563,6 +563,7 @@ public class MXMidi {
             int note = noteOfName(noteText);
             if (note >= 0) {
                 retList.add(note);
+                System.out.println("[note:" + noteText +  "]" + " = " + note);
             }else {
                 System.out.println("parse error [note:" + noteText + "]");
             }

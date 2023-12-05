@@ -62,7 +62,7 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
     }
     
     @Override
-    protected void processMXMessageImpl(MXMessage message) {
+    public void processMXMessage(MXMessage message) {
         if (isUsingThisRecipe()) {
             if (_data.isMarkedToSkip(message)) {
                 return;
@@ -146,33 +146,37 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
             MXNoteOffWatcher _noteOff = new MXNoteOffWatcher();
 
             @Override
-            public void smfPlayNote(SMFMessage e) {
+            public void smfPlayNote(MXTiming timing, SMFMessage e) {
                 MXMessage message = e.fromSMFtoMX(e._port);
                 if (message == null) {
                     return;
                 }
-                if (message.isCommand(MXMidi.COMMAND_CH_NOTEON) && message.getData2() == 0) {
-                    message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_NOTEOFF + message.getChannel(), message.getData1(), 0);
-                }
-                if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
-                    if (_noteOff.raiseHandler(message.getPort(), message._timing, message.getChannel(), message.getData1())) {
-                        return;
+                synchronized (MXTiming.mutex) {
+                    if (message.isCommand(MXMidi.COMMAND_CH_NOTEON) && message.getData2() == 0) {
+                        message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_NOTEOFF + message.getChannel(), message.getData1(), 0);
+                        message._timing = timing;
                     }
-                }
-                if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
-                    _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
-                        @Override
-                        public void onNoteOffEvent(MXMessage target) {
-                            MXMessage noteOff = MXMessageFactory.fromShortMessage(
-                                    target.getPort(), 
-                                    MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(), 
-                                    target.getData1(), 
-                                    0);
-                            sendToNext(target);
+                    if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
+                        if (_noteOff.raiseHandler(message.getPort(), message._timing, message.getChannel(), message.getData1())) {
+                            return;
                         }
-                    });
+                    }
+                    if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
+                        _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
+                            @Override
+                            public void onNoteOffEvent(MXTiming timing, MXMessage target) {
+                                MXMessage noteOff = MXMessageFactory.fromShortMessage(
+                                        target.getPort(), 
+                                        MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(), 
+                                        target.getData1(), 
+                                        0);
+                                noteOff._timing = timing;
+                                sendToNext(target);
+                            }
+                        });
+                    }
+                    sendToNext(message);
                 }
-                sendToNext(message);
             }
 
             @Override
@@ -182,7 +186,7 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
 
             @Override
             public void smfStoped(boolean fineFinish) {
-                _noteOff.allNoteOff(new MXTiming());
+                _noteOff.allNoteOff(null);
                 _view.progressFinish(fineFinish);
             }
 

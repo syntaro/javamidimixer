@@ -16,14 +16,14 @@
  */
 package jp.synthtarou.midimixer.libs.navigator;
 
-import jp.synthtarou.midimixer.libs.ccxml.CCValueRule;
+import jp.synthtarou.midimixer.ccxml.CCValueRule;
 import java.awt.Dimension;
 import java.util.List;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import jp.synthtarou.midimixer.libs.ccxml.CXNode;
-import jp.synthtarou.midimixer.libs.ccxml.CCRuleForAttribute;
-import jp.synthtarou.midimixer.libs.ccxml.CCRuleForTag;
+import jp.synthtarou.midimixer.ccxml.CXNode;
+import jp.synthtarou.midimixer.ccxml.CCRuleForAttribute;
+import jp.synthtarou.midimixer.ccxml.CCRuleForTag;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 
@@ -31,27 +31,27 @@ import jp.synthtarou.midimixer.libs.common.MXWrapList;
  *
  * @author Syntarou YOSHIDA
  */
-public class NavigatorForNodeAttribute extends javax.swing.JPanel implements INavigator2 <MXWrap<String>> {
+public class NavigatorForNodeAttribute extends javax.swing.JPanel implements INavigator <MXWrap<String>> {
 
     CXNode _node;
-    String _targetName;
+    String _editingName;
 
     /**
      * Creates new form NavigatorForNodeAttribute
      */
-    public NavigatorForNodeAttribute(CXNode target, String attrName, String attrValue) {
+    public NavigatorForNodeAttribute(CXNode target, String editingName) {
         initComponents();
         _node = target;
-        _targetName = attrName;
+        _editingName = editingName;
         buttonGroup1.add(jRadioButtonNameSelect);
         buttonGroup1.add(jRadioButtonNameCustom);
         buttonGroup2.add(jRadioButtonValueSelect);
         buttonGroup2.add(jRadioButtonValueCustom);
 
         setAttrNameModel();
-        setAttrName(attrName);
-        setAttrValueModel(attrName);
-        setAttrValue(attrValue);
+        setAttrName(editingName);
+        setAttrValueModel(editingName);
+        setAttrValue(target._listAttributes.valueOfName(editingName));
         disableUnused();
         setPreferredSize(new Dimension(500, 500));
     }
@@ -85,10 +85,13 @@ public class NavigatorForNodeAttribute extends javax.swing.JPanel implements INa
             jRadioButtonNameSelect.setSelected(true);
             jRadioButtonNameCustom.setSelected(false);
             jListName.setSelectedIndex(x);
+            jListName.ensureIndexIsVisible(x);
+            jTextFieldName.setEnabled(false);
         } else {
             jRadioButtonNameSelect.setSelected(false);
             jRadioButtonNameCustom.setSelected(true);
             jTextFieldName.setText(name);
+            jTextFieldName.setEnabled(true);
         }
     }
 
@@ -125,6 +128,7 @@ public class NavigatorForNodeAttribute extends javax.swing.JPanel implements INa
         }
 
         jListValue.setModel(_attrValueModel);
+        setAttrValue(_node._listAttributes.valueOfName(attrName));
     }
 
     protected void setAttrValue(String value) {
@@ -133,10 +137,15 @@ public class NavigatorForNodeAttribute extends javax.swing.JPanel implements INa
             jRadioButtonValueSelect.setSelected(true);
             jRadioButtonValueCustom.setSelected(false);
             jListValue.setSelectedIndex(x);
+            jListValue.ensureIndexIsVisible(x);
+            jListValue.setEnabled(true);
+            jTextFieldValue.setEnabled(false);
         } else {
             jRadioButtonValueSelect.setSelected(false);
             jRadioButtonValueCustom.setSelected(true);
             jTextFieldValue.setText(value);
+            jListValue.setEnabled(false);
+            jTextFieldValue.setEnabled(true);
         }
     }
 
@@ -303,14 +312,16 @@ public class NavigatorForNodeAttribute extends javax.swing.JPanel implements INa
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOKActionPerformed
-        MXWrap<String> obj = new MXWrap<String>(getAttrName(), getAttrValue());
-        if (validatePromptResult(obj)) {
-            getParamsOfNavigator().closeWithApprove(this, obj);
-        }
+        MXWrap<String> obj = new MXWrap<>(getAttrName(), getAttrValue());
+        _returnStatus = INavigator.RETURN_STATUS_APPROVED;
+        _returnValue = obj;
+        MXUtil.getOwnerWindow(this).setVisible(false);
     }//GEN-LAST:event_jButtonOKActionPerformed
 
     private void jButtonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelActionPerformed
-        getParamsOfNavigator().closeWithCancel(this);
+        _returnStatus = INavigator.RETURN_STATUS_CANCELED;
+        _returnValue = null;
+        MXUtil.getOwnerWindow(this).setVisible(false);
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
     private void jRadioButtonNameSelectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonNameSelectActionPerformed
@@ -353,52 +364,36 @@ public class NavigatorForNodeAttribute extends javax.swing.JPanel implements INa
     private javax.swing.JTextField jTextFieldValue;
     // End of variables declaration//GEN-END:variables
 
-    public boolean validatePromptResult(MXWrap<String> result) {
-        String name = result._name;
-        String value = result._value;
-        
-        if (_targetName != null && name != null && _targetName.equalsIgnoreCase(name) == false) {
-            CCRuleForTag tagRule = _node.getTagRule();
-            int already = _node._listAttributes.indexOfName(getAttrName());
-            if (already >= 0) {
-                JOptionPane.showMessageDialog(this, "Already having attriute named [" + name + "]");
-                return false;
-            }
-        }
-        else if (_targetName != null && name != null) {
-            
-        }
-        else if (name == null) {
-            
-        }
-        else if (_targetName == null) {
-            CCRuleForTag tagRule = _node.getTagRule();
-            int already = _node._listAttributes.indexOfName(getAttrName());
-            if (already >= 0) {
-                JOptionPane.showMessageDialog(this, "Already having attriute named [" + name + "]");
-                return false;
-            }
-        }
-        return true;
-    }
-
     @Override
     public JPanel getNavigatorPanel() {
         return this;
     }
 
     @Override
-    public String getNavigatorTitle() {
-        return "Edit Attributes";
+    public int getNavigatorType() {
+        return INavigator.TYPE_EDITOR;
     }
 
-    ParamsOfNavigator<MXWrap<String>> _params;
-    
     @Override
-    public synchronized ParamsOfNavigator<MXWrap<String>> getParamsOfNavigator() {
-        if (_params == null) {
-            _params = new ParamsOfNavigator<MXWrap<String>>(this);
-        }
-        return _params;
+    public boolean isNavigatorRemovable() {
+        return true;
     }
+
+    @Override
+    public boolean validateWithNavigator(MXWrap<String> result) {
+        return true;
+    }
+
+    @Override
+    public int getReturnStatus() {
+        return _returnStatus;
+    }
+
+    @Override
+    public MXWrap<String> getReturnValue() {
+        return _returnValue;
+    }
+    
+    MXWrap<String> _returnValue;
+    int _returnStatus = INavigator.RETURN_STATUS_NOTSET;
 }

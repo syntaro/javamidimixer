@@ -32,7 +32,7 @@ public class MXLIB01UWPMidi {
             StartLibrary();
             _loaded = true;
         }catch(Throwable e) {
-            System.err.println("MXLIB01(UWP Support) Couldn't Load.");
+            System.err.println("App can't load MXLIB01(UWP Support). Function disabled.");
         }
     }
     

@@ -210,14 +210,14 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
 
                     if (newAssign >= 0) {
                         if (input.isPortAssigned(newAssign)) {
-                            input.allNoteOffToPort(newAssign);
+                            input.allNoteOffToPort(null, newAssign);
                         }
                         input.setPortAssigned(newAssign, !input.isPortAssigned(newAssign));
                     }else {
                         input.resetPortAssigned();
                     }
                     if (newAssign >= 0 && input.openInput(5) == false) {
-                        JOptionPane.showMessageDialog(MX10MidiInListPanel.this, "Couldn't open " + text);
+                        JOptionPane.showMessageDialog(MX10MidiInListPanel.this, "Error when opening " + text);
                     }
                     updateDeviceTable();
                 }
@@ -276,7 +276,7 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
 
         try {
             if (input.isOpen()) {
-                input.allNoteOff();
+                input.allNoteOff(null);
                 input.close();
             }else {
                 input.openInput(5);

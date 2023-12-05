@@ -65,20 +65,20 @@ public class MXMIDIOutManager implements MXSettingTarget {
             }
 
             if (!assigned) {
-                MXMIDIOut reserve = MXMIDIOutManager.getManager().findMIDIOutput("Gervill");
-                MXMIDIOut reserve2 = MXMIDIOutManager.getManager().findMIDIOutput("Microsoft GS Wavetable Synth");
+                MXMIDIOut reserve1 = MXMIDIOutManager.getManager().findMIDIOutput("Microsoft GS Wavetable Synth");
+                MXMIDIOut reserve2 = MXMIDIOutManager.getManager().findMIDIOutput("Gervill");
                 MXMIDIOut reserve3 = MXMIDIOutManager.getManager().findMIDIOutput("VirtualMIDISynth #1");
 
                 if (reserve2 != null) {
-                    reserve = reserve2;
+                    reserve1 = reserve2;
                 }
                 if (reserve3 != null) {
-                    reserve = reserve3;
+                    reserve1 = reserve3;
                 }
 
-                if (reserve != null) {
-                    reserve.setPortAssigned(0, true);
-                    reserve.openOutput(5);
+                if (reserve1 != null) {
+                    reserve1.setPortAssigned(0, true);
+                    reserve1.openOutput(5);
                 }
             }
         }

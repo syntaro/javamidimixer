@@ -16,98 +16,128 @@
  */
 package jp.synthtarou.midimixer.libs.swing.focus;
 
+import java.awt.Color;
 import java.awt.Component;
-import java.awt.event.MouseListener;
+import java.awt.Container;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.LinkedList;
+import javax.swing.JComponent;
+import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.mx30surface.MGCircle;
+import jp.synthtarou.midimixer.mx30surface.MGDrumPad;
+import jp.synthtarou.midimixer.mx30surface.MGSlider;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-
-public class MXFocusGroup {
-    Component _focusedControl = null;
-    boolean _checkEnable = false;
-    ArrayList<MXFocusGroupElement> _groupMember = new ArrayList();
-
-    public void attach(Component c) {
-        if (c instanceof MXFocusAble) {
-            _groupMember.add(new MXFocusGroupElement(this, c));
-        }else {
-            throw new IllegalArgumentException("Component is not MXFocusAble");
-        }
-    }
-
-    public void detach(MXFocusAble c) {
-        Iterator<MXFocusGroupElement> it = _groupMember.iterator();
-        while(it.hasNext()) {
-            MXFocusGroupElement e = it.next();
-            if (e._root == c) {
-                it.remove();
-                return;
-            }
-        }
-    }
-
-    void comingFocus(Component c) {
-        if (c != _focusedControl) {
-            if (_focusedControl != null) {
-                if (_focusedControl instanceof MXFocusAble) {
-                    MXFocusAble f = (MXFocusAble)_focusedControl;
-                    f.focusStatusChanged(false);
-                }
-                _focusedControl = null;
-            }
-            _focusedControl = c;
-            if (c != null) {
-                if (c instanceof MXFocusAble) {
-                    MXFocusAble f = (MXFocusAble)c;
-                    f.focusStatusChanged(true);
-                }
-            }
-        }
-    }
+public class MXFocusGroup{
     
-    void doDoubleCheck() {
-        for (MXFocusGroupElement t : _groupMember) {
-            if (t.checkMouseInTarget()) {
-                comingFocus(t._root);
-                return;
-            }
-        }
-        comingFocus(null);
+    public MXFocusGroup(MXFocusHandler handler) {
+        _handler = handler;
     }
 
-    public void setFocusEnabled(boolean flag) {
-        _checkEnable = flag;
-        for (MXFocusGroupElement member : _groupMember) {
-            for (Component c : member._element) {
-                MouseListener[] listM = c.getMouseListeners();
-                int mouseListenterCount = 0, required = 0;               
-                for (int i = 0; i < listM.length; ++ i) {
-                    MouseListener m = listM[i];
-                    if (m == member) {
-                        mouseListenterCount ++;
-                        break;
+    public boolean _editMode = false;
+    MXFocusHandler _handler;
+    MXFocusTargetInfo _focusedControl = null;
+    boolean _stopFocusAction = false;
+    ArrayList<MXFocusTargetInfo> _groupMember = new ArrayList();
+
+    public void attach(JComponent c) {
+        _groupMember.add(new MXFocusTargetInfo(this, c));
+    }
+
+    void resetFocus() {
+        if (_focusedControl != null) {
+            _focusedControl = null;
+        }
+        resetColor(null);
+    }
+
+    public void stopFocusAction(boolean flag) {
+        _stopFocusAction = flag;
+        if (!flag) {
+            for (MXFocusTargetInfo seek : _groupMember) {
+                seek.uninstallAll();
+                seek.installAllRecursible((Component) seek._root);
+            }
+        }
+    }
+
+    public MXFocusTargetInfo getFocus() {
+        return _focusedControl;
+    }
+
+    static ArrayList<JComponent> _haveColored = new ArrayList<>();
+
+    private void resetColor(JComponent exclude) {
+        ArrayList<JComponent> clearedSelected = new ArrayList<>();
+        for (JComponent able : _haveColored) {
+            if (_handler.isFocusWithSelected(able)) {
+                continue;
+            }
+            if (able == exclude) {
+                continue;
+            }
+            clearedSelected.add(able);
+        }
+        for (JComponent comp : clearedSelected) {
+            _haveColored.remove(comp);
+            Color color = _handler.getDefaultColor(comp);
+            comp.setBackground(color);
+
+            LinkedList<Container> listContainer = new LinkedList();
+            listContainer.add(comp);
+            while (listContainer.isEmpty() == false) {
+                Container cont = listContainer.remove();
+                Component[] list = cont.getComponents();
+                for (Component child : list) {
+                    child.setBackground(color);
+                    if (child instanceof Container) {
+                        listContainer.add((Container) child);
                     }
                 }
-                required ++;
-                if (mouseListenterCount != required) {
-                    member.uninstallAll();
-                    member.installAllRecursible(c);
-                    break;
+            }
+
+            _handler.focusOffAfterUncolored(comp);
+        }
+    }
+
+    public void setFocus(JComponent comp) {
+        resetColor(comp);
+        Color color = null;
+        _haveColored.add(comp);
+
+        if (_handler.isFocusWithSelected(comp)) {
+            color = Color.yellow;
+        } else if (_focusedControl != null) {
+            if (comp == _focusedControl._root) {
+                if (_editMode) {
+                    color = Color.green;
+                } else {
+                    color = Color.lightGray;
                 }
             }
         }
-        comingFocus(null);
-    }
-    
-    public boolean isFocusEnabled() {
-        return _checkEnable;
-    }
-    
-    public Component getFocus() {
-        return _focusedControl;
+
+        if (color == null) {
+            color = _handler.getDefaultColor(comp);
+        }
+        comp.setBackground(color);
+
+        LinkedList<Container> listContainer = new LinkedList();
+        listContainer.add(comp);
+        while (listContainer.isEmpty() == false) {
+            Container cont = listContainer.remove();
+            Component[] list = cont.getComponents();
+            for (Component child : list) {
+                child.setBackground(color);
+                if (child instanceof Container) {
+                    listContainer.add((Container) child);
+                }
+            }
+        }
+
+        _handler.focusOnAfterColored(comp);
     }
 }

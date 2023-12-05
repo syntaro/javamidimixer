@@ -30,7 +30,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -42,15 +41,13 @@ import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.LinkedList;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.mx30controller.MGCircle;
-import jp.synthtarou.midimixer.mx30controller.MGDrumPad;
-import jp.synthtarou.midimixer.mx30controller.MGSlider;
+import jp.synthtarou.midimixer.mx30surface.MGCircle;
+import jp.synthtarou.midimixer.mx30surface.MGDrumPad;
+import jp.synthtarou.midimixer.mx30surface.MGSlider;
 
 /**
  *
@@ -177,28 +174,6 @@ public class MXUtil {
         }
     }
 
-    public static void swingTreeEditable(Component c, boolean enable) {
-        if (c instanceof Container) {
-            Container parent = (Container) c;
-            int count = parent.getComponentCount();
-            for (int x = 0; x < count; ++x) {
-                swingTreeEditable(parent.getComponent(x), enable);
-            }
-        }
-        if (c instanceof MGCircle) {
-            MGCircle circle = (MGCircle) c;
-            circle.setValueChangeable(enable);
-        }
-        if (c instanceof MGSlider) {
-            MGSlider slider = (MGSlider) c;
-            slider.setValueChangeable(enable);
-        }
-        if (c instanceof MGDrumPad) {
-            MGDrumPad pad = (MGDrumPad) c;
-            pad.setValueChangeable(enable);
-        }
-    }
-
     public static void showAsDialog(Container parent, JPanel panel, String title) {
         Container cont = getOwnerWindow(parent);
         if (title == null) {
@@ -276,36 +251,29 @@ public class MXUtil {
         }
     }
 
-    public static Color mixedColor(Color left, Color right, int percent) {
-        int lr = (int) (left.getRed() * (100 - percent) / 100);
-        int lg = (int) (left.getGreen() * (100 - percent) / 100);
-        int lb = (int) (left.getBlue() * (100 - percent) / 100);
-        int rr = (int) (right.getRed() * percent / 100);
-        int rg = (int) (right.getGreen() * percent / 100);
-        int rb = (int) (right.getBlue() * percent / 100);
+    public static Color mixtureColor(Color left, int leftPercent, Color right, int rightPercent) {
+        int totalPercent = leftPercent + rightPercent;
+        int lr = (int) (left.getRed() * leftPercent / totalPercent);
+        int lg = (int) (left.getGreen() * leftPercent / totalPercent);
+        int lb = (int) (left.getBlue() * leftPercent / totalPercent);
+        int rr = (int) (right.getRed() * rightPercent / totalPercent);
+        int rg = (int) (right.getGreen() * rightPercent / totalPercent);
+        int rb = (int) (right.getBlue() * rightPercent / totalPercent);
         return new Color(lr + rr, lg + rg, lb + rb);
     }
-
-    public static void backgroundRecursive(Container container, Color color) {
-        LinkedList<Container> listContainer = new LinkedList();
-        listContainer.add(container);
-
-        while (listContainer.isEmpty() == false) {
-            Container cont = listContainer.remove();
-            if (cont == null) {
-                continue;
-            }
-            cont.setBackground(color);
-
-            Component[] list = cont.getComponents();
-            for (Component child : list) {
-                if (child instanceof Container) {
-                    listContainer.add((Container) child);
-                } else {
-                    child.setBackground(color);
-                }
-            }
-        }
+    
+    public static Color mixtureColor(Color left, int leftPercent, Color center, int centerPercent, Color right, int rightPercent) {
+        int totalPercent = leftPercent + centerPercent + rightPercent;
+        int lr = (int) (left.getRed() * leftPercent / totalPercent);
+        int lg = (int) (left.getGreen() * leftPercent / totalPercent);
+        int lb = (int) (left.getBlue() * leftPercent / totalPercent);
+        int cr = (int) (center.getRed() * centerPercent / totalPercent);
+        int cg = (int) (center.getGreen() * centerPercent / totalPercent);
+        int cb = (int) (center.getBlue() * centerPercent / totalPercent);
+        int rr = (int) (right.getRed() * rightPercent / totalPercent);
+        int rg = (int) (right.getGreen() * rightPercent / totalPercent);
+        int rb = (int) (right.getBlue() * rightPercent / totalPercent);
+        return new Color(lr + cr + rr, lg + cg + rg, lb + cb + rb);
     }
 
     public static boolean isShrinkTarget(char c) {
@@ -591,4 +559,5 @@ public class MXUtil {
             e.printStackTrace();
         }
     }
+
 }

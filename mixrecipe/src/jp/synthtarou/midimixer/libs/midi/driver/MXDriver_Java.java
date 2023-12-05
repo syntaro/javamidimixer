@@ -177,10 +177,10 @@ public class MXDriver_Java implements MXDriver {
                 }
                 
                 int dword = (((status << 8) | data1) << 8) | data2;
-                _input.receiveShortMessage(new MXTiming(), dword);
+                _input.receiveShortMessage(null, dword);
             }else {
                 byte[] data = msg.getMessage();
-                _input.receiveLongMessage(new MXTiming(), data);
+                _input.receiveLongMessage(null, data);
             }
         }
 
@@ -268,6 +268,9 @@ public class MXDriver_Java implements MXDriver {
         listAllOutput();
 
         int status = (message >> 16) & 0xff;
+        if (status == 0) {
+            return false;
+        }
         int data1 = (message >> 8) & 0xff;
         int data2 = (message) & 0xff;
         if (_listOutput.get(x).isOpen()) {

@@ -55,7 +55,6 @@ public class MXMessageFactory {
             else {
                 if (_cacheCommand[command] == null) {
                     _cacheCommand[command] = MXTemplate.fromDword1(dword);
-                    System.out.println("cache commamdn " + _cacheCommand[command]);
                 }
                 found = _cacheCommand[command];
             }

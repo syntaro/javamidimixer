@@ -38,7 +38,7 @@ public class MXLIB02VST3 {
             System.loadLibrary("MXLIB02");
             _loaded = true;
         } catch (Throwable e) {
-           System.err.println("MXLIB02(VST3 Support) Couldn't Load.");
+           System.err.println("App can't load MXLIB02(VST3 Support). Function disabled.");
         }
     }
 

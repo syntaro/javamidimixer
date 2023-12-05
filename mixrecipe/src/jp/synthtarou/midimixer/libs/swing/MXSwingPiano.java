@@ -207,10 +207,11 @@ public class MXSwingPiano extends JComponent {
         noteListWhite.add(key);
     }
 
-    static Color pushedColor = MXUtil.mixedColor(MXUtil.mixedColor(Color.WHITE, Color.yellow, 80), Color.blue, 10);;
-    static Color centerColor = MXUtil.mixedColor(MXUtil.mixedColor(Color.WHITE, Color.yellow, 20), Color.green, 20);
-    static Color selectedColor = MXUtil.mixedColor(MXUtil.mixedColor(Color.WHITE, Color.yellow, 20), Color.red, 40);
-    static Color sustainColor = new Color(0x87, 0xce, 0xeb);
+    static Color sequenceColor = MXUtil.mixtureColor(Color.WHITE, 40, Color.yellow, 20, Color.orange, 20);
+    static Color centerColor = MXUtil.mixtureColor(Color.WHITE, 80, Color.orange, 20, Color.pink, 40);
+    static Color mouseColor = MXUtil.mixtureColor(Color.WHITE, 50, Color.pink, 50, Color.red, 20);
+    static Color sustainColor = MXUtil.mixtureColor(Color.WHITE, 80, Color.cyan, 10, Color.yellow, 30);
+    static Color selectedColor = MXUtil.mixtureColor(Color.WHITE, 50, Color.blue, 10, Color.orange, 40);
     
     public int getAdjustedHeight(int width) {
         int heightAll = getHeight();
@@ -226,11 +227,11 @@ public class MXSwingPiano extends JComponent {
             if (rect == null || fill.intersects(rect)){
                 Color color;
                 if (key._note == _mouseNoteOn) {
-                    color = Color.PINK;
+                    color = mouseColor;
                 }else if (isSelectedNote(key._note)) {
                     color = selectedColor;
                 }else if (_sequenceNoteOn[key._note]) {
-                    color = pushedColor;
+                    color = sequenceColor;
                 }else if (_sequenceSustain[key._note]) {
                     color = sustainColor;
                 }else if (key._note == 60) {
@@ -255,11 +256,11 @@ public class MXSwingPiano extends JComponent {
             if (rect == null || fill.intersects(rect)){
                 Color color;
                 if (key._note == _mouseNoteOn) {
-                    color = Color.PINK;
+                    color = mouseColor;
                 }else if (isSelectedNote(key._note)) {
                     color = selectedColor;
                 }else if (_sequenceNoteOn[key._note]) {
-                    color = pushedColor;
+                    color = sequenceColor;
                 }else if (_sequenceSustain[key._note]) {
                     color = sustainColor;
                 }else {
@@ -546,26 +547,23 @@ public class MXSwingPiano extends JComponent {
     boolean[] _selectedNote =  new boolean[256];
 
     public boolean isSelectedNote(int note) {
-        if (_allowMultiSelect) {
-            return _selectedNote[note];
-        }
-        return false;
+        return _selectedNote[note];
     }
     
     public void selectNote(int note, boolean flag) {
-        if (_allowMultiSelect) {
-            _selectedNote[note] = flag;
+        if (!_allowMultiSelect) {
+            for (int i = 0; i < _selectedNote.length; ++ i) {
+                _selectedNote[i] = false;
+            }
+        }
+        _selectedNote[note] = flag;
+        if (_handler != null) {                
             _handler.selectionChanged();
         }
     }
     
     public void toggleNoteSelected(int note) {
-        if (_allowMultiSelect) {
-            _selectedNote[note] = !_selectedNote[note];
-            if (_handler != null) {                
-                _handler.selectionChanged();
-            }
-        }
+        selectNote(note, !_selectedNote[note]);
     }
     
     public int[] listMultiSelected() {

@@ -17,12 +17,11 @@
 package jp.synthtarou.midimixer.libs.midi;
 
 import java.io.PrintStream;
-import java.util.TreeSet;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
-import jp.synthtarou.midimixer.mx30controller.MGStatus;
+import jp.synthtarou.midimixer.mx30surface.MX32Relation;
 
 /**
  *
@@ -42,8 +41,20 @@ public final class MXMessage {
     private boolean _valuePair14bit;
 
     private final MXTemplate _template;
+    
+    MX32Relation _relation = null;
+    
+    public boolean isEmpty() {
+        return _template.isEmpty();
+    }
+    
+    public MX32Relation getRelation() {
+        return _relation;
+    }
 
-    public TreeSet<MGStatus> _linkedStatus = null;
+    public void setRelation(MX32Relation relation) {
+        _relation = relation;
+    }
 
     public boolean isBinMessage() {
         if (createBytes() == null) {
@@ -187,8 +198,12 @@ public final class MXMessage {
     }
 
     public void setValue(RangedValue value) {
+        if (_value != null) {
+            if (_value.equals(value)) {
+                return;
+            }
+        }
         _value = value;
-        //TODO checksame
         _dataBytes = null;
     }
 
@@ -697,10 +712,11 @@ public final class MXMessage {
         MXMessage message;
         message = new MXMessage(_port, _template, _channel, _gate, _value);
 
-        message._timing = this._timing;
+        message._timing = _timing;
+        message._relation = _relation;
 
-        message.setVisitant(getVisitant());
-        message.setValuePairCC14(isValuePairCC14());
+        message._visitant = _visitant;
+        message._valuePair14bit = _valuePair14bit;
 
         return message;
     }

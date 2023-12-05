@@ -261,7 +261,8 @@ public class MXMIDIOut {
                 if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
                     _myNoteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
                         @Override
-                        public void onNoteOffEvent(MXMessage target) {
+                        public void onNoteOffEvent(MXTiming timing, MXMessage target) {
+                            target._timing = timing;
                             int dword = target.getAsDword(0);
                             _driver.OutputShortMessage(_driverOrder, dword);
                             MXMain.addOutsideOutput(new MXMidiConsoleElement(target._timing, target.getPort(), dword));
@@ -336,9 +337,9 @@ public class MXMIDIOut {
         MXMIDIOutManager manager = MXMIDIOutManager.getManager();
         synchronized (MXTiming.mutex) {
             if (isOpen()) {
-                allNoteOff(new MXTiming());
+                allNoteOff(null);
                 if (_name.equals("Gervill")) {
-                    allNoteOff(new MXTiming());
+                    allNoteOff(null);
                     manager.onClose(this);
                     _driver.OutputDeviceClose(_driverOrder);
                 } else {

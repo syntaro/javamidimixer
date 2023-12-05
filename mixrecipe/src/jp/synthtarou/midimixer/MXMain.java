@@ -21,6 +21,7 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import javax.swing.SwingUtilities;
+import jp.synthtarou.midimixer.ccxml.CXXMLManager;
 import jp.synthtarou.midimixer.libs.common.MXLog;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
@@ -36,14 +37,14 @@ import jp.synthtarou.midimixer.mx80vst.MX80Process;
 import jp.synthtarou.midimixer.libs.vst.VSTStream;
 import jp.synthtarou.midimixer.mx00playlist.MX00Process;
 import jp.synthtarou.midimixer.mx10input.MX10Process;
-import jp.synthtarou.midimixer.mx30controller.MX30Process;
+import jp.synthtarou.midimixer.mx30surface.MX30Process;
 import jp.synthtarou.midimixer.mx40layer.MX40Process;
 import jp.synthtarou.midimixer.mx60output.MX60Process;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.vst.VSTInstance;
-import jp.synthtarou.midimixer.mx35cceditor.MX35Process;
+import jp.synthtarou.midimixer.mx36ccmapping.MX36Process;
 import jp.synthtarou.midimixer.mx70console.MX70Process;
 
 /**
@@ -96,11 +97,12 @@ public class MXMain  {
     //private MX12Process _mx12masterkeyProcess;
     private MX00Process _mx00playlistProcess;
     private MX30Process _mx30kontrolProcess;
-    private MX35Process _mx35cceditorProcess;
+    private MX36Process _mx36ccmappingProess;
     private MX40Process _mx40layerProcess;
     private MX60Process _mx60outputProcess;
     private MX70Process _mx70CosoleProcess;
     private MX80Process _vstRack;
+    private CXXMLManager _xmlManager;
     
     public static MXMessageCapture _capture = null;
     
@@ -122,7 +124,7 @@ public class MXMain  {
             
             try {
                 ThemeManager inst = ThemeManager.getInstance();
-                inst.setUITheme("Nimbus");
+                //inst.setUITheme("Nimbus");
             }catch( Throwable e ) {
             }
         
@@ -151,9 +153,11 @@ public class MXMain  {
         //_mx12masterkeyProcess = new MX12Process();
         winLogo.showProgress(1, 10);
         _mx30kontrolProcess =  new MX30Process();
-        _mx35cceditorProcess = new MX35Process();
+        _mx36ccmappingProess = new MX36Process();
         _mx40layerProcess = new MX40Process();
+
         _vstRack = MX80Process.getInstance();
+        _xmlManager = CXXMLManager.getInstance();
 
         winLogo.showProgress(2, 10);
 
@@ -164,7 +168,7 @@ public class MXMain  {
 
         _masterToList.addNameAndValue("PushBack", MXMIDIIn.returnReceirer);
         _masterToList.addNameAndValue(_mx30kontrolProcess.getReceiverName(), _mx30kontrolProcess);
-        _masterToList.addNameAndValue(_mx35cceditorProcess.getReceiverName(), _mx35cceditorProcess);
+        _masterToList.addNameAndValue(_mx36ccmappingProess.getReceiverName(), _mx36ccmappingProess);
         _masterToList.addNameAndValue(_mx40layerProcess.getReceiverName(), _mx40layerProcess);
         _masterToList.addNameAndValue(_mx60outputProcess.getReceiverName(), _mx60outputProcess);
         _masterToList.addNameAndValue("Direct Output", FinalMIDIOut.getInstance());
@@ -172,8 +176,8 @@ public class MXMain  {
         _mx10inputProcess.setNextReceiver(_mx30kontrolProcess);
         winLogo.showProgress(4, 10);
 
-        _mx30kontrolProcess.setNextReceiver(_mx35cceditorProcess);
-        _mx35cceditorProcess.setNextReceiver(_mx40layerProcess);
+        _mx30kontrolProcess.setNextReceiver(_mx36ccmappingProess);
+        _mx36ccmappingProess.setNextReceiver(_mx40layerProcess);
         _mx40layerProcess.setNextReceiver(_mx60outputProcess);
         _mx60outputProcess.setNextReceiver(FinalMIDIOut.getInstance());
 
@@ -225,15 +229,17 @@ public class MXMain  {
         reList.add(_mx10inputProcess);
         //reList.add(_velocityProcess);
         reList.add(_mx30kontrolProcess);
-        reList.add(_mx35cceditorProcess);
+        reList.add(_mx36ccmappingProess);
         reList.add(_mx40layerProcess);
         reList.add(_mx60outputProcess);
         reList.add(_vstRack);
+        reList.add(_xmlManager);
 
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
                 _mainWindow.initLatebind(reList);
+                
                 _mainWindow.setVisible(true);
 
                 winLogo.showProgress(9, 10);
@@ -336,11 +342,15 @@ public class MXMain  {
         return _mx30kontrolProcess;
     }
 
-    public MX35Process getCCEditorProcess() {
-        return _mx35cceditorProcess;
+    public MX36Process getCCMappingProcess() {
+        return _mx36ccmappingProess;
     }
 
     public MX40Process getLayerProcess() {
         return _mx40layerProcess;
+    }
+    
+    public CXXMLManager getXMLManager() {
+        return _xmlManager;
     }
 }

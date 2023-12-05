@@ -43,7 +43,7 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
         super.updateUI();
 
         _highlight = new JTextField().getSelectionColor();
-        _selectionColor = MXUtil.mixedColor(Color.red, Color.yellow, 90);
+        _selectionColor = MXUtil.mixtureColor(Color.red, 10, Color.yellow, 90);
     }
 
     int _circleR;
@@ -94,7 +94,7 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
         Color background = getBackground();
 
         if (isEnabled()== false) {
-            foreground = MXUtil.mixedColor(foreground, Color.white, 30);
+            foreground = MXUtil.mixtureColor(foreground, 70, Color.white, 30);
         }
 
         Graphics2D g = (Graphics2D)gr;
@@ -174,12 +174,12 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
         g.setColor(background);
         g.fill(b1inner);
 
-        String str = String.valueOf(_value);
+        String str = String.valueOf(_value._var);
         if (ThemeManager.getInstance().isColorfulMetalTheme()) {        
-            g.setColor(MXUtil.mixedColor(Color.red, Color.yellow, 30));
+            g.setColor(MXUtil.mixtureColor(Color.red, 70, Color.yellow, 30));
         }
         else  {
-            g.setColor(MXUtil.mixedColor(Color.blue, Color.pink, 30));
+            g.setColor(MXUtil.mixtureColor(Color.blue, 70, Color.pink, 30));
         }
         g.setFont(staticFont);
         int x = g.getFontMetrics().stringWidth(str);
@@ -230,7 +230,7 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
             angleRad = Math.max(_maxAngleRad, Math.min(_minAngleRad, angleRad));
             double alpha = (angleRad - _minAngleRad) / (_maxAngleRad - _minAngleRad);
             double value = rangeFrom + alpha * (rangeTo - rangeFrom);
-            setValue(_value.updateValue((int)value));
+            setValue(_value.changeValue((int)value));
         }else {
             // Kind of X-Y Pad
             double distance = dx - dy;
@@ -240,7 +240,7 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
             if (value2 < rangeFrom) value2 = rangeFrom;
             if (value2 > rangeTo) value2 = rangeTo;
 
-            setValue(_value.updateValue((int)value2));
+            setValue(_value.changeValue((int)value2));
         }
     }
 

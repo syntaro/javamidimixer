@@ -23,7 +23,23 @@ import javax.swing.JPanel;
  * @author Syntarou YOSHIDA
  */
 public interface INavigator<T> {
+    public static int TYPE_VIEWER = 1;
+    public static int TYPE_SELECTOR = 2;
+    public static int TYPE_EDITOR = 3;
+
+    public int getNavigatorType();
+
+    public static int RETURN_STATUS_NOTSET = -1;
+    public static int RETURN_STATUS_APPROVED = 5;
+    public static int RETURN_STATUS_CANCELED = 6;
+    public static int RETURN_STATUS_REMOVED = 7;
+
+    public int getReturnStatus();
+
+    public T getReturnValue();
+
+    public boolean isNavigatorRemovable();
+    public boolean validateWithNavigator(T result);
+    
     public JPanel getNavigatorPanel();
-    public String getNavigatorTitle();
-    public ParamsOfNavigator<T> getParamsOfNavigator();
 }

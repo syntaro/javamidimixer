@@ -35,7 +35,7 @@ public class FinalMIDIOut extends MXReceiver {
     }
 
     @Override
-    protected void processMXMessageImpl(MXMessage message) {
+    public void processMXMessage(MXMessage message) {
         MXWrapList<MXMIDIOut> listOut = MXMIDIOutManager.getManager().listAllOutput();
         for (int i = 0; i < listOut.getSize(); ++ i) {
             MXMIDIOut out = listOut.valueOfIndex(i);

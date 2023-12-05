@@ -16,10 +16,8 @@
  */
 package jp.synthtarou.midimixer.libs.midi;
 
-import java.util.TreeSet;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.mx30controller.MGStatus;
 
 /**
  *
@@ -42,23 +40,9 @@ public abstract class MXReceiver {
         _nextReceiver = next;
     }
     
-    protected abstract void processMXMessageImpl(MXMessage message);
-    
-    public synchronized void processMXMessage(MXMessage message) {
-        //System.out.println("processMXMessage " + this.getClass().getName() + " / " + message);
-        /*
-        if (message._timing == null) {
-            message._timing = new MXTiming();
-        }
-        */
-        processMXMessageImpl(message);
-    }
+    public abstract void processMXMessage(MXMessage message);
 
     protected void sendToNext(MXMessage message) {
-        //System.out.println("sendToNext " + this.getClass().getName() + " / " + message);
-        if (message._timing == null) {
-            message._timing = new MXTiming();
-        }
         if (_nextReceiver != null) {
             MXMain.getMain().messageDispatch(message, _nextReceiver);
         }else {

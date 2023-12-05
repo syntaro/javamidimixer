@@ -18,7 +18,6 @@ package jp.synthtarou.midimixer.libs.common;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 
 /**
  *
@@ -57,12 +56,14 @@ public class MXLineReader {
     public String readLine() throws IOException {
         byte[] line = new byte[256];
         int x = 0;
+        boolean fetched = false;
         
         do {
             if (_pos >= _bufferSize && fetchIfNeed() == false) {
                 break;
             }
             byte ch = _buffer[_pos ++ ];
+            fetched = true;
             if (ch == '\r') continue;
             if (ch == '\n') break;
             line[x ++] = ch;
@@ -73,7 +74,7 @@ public class MXLineReader {
             }
         }while(true);
         
-        if (x == 0 && _pos >= _bufferSize) {
+        if (!fetched) {
             return null;
         }
         

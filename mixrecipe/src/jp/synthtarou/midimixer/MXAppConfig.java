@@ -43,7 +43,7 @@ public class MXAppConfig {
         }
     }
     public static final String LOOPMIDI_NAME = "EX MIDIMixer Out";
-    public static final String MX_APPNAME = "MIX Recipe VSTi 0.50";
+    public static final String MX_APPNAME = "MIX Recipe VSTi 0.50 Alpha";
     public static final String MX_EDITING = "*** EDIT CONTROl MODE ***";
     public static final int DRUM_CH = 9;
     
@@ -57,8 +57,8 @@ public class MXAppConfig {
 
     public static boolean _trapMouseForOnlySelect = false;
 
-    private static final Color colorSlider1 = MXUtil.mixedColor(MXUtil.mixedColor(Color.blue, Color.lightGray, 50), Color.white, 50);
-    private static final Color colorSlider2 = MXUtil.mixedColor(colorSlider1, Color.white, 50);
+    private static final Color colorSlider1 = MXUtil.mixtureColor(Color.blue, 25, Color.lightGray, 25, Color.white, 50);
+    private static final Color colorSlider2 = MXUtil.mixtureColor(colorSlider1, 50, Color.white, 50);
     
     public static final int MOUSE_VELOCITY = 100;
 }

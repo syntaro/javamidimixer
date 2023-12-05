@@ -23,13 +23,12 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import jp.synthtarou.midimixer.mx35cceditor.accordion.Example1;
-import jp.synthtarou.midimixer.mx35cceditor.accordion.MXAccordionPanel;
-import jp.synthtarou.midimixer.mx35cceditor.accordion.MXListedContents;
-import jp.synthtarou.midimixer.mx35cceditor.accordion.MXListedContentsGroup;
-import jp.synthtarou.midimixer.libs.navigator.TableModelWithNavi;
-import jp.synthtarou.midimixer.libs.navigator.NavigatorUtil;
-import jp.synthtarou.midimixer.libs.ccxml.CXFileListPanel;
+import jp.synthtarou.midimixer.libs.swing.accordion.Example1;
+import jp.synthtarou.midimixer.libs.swing.accordion.MXAccordionPanel;
+import jp.synthtarou.midimixer.libs.swing.accordion.MXListedContents;
+import jp.synthtarou.midimixer.libs.swing.accordion.MXListedContentsGroup;
+import jp.synthtarou.midimixer.ccxml.CXXMLManagerPanel;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 
@@ -104,19 +103,19 @@ public class DXControlPanel extends javax.swing.JPanel {
         jPanel4 = new javax.swing.JPanel();
         jButtonEdirXMLCC = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
-        jButtonAddGroup = new javax.swing.JButton();
-        jButtonRemoveGroup = new javax.swing.JButton();
-        jButtonEditGroup = new javax.swing.JButton();
         jLabel4 = new javax.swing.JLabel();
+        jButtonSectionAdd = new javax.swing.JButton();
+        jButtonSectionDelete = new javax.swing.JButton();
+        jButtonSectionRename = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
-        jButtonAddController = new javax.swing.JButton();
-        jButtonRemoveController = new javax.swing.JButton();
-        jButtonEditController = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
+        jButtonKontrolAdd = new javax.swing.JButton();
+        jButtonKontrolDelete = new javax.swing.JButton();
+        jButtonKontrolEdit = new javax.swing.JButton();
+        jButtonKontrolUp = new javax.swing.JButton();
+        jButtonKontrolDown = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
-        jButtonAddSet = new javax.swing.JButton();
-        jButtonRemoveSet = new javax.swing.JButton();
-        jButtonEditSet = new javax.swing.JButton();
+        jButtonActivatorEdit = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
 
@@ -207,31 +206,31 @@ public class DXControlPanel extends javax.swing.JPanel {
         jPanel1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(204, 255, 102), 3, true));
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
-        jButtonAddGroup.setText("+");
+        jLabel4.setText("Section");
+        jPanel1.add(jLabel4, new java.awt.GridBagConstraints());
+
+        jButtonSectionAdd.setText("New");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
-        jPanel1.add(jButtonAddGroup, gridBagConstraints);
+        jPanel1.add(jButtonSectionAdd, gridBagConstraints);
 
-        jButtonRemoveGroup.setText("-");
+        jButtonSectionDelete.setText("Delete");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
-        jPanel1.add(jButtonRemoveGroup, gridBagConstraints);
+        jPanel1.add(jButtonSectionDelete, gridBagConstraints);
 
-        jButtonEditGroup.setText("Edit");
+        jButtonSectionRename.setText("Rename");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel1.add(jButtonEditGroup, gridBagConstraints);
-
-        jLabel4.setText("Ctrl Group");
-        jPanel1.add(jLabel4, new java.awt.GridBagConstraints());
+        jPanel1.add(jButtonSectionRename, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
@@ -242,32 +241,46 @@ public class DXControlPanel extends javax.swing.JPanel {
         jPanel2.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(204, 255, 102), 3, true));
         jPanel2.setLayout(new java.awt.GridBagLayout());
 
-        jButtonAddController.setText("+");
+        jLabel5.setText("Controller");
+        jPanel2.add(jLabel5, new java.awt.GridBagConstraints());
+
+        jButtonKontrolAdd.setText("New");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        jPanel2.add(jButtonAddController, gridBagConstraints);
+        jPanel2.add(jButtonKontrolAdd, gridBagConstraints);
 
-        jButtonRemoveController.setText("-");
+        jButtonKontrolDelete.setText("Delete");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        jPanel2.add(jButtonRemoveController, gridBagConstraints);
+        jPanel2.add(jButtonKontrolDelete, gridBagConstraints);
 
-        jButtonEditController.setText("Edit");
+        jButtonKontrolEdit.setText("Edit");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        jPanel2.add(jButtonEditController, gridBagConstraints);
+        jPanel2.add(jButtonKontrolEdit, gridBagConstraints);
 
-        jLabel5.setText("Controller");
-        jPanel2.add(jLabel5, new java.awt.GridBagConstraints());
+        jButtonKontrolUp.setText("Move Up");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanel2.add(jButtonKontrolUp, gridBagConstraints);
+
+        jButtonKontrolDown.setText("Move Down");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanel2.add(jButtonKontrolDown, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
@@ -278,38 +291,26 @@ public class DXControlPanel extends javax.swing.JPanel {
         jPanel3.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(204, 255, 102), 3, true));
         jPanel3.setLayout(new java.awt.GridBagLayout());
 
-        jButtonAddSet.setText("+");
+        jButtonActivatorEdit.setText("Edit");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        jPanel3.add(jButtonAddSet, gridBagConstraints);
+        jPanel3.add(jButtonActivatorEdit, gridBagConstraints);
 
-        jButtonRemoveSet.setText("-");
+        jLabel3.setText("Activator");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.weightx = 1.0;
-        jPanel3.add(jButtonRemoveSet, gridBagConstraints);
-
-        jButtonEditSet.setText("Edit");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel3.add(jButtonEditSet, gridBagConstraints);
-
-        jLabel3.setText("<html>Group Set<br>= Schene");
-        jPanel3.add(jLabel3, new java.awt.GridBagConstraints());
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 3;
+        jPanel3.add(jLabel3, gridBagConstraints);
 
         jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
         jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
@@ -324,8 +325,8 @@ public class DXControlPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonEdirXMLCCActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEdirXMLCCActionPerformed
-        CXFileListPanel panel = new CXFileListPanel();
-        NavigatorUtil.showPrompt(this, panel);
+        CXXMLManagerPanel panel = new CXXMLManagerPanel();
+        MXUtil.showAsDialog(this, panel, "XML Manager");
     }//GEN-LAST:event_jButtonEdirXMLCCActionPerformed
     
     TableModelWithNavi _model;
@@ -333,16 +334,16 @@ public class DXControlPanel extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButtonAddController;
-    private javax.swing.JButton jButtonAddGroup;
-    private javax.swing.JButton jButtonAddSet;
+    private javax.swing.JButton jButtonActivatorEdit;
     private javax.swing.JButton jButtonEdirXMLCC;
-    private javax.swing.JButton jButtonEditController;
-    private javax.swing.JButton jButtonEditGroup;
-    private javax.swing.JButton jButtonEditSet;
-    private javax.swing.JButton jButtonRemoveController;
-    private javax.swing.JButton jButtonRemoveGroup;
-    private javax.swing.JButton jButtonRemoveSet;
+    private javax.swing.JButton jButtonKontrolAdd;
+    private javax.swing.JButton jButtonKontrolDelete;
+    private javax.swing.JButton jButtonKontrolDown;
+    private javax.swing.JButton jButtonKontrolEdit;
+    private javax.swing.JButton jButtonKontrolUp;
+    private javax.swing.JButton jButtonSectionAdd;
+    private javax.swing.JButton jButtonSectionDelete;
+    private javax.swing.JButton jButtonSectionRename;
     private javax.swing.JButton jButtonValue;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

@@ -24,13 +24,10 @@ import javax.swing.JPanel;
  * @author Syntarou YOSHIDA
  */
 public class NavigatorForText extends javax.swing.JPanel implements INavigator<String> {
-
-    String _title;
-    /**
+    /*
      * Creates new form NavigatorForText
      */
-    public NavigatorForText(String text, String title) {
-        _title = title;
+    public NavigatorForText(String text) {
         initComponents();
         jTextArea1.setText(text);
         setPreferredSize(new Dimension(600, 200));
@@ -92,11 +89,13 @@ public class NavigatorForText extends javax.swing.JPanel implements INavigator<S
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOKActionPerformed
-        getParamsOfNavigator().closeWithApprove(this, jTextArea1.getText());
+        _returnStatus = INavigator.RETURN_STATUS_APPROVED;
+        _returnValue = jTextArea1.getText();
     }//GEN-LAST:event_jButtonOKActionPerformed
 
     private void jButtonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelActionPerformed
-        getParamsOfNavigator().closeWithCancel(this);
+        _returnStatus = INavigator.RETURN_STATUS_CANCELED;
+        _returnValue = null;
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -112,18 +111,30 @@ public class NavigatorForText extends javax.swing.JPanel implements INavigator<S
     }
 
     @Override
-    public String getNavigatorTitle() {
-        return _title;
+    public int getNavigatorType() {
+        return INavigator.TYPE_EDITOR;
     }
 
-    ParamsOfNavigator<String> _params = null;
+    @Override
+    public boolean isNavigatorRemovable() {
+        return false;
+    }
     
     @Override
-    public synchronized ParamsOfNavigator<String> getParamsOfNavigator() {
-        if (_params == null) {
-            _params = new ParamsOfNavigator<>(this);
-            _params._mode = ParamsOfNavigator.MODE_EDITOR;
-        }
-        return _params;
+    public boolean validateWithNavigator(String result) {
+        return true;
     }
+
+    @Override
+    public int getReturnStatus() {
+        return _returnStatus;
+    }
+
+    @Override
+    public String getReturnValue() {
+        return _returnValue;
+    }
+    
+    int _returnStatus = INavigator.RETURN_STATUS_NOTSET;
+    String _returnValue = null;
 }

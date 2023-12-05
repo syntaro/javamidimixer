@@ -39,7 +39,7 @@ public class MX35Process extends MXReceiver implements MXSettingTarget {
 
     @Override
     public String getReceiverName() {
-        return "Module Mixer";
+        return "CC Editor";
     }
 
     @Override
@@ -48,7 +48,7 @@ public class MX35Process extends MXReceiver implements MXSettingTarget {
     }
 
     @Override
-    protected void processMXMessageImpl(MXMessage message) {
+    public void processMXMessage(MXMessage message) {
         sendToNext(message);
     }
 

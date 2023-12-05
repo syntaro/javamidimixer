@@ -48,13 +48,13 @@ import javax.swing.tree.TreePath;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.async.Transaction;
+import jp.synthtarou.midimixer.libs.navigator.INavigator;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXSwingFolderBrowser;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
-import jp.synthtarou.midimixer.libs.navigator.ParamsOfNavigator;
 import jp.synthtarou.midimixer.windows.MXLIB02VST3;
 
 /**
@@ -570,7 +570,7 @@ public class MX80Panel extends javax.swing.JPanel {
         filter._stopAllFile = true;
         MXSwingFolderBrowser browse = new MXSwingFolderBrowser(new File("C:\\Program Files"), filter, null);
         MXModalFrame.showAsDialog(this, browse, "Select and Enter");
-        FileList selected = browse.getParamsOfNavigator().getApprovedValue();
+        FileList selected = browse.getReturnValue();
         if (selected != null) {
             for (File f : selected) {
                 if (f != null) {
@@ -633,19 +633,21 @@ public class MX80Panel extends javax.swing.JPanel {
         filter.addExtension("VST3");
         MXSwingFolderBrowser browse = new MXSwingFolderBrowser(new File("C:\\Program Files"), filter, null);
         MXModalFrame.showAsDialog(this, browse, "Select and Enter");
-        FileList selected = browse.getParamsOfNavigator().getApprovedValue();
-        if (selected != null) {
-            try {
-                for (File path : selected) {
-                    String textPath = path.toString();
-                    if (MX80Process.getInstance()._listSkip.contains(textPath) == false) {
-                        addSkip(textPath);
+        if (browse.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {            
+            FileList selected = browse.getReturnValue();
+            if (selected != null) {
+                try {
+                    for (File path : selected) {
+                        String textPath = path.toString();
+                        if (MX80Process.getInstance()._listSkip.contains(textPath) == false) {
+                            addSkip(textPath);
+                        }
                     }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }        }
-
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }        
+            }
+        }
     }//GEN-LAST:event_jButtonAddSkipBrowseActionPerformed
 
     private void jButtonStartRescanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonStartRescanActionPerformed

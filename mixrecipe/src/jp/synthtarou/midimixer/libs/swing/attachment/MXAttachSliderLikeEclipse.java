@@ -101,9 +101,9 @@ public class MXAttachSliderLikeEclipse extends BasicSliderUI {
         }
         if (arcLeft < arcRight - 2) {
             if (_itsSwitch) {
-                g2.setColor(MXUtil.mixedColor(MXUtil.mixedColor(Color.green, Color.white, 80), Color.orange, 80));
+                g2.setColor(MXUtil.mixtureColor(Color.green, 10, Color.white, 40, Color.orange, 80));
             } else {
-                g2.setColor(MXUtil.mixedColor(Color.pink, Color.yellow, 60));
+                g2.setColor(MXUtil.mixtureColor(Color.pink, 40, Color.yellow, 60));
             }
             g2.fillRoundRect(arcLeft, arcTop, arcRight - arcLeft, arcBottom - arcTop, arc, arc);
         }
@@ -164,13 +164,13 @@ public class MXAttachSliderLikeEclipse extends BasicSliderUI {
 
         if (arcLeft < arcRight) {
             if (_itsSwitch) {
-                g2.setColor(MXUtil.mixedColor(MXUtil.mixedColor(Color.green, Color.white, 40), Color.yellow, 70));
+                g2.setColor(MXUtil.mixtureColor(Color.green, 60, Color.white, 40, Color.yellow, 140));
             } else {
                 g2.setColor(Color.blue);
             }
             g2.fillRoundRect(arcLeft, arcTop, arcRight - arcLeft, arcBottom - arcTop, arc, arc);
             if (_itsSwitch) {
-                g2.setColor(MXUtil.mixedColor(MXUtil.mixedColor(Color.blue, Color.white, 20), Color.yellow, 20));
+                g2.setColor(MXUtil.mixtureColor(Color.blue, 80, Color.white, 20, Color.yellow, 40));
             } else {
                 g2.setColor(Color.white);
             }

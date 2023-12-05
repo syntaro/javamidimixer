@@ -18,6 +18,7 @@ package jp.synthtarou.midimixer.libs.navigator;
 
 import java.awt.Dimension;
 import javax.swing.JPanel;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 
 /**
@@ -34,8 +35,8 @@ public class NavigatorForList<T> extends javax.swing.JPanel implements INavigato
         model.addNameAndValue("VWX", "vwxyz");
         
         NavigatorForList<String> picker = new NavigatorForList<>(model, 2);
-        NavigatorUtil.showPrompt(null, picker);
-        System.out.println(picker.getParamsOfNavigator().getApprovedValue());
+        MXUtil.showAsDialog(null, picker, "Navigator for List");
+        System.out.println(picker.getReturnStatus() + " = " + picker.getReturnValue());
     }
 
     
@@ -129,8 +130,9 @@ public class NavigatorForList<T> extends javax.swing.JPanel implements INavigato
         if (!_initDone) {
             return;
         }
-        getParamsOfNavigator().closeWithCancel(this);
-        NavigatorUtil.closeOwnerWindow(this);
+        _returnStatus = INavigator.RETURN_STATUS_CANCELED;
+        _returnValue = null;
+        MXUtil.getOwnerWindow(this).setVisible(false);
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
     private void jButtonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOKActionPerformed
@@ -139,9 +141,9 @@ public class NavigatorForList<T> extends javax.swing.JPanel implements INavigato
         }
         int sel = jListChoise.getSelectedIndex();
         if (sel >= 0) {
-            getParamsOfNavigator().closeWithApprove(this, _listChoise.valueOfIndex(sel));
-        }else { 
-            getParamsOfNavigator().closeWithApprove(this, null);
+            _returnValue = _listChoise.valueOfIndex(sel);
+            _returnStatus = INavigator.RETURN_STATUS_APPROVED;
+            MXUtil.getOwnerWindow(this).setVisible(false);
         }
     }//GEN-LAST:event_jButtonOKActionPerformed
 
@@ -170,18 +172,30 @@ public class NavigatorForList<T> extends javax.swing.JPanel implements INavigato
     }
 
     @Override
-    public String getNavigatorTitle() {
-        return "Choise"; 
+    public int getNavigatorType() {
+        return INavigator.TYPE_SELECTOR;
     }
 
-    ParamsOfNavigator<T> _params;
-    
     @Override
-    public synchronized  ParamsOfNavigator<T> getParamsOfNavigator() {
-        if (_params == null) {
-            _params = new ParamsOfNavigator<>(this);
-            _params._mode = ParamsOfNavigator.MODE_CHOOSER;
-        }
-        return _params;
+    public boolean isNavigatorRemovable() {
+        return false;
     }
+
+    @Override
+    public boolean validateWithNavigator(T result) {
+        return true;
+    }
+
+    @Override
+    public int getReturnStatus() {
+        return _returnStatus;
+    }
+
+    @Override
+    public T getReturnValue() {
+        return _returnValue;
+    }
+
+    int _returnStatus = INavigator.RETURN_STATUS_NOTSET;
+    T _returnValue = null;
 }

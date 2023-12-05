@@ -203,7 +203,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
                     if (newAssign >= 0) {
                         if (output.isPortAssigned(newAssign)) {
                             synchronized(MXTiming.mutex) {
-                                output.allNoteOffFromPort(new MXTiming(), newAssign);
+                                output.allNoteOffFromPort(null, newAssign);
                             }
                         }
                         output.setPortAssigned(newAssign, !output.isPortAssigned(newAssign));
@@ -211,7 +211,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
                         output.resetPortAssigned();
                     }
                     if (newAssign >= 0 && output.openOutput(0) == false) {
-                        JOptionPane.showMessageDialog(MX60MidiOutListPanel.this, "Couldn't open " + text);
+                        JOptionPane.showMessageDialog(MX60MidiOutListPanel.this, "Error when opening " + text);
                     }
                     MX60MidiOutListPanel.this.updateDeviceTable();
                 }

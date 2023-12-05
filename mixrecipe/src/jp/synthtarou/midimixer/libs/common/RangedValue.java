@@ -58,10 +58,10 @@ public class RangedValue {
 
     static double calcPosition(int value, int min, int max) {
         if (min <= max) {
-            int count = max - min + 1;
+            int count = max - min;
             return (value - min) * 1.0 / count;
         } else {
-            int count = min - max + 1;
+            int count = min - max;
             return (min - value) * 1.0 / count;
         }
     }
@@ -79,16 +79,9 @@ public class RangedValue {
         _position = position;
     }
 
-    public RangedValue modifyRangeTo(int newMin, int newMax) {
+    public RangedValue changeRange(int newMin, int newMax) {
         if (newMin == _min && newMax == _max) {
             return this;
-        }
-
-        int count;
-        if (newMin < newMax) {
-            count = newMax - newMin + 1;
-        } else {
-            count = newMin - newMax + 1;
         }
 
         int newValue;
@@ -96,21 +89,24 @@ public class RangedValue {
         if (newMin < newMax) {
             int roomCountTo = newMax - newMin + 1;
             double toD = _position * roomCountTo;
+            
+            double multi = (double) roomCountTo / _count;
 
-            double multi = (double) roomCountTo / this._count;
-            multi--;
-            toD += multi / 2;
-
-            newValue = newMin + (int) Math.round(toD);
+            newValue = newMin + (int) Math.floor(toD);
+            
+            if (newValue > newMax) {
+                newValue = newMax;
+            }
         } else {
             int roomCountTo = newMin - newMax + 1;
             double toD = _position * roomCountTo;
 
-            double multi = (double) roomCountTo / this._count;
-            multi--;
-            toD += multi / 2;
+            double multi = (double) roomCountTo / _count;
 
-            newValue = newMin - (int) Math.round(toD);
+            newValue = newMin - (int) Math.floor(toD);
+            if (newValue < newMin) {
+                newValue = newMin;
+            }
         }
 
         if (newMin == 0 && newMax == 127) {
@@ -131,8 +127,7 @@ public class RangedValue {
 
         if (oldMin <= oldMax) {
             for (int i = oldMin; i <= oldMax; ++i) {
-                sample = sample.updateValue(i);
-                RangedValue calc = sample.modifyRangeTo(newMin, newMax);
+                RangedValue calc = sample.changeValue(i).changeRange(newMin, newMax);
                 Integer x = count.get(calc._var);
                 if (x == null) {
                     x = 0;
@@ -141,8 +136,7 @@ public class RangedValue {
             }
         } else {
             for (int i = oldMin; i >= oldMax; --i) {
-                sample = sample.updateValue(i);
-                RangedValue calc = sample.modifyRangeTo(newMin, newMax);
+                RangedValue calc = sample.changeValue(i).changeRange(newMin, newMax);
                 Integer x = count.get(calc._var);
                 if (x == null) {
                     x = 0;
@@ -230,11 +224,11 @@ public class RangedValue {
     public static void main(String[] args) {
         MXUtil.fixConsoleEncoding();
 
-        test(0, 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3, 0, 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2);
-        test(0, 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2, 0, 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3);
+        //test(0, 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3, 0, 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2);
+        //test(0, 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2, 0, 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3 * 3);
 
-        int offset = 1000;
-        int newOffset = 1000;
+        int offset = 0;
+        int newOffset = 0;
 
         test(offset + 0, offset + 127, newOffset + 0, newOffset + 32767);
         test(offset + 0, offset + 32767, newOffset + 0, newOffset + 127);
@@ -248,14 +242,14 @@ public class RangedValue {
     }
 
     public RangedValue increment() {
-        return updateValue(_var + (_min < _max ? 1 : -1));
+        return changeValue(_var + (_min < _max ? 1 : -1));
     }
 
     public RangedValue decrement() {
-        return updateValue(_var + (_min < _max ? -1 : 1));
+        return changeValue(_var + (_min < _max ? -1 : 1));
     }
 
-    public RangedValue updateValue(int value) {
+    public RangedValue changeValue(int value) {
         if (_var == value) {
             return this;
         }
@@ -280,7 +274,24 @@ public class RangedValue {
         return new RangedValue(value, _min, _max);
     }
 
+    @Override
     public String toString() {
         return "" + _var + " (" + _min + "-"  + _max + ")";
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof RangedValue) { 
+            RangedValue x = (RangedValue)obj;
+            if (x._var == _var) {
+                if (x._min == _min && x._max == _max) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

@@ -93,7 +93,7 @@ public class MXMidiConsole implements ListModel<String> {
                 if (gray) {
                     back = c.getBackground();
                     if (back != null) {
-                        back = MXUtil.mixedColor(back, Color.white, 20);
+                        back = MXUtil.mixtureColor(back, 20, Color.white, 80);
                     }
                 }
                 if (back != null) {

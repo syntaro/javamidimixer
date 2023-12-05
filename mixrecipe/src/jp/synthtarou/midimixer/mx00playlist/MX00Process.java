@@ -118,7 +118,7 @@ public class MX00Process extends MXReceiver implements MXSettingTarget {
     }
 
     @Override
-    protected  void processMXMessageImpl(MXMessage message) {
+    public   void processMXMessage(MXMessage message) {
     }
     
     public void updatePianoKeys(int dword) {

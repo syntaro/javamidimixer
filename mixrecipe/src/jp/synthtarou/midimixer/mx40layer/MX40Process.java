@@ -80,7 +80,8 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
         super.sendToNext(message);
     }
 
-    protected void processMXMessageImpl(MXMessage message) {
+    @Override
+    public void processMXMessage(MXMessage message) {
         _inputInfo.updateVisitant16WithMessage(message);
         _inputInfo.mergeVisitant16WithVisitant(message);
         MXTiming timing = message._timing;
@@ -138,7 +139,7 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
                 if (col.processByGroup(message)) {
                     if (command == MXMidi.COMMAND_CH_NOTEON) {
                         _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
-                            public void onNoteOffEvent(MXMessage target) {
+                            public void onNoteOffEvent(MXTiming timing, MXMessage target) {
                                 MXMessage msg = MXMessageFactory.fromShortMessage(target.getPort(), 
                                         MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(), 
                                         target.getGate()._var, 0);
@@ -155,11 +156,11 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
         if (!dispatched) {
             if (command == MXMidi.COMMAND_CH_NOTEON) {
                 _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
-                    public void onNoteOffEvent(MXMessage target) {
+                    public void onNoteOffEvent(MXTiming timing, MXMessage target) {
                         MXMessage msg = MXMessageFactory.fromShortMessage(target.getPort(), 
                                 MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(), 
                                 target.getGate()._var, 0);
-                        msg._timing = target._timing;
+                        msg._timing = timing;
                         sendToNext(msg);
                     }
                 });

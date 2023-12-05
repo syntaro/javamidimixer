@@ -16,12 +16,14 @@
  */
 package jp.synthtarou.midimixer.libs.midi.smf;
 
+import jp.synthtarou.midimixer.libs.midi.MXTiming;
+
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public interface SMFCallback {
-    public void smfPlayNote(SMFMessage e);
+    public void smfPlayNote(MXTiming timing, SMFMessage e);
     public void smfStarted();
     public void smfStoped(boolean fineFinish);
     public void smfProgress(int pos, int finish);

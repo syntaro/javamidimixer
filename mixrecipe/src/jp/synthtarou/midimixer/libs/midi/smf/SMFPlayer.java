@@ -24,18 +24,19 @@ import javax.sound.midi.InvalidMidiDataException;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXTiming;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class SMFPlayer {
-    
+
     private SMFMessageList _listMessage;
     private int _position;
     private int _smpteFormat = -99999;
     private int _resolution = 96;
-    private File _lastFile; 
+    private File _lastFile;
     boolean _paraPlay = false;
 
     public SMFPlayer() {
@@ -52,27 +53,27 @@ public class SMFPlayer {
         _resolution = parser.getFileInfo().getResolution();
         _smpteFormat = parser.getFileInfo().getSmpteFormat();
     }
-    
+
     public File getLastFile() {
         return _lastFile;
     }
 
-    public SMFMessageList listMessage() { 
+    public SMFMessageList listMessage() {
         return _listMessage;
     }
 
     boolean _breakSequence;
-    
+
     public void startPlayer(SMFCallback callback) {
         if (isRunning()) {
-            stopPlayer();            
+            stopPlayer();
         }
         _callback = callback;
         Thread t = MXThreadList.newThread("SMFPlayer", new Runnable() {
             @Override
             public void run() {
                 _callback.smfStarted();
-                allNoteOff();
+                allNoteOff(null);
                 try {
                     resetControllers();
                     if (_smpteFormat > 0) {
@@ -90,7 +91,7 @@ public class SMFPlayer {
                         notifyAll();
                     }
                 }
-                allNoteOff();
+                allNoteOff(null);
                 _callback.smfStoped(_breakSequence ? false : true);
             }
         });
@@ -101,13 +102,13 @@ public class SMFPlayer {
 
     public void stopPlayer() {
         _breakSequence = true;
-        synchronized(this) {        
+        synchronized (this) {
             notifyAll();
         }
-        while(_isRunning) {
+        while (_isRunning) {
             try {
                 Thread.sleep(100);
-            }catch(InterruptedException e) {
+            } catch (InterruptedException e) {
             }
         }
     }
@@ -121,13 +122,13 @@ public class SMFPlayer {
         SMFMessage[] firstBank0 = new SMFMessage[16];
         SMFMessage[] firstBank32 = new SMFMessage[16];
         firstNote = new SMFMessage[16];
-    
+
         int doneCh = 0;
         int pos = _position;
 
         while (pos < list.size()) {
             SMFMessage smf = list.get(pos);
-            int status  = smf.getStatus();
+            int status = smf.getStatus();
             int command = status & 0xf0;
             int channel = status & 0x0f;
             int data1 = smf.getData1();
@@ -153,15 +154,18 @@ public class SMFPlayer {
 
         boolean didProgramChange = false;
 
-        for (int ch = 0; ch < 16; ++ch) {
-            if (firstBank0[ch] != null && firstBank32[ch] != null) {
-                smfPlayNote(firstBank0[ch]);
-                smfPlayNote(firstBank32[ch]);
-                didProgramChange = true;
-            }
-            if (firstProgram[ch] != null) {
-                smfPlayNote(firstProgram[ch]);
-                didProgramChange = true;
+        synchronized (MXTiming.mutex) {
+            MXTiming start = new MXTiming();
+            for (int ch = 0; ch < 16; ++ch) {
+                if (firstBank0[ch] != null && firstBank32[ch] != null) {
+                    smfPlayNote(start, firstBank0[ch]);
+                    smfPlayNote(start, firstBank32[ch]);
+                    didProgramChange = true;
+                }
+                if (firstProgram[ch] != null) {
+                    smfPlayNote(start, firstProgram[ch]);
+                    didProgramChange = true;
+                }
             }
         }
 
@@ -189,8 +193,8 @@ public class SMFPlayer {
 
         int pos = _position;
         if (_paraPlay) {
-            
-        }else if (_position == 0) {
+
+        } else if (_position == 0) {
             sendProgramChangeBeforeNote();
         }
 
@@ -199,7 +203,6 @@ public class SMFPlayer {
         long stopWatch = System.currentTimeMillis();
         long alreadySpent = (long) (list.get(pos)._tick * tickPerMilliSecond) / 1000;
         stopWatch -= alreadySpent;
-
 
         while (!_breakSequence && pos < list.size()) {
             long elapsed = (System.currentTimeMillis() - stopWatch);
@@ -216,7 +219,7 @@ public class SMFPlayer {
                 SMFMessage currentEvent = list.get(pos++);
 
                 if (currentEvent.isBinaryMessage() || currentEvent.isMetaMessage()) {
-                    smfPlayNote(currentEvent);
+                    smfPlayNote(null, currentEvent);
                     if (pos >= list.size()) {
                         break;
                     }
@@ -240,7 +243,7 @@ public class SMFPlayer {
                         }
                     }
 
-                    smfPlayNote(currentEvent);
+                    smfPlayNote(null, currentEvent);
                     if (pos >= list.size()) {
                         break;
                     }
@@ -256,7 +259,7 @@ public class SMFPlayer {
                 long nextTick = list.get(pos)._tick;
                 int nextMillis = (int) (nextTick / tickPerMilliSecond - System.currentTimeMillis());
                 long differ = nextMillis - (System.currentTimeMillis() - stopWatch);;
-                synchronized(this) {
+                synchronized (this) {
                     if (differ >= 10) {
                         wait(differ - 5);
                     } else {
@@ -276,8 +279,8 @@ public class SMFPlayer {
 
         int pos = _position;
         if (_paraPlay) {
-            
-        }else if (_position == 0) {
+
+        } else if (_position == 0) {
             sendProgramChangeBeforeNote();
         }
 
@@ -306,7 +309,7 @@ public class SMFPlayer {
                     if (currentEvent.getBinary()[0] == 0) {
                         continue;
                     }
-                    smfPlayNote(currentEvent);
+                    smfPlayNote(null, currentEvent);
                     if (pos >= list.size()) {
                         break;
                     }
@@ -330,7 +333,7 @@ public class SMFPlayer {
                         }
                     }
 
-                    smfPlayNote(currentEvent);
+                    smfPlayNote(null, currentEvent);
                     if (pos >= list.size()) {
                         break;
                     }
@@ -346,7 +349,7 @@ public class SMFPlayer {
                 long nextTick = list.get(pos)._tick;
                 long nextMillis = tempo.TicksToMicroseconds(nextTick) / 1000;
                 long differ = nextMillis - (System.currentTimeMillis() - stopWatch);;
-                synchronized(this) {
+                synchronized (this) {
                     if (differ >= 10) {
                         wait(differ - 5);
                     } else {
@@ -367,21 +370,24 @@ public class SMFPlayer {
             if (_forceSingleChannel >= 0) {
                 start = _forceSingleChannel;
                 end = _forceSingleChannel;
-            }
-            for (int i = start; i <= end; ++i) {
-                SMFMessage message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
-                smfPlayNote(message);
-                message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 127);
-                smfPlayNote(message);
-                message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_EXPRESSION, 127);
-                smfPlayNote(message);
-                message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_CHANNEL_VOLUME, 127);
-                smfPlayNote(message);
+            }            
+            synchronized (MXTiming.mutex) {
+                MXTiming timing = new MXTiming();
+                for (int i = start; i <= end; ++i) {
+                    SMFMessage message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
+                    smfPlayNote(timing, message);
+                    message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 127);
+                    smfPlayNote(timing, message);
+                    message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_EXPRESSION, 127);
+                    smfPlayNote(timing, message);
+                    message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_CHANNEL_VOLUME, 127);
+                    smfPlayNote(timing, message);
+                }
             }
         }
     }
 
-    public void allNoteOff() {
+    public void allNoteOff(MXTiming timing) {
         if (_paraPlay) {
             return;
         }
@@ -390,14 +396,19 @@ public class SMFPlayer {
             chFrom = _forceSingleChannel;
             chTo = _forceSingleChannel;
         }
-        for (int i = chFrom; i <= chTo; ++i) {
-            SMFMessage message;
-            message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
-            smfPlayNote(message);
-            message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 127);
-            smfPlayNote(message);
-            message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLSOUNDOFF, 127);
-            smfPlayNote(message);
+        synchronized (MXTiming.mutex) {
+            if (timing == null) {
+                timing = new MXTiming();
+            }
+            for (int i = chFrom; i <= chTo; ++i) {
+                SMFMessage message;
+                message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
+                smfPlayNote(timing, message);
+                message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 127);
+                smfPlayNote(timing, message);
+                message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLSOUNDOFF, 127);
+                smfPlayNote(timing, message);
+            }
         }
     }
 
@@ -419,78 +430,83 @@ public class SMFPlayer {
     public int getLength() {
         return _listMessage.size();
     }
-    
+
     boolean _noteOnly = false;
     int _forceSingleChannel = -1;
     SMFCallback _callback;
-    
-    public void smfPlayNote(SMFMessage smf) {
+
+    public void smfPlayNote(MXTiming timing, SMFMessage smf) {
         try {
-            if (smf.isBinaryMessage()) {
-                _callback.smfPlayNote(smf);
-            }else {
-                int dword = smf.toDwordMessage();
-                if (_noteOnly) {
-                    boolean skip = true;
+            synchronized (MXTiming.mutex) {
+                if (timing == null) {
+                    timing = new MXTiming();
+                }
+                if (smf.isBinaryMessage()) {
+                    _callback.smfPlayNote(timing, smf);
+                } else {
+                    int dword = smf.toDwordMessage();
+                    if (_noteOnly) {
+                        boolean skip = true;
 
-                    int status = (dword >> 16) & 0xff;
-                    int data1 = (dword >> 8) & 0xff;
-                    int data2 = (dword) & 0xff;
+                        int status = (dword >> 16) & 0xff;
+                        int data1 = (dword >> 8) & 0xff;
+                        int data2 = (dword) & 0xff;
 
-                    if (_forceSingleChannel >= 0) {
-                        if (status >= 0x80 && status <= 0xef) { 
-                            status = status & 0xf0 | _forceSingleChannel;
+                        if (_forceSingleChannel >= 0) {
+                            if (status >= 0x80 && status <= 0xef) {
+                                status = status & 0xf0 | _forceSingleChannel;
+                            }
+                        }
+
+                        switch (status & 0xf0) {
+                            case MXMidi.COMMAND_CH_NOTEON:
+                            case MXMidi.COMMAND_CH_NOTEOFF:
+                            case MXMidi.COMMAND_CH_PITCHWHEEL:
+                                skip = false;
+                                break;
+                            case MXMidi.COMMAND_CH_CONTROLCHANGE:
+                                if (data1 == MXMidi.DATA1_CC_DAMPERPEDAL
+                                        || data1 == MXMidi.DATA1_CC_MODULATION
+                                        || data1 == MXMidi.DATA1_CC_ALLNOTEOFF
+                                        || data1 == MXMidi.DATA1_CC_ALLSOUNDOFF) {
+                                    skip = false;
+                                }
+                                break;
+                        }
+                        if (skip) {
+                            return;
                         }
                     }
-
-                    switch(status & 0xf0) {
-                        case MXMidi.COMMAND_CH_NOTEON:
-                        case MXMidi.COMMAND_CH_NOTEOFF:
-                        case MXMidi.COMMAND_CH_PITCHWHEEL:
-                            skip = false;
-                            break;
-                        case MXMidi.COMMAND_CH_CONTROLCHANGE:
-                            if (data1 == MXMidi.DATA1_CC_DAMPERPEDAL
-                            || data1 == MXMidi.DATA1_CC_MODULATION
-                            || data1 == MXMidi.DATA1_CC_ALLNOTEOFF
-                            || data1 == MXMidi.DATA1_CC_ALLSOUNDOFF) {
-                                skip = false;
-                            }
-                            break;
-                    }
-                    if (skip) {
-                        return;
-                    }
+                    _callback.smfPlayNote(timing, smf);
                 }
-                _callback.smfPlayNote(smf);
             }
-        }catch(Throwable e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }
-    
+
     public void setForceSingleChannel(int ch) {
         _forceSingleChannel = ch;
     }
-    
+
     public void setFilterNoteOnly(boolean only) {
         _noteOnly = only;
     }
-    
+
     public void setStartPosition(int pos) {
         _position = pos;
     }
-    
+
     public int getPositionOfFirstNote() {
         int firstNoetPos = 0;
         ArrayList<SMFMessage> list = listMessage().listAll();
         int pos = 0;
         for (SMFMessage smf : list) {
-            int command = smf.getStatus() & 0xf0; 
+            int command = smf.getStatus() & 0xf0;
             if (command == MXMidi.COMMAND_CH_NOTEON) {
                 return pos;
             }
-            pos ++;
+            pos++;
         }
         return 0;
     }

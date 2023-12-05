@@ -24,14 +24,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.net.URI;
 import java.util.Collection;
-/*
-import javafx.application.ConditionalFeature;
-import javafx.application.Platform;
-import javafx.embed.swing.JFXPanel;
-import javafx.scene.Group;
-import javafx.scene.Scene;
-import javafx.scene.input.TouchEvent;
-*/
 import javax.swing.Box;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -41,6 +33,7 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.themes.ThemeManagerDialog;
 import jp.synthtarou.midimixer.mx10input.MX10View;
 import jp.synthtarou.midimixer.mx35cceditor.MX35View;
+import jp.synthtarou.midimixer.mx36ccmapping.MX36View;
 import jp.synthtarou.midimixer.mx60output.MX60View;
 import jp.synthtarou.midimixer.mx80vst.MX80Panel;
 
@@ -289,6 +282,10 @@ public class MXMainWindow extends javax.swing.JFrame {
                 if (view instanceof MX35View) {
                     MX35View v35 = (MX35View) view;
                     v35.refreshTable();
+                }
+                if (view instanceof MX36View) {
+                    MX36View v36 = (MX36View) view;
+                    v36.refreshTree();
                 }
             }
         }

@@ -35,10 +35,12 @@ import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInForPlayer;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFCallback;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
+import jp.synthtarou.midimixer.libs.navigator.INavigator;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
@@ -480,7 +482,10 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
 
             MXSwingFolderBrowser folders = new MXSwingFolderBrowser(root, filter, null);
             MXModalFrame.showAsDialog(this, folders, "Select MIDI File");
-            FileList selected = folders.getParamsOfNavigator().getApprovedValue();
+            if (folders.getReturnStatus() != INavigator.RETURN_STATUS_APPROVED) {
+                return;
+            }
+            FileList selected = folders.getReturnValue();
             if (selected == null) {
                 return;
             }
@@ -711,7 +716,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     FileWithId _lastPlayeed = null;
 
     @Override
-    public void smfPlayNote(SMFMessage e) {
+    public void smfPlayNote(MXTiming timing, SMFMessage e) {
     }
 
     @Override

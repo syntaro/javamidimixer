@@ -26,7 +26,7 @@ import javax.swing.event.ListDataListener;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
-import jp.synthtarou.midimixer.libs.midi.MXMidiWrapList;
+import jp.synthtarou.midimixer.libs.midi.MXWrapListFactory;
 import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 
 /**
@@ -36,7 +36,7 @@ import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 public class MX70SysexPanel extends javax.swing.JPanel {
     MXMidiConsole _list;
     SysEXFile _file;
-    MXWrapList<Integer> _listPort = MXMidiWrapList.listupPortAssigned(null);
+    MXWrapList<Integer> _listPort = MXWrapListFactory.listupPort(null);
 
     /**
      * Creates new form MX70SysexPanel

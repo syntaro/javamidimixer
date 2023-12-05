@@ -23,6 +23,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
+import jp.synthtarou.midimixer.libs.midi.MXTiming;
 
 /**
  *
@@ -256,7 +257,8 @@ public class MX40Layer {
             MXMessage target = MXMessageFactory.fromShortMessage(port_trans, MXMidi.COMMAND_CH_NOTEOFF + channel_trans, data1_trans, 0);
             target._timing = message._timing;
             _noteOff.setHandler(message, target, new MXNoteOffWatcher.Handler() {
-                public void onNoteOffEvent(MXMessage target) {
+                public void onNoteOffEvent(MXTiming timing, MXMessage target) {
+                    target._timing = timing;
                     _process.sendToNext(target);
                 }
             });

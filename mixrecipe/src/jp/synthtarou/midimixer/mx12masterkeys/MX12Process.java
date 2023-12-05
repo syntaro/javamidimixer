@@ -23,6 +23,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
+import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 
@@ -123,7 +124,8 @@ public class MX12Process extends MXReceiver implements MXSettingTarget {
         }
 
         @Override
-        public void onNoteOffEvent(MXMessage target) {
+        public void onNoteOffEvent(MXTiming timing, MXMessage target) {
+            target._timing = timing;
             MXMain.getMain().messageDispatch(target, _receiver);
             if (_view != null) {
                 _view._piano.noteOff(target.getGate()._var);
@@ -183,7 +185,7 @@ public class MX12Process extends MXReceiver implements MXSettingTarget {
         sendToNext(message);
     }
     
-    protected void processMXMessageImpl(MXMessage message) {
+    public void processMXMessage(MXMessage message) {
     }
 
     public void mouseMessage(MXMessage message) {

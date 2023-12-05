@@ -55,7 +55,7 @@ public class MX10Process extends MXReceiver implements MXSettingTarget {
     }
     
     @Override
-    protected void processMXMessageImpl(MXMessage message) {
+    public void processMXMessage(MXMessage message) {
         if (isUsingThisRecipe()) {
             if (_data.isMarkedToSkip(message)) {
                 return;

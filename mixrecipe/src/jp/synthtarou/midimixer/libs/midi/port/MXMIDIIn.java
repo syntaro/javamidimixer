@@ -37,12 +37,13 @@ import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
  * @author Syntarou YOSHIDA
  */
 public class MXMIDIIn {
+
     public static final MXMIDIInForPlayer INTERNAL_PLAYER = new MXMIDIInForPlayer();
-    
+
     private String _name;
     private MXDriver _driver;
     private int _driverOrder;
-    
+
     public MXDriver getDriver() {
         return _driver;
     }
@@ -53,9 +54,9 @@ public class MXMIDIIn {
 
     public void close() {
         MXMIDIInManager manager = MXMIDIInManager.getManager();
-        synchronized(MXTiming.mutex) {
+        synchronized (MXTiming.mutex) {
             if (isOpen()) {
-                allNoteOff();
+                allNoteOff(null);
                 manager.onClose(this);
                 _driver.InputDeviceClose(_driverOrder);
             }
@@ -63,12 +64,12 @@ public class MXMIDIIn {
     }
 
     private MXNoteOffWatcher _myNoteOff = new MXNoteOffWatcher();
-    
+
     private boolean[] _assigned;
     private int _assignCount = 0;
     private boolean[] _toMaster = new boolean[16];
     private MXVisitant16 _visitant16 = new MXVisitant16();
-    
+
     public boolean isOpen() {
         if (this instanceof MXMIDIInForPlayer) {
             return true;
@@ -78,7 +79,7 @@ public class MXMIDIIn {
         }
         return _driver.InputDeviceIsOpen(_driverOrder);
     }
-    
+
     public MXMIDIIn(MXDriver driver, int driverOrder) {
         _name = driver.InputDeviceName(driverOrder);
         _assigned = new boolean[MXAppConfig.TOTAL_PORT_COUNT];
@@ -92,39 +93,39 @@ public class MXMIDIIn {
             MXDriver_UWP._instance.addInputCatalog(this);
         }*/
     }
-    
+
     public boolean isPortAssigned(int port) {
         return _assigned[port];
     }
-    
+
     public int getPortAssignCount() {
         return _assignCount;
     }
-    
+
     public String getPortAssignedAsText() {
         StringBuffer assigned = new StringBuffer();
-        for (int p = 0; p < MXAppConfig.TOTAL_PORT_COUNT; ++ p) {
+        for (int p = 0; p < MXAppConfig.TOTAL_PORT_COUNT; ++p) {
             if (isPortAssigned(p)) {
                 if (assigned.length() > 0) {
                     assigned.append(",");
                 }
-                assigned.append((char)('A' + p));
+                assigned.append((char) ('A' + p));
             }
         }
         return assigned.toString();
     }
-    
+
     public void setPortAssigned(int port, boolean flag) {
-        synchronized(MXTiming.mutex) {
+        synchronized (MXTiming.mutex) {
             if (_assigned[port] != flag) {
                 if (!flag) {
-                    _myNoteOff.allNoteOffToPort(new MXTiming(), port);
+                    _myNoteOff.allNoteOffToPort(null, port);
                 }
                 _assigned[port] = flag;
-                int x =  0;
-                for (int i = 0; i < _assigned.length; ++ i) {
+                int x = 0;
+                for (int i = 0; i < _assigned.length; ++i) {
                     if (_assigned[i]) {
-                        x ++;
+                        x++;
                     }
                 }
                 _assignCount = x;
@@ -132,30 +133,30 @@ public class MXMIDIIn {
             }
         }
     }
-    
+
     public void resetPortAssigned() {
-        synchronized(MXTiming.mutex) {
-            for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
+        synchronized (MXTiming.mutex) {
+            for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++i) {
                 setPortAssigned(i, false);
             }
         }
-    }    
-    
+    }
+
     public boolean isToMaster(int channel) {
         return _toMaster[channel];
     }
-    
+
     public void setToMaster(int channel, boolean toMaster) {
         _toMaster[channel] = toMaster;
     }
 
     public String getMasterList() {
         StringBuffer str = new StringBuffer();
-        for (int ch = 0; ch < 16; ++ ch) {
+        for (int ch = 0; ch < 16; ++ch) {
             if (isToMaster(ch)) {
                 if (str.length() == 0) {
                     str.append(Integer.toString(ch));
-                }else {
+                } else {
                     str.append(",");
                     str.append(Integer.toString(ch));
                 }
@@ -163,7 +164,7 @@ public class MXMIDIIn {
         }
         return str.toString();
     }
-    
+
     public void setMasterList(String text) {
         if (text == null) {
             return;
@@ -178,47 +179,46 @@ public class MXMIDIIn {
             }
         }
     }
-    
+
     /**
-     * 
-     * @return 
+     *
+     * @return
      */
     public String getName() {
         return _name;
     }
 
     /**
-     * 
-     * @return 
+     *
+     * @return
      */
     public String toString() {
         return _name;
     }
 
-    public void allNoteOff() {
-        MXTiming timing = null;
-        synchronized(MXTiming.mutex) {
-            timing = new MXTiming();
+    public void allNoteOff(MXTiming timing) {
+        synchronized (MXTiming.mutex) {
+            if (timing == null) {
+                timing = new MXTiming();
+            }
             _myNoteOff.allNoteOff(timing);
-        }
-        for (int ch = 0; ch < 16; ++ ch) {
-            int status  = MXMidi.COMMAND_CH_CONTROLCHANGE | ch;
-            int data1 = MXMidi.DATA1_CC_ALLNOTEOFF;
-            receiveShortMessage(timing, (status << 16) | (data1 << 8));
-            data1 = MXMidi.DATA1_CC_ALLSOUNDOFF;
-            receiveShortMessage(timing, (status << 16) | (data1 << 8));
+            for (int ch = 0; ch < 16; ++ch) {
+                int status = MXMidi.COMMAND_CH_CONTROLCHANGE | ch;
+                int data1 = MXMidi.DATA1_CC_ALLNOTEOFF;
+                receiveShortMessage(timing, (status << 16) | (data1 << 8));
+                data1 = MXMidi.DATA1_CC_ALLSOUNDOFF;
+                receiveShortMessage(timing, (status << 16) | (data1 << 8));
+            }
         }
     }
 
-    public void allNoteOffToPort(int target) {
-        synchronized(MXTiming.mutex) {
-            _myNoteOff.allNoteOffToPort(new MXTiming(), target);
-        }
+    public void allNoteOffToPort(MXTiming timing, int target) {
+        _myNoteOff.allNoteOffToPort(timing, target);
     }
 
     public boolean openInput(long timeout) {
         MXMIDIInManager manager = MXMIDIInManager.getManager();
-        synchronized(MXTiming.mutex) {
+        synchronized (MXTiming.mutex) {
             if (_driver == null) {
                 return false;
             }
@@ -246,7 +246,7 @@ public class MXMIDIIn {
 
     public String textForMasterChannel() {
         StringBuffer masterMark = new StringBuffer();
-        for (int ch = 0; ch < 16; ++ ch) {
+        for (int ch = 0; ch < 16; ++ch) {
             if (isToMaster(ch)) {
                 if (masterMark.length() != 0) {
                     masterMark.append(", ");
@@ -256,15 +256,15 @@ public class MXMIDIIn {
         }
         return masterMark.toString();
     }
-    
-    public int parseMasteredText(String text){ 
+
+    public int parseMasteredText(String text) {
         if (text == null) {
             return 0;
         }
         String[] array = text.split("[ ,]+");
         int hit = 0;
-        
-        for (int i = 0; i < array.length; ++ i) {
+
+        for (int i = 0; i < array.length; ++i) {
             String parts = array[i];
             if (parts.length() >= 1) {
                 int ch1 = parts.charAt(0) - '0';
@@ -281,12 +281,12 @@ public class MXMIDIIn {
                 if (ch1 >= 1 && ch1 <= 16) {
                     setToMaster(ch1 - 1, true);
                 }
-                hit ++;
+                hit++;
             }
         }
         return hit;
     }
-    
+
     public static final MXReceiver returnReceirer = new MXReceiver() {
         @Override
         public String getReceiverName() {
@@ -299,12 +299,12 @@ public class MXMIDIIn {
         }
 
         @Override
-        protected void processMXMessageImpl(MXMessage message) {
+        public void processMXMessage(MXMessage message) {
             MXTiming timing = new MXTiming();
             MXWrapList<MXMIDIIn> list = MXMIDIInManager.getManager().listAllInput();
-            for (int x = 0;  x < list.size(); ++ x) {
+            for (int x = 0; x < list.size(); ++x) {
                 MXMIDIIn input = list.valueOfIndex(x);
-                for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
+                for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++port) {
                     if (input.isPortAssigned(port) == false) {
                         continue;
                     }
@@ -319,80 +319,81 @@ public class MXMIDIIn {
     public void receiveShortMessage(MXTiming timing, int dword) {
         startMainPath(timing, dword, null);
     }
-    
+
     public void receiveLongMessage(MXTiming timing, byte[] data) {
         startMainPath(timing, -1, data);
     }
 
     private void startMainPath(MXTiming timing, int dword, byte[] data) {
-        int status = (dword >> 16) & 0xff;
-        int data1 = (dword >> 8) & 0xff;
-        int data2 = (dword) & 0xff;
-        
-        int command = status & 0xf0;
-        int channel = status & 0x0f;
-        
-        /*
+        synchronized (MXTiming.mutex) {
+            if (timing == null) {                
+                timing = new MXTiming();
+            }
+            int status = (dword >> 16) & 0xff;
+            int data1 = (dword >> 8) & 0xff;
+            int data2 = (dword) & 0xff;
+
+            int command = status & 0xf0;
+            int channel = status & 0x0f;
+
+            /*
         if (status == 0xf8 || status == 0xfe) {
             return;
         }*/
-        
-        if (command == MXMidi.COMMAND_CH_NOTEON) {
-            if (data2 == 0) {
-                command = MXMidi.COMMAND_CH_NOTEOFF;
-                status = command | channel;
-                dword = (status << 16) | (data1 << 8) | data2;
+            if (command == MXMidi.COMMAND_CH_NOTEON) {
+                if (data2 == 0) {
+                    command = MXMidi.COMMAND_CH_NOTEOFF;
+                    status = command | channel;
+                    dword = (status << 16) | (data1 << 8) | data2;
+                }
             }
-        }
-        if (this == INTERNAL_PLAYER) {
-            MXMain.getMain().getPlayListProcess().updatePianoKeys(dword);
-        }
-
-        else if (command == MXMidi.COMMAND_CH_NOTEOFF) {
             if (this == INTERNAL_PLAYER) {
                 MXMain.getMain().getPlayListProcess().updatePianoKeys(dword);
-            }
-            if (_myNoteOff.raiseHandler(0, timing, status & 0xf, data1)) {
-                return;
-            }
-        }
-        else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_ALLNOTEOFF) {
-            _myNoteOff.allNoteOff(timing);
-        }
-        else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_ALLSOUNDOFF) {
-            _myNoteOff.allNoteOff(timing);
-        }
-
-        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
-            if (isPortAssigned(port) == false) {
-                continue;
-            }
-            MXMessage message = null;
-            if (data == null) {
-                message = MXMessageFactory.fromShortMessage(port, status, data1, data2);
-                if ((status & 0xf0) == MXMidi.COMMAND_CH_NOTEON) {
-                    MXMessage noteon = MXMessageFactory.fromShortMessage(0, status, data1, data2);
-                    noteon._timing = timing;
-                    MXMessage noteoff = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + message.getChannel(), data1, 0);
-                    _myNoteOff.setHandler(noteon, noteoff, new MXNoteOffWatcher.Handler() {
-                        @Override
-                        public void onNoteOffEvent(MXMessage target) {  
-                            MXMain.addOutsideInput(target);
-                            dispatchToPort(target);
-                        }
-                    });
+            } else if (command == MXMidi.COMMAND_CH_NOTEOFF) {
+                if (this == INTERNAL_PLAYER) {
+                    MXMain.getMain().getPlayListProcess().updatePianoKeys(dword);
                 }
-            }else {
-                message = MXMessageFactory.fromBinary(port, data);
+                if (_myNoteOff.raiseHandler(0, timing, status & 0xf, data1)) {
+                    return;
+                }
+            } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_ALLNOTEOFF) {
+                _myNoteOff.allNoteOff(timing);
+            } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_ALLSOUNDOFF) {
+                _myNoteOff.allNoteOff(timing);
             }
-            if (message != null) {
-                message._timing = timing;
-                MXMain.addOutsideInput(message);
-                dispatchToPort(message);
+
+            for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++port) {
+                if (isPortAssigned(port) == false) {
+                    continue;
+                }
+                MXMessage message = null;
+                if (data == null) {
+                    message = MXMessageFactory.fromShortMessage(port, status, data1, data2);
+                    if ((status & 0xf0) == MXMidi.COMMAND_CH_NOTEON) {
+                        MXMessage noteon = MXMessageFactory.fromShortMessage(0, status, data1, data2);
+                        noteon._timing = timing;
+                        MXMessage noteoff = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + message.getChannel(), data1, 0);
+                        _myNoteOff.setHandler(noteon, noteoff, new MXNoteOffWatcher.Handler() {
+                            @Override
+                            public void onNoteOffEvent(MXTiming timing,MXMessage target) {
+                                target._timing = timing;
+                                MXMain.addOutsideInput(target);
+                                dispatchToPort(target);
+                            }
+                        });
+                    }
+                } else {
+                    message = MXMessageFactory.fromBinary(port, data);
+                }
+                if (message != null) {
+                    message._timing = timing;
+                    MXMain.addOutsideInput(message);
+                    dispatchToPort(message);
+                }
             }
         }
     }
-    
+
     static MXQueue1<MXMessage> _messageQueue = new MXQueue1<>();
     static Thread _threadQueue = null;
 
@@ -402,12 +403,12 @@ public class MXMIDIIn {
                 @Override
                 public void run() {
                     while (true) {
-                        try {   
+                        try {
                             MXMessage messsage = _messageQueue.pop();
                             if (message != null) {
                                 dispatchToPortMain(messsage);
                             }
-                        }catch(Exception e) {
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
@@ -419,21 +420,21 @@ public class MXMIDIIn {
         }
         _messageQueue.push(message);
     }
-    
+
     private void dispatchToPortMain(MXMessage message) {
         int port = message.getPort();
-        synchronized(MXTiming.mutex) {
+        synchronized (MXTiming.mutex) {
             if (message.isMessageTypeChannel()) {
                 boolean worked = false;
                 int ch = message.getChannel();
                 int status = message.getStatus();
                 int gate = message.getGate()._var;
-                
+
                 int command = status;
                 if (command >= 0x80 && command <= 0xef) {
                     command = command & 0xf0;
                 }
-    
+
                 MXVisitant visit = _visitant16.get(ch);
 
                 visit.updateVisitantChannel(message);
@@ -454,16 +455,16 @@ public class MXMIDIIn {
                             message = MXMessageFactory.fromCCXMLText(port, "@RPN #GH #GL #VH #VL", ch);
                             message.setVisitant(visit.getSnapShot());
                             dispatchMainPath(message);
-                        }else if (visit.isHaveDataentryNRPN()) {
+                        } else if (visit.isHaveDataentryNRPN()) {
                             message = MXMessageFactory.fromCCXMLText(port, "@NRPN #GH #GL #VH #VL", ch);
                             message.setVisitant(visit.getSnapShot());
                             dispatchMainPath(message);
-                        }else {
+                        } else {
                         }
                         return;
                     }
-                    if (gate == MXMidi.DATA1_CC_RPN_LSB || gate == MXMidi.DATA1_CC_RPN_MSB 
-                    ||gate == MXMidi.DATA1_CC_NRPN_LSB || gate == MXMidi.DATA1_CC_NRPN_MSB) {
+                    if (gate == MXMidi.DATA1_CC_RPN_LSB || gate == MXMidi.DATA1_CC_RPN_MSB
+                            || gate == MXMidi.DATA1_CC_NRPN_LSB || gate == MXMidi.DATA1_CC_NRPN_MSB) {
                         //already by updateVisitantChannel
                         return;
                     }
@@ -472,25 +473,25 @@ public class MXMIDIIn {
                 if (visit.isIncompleteBankInfo()) {
                     if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && (gate == MXMidi.DATA1_CC_BANKSELECT || gate == (MXMidi.DATA1_CC_BANKSELECT + 0x20))) {
                         ;
-                    }else {
+                    } else {
                         visit.forceCompleteBankInfo();
                     }
                 }
 
                 if (visit.isIncomplemteDataentry()) {
-                    if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && (gate == MXMidi.DATA1_CC_DATAENTRY || (gate == MXMidi.DATA1_CC_DATAENTRY + 0x20))) { 
+                    if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && (gate == MXMidi.DATA1_CC_DATAENTRY || (gate == MXMidi.DATA1_CC_DATAENTRY + 0x20))) {
                         ;
-                    }else {
+                    } else {
                         visit.forceCompleteBankDataentry();
                     }
                 }
 
                 if (visit.isIncomplemteDataroom()) {
                     if (command == MXMidi.COMMAND_CH_CONTROLCHANGE
-                      && (gate == MXMidi.DATA1_CC_RPN_LSB || gate == MXMidi.DATA1_CC_RPN_MSB
-                        ||gate == MXMidi.DATA1_CC_NRPN_LSB || gate == MXMidi.DATA1_CC_NRPN_MSB)) {
+                            && (gate == MXMidi.DATA1_CC_RPN_LSB || gate == MXMidi.DATA1_CC_RPN_MSB
+                            || gate == MXMidi.DATA1_CC_NRPN_LSB || gate == MXMidi.DATA1_CC_NRPN_MSB)) {
                         ;
-                    }else {
+                    } else {
                         visit.forceCompleteBankDataroom();
                     }
                 }
@@ -499,7 +500,7 @@ public class MXMIDIIn {
             dispatchMainPath(message);
         }
     }
-    
+
     private static void dispatchMainPath(MXMessage message) {
         MXMain.getMain().messageDispatch(message, MXMain.getMain().getInputProcess());
     }
