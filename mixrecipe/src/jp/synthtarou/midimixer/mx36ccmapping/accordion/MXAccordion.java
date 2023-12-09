@@ -20,7 +20,6 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import javax.swing.JComponent;
-import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 
@@ -174,7 +173,19 @@ public class MXAccordion extends javax.swing.JPanel {
         return _accordionOpened;
     }
     
-    public MXAccordionInnerPanel getInnerPanel() {
-        return _contentsList;
+    public void insertAt(int pos, MXAccordionElement element) {
+        _contentsList.add(element, pos);
+    }
+    
+    public void refresh(int pos) {
+        _contentsList._listElement.get(pos).refill();
+    }
+    
+    public int elementCount() {
+        return _contentsList.count();
+    }
+    
+    public MXAccordionElement elementAt(int x) {
+        return _contentsList.get(x);
     }
 }

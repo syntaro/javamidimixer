@@ -17,7 +17,6 @@
 package jp.synthtarou.midimixer.mx36ccmapping;
 
 import java.util.Comparator;
-import javax.swing.JPanel;
 import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordion;
 import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordionFocus;
 
@@ -28,6 +27,7 @@ import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordionFocus;
 public class MX36Folder implements Comparable<MX36Folder> {
     SortedArray<MX36Status> _list;
     MXAccordionFocus _focus;
+    MX36Process _process;
     
     public static final Comparator<MX36Status> SORT_BY_COLUMN = new Comparator<MX36Status>() {
         @Override
@@ -47,9 +47,10 @@ public class MX36Folder implements Comparable<MX36Folder> {
     int _order;
     MXAccordion _accordion;
 
-    public MX36Folder(MXAccordionFocus focus, int order, String name) {
+    public MX36Folder(MX36Process process, MXAccordionFocus focus, int order, String name) {
         _list = new SortedArray<>(SORT_BY_ROW);
         _order = order;
+        _process = process;
         _focus = focus;
         _folderName = name;
         _accordion = new MXAccordion(focus, name);
@@ -73,7 +74,7 @@ public class MX36Folder implements Comparable<MX36Folder> {
 
     public void insertSorted(MX36Status status) {
         int pos = _list.insertSorted(status);
-        _accordion.getInnerPanel().add(new MX36StatusPanel(status), pos);
+        _accordion.insertAt(pos, new MX36StatusPanel(_process, _accordion, status));
         setupMouse();
     }
 
@@ -81,9 +82,7 @@ public class MX36Folder implements Comparable<MX36Folder> {
         int count = 0;
         for (MX36Status seek : _list) {
             if (seek == status) {
-                JPanel p = _accordion.getInnerPanel().get(count);
-                MX36StatusPanel panel = (MX36StatusPanel)p;
-                panel.refill();
+                _accordion.refresh(count);
             }
             count ++;
         }

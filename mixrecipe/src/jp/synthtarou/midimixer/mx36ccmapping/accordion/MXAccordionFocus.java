@@ -44,101 +44,89 @@ public class MXAccordionFocus {
     }
 
     public class MyMouseListener extends MouseAdapter {
-        JPanel _focus;
         int _group;
         MXAccordion _accordion;
+        MXAccordionElement _element;
 
-        public MyMouseListener(int group, JPanel focus) {
+        public MyMouseListener(int group, MXAccordion focus, MXAccordionElement element) {
             _group = group;
-            _focus = focus;
-            Container seek = _focus;
-            while (seek != null){ 
-                if (seek instanceof MXAccordion) {
-                    _accordion = (MXAccordion)seek;
-                     break;
-                }
-                seek = seek.getParent();
-            }
-            if (_accordion == null) {
-                throw new IllegalArgumentException("Its not accordion member");
-            }
+            _element = element;
+            _accordion = focus;
         }
         
         @Override
         public void mousePressed(MouseEvent e) {
-            focusableMousePressed(_group, _accordion, _focus);
+            focusableMousePressed(_group, _accordion, _element);
         }
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            Point ownerPos = _focus.getLocationOnScreen();
-            Rectangle ownerDim = new Rectangle(ownerPos.x, ownerPos.y, _focus.getWidth(), _focus.getHeight());
+            JPanel panel = _element.getRenderer();
+            Point ownerPos = panel.getLocationOnScreen();
+            Rectangle ownerDim = new Rectangle(ownerPos.x, ownerPos.y, panel.getWidth(), panel.getHeight());
             if (ownerDim.contains(e.getXOnScreen(), e.getYOnScreen())) {
-                focusableMouseReleased(_group, _accordion, _focus, true);
+                focusableMouseReleased(_group, _accordion, _element, true);
             }
             else {
-                focusableMouseReleased(_group, _accordion, _focus, false);
+                focusableMouseReleased(_group, _accordion, _element, false);
             }
         }
     }
 
     TreeMap<Integer, MXAccordion> _selectedAccordion = new TreeMap<>();
-    TreeMap<Integer, JPanel> _selectedAccordionChild = new TreeMap<>();
+    TreeMap<Integer, MXAccordionElement> _selectedAccordionChild = new TreeMap<>();
 
-    public void setSelected(int group, MXAccordion accordion, JPanel child) {
+    public void setSelected(int group, MXAccordion accordion, MXAccordionElement child) {
         MXAccordion accordionPast = _selectedAccordion.get(group);
         if (accordionPast != accordion) {
             _selectedAccordion.put(group, accordion); 
             accordion.setColorFull(true);
         }
 
-        JPanel focusPast = _selectedAccordionChild.get(group);
+        MXAccordionElement focusPast = _selectedAccordionChild.get(group);
         if (focusPast != child) {
             if (focusPast != null) {
-                focusPast.setBorder(BorderFactory.createEtchedBorder());
-                if (_listener != null) {
-                    _listener.accordionFocus(accordion, focusPast, false);
-                }
+                JPanel panel = focusPast.getRenderer();
+                panel.setBorder(BorderFactory.createEtchedBorder());
+                focusPast.accordionFocus(false);
             }
         }
 
-        child.setBorder(BorderFactory.createEtchedBorder(Color.green, Color.green));
+        JPanel childPanel = child.getRenderer();
+        childPanel.setBorder(BorderFactory.createEtchedBorder(Color.green, Color.green));
         if (focusPast != child) {
             _selectedAccordionChild.put(group, child); 
-            _listener.accordionFocus(accordion, child, true);
+            child.accordionFocus(true);
         }
     }
     
-    void focusableMousePressed(int group, MXAccordion accordion, JPanel focus) {
-        focus.setBorder(BorderFactory.createEtchedBorder(Color.yellow,Color.yellow));
+    void focusableMousePressed(int group, MXAccordion accordion, MXAccordionElement element) {
+        JPanel panel = element.getRenderer();
+        panel.setBorder(BorderFactory.createEtchedBorder(Color.yellow,Color.yellow));
     }
     
-    void focusableMouseReleased(int group, MXAccordion accordion, JPanel focus, boolean isComing) {
+    void focusableMouseReleased(int group, MXAccordion accordion, MXAccordionElement element, boolean isComing) {
         if (isComing) {
-            setSelected(group, accordion, focus);
+            setSelected(group, accordion, element);
         }
         else {
-            focus.setBorder(BorderFactory.createEtchedBorder());
+            JPanel panel = element.getRenderer();
+            panel.setBorder(BorderFactory.createEtchedBorder());
         }
     }
     
     public void setupMouse(int group, MXAccordion accordion) {
         uninstallMouse(accordion);
-        
-        MXAccordionInnerPanel listInner = accordion.getInnerPanel();
-        
+ 
         if (true) {
-            accordion.addMouseListener(new MyMouseListener(group,accordion));
+            accordion.addMouseListener(new MyMouseListener(group, accordion, null));
             accordion.setBorder(BorderFactory.createEtchedBorder());
         }
 
-        int childCount = listInner.count();
+        int childCount = accordion.elementCount();
         for (int i = 0; i < childCount; ++ i) {
-            Component child = listInner.get(i);
-            if (!(child instanceof JPanel)) {
-                continue;
-            }
-            JPanel childPanel = (JPanel)child;
+            MXAccordionElement child = accordion.elementAt(i);
+            JPanel childPanel = child.getRenderer();
 
             LinkedList<JComponent> list = new LinkedList<>();
             list.add(childPanel);
@@ -147,7 +135,7 @@ public class MXAccordionFocus {
             while(list.isEmpty() == false) {
                 JComponent pop = list.remove();
                 
-                pop.addMouseListener(new MyMouseListener(group, childPanel));
+                pop.addMouseListener(new MyMouseListener(group, accordion, child));
 
                 if (pop instanceof Container) {
                     int seekCount = pop.getComponentCount();
@@ -161,8 +149,6 @@ public class MXAccordionFocus {
     }
 
     public void uninstallMouse(MXAccordion accordion) {
-        MXAccordionInnerPanel listedContents = accordion.getInnerPanel();
-
         if (true) {
             MouseListener[]installed = accordion.getMouseListeners();
             for (MouseListener  m : installed) {
@@ -171,13 +157,11 @@ public class MXAccordionFocus {
                 }
             }
         }
-        int childCount = listedContents.count();
+        
+        int childCount = accordion.elementCount();
         for (int i = 0; i < childCount; ++ i) {
-            Component child = listedContents.get(i);
-            if (!(child instanceof JPanel)) {
-                continue;
-            }
-            JPanel childPanel = (JPanel)child;
+            MXAccordionElement child = accordion.elementAt(i);
+            JPanel childPanel = child.getRenderer();
 
             LinkedList<JComponent> list = new LinkedList<>();
             list.add(childPanel);
@@ -202,13 +186,6 @@ public class MXAccordionFocus {
                 }
             }
         }
-    }
-    
-    MXAccordionFocusListener _listener = null;
-    
-    public void setListener(MXAccordionFocusListener listener)
-    {
-        _listener = listener;
     }
 }
 

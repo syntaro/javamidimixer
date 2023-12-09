@@ -18,10 +18,9 @@ package jp.synthtarou.midimixer.mx36ccmapping;
 
 import java.util.Comparator;
 import java.util.TreeSet;
-import javax.swing.JPanel;
 import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordion;
+import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordionElement;
 import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordionFocus;
-import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordionFocusListener;
 
 /**
  *
@@ -34,9 +33,11 @@ public class MX36FolderList {
     MXAccordionFocus _focus;
     MX36Folder _autodetectedFolder;
     MX36Folder _primalFolder;
-
-    public MX36FolderList() {
+    MX36Process _process;
+ 
+    public MX36FolderList(MX36Process process) {
         _focus = new MXAccordionFocus();
+        _process = process;
         _autodetectedFolder = newFolder(Integer.MAX_VALUE, "AutoDectected");
         _primalFolder = newFolder("Primal");
     }
@@ -61,7 +62,7 @@ public class MX36FolderList {
                 return seek;
             }
         }
-        MX36Folder folder = new MX36Folder(_focus, _orderNext++, name);
+        MX36Folder folder = new MX36Folder(_process, _focus, _orderNext++, name);
         _listFolder.add(folder);
         return folder;
     }
@@ -84,7 +85,7 @@ public class MX36FolderList {
     }
 
     public synchronized MX36Folder newFolder(int index, String name) {
-        MX36Folder folder = new MX36Folder(_focus, index, name);
+        MX36Folder folder = new MX36Folder(_process,_focus, index, name);
         _listFolder.add(folder);
         return folder;
     }
@@ -97,15 +98,18 @@ public class MX36FolderList {
     
     public void selectFirstAtm() {
         MXAccordion accordion = null;
-        JPanel panel = null;
+        MXAccordionElement panel = null;
 
+        //last folder
         for (MX36Folder folder : _listFolder) {
             accordion = folder._accordion;
         }
         
+        //first child
         if (accordion != null) {
+   
             try {
-                panel = (JPanel)accordion.getInnerPanel().getAnimationPanel().getComponent(0);
+                panel = accordion.elementAt(0);
             }catch(Exception e) {
             }
         }

@@ -54,9 +54,9 @@ public class MX36Status {
     MXWrapList<Integer> _outGateTable;
     boolean _outGateTypeKey;
     
-    String _bind1RCH, _bind2RCH, _bind4RCH;
-    String _bindRSCTRT1, _bindRSCTRT2, _bindRSCTRT3;
-    String _bindRSCTPT1, _bindRSCTPT2, _bindRSCTPT3;
+    int _bind1RCH, _bind2RCH, _bind4RCH;
+    int _bindRSCTRT1, _bindRSCTRT2, _bindRSCTRT3;
+    int _bindRSCTPT1, _bindRSCTPT2, _bindRSCTPT3;
     
     MX36Folder _folder;
     
@@ -72,22 +72,24 @@ public class MX36Status {
         _outValueRange = new RangedValue(32, 0, 127);
         _outValueOffset = 0;
         _outValueTable = MXMessageWrapListFactory.listupRange(_outValueRange._min, _outValueRange._max);
-
-        _bind1RCH = "1r";
-        _bind2RCH = "2r";
-        _bind4RCH = "4r";
-        _bindRSCTRT1 = "rt1";
-        _bindRSCTRT2 = "rt2";
-        _bindRSCTRT3 = "rt3";
-        _bindRSCTPT1 = "pt1";
-        _bindRSCTPT2 = "pt2";
-        _bindRSCTPT3 = "pt3";
     }
     
-    public String toSurfaceString() {
+    public String toSurfaceText() {
         return "#" + Character.toString('A'+_surfacePort) + "-" + MGStatus.getRowAsText(_surfaceUIType, _surfaceRow) + (_surfaceColumn+1);
     }
     
+    public String toOutputPortText() {
+        String portText = "OutPort = as input";
+        if (_outPort >= 0) {
+            portText = "OutPort =" + Character.toString('A'+_outPort);
+        }
+        String channelText = "Ch = as input";
+        if (_outChannel >= 0) {
+            return "Ch= " + (_outChannel + 1);
+        }
+        return portText +", " + channelText;
+    }
+
     public String toString() {
         return "#" + Character.toString('A'+_surfacePort) + "-" + MGStatus.getRowAsText(_surfaceUIType, _surfaceRow) + (_surfaceColumn+1) + "=" + _outValueRange._var;
     }
@@ -104,6 +106,7 @@ public class MX36Status {
         it._surfaceValueRange = status.getValue();
         it._surfaceStatusCache = status;
 
+        it._outChannel = status.getChannel();
         it._outValueRange = status.getValue();
         it._outValueTable = MXMessageWrapListFactory.listupRange(it._outValueRange._min, it._outValueRange._max);
         
@@ -172,8 +175,18 @@ public class MX36Status {
         if (_outCachedMessage.getStatus() == 0) {
             return null;
         }
+        int port = _surfacePort;
+        int channel = _outChannel;
+        if (_outPort >= 0) {
+            port = _outPort;
+        }
+
+        _outCachedMessage.setPort(port);
+        _outCachedMessage.setChannel(channel);
         _outCachedMessage.setValue(_outValueRange.changeRange(_outCachedMessage.getValue()._min, _outCachedMessage.getValue()._max));
         _outCachedMessage.setGate(_outGateRange);
-        return _outCachedMessage;
+        _outCachedMessage._timing = null;
+
+        return (MXMessage)_outCachedMessage.clone();
     }
 }

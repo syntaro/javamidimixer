@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.mx36ccmapping.accordion;
 
 import java.awt.Component;
-import javax.swing.JPanel;
+import java.util.ArrayList;
 import javax.swing.SwingUtilities;
 
 /**
@@ -25,28 +25,31 @@ import javax.swing.SwingUtilities;
  * @author Syntarou YOSHIDA
  */
 public class MXAccordionInnerPanel {
-    MXAnimationPanel _animationPanel;
+    private MXAnimationPanel _animationPanel;
+    ArrayList<MXAccordionElement> _listElement;
     
     public MXAccordionInnerPanel() {
         _animationPanel = new MXAnimationPanel();
+        _listElement = new ArrayList<>();
     }
-    
+
     public MXAnimationPanel getAnimationPanel() {
         return _animationPanel;
     }
     
     boolean _doingAnimation = false;
     
-    public void add(JPanel child,int index) {
-        _animationPanel.add(child);
+    public void add(MXAccordionElement child,int index) {
+        _listElement.add(index, child);
+        _animationPanel.add(child.getRenderer(), index);
     }
 
     public int count() {
-        return _animationPanel.getComponentCount();
+        return _listElement.size();
     }
     
-    public JPanel get(int x) {
-        return (JPanel)_animationPanel.getComponent(x);
+    public MXAccordionElement get(int x) {
+        return _listElement.get(x);
     }
     
     public void openWithAnimation(boolean open) {

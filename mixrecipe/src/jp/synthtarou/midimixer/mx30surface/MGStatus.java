@@ -134,6 +134,13 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         }
     }
     
+    public int getChannel() {
+        if (_base != null) {
+            return _base.getChannel();
+        }
+        return 0;
+    }
+    
     public void setBaseMessage(MXMessage base) {
         if (base == null) {
             _base = null;

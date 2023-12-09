@@ -16,26 +16,31 @@
  */
 package jp.synthtarou.midimixer.mx36ccmapping;
 
-import java.awt.Color;
-import java.awt.Dimension;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordion;
+import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordionElement;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX36StatusPanel extends javax.swing.JPanel {
+public class MX36StatusPanel extends javax.swing.JPanel implements MXAccordionElement {
+    MXAccordion _accordion;
+    MX36Status _status;
+    MX36Process _process;
+
     /**
      * Creates new form Example1
      */
-    public MX36StatusPanel(MX36Status status) {
+    public MX36StatusPanel(MX36Process process, MXAccordion accordion, MX36Status status) {
         initComponents();
+        _process = process;
         _status = status;
+        _accordion = accordion;
         refill();
     }
-    
-    MX36Status _status;
     
     public MX36Status getStatus() {
         return _status;
@@ -51,9 +56,9 @@ public class MX36StatusPanel extends javax.swing.JPanel {
             });
             return;
         }
-        jLabelSurface.setText(_status.toSurfaceString());
+        jLabelSurface.setText(_status.toSurfaceText());
         jLabelName.setText("Name: " + _status._outName);
-        jLabelPortAndCh.setText("" + (_status._outChannel + 1) + "@" + _status._outPort);
+        jLabelPortAndCh.setText(_status.toOutputPortText());
         int gateDecimal = _status._outGateRange._var;
         String gateLabel = _status._outGateTable.nameOfValue(gateDecimal);
         String gateDecimalText = String.valueOf(gateDecimal);
@@ -77,7 +82,12 @@ public class MX36StatusPanel extends javax.swing.JPanel {
         jLabelValue.setText(valueLabel);
         jLabelValueDecimal.setText(valueDecimalText);
         jLabelValueHex.setText("=" + Integer.toHexString(valueDecimal) + "h");
-        jLabelText.setText("Format:" + _status._outDataText);
+        if (_status._outDataText == null || _status._outDataText.isBlank()) {
+            jLabelText.setText("Format: <none>");
+        }
+        else {
+            jLabelText.setText("Format:" + _status._outDataText);
+        }
         invalidate();
     }
 
@@ -109,19 +119,19 @@ public class MX36StatusPanel extends javax.swing.JPanel {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
         add(jLabelText, gridBagConstraints);
 
         jLabelGate.setFont(new java.awt.Font("メイリオ", 0, 12)); // NOI18N
         jLabelGate.setText("gate");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
         add(jLabelGate, gridBagConstraints);
 
@@ -140,8 +150,9 @@ public class MX36StatusPanel extends javax.swing.JPanel {
         jLabelPortAndCh.setText("port+ch");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
         add(jLabelPortAndCh, gridBagConstraints);
 
@@ -224,4 +235,19 @@ public class MX36StatusPanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabelValueHex;
     private javax.swing.JPanel jPanel1;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public JPanel getRenderer() {
+        return this;
+    }
+
+    @Override
+    public MXAccordion getAccordion() {
+        return _accordion;
+    }
+
+    @Override
+    public void accordionFocus(boolean flag) {
+        _process._view.focusStatus(_status);
+    }
 }

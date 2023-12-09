@@ -23,8 +23,6 @@ import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
-import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordion;
-import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordionFocusListener;
 
 
 /**
@@ -33,24 +31,14 @@ import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordionFocusListener;
  */
 public class MX36Process extends MXReceiver implements MXSettingTarget {
 
-    private MX36View _view;
+    MX36View _view;
     MXSetting _setting;
     MX36FolderList _list;
 
     public MX36Process() {
         _setting = new MXSetting("CCMapping");
         _setting.setTarget(this);
-        _list = new MX36FolderList();
-        _list._focus.setListener(new MXAccordionFocusListener() {
-            @Override
-            public void accordionFocus(MXAccordion accordion, JPanel panel, boolean flag) {
-                if (panel instanceof  MX36StatusPanel) {
-                    MX36StatusPanel panel36 = (MX36StatusPanel)panel;
-                    MX36Status status = panel36.getStatus();
-                    _view.focusStatus(status);
-                }
-            }
-        });
+        _list = new MX36FolderList(this);
         _view = new MX36View(this, _list);
     }
 
@@ -70,6 +58,8 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
     @Override
     public void processMXMessage(MXMessage message) {
         MGStatus[] result = message._mx30result;
+        boolean done = false;
+        
         if (result != null && result.length > 0) {
             for (MGStatus status : result) {
                 if (status._uiType == MGStatus.TYPE_DRUMPAD) {
@@ -89,18 +79,27 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                 }
                 if(status2 == null) {                    
                     MX36Folder folder2 = _list._autodetectedFolder;
-                    status2 =  MX36Status.fromMGStatus(folder2, status);
+                    status2 = MX36Status.fromMGStatus(folder2, status);
                     folder2.insertSorted(status2);
                     folder2.refill(status2);
+                    //メッセージがアサインされてないので不要
+                    //updateSurfaceValue(status2, status.getValue());
                 }
                 else {
                     MX36Folder folder2 = status2._folder;
                     updateSurfaceValue(status2, status.getValue());
+                    if (status2._outDataText == null || status2._outDataText.isBlank()) {
+                        
+                    }else {
+                        done = true;
+                    }
                     folder2.refill(status2);
                 }
             }
         }
-        sendToNext(message);
+        if (!done) {
+            sendToNext(message);
+        }
     }
 
     @Override
@@ -137,16 +136,19 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
         }
         status._outValueRange = value;
         _view._detailPanel.updateSliderByStatus();
-        status._folder.refill(status);
+        if (status._folder != null) {
+            status._folder.refill(status);
+        }
+        raiseSignal(status);
         _view.refreshList();
     }
 
     public void raiseSignal(MX36Status status) {
         MXMessage message = status.createOutMessage();
         if (message == null) {
-            //System.out.println("raiseSignal X(" + status + ")");
             return;
         }
         System.out.println("raiseSignel O(" + status + " ) message = " + message);
+        sendToNext(message);
     }
 }

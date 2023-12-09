@@ -31,7 +31,8 @@ import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordion;
  */
 public class MX36StatusListPanel extends javax.swing.JPanel {
     public static void main(String args[]) {
-        MX36FolderList list = new MX36FolderList();
+        MX36Process process = new MX36Process();
+        MX36FolderList list = new MX36FolderList(process);
         
         MX36Folder folder = list.getPrimalFolder();
         folder.insertSorted(folder.createStatus());

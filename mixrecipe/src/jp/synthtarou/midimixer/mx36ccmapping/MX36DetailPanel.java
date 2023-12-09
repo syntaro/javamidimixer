@@ -50,7 +50,7 @@ import jp.synthtarou.midimixer.mx30surface.MXNotePicker;
 public class MX36DetailPanel extends javax.swing.JPanel {
 
     MX36Process _process;
-    MX36Status _status = null;
+    MX36Status _status;
     JTextField[] listBindMouse = null;
 
     /**
@@ -58,6 +58,7 @@ public class MX36DetailPanel extends javax.swing.JPanel {
      */
     public MX36DetailPanel(MX36Process process) {
         initComponents();
+        _status = new MX36Status(null);
         _process = process;
         jLabelEmpty1.setText("");
         jLabelEmpty2.setText("");
@@ -117,11 +118,12 @@ public class MX36DetailPanel extends javax.swing.JPanel {
 
     MXWrapList<Integer> _listPort = MXMessageWrapListFactory.listupPort("-");
     MXWrapList<Integer> _listColumn = MXMessageWrapListFactory.listupColumn("-");
-    MXWrapList<Integer> _listChannel = MXMessageWrapListFactory.listupChannel("-");
+    MXWrapList<Integer> _listChannel = MXMessageWrapListFactory.listupChannel(null);
+    MXWrapList<Integer> _listRSCParam = MXMessageWrapListFactory.listupRange(0, 127);
 
     public synchronized void updateViewByStatus(MX36Status status) {
         _status = null;
-
+        
         jTextFieldSurfacePort.setText(_listPort.nameOfValue(status._surfacePort));
         String surfaceRowText;
 
@@ -152,40 +154,73 @@ public class MX36DetailPanel extends javax.swing.JPanel {
         jTextFieldOutData.setText(status._outDataText);
         jLabelOutValueRange.setText(status._outValueRange._min + " ... " + status._outValueRange._max);
 
-        jTextFieldBind1RCH.setText(status._bind1RCH);
-        jTextFieldBind2RCH.setText(status._bind2RCH);
-        jTextFieldBind4RCH.setText(status._bind4RCH);
+        jTextFieldBind1RCH.setText(_listRSCParam.nameOfValue(status._bind1RCH));
+        jTextFieldBind2RCH.setText(_listRSCParam.nameOfValue(status._bind2RCH));
+        jTextFieldBind4RCH.setText(_listRSCParam.nameOfValue(status._bind4RCH));
 
-        jTextFieldBindRSCTPT1.setText(status._bindRSCTPT1);
-        jTextFieldBindRSCTPT2.setText(status._bindRSCTPT2);
-        jTextFieldBindRSCTPT3.setText(status._bindRSCTPT3);
+        jTextFieldBindRSCTPT1.setText(_listRSCParam.nameOfValue(status._bindRSCTPT1));
+        jTextFieldBindRSCTPT2.setText(_listRSCParam.nameOfValue(status._bindRSCTPT2));
+        jTextFieldBindRSCTPT3.setText(_listRSCParam.nameOfValue(status._bindRSCTPT3));
 
-        jTextFieldBindRSCTRT1.setText(status._bindRSCTRT1);
-        jTextFieldBindRSCTRT2.setText(status._bindRSCTRT2);
-        jTextFieldBindRSCTRT3.setText(status._bindRSCTRT3);
+        jTextFieldBindRSCTRT1.setText(_listRSCParam.nameOfValue(status._bindRSCTRT1));
+        jTextFieldBindRSCTRT2.setText(_listRSCParam.nameOfValue(status._bindRSCTRT2));
+        jTextFieldBindRSCTRT3.setText(_listRSCParam.nameOfValue(status._bindRSCTRT3));
+
+        if (status._outDataText == null || status._outDataText.isBlank()) {
+            jTextFieldValueValue.setEnabled(false);
+            jSliderValueValue.setEnabled(false);
+        }
+        else {
+            jTextFieldValueValue.setEnabled(true);
+            jSliderValueValue.setEnabled(true);
+        }
 
         jSliderValueValue.setMinimum(status._outValueRange._min);
         jSliderValueValue.setMaximum(status._outValueRange._max);
         jSliderValueValue.setValue(status._outValueRange._var);
-
+        if (status._folder != null) {
+            //最初のダミーだけnull
+            status._folder.refill(status);
+        }
         _status = status;
     }
     
     public void updateSliderByStatus() {
-        MX36Status status = _status;
-        _status = null;
-        jSliderValueValue.setValue(status._outValueRange._var);
-        _status = status;
+        if (_status != null) {
+            MX36Status status = _status;
+            //再突入を防ぐ
+            _status = null;
+            jSliderValueValue.setValue(status._outValueRange._var);
+            _status = status;
+        }
+    }
+    
+    class MXWrapListForPanel<T> extends MXWrapListPopup<T> {
+        public MXWrapListForPanel(JTextField target, MXWrapList<T> list) {
+            super(target, list);
+        }
+        
+        public void doAction() {
+            MXWrapList<T> list = this._list;
+            int selectedIndex = this._selectedIndex;
+            JTextField textField = this._textField;
+            
+            super.doAction();
+            T value = list.valueOfIndex(selectedIndex);
+            
+            feedbackPopup(textField, (Integer)value);
+            //super.doAction();
+        }   
     }
 
-    public void textFieldDoPopup(final JTextField target) {
+    public void textFieldDoPopup(JTextField target) {
         if (_editing == false) {
             return;
         }
         boolean dopopup = false;
 
         if (target == jTextFieldSurfacePort) {
-            MXWrapListPopup<Integer> actions = new MXWrapListPopup<Integer>(target, _listPort);
+            MXWrapListPopup<Integer> actions = new MXWrapListForPanel<Integer>(target, _listPort);
             actions.show();
             return;
         }
@@ -196,12 +231,12 @@ public class MX36DetailPanel extends javax.swing.JPanel {
             list.addNameAndValue("C", "knob3");
             list.addNameAndValue("D", "knob4");
             list.addNameAndValue("S", "slider");
-            MXWrapListPopup<String> actions = new MXWrapListPopup<>(target, list);
+            MXWrapListPopup<String> actions = new MXWrapListForPanel<>(target, list);
             actions.show();
             return;
         }
         if (target == jTextFieldOutChannel) {
-            MXWrapListPopup<Integer> actions = new MXWrapListPopup<>(target, _listChannel);
+            MXWrapListPopup<Integer> actions = new MXWrapListForPanel<>(target, _listChannel);
             actions.show();
             return;
         };
@@ -220,13 +255,13 @@ public class MX36DetailPanel extends javax.swing.JPanel {
                 }
             }
             else {
-                MXWrapListPopup<Integer> actions = new MXWrapListPopup<>(target, _status._outGateTable);
+                MXWrapListPopup<Integer> actions = new MXWrapListForPanel<>(target, _status._outGateTable);                
                 actions.show();
             }
             return;
         }
         if (target == jTextFieldOutPort) {
-            MXWrapListPopup<Integer> actions = new MXWrapListPopup<>(target, _listPort);
+            MXWrapListPopup<Integer> actions = new MXWrapListForPanel<>(target, _listPort);
             actions.show();
             return;
         }
@@ -236,6 +271,10 @@ public class MX36DetailPanel extends javax.swing.JPanel {
             MXUtil.showAsDialog(this, picker,  "Which You Choose?");
             if (picker.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
                 CCXParserForCCM ccm = picker.getReturnValue();
+                
+                if (ccm == null) {
+                    return;
+                }
                 _status._outName = ccm._name;
                 _status._outMemo = ccm._memo;
                 _status._outDataText = ccm._data;
@@ -255,34 +294,22 @@ public class MX36DetailPanel extends javax.swing.JPanel {
             }
             return;
         }
-        if (target == jTextFieldBind1RCH) {
-            dopopup = true;
+
+        if (target == jTextFieldBind1RCH | target == jTextFieldBind2RCH || target == jTextFieldBind4RCH) {
+            MXWrapListPopup<Integer> actions = new MXWrapListForPanel<>(target, _listRSCParam);
+            actions.show();
+            return;
         }
-        if (target == jTextFieldBind2RCH) {
-            dopopup = true;
-        }
-        if (target == jTextFieldBind4RCH) {
-            dopopup = true;
+        if (target == jTextFieldBindRSCTPT1 || target == jTextFieldBindRSCTPT2 || target == jTextFieldBindRSCTPT3) {
+            MXWrapListPopup<Integer> actions = new MXWrapListForPanel<>(target, _listRSCParam);
+            actions.show();
+            return;
         }
 
-        if (target == jTextFieldBindRSCTPT1) {
-            dopopup = true;
-        }
-        if (target == jTextFieldBindRSCTPT2) {
-            dopopup = true;
-        }
-        if (target == jTextFieldBindRSCTPT3) {
-            dopopup = true;
-        }
-
-        if (target == jTextFieldBindRSCTRT1) {
-            dopopup = true;
-        }
-        if (target == jTextFieldBindRSCTRT2) {
-            dopopup = true;
-        }
-        if (target == jTextFieldBindRSCTRT3) {
-            dopopup = true;
+        if (target == jTextFieldBindRSCTRT1 || target == jTextFieldBindRSCTRT2 || target == jTextFieldBindRSCTRT3) {
+            MXWrapListPopup<Integer> actions = new MXWrapListForPanel<>(target, _listRSCParam);
+            actions.show();
+            return;
         }
 
         if (dopopup) {
@@ -309,6 +336,90 @@ public class MX36DetailPanel extends javax.swing.JPanel {
                 }
             });
             menu.show(target, 0, target.getHeight());
+        }
+    }
+
+    public void feedbackPopup(JTextField target, int value) {
+        if (_editing == false) {
+            return;
+        }
+        boolean dopopup = false;
+
+        if (target == jTextFieldSurfacePort) {
+            _status._surfacePort = value;
+            updateViewByStatus(_status);
+            return;
+        }
+        if (target == jTextFieldSurfaceRow) {
+            _status._surfaceRow = value;
+            updateViewByStatus(_status);
+            return;
+        }
+        if (target == jTextFieldOutChannel) {
+            _status._outChannel = value;
+            updateViewByStatus(_status);
+            return;
+        }
+        if (target == jTextFieldOutGate) {
+            //can't come here
+            return;
+        }
+        if (target == jTextFieldOutPort) {
+            _status._outPort = value;
+            updateViewByStatus(_status);
+            return;
+        }
+
+        if (target == jTextFieldOutData) {
+            //can't come here
+            return;
+        }
+        if (target == jTextFieldBind1RCH) {
+            _status._bind1RCH = value;
+            updateViewByStatus(_status);
+            return;
+        }
+        if (target == jTextFieldBind2RCH) {
+            _status._bind2RCH = value;
+            updateViewByStatus(_status);
+            return;
+        }
+        if (target == jTextFieldBind4RCH) {
+            _status._bind4RCH = value;
+            updateViewByStatus(_status);
+            return;
+        }
+
+        if (target == jTextFieldBindRSCTPT1) {
+            _status._bindRSCTPT1 = value;
+            updateViewByStatus(_status);
+            return;
+        }
+        if (target == jTextFieldBindRSCTPT2) {
+            _status._bindRSCTPT2 = value;
+            updateViewByStatus(_status);
+            return;
+        }
+        if (target == jTextFieldBindRSCTPT3) {
+            _status._bindRSCTPT3 = value;
+            updateViewByStatus(_status);
+            return;
+        }
+
+        if (target == jTextFieldBindRSCTRT1) {
+            _status._bindRSCTRT1 = value;
+            updateViewByStatus(_status);
+            return;
+        }
+        if (target == jTextFieldBindRSCTRT2) {
+            _status._bindRSCTRT2 = value;
+            updateViewByStatus(_status);
+            return;
+        }
+        if (target == jTextFieldBindRSCTRT3) {
+            _status._bindRSCTRT3 = value;
+            updateViewByStatus(_status);
+            return;
         }
     }
 
@@ -772,11 +883,6 @@ public class MX36DetailPanel extends javax.swing.JPanel {
                 jTextFieldValueValueMousePressed(evt);
             }
         });
-        jTextFieldValueValue.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextFieldValueValueActionPerformed(evt);
-            }
-        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -849,7 +955,6 @@ public class MX36DetailPanel extends javax.swing.JPanel {
     boolean _editing = false;
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
         _editing = !_editing;
         if (_editing) {
             jButton1.setBackground(Color.orange);
@@ -866,6 +971,10 @@ public class MX36DetailPanel extends javax.swing.JPanel {
 
     private void jTextFieldValueValueMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextFieldValueValueMousePressed
         MXWrapList<Integer> list = _status._outValueTable;
+        if (_status._outDataText == null || _status._outDataText.isBlank()) {
+            return;
+        }
+
         MXWrapListPopup<Integer> actions = new MXWrapListPopup<Integer>(jTextFieldValueValue, list) {
             @Override
             public void doAction() {
@@ -883,11 +992,6 @@ public class MX36DetailPanel extends javax.swing.JPanel {
         };
         actions.show();
     }//GEN-LAST:event_jTextFieldValueValueMousePressed
-
-    private void jTextFieldValueValueActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldValueValueActionPerformed
-        // TODO add your handling code here:
-
-    }//GEN-LAST:event_jTextFieldValueValueActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -49,9 +49,9 @@ public class MXWrapListPopup<T> {
         }
     }
 
-    JTextField _textField;
-    MXWrapList<T> _list;
-    int _selectedIndex = -1;
+    protected JTextField _textField;
+    protected MXWrapList<T> _list;
+    protected int _selectedIndex = -1;
 
     public MXWrapListPopup(JTextField target, MXWrapList<T> list) {
         _textField = target;

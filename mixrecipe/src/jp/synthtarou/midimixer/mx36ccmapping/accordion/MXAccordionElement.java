@@ -22,6 +22,10 @@ import javax.swing.JPanel;
  *
  * @author Syntarou YOSHIDA
  */
-public interface MXAccordionFocusListener {
-    public void accordionFocus(MXAccordion accordion, JPanel panel, boolean flag);
+public interface MXAccordionElement {
+    public JPanel getRenderer();
+    public MXAccordion getAccordion();
+    public void refill();
+    public void accordionFocus(boolean flag);
 }
+
