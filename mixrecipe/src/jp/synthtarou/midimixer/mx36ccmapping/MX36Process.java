@@ -23,7 +23,9 @@ import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
-import jp.synthtarou.midimixer.mx36ccmapping.MX36StatusList.Folder;
+import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordion;
+import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordionFocusListener;
+
 
 /**
  *
@@ -33,12 +35,23 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
 
     private MX36View _view;
     MXSetting _setting;
-    MX36StatusList _list = MX36StatusList._instance;
+    MX36FolderList _list;
 
     public MX36Process() {
         _setting = new MXSetting("CCMapping");
         _setting.setTarget(this);
-        _view = new MX36View(this);
+        _list = new MX36FolderList();
+        _list._focus.setListener(new MXAccordionFocusListener() {
+            @Override
+            public void accordionFocus(MXAccordion accordion, JPanel panel, boolean flag) {
+                if (panel instanceof  MX36StatusPanel) {
+                    MX36StatusPanel panel36 = (MX36StatusPanel)panel;
+                    MX36Status status = panel36.getStatus();
+                    _view.focusStatus(status);
+                }
+            }
+        });
+        _view = new MX36View(this, _list);
     }
 
     public void processStatus(MGStatus status) {
@@ -62,13 +75,28 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                 if (status._uiType == MGStatus.TYPE_DRUMPAD) {
                     continue;
                 }
-                MX36Status status2 = MX36StatusList._instance._autoDetectedFolder.findBySurfacePosition(status);
+                MX36Status status2 = null;
+                for (MX36Folder folder : _list._listFolder) 
+                {
+                    for (MX36Status seek : folder._list) {
+                        if (seek._surfacePort == status._port
+                         && seek._surfaceRow == status._row
+                         && seek._surfaceColumn == status._column
+                         && seek._surfaceUIType == status._uiType) {
+                            status2 = seek;
+                        }
+                    }
+                }
                 if(status2 == null) {                    
-                    status2 =  MX36Status.fromMGStatus(status);
-                    MX36StatusList._instance.setFolder(MX36StatusList._instance._autoDetectedFolder, status2);
+                    MX36Folder folder2 = _list._autodetectedFolder;
+                    status2 =  MX36Status.fromMGStatus(folder2, status);
+                    folder2.insertSorted(status2);
+                    folder2.refill(status2);
                 }
                 else {
+                    MX36Folder folder2 = status2._folder;
                     updateSurfaceValue(status2, status.getValue());
+                    folder2.refill(status2);
                 }
             }
         }
@@ -97,7 +125,6 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
         }
         status._surfaceValueRange = value;
         updateOutputValue(status, value.changeRange(status._outValueRange._min, status._outValueRange._max));
-        _list.reloadStatusOfTree(status);
     }
 
     public void updateOutputValue(MX36Status status, int value) {
@@ -110,14 +137,14 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
         }
         status._outValueRange = value;
         _view._detailPanel.updateSliderByStatus();
-        _list.reloadStatusOfTree(status);
-        raiseSignal(status);
+        status._folder.refill(status);
+        _view.refreshList();
     }
 
     public void raiseSignal(MX36Status status) {
         MXMessage message = status.createOutMessage();
         if (message == null) {
-            System.out.println("raiseSignal X(" + status + ")");
+            //System.out.println("raiseSignal X(" + status + ")");
             return;
         }
         System.out.println("raiseSignel O(" + status + " ) message = " + message);

@@ -516,7 +516,7 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
 
             if (_patchToMixer < 0 || _patchTogether) {
                 if (message != null) {
-                    message._mx30result = new MGStatus[] { status };
+                    message._mx30result = new MGStatus[]{status};
                     processMXMessage(message);
                 }
             }
@@ -667,6 +667,10 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
         notifyCacheBroken();
     }
 
+    MXMessageBag _emptyBag = null;
+    long _emptyBagUsed = 0;
+    long _emptyBagCreated = 0;
+
     public void startProcess(MXMessage message) {
         if (message == null) {
             return;
@@ -698,33 +702,68 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
                 break;
             }
             ArrayList<MGStatus> listStatus = _finder.findCandidate(message);
-            MXMessageBag segment = new MXMessageBag();
+            MXMessageBag segment = _emptyBag;
+            _emptyBag = null;
             if (listStatus != null && listStatus.isEmpty() == false) {
+                if (segment == null) {
+                    _emptyBagCreated++;
+                    segment = new MXMessageBag();
+                    System.out.println("used " + _emptyBagUsed + " New " + _emptyBagCreated);
+                } else {
+                    _emptyBagUsed++;
+                    if ((_emptyBagUsed % 100) == 0) {
+                        System.out.println("used " + _emptyBagUsed + " New " + _emptyBagCreated);
+                    }
+                }
                 for (MGStatus seek : listStatus) {
+                    if (segment.isTouchedStatus(seek)) {
+                        continue;
+                    }
                     if (seek.controlByMessage(message, segment)) {
                         segment.addTouochedStatus(seek);
                         if (seek._uiType == MGStatus.TYPE_SLIDER) {
-                            MGSlider slider = (MGSlider)seek.getComponent();
+                            MGSlider slider = (MGSlider) seek.getComponent();
                             slider.publishUI();
                         }
                         if (seek._uiType == MGStatus.TYPE_CIRCLE) {
-                            MGCircle circle = (MGCircle)seek.getComponent();
+                            MGCircle circle = (MGCircle) seek.getComponent();
                             circle.publishUI();
                         }
                         if (seek._uiType == MGStatus.TYPE_DRUMPAD) {
                         }
                     }
                 }
+                message._mx30result = segment.listTouchedStatus();
             }
-            message._mx30result = segment.listTouchedStatus();
-            sendToNext(message);
-            while(true) {
-                MXMessage message2 = segment.popTranslated();
-                if (message2 == null) {
-                    break;
+            if (segment == null) {
+                sendToNext(message);
+            } else if (segment.isTranslatedEmpty()) {
+                sendToNext(message);
+                segment.clearTouchedStatus();
+                _emptyBag = segment;
+            } else {
+                segment.addTranslated(message);
+                while (true) {
+                    MXMessage message2 = segment.popTranslated();
+                    if (message2 == null) {
+                        break;
+                    }
+                    message2._timing = message._timing;
+                    sendToNext(message2);
+                    bag.addQueue(message2);
                 }
-                message2._timing = message._timing;
-                sendToNext(message2);
+                while (true) {
+                    Runnable task = segment.popTranslatedTask();
+                    if (task == null) {
+                        break;
+                    }
+
+                    try {
+                        task.run();
+                    } catch (Throwable e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
     }

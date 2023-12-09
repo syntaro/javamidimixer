@@ -40,6 +40,10 @@ import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 
+/**
+ *
+ * @author yaman
+ */
 public class ThemeManager implements MXSettingTarget {
     MXSetting _setting;
     static ThemeManager _manager = new ThemeManager();

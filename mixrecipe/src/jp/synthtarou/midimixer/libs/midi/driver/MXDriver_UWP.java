@@ -23,7 +23,7 @@ import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.windows.MXLIB01UWPMidi;
 
 /**
- *
+ *　UWPｰMIDIを入出力するドライバー
  * @author Syntarou YOSHIDA
  */
 public class MXDriver_UWP implements MXDriver {

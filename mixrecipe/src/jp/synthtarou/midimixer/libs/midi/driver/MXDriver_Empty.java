@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 
 /**
- *
+ * Enptyはダミードライバ
  * @author Syntarou YOSHIDA
  */
 public class MXDriver_Empty implements MXDriver {

@@ -42,6 +42,10 @@ public class MXAttachCopyAndPaste {
 
     JComponent _component = null;
 
+    /**
+     *
+     * @param component
+     */
     public MXAttachCopyAndPaste(JComponent component) {
         _component = component;
         component.addMouseListener(new MouseAdapter() {

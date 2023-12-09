@@ -21,7 +21,7 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiMessage;
 
 /**
- *
+ *　Java20以上で、MME(Java標準）のSysEXを処理するMidiMessageラッパー
  * @author Syntarou YOSHIDA
  */
 public class SplittableSysexMessage extends MidiMessage {

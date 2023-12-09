@@ -48,6 +48,10 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
 
     int _circleR;
     
+    /**
+     *
+     * @param circleR
+     */
     public CurvedSlider(int circleR)
     {
         _circleR = circleR;

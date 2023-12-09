@@ -38,7 +38,7 @@ import jp.synthtarou.midimixer.libs.navigator.NavigatorForText;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXWrapListFactory;
+import jp.synthtarou.midimixer.libs.midi.MXMessageWrapListFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.capture.GateInfomation;
 import jp.synthtarou.midimixer.libs.midi.capture.MXMessageCapture;
@@ -125,8 +125,8 @@ public class MGStatusPanel extends javax.swing.JPanel {
         jSpinnerDrumMouseOnValue.setModel(new SpinnerNumberModel(100, 0, 127, 1));
         jSpinnerDrumMouseOffValue.setModel(new SpinnerNumberModel(0, 0, 127, 1));
 
-        _drumOutPort = MXWrapListFactory.listupPort("as Input");
-        _drumOutChannel = MXWrapListFactory.listupChannel("as Input");
+        _drumOutPort = MXMessageWrapListFactory.listupPort("as Input");
+        _drumOutChannel = MXMessageWrapListFactory.listupChannel("as Input");
 
         jComboBoxOutPort.setModel(_drumOutPort);
         jComboBoxOutChannel.setModel(_drumOutChannel);
@@ -155,10 +155,10 @@ public class MGStatusPanel extends javax.swing.JPanel {
         skipDataExchange = true;
         try {
             if (_channelModel == null) {
-                _channelModel = MXWrapListFactory.listupChannel(null);
-                _ccGateModel = MXWrapListFactory.listupControlChange(true);
-                _keyGateModel = MXWrapListFactory.listupNoteNo(true);
-                _normalGateModel = MXWrapListFactory.listupGate7Bit();
+                _channelModel = MXMessageWrapListFactory.listupChannel(null);
+                _ccGateModel = MXMessageWrapListFactory.listupControlChange(true);
+                _keyGateModel = MXMessageWrapListFactory.listupNoteNo(true);
+                _normalGateModel = MXMessageWrapListFactory.listupGate7Bit();
                 _switchOutTypeOn = new MXWrapList<>();
                 _switchOutTypeOn.addNameAndValue("On value as Input", MGStatusForDrum.VALUETYPE_AS_INPUT);
                 _switchOutTypeOn.addNameAndValue("On value as Mouse", MGStatusForDrum.VALUETYPE_AS_MOUSE);

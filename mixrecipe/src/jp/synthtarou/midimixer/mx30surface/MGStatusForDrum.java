@@ -333,7 +333,12 @@ public class MGStatusForDrum implements Cloneable {
                     }
                     break;
                 case STYLE_SEQUENCE:
-                    startSongPlayer();
+                    result.addTranslatedTask(new Runnable() {
+                        @Override
+                        public void run() {
+                            startSongPlayer();
+                        }
+                    });
                     break;
                 case STYLE_LINK_SLIDER:
                     int type = _status._drum._linkKontrolType;
@@ -414,7 +419,12 @@ public class MGStatusForDrum implements Cloneable {
                     }
                     break;
                 case STYLE_SEQUENCE:
-                    stopSongPlayer();
+                    result.addTranslatedTask(new Runnable() {
+                        @Override
+                        public void run() {
+                            stopSongPlayer();
+                        }
+                    });
                     break;
                 case STYLE_LINK_SLIDER:
                     break;

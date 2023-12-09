@@ -34,6 +34,10 @@ public class MXAttachTableResize {
 
     JTable _table;
 
+    /**
+     *
+     * @param table
+     */
     public MXAttachTableResize(JTable table) {
         _table = table;
         table.addComponentListener(new ComponentListener() {

@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.mx00playlist;
 
-import jp.synthtarou.midimixer.libs.common.FileWithId;
 import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
 import java.awt.Component;
 import java.awt.Dimension;

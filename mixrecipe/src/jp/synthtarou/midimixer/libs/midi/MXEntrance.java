@@ -22,7 +22,7 @@ import java.util.TreeSet;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 
 /**
- *
+ * エントランス番号ごとに、あるメッセージは、1度づつしか通れないという制御を行う
  * @author Syntarou YOSHIDA
  */
 public class MXEntrance {
@@ -75,19 +75,6 @@ public class MXEntrance {
             if (x < 0) return -1;
             if (x > 0) return 1;
 
-            /*
-            x = o1.getStatus()- o2.getStatus();
-            if (x < 0) return -1;
-            if (x > 0) return 1;
-
-            x = o1.getGate()- o2.getGate();
-            if (x < 0) return -1;
-            if (x > 0) return 1;
-
-            x = o1.getValue()- o2.getValue();
-            if (x < 0) return -1;
-            if (x > 0) return 1;
-            */
             return 0;
         }
     }

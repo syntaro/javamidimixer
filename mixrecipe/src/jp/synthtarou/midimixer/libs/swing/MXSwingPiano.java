@@ -83,6 +83,9 @@ public class MXSwingPiano extends JComponent {
     private int _rootNote = 36;
     private int _keyboardOctave = 4;
     
+    /**
+     *
+     */
     public MXSwingPiano() {
         addMouseListener(new MouseListener() {
             @Override

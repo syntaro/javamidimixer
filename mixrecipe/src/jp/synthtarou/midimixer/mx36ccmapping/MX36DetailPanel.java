@@ -36,7 +36,7 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.MXWrapListPopup;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
-import jp.synthtarou.midimixer.libs.midi.MXWrapListFactory;
+import jp.synthtarou.midimixer.libs.midi.MXMessageWrapListFactory;
 import jp.synthtarou.midimixer.libs.navigator.INavigator;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
@@ -112,12 +112,12 @@ public class MX36DetailPanel extends javax.swing.JPanel {
         jTextFieldValueValue.setHorizontalAlignment(JTextField.RIGHT);
         new MXAttachSliderLikeEclipse(jSliderValueValue);
         new MXAttachSliderSingleClick(jSliderValueValue);
-        updateViewByStatus(new MX36Status());
+        //updateViewByStatus(new MX36Status(null));
     }
 
-    MXWrapList<Integer> _listPort = MXWrapListFactory.listupPort("-");
-    MXWrapList<Integer> _listColumn = MXWrapListFactory.listupColumn("-");
-    MXWrapList<Integer> _listChannel = MXWrapListFactory.listupChannel("-");
+    MXWrapList<Integer> _listPort = MXMessageWrapListFactory.listupPort("-");
+    MXWrapList<Integer> _listColumn = MXMessageWrapListFactory.listupColumn("-");
+    MXWrapList<Integer> _listChannel = MXMessageWrapListFactory.listupChannel("-");
 
     public synchronized void updateViewByStatus(MX36Status status) {
         _status = null;
@@ -149,7 +149,7 @@ public class MX36DetailPanel extends javax.swing.JPanel {
         jTextFieldOutChannel.setText(_listChannel.nameOfValue(status._outChannel));
         jTextFieldOutGate.setText(status._outGateTable.nameOfValue(status._outGateRange._var));
         jTextFieldOutName.setText(status._outName);
-        jTextFieldOutData.setText(status._outData);
+        jTextFieldOutData.setText(status._outDataText);
         jLabelOutValueRange.setText(status._outValueRange._min + " ... " + status._outValueRange._max);
 
         jTextFieldBind1RCH.setText(status._bind1RCH);
@@ -238,7 +238,7 @@ public class MX36DetailPanel extends javax.swing.JPanel {
                 CCXParserForCCM ccm = picker.getReturnValue();
                 _status._outName = ccm._name;
                 _status._outMemo = ccm._memo;
-                _status._outData = ccm._data;
+                _status._outDataText = ccm._data;
 
                 _status._outGateRange = new RangedValue(ccm._defaultGate, ccm._minGate, ccm._maxGate);
                 _status._outGateOffset = ccm._offsetGate;

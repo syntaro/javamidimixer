@@ -35,10 +35,17 @@ public class MXSwingFileChooser extends JFileChooser {
         return currentDir;
     }
     
+    /**
+     *
+     * @param dir
+     */
     public MXSwingFileChooser(File dir) {
         super(dir);
     }
 
+    /**
+     *
+     */
     public MXSwingFileChooser() {
         this(currentDir);
     }

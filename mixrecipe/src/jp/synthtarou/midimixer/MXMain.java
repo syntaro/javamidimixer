@@ -97,7 +97,7 @@ public class MXMain  {
     //private MX12Process _mx12masterkeyProcess;
     private MX00Process _mx00playlistProcess;
     private MX30Process _mx30kontrolProcess;
-    private MX36Process _mx36ccmappingProess;
+    private MX36Process _mx36ccmappingProcess;
     private MX40Process _mx40layerProcess;
     private MX60Process _mx60outputProcess;
     private MX70Process _mx70CosoleProcess;
@@ -153,7 +153,7 @@ public class MXMain  {
         //_mx12masterkeyProcess = new MX12Process();
         winLogo.showProgress(1, 10);
         _mx30kontrolProcess =  new MX30Process();
-        _mx36ccmappingProess = new MX36Process();
+        _mx36ccmappingProcess = new MX36Process();
         _mx40layerProcess = new MX40Process();
 
         _vstRack = MX80Process.getInstance();
@@ -168,7 +168,7 @@ public class MXMain  {
 
         _masterToList.addNameAndValue("PushBack", MXMIDIIn.returnReceirer);
         _masterToList.addNameAndValue(_mx30kontrolProcess.getReceiverName(), _mx30kontrolProcess);
-        _masterToList.addNameAndValue(_mx36ccmappingProess.getReceiverName(), _mx36ccmappingProess);
+        _masterToList.addNameAndValue(_mx36ccmappingProcess.getReceiverName(), _mx36ccmappingProcess);
         _masterToList.addNameAndValue(_mx40layerProcess.getReceiverName(), _mx40layerProcess);
         _masterToList.addNameAndValue(_mx60outputProcess.getReceiverName(), _mx60outputProcess);
         _masterToList.addNameAndValue("Direct Output", FinalMIDIOut.getInstance());
@@ -176,8 +176,8 @@ public class MXMain  {
         _mx10inputProcess.setNextReceiver(_mx30kontrolProcess);
         winLogo.showProgress(4, 10);
 
-        _mx30kontrolProcess.setNextReceiver(_mx36ccmappingProess);
-        _mx36ccmappingProess.setNextReceiver(_mx40layerProcess);
+        _mx30kontrolProcess.setNextReceiver(_mx36ccmappingProcess);
+        _mx36ccmappingProcess.setNextReceiver(_mx40layerProcess);
         _mx40layerProcess.setNextReceiver(_mx60outputProcess);
         _mx60outputProcess.setNextReceiver(FinalMIDIOut.getInstance());
 
@@ -229,7 +229,7 @@ public class MXMain  {
         reList.add(_mx10inputProcess);
         //reList.add(_velocityProcess);
         reList.add(_mx30kontrolProcess);
-        reList.add(_mx36ccmappingProess);
+        reList.add(_mx36ccmappingProcess);
         reList.add(_mx40layerProcess);
         reList.add(_mx60outputProcess);
         reList.add(_vstRack);
@@ -343,7 +343,7 @@ public class MXMain  {
     }
 
     public MX36Process getCCMappingProcess() {
-        return _mx36ccmappingProess;
+        return _mx36ccmappingProcess;
     }
 
     public MX40Process getLayerProcess() {

@@ -51,6 +51,7 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
 
     @Override    
     public void setNextReceiver(MXReceiver next) {
+        super.setNextReceiver(next);
         for (int i = 0; i < _pageProcess.length; ++ i) {
             _pageProcess[i].setNextReceiver(next);
         }

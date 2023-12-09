@@ -18,11 +18,10 @@ package jp.synthtarou.midimixer.libs.midi.driver;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.smf.MidiByteReader;
 
 /**
- *
+ *　SysEXメッセージを分割、結合するため
  * @author Syntarou YOSHIDA
  */
 public class SysexSplitter {

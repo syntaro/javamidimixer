@@ -27,7 +27,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.common.MXLineReader;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.midi.MXWrapListFactory;
+import jp.synthtarou.midimixer.libs.midi.MXMessageWrapListFactory;
 
 /**
  *
@@ -187,7 +187,7 @@ public class CXGeneralMidiFile {
         CXNode folderTag1 = controlChangeMacroList.newTag("Folder", true);
         folderTag1._listAttributes.addNameAndValue("Name", "Command");
 
-        for (MXWrap<Integer> wrap : MXWrapListFactory.listupCommand(false)) {
+        for (MXWrap<Integer> wrap : MXMessageWrapListFactory.listupCommand(false)) {
             int command = wrap._value;
             if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
                 continue;

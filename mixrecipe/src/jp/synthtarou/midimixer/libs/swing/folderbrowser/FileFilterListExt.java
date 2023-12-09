@@ -25,13 +25,25 @@ import java.util.ArrayList;
  * @author Syntarou YOSHIDA
  */
 public class FileFilterListExt implements FileFilter {
+
+    /**
+     *
+     */
     public FileFilterListExt() {
     }
 
+    /**
+     *
+     * @param ext
+     */
     public FileFilterListExt(String ext) {
         addExtension(ext);
     }
 
+    /**
+     *
+     * @param list
+     */
     public FileFilterListExt(String[] list) {
         for (String ext : list) {
             addExtension(ext);

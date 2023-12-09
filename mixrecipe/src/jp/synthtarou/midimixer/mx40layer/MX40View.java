@@ -36,7 +36,7 @@ import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.ccxml.EditorForInstrument;
-import jp.synthtarou.midimixer.libs.midi.MXWrapListFactory;
+import jp.synthtarou.midimixer.libs.midi.MXMessageWrapListFactory;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
@@ -53,8 +53,8 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
     MX40Layer _editingLayer;
 
     //MXWrapList<Integer> _watchPort = MXMidi.createPortShort();
-    MXWrapList<Integer> _watchChannel = MXWrapListFactory.listupChannel(null);
-    MXWrapList<Integer> _watchProgram = MXWrapListFactory.listupProgramNumber(true);
+    MXWrapList<Integer> _watchChannel = MXMessageWrapListFactory.listupChannel(null);
+    MXWrapList<Integer> _watchProgram = MXMessageWrapListFactory.listupProgramNumber(true);
 
     MXWrapList<Integer> _modPort = MX40Layer.createSendOption(false);
     MXWrapList<Integer> _modChannel = MX40Layer.createSendOption(false);
@@ -62,16 +62,16 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
     MXWrapList<Integer> _modProgram = MX40Layer.createSendOption(true);
 
     //MXWrapList<Integer> _changePort = MXMidi.createPortShort();
-    MXWrapList<Integer> _changeChannel = MXWrapListFactory.listupChannel(null);
-    MXWrapList<Integer> _changeProgram = MXWrapListFactory.listupProgramNumber(true);
-    MXWrapList<Integer> _changeVolume = MXWrapListFactory.listupPercent();
-    MXWrapList<Integer> _changeExpression = MXWrapListFactory.listupPercent();
+    MXWrapList<Integer> _changeChannel = MXMessageWrapListFactory.listupChannel(null);
+    MXWrapList<Integer> _changeProgram = MXMessageWrapListFactory.listupProgramNumber(true);
+    MXWrapList<Integer> _changeVolume = MXMessageWrapListFactory.listupPercent();
+    MXWrapList<Integer> _changeExpression = MXMessageWrapListFactory.listupPercent();
 
-    MXWrapList<Integer> _changeLowNote = MXWrapListFactory.listupNoteNo(false);
-    MXWrapList<Integer> _changeHighNote = MXWrapListFactory.listupNoteNo(false);
+    MXWrapList<Integer> _changeLowNote = MXMessageWrapListFactory.listupNoteNo(false);
+    MXWrapList<Integer> _changeHighNote = MXMessageWrapListFactory.listupNoteNo(false);
 
-    MXWrapList<Integer> _changeLowVelocity = MXWrapListFactory.listupVelocity();
-    MXWrapList<Integer> _changeHighVelocity = MXWrapListFactory.listupVelocity();
+    MXWrapList<Integer> _changeLowVelocity = MXMessageWrapListFactory.listupVelocity();
+    MXWrapList<Integer> _changeHighVelocity = MXMessageWrapListFactory.listupVelocity();
 
     MXWrapList<MX40Group> _groupsModel = null;
     MXWrapList<MX40Layer> _layersModel = null;

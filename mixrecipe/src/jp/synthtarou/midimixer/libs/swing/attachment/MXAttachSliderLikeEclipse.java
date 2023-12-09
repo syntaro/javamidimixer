@@ -40,6 +40,10 @@ public class MXAttachSliderLikeEclipse extends BasicSliderUI {
 
     boolean _itsSwitch = false;
 
+    /**
+     *
+     * @param slider
+     */
     public MXAttachSliderLikeEclipse(final JSlider slider) {
         super(slider);
 

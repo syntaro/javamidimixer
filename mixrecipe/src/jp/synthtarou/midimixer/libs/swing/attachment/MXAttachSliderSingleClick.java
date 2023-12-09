@@ -31,6 +31,11 @@ import jp.synthtarou.midimixer.MXAppConfig;
  * @author Syntarou YOSHIDA
  */
 public class MXAttachSliderSingleClick {
+
+    /**
+     *
+     * @param slider
+     */
     public MXAttachSliderSingleClick(JSlider slider) {
         for (MouseListener l : slider.getMouseListeners()) {
             slider.removeMouseListener(l);

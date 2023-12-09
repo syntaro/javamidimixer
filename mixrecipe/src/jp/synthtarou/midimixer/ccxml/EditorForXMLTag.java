@@ -39,6 +39,7 @@ public class EditorForXMLTag extends javax.swing.JPanel {
 
     /**
      * Creates new form EditorForXMLTag
+     * @param file
      */
     public EditorForXMLTag(CXFile file) {
         initComponents();
@@ -49,6 +50,10 @@ public class EditorForXMLTag extends javax.swing.JPanel {
 
     CXTreeModel _treeModel;
 
+    /**
+     *
+     * @param file
+     */
     public void setTargetFile(CXFile file) {
         //jTextFieldTagPath.setText(node.getAsPathString(null));
         _file = file;
@@ -522,6 +527,10 @@ public class EditorForXMLTag extends javax.swing.JPanel {
 
     MXWrapList<CXNode> _warningListModel;
 
+    /**
+     *
+     * @return
+     */
     public MXWrapList<CXNode> createWarningListModel() {
         MXWrapList<CXNode> ret = new MXWrapList<>();
         for (CXNode warn : _file.listWarning()) {

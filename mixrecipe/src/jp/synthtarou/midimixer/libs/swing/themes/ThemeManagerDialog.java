@@ -30,6 +30,10 @@ import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
 import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
 
+/**
+ *
+ * @author yaman
+ */
 public class ThemeManagerDialog extends javax.swing.JDialog {
     JFrame parentFrame;
     ThemeManager config;
@@ -37,6 +41,11 @@ public class ThemeManagerDialog extends javax.swing.JDialog {
     MXWrapList<Integer> _listModelFontSyle;
     MXWrapList<Integer> _listModelFontSize;
 
+    /**
+     *
+     * @param parent
+     * @param modal
+     */
     public ThemeManagerDialog(JFrame parent, boolean modal) {
         super(parent, modal);
         parentFrame = parent;

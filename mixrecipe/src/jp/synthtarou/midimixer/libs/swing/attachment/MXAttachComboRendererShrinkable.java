@@ -34,6 +34,10 @@ import javax.swing.plaf.basic.BasicComboBoxRenderer;
 public class MXAttachComboRendererShrinkable extends BasicComboBoxRenderer {
     String _text;
 
+    /**
+     *
+     * @param box
+     */
     public MXAttachComboRendererShrinkable(JComboBox box) {
         box.setRenderer(this);
     }

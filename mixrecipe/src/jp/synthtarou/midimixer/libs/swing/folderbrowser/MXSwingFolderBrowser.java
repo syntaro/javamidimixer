@@ -196,6 +196,11 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
         System.exit(0);
     }
 
+    /**
+     *
+     * @param initialDir
+     * @param filterOpenable
+     */
     public MXSwingFolderBrowser(File initialDir, FileFilter filterOpenable) {
         this(initialDir, filterOpenable, null);
     }
@@ -203,6 +208,12 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
     boolean _init = true;
     File _initialDir = null;
 
+    /**
+     *
+     * @param initialDir
+     * @param filterOpenable
+     * @param filterVisible
+     */
     public MXSwingFolderBrowser(File initialDir, FileFilter filterOpenable, FileFilter filterVisible) {
         initComponents();
 

@@ -749,9 +749,10 @@ public final class MXMessage implements Comparable<MXMessage> {
         return message;
     }
 
+    /*
     public boolean takeTicket(int ticketNumber) {
         return _timing.takeTicket(ticketNumber, this);
-    }
+    }*/
 
     public boolean isSameTemplate(int dword) {
         return true;

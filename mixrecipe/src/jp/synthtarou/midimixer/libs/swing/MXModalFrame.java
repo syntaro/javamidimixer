@@ -78,6 +78,12 @@ public class MXModalFrame {
     Container _parent;
     String _title;
 
+    /**
+     *
+     * @param parent
+     * @param content
+     * @param title
+     */
     public MXModalFrame(Container parent, JPanel content, String title) {
         _parent = parent;
         _jframe = null;

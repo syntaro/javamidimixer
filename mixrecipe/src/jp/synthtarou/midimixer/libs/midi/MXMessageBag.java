@@ -91,4 +91,16 @@ public class MXMessageBag {
         _touchedStatus.toArray(result);
         return result;
     }
+    
+    public synchronized boolean isTranslatedEmpty() {
+        return _listTranslated.isEmpty() || _listTranslatedTask.isEmpty();
+    }
+    
+    public synchronized boolean isTouchedStatus(MGStatus status) {
+        return _touchedStatus.contains(status);
+    }
+    
+    public void clearTouchedStatus() {
+        _touchedStatus.clear();
+    }
 }

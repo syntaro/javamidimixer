@@ -27,11 +27,10 @@ import javax.sound.midi.ShortMessage;
 import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 
 /**
- *
+ *　Java標準MIDI用のドライバ
  * @author Syntarou YOSHIDA
  */
 public class MXDriver_Java implements MXDriver {

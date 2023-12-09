@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.mx00playlist;
 
-import jp.synthtarou.midimixer.libs.common.FileWithId;
 import java.io.File;
 import java.util.List;
 import javax.swing.DefaultListModel;

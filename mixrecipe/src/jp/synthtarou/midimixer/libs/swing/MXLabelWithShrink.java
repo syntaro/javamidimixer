@@ -36,12 +36,21 @@ public class MXLabelWithShrink extends JLabel {
     String _text;
     int _width;
     
+    /**
+     *
+     * @param text
+     */
     public MXLabelWithShrink(String text) {
         super(text);
         _text = text;
         _width = 300;
     }
     
+    /**
+     *
+     * @param text
+     * @param width
+     */
     public MXLabelWithShrink(String text, int width) {
         super(text);
         _text = text;

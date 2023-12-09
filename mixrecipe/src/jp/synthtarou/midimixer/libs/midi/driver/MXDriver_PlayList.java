@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.libs.midi.driver;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 
 /**
- *
+ * SongPlayListのドライバ（実際にはからっぽ）
  * @author Syntarou YOSHIDA
  */
 public class MXDriver_PlayList implements MXDriver {

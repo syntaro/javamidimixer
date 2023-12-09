@@ -22,7 +22,7 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.RangedValue;
-import jp.synthtarou.midimixer.libs.midi.MXWrapListFactory;
+import jp.synthtarou.midimixer.libs.midi.MXMessageWrapListFactory;
 
 /**
  *
@@ -147,7 +147,7 @@ public class Demo extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonListActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonListActionPerformed
-        MXWrapList<Integer> list = MXWrapListFactory.listupDrumnote(true);
+        MXWrapList<Integer> list = MXMessageWrapListFactory.listupDrumnote(true);
         NavigatorForList<Integer> navi = new NavigatorForList(list, 3);
         MXUtil.showAsDialog(this, navi, "Which is your choice?");
         if (navi._returnStatus == INavigator.RETURN_STATUS_APPROVED) {

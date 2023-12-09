@@ -25,16 +25,28 @@ import java.util.Collection;
  * @author Syntarou YOSHIDA
  */
 public class FileList extends ArrayList<File>{
+
+    /**
+     *
+     */
     public FileList() {
         
     }
     
+    /**
+     *
+     * @param list
+     */
     public FileList(File[] list) {
         for (File file : list) {
             add(file);
         }
     }
 
+    /**
+     *
+     * @param list
+     */
     public FileList(Collection<File> list) {
         for (File file : list) {
             add(file);

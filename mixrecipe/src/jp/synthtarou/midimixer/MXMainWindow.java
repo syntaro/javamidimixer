@@ -32,7 +32,6 @@ import javax.swing.JTabbedPane;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.themes.ThemeManagerDialog;
 import jp.synthtarou.midimixer.mx10input.MX10View;
-import jp.synthtarou.midimixer.mx35cceditor.MX35View;
 import jp.synthtarou.midimixer.mx36ccmapping.MX36View;
 import jp.synthtarou.midimixer.mx60output.MX60View;
 import jp.synthtarou.midimixer.mx80vst.MX80Panel;
@@ -279,13 +278,9 @@ public class MXMainWindow extends javax.swing.JFrame {
                     MX80Panel v80 = (MX80Panel) view;
                     v80.onResizeSynth();
                 }
-                if (view instanceof MX35View) {
-                    MX35View v35 = (MX35View) view;
-                    v35.refreshTable();
-                }
                 if (view instanceof MX36View) {
                     MX36View v36 = (MX36View) view;
-                    v36.refreshTree();
+                    v36.refreshList();
                 }
             }
         }

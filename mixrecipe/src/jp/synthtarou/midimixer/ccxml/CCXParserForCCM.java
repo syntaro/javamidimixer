@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.ccxml;
 import java.util.IllegalFormatException;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
-import jp.synthtarou.midimixer.libs.midi.MXWrapListFactory;
+import jp.synthtarou.midimixer.libs.midi.MXMessageWrapListFactory;
 
 /**
  *
@@ -91,7 +91,7 @@ public class CCXParserForCCM {
             _defaultValue = _maxValue / 2 + 1;
         }
         if (valueTable == null) {
-            valueTable = MXWrapListFactory.listupRange(_minValue, _maxValue);
+            valueTable = MXMessageWrapListFactory.listupRange(_minValue, _maxValue);
         }
         _valueTable = valueTable;
 
@@ -120,13 +120,13 @@ public class CCXParserForCCM {
         }
         if (gateType != null && gateType.equalsIgnoreCase("Key")) {
             if (gateTable == null) {
-                gateTable = MXWrapListFactory.listupNoteNo(false);
+                gateTable = MXMessageWrapListFactory.listupNoteNo(false);
             }
             _gateTypeKey = true;
         }
         else {
             if (gateTable == null) {
-                gateTable = MXWrapListFactory.listupRange(_minGate, _maxGate);
+                gateTable = MXMessageWrapListFactory.listupRange(_minGate, _maxGate);
             }
             _gateTypeKey = false;
         }
