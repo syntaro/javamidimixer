@@ -221,6 +221,10 @@ public class MXSwingPiano extends JComponent {
         int widthOne = width / _whiteKeysList.size();
         return widthOne * 5 + 40;
     }
+    
+    public void setSelectedColor(Color back) {
+        selectedColor = back;
+    }
 
     private void paintOnGraphics(Graphics g, Rectangle rect) {
         Rectangle whiteRect = rect;
@@ -240,7 +244,7 @@ public class MXSwingPiano extends JComponent {
                 }else if (key._note == 60) {
                     color = centerColor;
                 }else {
-                    color = Color.WHITE;
+                    color = Color.white;
                 }
                 g.setColor(color);
                 g.fillRect(fill.x + 1, fill.y + 1, fill.width - 2, fill.height - 2);
@@ -563,6 +567,7 @@ public class MXSwingPiano extends JComponent {
         if (_handler != null) {                
             _handler.selectionChanged();
         }
+        
     }
     
     public void toggleNoteSelected(int note) {

@@ -270,6 +270,10 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
             folderN ++;
             
             setting.setSetting(prefix + "Name", folder._folderName);
+            
+            if (folder == this._list._autodetectedFolder) {
+                continue;
+            }
 
             int statusN = 0;
             for (MX36Status status : folder._list) {

@@ -140,18 +140,14 @@ public class MXMain  {
         
         _mainWindow = new MXMainWindow(this);
 
-        MXOpening winLogo = MXOpening.showAsStartup(_mainWindow);        
-        winLogo.setVisible(true);
+        MXOpening opening = MXOpening.showAsStartup(_mainWindow);        
+        opening.setVisible(true);
 
         MXMIDIInManager.getManager().initWithSetting();
         MXMIDIOutManager.getManager().initWithSetting();
 
-        winLogo.showProgress(0, 10);
-
         _mx00playlistProcess = new MX00Process();
         _mx10inputProcess = new MX10Process();
-        //_mx12masterkeyProcess = new MX12Process();
-        winLogo.showProgress(1, 10);
         _mx30kontrolProcess =  new MX30Process();
         _mx36ccmappingProcess = new MX36Process();
         _mx40layerProcess = new MX40Process();
@@ -159,13 +155,9 @@ public class MXMain  {
         _vstRack = MX80Process.getInstance();
         _xmlManager = CXXMLManager.getInstance();
 
-        winLogo.showProgress(2, 10);
-
         _mx60outputProcess = new MX60Process();
         _mx70CosoleProcess = new MX70Process();
         
-        winLogo.showProgress(3, 10);
-
         _masterToList.addNameAndValue("PushBack", MXMIDIIn.returnReceirer);
         _masterToList.addNameAndValue(_mx30kontrolProcess.getReceiverName(), _mx30kontrolProcess);
         _masterToList.addNameAndValue(_mx36ccmappingProcess.getReceiverName(), _mx36ccmappingProcess);
@@ -174,20 +166,17 @@ public class MXMain  {
         _masterToList.addNameAndValue("Direct Output", FinalMIDIOut.getInstance());
 
         _mx10inputProcess.setNextReceiver(_mx30kontrolProcess);
-        winLogo.showProgress(4, 10);
 
         _mx30kontrolProcess.setNextReceiver(_mx36ccmappingProcess);
         _mx36ccmappingProcess.setNextReceiver(_mx40layerProcess);
         _mx40layerProcess.setNextReceiver(_mx60outputProcess);
         _mx60outputProcess.setNextReceiver(FinalMIDIOut.getInstance());
 
-        winLogo.showProgress(5, 10);
 
         _mx30kontrolProcess.readSettings();
         //_mx12masterkeyProcess.readSettings();
         _mx00playlistProcess.readSettings();
         
-        winLogo.showProgress(6, 10);
 
         _mx10inputProcess.readSettings();
         _mx60outputProcess.readSettings();
@@ -195,7 +184,6 @@ public class MXMain  {
 
         _mx70CosoleProcess.readSettings();                
 
-        winLogo.showProgress(7, 10);
         _mainWindow.setEnabled(false);
         _mainWindow.addWindowListener(new WindowAdapter(){
             public void windowClosing(WindowEvent e) {
@@ -223,7 +211,6 @@ public class MXMain  {
             }
         });
 
-        winLogo.showProgress(8, 10);
         ArrayList<MXReceiver> reList = new ArrayList();
         reList.add(_mx00playlistProcess);
         reList.add(_mx10inputProcess);
@@ -240,29 +227,17 @@ public class MXMain  {
             public void run() {
                 _mainWindow.initLatebind(reList);
                 
+                opening.setVisible(false);
                 _mainWindow.setVisible(true);
-
-                winLogo.showProgress(9, 10);
 
                 Runnable run;
                 while((run = getNextLaunchSequence()) != null) {
                     run.run();
                 }
 
-                winLogo.showProgress(10, 10);
-                winLogo.setVisible(false);
                 _mainWindow.setEnabled(true);
-            }
-        });
-        
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
-                }catch(Throwable e) {
-                    e.printStackTrace();
-                }
+                Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+                opening.stopProgress();
             }
         });
     }
