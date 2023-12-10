@@ -55,7 +55,7 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
 
     @Override
     public String getReceiverName() {
-        return "CCMapping (Not Worked yet)";
+        return "CCMapping";
     }
 
     @Override

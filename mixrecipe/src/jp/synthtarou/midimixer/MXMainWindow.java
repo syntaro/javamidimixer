@@ -100,7 +100,9 @@ public class MXMainWindow extends javax.swing.JFrame {
         versionMenu.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent evt) {
-                MXVersionDialog.showAsModal(MXMainWindow.this);
+                MXProgressDialog progress = new MXProgressDialog(MXMainWindow.this, true);
+                progress.setMessageAsVersion();
+                progress.setVisible(true);
             }
         });
 

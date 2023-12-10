@@ -27,6 +27,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.TreeSet;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXLineReader;
 import jp.synthtarou.midimixer.libs.common.MXLineWriter;
 
@@ -144,7 +145,7 @@ public class MXSetting {
         try {
             _root.clearValues();
             fin = new FileInputStream(_settingFile);
-            System.out.println("reading " + _settingFile + " = " + _targetName);
+            MXMain.progress("reading " + _settingFile + " = " + _targetName);
             MXLineReader reader = new MXLineReader(fin, "utf-8");
             while(true) {
                 String line = reader.readLine();
@@ -191,7 +192,7 @@ public class MXSetting {
         }
         File temporary = MXSettingUtil.createTemporaryFile(_settingFile);
         MXLineWriter writer = null;
-        System.out.println("writing " + _settingFile + " = " + _targetName);
+        MXMain.progress("writing " + _settingFile + " = " + _targetName);
         
         try {
             writer = new MXLineWriter(temporary, "utf-8");

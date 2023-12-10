@@ -20,6 +20,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.ccxml.CXXMLManager;
 import jp.synthtarou.midimixer.libs.common.MXLog;
@@ -62,6 +63,16 @@ public class MXMain  {
 
     public MXMainWindow getMainWindow() {
         return _mainWindow;
+    }
+    
+    MXProgressDialog _progress;
+    
+    public static void progress(String line) {
+        if (_main != null) {
+            if (_main._progress != null) {
+                _main._progress.writeLine(line);
+            }
+        }
     }
     
     /*
@@ -140,8 +151,9 @@ public class MXMain  {
         
         _mainWindow = new MXMainWindow(this);
 
-        MXOpening opening = MXOpening.showAsStartup(_mainWindow);        
-        opening.setVisible(true);
+        _progress = new MXProgressDialog(_mainWindow, false);        
+        _progress.setMessageAsStartUP();
+        _progress.setVisible(true);
 
         MXMIDIInManager.getManager().initWithSetting();
         MXMIDIOutManager.getManager().initWithSetting();
@@ -185,29 +197,37 @@ public class MXMain  {
         _mx70CosoleProcess.readSettings();                
 
         _mainWindow.setEnabled(false);
+        _mainWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         _mainWindow.addWindowListener(new WindowAdapter(){
             public void windowClosing(WindowEvent e) {
-                MXSetting.saveEverySettingToFile();
-                try {
-                    VSTStream.getInstance().postCloseStream(null);
-                }catch(Throwable ex) {
-                    ex.printStackTrace();
-                }
+                _progress = new MXProgressDialog(_mainWindow, false);        
+                _progress.setMessageAsExit();
+                _progress.setVisible(true);
+                Thread t = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            MXMIDIInManager.getManager().closeAll();
+                            MXMIDIOutManager.getManager().closeAll();
+                            MXThreadList.onExit();
+                        }catch(Throwable ex) {
+                            ex.printStackTrace();
+                        }
+
+                        try {
+                            MXSetting.saveEverySettingToFile();
+                            VSTStream.getInstance().postCloseStream(null);
+                        }
+                        catch(Throwable ex) {
+                            ex.printStackTrace();
+                        }
+                        VSTInstance.stopEngine(null);
+                        System.exit(0);
+                    }
+                });
+                t.start();
             }
             public void windowClosed(WindowEvent e){
-                try {
-                    MXMIDIInManager.getManager().closeAll();
-                    MXMIDIOutManager.getManager().closeAll();
-
-                    System.out.println("stopThread");
-                    MXThreadList.onExit();
-                }catch(Throwable ex) {
-                    ex.printStackTrace();
-                }
-                System.out.println("stopEnding");
-                VSTInstance.stopEngine(null);
-                System.out.println("exit");
-                System.exit(0);
             }
         });
 
@@ -227,7 +247,10 @@ public class MXMain  {
             public void run() {
                 _mainWindow.initLatebind(reList);
                 
-                opening.setVisible(false);
+                if (_progress != null) {
+                    _progress.setVisible(false);
+                    _progress = null;
+                }
                 _mainWindow.setVisible(true);
 
                 Runnable run;
@@ -237,7 +260,6 @@ public class MXMain  {
 
                 _mainWindow.setEnabled(true);
                 Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
-                opening.stopProgress();
             }
         });
     }
