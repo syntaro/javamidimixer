@@ -32,7 +32,7 @@ import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -331,7 +331,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
         _valueModulation = value;
         synchronized(MXTiming.mutex) {            
             MXMessage msg = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_CONTROLCHANGE + _process.getMouseChannel(), MXMidi.DATA1_CC_MODULATION, 0);
-            msg.setValue(RangedValue.new7bit(value));
+            msg.setValue(MXRangedValue.new7bit(value));
             _process.mouseMessage(msg);
         }
 
@@ -348,7 +348,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
         _valuePitch = value;
         synchronized(MXTiming.mutex) {            
             MXMessage msg = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_PITCHWHEEL + _process.getMouseChannel(), 0, 0);
-            msg.setValue(RangedValue.new7bit(value));
+            msg.setValue(MXRangedValue.new7bit(value));
             _process.mouseMessage(msg);
         }
     }//GEN-LAST:event_jSliderPitchStateChanged

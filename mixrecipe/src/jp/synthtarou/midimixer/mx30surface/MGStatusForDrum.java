@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
@@ -80,7 +80,7 @@ public class MGStatusForDrum implements Cloneable {
     boolean _currentSwitch = false;
     boolean _modeToggle = false;
     boolean _onlySwitched = false; //TODO
-    RangedValue _strikeZone = new RangedValue(0, 1, 127);
+    MXRangedValue _strikeZone = new MXRangedValue(0, 1, 127);
 
     public int _mouseOnValue = 127;
     public int _mouseOffValue = 0;
@@ -98,7 +98,7 @@ public class MGStatusForDrum implements Cloneable {
     boolean _lastDetected = false;
     boolean _lastToggled = false;
     MXTemplate _customTemplate = null;
-    RangedValue _customGate = RangedValue.ZERO7; // TODO
+    MXRangedValue _customGate = MXRangedValue.ZERO7; // TODO
     int _customOutOnValue = -1;
     int _customOutOffValue = -1;
     
@@ -319,7 +319,7 @@ public class MGStatusForDrum implements Cloneable {
 
                 case STYLE_CUSTOM_CC:
                     if (_customTemplate != null) {
-                        message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, RangedValue.new7bit(velocity));
+                        message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, MXRangedValue.new7bit(velocity));
                         result.addTranslated(message);
                         return;
                     }
@@ -407,7 +407,7 @@ public class MGStatusForDrum implements Cloneable {
                     
                 case STYLE_CUSTOM_CC:
                     if (_customTemplate != null) {
-                        message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, RangedValue.new7bit(velocity));
+                        message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, MXRangedValue.new7bit(velocity));
                         result.addTranslated(message);
                     }
                     break;

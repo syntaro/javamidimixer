@@ -27,15 +27,17 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
 import jp.synthtarou.midimixer.ccxml.CCXParserForCCM;
 import jp.synthtarou.midimixer.ccxml.EditorForControlChange;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.MXWrapListPopup;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessageWrapListFactory;
 import jp.synthtarou.midimixer.libs.navigator.INavigator;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
@@ -58,7 +60,7 @@ public class MX36DetailPanel extends javax.swing.JPanel {
      */
     public MX36DetailPanel(MX36Process process) {
         initComponents();
-        _status = new MX36Status(null);
+        _status = new MX36Status();
         _process = process;
         jLabelEmpty1.setText("");
         jLabelEmpty2.setText("");
@@ -85,9 +87,11 @@ public class MX36DetailPanel extends javax.swing.JPanel {
             }
         };
         listBindMouse = new JTextField[]{
+            /*
             jTextFieldSurfacePort,
             jTextFieldSurfaceRow,
             jTextFieldSurfaceColumn,
+             */
             jTextFieldOutChannel,
             jTextFieldOutGate,
             jTextFieldOutPort,
@@ -109,11 +113,14 @@ public class MX36DetailPanel extends javax.swing.JPanel {
 
         jTextFieldValueValue.setBackground(Color.white);
         jTextFieldValueValue.setForeground(Color.magenta);
-        jTextFieldValueValue.setMinimumSize(new Dimension(80, 30));
         jTextFieldValueValue.setHorizontalAlignment(JTextField.RIGHT);
+        jTextFieldValueValue.setPreferredSize(new Dimension(15 * 5, jTextFieldValueValue.getPreferredSize().height));
+        jButtonValueInc.setBackground(Color.white);
+        jButtonValueDec.setBackground(Color.white);
+        jButtonValueInc.setBorder(new EmptyBorder(3, 3, 3, 3));
+        jButtonValueDec.setBorder(new EmptyBorder(3, 3, 3, 3)); 
         new MXAttachSliderLikeEclipse(jSliderValueValue);
         new MXAttachSliderSingleClick(jSliderValueValue);
-        //updateViewByStatus(new MX36Status(null));
     }
 
     MXWrapList<Integer> _listPort = MXMessageWrapListFactory.listupPort("-");
@@ -121,70 +128,81 @@ public class MX36DetailPanel extends javax.swing.JPanel {
     MXWrapList<Integer> _listChannel = MXMessageWrapListFactory.listupChannel(null);
     MXWrapList<Integer> _listRSCParam = MXMessageWrapListFactory.listupRange(0, 127);
 
-    public synchronized void updateViewByStatus(MX36Status status) {
-        _status = null;
-        
-        jTextFieldSurfacePort.setText(_listPort.nameOfValue(status._surfacePort));
-        String surfaceRowText;
+    public void updateViewByStatus(MX36Status status) {
 
-        switch (status._surfaceUIType) {
-            case MGStatus.TYPE_SLIDER:
-                surfaceRowText = Character.toString('S' + status._surfaceRow);
-                break;
-            case MGStatus.TYPE_DRUMPAD:
-                surfaceRowText = Character.toString('X' + status._surfaceRow);
-                break;
-            case MGStatus.TYPE_CIRCLE:
-                surfaceRowText = Character.toString('A' + status._surfaceRow);
-                break;
-            default:
-                surfaceRowText = "-";
-                break;
+        if (_process._list._autodetectedFolder == status._folder) {
+            if (status.isValidForWork()) {
+                _process.moveFolder(_process._list._primalFolder, status);
+            }
+        } else {
+            if (status.isValidForWork() == false) {
+                int opt = JOptionPane.showConfirmDialog(this, "Move to AutoDecteted to No Process ?", "Confirm", JOptionPane.YES_NO_OPTION);
+                if (opt == JOptionPane.YES_OPTION) {
+                    _process.moveFolder(_process._list._autodetectedFolder, status);
+                }
+            }
         }
 
-        jTextFieldSurfacePort.setText(_listPort.nameOfValue(status._surfacePort));
-        jTextFieldSurfaceRow.setText(surfaceRowText);
-        jTextFieldSurfaceColumn.setText(_listColumn.nameOfValue(status._surfaceColumn));
-        jLabelSurfaceValueRange.setText(status._surfaceValueRange._min + " ... " + status._surfaceValueRange._max);
+        synchronized (this) {
+            _status = null;
+            try {
 
-        jTextFieldOutPort.setText(_listPort.nameOfValue(status._outPort));
-        jTextFieldOutChannel.setText(_listChannel.nameOfValue(status._outChannel));
-        jTextFieldOutGate.setText(status._outGateTable.nameOfValue(status._outGateRange._var));
-        jTextFieldOutName.setText(status._outName);
-        jTextFieldOutData.setText(status._outDataText);
-        jLabelOutValueRange.setText(status._outValueRange._min + " ... " + status._outValueRange._max);
+                jTextFieldSurfacePort.setText(_listPort.nameOfValue(status._surfacePort));
+                String surfaceRowText;
 
-        jTextFieldBind1RCH.setText(_listRSCParam.nameOfValue(status._bind1RCH));
-        jTextFieldBind2RCH.setText(_listRSCParam.nameOfValue(status._bind2RCH));
-        jTextFieldBind4RCH.setText(_listRSCParam.nameOfValue(status._bind4RCH));
+                switch (status._surfaceUIType) {
+                    case MGStatus.TYPE_SLIDER:
+                        surfaceRowText = Character.toString('S' + status._surfaceRow);
+                        break;
+                    case MGStatus.TYPE_DRUMPAD:
+                        surfaceRowText = Character.toString('X' + status._surfaceRow);
+                        break;
+                    case MGStatus.TYPE_CIRCLE:
+                        surfaceRowText = Character.toString('A' + status._surfaceRow);
+                        break;
+                    default:
+                        surfaceRowText = "-";
+                        break;
+                }
 
-        jTextFieldBindRSCTPT1.setText(_listRSCParam.nameOfValue(status._bindRSCTPT1));
-        jTextFieldBindRSCTPT2.setText(_listRSCParam.nameOfValue(status._bindRSCTPT2));
-        jTextFieldBindRSCTPT3.setText(_listRSCParam.nameOfValue(status._bindRSCTPT3));
+                jTextFieldSurfacePort.setText(_listPort.nameOfValue(status._surfacePort));
+                jTextFieldSurfaceRow.setText(surfaceRowText);
+                jTextFieldSurfaceColumn.setText(_listColumn.nameOfValue(status._surfaceColumn));
+                jLabelSurfaceValueRange.setText(status._surfaceValueRange._min + " ... " + status._surfaceValueRange._max);
 
-        jTextFieldBindRSCTRT1.setText(_listRSCParam.nameOfValue(status._bindRSCTRT1));
-        jTextFieldBindRSCTRT2.setText(_listRSCParam.nameOfValue(status._bindRSCTRT2));
-        jTextFieldBindRSCTRT3.setText(_listRSCParam.nameOfValue(status._bindRSCTRT3));
+                jTextFieldOutPort.setText(_listPort.nameOfValue(status._outPort));
+                jTextFieldOutChannel.setText(_listChannel.nameOfValue(status._outChannel));
+                jTextFieldOutGate.setText(status._outGateTable.nameOfValue(status._outGateRange._var));
+                jTextFieldOutName.setText(status._outName);
+                jTextFieldOutData.setText(status._outDataText);
+                jLabelOutValueRange.setText(status._outValueRange._min + " ... " + status._outValueRange._max);
 
-        if (status._outDataText == null || status._outDataText.isBlank()) {
-            jTextFieldValueValue.setEnabled(false);
-            jSliderValueValue.setEnabled(false);
+                jTextFieldBind1RCH.setText(_listRSCParam.nameOfValue(status._bind1RCH));
+                jTextFieldBind2RCH.setText(_listRSCParam.nameOfValue(status._bind2RCH));
+                jTextFieldBind4RCH.setText(_listRSCParam.nameOfValue(status._bind4RCH));
+
+                jTextFieldBindRSCTPT1.setText(_listRSCParam.nameOfValue(status._bindRSCTPT1));
+                jTextFieldBindRSCTPT2.setText(_listRSCParam.nameOfValue(status._bindRSCTPT2));
+                jTextFieldBindRSCTPT3.setText(_listRSCParam.nameOfValue(status._bindRSCTPT3));
+
+                jTextFieldBindRSCTRT1.setText(_listRSCParam.nameOfValue(status._bindRSCTRT1));
+                jTextFieldBindRSCTRT2.setText(_listRSCParam.nameOfValue(status._bindRSCTRT2));
+                jTextFieldBindRSCTRT3.setText(_listRSCParam.nameOfValue(status._bindRSCTRT3));
+
+                jTextFieldValueValue.setText(status._outValueTable.nameOfValue(status._outValueRange._var));
+                jSliderValueValue.setMinimum(status._outValueRange._min);
+                jSliderValueValue.setMaximum(status._outValueRange._max);
+                jSliderValueValue.setValue(status._outValueRange._var);
+                if (status._folder != null) {
+                    //最初のダミーだけnull
+                    status._folder.refill(status);
+                }
+            } finally {
+                _status = status;
+            }
         }
-        else {
-            jTextFieldValueValue.setEnabled(true);
-            jSliderValueValue.setEnabled(true);
-        }
-
-        jSliderValueValue.setMinimum(status._outValueRange._min);
-        jSliderValueValue.setMaximum(status._outValueRange._max);
-        jSliderValueValue.setValue(status._outValueRange._var);
-        if (status._folder != null) {
-            //最初のダミーだけnull
-            status._folder.refill(status);
-        }
-        _status = status;
     }
-    
+
     public void updateSliderByStatus() {
         if (_status != null) {
             MX36Status status = _status;
@@ -194,23 +212,24 @@ public class MX36DetailPanel extends javax.swing.JPanel {
             _status = status;
         }
     }
-    
+
     class MXWrapListForPanel<T> extends MXWrapListPopup<T> {
+
         public MXWrapListForPanel(JTextField target, MXWrapList<T> list) {
             super(target, list);
         }
-        
+
         public void doAction() {
             MXWrapList<T> list = this._list;
             int selectedIndex = this._selectedIndex;
             JTextField textField = this._textField;
-            
+
             super.doAction();
             T value = list.valueOfIndex(selectedIndex);
-            
-            feedbackPopup(textField, (Integer)value);
+
+            feedbackPopup(textField, (Integer) value);
             //super.doAction();
-        }   
+        }
     }
 
     public void textFieldDoPopup(JTextField target) {
@@ -243,7 +262,7 @@ public class MX36DetailPanel extends javax.swing.JPanel {
         if (target == jTextFieldOutGate) {
             if (_status._outGateTypeKey) {
                 MXNotePicker picker = new MXNotePicker(false);
-                picker.setSelectedNoteList(new int[]{ _status._outGateRange._var });
+                picker.setSelectedNoteList(new int[]{_status._outGateRange._var});
                 MXUtil.showAsDialog(null, picker, "Note Number");
                 if (picker.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
                     int[] ret = picker.getReturnValue();
@@ -253,9 +272,8 @@ public class MX36DetailPanel extends javax.swing.JPanel {
                         jTextFieldOutGate.setText(noteName);
                     }
                 }
-            }
-            else {
-                MXWrapListPopup<Integer> actions = new MXWrapListForPanel<>(target, _status._outGateTable);                
+            } else {
+                MXWrapListPopup<Integer> actions = new MXWrapListForPanel<>(target, _status._outGateTable);
                 actions.show();
             }
             return;
@@ -268,10 +286,10 @@ public class MX36DetailPanel extends javax.swing.JPanel {
 
         if (target == jTextFieldOutData) {
             EditorForControlChange picker = new EditorForControlChange(false);
-            MXUtil.showAsDialog(this, picker,  "Which You Choose?");
+            MXUtil.showAsDialog(this, picker, "Which You Choose?");
             if (picker.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
                 CCXParserForCCM ccm = picker.getReturnValue();
-                
+
                 if (ccm == null) {
                     return;
                 }
@@ -279,15 +297,15 @@ public class MX36DetailPanel extends javax.swing.JPanel {
                 _status._outMemo = ccm._memo;
                 _status._outDataText = ccm._data;
 
-                _status._outGateRange = new RangedValue(ccm._defaultGate, ccm._minGate, ccm._maxGate);
+                _status._outGateRange = new MXRangedValue(ccm._defaultGate, ccm._minGate, ccm._maxGate);
                 _status._outGateOffset = ccm._offsetGate;
                 _status._outGateTable = ccm._gateTable;
                 _status._outGateTypeKey = ccm._gateTypeKey;
 
-                _status._outValueRange = new RangedValue(ccm._defaultValue, ccm._minValue, ccm._maxValue);
+                _status._outValueRange = new MXRangedValue(ccm._defaultValue, ccm._minValue, ccm._maxValue);
                 _status._outValueOffset = ccm._offsetValue;
                 _status._outValueTable = ccm._valueTable;
-                
+
                 _status._outCachedMessage = null;
 
                 updateViewByStatus(_status);
@@ -423,10 +441,6 @@ public class MX36DetailPanel extends javax.swing.JPanel {
         }
     }
 
-    public void refreshTree() {
-        //jSplitPane1.setDividerLocation(jSplitPane1.getWidth() / 2);
-    }
-
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -461,6 +475,7 @@ public class MX36DetailPanel extends javax.swing.JPanel {
         jLabel11 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
+        jButtonOutTextClear = new javax.swing.JButton();
         jPanel4 = new javax.swing.JPanel();
         jLabelEmpty3 = new javax.swing.JLabel();
         jLabel15 = new javax.swing.JLabel();
@@ -484,6 +499,8 @@ public class MX36DetailPanel extends javax.swing.JPanel {
         jPanel5 = new javax.swing.JPanel();
         jSliderValueValue = new javax.swing.JSlider();
         jTextFieldValueValue = new javax.swing.JTextField();
+        jButtonValueInc = new javax.swing.JButton();
+        jButtonValueDec = new javax.swing.JButton();
         jButton1 = new javax.swing.JButton();
 
         setLayout(new java.awt.GridBagLayout());
@@ -590,7 +607,7 @@ public class MX36DetailPanel extends javax.swing.JPanel {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         jPanel3.add(jTextFieldOutName, gridBagConstraints);
@@ -685,6 +702,17 @@ public class MX36DetailPanel extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 10);
         jPanel3.add(jLabel7, gridBagConstraints);
+
+        jButtonOutTextClear.setText("Clear");
+        jButtonOutTextClear.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonOutTextClearActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 1;
+        jPanel3.add(jButtonOutTextClear, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -869,8 +897,9 @@ public class MX36DetailPanel extends javax.swing.JPanel {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         jPanel5.add(jSliderValueValue, gridBagConstraints);
@@ -884,9 +913,36 @@ public class MX36DetailPanel extends javax.swing.JPanel {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
+        jPanel5.add(jTextFieldValueValue, gridBagConstraints);
+
+        jButtonValueInc.setText("Inc");
+        jButtonValueInc.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonValueIncActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        jPanel5.add(jTextFieldValueValue, gridBagConstraints);
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanel5.add(jButtonValueInc, gridBagConstraints);
+
+        jButtonValueDec.setText("Dec");
+        jButtonValueDec.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonValueDecActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanel5.add(jButtonValueDec, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -945,8 +1001,12 @@ public class MX36DetailPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jPanel5MouseWheelMoved
 
     private void jSliderValueValueStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderValueValueStateChanged
+        if (_status == null) {
+            return;
+        }
         int value = jSliderValueValue.getValue();
-        jTextFieldValueValue.setText(Integer.toString(value));
+        String name = _status._outValueTable.nameOfValue(value);
+        jTextFieldValueValue.setText(name);
         if (_status != null) {
             _process.updateOutputValue(_status, value);
         }
@@ -957,11 +1017,13 @@ public class MX36DetailPanel extends javax.swing.JPanel {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         _editing = !_editing;
         if (_editing) {
-            jButton1.setBackground(Color.orange);
+            jButton1.setText("Customizing...Done?");
+            jButton1.setBackground(Color.green);
             for (JTextField textField : listBindMouse) {
-                textField.setBackground(Color.orange);
+                textField.setBackground(Color.green);
             }
         } else {
+            jButton1.setText("Unlock Customize Mode...");
             jButton1.setBackground(null);
             for (JTextField textField : listBindMouse) {
                 textField.setBackground(null);
@@ -971,31 +1033,47 @@ public class MX36DetailPanel extends javax.swing.JPanel {
 
     private void jTextFieldValueValueMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextFieldValueValueMousePressed
         MXWrapList<Integer> list = _status._outValueTable;
-        if (_status._outDataText == null || _status._outDataText.isBlank()) {
-            return;
-        }
-
         MXWrapListPopup<Integer> actions = new MXWrapListPopup<Integer>(jTextFieldValueValue, list) {
             @Override
             public void doAction() {
                 super.doAction();
 
-                String value = jTextFieldValueValue.getText();
-                JSlider slider = jSliderValueValue;
-                try {
-                    int x = Integer.valueOf(value);
-                    slider.setValue(x);
-                } catch (NumberFormatException e) {
-
-                }
+                int value = _list.get(_selectedIndex)._value;
+                jSliderValueValue.setValue(value);
             }
         };
         actions.show();
     }//GEN-LAST:event_jTextFieldValueValueMousePressed
 
+    private void jButtonOutTextClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOutTextClearActionPerformed
+        _status._outDataText = "";
+        updateViewByStatus(_status);
+    }//GEN-LAST:event_jButtonOutTextClearActionPerformed
+
+    private void jButtonValueIncActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonValueIncActionPerformed
+        int var = _status._outValueRange._var;
+        var ++;
+        if (_status._outValueRange._max >= var) {
+            _status._outValueRange = _status._outValueRange.changeValue(var);
+            updateViewByStatus(_status);
+        }
+    }//GEN-LAST:event_jButtonValueIncActionPerformed
+
+    private void jButtonValueDecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonValueDecActionPerformed
+        int var = _status._outValueRange._var;
+        var --;
+        if (_status._outValueRange._min <= var) {
+            _status._outValueRange = _status._outValueRange.changeValue(var);
+            updateViewByStatus(_status);
+        }
+    }//GEN-LAST:event_jButtonValueDecActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButtonOutTextClear;
+    private javax.swing.JButton jButtonValueDec;
+    private javax.swing.JButton jButtonValueInc;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;

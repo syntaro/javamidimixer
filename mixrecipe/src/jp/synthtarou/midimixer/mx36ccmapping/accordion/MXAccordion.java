@@ -173,12 +173,15 @@ public class MXAccordion extends javax.swing.JPanel {
         return _accordionOpened;
     }
     
-    public void insertAt(int pos, MXAccordionElement element) {
+    public void insertElement(int pos, MXAccordionElement element) {
         _contentsList.add(element, pos);
     }
     
     public void refresh(int pos) {
-        _contentsList._listElement.get(pos).refill();
+        if (pos >= 0) {
+            _contentsList._listElement.get(pos).refill();
+        }
+        _contentsList.revalidateASAP();
     }
     
     public int elementCount() {
@@ -187,5 +190,9 @@ public class MXAccordion extends javax.swing.JPanel {
     
     public MXAccordionElement elementAt(int x) {
         return _contentsList.get(x);
+    }
+    
+    public void removeElement(MXAccordionElement elem) {
+        _contentsList.remove(elem);
     }
 }

@@ -36,6 +36,15 @@ public class MXAccordionInnerPanel {
     public MXAnimationPanel getAnimationPanel() {
         return _animationPanel;
     }
+
+    public void remove(MXAccordionElement element) {
+        for (int i = 0; i < _listElement.size(); ++ i) {
+            if (element == _listElement.get(i)) {
+                _listElement.remove(i);
+                _animationPanel.remove(element.getRenderer());
+            }
+        }
+    }
     
     boolean _doingAnimation = false;
     

@@ -23,26 +23,26 @@ import java.util.TreeMap;
  *
  * @author Syntarou YOSHIDA
  */
-public class RangedValue implements Comparable<RangedValue>{
+public class MXRangedValue implements Comparable<MXRangedValue>{
 
-    public static RangedValue[] _cache128;
+    public static MXRangedValue[] _cache128;
 
     static {
         // 大した、メモリ負荷はないが、いちおうできそうなので、キャッシュ
-        _cache128 = new RangedValue[128];
+        _cache128 = new MXRangedValue[128];
         for (int i = 0; i < 128; ++i) {
-            _cache128[i] = new RangedValue(i, 0, 127);
+            _cache128[i] = new MXRangedValue(i, 0, 127);
         }
     }
 
-    public static final RangedValue ZERO7 = _cache128[0];
+    public static final MXRangedValue ZERO7 = _cache128[0];
 
-    public static final RangedValue new7bit(int x) {
+    public static final MXRangedValue new7bit(int x) {
         return _cache128[x];
     }
 
-    public static final RangedValue new14bit(int x) {
-        return new RangedValue(x, 0, 128 * 128 - 1);
+    public static final MXRangedValue new14bit(int x) {
+        return new MXRangedValue(x, 0, 128 * 128 - 1);
     }
 
     public final int _min;
@@ -52,7 +52,7 @@ public class RangedValue implements Comparable<RangedValue>{
     public final int _var;
     public final double _position;
 
-    public RangedValue(int value, int min, int max) {
+    public MXRangedValue(int value, int min, int max) {
         this(value, min, max, calcPosition(value, min, max));
     }
 
@@ -66,7 +66,7 @@ public class RangedValue implements Comparable<RangedValue>{
         }
     }
 
-    protected RangedValue(int value, int min, int max, double position) {
+    protected MXRangedValue(int value, int min, int max, double position) {
         _min = min;
         _max = max;
         if (min <= max) {
@@ -79,7 +79,7 @@ public class RangedValue implements Comparable<RangedValue>{
         _position = position;
     }
 
-    public RangedValue changeRange(int newMin, int newMax) {
+    public MXRangedValue changeRange(int newMin, int newMax) {
         if (newMin == _min && newMax == _max) {
             return this;
         }
@@ -111,23 +111,23 @@ public class RangedValue implements Comparable<RangedValue>{
 
         if (newMin == 0 && newMax == 127) {
             if (newValue >= 0 && newValue <= 127) {
-                RangedValue t = new7bit(newValue);
+                MXRangedValue t = new7bit(newValue);
                 if (t._position == _position) {
                     return t;
                 }
             }
         }
-        return new RangedValue(newValue, newMin, newMax, _position);
+        return new MXRangedValue(newValue, newMin, newMax, _position);
     }
 
     public static void test0(int oldMin, int oldMax, int newMin, int newMax) {
         TreeMap<Integer, Integer> count = new TreeMap();
-        RangedValue sample = new RangedValue(0, oldMin, oldMax);
+        MXRangedValue sample = new MXRangedValue(0, oldMin, oldMax);
         // １．分布を集計する
 
         if (oldMin <= oldMax) {
             for (int i = oldMin; i <= oldMax; ++i) {
-                RangedValue calc = sample.changeValue(i).changeRange(newMin, newMax);
+                MXRangedValue calc = sample.changeValue(i).changeRange(newMin, newMax);
                 Integer x = count.get(calc._var);
                 if (x == null) {
                     x = 0;
@@ -136,7 +136,7 @@ public class RangedValue implements Comparable<RangedValue>{
             }
         } else {
             for (int i = oldMin; i >= oldMax; --i) {
-                RangedValue calc = sample.changeValue(i).changeRange(newMin, newMax);
+                MXRangedValue calc = sample.changeValue(i).changeRange(newMin, newMax);
                 Integer x = count.get(calc._var);
                 if (x == null) {
                     x = 0;
@@ -172,7 +172,7 @@ public class RangedValue implements Comparable<RangedValue>{
             }
         }
 
-        RangedValue dump = new RangedValue(0, newMin, newMax);
+        MXRangedValue dump = new MXRangedValue(0, newMin, newMax);
 
         System.out.println("");
         System.out.println("元の幅：" + oldMin + " ~ " + oldMax + " = " + sample._count + " 通り");
@@ -241,15 +241,15 @@ public class RangedValue implements Comparable<RangedValue>{
 
     }
 
-    public RangedValue increment() {
+    public MXRangedValue increment() {
         return changeValue(_var + (_min < _max ? 1 : -1));
     }
 
-    public RangedValue decrement() {
+    public MXRangedValue decrement() {
         return changeValue(_var + (_min < _max ? -1 : 1));
     }
 
-    public RangedValue changeValue(int value) {
+    public MXRangedValue changeValue(int value) {
         if (_var == value) {
             return this;
         }
@@ -271,7 +271,7 @@ public class RangedValue implements Comparable<RangedValue>{
         if (_min == 0 && _max == 127) {
             return _cache128[value];
         }
-        return new RangedValue(value, _min, _max);
+        return new MXRangedValue(value, _min, _max);
     }
 
     @Override
@@ -284,8 +284,8 @@ public class RangedValue implements Comparable<RangedValue>{
         if (obj == this) {
             return true;
         }
-        if (obj instanceof RangedValue) { 
-            RangedValue x = (RangedValue)obj;
+        if (obj instanceof MXRangedValue) { 
+            MXRangedValue x = (MXRangedValue)obj;
             if (x._var == _var) {
                 if (x._min == _min && x._max == _max) {
                     return true;
@@ -296,7 +296,7 @@ public class RangedValue implements Comparable<RangedValue>{
     }
 
     @Override
-    public int compareTo(RangedValue o) {
+    public int compareTo(MXRangedValue o) {
         int x = this._var - o._var;
         if (x == 0) {
             x = this._min - o._min;

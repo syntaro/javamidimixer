@@ -45,6 +45,7 @@ public class MXVersionDialog extends javax.swing.JDialog {
         text.append("java.vendor=" + System.getProperty("java.vendor") + "\n");
         text.append("java.version=" + System.getProperty("java.version") + "\n");
         text.append("\n");
+        text.append("V0.52 Beta published fixed 10~ bugs\n");
         text.append("V0.51 Alpha renew UI 'Mixer' is now 'Surface17' and 'CCMapping'\n");
         text.append("\n");
         text.append("V0.47 sysex bugfix\n");

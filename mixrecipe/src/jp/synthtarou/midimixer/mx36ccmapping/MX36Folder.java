@@ -18,6 +18,7 @@ package jp.synthtarou.midimixer.mx36ccmapping;
 
 import java.util.Comparator;
 import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordion;
+import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordionElement;
 import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordionFocus;
 
 /**
@@ -25,35 +26,36 @@ import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordionFocus;
  * @author Syntarou YOSHIDA
  */
 public class MX36Folder implements Comparable<MX36Folder> {
+
     SortedArray<MX36Status> _list;
     MXAccordionFocus _focus;
     MX36Process _process;
-    
+
     public static final Comparator<MX36Status> SORT_BY_COLUMN = new Comparator<MX36Status>() {
         @Override
         public int compare(MX36Status o1, MX36Status o2) {
             return o1.compareSurfacePositionColumn(o2);
         }
     };
-    
+
     public static final Comparator<MX36Status> SORT_BY_ROW = new Comparator<MX36Status>() {
         @Override
         public int compare(MX36Status o1, MX36Status o2) {
             return o1.compareSurfacePositionRow(o2);
         }
     };
-    
+
     final String _folderName;
     int _order;
-    MXAccordion _accordion;
+    final MXAccordion _accordion;
 
     public MX36Folder(MX36Process process, MXAccordionFocus focus, int order, String name) {
         _list = new SortedArray<>(SORT_BY_ROW);
         _order = order;
         _process = process;
         _focus = focus;
-        _folderName = name;
         _accordion = new MXAccordion(focus, name);
+        _folderName = name;
     }
 
     @Override
@@ -73,8 +75,14 @@ public class MX36Folder implements Comparable<MX36Folder> {
     }
 
     public void insertSorted(MX36Status status) {
+        status._folder = this;
         int pos = _list.insertSorted(status);
-        _accordion.insertAt(pos, new MX36StatusPanel(_process, _accordion, status));
+        if (pos < 0) {
+            return;
+        }
+        MX36StatusPanel element = new MX36StatusPanel(_process, _accordion, status);
+        _accordion.insertElement(pos, element);
+        refill(status);
         setupMouse();
     }
 
@@ -83,16 +91,27 @@ public class MX36Folder implements Comparable<MX36Folder> {
         for (MX36Status seek : _list) {
             if (seek == status) {
                 _accordion.refresh(count);
+                return;
             }
-            count ++;
+            count++;
         }
+        _accordion.refresh(-1);
     }
-    
+
     public void setupMouse() {
-       _focus.setupMouse(0, _accordion);
-     }
-    
-    public MX36Status createStatus() {
-        return new MX36Status(this);
+        _focus.setupMouse(0, _accordion);
+    }
+
+    public void remove(MXAccordionElement elem) {
+        if (_list.size() != _accordion.elementCount()) {
+            new Throwable("before").printStackTrace();
+        }
+        
+        MX36StatusPanel p = (MX36StatusPanel)elem;
+        _accordion.removeElement(elem);
+        _list.remove(p.getStatus());
+        if (_list.size() != _accordion.elementCount()) {
+            new Throwable("after").printStackTrace();
+        }
     }
 }

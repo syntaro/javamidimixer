@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.libs.midi;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 
 /**
  *
@@ -86,7 +86,7 @@ public class MXMessageFactory {
     
     static final MXTemplate ZERO = new MXTemplate(new int[]{ MXMidi.COMMAND2_NONE, 0, 0 });
     
-    public static MXMessage fromTemplate(int port, MXTemplate template, int channel, RangedValue gate, RangedValue value) {
+    public static MXMessage fromTemplate(int port, MXTemplate template, int channel, MXRangedValue gate, MXRangedValue value) {
         MXMessage message = new MXMessage(port, template, channel, gate, value);
         return message;
     }
@@ -95,7 +95,7 @@ public class MXMessageFactory {
         return fromCCXMLText(port, text, channel, null, null);
     }
 
-    public static MXMessage fromCCXMLText(int port, String text, int channel, RangedValue gate, RangedValue value) {
+    public static MXMessage fromCCXMLText(int port, String text, int channel, MXRangedValue gate, MXRangedValue value) {
         while (text.startsWith(" ")) {
             text = text.substring(1);
         }

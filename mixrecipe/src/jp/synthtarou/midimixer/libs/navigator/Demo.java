@@ -21,7 +21,7 @@ import jp.synthtarou.midimixer.ccxml.CXNode;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessageWrapListFactory;
 
 /**
@@ -164,7 +164,7 @@ public class Demo extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonTextActionPerformed
 
     private void jButtonNumberActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNumberActionPerformed
-        NavigatorForNumber navi = new NavigatorForNumber(RangedValue.ZERO7);
+        NavigatorForNumber navi = new NavigatorForNumber(MXRangedValue.ZERO7);
         MXUtil.showAsDialog(this, navi, "Which is your choice?");
         if (navi._returnStatus == INavigator.RETURN_STATUS_APPROVED) {
             jTextArea1.setText(String.valueOf(navi._returnValue));

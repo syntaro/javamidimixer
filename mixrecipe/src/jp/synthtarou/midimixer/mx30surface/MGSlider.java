@@ -22,7 +22,7 @@ import java.awt.event.MouseWheelListener;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
@@ -70,7 +70,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
             if (ThemeManager.getInstance().isColorfulMetalTheme()) {        
                 col = MXUtil.mixtureColor(Color.red, 30, Color.yellow, 70);
             }
-            RangedValue value = status._base.getValue();
+            MXRangedValue value = status._base.getValue();
             jLabelValue.setForeground(col);
             //jLabelValue.setMinimumSize(new Dimension(50, 50));
             jLabelMin.setText(String.valueOf(value._min));
@@ -179,7 +179,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
             });
             return;
         }
-        RangedValue newValue = status._base.getValue();
+        MXRangedValue newValue = status._base.getValue();
         if (jSliderValue.getValue() == newValue._var) {
             return;
         }
@@ -214,7 +214,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
 
     public void increment() {
         MGStatus status = getStatus();
-        RangedValue var = status._base.getValue().increment();
+        MXRangedValue var = status._base.getValue().increment();
         if (var != null) {
             _mixer.updateStatusAndSend(status, var._var, null);
         }
@@ -222,7 +222,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
     
     public void decriment() {
         MGStatus status = getStatus();
-        RangedValue var = status._base.getValue().decrement();
+        MXRangedValue var = status._base.getValue().decrement();
         if (var != null) {
             _mixer.updateStatusAndSend(status, var._var, null);
         }

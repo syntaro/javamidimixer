@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.mx30surface;
 
 import javax.swing.JComponent;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
@@ -191,7 +191,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
             return false;
         }
         if (_base.hasSameTemplate(message)) {
-            RangedValue value = getValue();
+            MXRangedValue value = getValue();
             MXVisitant visit = message.getVisitant();
 
             if (message.isDataentryByCC()) {
@@ -244,7 +244,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
             }
             return false;
         } else if (isOnlyValueDifferent(message)) { //long message
-            RangedValue value = _base.getValue();
+            MXRangedValue value = _base.getValue();
             int newValue = message.getValue()._var;
             if (newValue >= value._min && newValue <= value._max) {
                 setMessageValue(value.changeValue(newValue));
@@ -256,11 +256,11 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         return false;
     }
 
-    public RangedValue getValue() {
+    public MXRangedValue getValue() {
         return _base.getValue();
     }
 
-    public void setMessageValue(RangedValue value) {
+    public void setMessageValue(MXRangedValue value) {
         _base.setValue(value);
     }
 
@@ -339,12 +339,12 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     public void fillTogglePedal() {
         clearAll();
         setBaseMessage("90h #GL #VL");
-        _base.setGate(new RangedValue(12*5, 0, 127));
+        _base.setGate(new MXRangedValue(12*5, 0, 127));
         _name = "note";
         _drum._outStyle = MGStatusForDrum.STYLE_CUSTOM_CC;
         _drum._modeToggle = true;
         _drum._currentSwitch = false;
-        _drum._strikeZone = new RangedValue(127, 1, 127);
+        _drum._strikeZone = new MXRangedValue(127, 1, 127);
         _drum._customTemplate = new MXTemplate("@CC #GL #VL");
         _drum._customOutOnValue = 127;
         _drum._customOutOffValue = 0;

@@ -85,6 +85,11 @@ public class MX36FolderList {
     }
 
     public synchronized MX36Folder newFolder(int index, String name) {
+        for (MX36Folder seek : _listFolder) {
+            if (seek._folderName.equals(name)) {
+                return seek;
+            }
+        }
         MX36Folder folder = new MX36Folder(_process,_focus, index, name);
         _listFolder.add(folder);
         return folder;

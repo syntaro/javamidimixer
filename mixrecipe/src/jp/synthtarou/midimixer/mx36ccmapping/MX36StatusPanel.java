@@ -38,6 +38,7 @@ public class MX36StatusPanel extends javax.swing.JPanel implements MXAccordionEl
         initComponents();
         _process = process;
         _status = status;
+        status._view = this;
         _accordion = accordion;
         refill();
     }

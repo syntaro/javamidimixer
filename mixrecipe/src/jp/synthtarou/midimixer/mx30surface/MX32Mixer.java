@@ -20,7 +20,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import java.util.ArrayList;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -208,8 +208,8 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
                 int valueN = node.getSettingAsInt("value", 0);
                 int valueMin = node.getSettingAsInt("valuemin", 0);
                 int valueMax = node.getSettingAsInt("valuemax", 127);
-                RangedValue gate = template.getBytePosHiGate() >= 0 ? RangedValue.new14bit(gateN) : RangedValue.new7bit(gateN);
-                RangedValue value = new RangedValue(valueN, valueMin, valueMax);
+                MXRangedValue gate = template.getBytePosHiGate() >= 0 ? MXRangedValue.new14bit(gateN) : MXRangedValue.new7bit(gateN);
+                MXRangedValue value = new MXRangedValue(valueN, valueMin, valueMax);
                 status.setBaseMessage(MXMessageFactory.fromTemplate(_port, template, channel, gate, value));
 
             } catch (Exception e) {
@@ -241,8 +241,8 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
                 int valueN = node.getSettingAsInt("value", 0);
                 int valueMin = node.getSettingAsInt("valuemin", 0);
                 int valueMax = node.getSettingAsInt("valuemax", 127);
-                RangedValue gate = template.getBytePosHiGate() >= 0 ? RangedValue.new14bit(gateN) : RangedValue.new7bit(gateN);
-                RangedValue value = new RangedValue(valueN, valueMin, valueMax);
+                MXRangedValue gate = template.getBytePosHiGate() >= 0 ? MXRangedValue.new14bit(gateN) : MXRangedValue.new7bit(gateN);
+                MXRangedValue value = new MXRangedValue(valueN, valueMin, valueMax);
                 status.setBaseMessage(MXMessageFactory.fromTemplate(_port, template, channel, gate, value));
 
                 setStatus(MGStatus.TYPE_SLIDER, row, column, status);
@@ -277,8 +277,8 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
                 int valueN = node.getSettingAsInt("value", 0);
                 int valueMin = node.getSettingAsInt("valuemin", 0);
                 int valueMax = node.getSettingAsInt("valuemax", 127);
-                RangedValue gate = template.getBytePosHiGate() >= 0 ? RangedValue.new14bit(gateN) : RangedValue.new7bit(gateN);
-                RangedValue value = new RangedValue(valueN, valueMin, valueMax);
+                MXRangedValue gate = template.getBytePosHiGate() >= 0 ? MXRangedValue.new14bit(gateN) : MXRangedValue.new7bit(gateN);
+                MXRangedValue value = new MXRangedValue(valueN, valueMin, valueMax);
                 status.setBaseMessage(MXMessageFactory.fromTemplate(_port, template, channel, gate, value));
 
                 /* Drum */
@@ -286,7 +286,7 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
 
                 int switchInputOnMin = node.getSettingAsInt("switchInputOnMin", 1);
                 int switchInputOnMax = node.getSettingAsInt("switchInputOnMax", 127);
-                drum._strikeZone = new RangedValue(0, switchInputOnMin, switchInputOnMax);
+                drum._strikeZone = new MXRangedValue(0, switchInputOnMin, switchInputOnMax);
 
                 int switchMouseOnValue = node.getSettingAsInt("switchMouseOnValue", 100);
                 int switchMouseOffValue = node.getSettingAsInt("switchMouseOffValue", 0);

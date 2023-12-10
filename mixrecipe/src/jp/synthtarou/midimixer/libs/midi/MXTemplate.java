@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.IllegalFormatException;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 
 /**
  *
@@ -655,7 +655,7 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
             status = status & 0xf0;
             switch (status) {
                 case MXMidi.COMMAND_CH_PITCHWHEEL:
-                    template = new int[]{MXMidi.COMMAND_CH_PITCHWHEEL, MXMidi.CCXML_VL, MXMidi.CCXML_VH};
+                    template = new int[]{MXMidi.COMMAND_CH_PITCHWHEEL, MXMidi.CCXML_VH, MXMidi.CCXML_VL};
                     break;
                 case MXMidi.COMMAND_CH_CHANNELPRESSURE:
                     template = new int[]{MXMidi.COMMAND_CH_CHANNELPRESSURE, MXMidi.CCXML_VL};
@@ -695,8 +695,8 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
         MXTemplate found = null;
 
         int channel = 0;
-        RangedValue gate = RangedValue.ZERO7;
-        RangedValue value = RangedValue.ZERO7;
+        MXRangedValue gate = MXRangedValue.ZERO7;
+        MXRangedValue value = MXRangedValue.ZERO7;
 
         switch (me.get(0)) {
             case MXMidi.COMMAND2_NONE:
@@ -780,9 +780,9 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
                 }
                 if (gateHi < 0) {
                     gateHi = 0;
-                    gate = RangedValue.new7bit(gateLo);
+                    gate = MXRangedValue.new7bit(gateLo);
                 } else {
-                    gate = RangedValue.new14bit((gateHi << 7) | gateLo);
+                    gate = MXRangedValue.new14bit((gateHi << 7) | gateLo);
                 }
             }
             if (valueLo >= 0 || valueHi >= 0) {
@@ -791,9 +791,9 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
                 }
                 if (valueHi < 0) {
                     valueHi = 0;
-                    value = RangedValue.new7bit(valueLo);
+                    value = MXRangedValue.new7bit(valueLo);
                 } else {
-                    value = RangedValue.new14bit((valueHi << 7) | valueLo);
+                    value = MXRangedValue.new14bit((valueHi << 7) | valueLo);
                 }
             }
             return new MXMessage(port, me, channel, gate, value);

@@ -189,7 +189,7 @@ public class MXMidiConsoleElement implements Comparable<MXMidiConsoleElement>{
             return  "[ChannelPress " + channel + ":" + data1 + "]";
         }
         if (command == MXMidi.COMMAND_CH_PITCHWHEEL) {
-            return  "[Pitch " + channel + ":" + MXUtil.toHexFF(data1) + MXUtil.toHexFF(data2) +"=" + (data2 << 7 + data1) + "]";
+            return  "[Pitch " + channel + ":" + MXUtil.toHexFF(data1) + MXUtil.toHexFF(data2) +"=" + ((data1 << 7) + data2) + "]";
         }
         if (command == MXMidi.COMMAND_SONGPOSITION) {
             return  "[SongPos " + data1 + "]";

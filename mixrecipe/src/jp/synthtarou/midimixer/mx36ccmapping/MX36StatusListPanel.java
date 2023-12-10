@@ -35,14 +35,15 @@ public class MX36StatusListPanel extends javax.swing.JPanel {
         MX36FolderList list = new MX36FolderList(process);
         
         MX36Folder folder = list.getPrimalFolder();
-        folder.insertSorted(folder.createStatus());
-        folder.insertSorted(folder.createStatus());
-        folder.insertSorted(folder.createStatus());
+        folder.insertSorted(new MX36Status());
+        folder.insertSorted(new MX36Status());
+        folder.insertSorted(new MX36Status());
+        folder.insertSorted(new MX36Status());
         folder = list.getAutoDetectedFolder();
-        folder.insertSorted(folder.createStatus());
-        folder.insertSorted(folder.createStatus());
-        folder.insertSorted(folder.createStatus());
-        folder.insertSorted(folder.createStatus());
+        folder.insertSorted(new MX36Status());
+        folder.insertSorted(new MX36Status());
+        folder.insertSorted(new MX36Status());
+        folder.insertSorted(new MX36Status());
 
         list.selectFirstAtm();
 
@@ -67,6 +68,10 @@ public class MX36StatusListPanel extends javax.swing.JPanel {
         for (MX36Folder folder : list._listFolder) {
             MXAccordion accordion = folder._accordion;
 
+            /*
+            for (MX36Status status : folder._list) {
+                folder.insertSorted(status);
+            }*/
             GridBagConstraints lay1 = new GridBagConstraints(
                     0, y, 1, 1, 1, 0, 
                     GridBagConstraints.CENTER, GridBagConstraints.BOTH, 

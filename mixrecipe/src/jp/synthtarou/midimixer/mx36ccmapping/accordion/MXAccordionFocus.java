@@ -52,6 +52,9 @@ public class MXAccordionFocus {
             _group = group;
             _element = element;
             _accordion = focus;
+            if (element == null || focus == null) {
+                throw new NullPointerException();
+            }
         }
         
         @Override
@@ -119,7 +122,7 @@ public class MXAccordionFocus {
         uninstallMouse(accordion);
  
         if (true) {
-            accordion.addMouseListener(new MyMouseListener(group, accordion, null));
+            //accordion.addMouseListener(new MyMouseListener(group, accordion, null));
             accordion.setBorder(BorderFactory.createEtchedBorder());
         }
 

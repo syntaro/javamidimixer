@@ -18,7 +18,7 @@ package jp.synthtarou.midimixer.mx36ccmapping;
 
 import java.util.Collections;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMessageWrapListFactory;
@@ -33,7 +33,7 @@ public class MX36Status {
     int _surfaceUIType;
     int _surfaceRow;
     int _surfaceColumn;
-    RangedValue _surfaceValueRange = new RangedValue(0, 0, 127);
+    MXRangedValue _surfaceValueRange = new MXRangedValue(0, 0, 127);
     
     MGStatus _surfaceStatusCache;
     
@@ -44,12 +44,12 @@ public class MX36Status {
     MXMessage _outCachedMessage;
     int _outChannel;
 
-    RangedValue _outValueRange;
+    MXRangedValue _outValueRange;
     
     int _outValueOffset = 0;
     MXWrapList<Integer> _outValueTable;
     
-    RangedValue _outGateRange;
+    MXRangedValue _outGateRange;
     int _outGateOffset = 0;
     MXWrapList<Integer> _outGateTable;
     boolean _outGateTypeKey;
@@ -60,16 +60,18 @@ public class MX36Status {
     
     MX36Folder _folder;
     
-    public MX36Status(MX36Folder folder) {
+    MX36StatusPanel _view;
+    
+    public MX36Status() {
         _outPort = -1;
-        _folder = folder;
+        _folder = null;
         _outDataText = null;
         _outChannel = -1;
 
-        _outGateRange = new RangedValue(64, 0, 127);
+        _outGateRange = new MXRangedValue(64, 0, 127);
         _outGateOffset = 0;
         _outGateTable = MXMessageWrapListFactory.listupRange(_outGateRange._min, _outGateRange._max);
-        _outValueRange = new RangedValue(32, 0, 127);
+        _outValueRange = new MXRangedValue(32, 0, 127);
         _outValueOffset = 0;
         _outValueTable = MXMessageWrapListFactory.listupRange(_outValueRange._min, _outValueRange._max);
     }
@@ -95,8 +97,8 @@ public class MX36Status {
     }
     
     public static MX36Status fromMGStatus(MX36Folder folder, MGStatus status) {
-        MX36Status it = folder.createStatus();
-        
+        MX36Status it = new MX36Status();
+                
         it._outName = status.getAsName();
         
         it._surfacePort = status._port;
@@ -117,7 +119,7 @@ public class MX36Status {
         return "";
     }
     
-    public MXWrapList<Integer> createTable(RangedValue range) {
+    public MXWrapList<Integer> createTable(MXRangedValue range) {
         MXWrapList<Integer> list = new MXWrapList<>();
         for (int i = range._min; i <= range._max; ++ i) {
             list.addNameAndValue(String.valueOf(i), i);
@@ -188,5 +190,15 @@ public class MX36Status {
         _outCachedMessage._timing = null;
 
         return (MXMessage)_outCachedMessage.clone();
+    }
+    
+    public boolean isValidForWork() {
+        if (_surfacePort < 0) return false;
+        if (_surfaceUIType < 0) return false;
+        if (_surfaceRow < 0) return false;
+        if (_surfaceColumn < 0) return false;
+        if (_outDataText == null) return false;
+        if (_outDataText.isBlank()) return false;
+        return true;
     }
 }

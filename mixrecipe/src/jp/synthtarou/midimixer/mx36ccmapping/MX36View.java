@@ -17,7 +17,12 @@
 package jp.synthtarou.midimixer.mx36ccmapping;
 
 import javax.swing.BorderFactory;
-import javax.swing.SwingUtilities;
+import javax.swing.JOptionPane;
+import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.navigator.INavigator;
+import jp.synthtarou.midimixer.libs.navigator.NavigatorForText;
+import jp.synthtarou.midimixer.libs.navigator.NavigatorForWrapList;
+import jp.synthtarou.midimixer.libs.navigator.NavigatorUtil;
 
 /**
  *
@@ -41,13 +46,15 @@ public class MX36View extends javax.swing.JPanel {
         jPanel3.add(_listPanel);
     }
 
+    public void fullReloadList(MX36FolderList list) {
+        jPanel3.remove(_listPanel);
+        _listPanel = new MX36StatusListPanel(list);
+        jPanel3.add(_listPanel);
+        _listPanel.revalidate();
+        jPanel3.revalidate();
+    }
+    
     public void refreshList() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                _listPanel.repaint();
-            }
-        });
     }
     
     public void focusStatus(MX36Status status) {
@@ -64,47 +71,36 @@ public class MX36View extends javax.swing.JPanel {
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        jButtonAddFolder = new javax.swing.JButton();
-        jButtonAddCC = new javax.swing.JButton();
-        jButtonMoveUp = new javax.swing.JButton();
-        jButtonMoveDown = new javax.swing.JButton();
+        jButtonNewFolder = new javax.swing.JButton();
+        jButtonMoveFolder = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jPanel3 = new javax.swing.JPanel();
 
         setLayout(new java.awt.GridBagLayout());
 
-        jButtonAddFolder.setText("Add Folder");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        add(jButtonAddFolder, gridBagConstraints);
-
-        jButtonAddCC.setText("Add CC");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
-        add(jButtonAddCC, gridBagConstraints);
-
-        jButtonMoveUp.setText("move Up");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 10, 0);
-        add(jButtonMoveUp, gridBagConstraints);
-
-        jButtonMoveDown.setText("move Down");
+        jButtonNewFolder.setText("New Folder");
+        jButtonNewFolder.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonNewFolderActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 10, 10, 0);
-        add(jButtonMoveDown, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(jButtonNewFolder, gridBagConstraints);
+
+        jButtonMoveFolder.setText("move Folder");
+        jButtonMoveFolder.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonMoveFolderActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(jButtonMoveFolder, gridBagConstraints);
 
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Pickuped"));
         jPanel2.setLayout(new javax.swing.BoxLayout(jPanel2, javax.swing.BoxLayout.LINE_AXIS));
@@ -125,12 +121,54 @@ public class MX36View extends javax.swing.JPanel {
         gridBagConstraints.weighty = 1.0;
         add(jPanel3, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jButtonNewFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNewFolderActionPerformed
+        NavigatorForText navigator = new NavigatorForText("");
+        NavigatorUtil.showNavigator(this, navigator,"Input Folder Name");
+        if (navigator.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+            String text = navigator.getReturnValue();
+            if (_process._list.getFolder(text) != null) {
+                JOptionPane.showMessageDialog(this, "Already Exists", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            _process._list.newFolder(text);
+            if (_process._view != null) {
+                _process._view.fullReloadList(_process._list);
+            }
+        }
+        
+    }//GEN-LAST:event_jButtonNewFolderActionPerformed
+
+    private void jButtonMoveFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveFolderActionPerformed
+        if (_detailPanel._status == null) {
+            return;
+        }
+        MXWrapList<Integer> listFolder = new MXWrapList<>();
+        int x = 0;
+        for (MX36Folder folder : _process._list._listFolder) {
+            listFolder.addNameAndValue(folder._folderName, x ++);
+        }
+        NavigatorForWrapList navi = new NavigatorForWrapList(listFolder);
+        NavigatorUtil.showNavigator(this, navi, "Move To ... < your choice >");
+        if (navi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+            int y = navi.getReturnValue();
+            x = 0;
+            MX36Folder ret = null;
+            for (MX36Folder folder : _process._list._listFolder) {
+                if (x == y) {
+                    ret = folder;
+                }
+                ++ x;
+            }
+            if (ret != null) {
+                _process.moveFolder(ret, _detailPanel._status);
+            }
+        }
+    }//GEN-LAST:event_jButtonMoveFolderActionPerformed
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButtonAddCC;
-    private javax.swing.JButton jButtonAddFolder;
-    private javax.swing.JButton jButtonMoveDown;
-    private javax.swing.JButton jButtonMoveUp;
+    private javax.swing.JButton jButtonMoveFolder;
+    private javax.swing.JButton jButtonNewFolder;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     // End of variables declaration//GEN-END:variables

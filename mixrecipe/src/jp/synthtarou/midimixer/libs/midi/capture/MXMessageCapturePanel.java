@@ -25,7 +25,7 @@ import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 
@@ -251,7 +251,7 @@ public class MXMessageCapturePanel extends javax.swing.JPanel {
                 int hivalue = wrap._value._hitHiValue;
                 //TODO
 
-                MXMessage msg = MXMessageFactory.fromCCXMLText(0, dtext, channel, RangedValue.new7bit(gate), null);
+                MXMessage msg = MXMessageFactory.fromCCXMLText(0, dtext, channel, MXRangedValue.new7bit(gate), null);
                 String text = msg.toStringHeader(lowvalue, hivalue);
                 jTextFieldCommandText.setText(text);
             }catch(Exception e) {

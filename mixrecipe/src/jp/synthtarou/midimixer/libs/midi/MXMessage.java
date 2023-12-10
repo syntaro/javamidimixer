@@ -18,7 +18,7 @@ package jp.synthtarou.midimixer.libs.midi;
 
 import java.io.PrintStream;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
@@ -43,8 +43,8 @@ public final class MXMessage implements Comparable<MXMessage> {
     public MXTiming _timing;
     int _port;
 
-    private RangedValue _value = RangedValue.ZERO7;
-    private RangedValue _gate = RangedValue.ZERO7;
+    private MXRangedValue _value = MXRangedValue.ZERO7;
+    private MXRangedValue _gate = MXRangedValue.ZERO7;
     private int _channel = 0;
 
     protected byte[] _dataBytes = null;
@@ -192,11 +192,11 @@ public final class MXMessage implements Comparable<MXMessage> {
         return _channel;
     }
 
-    public RangedValue getValue() {
+    public MXRangedValue getValue() {
         return _value;
     }
 
-    public void setValue(RangedValue value) {
+    public void setValue(MXRangedValue value) {
         if (_value != null) {
             if (_value.equals(value)) {
                 return;
@@ -214,11 +214,11 @@ public final class MXMessage implements Comparable<MXMessage> {
         _dataBytes = null;
     }
 
-    public RangedValue getGate() {
+    public MXRangedValue getGate() {
         return _gate;
     }
 
-    public void setGate(RangedValue gate) {
+    public void setGate(MXRangedValue gate) {
         _gate = gate;
         //TODO checksame
         _dataBytes = null;
@@ -258,29 +258,29 @@ public final class MXMessage implements Comparable<MXMessage> {
     }
 
     MXMessage(int port, MXTemplate template) {
-        this(port, template, 0, RangedValue.ZERO7, RangedValue.ZERO7);
+        this(port, template, 0, MXRangedValue.ZERO7, MXRangedValue.ZERO7);
     }
 
-    MXMessage(int port, MXTemplate template, int channel, RangedValue gate, RangedValue value) {
+    MXMessage(int port, MXTemplate template, int channel, MXRangedValue gate, MXRangedValue value) {
         if (template == null) {
             throw new NullPointerException();
         }
         if (gate == null) {
             if (template.getBytePosHiGate() >= 0) {
-                gate = RangedValue.new14bit(0);
+                gate = MXRangedValue.new14bit(0);
             } else if (template.getBytePosGate() >= 0) {
-                gate = RangedValue.new7bit(0);
+                gate = MXRangedValue.new7bit(0);
             } else {
-                gate = RangedValue.new7bit(0);
+                gate = MXRangedValue.new7bit(0);
             }
         }
         if (value == null) {
             if (template.getBytePosHiValue() >= 0) {
-                value = RangedValue.new14bit(0);
+                value = MXRangedValue.new14bit(0);
             } else if (template.getBytePosValue() >= 0) {
-                value = RangedValue.new7bit(0);
+                value = MXRangedValue.new7bit(0);
             } else {
-                value = RangedValue.new7bit(0);
+                value = MXRangedValue.new7bit(0);
             }
         }
         _port = port;
@@ -468,7 +468,7 @@ public final class MXMessage implements Comparable<MXMessage> {
 
         msg.setPort(6);
         msg.setChannel(2);
-        msg.setValue(RangedValue.new7bit(100));
+        msg.setValue(MXRangedValue.new7bit(100));
 
         output.println(msg);
         output.println("----------------");
@@ -483,7 +483,7 @@ public final class MXMessage implements Comparable<MXMessage> {
 
         msg2.setPort(6);
         msg2.setChannel(2);
-        msg2.setValue(RangedValue.new7bit(100));
+        msg2.setValue(MXRangedValue.new7bit(100));
 
         output.println(msg2);
         output.println("----------------");
@@ -774,7 +774,7 @@ public final class MXMessage implements Comparable<MXMessage> {
                     };
                     int newGate = temp.get(1);
                     MXTemplate newTemp = new MXTemplate(newTemplate);
-                    MXMessage message = new MXMessage(_port, newTemp, _channel, RangedValue.new7bit(newGate), _value);
+                    MXMessage message = new MXMessage(_port, newTemp, _channel, MXRangedValue.new7bit(newGate), _value);
 
                     message._timing = this._timing;
 

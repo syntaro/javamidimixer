@@ -16,7 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi.capture;
 
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 
 /**
  *

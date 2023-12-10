@@ -74,8 +74,8 @@ public class MX80Panel extends javax.swing.JPanel {
     public static void main(String[] args) {
         MX80Panel panel = MX80Panel.getInstance();
 
-        panel.addFilter(new File("C:/Program Files/Common Files/VST3"));
-        panel.addFilter(new File("C:/Program Files/Steinberg"));
+        panel.addFolder(new File("C:/Program Files/Common Files/VST3"));
+        panel.addFolder(new File("C:/Program Files/Steinberg"));
 
         MXModalFrame.showAsDialog(null, panel, "VST Picker");
     }
@@ -574,7 +574,7 @@ public class MX80Panel extends javax.swing.JPanel {
         if (selected != null) {
             for (File f : selected) {
                 if (f != null) {
-                    addFilter(f);
+                    addFolder(f);
                 }
             }
         }
@@ -592,7 +592,7 @@ public class MX80Panel extends javax.swing.JPanel {
                 if (path.getPathCount() <= 2) {
                     int opt = JOptionPane.showConfirmDialog(this, "Remove " + file + " from List", "Confirm", JOptionPane.YES_NO_OPTION);
                     if (opt == JOptionPane.YES_OPTION) {
-                        removeFilter(file);
+                        removeFolder(file);
                     }
                 } else {
                     JOptionPane.showMessageDialog(this, file + " is not Root Folder", "Error", JOptionPane.OK_OPTION);
@@ -771,12 +771,12 @@ public class MX80Panel extends javax.swing.JPanel {
         updateSkipList();
     }
 
-    public void addFilter(File file) {
+    public void addFolder(File file) {
         MX80Process.getInstance().addFolder(file);
         updateMainTree();
     }
 
-    public void removeFilter(File file) {
+    public void removeFolder(File file) {
         MX80Process.getInstance().removeFolder(file);
         updateMainTree();
     }

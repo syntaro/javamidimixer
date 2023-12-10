@@ -33,7 +33,7 @@ import jp.synthtarou.midimixer.ccxml.EditorForControlChange;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.navigator.NavigatorForText;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
@@ -473,7 +473,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
         }
         _status._memo = jTextFieldName.getText();
         MXWrap<Integer> x = (MXWrap<Integer>) jComboBoxGate.getSelectedItem();
-        _status._base.setGate(RangedValue.new7bit(x._value));
+        _status._base.setGate(MXRangedValue.new7bit(x._value));
 
         if (jCheckBoxCustomRange.isSelected()) {
             int min = (Integer) jSpinnerMin.getValue();
@@ -534,7 +534,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
         /* Drum */
         int onRangeMin = (Integer) jSpinnerDrumOnRangeMin.getValue();
         int onRangeMax = (Integer) jSpinnerDrumOnRangeMax.getValue();
-        _status._drum._strikeZone = new RangedValue(0, onRangeMin, onRangeMax);
+        _status._drum._strikeZone = new MXRangedValue(0, onRangeMin, onRangeMax);
 
         _status._drum._mouseOnValue = (Integer) jSpinnerDrumMouseOnValue.getValue();
         _status._drum._mouseOffValue = (Integer) jSpinnerDrumMouseOffValue.getValue();
@@ -1933,8 +1933,8 @@ public class MGStatusPanel extends javax.swing.JPanel {
             try {
                 MXMessage template = MXMessageFactory.fromCCXMLText(0, x._data, 0);
                 _status._base = template;
-                template.setValue(new RangedValue(x._defaultValue, x._minValue, x._maxValue));
-                template.setGate(new RangedValue(x._defaultGate, x._minGate, x._maxGate));
+                template.setValue(new MXRangedValue(x._defaultValue, x._minValue, x._maxValue));
+                template.setGate(new MXRangedValue(x._defaultGate, x._minGate, x._maxGate));
                 _status._memo = x._memo;
                 _status._name = "";
 
@@ -2264,7 +2264,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
             jSpinnerDrumOnRangeMax.setValue(onRangeMax);
             return;
         }
-        jLabelOffRange.setText(textForOffRange(new RangedValue(0, onRangeMin, onRangeMax), _status._base.getValue()));
+        jLabelOffRange.setText(textForOffRange(new MXRangedValue(0, onRangeMin, onRangeMax), _status._base.getValue()));
     }//GEN-LAST:event_jSpinnerDrumOnRangeMinStateChanged
 
     private void jSpinnerDrumOnRangeMaxStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinnerDrumOnRangeMaxStateChanged
@@ -2275,7 +2275,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
             jSpinnerDrumOnRangeMin.setValue(onRangeMin);
             return;
         }
-        jLabelOffRange.setText(textForOffRange(new RangedValue(0, onRangeMin, onRangeMax), _status._base.getValue()));
+        jLabelOffRange.setText(textForOffRange(new MXRangedValue(0, onRangeMin, onRangeMax), _status._base.getValue()));
     }//GEN-LAST:event_jSpinnerDrumOnRangeMaxStateChanged
 
     private void jRadioButtonDrumTypeCustomActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonDrumTypeCustomActionPerformed
@@ -2507,7 +2507,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
          */
     }
 
-    public String textForOffRange(RangedValue on, RangedValue all) {
+    public String textForOffRange(MXRangedValue on, MXRangedValue all) {
         String min = "";
         if (on._min > all._min) {
             if (all._min == on._min - 1) {

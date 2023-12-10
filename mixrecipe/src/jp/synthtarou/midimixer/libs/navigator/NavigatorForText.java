@@ -18,6 +18,7 @@ package jp.synthtarou.midimixer.libs.navigator;
 
 import java.awt.Dimension;
 import javax.swing.JPanel;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 
 /**
  *
@@ -91,11 +92,13 @@ public class NavigatorForText extends javax.swing.JPanel implements INavigator<S
     private void jButtonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOKActionPerformed
         _returnStatus = INavigator.RETURN_STATUS_APPROVED;
         _returnValue = jTextArea1.getText();
+        MXUtil.getOwnerWindow(this).setVisible(false);        
     }//GEN-LAST:event_jButtonOKActionPerformed
 
     private void jButtonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelActionPerformed
         _returnStatus = INavigator.RETURN_STATUS_CANCELED;
         _returnValue = null;
+        MXUtil.getOwnerWindow(this).setVisible(false);        
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -58,11 +58,10 @@ public class SortedArray<T> extends ArrayList<T> {
                 low = middle + 1;
             }
         }
-        /*
         if (low == high) {
             set(low, value);
-            return;
-        }*/
+            return -1;
+        }
         add(low, value);
         return low;
     }

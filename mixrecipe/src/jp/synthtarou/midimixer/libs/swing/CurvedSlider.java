@@ -18,7 +18,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.swing.themes.ThemeManager;
 
 /**
@@ -29,7 +29,7 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
 {
     private double _minAngleRad = 0.0;
     private double _maxAngleRad = 0.0;
-    private RangedValue _value = RangedValue.ZERO7;
+    private MXRangedValue _value = MXRangedValue.ZERO7;
 
     private Color _highlight;
     private Color _selectionColor;
@@ -75,7 +75,7 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
         repaint();
     }
 
-    public void setValue(RangedValue value)
+    public void setValue(MXRangedValue value)
     {
         if (_value != value) {
             _value = value;

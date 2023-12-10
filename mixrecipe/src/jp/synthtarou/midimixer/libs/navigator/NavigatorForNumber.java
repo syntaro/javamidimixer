@@ -20,17 +20,17 @@ import java.awt.Dimension;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class NavigatorForNumber extends javax.swing.JPanel implements INavigator<RangedValue> {
+public class NavigatorForNumber extends javax.swing.JPanel implements INavigator<MXRangedValue> {
     /*
      * Creates new form NavigatorForText
      */
-    public NavigatorForNumber(RangedValue value) {
+    public NavigatorForNumber(MXRangedValue value) {
         initComponents();
         _returnValue = null;
         jSlider1.setValue(value._var);
@@ -150,7 +150,7 @@ public class NavigatorForNumber extends javax.swing.JPanel implements INavigator
     }
     
     @Override
-    public boolean validateWithNavigator(RangedValue result) {
+    public boolean validateWithNavigator(MXRangedValue result) {
         return true;
     }
 
@@ -160,15 +160,15 @@ public class NavigatorForNumber extends javax.swing.JPanel implements INavigator
     }
 
     @Override
-    public RangedValue getReturnValue() {
+    public MXRangedValue getReturnValue() {
         return _returnValue;
     }
     
     int _returnStatus = INavigator.RETURN_STATUS_NOTSET;
-    RangedValue _returnValue = null;
+    MXRangedValue _returnValue = null;
     
     public void updateValueByUI(int value) {
-        RangedValue back = _returnValue;
+        MXRangedValue back = _returnValue;
 
         _returnValue = null;
         Integer i = (Integer)jSpinner1.getValue();
