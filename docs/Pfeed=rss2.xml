@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>MixRecipe, by SynthTAROU</title>
+	<atom:link href="http://localhost/wordpress/?feed=rss2" rel="self" type="application/rss+xml" />
+	<link>http://localhost/wordpress</link>
+	<description></description>
+	<lastBuildDate>Mon, 11 Dec 2023 01:37:51 +0000</lastBuildDate>
+	<language>ja</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.4.2</generator>
+	<item>
+		<title>ダウンロード</title>
+		<link>http://localhost/wordpress/?p=45</link>
+		
+		<dc:creator><![CDATA[SynthTAROU]]></dc:creator>
+		<pubDate>Mon, 11 Dec 2023 01:11:25 +0000</pubDate>
+				<category><![CDATA[MixRecipe]]></category>
+		<guid isPermaLink="false">http://localhost/wordpress/?p=45</guid>
+
+					<description><![CDATA[Releases · syntaro/javamidimixerJava based MIDI-Mixer / VST Hosting. Contribute to syntaro/javamidimixer devel [&#8230;]]]></description>
+										<content:encoded><![CDATA[
+<a rel="noopener" href="https://github.com/syntaro/javamidimixer/releases" title="Releases · syntaro/javamidimixer" class="blogcard-wrap external-blogcard-wrap a-wrap cf" target="_blank"><div class="blogcard external-blogcard eb-left cf"><div class="blogcard-label external-blogcard-label"><span class="fa"></span></div><figure class="blogcard-thumbnail external-blogcard-thumbnail"><img decoding="async" src="https://opengraph.githubassets.com/ad91b98135f63fe8a9cc7ad4d1ad5f7e7549c433f688c77a78612a98f343738c/syntaro/javamidimixer" alt="" class="blogcard-thumb-image external-blogcard-thumb-image" width="160" height="90" /></figure><div class="blogcard-content external-blogcard-content"><div class="blogcard-title external-blogcard-title">Releases · syntaro/javamidimixer</div><div class="blogcard-snippet external-blogcard-snippet">Java based MIDI-Mixer / VST Hosting. Contribute to syntaro/javamidimixer development by creating an account on GitHub.</div></div><div class="blogcard-footer external-blogcard-footer cf"><div class="blogcard-site external-blogcard-site"><div class="blogcard-favicon external-blogcard-favicon"><img decoding="async" src="https://www.google.com/s2/favicons?domain=https://github.com/syntaro/javamidimixer/releases" alt="" class="blogcard-favicon-image external-blogcard-favicon-image" width="16" height="16" /></div><div class="blogcard-domain external-blogcard-domain">github.com</div></div></div></div></a>
+
+
+
+<p>Released.</p>
+
+
+
+<pre class="wp-block-preformatted">V0.54 progress dialog
+V0.52 Beta published fixed 10~ bugs
+V0.51 Alpha renew UI 'Mixer' is now 'Surface17' and 'CCMapping'
+
+V0.47 sysex bugfix
+V0.43 Pair CC (+32) support again
+V0.42b Java Synth Will Ingore GMReset Signal
+V0.42 SysEX Bugfix
+V0.4 Phraase Recorder, UWPx3 Bug Fix
+V0.3+a8 Tuned RangeConverter
+V0.3 Apache2.0 + GNU GPL3 Dual License
+
+V0.16 beta fixed mixer component
+V0.15 Visitant Architecture, Dataentry Input
+V0.14 MouseWheel, ControllerSize
+V0.13 Sequencer RealTime Tuning
+V0.12 Template for CC Picker
+V0.11 (Pre) Support DATAENTRY / 14bit
+V0.10 Support 14 bit CC
+V0.09 More Humanic Interface
+V0.08 Drum Pad + Sequence + Chord
+V0.07 Drum Pad + 0.1
+V0.06 CC Mixer Chain
+V0.05 supported Drum Pad
+V0.04B supported SysEX Checksum
+
+</pre>
+
+
+
+<pre class="wp-block-preformatted">If you need UWP support Try load MXLIB01.dll or remove it.<br>If you need VSTi support, Try load MXLIB02.dll. or remove it.</pre>
+]]></content:encoded>
+					
+		
+		
+			</item>
+	</channel>
+</rss>
