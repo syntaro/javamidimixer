@@ -35,7 +35,7 @@ public class MX36Status {
     int _surfaceColumn;
     MXRangedValue _surfaceValueRange = new MXRangedValue(0, 0, 127);
     
-    MGStatus _surfaceStatusCache;
+    MGStatus _surface;
     
     String _outName;
     String _outMemo;
@@ -106,7 +106,7 @@ public class MX36Status {
         it._surfaceRow = status._row;
         it._surfaceColumn = status._column;
         it._surfaceValueRange = status.getValue();
-        it._surfaceStatusCache = status;
+        it._surface = status;
 
         it._outChannel = status.getChannel();
         it._outValueRange = status.getValue();

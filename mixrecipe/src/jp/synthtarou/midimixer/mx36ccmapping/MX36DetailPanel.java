@@ -132,6 +132,7 @@ public class MX36DetailPanel extends javax.swing.JPanel {
 
         if (_process._list._autodetectedFolder == status._folder) {
             if (status.isValidForWork()) {
+                JOptionPane.showMessageDialog(this, "Moved from AutoDecteted to Primal.");
                 _process.moveFolder(_process._list._primalFolder, status);
             }
         } else {

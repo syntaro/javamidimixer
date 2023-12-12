@@ -33,7 +33,6 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     public static final int TYPE_CIRCLE = 1;
     public static final int TYPE_SLIDER = 2;
     public static final int TYPE_DRUMPAD = 3;
-    public static final int TYPE_DRUMPAD_OUTSIGNAL = 4;
 
     public MX32Mixer _mixer;
     public final int _port;
@@ -45,7 +44,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     String _memo = "";
     
     public String getAsName() {
-        if (_name == null) {
+        if (_name == null || _name.isBlank()) {
             return _base.toStringForUI();
         }
         return _name;
@@ -81,7 +80,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         _row = row;
         _column = column;
 
-        if (uiType == TYPE_DRUMPAD || uiType == TYPE_DRUMPAD_OUTSIGNAL) {
+        if (uiType == TYPE_DRUMPAD) {
             _drum = new MGStatusForDrum(this);
         }
     }
@@ -359,7 +358,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
 
         _ccPair14 = false;
 
-        if (_uiType == TYPE_DRUMPAD || _uiType == TYPE_DRUMPAD_OUTSIGNAL) {
+        if (_uiType == TYPE_DRUMPAD) {
             _drum = new MGStatusForDrum(this);
         }
         else {

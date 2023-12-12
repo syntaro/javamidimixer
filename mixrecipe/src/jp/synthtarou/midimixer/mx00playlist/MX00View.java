@@ -103,7 +103,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         jButtonUp = new javax.swing.JButton();
         jButtonAdd = new javax.swing.JButton();
         jButtonDown = new javax.swing.JButton();
-        jButtonErase = new javax.swing.JButton();
+        jButtonDeque = new javax.swing.JButton();
         jPanel5 = new javax.swing.JPanel();
         jPanel6 = new javax.swing.JPanel();
         jPanelSelInfo1 = new javax.swing.JPanel();
@@ -192,17 +192,17 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel3.add(jButtonDown, gridBagConstraints);
 
-        jButtonErase.setText("Del");
-        jButtonErase.addActionListener(new java.awt.event.ActionListener() {
+        jButtonDeque.setText("Deque");
+        jButtonDeque.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonEraseActionPerformed(evt);
+                jButtonDequeActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        jPanel3.add(jButtonErase, gridBagConstraints);
+        jPanel3.add(jButtonDeque, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
@@ -536,7 +536,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         }
     }//GEN-LAST:event_jListPlayListValueChanged
 
-    private void jButtonEraseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEraseActionPerformed
+    private void jButtonDequeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDequeActionPerformed
         int x = jListPlayList.getSelectedIndex();
         if (x >= 0) {
             FileWithId file = (FileWithId) _process._playListModel.elementAt(x);
@@ -555,7 +555,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                 _process._playListModel.remove(x);
             }
         }
-    }//GEN-LAST:event_jButtonEraseActionPerformed
+    }//GEN-LAST:event_jButtonDequeActionPerformed
 
     private void jButtonUpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonUpActionPerformed
         int x = jListPlayList.getSelectedIndex();
@@ -684,8 +684,8 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonAdd;
+    private javax.swing.JButton jButtonDeque;
     private javax.swing.JButton jButtonDown;
-    private javax.swing.JButton jButtonErase;
     private javax.swing.JButton jButtonPlay;
     private javax.swing.JButton jButtonUp;
     private javax.swing.JCheckBox jCheckBoxChain;

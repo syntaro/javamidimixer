@@ -27,30 +27,16 @@ import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordionFocus;
  */
 public class MX36Folder implements Comparable<MX36Folder> {
 
-    SortedArray<MX36Status> _list;
+    MX36StatusList _list;
     MXAccordionFocus _focus;
     MX36Process _process;
-
-    public static final Comparator<MX36Status> SORT_BY_COLUMN = new Comparator<MX36Status>() {
-        @Override
-        public int compare(MX36Status o1, MX36Status o2) {
-            return o1.compareSurfacePositionColumn(o2);
-        }
-    };
-
-    public static final Comparator<MX36Status> SORT_BY_ROW = new Comparator<MX36Status>() {
-        @Override
-        public int compare(MX36Status o1, MX36Status o2) {
-            return o1.compareSurfacePositionRow(o2);
-        }
-    };
 
     final String _folderName;
     int _order;
     final MXAccordion _accordion;
 
     public MX36Folder(MX36Process process, MXAccordionFocus focus, int order, String name) {
-        _list = new SortedArray<>(SORT_BY_ROW);
+        _list = new MX36StatusList();
         _order = order;
         _process = process;
         _focus = focus;

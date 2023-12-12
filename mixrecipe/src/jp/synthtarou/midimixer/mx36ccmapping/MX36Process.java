@@ -73,35 +73,27 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                 if (status._uiType == MGStatus.TYPE_DRUMPAD) {
                     continue;
                 }
-                MX36Status status2 = null;
-                for (MX36Folder folder : _list._listFolder) 
-                {
-                    for (MX36Status seek : folder._list) {
-                        if (seek._surfacePort == status._port
-                         && seek._surfaceRow == status._row
-                         && seek._surfaceColumn == status._column
-                         && seek._surfaceUIType == status._uiType) {
-                            status2 = seek;
-                        }
-                    }
-                }
-                if(status2 == null) {                    
+                List<MX36Status> indexed = indexedSearch(status);
+                if(indexed == null) {                    
                     MX36Folder folder2 = _list._autodetectedFolder;
-                    status2 = MX36Status.fromMGStatus(folder2, status);
-                    folder2.insertSorted(status2);
-                    folder2.refill(status2);
+                    MX36Status added = MX36Status.fromMGStatus(folder2, status);
+                    folder2.insertSorted(added);
+                    folder2.refill(added);
+                    _index.safeAdd(added);
                     //メッセージがアサインされてないので不要
                     //updateSurfaceValue(status2, status.getValue());
                 }
                 else {
-                    MX36Folder folder2 = status2._folder;
-                    updateSurfaceValue(status2, status.getValue());
-                    if (status2._outDataText == null || status2._outDataText.isBlank()) {
-                        
-                    }else {
-                        done = true;
+                    for (MX36Status seek : indexed) {
+                        MX36Folder folder2 = seek._folder;
+                        updateSurfaceValue(seek, status.getValue());
+                        if (seek._outDataText == null || seek._outDataText.isBlank()) {
+
+                        }else {
+                            done = true;
+                        }
+                        folder2.refill(seek);
                     }
-                    folder2.refill(status2);
                 }
             }
         }
@@ -383,5 +375,20 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
         else {        
             return false;
         }
+    }
+
+    MX36Index _index = null;
+    
+    public ArrayList<MX36Status> indexedSearch(MGStatus status) {
+        if (_index == null) {
+            System.out.println("recreate");
+            _index = new MX36Index();
+            for (MX36Folder folder : _list._listFolder) {
+                for (MX36Status seek : folder._list) {
+                    _index.safeAdd(seek);
+                }
+            }
+        }
+        return _index.safeGet(status._port, status._uiType, status._row, status._column);
     }
 }

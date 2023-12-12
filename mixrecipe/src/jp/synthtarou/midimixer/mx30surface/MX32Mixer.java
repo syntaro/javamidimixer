@@ -668,9 +668,11 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
     }
 
     MXMessageBag _emptyBag = null;
+
+/*
     long _emptyBagUsed = 0;
     long _emptyBagCreated = 0;
-
+*/
     public void startProcess(MXMessage message) {
         if (message == null) {
             return;
@@ -706,14 +708,14 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
             _emptyBag = null;
             if (listStatus != null && listStatus.isEmpty() == false) {
                 if (segment == null) {
-                    _emptyBagCreated++;
+                    //_emptyBagCreated++;
                     segment = new MXMessageBag();
-                    System.out.println("used " + _emptyBagUsed + " New " + _emptyBagCreated);
+                    //System.out.println("used " + _emptyBagUsed + " New " + _emptyBagCreated);
                 } else {
-                    _emptyBagUsed++;
-                    if ((_emptyBagUsed % 100) == 0) {
-                        System.out.println("used " + _emptyBagUsed + " New " + _emptyBagCreated);
-                    }
+                    //_emptyBagUsed++;
+                    //if ((_emptyBagUsed % 100) == 0) {
+                    //    System.out.println("used " + _emptyBagUsed + " New " + _emptyBagCreated);
+                    //}
                 }
                 for (MGStatus seek : listStatus) {
                     if (segment.isTouchedStatus(seek)) {
