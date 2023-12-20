@@ -25,14 +25,14 @@ import javax.sound.midi.ShortMessage;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXThreadList;
-import jp.synthtarou.midimixer.libs.midi.MXException;
+import jp.synthtarou.midimixer.libs.midi.smf.SMFException;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_PlayList;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFMessageList;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFPlayer;
+import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFCallback;
+import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
  
 /**
  *
@@ -70,13 +70,13 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
         _noteLowest = 200;
         _noteHighest = 0;
  
-        _sequencer = new SMFPlayer(file);
+        _sequencer = new SMFSequencer(file);
  
         int[] programList = new int[16];
         ArrayList<Integer> drums = new ArrayList<Integer>();
         int firstNotePos = -1;
         
-        ArrayList<SMFMessage> list = _sequencer.listMessage().listAll();
+        ArrayList<SMFMessage> list = _sequencer.listMessage();
         for (int i = 0; i < list.size(); ++ i) {
             int msg = 0;
             
@@ -85,7 +85,7 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
             }
             try {
                 msg = list.get(i).toDwordMessage();
-            }catch(MXException e) {
+            }catch(SMFException e) {
                 //Not happens
                 continue;
             }
@@ -160,38 +160,15 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
         String fileName = file.toString();
  
         try {
-            SMFPlayer player = new SMFPlayer(file);
-            SMFMessageList list = player.listMessage();
-            ArrayList<SMFMessage> listMessage = list.listAll();
+            SMFSequencer player = new SMFSequencer(file);
+            SortedArray<SMFMessage> listMessage = player.listMessage();
 
             for (SMFMessage message : listMessage) {
                 if (message.getStatus() != 0xff) {
                     continue;
                 }
-
-                int type = message.getDataType();
-                byte[] data = message.getBinary();
-                String text = message.getMetaText();
-
-                int number = 0;
-
-                switch(type) {
-                    case 0:
-                        if (data.length >= 4) {                                
-                            number = (data[2] << 8) + data[3];
-                            ret.add("Sequence Number : " + number);
-                        }
-                        break;
-                    case 1:
-                       ret.add("Text : " + text);
-                       break;
-                    case 2:
-                        ret.add("Copyright : " + text);
-                        break;  
-                    case 3:
-                        ret.add("Track Name : " + text);
-                        break;  
-                };
+                
+                ret.add(message._milliSeconds + "ms : "+  message.getMetaText());
             }
         } catch (Exception e) {
             if (file.exists()) {                
@@ -205,17 +182,17 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
         return list;
     }
     
-    private SMFPlayer _sequencer = null;
+    private SMFSequencer _sequencer = null;
     private boolean _gotBreak = false;
     int _firstNotePos = -1;
     
     public long getLength() {
-        return _sequencer.getLength();
+        return _sequencer.getMaxMilliSecond();
     }
     
     public int getFirstNotePos() {
         if (_firstNotePos < 0) {
-            ArrayList<SMFMessage> list = _sequencer.listMessage().listAll();
+            SortedArray<SMFMessage> list = _sequencer.listMessage();
             int pos = 0;
             for (SMFMessage smf : list) {
                 int command = smf.getStatus(); 
@@ -232,13 +209,13 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
         return (_firstNotePos >= 0) ? _firstNotePos : 0;
     }
 
-    public synchronized void startSequencer(SMFCallback parent, int position) throws IOException {
+    public synchronized void startSequencer(SMFCallback parent, long position) throws IOException {
         if (_sequencer != null) {
             _sequencer.stopPlayer();
         }
- 
+
         _gotBreak = false;
-        _sequencer.setCurrentPosition(position);
+        _sequencer.setStartMilliSecond(position);
         _sequencer.startPlayer(new SMFCallback() {
             Thread _last;
             @Override
@@ -270,7 +247,7 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
             }
 
             @Override
-            public void smfProgress(int pos, int finish) {
+            public void smfProgress(long pos, long finish) {
                 parent.smfProgress(pos, finish);
             }
         });

@@ -29,7 +29,7 @@ import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFCallback;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFPlayer;
+import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
 
 /**
  *
@@ -72,7 +72,7 @@ public class MGStatusForDrum implements Cloneable {
     boolean _sequencerSeekStart = true;
     boolean _sequencerSingleTrack = true;
     boolean _sequencerFilterNote = true;
-    SMFPlayer _songFilePlayer = null;
+    SMFSequencer _songFilePlayer = null;
 
     int _outPort = 0;
     int _outChannel = 0;
@@ -174,7 +174,7 @@ public class MGStatusForDrum implements Cloneable {
                 if (f == null || f.exists() == false) {
                     return;
                 }
-                _songFilePlayer = new SMFPlayer(new File(_sequencerFile));
+                _songFilePlayer = new SMFSequencer(new File(_sequencerFile));
             }catch(IOException ioe) {
                 return;
             }
@@ -186,9 +186,9 @@ public class MGStatusForDrum implements Cloneable {
         }
         _songFilePlayer.setFilterNoteOnly(_sequencerFilterNote);
         if (_sequencerSeekStart) {
-            _songFilePlayer.setStartPosition(_songFilePlayer.getPositionOfFirstNote());
+            _songFilePlayer.setStartMilliSecond(_songFilePlayer.getFirstNoteMilliSecond());
         } else {
-            _songFilePlayer.setStartPosition(0);
+            _songFilePlayer.setStartMilliSecond(0);
         }
         final int _port = port;
         final int _channel = channel;
@@ -214,7 +214,7 @@ public class MGStatusForDrum implements Cloneable {
             }
 
             @Override
-            public void smfProgress(int pos, int finish) {
+            public void smfProgress(long pos, long finish) {
             }
         });
     }

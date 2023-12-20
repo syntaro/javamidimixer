@@ -42,7 +42,7 @@ import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 
 /**
  *
- * @author yaman
+ * @author Syntarou YOSHIDA
  */
 public class ThemeManager implements MXSettingTarget {
     MXSetting _setting;

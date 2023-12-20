@@ -56,7 +56,7 @@ public final class MXMessage implements Comparable<MXMessage> {
         return _template.isEmpty();
     }
 
-    public boolean isBinMessage() {
+    public boolean isBinaryMessage() {
         if (createBytes() == null) {
             return false;
         }
@@ -225,7 +225,7 @@ public final class MXMessage implements Comparable<MXMessage> {
     }
 
     public boolean isMetaMessage() {
-        byte[] data = getDataBytes();
+        byte[] data = getBinary();
         if (data.length > 0) {
             if ((data[0] & 0xff) == 0xff) {
                 return true;
@@ -244,7 +244,7 @@ public final class MXMessage implements Comparable<MXMessage> {
     public String getMetaText() {
         if (_template.get(0) == 0xff) {
             String text = "";
-            byte[] data = getDataBytes();
+            byte[] data = getBinary();
             try {
                 text = new String(data, 2, data.length - 2, "ASCII");
                 text = new String(data, 2, data.length - 2, "utf8");
@@ -290,7 +290,7 @@ public final class MXMessage implements Comparable<MXMessage> {
         _value = value;
     }
 
-    public byte[] getDataBytes() {
+    public byte[] getBinary() {
         createBytes();
         return _dataBytes;        //SYSEXの場合１バイト目は、STATUSに入る
     }
@@ -359,9 +359,9 @@ public final class MXMessage implements Comparable<MXMessage> {
             case 0xff:
                 return "Meta [" + getMetaType() + ":" + getMetaText() + "]";
             case 0xf0:
-                return "Sysex [" + MXUtil.dumpHex(getDataBytes()) + "]";
+                return "Sysex [" + MXUtil.dumpHex(getBinary()) + "]";
             case 0xf7:
-                return "SysexSpecial [" + MXUtil.dumpHex(getDataBytes()) + "]";
+                return "SysexSpecial [" + MXUtil.dumpHex(getBinary()) + "]";
         }
         if (isDataentry()) {
             int r1 = toDataroomMSB1();
@@ -374,8 +374,8 @@ public final class MXMessage implements Comparable<MXMessage> {
                     + MXMidiConsoleElement.toSegmentText(d1)
                     + MXMidiConsoleElement.toSegmentText(d2);
         }
-        if (isBinMessage()) {
-            return "Binary[" + MXUtil.dumpHex(getDataBytes()) + "]";
+        if (isBinaryMessage()) {
+            return "Binary[" + MXUtil.dumpHex(getBinary()) + "]";
         }
 
         int dword = (((getStatus() << 8) | getData1()) << 8) | getData2();
@@ -403,7 +403,7 @@ public final class MXMessage implements Comparable<MXMessage> {
             case 0xff:
                 return "Meta";
         }
-        if (isBinMessage()) {
+        if (isBinaryMessage()) {
             return "???";
         }
 
@@ -495,7 +495,7 @@ public final class MXMessage implements Comparable<MXMessage> {
         buf.append(func + " debugDump [template = ");
         buf.append(_template.toDArray(this));
         buf.append("] bytes = [ ");
-        byte[] b = getDataBytes();
+        byte[] b = getBinary();
         for (int i = 0; i < b.length; ++i) {
             buf.append(MXUtil.toHexFF(b[i]) + " ");
         }
@@ -516,7 +516,7 @@ public final class MXMessage implements Comparable<MXMessage> {
             chname = "";
         }
 
-        if (isBinMessage()) {
+        if (isBinaryMessage()) {
             if (_dataBytes[0] == 0xff) {
                 return getMetaText();
             }
@@ -525,7 +525,7 @@ public final class MXMessage implements Comparable<MXMessage> {
     }
 
     public int getDwordCount() {
-        if (isBinMessage()) {
+        if (isBinaryMessage()) {
             return 0;
         }
         if (_template.size() == 0) {
@@ -591,7 +591,7 @@ public final class MXMessage implements Comparable<MXMessage> {
                 }
             }
         }
-        if (isBinMessage() == false) {
+        if (isBinaryMessage() == false) {
             int status = getStatus();
             int data1 = getData1();
             int data2 = getData2();

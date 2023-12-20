@@ -210,8 +210,8 @@ public class MXSwingPiano extends JComponent {
         noteListWhite.add(key);
     }
 
-    static Color sequenceColor = MXUtil.mixtureColor(Color.WHITE, 40, Color.yellow, 20, Color.orange, 20);
-    static Color centerColor = MXUtil.mixtureColor(Color.WHITE, 80, Color.orange, 20, Color.pink, 40);
+    static Color centerColor = MXUtil.mixtureColor(Color.WHITE, 40, Color.green, 20, Color.orange, 20);
+    static Color sequenceColor = MXUtil.mixtureColor(Color.WHITE, 80, Color.orange, 20, Color.pink, 40);
     static Color mouseColor = MXUtil.mixtureColor(Color.WHITE, 50, Color.pink, 50, Color.red, 20);
     static Color sustainColor = MXUtil.mixtureColor(Color.WHITE, 80, Color.cyan, 10, Color.yellow, 30);
     static Color selectedColor = MXUtil.mixtureColor(Color.WHITE, 50, Color.blue, 10, Color.orange, 40);

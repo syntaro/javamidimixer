@@ -23,12 +23,14 @@ import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.windows.MXLIB01UWPMidi;
 
 /**
- *　UWPｰMIDIを入出力するドライバー
+ * UWPｰMIDIを入出力するドライバー
+ *
  * @author Syntarou YOSHIDA
  */
 public class MXDriver_UWP implements MXDriver {
+
     public static final MXDriver_UWP _instance = new MXDriver_UWP();
-    
+
     MXLIB01UWPMidi windows10;
 
     public MXDriver_UWP() {
@@ -41,7 +43,7 @@ public class MXDriver_UWP implements MXDriver {
 
     @Override
     public boolean isUsable() {
-        return  windows10.isDLLAvail();
+        return windows10.isDLLAvail();
     }
 
     @Override
@@ -88,9 +90,9 @@ public class MXDriver_UWP implements MXDriver {
         if (!isUsable()) {
             return false;
         }
-        return  windows10.InputOpen(device, timeout);
+        return windows10.InputOpen(device, timeout);
     }
-    
+
     @Override
     public void InputDeviceClose(int device) {
         if (!isUsable()) {
@@ -156,16 +158,17 @@ public class MXDriver_UWP implements MXDriver {
     }
 
     @Override
-    public boolean OutputLongMessage(int device, byte[] message) {
+    public boolean OutputLongMessage(int device, byte[] data) {
         if (!isUsable()) {
             return false;
         }
-        return windows10.OutputLongMessage(device, message);
+
+        return windows10.OutputLongMessage(device, data);
     }
-    
+
     ArrayList<MXMIDIIn> _listInputCatalog = new ArrayList();
     ArrayList<MXMIDIOut> _listOutputCatalog = new ArrayList();
-    
+
     public void addInputCatalog(MXMIDIIn input) {
         int order = input.getDriverOrder();
         if (input.getDriver() == this) {
@@ -175,9 +178,9 @@ public class MXDriver_UWP implements MXDriver {
             _listInputCatalog.set(order, input);
         }
     }
-    
+
     Thread _last;
-    
+
     public MXMIDIIn findInputCatalog(int order) {
         Thread t = Thread.currentThread();
         if (_last != t) {
@@ -187,13 +190,13 @@ public class MXDriver_UWP implements MXDriver {
         while (_listInputCatalog.size() <= order) {
             _listInputCatalog.add(null);
         }
-        MXMIDIIn in =_listInputCatalog.get(order);
+        MXMIDIIn in = _listInputCatalog.get(order);
         if (in.getDriverOrder() == order) {
             return in;
         }
         throw new IllegalArgumentException();
     }
-    
+
     public void closeAllInput() {
         for (MXMIDIIn in : _listInputCatalog) {
             if (in != null) {
@@ -211,20 +214,20 @@ public class MXDriver_UWP implements MXDriver {
             _listOutputCatalog.set(order, output);
         }
     }
-    
+
     public MXMIDIOut findOutputCatalog(int order) {
         while (_listOutputCatalog.size() <= order) {
             _listOutputCatalog.add(null);
         }
-        MXMIDIOut out =_listOutputCatalog.get(order);
+        MXMIDIOut out = _listOutputCatalog.get(order);
         if (out.getDriverOrder() == order) {
             return out;
         }
         throw new IllegalArgumentException();
     }
-    
+
     public void closeAllOutput() {
-        for (MXMIDIOut out  : _listOutputCatalog) {
+        for (MXMIDIOut out : _listOutputCatalog) {
             if (out != null) {
                 out.close();
             }

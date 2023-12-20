@@ -291,7 +291,7 @@ public class MX70SysexPanel extends javax.swing.JPanel {
                         _file.add(data, jTextArea1);
                         break;
                     case MXMidiConsoleElement.CONSOLE_MESSAGE:
-                        byte[] data2 =  e.getMessage().getDataBytes();
+                        byte[] data2 =  e.getMessage().getBinary();
                         _file.add(data2, jTextArea1);
                         break;
                 }

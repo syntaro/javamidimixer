@@ -21,7 +21,7 @@ import javax.swing.plaf.metal.DefaultMetalTheme;
 
 /**
  *
- * @author yaman
+ * @author Syntarou YOSHIDA
  */
 public class MetalWhiteTheme extends DefaultMetalTheme {
 

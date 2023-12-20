@@ -24,8 +24,8 @@ import java.io.InputStream;
  *
  * @author Syntarou YOSHIDA
  */
-public class MidiByteReader {
-    InputStream _input;
+public class SMFInputStream extends InputStream {
+    InputStream _base;
     byte[] _buffer = new byte[4096];
     int _pos = 0;
     int _length = -1;
@@ -33,16 +33,16 @@ public class MidiByteReader {
     boolean _eof = false;
     boolean _error = false;
     
-    public MidiByteReader(byte[] data) {
+    public SMFInputStream(byte[] data) {
         this(new ByteArrayInputStream(data));
     }
     
-    public MidiByteReader(byte[] data, int offset, int length) {
+    public SMFInputStream(byte[] data, int offset, int length) {
         this(new ByteArrayInputStream(data, offset, length));
     }
     
-    public MidiByteReader(InputStream input) {
-        _input = input;
+    public SMFInputStream(InputStream input) {
+        _base = input;
         _length = -1;
         _pos = 0;
     }
@@ -51,7 +51,7 @@ public class MidiByteReader {
         if (_pos >= _length) {
             try {
                 _pos = 0;
-                _length = _input.read(_buffer);
+                _length = _base.read(_buffer);
             }catch(IOException e) {
                 _eof = true;
                 _error = true;
@@ -72,7 +72,7 @@ public class MidiByteReader {
         if (_pos >= _length) {
             try {
                 _pos = 0;
-                _length = _input.read(_buffer);
+                _length = _base.read(_buffer);
             }catch(IOException e) {
                 _eof = true;
                 _error = true;
@@ -148,39 +148,18 @@ public class MidiByteReader {
         return value;
     }
     
-    public static byte[] makeVariable(long value) {
-        long x0 = (value >> 21) & 0x7f;
-        long x1 = (value >> 14) & 0x7f;
-        long x2 = (value >> 7) & 0x7f;
-        long x3 = (value) & 0x7f;
-        
-        if (x0 != 0) {
-            byte[] data = new byte[4];
-            data[0] = (byte)(x0 | 0x80);
-            data[1] = (byte)(x1 | 0x80);
-            data[2] = (byte)(x2 | 0x80);
-            data[3] = (byte)x3;
-            return data;
-        }
-        if (x1 != 0) {
-            byte[] data = new byte[3];
-            data[0] = (byte)(x1 | 0x80);
-            data[1] = (byte)(x2 | 0x80);
-            data[2] = (byte)x3;
-            return data;
-        }
-        if (x2 != 0) {
-            byte[] data = new byte[2];
-            data[0] = (byte)(x2 | 0x80);
-            data[1] = (byte)x3;
-            return data;
-        }
-        byte[] data = new byte[1];
-        data[0] = (byte)x3;
-        return data;
-    }
     
     public void skip(int length) {
         _pos += length;
+    }
+
+    @Override
+    public int read() throws IOException {
+        return read8();
+    }
+    
+    @Override
+    public void close() throws IOException {
+        _base.close();
     }
 }

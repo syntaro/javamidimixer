@@ -33,7 +33,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.driver.SysexSplitter;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
-import jp.synthtarou.midimixer.libs.midi.smf.MidiByteReader;
+import jp.synthtarou.midimixer.libs.midi.smf.SMFInputStream;
 import jp.synthtarou.midimixer.libs.common.MXLineReader;
 
 /**
@@ -138,7 +138,7 @@ public class SysEXFile {
     
     public void setContentsFromSingleFile(byte[] data) {
         ByteArrayInputStream in = new ByteArrayInputStream(data);
-        MidiByteReader reader = new MidiByteReader(in);
+        SMFInputStream reader = new SMFInputStream(in);
         ArrayList<byte[]> temp = new ArrayList();
 
         int error = 0;

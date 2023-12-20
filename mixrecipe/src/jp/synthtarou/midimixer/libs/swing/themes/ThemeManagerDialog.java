@@ -17,14 +17,11 @@
 package jp.synthtarou.midimixer.libs.swing.themes;
 
 import java.awt.Dimension;
-import java.awt.Font;
-import static java.awt.SystemColor.menu;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import jp.synthtarou.midimixer.libs.common.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
@@ -32,7 +29,7 @@ import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
 
 /**
  *
- * @author yaman
+ * @author Syntarou YOSHIDA
  */
 public class ThemeManagerDialog extends javax.swing.JDialog {
     JFrame parentFrame;

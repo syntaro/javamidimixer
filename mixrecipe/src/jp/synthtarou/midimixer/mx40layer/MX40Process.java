@@ -86,7 +86,7 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
         _inputInfo.mergeVisitant16WithVisitant(message);
         MXTiming timing = message._timing;
         
-        if (message.isBinMessage()) {
+        if (message.isBinaryMessage()) {
             sendToNext(message);
             return;
         }

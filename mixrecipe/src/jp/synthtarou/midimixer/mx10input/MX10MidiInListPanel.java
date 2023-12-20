@@ -131,9 +131,10 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
 
         for (MXMIDIIn input : allInput.valueList()) {
             String prefix = "";
+            /*
             if (input.getDriver() instanceof MXDriver_Empty) {
                 prefix = "*";
-            }
+            }*/
             tableModel.addRow(new Object[] { 
                 prefix + input.getName(),
                 input.getPortAssignedAsText(),
@@ -203,12 +204,11 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
                     String text = (String)model.getValueAt(row, 0);
                     MXMIDIIn input = manager.listAllInput().valueOfName(text);
                     
-                    if (input == null) {
-                        System.err.println("Wrong way");
-                        return;
-                    }
-
                     if (newAssign >= 0) {
+                        if (input == null) {
+                            System.err.println("Wrong way");
+                            return;
+                        }
                         if (input.isPortAssigned(newAssign)) {
                             input.allNoteOffToPort(null, newAssign);
                         }

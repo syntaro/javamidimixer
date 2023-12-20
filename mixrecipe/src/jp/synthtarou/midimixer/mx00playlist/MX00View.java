@@ -764,12 +764,12 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     }
 
     @Override
-    public void smfProgress(int pos, int finish) {
+    public void smfProgress(long pos, long finish) {
         if (pos == 0) {
             MXMain.getMain().getLayerProcess().resendProgramChange();
         }
-        jSlider1.setMaximum(finish);
-        jSlider1.setValue(pos);
+        jSlider1.setMaximum((int)finish);
+        jSlider1.setValue((int)pos);
     }
 
     public void turnOnMusic(FileWithId file, final int pos) {

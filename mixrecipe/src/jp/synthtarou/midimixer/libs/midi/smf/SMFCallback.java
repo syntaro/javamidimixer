@@ -26,5 +26,5 @@ public interface SMFCallback {
     public void smfPlayNote(MXTiming timing, SMFMessage e);
     public void smfStarted();
     public void smfStoped(boolean fineFinish);
-    public void smfProgress(int pos, int finish);
+    public void smfProgress(long pos, long finish);
 }

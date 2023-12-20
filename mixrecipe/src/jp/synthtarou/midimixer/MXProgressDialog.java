@@ -48,6 +48,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
 
     public void setMessageAsVersion() {
         StringBuffer text = new StringBuffer();
+        text.append("V0.55 sequencer +2\n");
         text.append("V0.54 progress dialog\n");
         text.append("V0.52 Beta published fixed 10~ bugs\n");
         text.append("V0.51 Alpha renew UI 'Mixer' is now 'Surface17' and 'CCMapping'\n");

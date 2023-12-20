@@ -103,8 +103,8 @@ public class MXMidiConsoleElement implements Comparable<MXMidiConsoleElement>{
             }
             case CONSOLE_MESSAGE: {
                 String exString = "";
-                if (_message.isBinMessage()) {
-                    byte[] data = _message.getDataBytes();
+                if (_message.isBinaryMessage()) {
+                    byte[] data = _message.getBinary();
                     return MXUtil.dumpHex(data);
                 }else {
                     int status = _message.getStatus();
@@ -130,7 +130,7 @@ public class MXMidiConsoleElement implements Comparable<MXMidiConsoleElement>{
             }
             case CONSOLE_MESSAGE: {
                 String exString = "";
-                if(_message.isBinMessage() == false || _message.isDataentry()) {
+                if(_message.isBinaryMessage() == false || _message.isDataentry()) {
                     int col = _message.getDwordCount();
                     StringBuffer ret = new StringBuffer();
                     for (int i = 0 ; i < col; ++ i) {

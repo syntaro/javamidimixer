@@ -48,8 +48,8 @@ public class MXEntrance {
                 return 1;
             }
             
-            byte[] t1 = o1.getDataBytes();
-            byte[] t2 = o2.getDataBytes();
+            byte[] t1 = o1.getBinary();
+            byte[] t2 = o2.getBinary();
             
             if (t1 == null) {
                 if (t2 == null) {

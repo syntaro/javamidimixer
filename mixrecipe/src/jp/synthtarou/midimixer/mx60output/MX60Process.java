@@ -26,8 +26,7 @@ import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFCallback;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFPlayer;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFRecorder;
+import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 import jp.synthtarou.midimixer.mx10input.MX10Data;
@@ -39,9 +38,9 @@ import jp.synthtarou.midimixer.mx10input.MX10Data;
 public class MX60Process extends MXReceiver implements MXSettingTarget {
     public MX60Data _data;
     private MX60View _view;
-    private SMFRecorder[] _listRecorder;
+    private SMFSequencer[] _listRecorder;
     private int _recordingTrack = -1;
-    private SMFPlayer _playingTrack;
+    private SMFSequencer _playingTrack;
 
     MXSetting _setting;
 
@@ -50,9 +49,9 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
         _view = new MX60View(this);
         _setting = new MXSetting("OutputSkip");
         _setting.setTarget(this);
-        _listRecorder = new SMFRecorder[5];
+        _listRecorder = new SMFSequencer[5];
         for (int i = 0; i < _listRecorder.length; ++ i) {
-            _listRecorder[i] = new SMFRecorder();
+            _listRecorder[i] = new SMFSequencer();
         }
         _playingTrack = null;
     }
@@ -64,16 +63,16 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
     @Override
     public void processMXMessage(MXMessage message) {
         if (isUsingThisRecipe()) {
-            if (_data.isMarkedToSkip(message)) {
+            if (_data.isMarkedAsSkip(message)) {
                 return;
             }
         }
 
         if (isRecording()) {
             synchronized (this) {
-                SMFRecorder recorder = _listRecorder[_recordingTrack];
-                recorder.addNote(message);
-                _view.setNoteCount(_recordingTrack, recorder.getPlayer().listMessage().size());
+                SMFSequencer recorder = _listRecorder[_recordingTrack];
+                recorder.record(message);
+                _view.setNoteCount(_recordingTrack, recorder.countMessage());
             }
         }
 
@@ -128,6 +127,7 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
     
     public synchronized void startRecording(int x) {
         _recordingTrack = x;
+        _listRecorder[x] = new SMFSequencer();
         _listRecorder[x].startRecording();
     }
 
@@ -136,12 +136,15 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
     }
 
     public synchronized void stopRecording() {
-        _recordingTrack = -1;
+        if (_recordingTrack >= 0) {
+            _listRecorder[_recordingTrack].stopRecording();
+            _recordingTrack = -1;
+        }
     }
 
     public synchronized void startPlaying(int x) {
-        _playingTrack = _listRecorder[x].getPlayer();
-        _playingTrack.setCurrentPosition(_playingTrack.getPositionOfFirstNote());
+        _playingTrack = _listRecorder[x];
+        _playingTrack.setStartMilliSecond(_playingTrack.getFirstNoteMilliSecond());
         _playingTrack.startPlayer(new SMFCallback() {
             MXNoteOffWatcher _noteOff = new MXNoteOffWatcher();
 
@@ -191,7 +194,7 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
             }
 
             @Override
-            public void smfProgress(int pos, int finish) {
+            public void smfProgress(long pos, long finish) {
                 _view.progress(pos, finish);
             }
         });
@@ -216,6 +219,6 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
             //startup
             return false;
         }
-        return _listRecorder[x].getPlayer().listMessage().size() > 0;
+        return _listRecorder[x].countMessage() > 0;
     }
 }

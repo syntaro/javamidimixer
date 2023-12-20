@@ -19,50 +19,44 @@ package jp.synthtarou.midimixer.libs.midi.smf;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import javax.sound.midi.InvalidMidiDataException;
-import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXThreadList;
+import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
+import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class SMFPlayer {
-
-    private SMFMessageList _listMessage;
-    private int _position;
-    private int _smpteFormat = -99999;
-    private int _resolution = 96;
+public class SMFSequencer {
+    private long _startMilliSeconds;
     private File _lastFile;
     boolean _paraPlay = false;
+    private SMFParser _parser;
 
-    public SMFPlayer() {
-        _listMessage = new SMFMessageList();
-        _smpteFormat = -99999;
-        _resolution = 96;
-        firstNote = new SMFMessage[16];
+    public SMFSequencer() {
+        _parser = new SMFParser(); // as recorder
+        _lastFile = null;
+        _firstNote = new SMFMessage[16];
     }
 
-    public SMFPlayer(File file) throws IOException {
-        SMFParser parser = new SMFParser(file);
+    public SMFSequencer(File file) throws IOException {
+        _parser = new SMFParser(file);
+        _firstNote = new SMFMessage[16];
         _lastFile = file;
-        _listMessage = parser.getMessageList();
-        _resolution = parser.getFileInfo().getResolution();
-        _smpteFormat = parser.getFileInfo().getSmpteFormat();
     }
 
     public File getLastFile() {
         return _lastFile;
     }
 
-    public SMFMessageList listMessage() {
-        return _listMessage;
+    public SortedArray<SMFMessage> listMessage() {
+        return _parser._listMessage;
     }
 
-    boolean _breakSequence;
+    boolean _stopPlayer;
 
     public void startPlayer(SMFCallback callback) {
         if (isRunning()) {
@@ -73,16 +67,10 @@ public class SMFPlayer {
             @Override
             public void run() {
                 _callback.smfStarted();
-                allNoteOff(null);
                 try {
                     resetControllers();
-                    if (_smpteFormat > 0) {
-                        playWithSMPTE(_smpteFormat, _resolution);
-                        _isRunning = false;
-                    } else {
-                        playWithTempo();
-                        _isRunning = false;
-                    }
+                    playWithMilliSeconds();
+                    _isRunning = false;
                 } catch (Throwable e) {
                     _isRunning = false;
                     e.printStackTrace();
@@ -92,7 +80,12 @@ public class SMFPlayer {
                     }
                 }
                 allNoteOff(null);
-                _callback.smfStoped(_breakSequence ? false : true);
+                _callback.smfStoped(_stopPlayer ? false : true);
+                try {
+                    Thread.sleep(500);
+                }catch(InterruptedException e) {
+
+                }
             }
         });
         t.setDaemon(true);
@@ -101,39 +94,42 @@ public class SMFPlayer {
     }
 
     public void stopPlayer() {
-        _breakSequence = true;
+        _stopPlayer = true;
         synchronized (this) {
             notifyAll();
         }
-        while (_isRunning) {
+        if (_isRunning) {
+            while (_isRunning) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                }
+            }
             try {
-                Thread.sleep(100);
+                Thread.sleep(200);
             } catch (InterruptedException e) {
             }
         }
     }
 
-    SMFMessage[] firstNote = null;
+    SMFMessage[] _firstNote = null;
 
     protected boolean sendProgramChangeBeforeNote() {
-        List<SMFMessage> list = _listMessage.listAll();
-
         SMFMessage[] firstProgram = new SMFMessage[16];
         SMFMessage[] firstBank0 = new SMFMessage[16];
         SMFMessage[] firstBank32 = new SMFMessage[16];
-        firstNote = new SMFMessage[16];
+        _firstNote = new SMFMessage[16];
 
         int doneCh = 0;
-        int pos = _position;
-
-        while (pos < list.size()) {
-            SMFMessage smf = list.get(pos);
+        int pos = 0;
+        
+        for (SMFMessage smf : _parser._listMessage) {
             int status = smf.getStatus();
             int command = status & 0xf0;
             int channel = status & 0x0f;
             int data1 = smf.getData1();
 
-            if (firstNote[channel] == null) {
+            if (_firstNote[channel] == null) {
                 if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
                     firstProgram[channel] = smf;
                 } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == 0) {
@@ -141,7 +137,7 @@ public class SMFPlayer {
                 } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == 32) {
                     firstBank32[channel] = smf;
                 } else if (command == MXMidi.COMMAND_CH_NOTEON) {
-                    firstNote[channel] = smf;
+                    _firstNote[channel] = smf;
                     doneCh++;
                     if (doneCh >= 16) {
                         break;
@@ -150,20 +146,19 @@ public class SMFPlayer {
             }
             pos++;
         }
-        pos = 0;
 
         boolean didProgramChange = false;
 
         synchronized (MXTiming.mutex) {
-            MXTiming start = new MXTiming();
+            MXTiming timing = new MXTiming();
             for (int ch = 0; ch < 16; ++ch) {
-                if (firstBank0[ch] != null && firstBank32[ch] != null) {
-                    smfPlayNote(start, firstBank0[ch]);
-                    smfPlayNote(start, firstBank32[ch]);
+                if (firstProgram[ch] != null) {
+                    smfPlayNote(timing, firstProgram[ch]);
                     didProgramChange = true;
                 }
-                if (firstProgram[ch] != null) {
-                    smfPlayNote(start, firstProgram[ch]);
+                if (firstBank0[ch] != null && firstBank32[ch] != null) {
+                    smfPlayNote(timing, firstBank0[ch]);
+                    smfPlayNote(timing, firstBank32[ch]);
                     didProgramChange = true;
                 }
             }
@@ -181,41 +176,37 @@ public class SMFPlayer {
         return didProgramChange;
     }
 
-    protected void playWithSMPTE(int smpteFormat, int fileResolution) throws InvalidMidiDataException {
-        _breakSequence = false;
+    protected void playWithMilliSeconds() throws InvalidMidiDataException {
+        _stopPlayer = false;
 
-        double frameRate = smpteFormat;
-        if (smpteFormat == 29) {
-            frameRate = 29.97;
+        int pos = 0;
+        
+        SortedArray<SMFMessage> list = _parser._listMessage;
+        for (int i = 0; i < list.size(); ++ i) {
+            if (list.get(i)._milliSeconds >= _startMilliSeconds) {
+                pos = i;
+                break;
+            }
         }
 
-        double tickPerMilliSecond = frameRate * fileResolution / 1000;
-
-        int pos = _position;
         if (_paraPlay) {
 
-        } else if (_position == 0) {
+        } else if (_startMilliSeconds == 0) {
             sendProgramChangeBeforeNote();
         }
 
-        List<SMFMessage> list = _listMessage.listAll();
-
-        long stopWatch = System.currentTimeMillis();
-        long alreadySpent = (long) (list.get(pos)._tick * tickPerMilliSecond) / 1000;
-        stopWatch -= alreadySpent;
-
-        while (!_breakSequence && pos < list.size()) {
-            long elapsed = (System.currentTimeMillis() - stopWatch);
-            long elapsedTicks = (long) (elapsed * tickPerMilliSecond);
-
-            if (elapsedTicks < 0) {
-                break;
+        long launched = System.currentTimeMillis() - _startMilliSeconds;
+        long lastSent = 0;
+        
+        while (!_stopPlayer && pos < list.size()) {
+            long elapsed = (System.currentTimeMillis() - launched);
+            
+            if (lastSent + 500 < elapsed) {
+                _callback.smfProgress(list.get(pos)._milliSeconds, getMaxMilliSecond());
+                lastSent = elapsed;
             }
-
-            while (!_breakSequence && list.get(pos)._tick <= elapsedTicks) {
-                _position = pos;
-
-                _callback.smfProgress(pos, list.size());
+            
+            while (!_stopPlayer && list.get(pos)._milliSeconds <= elapsed) {
                 SMFMessage currentEvent = list.get(pos++);
 
                 if (currentEvent.isBinaryMessage() || currentEvent.isMetaMessage()) {
@@ -230,14 +221,14 @@ public class SMFPlayer {
                     int command = status & 0xf0;
                     int channel = status & 0x0f;
 
-                    if (firstNote != null) {
-                        if (firstNote[channel] != null) {
+                    if (_firstNote != null) {
+                        if (_firstNote[channel] != null) {
                             if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE
                                     || (command == MXMidi.COMMAND_CH_CONTROLCHANGE && (data1 == 0 || data1 == 32))) {
                                 continue;
                             } else if (command == MXMidi.COMMAND_CH_NOTEON) {
-                                if (firstNote[channel] == currentEvent) {
-                                    firstNote[channel] = null;
+                                if (_firstNote[channel] == currentEvent) {
+                                    _firstNote[channel] = null;
                                 }
                             }
                         }
@@ -250,114 +241,25 @@ public class SMFPlayer {
                 }
             }
             try {
-                if (_breakSequence) {
+                if (_stopPlayer) {
                     break;
                 }
                 if (pos >= list.size()) {
                     break;
                 }
-                long nextTick = list.get(pos)._tick;
-                int nextMillis = (int) (nextTick / tickPerMilliSecond - System.currentTimeMillis());
-                long differ = nextMillis - (System.currentTimeMillis() - stopWatch);;
+                long nextTick = list.get(pos)._milliSeconds;
+                long differ = nextTick - System.currentTimeMillis();
                 synchronized (this) {
-                    if (differ >= 10) {
+                    if (differ >= 500) {
+                        wait(500);
+                    }else if (differ >= 10) {
                         wait(differ - 5);
                     } else {
                         wait(1);
                     }
                 }
             } catch (InterruptedException e) {
-                _breakSequence = true;
-            }
-        }
-    }
-
-    protected void playWithTempo() throws InvalidMidiDataException {
-        _breakSequence = false;
-
-        SMFTempoList tempo = new SMFTempoList(_listMessage.listAll(), _resolution);
-
-        int pos = _position;
-        if (_paraPlay) {
-
-        } else if (_position == 0) {
-            sendProgramChangeBeforeNote();
-        }
-
-        List<SMFMessage> list = _listMessage.listAll();
-
-        long stopWatch = System.currentTimeMillis();
-        long alreadySpent = tempo.TicksToMicroseconds(list.get(pos)._tick) / 1000;
-        stopWatch -= alreadySpent;
-        while (!_breakSequence && pos < list.size()) {
-            long elapsed = (System.currentTimeMillis() - stopWatch) * 1000L;
-            long elapsedTicks = tempo.MicrosecondsToTicks(elapsed);
-
-            if (elapsedTicks < 0) {
-                break;
-            }
-
-            while (!_breakSequence && list.get(pos)._tick <= elapsedTicks) {
-                _position = pos;
-                _callback.smfProgress(pos, list.size());
-                SMFMessage currentEvent = list.get(pos++);
-
-                if (currentEvent.isBinaryMessage() || currentEvent.isMetaMessage()) {
-                    if (currentEvent.getBinary().length <= 2) {
-                        continue;
-                    }
-                    if (currentEvent.getBinary()[0] == 0) {
-                        continue;
-                    }
-                    smfPlayNote(null, currentEvent);
-                    if (pos >= list.size()) {
-                        break;
-                    }
-                } else if (currentEvent.getStatus() >= 0x80) {
-                    int status = currentEvent.getStatus();
-                    int data1 = currentEvent.getData1();
-                    int data2 = currentEvent.getData2();
-                    int command = status & 0xf0;
-                    int channel = status & 0x0f;
-
-                    if (firstNote != null) {
-                        if (firstNote[channel] != null) {
-                            if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE
-                                    || (command == MXMidi.COMMAND_CH_CONTROLCHANGE && (data1 == 0 || data1 == 32))) {
-                                continue;
-                            } else if (command == MXMidi.COMMAND_CH_NOTEON) {
-                                if (firstNote[channel] == currentEvent) {
-                                    firstNote[channel] = null;
-                                }
-                            }
-                        }
-                    }
-
-                    smfPlayNote(null, currentEvent);
-                    if (pos >= list.size()) {
-                        break;
-                    }
-                }
-            }
-            try {
-                if (_breakSequence) {
-                    break;
-                }
-                if (pos >= list.size()) {
-                    break;
-                }
-                long nextTick = list.get(pos)._tick;
-                long nextMillis = tempo.TicksToMicroseconds(nextTick) / 1000;
-                long differ = nextMillis - (System.currentTimeMillis() - stopWatch);;
-                synchronized (this) {
-                    if (differ >= 10) {
-                        wait(differ - 5);
-                    } else {
-                        wait(1);
-                    }
-                }
-            } catch (InterruptedException e) {
-                _breakSequence = true;
+                _stopPlayer = true;
             }
         }
     }
@@ -365,7 +267,7 @@ public class SMFPlayer {
     boolean _isRunning;
 
     public void resetControllers() {
-        if (getCurrentPosition() == 0 && !_paraPlay) {
+        if (getStartMilliSecond() == 0 && !_paraPlay) {
             int start = 0, end = 15;
             if (_forceSingleChannel >= 0) {
                 start = _forceSingleChannel;
@@ -387,6 +289,10 @@ public class SMFPlayer {
         }
     }
 
+    public int countMessage() {
+        return _parser._listMessage.size();
+    }
+    
     public void allNoteOff(MXTiming timing) {
         if (_paraPlay) {
             return;
@@ -416,26 +322,28 @@ public class SMFPlayer {
         return _isRunning;
     }
 
-    public int getCurrentPosition() {
-        return _position;
+    public long getStartMilliSecond() {
+        return _startMilliSeconds;
     }
 
-    public void setCurrentPosition(int pos) {
-        if (pos > getLength()) {
-            throw new IllegalArgumentException("timing error pos = " + pos + " length " + getLength());
+    public void setStartMilliSecond(long pos) {
+        _startMilliSeconds = pos;
+    }
+
+    public long getMaxMilliSecond() {
+        long t = 0;
+        ArrayList<SMFMessage> list = _parser._listMessage;
+        if (list.isEmpty() == false) {
+            t = list.get(list.size()  -1)._milliSeconds;
         }
-        _position = pos;
-    }
-
-    public int getLength() {
-        return _listMessage.size();
+        return t + 500;
     }
 
     boolean _noteOnly = false;
     int _forceSingleChannel = -1;
     SMFCallback _callback;
 
-    public void smfPlayNote(MXTiming timing, SMFMessage smf) {
+    void smfPlayNote(MXTiming timing, SMFMessage smf) {
         try {
             synchronized (MXTiming.mutex) {
                 if (timing == null) {
@@ -445,7 +353,9 @@ public class SMFPlayer {
                     _callback.smfPlayNote(timing, smf);
                 } else {
                     int dword = smf.toDwordMessage();
-                    if (_noteOnly) {
+                    if (!_noteOnly) {
+                        _callback.smfPlayNote(timing, smf);
+                    }else {
                         boolean skip = true;
 
                         int status = (dword >> 16) & 0xff;
@@ -466,18 +376,17 @@ public class SMFPlayer {
                                 break;
                             case MXMidi.COMMAND_CH_CONTROLCHANGE:
                                 if (data1 == MXMidi.DATA1_CC_DAMPERPEDAL
-                                        || data1 == MXMidi.DATA1_CC_MODULATION
-                                        || data1 == MXMidi.DATA1_CC_ALLNOTEOFF
-                                        || data1 == MXMidi.DATA1_CC_ALLSOUNDOFF) {
+                                    || data1 == MXMidi.DATA1_CC_MODULATION
+                                    || data1 == MXMidi.DATA1_CC_ALLNOTEOFF
+                                    || data1 == MXMidi.DATA1_CC_ALLSOUNDOFF) {
                                     skip = false;
                                 }
                                 break;
                         }
-                        if (skip) {
-                            return;
+                        if (!skip) {
+                            _callback.smfPlayNote(timing, smf);
                         }
                     }
-                    _callback.smfPlayNote(timing, smf);
                 }
             }
         } catch (Throwable e) {
@@ -493,21 +402,61 @@ public class SMFPlayer {
         _noteOnly = only;
     }
 
-    public void setStartPosition(int pos) {
-        _position = pos;
-    }
-
-    public int getPositionOfFirstNote() {
-        int firstNoetPos = 0;
-        ArrayList<SMFMessage> list = listMessage().listAll();
-        int pos = 0;
+    public long getFirstNoteMilliSecond() {
+        ArrayList<SMFMessage> list = _parser._listMessage;
         for (SMFMessage smf : list) {
             int command = smf.getStatus() & 0xf0;
             if (command == MXMidi.COMMAND_CH_NOTEON) {
-                return pos;
+                return smf._milliSeconds;
             }
-            pos++;
         }
         return 0;
+    }
+
+    boolean _recording = false;
+    long _startRecord;
+    
+    public synchronized void startRecording() {
+        _parser._listMessage.clear();
+        _recording = true;
+        _startRecord = -1;
+    }
+    
+    public synchronized void record(MXMessage message) {
+        if (_recording == false) {
+            return;
+        }
+        long timing = message._timing._clock;
+        if (_startRecord < 0) {
+            _startRecord = timing;
+        }
+        timing -= _startRecord;
+        if (message.isBinaryMessage()) {
+            byte[] data = message.getBinary();
+            SMFMessage smf = new SMFMessage(0, data);
+            smf._milliSeconds = timing;
+            smf._port = message.getPort();
+            _parser._listMessage.insertSorted(smf);
+        }
+        else {
+            for (int i = 0; i < message.getDwordCount(); ++ i) {
+                int dword = message.getAsDword(i);
+                int status = (dword >> 16) & 0xff;
+                int data1 = (dword >> 8) & 0xff;
+                int data2 = dword & 0xff;
+                SMFMessage smf = new SMFMessage(0, status, data1, data2);
+                smf._milliSeconds = timing;
+                smf._port = message.getPort();
+                _parser._listMessage.insertSorted(smf);
+            }
+        }
+               
+    }
+    
+    public synchronized void stopRecording() {
+        if (_recording) {
+            _recording = false;
+            _parser.calcSMPTEUseMilliseconds();
+        }
     }
 }

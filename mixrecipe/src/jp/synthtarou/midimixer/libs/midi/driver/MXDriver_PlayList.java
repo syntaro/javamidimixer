@@ -37,11 +37,11 @@ public class MXDriver_PlayList implements MXDriver {
     }
     
     public String InputDeviceName(int x) {
-        return "<PlayList>";
+        return "<SMFPlayer>";
     }
     
     public String InputDeviceId(int x) {
-        return "PlayL+ist>";
+        return "SMFPlayer<" + x + ">";
     }
 
     public boolean InputDeviceIsOpen(int x) {

@@ -164,6 +164,7 @@ public class MXMIDIOut {
         }
     }
 
+        
     private void processMidiOutInternal(MXMessage message) {
         synchronized (MXTiming.mutex) {
             if (!_driver.OutputDeviceIsOpen(_driverOrder)) {
@@ -283,7 +284,7 @@ public class MXMIDIOut {
 
                 int col = message.getDwordCount();
                 if (col == 0) {
-                    byte[] data = message.getDataBytes();
+                    byte[] data = message.getBinary();
                     _driver.OutputLongMessage(_driverOrder, data);
                     MXMain.addOutsideOutput(new MXMidiConsoleElement(message._timing, message.getPort(), data));
                 } else if (col > 0) {

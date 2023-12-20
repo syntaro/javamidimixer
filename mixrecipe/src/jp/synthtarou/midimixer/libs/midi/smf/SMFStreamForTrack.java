@@ -20,7 +20,7 @@ package jp.synthtarou.midimixer.libs.midi.smf;
  *
  * @author Syntarou YOSHIDA
  */
-public class ByteReaderChildren {
+public class SMFStreamForTrack {
     byte[] _buffer;
     int _pos = 0;
     int _length = -1;
@@ -28,7 +28,7 @@ public class ByteReaderChildren {
     boolean _eof = false;
     boolean _error = false;
     
-    public ByteReaderChildren(MidiByteReader parent, int length) {
+    public SMFStreamForTrack(SMFInputStream parent, int length) {
         _buffer = new byte[length];
         _length = parent.readBuffer(_buffer, length);
         _pos = 0;

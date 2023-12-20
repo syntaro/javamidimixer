@@ -33,7 +33,6 @@ public final class SMFTempoList {
         return _fileResolution;
     }
     
-    // 再生に当たって、NAudio.Midi.MidiEventCollection は実質的に Midi ファイルとして見なせる
     public SMFTempoList(ArrayList<SMFMessage> listMessage, int fileResolution) {
         // Pulses Per Quater note
         int resolution = fileResolution;
@@ -41,25 +40,9 @@ public final class SMFTempoList {
         ArrayList<SMFMessage> tempoEvents = new ArrayList();
 
         if (listMessage != null) {
-
             for (SMFMessage message : listMessage) {
                 if (message.getStatus() == 0xff) {
-                    switch(message.getDataType()) {
-                        case 0: // シーケンス番号
-                        case 1: // テキストイベント
-                        case 2: // 著作権情報
-                        case 3: // シーケンス名・トラック名
-                        case 4: // 楽器名
-                        case 5: // 歌詞
-                        case 6: // マーカー
-                        case 7: // キューポイント
-                        case 0x20: //MIDIチャンネルプリフィクス
-                        case 0x2f: //END
-                        case 0x54: //SNMPTE OFFSEt
-                        case 0x58: //メトロノーム
-                        case 0x59: //調合
-                        case 0x75: //シーケンサメタ
-                            break;
+                    switch(message.getData1()) {
                         case 0x51: //Tempo
                             tempoEvents.add(message);
                     }

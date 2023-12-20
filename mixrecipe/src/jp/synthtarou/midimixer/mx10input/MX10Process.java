@@ -22,7 +22,6 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
-import jp.synthtarou.midimixer.mx12masterkeys.MX12Process;
 
 /**
  *
@@ -57,7 +56,7 @@ public class MX10Process extends MXReceiver implements MXSettingTarget {
     @Override
     public void processMXMessage(MXMessage message) {
         if (isUsingThisRecipe()) {
-            if (_data.isMarkedToSkip(message)) {
+            if (_data.isMarkedAsSkip(message)) {
                 return;
             }
         }
@@ -86,10 +85,12 @@ public class MX10Process extends MXReceiver implements MXSettingTarget {
     public void afterReadSettingFile(MXSetting setting) {
         for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
             String prefix = "Setting[" + port + "].";
-            StringBuffer str = new StringBuffer();
-            for (int j = 0; j <_data.countOfTypes(); ++ j) {
+            for (int j = 0; j < _data.countOfTypes(); ++ j) {
                 String name = _data.typeNames[j];
                 boolean set = setting.getSettingAsBoolean(prefix + name, false);
+                if (set) {
+                    System.out.println("skip = " + prefix + name);
+                }
                 _data.setSkip(port, j, set);
             }
         }
@@ -101,10 +102,12 @@ public class MX10Process extends MXReceiver implements MXSettingTarget {
         for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
             String prefix = "Setting[" + port + "].";
             StringBuffer str = new StringBuffer();
-            for (int j = 0; j <_data.countOfTypes(); ++ j) {
+            for (int j = 0; j < _data.countOfTypes(); ++ j) {
                 boolean set = _data.isSkip(port, j);
-                String name = _data.typeNames[j];
-                setting.setSetting(prefix + name, set);
+                if (set) {                   
+                    String name = _data.typeNames[j];
+                    setting.setSetting(prefix + name, set);
+                }
             }
         }
     }

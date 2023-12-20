@@ -203,7 +203,12 @@ public class MX60View extends javax.swing.JPanel {
         });
         jPanel4.add(jRadioButtonSong5, new java.awt.GridBagConstraints());
 
-        jButtonSongExport.setText("MXIRecipe Wont Save Recorder");
+        jButtonSongExport.setText("SaveNow");
+        jButtonSongExport.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonSongExportActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 9;
         gridBagConstraints.gridy = 0;
@@ -303,6 +308,10 @@ public class MX60View extends javax.swing.JPanel {
         enableRecordingButton();
     }//GEN-LAST:event_jRadioButtonSong1ActionPerformed
 
+    private void jButtonSongExportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSongExportActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButtonSongExportActionPerformed
+
     public synchronized TableModel createSkipTableModel() {
         DefaultTableModel model = new DefaultTableModel() {
             public boolean isCellEditable(int row, int column) {
@@ -316,12 +325,11 @@ public class MX60View extends javax.swing.JPanel {
             model.addColumn(MXMidi.nameOfPortShort(i));
         }
         
-        for (int row = 0; row < _process._data.TYPE_COUNT; ++ row) {
+        for (int type = 0; type < _process._data.TYPE_COUNT; ++ type) {
             Vector line = new Vector();
-            line.add(_process._data.typeNames[row]);
+            line.add(_process._data.typeNames[type]);
             
             for (int delivery = 0; delivery < MXAppConfig.TOTAL_PORT_COUNT; ++ delivery) {
-                int type = row + 1;
                 if (_process._data.isSkip(delivery, type)) {
                     line.add("Skip");
                 }else {
@@ -338,19 +346,17 @@ public class MX60View extends javax.swing.JPanel {
         int row = _jTableSkip.rowAtPoint(evt.getPoint());
         int column = _jTableSkip.columnAtPoint(evt.getPoint());
         
-        int type = row + 1;
+        int type = row;
         int port = column - 1;
         DefaultTableModel model = (DefaultTableModel)_jTableSkip.getModel();
         
-        if (type >= 1 && type <= _process._data.TYPE_COUNT) {
-            if (port >= 0 && port < MXAppConfig.TOTAL_PORT_COUNT) {
-                if (_process._data.isSkip(port, type)) {
-                    _process._data.setSkip(port, type, false);
-                    model.setValueAt("", row, column);
-                }else {
-                    _process._data.setSkip(port, type, true);
-                    model.setValueAt("Skip", row, column);
-                }
+        if (port >= 0 && port < MXAppConfig.TOTAL_PORT_COUNT) {
+            if (_process._data.isSkip(port, type)) {
+                _process._data.setSkip(port, type, false);
+                model.setValueAt("", row, column);
+            }else {
+                _process._data.setSkip(port, type, true);
+                model.setValueAt("Skip", row, column);
             }
         }
     }                                    
@@ -463,7 +469,7 @@ public class MX60View extends javax.swing.JPanel {
         }
     }
     
-    public void progress(int pos, int max) {
+    public void progress(long pos, long max) {
         double x = pos * 10000;
         if (max == 0) {
             x = 10000;

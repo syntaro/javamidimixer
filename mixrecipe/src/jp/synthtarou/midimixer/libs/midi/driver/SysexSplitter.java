@@ -18,7 +18,7 @@ package jp.synthtarou.midimixer.libs.midi.driver;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import jp.synthtarou.midimixer.libs.midi.smf.MidiByteReader;
+import jp.synthtarou.midimixer.libs.midi.smf.SMFInputStream;
 
 /**
  *　SysEXメッセージを分割、結合するため
@@ -35,7 +35,7 @@ public class SysexSplitter {
     }
     
     public void append(byte[] sysexData) {
-        MidiByteReader reader = new MidiByteReader(sysexData);
+        SMFInputStream reader = new SMFInputStream(sysexData);
 
         int status = reader.read8();
         

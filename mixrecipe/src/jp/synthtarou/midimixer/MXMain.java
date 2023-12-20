@@ -207,18 +207,18 @@ public class MXMain  {
                     @Override
                     public void run() {
                         try {
-                            MXMIDIInManager.getManager().closeAll();
-                            MXMIDIOutManager.getManager().closeAll();
-                            MXThreadList.onExit();
-                        }catch(Throwable ex) {
-                            ex.printStackTrace();
-                        }
-
-                        try {
                             MXSetting.saveEverySettingToFile();
                             VSTStream.getInstance().postCloseStream(null);
                         }
                         catch(Throwable ex) {
+                            ex.printStackTrace();
+                        }
+
+                        try {
+                            MXMIDIInManager.getManager().closeAll();
+                            MXMIDIOutManager.getManager().closeAll();
+                            MXThreadList.onExit();
+                        }catch(Throwable ex) {
                             ex.printStackTrace();
                         }
                         VSTInstance.stopEngine(null);
