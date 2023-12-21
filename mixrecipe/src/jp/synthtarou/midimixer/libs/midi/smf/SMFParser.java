@@ -296,7 +296,7 @@ public class SMFParser {
 
     public void addMessageWithMillisecond(SMFMessage seek, long millisecond) {
         seek._millisecond = millisecond;
-        seek._tick = _tempoArray.calcTicksByMicroseconds(millisecond * 1000);
+        seek._tick = _tempoArray.calcTicksByMicrosecond(millisecond * 1000);
         if (seek.getStatus() == 0xff && seek.getData1() == 0x51) {
             _tempoArray.addMPQwithMicrosecond(seek.getMetaTempo(), millisecond * 1000);
         }

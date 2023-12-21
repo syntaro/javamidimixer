@@ -1,19 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
-    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="3">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="2">
         <file>
             <url>src/jp/synthtarou/midimixer/libs/midi/port/MXMIDIInForPlayer.java</url>
             <bookmark id="1">
                 <name/>
-                <line>291</line>
-                <key/>
-            </bookmark>
-        </file>
-        <file>
-            <url>src/jp/synthtarou/midimixer/libs/settings/MXSettingNode.java</url>
-            <bookmark id="3">
-                <name/>
-                <line>23</line>
+                <line>282</line>
                 <key/>
             </bookmark>
         </file>
@@ -21,12 +13,19 @@
             <url>src/jp/synthtarou/midimixer/libs/midi/MXMessage.java</url>
             <bookmark id="2">
                 <name/>
-                <line>435</line>
+                <line>453</line>
                 <key/>
             </bookmark>
         </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/C:/github/mixrecipe/src/jp/synthtarou/midimixer/MXProgressDialog.java</file>
+            <file>file:/C:/github/mixrecipe/src/jp/synthtarou/midimixer/libs/midi/smf/SMFTempoArray.java</file>
+            <file>file:/C:/github/mixrecipe/src/jp/synthtarou/midimixer/libs/midi/smf/SMFParser.java</file>
+            <file>file:/C:/github/mixrecipe/src/jp/synthtarou/midimixer/MXAppConfig.java</file>
+            <file>file:/C:/github/mixrecipe/src/jp/synthtarou/midimixer/libs/midi/smf/SMFSequencer.java</file>
+            <file>file:/C:/github/mixrecipe/src/jp/synthtarou/midimixer/MXMainWindow.java</file>
+        </group>
     </open-files>
 </project-private>

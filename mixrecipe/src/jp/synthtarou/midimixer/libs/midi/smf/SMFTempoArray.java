@@ -17,12 +17,13 @@
 package jp.synthtarou.midimixer.libs.midi.smf;
 
 import java.util.ArrayList;
+import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class SMFTempoArray extends ArrayList<SMFTempo> {
+public class SMFTempoArray extends SortedArray<SMFTempo> {
 
     SMFParser _parent;
 
@@ -52,10 +53,10 @@ public class SMFTempoArray extends ArrayList<SMFTempo> {
     public long calcMicrosecondByTick(long ticks) {
         SMFTempo tempo = backSeekByTick(ticks);
 
-        long deltaTick = ticks - tempo._tick;
-        long deltaMicrosecond = deltaTick * tempo._mpq / _parent._fileResolution;
+        double deltaTick = ticks - tempo._tick;
+        double deltaMicrosecond =  deltaTick * tempo._mpq / _parent._fileResolution;
 
-        long ret = tempo._microsecond + deltaMicrosecond;
+        long ret = tempo._microsecond + (long)deltaMicrosecond;
         return ret;
     }
 
@@ -63,9 +64,8 @@ public class SMFTempoArray extends ArrayList<SMFTempo> {
     public void addMPQwithTick(long mpq, long tick) {
         SMFTempo tempo = backSeekByTick(tick);
 
-        long deltaTick = tick - tempo._tick;
-        long deltaMicrosecond = deltaTick * tempo._mpq / _parent._fileResolution;
-        
+        double deltaTick = tick - tempo._tick;
+        double deltaMicrosecond = deltaTick * tempo._mpq / _parent._fileResolution;
 
         if (deltaTick == 0) {
             tempo._mpq = mpq;
@@ -75,7 +75,7 @@ public class SMFTempoArray extends ArrayList<SMFTempo> {
         SMFTempo newTempo = new SMFTempo();
         newTempo._mpq = mpq;
         newTempo._tick = tick;
-        newTempo._microsecond = tempo._microsecond + deltaMicrosecond;
+        newTempo._microsecond = tempo._microsecond + (long)deltaMicrosecond;
 
         add(newTempo);
     }
@@ -93,33 +93,33 @@ public class SMFTempoArray extends ArrayList<SMFTempo> {
     }
 
     /* Microsecondから、Tickを求める */
-    public long calcTicksByMicroseconds(long microSeconds) {
-        SMFTempo tempo = backSeekByMicroSecond(microSeconds);
+    public long calcTicksByMicrosecond(long microSecond) {
+        SMFTempo tempo = backSeekByMicroSecond(microSecond);
         
-        long deltaMicroSeconds = microSeconds - tempo._microsecond;
-        long deltaTicks = deltaMicroSeconds * _parent._fileResolution / tempo._mpq;
+        double deltaMicroSecond = microSecond - tempo._microsecond;
+        double deltaTick = deltaMicroSecond * _parent._fileResolution / tempo._mpq;
 
-        return tempo._tick + deltaTicks;
+        return tempo._tick + (long)deltaTick;
     }
 
     /* MicrosecondベースでMPQを追加 （順番通りに追加する必要がある） */
-    public void addMPQwithMicrosecond(long mpq, long microSeconds) {
-        SMFTempo tempo = backSeekByMicroSecond(microSeconds);
+    public void addMPQwithMicrosecond(long mpq, long microSecond) {
+        SMFTempo tempo = backSeekByMicroSecond(microSecond);
 
-        long deltaMicroSeconds = microSeconds - tempo._microsecond;
+        double deltaMicroSecond = microSecond - tempo._microsecond;
+        double deltaTick = deltaMicroSecond * _parent._fileResolution / tempo._mpq;
 
-        if (deltaMicroSeconds == 0) {
+        if (deltaMicroSecond == 0) {
             tempo._mpq = mpq;
             return;
         }
 
-        long deltaTicks = deltaMicroSeconds / tempo._mpq * _parent._fileResolution;
 
         SMFTempo newTempo = new SMFTempo();
 
         newTempo._mpq = mpq;
-        newTempo._tick = tempo._tick + deltaTicks;
-        newTempo._microsecond = microSeconds;
+        newTempo._tick = tempo._tick + (long)deltaTick;
+        newTempo._microsecond = microSecond;
 
         add(newTempo);
     }
