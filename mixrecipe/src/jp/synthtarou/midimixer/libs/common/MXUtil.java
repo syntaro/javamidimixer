@@ -560,4 +560,36 @@ public class MXUtil {
         }
     }
 
+
+    public static String digitalClock(long time) {
+        String hour = Long.toString(time / 60 / 60 / 1000);
+        String min = Long.toString((time / 60 / 1000) % 60);
+        String sec = Long.toString((time / 1000) % 60);
+        if (hour.equals("0")) {
+            hour = "";
+            if (min.equals("0")) {
+                min = "";
+            }
+        }
+        
+        if (min.length() >= 1) {
+            if (sec.length() == 1) {
+                sec = "0" + sec;
+            }
+        }
+        if (hour.length() >= 1) {
+            if (min.length() == 1) {
+                min = "0" + sec;
+            }
+        }
+        
+        if (hour.length() >= 1) {
+            return "" + hour +":" + min + ":" + sec;
+        }
+        if (min.length() >= 1) {
+            return "" + min + ":" + sec;
+        }
+        return "" + sec;
+     }
+    
 }

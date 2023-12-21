@@ -19,14 +19,17 @@ package jp.synthtarou.midimixer.mx60output;
 import java.util.Vector;
 import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
 import jp.synthtarou.midimixer.libs.swing.JTableWithColumnHeader;
 import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
@@ -266,9 +269,11 @@ public class MX60View extends javax.swing.JPanel {
             return;
         }
         if (jToggleButtonRec.isSelected()) {
+            jProgressBar1.setIndeterminate(true);
             _process.startRecording(x);   
         }
         else {
+            jProgressBar1.setIndeterminate(false);
             _process.stopRecording();
         }
         enableRecordingButton();
@@ -309,7 +314,9 @@ public class MX60View extends javax.swing.JPanel {
     }//GEN-LAST:event_jRadioButtonSong1ActionPerformed
 
     private void jButtonSongExportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSongExportActionPerformed
-        // TODO add your handling code here:
+        if (_process.saveSequenceData() == false) {
+            JOptionPane.showMessageDialog(this, "Error while saving MIDI", "Information", JOptionPane.OK_OPTION);
+        }
     }//GEN-LAST:event_jButtonSongExportActionPerformed
 
     public synchronized TableModel createSkipTableModel() {
@@ -396,7 +403,7 @@ public class MX60View extends javax.swing.JPanel {
         jLabelRecorderText.setText(text);
     }
     
-    public void setNoteCount(int recorder, int count) {
+    public void setSongLength(int recorder, long count) {
         JRadioButton button = null;
         switch(recorder) {
             case 0:
@@ -415,7 +422,7 @@ public class MX60View extends javax.swing.JPanel {
                 button = jRadioButtonSong5;
                 break;
         }
-        button.setText("Song" + (recorder+1) + ":" + count);
+        button.setText("Song" + (recorder+1) + ")" + MXUtil.digitalClock(count));
     }   
 
     public int countSongButton() {

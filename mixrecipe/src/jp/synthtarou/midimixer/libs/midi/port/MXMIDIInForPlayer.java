@@ -18,13 +18,16 @@ package jp.synthtarou.midimixer.libs.midi.port;
  
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.ShortMessage;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXThreadList;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFException;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
@@ -160,15 +163,26 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
         String fileName = file.toString();
  
         try {
+            Date lastDate = new Date(file.lastModified());
+            String textDate = DateFormat.getDateTimeInstance().format(lastDate);
+
+            ret.add("File: " + file.getName() +" (in " + file.getParent() + ")");
+            ret.add("Size: " + file.length());
+            ret.add("Date: " + textDate);
+            
             SMFSequencer player = new SMFSequencer(file);
             SortedArray<SMFMessage> listMessage = player.listMessage();
+            
+            ret.add("SongLength: " + MXUtil.digitalClock(player.getMaxMilliSecond()));
+            ret.add("SMPTE: " + player.getSMPTEFormat());
+            ret.add("Resolution : " + player.getResolution());
 
             for (SMFMessage message : listMessage) {
                 if (message.getStatus() != 0xff) {
                     continue;
                 }
                 
-                ret.add(message._milliSeconds + "ms : "+  message.getMetaText());
+                ret.add(MXUtil.digitalClock(message._millisecond) + " : "+  message.getMetaText());
             }
         } catch (Exception e) {
             if (file.exists()) {                

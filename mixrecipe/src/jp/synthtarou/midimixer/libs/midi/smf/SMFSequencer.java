@@ -16,10 +16,12 @@
  */
 package jp.synthtarou.midimixer.libs.midi.smf;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import javax.sound.midi.InvalidMidiDataException;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -35,11 +37,20 @@ public class SMFSequencer {
     private File _lastFile;
     boolean _paraPlay = false;
     private SMFParser _parser;
+    public boolean _updateFlag = false;
 
     public SMFSequencer() {
         _parser = new SMFParser(); // as recorder
         _lastFile = null;
         _firstNote = new SMFMessage[16];
+    }
+    
+    public int getResolution() {
+        return _parser._fileResolution;
+    }
+
+    public int getSMPTEFormat() {
+        return _parser._smpteFormat;
     }
 
     public SMFSequencer(File file) throws IOException {
@@ -82,9 +93,11 @@ public class SMFSequencer {
                 allNoteOff(null);
                 _callback.smfStoped(_stopPlayer ? false : true);
                 try {
-                    Thread.sleep(500);
-                }catch(InterruptedException e) {
-
+                    synchronized (this) {
+                        wait(500);
+                    }
+                } catch (InterruptedException e) {
+                    _stopPlayer = true;
                 }
             }
         });
@@ -166,7 +179,7 @@ public class SMFSequencer {
 
         if (didProgramChange) {
             try {
-                System.out.println("*** Did Program Change*");
+                System.out.println("*** Sleep 150 x Program Change Count*");
                 Thread.sleep(150 * doneCh);
             } catch (Exception e) {
 
@@ -183,7 +196,7 @@ public class SMFSequencer {
         
         SortedArray<SMFMessage> list = _parser._listMessage;
         for (int i = 0; i < list.size(); ++ i) {
-            if (list.get(i)._milliSeconds >= _startMilliSeconds) {
+            if (list.get(i)._millisecond >= _startMilliSeconds) {
                 pos = i;
                 break;
             }
@@ -202,11 +215,11 @@ public class SMFSequencer {
             long elapsed = (System.currentTimeMillis() - launched);
             
             if (lastSent + 500 < elapsed) {
-                _callback.smfProgress(list.get(pos)._milliSeconds, getMaxMilliSecond());
+                _callback.smfProgress(list.get(pos)._millisecond, getMaxMilliSecond());
                 lastSent = elapsed;
             }
             
-            while (!_stopPlayer && list.get(pos)._milliSeconds <= elapsed) {
+            while (!_stopPlayer && list.get(pos)._millisecond <= elapsed) {
                 SMFMessage currentEvent = list.get(pos++);
 
                 if (currentEvent.isBinaryMessage() || currentEvent.isMetaMessage()) {
@@ -240,26 +253,12 @@ public class SMFSequencer {
                     }
                 }
             }
-            try {
-                if (_stopPlayer) {
-                    break;
-                }
-                if (pos >= list.size()) {
-                    break;
-                }
-                long nextTick = list.get(pos)._milliSeconds;
-                long differ = nextTick - System.currentTimeMillis();
-                synchronized (this) {
-                    if (differ >= 500) {
-                        wait(500);
-                    }else if (differ >= 10) {
-                        wait(differ - 5);
-                    } else {
-                        wait(1);
-                    }
-                }
-            } catch (InterruptedException e) {
-                _stopPlayer = true;
+            if (_stopPlayer) {
+                break;
+            }
+            if (pos >= list.size()) {
+                _callback.smfProgress(getMaxMilliSecond(), getMaxMilliSecond());
+                break;
             }
         }
     }
@@ -334,7 +333,7 @@ public class SMFSequencer {
         long t = 0;
         ArrayList<SMFMessage> list = _parser._listMessage;
         if (list.isEmpty() == false) {
-            t = list.get(list.size()  -1)._milliSeconds;
+            t = list.get(list.size()  -1)._millisecond;
         }
         return t + 500;
     }
@@ -407,7 +406,7 @@ public class SMFSequencer {
         for (SMFMessage smf : list) {
             int command = smf.getStatus() & 0xf0;
             if (command == MXMidi.COMMAND_CH_NOTEON) {
-                return smf._milliSeconds;
+                return smf._millisecond;
             }
         }
         return 0;
@@ -417,7 +416,8 @@ public class SMFSequencer {
     long _startRecord;
     
     public synchronized void startRecording() {
-        _parser._listMessage.clear();
+        _parser = new SMFParser();
+        _updateFlag = true;
         _recording = true;
         _startRecord = -1;
     }
@@ -434,9 +434,9 @@ public class SMFSequencer {
         if (message.isBinaryMessage()) {
             byte[] data = message.getBinary();
             SMFMessage smf = new SMFMessage(0, data);
-            smf._milliSeconds = timing;
+            smf._millisecond = timing;
             smf._port = message.getPort();
-            _parser._listMessage.insertSorted(smf);
+            _parser.addMessageWithMillisecond(smf, timing);
         }
         else {
             for (int i = 0; i < message.getDwordCount(); ++ i) {
@@ -445,9 +445,9 @@ public class SMFSequencer {
                 int data1 = (dword >> 8) & 0xff;
                 int data2 = dword & 0xff;
                 SMFMessage smf = new SMFMessage(0, status, data1, data2);
-                smf._milliSeconds = timing;
+                smf._millisecond = timing;
                 smf._port = message.getPort();
-                _parser._listMessage.insertSorted(smf);
+                _parser.addMessageWithMillisecond(smf, timing);
             }
         }
                
@@ -456,7 +456,63 @@ public class SMFSequencer {
     public synchronized void stopRecording() {
         if (_recording) {
             _recording = false;
-            _parser.calcSMPTEUseMilliseconds();
+        }
+    }
+    
+    public boolean writeToDirectory(File directory) {
+        if (directory.exists()) {
+            if (directory.isDirectory()) {
+                File[] children = directory.listFiles();
+                for (File f : children) {
+                    Desktop.getDesktop().moveToTrash(f);
+                }
+            }else {
+                return false;
+            }
+        }
+        directory.mkdirs();
+        if (directory.isDirectory() == false) {
+            return false;
+        }
+        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
+            File f = new File(directory, directory.getName() + "-" + MXMidi.nameOfPortInput(port) + ".mid");
+            try {
+                _parser.writeFile(f, port);
+            }catch(IOException e) {
+                e.printStackTrace();;
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    public boolean readFromDirectory(File directory) {
+        if (directory.isDirectory() == false) {
+            return false;
+        }
+        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
+            File f = new File(directory, directory.getName() + "-" + MXMidi.nameOfPortInput(port) + ".mid");
+            if (f.isFile()) {
+                try {
+                    _parser.readFile(f);
+                    for (SMFMessage seek : _parser._listMessage) {
+                        seek._port = port;
+                    }
+                }catch(IOException e) {
+                    e.printStackTrace();;
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public long getSongLength() {
+        try {
+            SMFMessage message = _parser._listMessage.getLast();
+            return message._millisecond;
+        }catch(Exception e) {
+            return 0;
         }
     }
 }

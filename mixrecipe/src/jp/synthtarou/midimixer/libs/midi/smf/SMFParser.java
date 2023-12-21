@@ -41,7 +41,7 @@ public class SMFParser {
     public static void main(String[] args) {
         ArrayList<String> skip = new ArrayList();
         skip.add("C:/Windows");
-        String[] paths = { "C:/MIDI" , "C:/Program Files", "C:/Users" };
+        String[] paths = {"C:/MIDI", "C:/Program Files", "C:/Users"};
 
         for (String loop : paths) {
             int countSmpte = 0, countTempo = 0;
@@ -53,16 +53,15 @@ public class SMFParser {
                     //System.out.println(parse._file + " = " + parse._messageList.size());
                     if (parse._smpteFormat >= 0) {
                         System.out.println(seek);
-                        countSmpte ++;
-                    }
-                    else {
-                        countTempo ++;
+                        countSmpte++;
+                    } else {
+                        countTempo++;
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-            System.out.println("SMPTE " + countSmpte +" / TEMPO " + countTempo);
+            System.out.println("SMPTE " + countSmpte + " / TEMPO " + countTempo);
         }
     }
 
@@ -84,7 +83,7 @@ public class SMFParser {
                 try {
                     String path = new File(text).getCanonicalPath();
                     already.add(path);
-                }catch(IOException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -100,25 +99,25 @@ public class SMFParser {
                     continue;
                 }
                 already.add(canon);
-            }catch(IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();;
             }
             if (file.isDirectory()) {
                 File[] childs = file.listFiles();
-                directoryCount ++;
+                directoryCount++;
                 if ((directoryCount % 1000) == 0) {
-                    System.out.println("hit " + midCount + " / total " + directoryCount );
+                    System.out.println("hit " + midCount + " / total " + directoryCount);
                 }
                 if (childs == null) {
                     continue;
                 }
-                for (File scan : childs) {                
+                for (File scan : childs) {
                     seek.add(scan);
                 }
             } else if (file.isFile()) {
                 if (file.getName().toLowerCase().endsWith(".mid")) {
                     ret.add(file);
-                    midCount ++;
+                    midCount++;
                 }
             }
         }
@@ -130,13 +129,14 @@ public class SMFParser {
     int _infoType = 0; //0 or 1, 2 will error
     int _infoTrackCount = 1; // 1 or 16 ?
     int _smpteFormat = -99999; // 23.976fps、24.00fps、25.00fps、29.97fps、30.00fps
-    int _fileResolution = 96;
+    int _fileResolution = 480;
+    SMFTempoArray _tempoArray = new SMFTempoArray(this);
 
     public SMFParser() {
         // as recorder
         _listMessage = new SortedArray<>();
     }
-    
+
     public SMFParser(File file) {
         try {
             if (!readFile(file)) {
@@ -149,50 +149,20 @@ public class SMFParser {
         }
     }
 
-    void calcMillisecondsUseSMPTE() {
-        double frameRate = _smpteFormat;
-        if (_smpteFormat == 29) {
-            frameRate = 29.97;
-        }
-
-        double tickPerMilliSecond = frameRate * _fileResolution / 1000;
-
-        for (SMFMessage message : _listMessage) {
-            message._milliSeconds = (long) (message._tick / tickPerMilliSecond);
-        }
-    }
-
-    void calcMillisecondsUseTempo() {
-        SMFTempoList tempo = new SMFTempoList(_listMessage, _fileResolution);
-        for (SMFMessage message : _listMessage) {
-            message._milliSeconds = tempo.TicksToMicroseconds(message._tick) / 1000;
-        }
-    }
-
-    void calcSMPTEUseMilliseconds() {
-        double frameRate = _smpteFormat;
-        if (_smpteFormat == 29) {
-            frameRate = 29.97;
-        }
-
-        double tickPerMilliSecond = frameRate * _fileResolution / 1000;
-
-        for (SMFMessage message : _listMessage) {
-            message._tick = (long)(message._milliSeconds * tickPerMilliSecond);
-        }
-    }
-    
-
     protected boolean seekMagicNumber(SMFInputStream stream, String magic) {
         int x = 0;
         while (!stream._eof) {
             int c = stream.read8();
+            if (c < 0) {
+                break;
+            }
             if (c == magic.charAt(x)) {
                 x++;
                 if (x >= magic.length()) {
                     return true;
                 }
             } else {
+                System.out.println("Seeking " + Integer.toHexString(c) + " before " + magic);
                 x = 0;
             }
         }
@@ -206,15 +176,18 @@ public class SMFParser {
             SMFInputStream reader = new SMFInputStream(input);
 
             if (seekMagicNumber(reader, "MThd") == false) {
+                System.out.println("Magic Number MThd not found. @" + file);
                 return false;
             }
 
             if (reader._eof) {
+                System.out.println("Illegual OEF. @" + file);
                 return false;
             }
 
             int headerLength = reader.read32();
             if (headerLength < 6) {
+                System.out.println("Header Length != 6.@" + file);
                 return false;
             }
 
@@ -223,6 +196,10 @@ public class SMFParser {
             _infoType = type;
             _infoTrackCount = trackCount;
             int res = reader.read16();
+
+            if (res >= 0x8000) {
+                res = 0xffff0000 + res;
+            }
 
             if (res > 0) {
                 // delta = 四分音符あたりの解像度
@@ -239,38 +216,40 @@ public class SMFParser {
             }
 
             if (type != 0 && type != 1) {
-                throw new IllegalArgumentException("Unsupported SMF Type " + type + " is not 0 nor 1");
+                throw new IllegalArgumentException("Unsupported SMF Type " + type + " is not 0 nor 1 @" + file);
             }
 
             SortedArray<SMFMessage> list = new SortedArray();
 
             for (int tr = 0; tr < trackCount; tr++) {
                 if (seekMagicNumber(reader, "MTrk") == false) {
+                    System.out.println("Magic Number MTrk not Found. @" + file);
                     break;
                 }
                 if (reader._eof) {
+                    System.out.println("EOF Before count " + trackCount + "@" + file);
                     break;
                 }
 
                 int trackLength = reader.read32();
+
                 if (trackLength <= 0) {
                     continue;
                 }
 
                 SMFStreamForTrack child = new SMFStreamForTrack(reader, trackLength);
                 long tick = 0;
-                int status = 0;
                 int fileOrder = 0;
 
                 while (!child._eof) {
                     long step = child.readVariable();
+                    tick += step;
 
                     SMFMessage message = fromStream(child);
-                    tick += step;
-                    if (step != 0) {
-                        fileOrder = 0;
-                    } else {
+                    if (step == 0) {
                         fileOrder++;
+                    } else {
+                        fileOrder = 0;
                     }
                     if (message != null) {
                         message._tick = tick;
@@ -280,17 +259,48 @@ public class SMFParser {
                     }
                 }
             }
-            _listMessage = list;
+
+            _listMessage = new SortedArray<>();
 
             if (_smpteFormat > 0) {
-                calcMillisecondsUseSMPTE();
+                double frameRate = _smpteFormat;
+                if (_smpteFormat == 29) {
+                    frameRate = 29.97;
+                }
+
+                double tickPerMillisecond = frameRate * _fileResolution / 1000;
+
+                for (SMFMessage seek : list) {
+                    seek._millisecond = (long) (seek._tick / tickPerMillisecond);
+                    _listMessage.add(seek);
+                }
             } else {
-                calcMillisecondsUseTempo();
+                for (SMFMessage seek : list) {
+                    addMessageWithTick(seek, seek._tick);
+                }
             }
             return !_listMessage.isEmpty();
         } finally {
             input.close();
         }
+    }
+
+    public void addMessageWithTick(SMFMessage seek, long tick) {
+        seek._tick = tick;
+        seek._millisecond = _tempoArray.calcMicrosecondByTick(tick) / 1000;
+        if (seek.getStatus() == 0xff && seek.getData1() == 0x51) {
+            _tempoArray.addMPQwithTick(seek.getMetaTempo(), tick);
+        }
+        _listMessage.add(seek);
+    }
+
+    public void addMessageWithMillisecond(SMFMessage seek, long millisecond) {
+        seek._millisecond = millisecond;
+        seek._tick = _tempoArray.calcTicksByMicroseconds(millisecond * 1000);
+        if (seek.getStatus() == 0xff && seek.getData1() == 0x51) {
+            _tempoArray.addMPQwithMicrosecond(seek.getMetaTempo(), millisecond * 1000);
+        }
+        _listMessage.add(seek);
     }
 
     public SortedArray<SMFMessage> _listMessage;
@@ -388,7 +398,7 @@ public class SMFParser {
                         byte[] binary = message.getBinary();
                         int length = binary.length;
                         out.writeVariable(length - 1);
-                        for (int i = 1; i < binary.length; ++ i) {
+                        for (int i = 1; i < binary.length; ++i) {
                             out.write8(binary[i]);
                         }
                         break;
@@ -397,7 +407,7 @@ public class SMFParser {
                         byte[] data = message.getBinary();
                         out.write8(message.getData1());
                         out.writeVariable(data.length - 2);
-                        for (int i = 2; i < data.length; ++ i) {
+                        for (int i = 2; i < data.length; ++i) {
                             out.write8(data[i]);
                         }
                         break;
@@ -411,52 +421,58 @@ public class SMFParser {
     }
 
     protected void writeMagicNumber(OutputStream stream, String magic) throws IOException {
-        for (int i = 0; i < magic.length(); ++ i){
+        for (int i = 0; i < magic.length(); ++i) {
             char ch = magic.charAt(i);
             stream.write(ch & 0xff);
         }
     }
 
-    protected void writeFile(File file) throws IOException {
-        _file = file;
+    void writeFile(File file, int port) throws IOException {
+        _file = null;
+
+        SortedArray<SMFMessage> list = new SortedArray<>();
+
+        for (SMFMessage seek : _listMessage) {
+            if (seek._port == port) {
+                list.insertSorted(seek);
+            }
+        }
+        if (list.size() == 0) {
+            return;
+        }
+
         SMFOutputStream output = new SMFOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
         try {
-
             writeMagicNumber(output, "MThd");
             output.write32(6); //header length
             _infoType = 0;
             output.write16(_infoType);
             _infoTrackCount = 1;
             output.write16(_infoTrackCount);
+            _smpteFormat = -1;
+            output.write16(_fileResolution);
             
-            if (_smpteFormat < 0) {
-                output.write16(_fileResolution);
-            }
-            else {
-                output.write16((_fileResolution & 0xff) - (_smpteFormat << 8));
-            }
-
-            SortedArray<SMFMessage> list = _listMessage;
-
             writeMagicNumber(output, "MTrk");
             long lastTick = 0;
 
-            for(SMFMessage message : _listMessage) {
-                ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-                SMFOutputStream track = new SMFOutputStream(byteStream);
+            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+            SMFOutputStream track = new SMFOutputStream(byteStream);
+            for (SMFMessage seek : list) {
 
-                long diffTick = message._tick - lastTick;
-                if (diffTick <= 0) {
-                    diffTick  = 0;
+                long step = seek._tick - lastTick;
+                if (step <= 0) {
+                    step = 0;
                 }
-                track.writeVariable(diffTick);
-                toStream(track, message);
-
-                //finish track
-                int trackLength = byteStream.size();
-                output.write32(trackLength);
-                output.write(byteStream.toByteArray());
+                track.writeVariable(step);
+                toStream(track, seek);
+                lastTick += step;
             }
+            track.writeVariable(0);
+            toStream(track, new SMFMessage(lastTick, new byte[]{(byte) 0xff, (byte) 0x2f, 0}));
+
+            int trackLength = byteStream.size();
+            output.write32(trackLength);
+            output.write(byteStream.toByteArray());
         } finally {
             output.close();
         }

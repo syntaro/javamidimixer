@@ -45,7 +45,7 @@ public class SMFMessage implements Comparable<SMFMessage> {
     public long _tick;
     public int _seqTrack;
     public int _fileOrder;
-    public long _milliSeconds;
+    public long _millisecond;
 
     public int getStatus() {
         return _binary[0] & 0xff;
@@ -203,7 +203,7 @@ public class SMFMessage implements Comparable<SMFMessage> {
         long x, y, z;
         
         if (o1._tick == 0 && o2._tick == 0) {
-            x = o1._milliSeconds - o2._milliSeconds;
+            x = o1._millisecond - o2._millisecond;
         }
         else {
             x = o1._tick - o2._tick;
@@ -276,7 +276,7 @@ public class SMFMessage implements Comparable<SMFMessage> {
         int b3 = (0xff & _binary[4]);
         return b1 + b2 + b3;
     }
-
+    
     public boolean isMetaMessage() {
         return getStatus() == 0xff;
     }

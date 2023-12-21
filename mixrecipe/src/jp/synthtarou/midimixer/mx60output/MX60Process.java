@@ -16,8 +16,10 @@
  */
 package jp.synthtarou.midimixer.mx60output;
 
+import java.io.File;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -52,7 +54,13 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
         _listRecorder = new SMFSequencer[5];
         for (int i = 0; i < _listRecorder.length; ++ i) {
             _listRecorder[i] = new SMFSequencer();
+            File seq = getSequenceDirectory(i);
+            if (seq != null) {
+                _listRecorder[i].readFromDirectory(seq);
+                _view.setSongLength(i, _listRecorder[i].getSongLength());
+            }
         }
+        _view.enableRecordingButton();
         _playingTrack = null;
     }
     
@@ -72,7 +80,7 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
             synchronized (this) {
                 SMFSequencer recorder = _listRecorder[_recordingTrack];
                 recorder.record(message);
-                _view.setNoteCount(_recordingTrack, recorder.countMessage());
+                _view.setSongLength(_recordingTrack, recorder.getSongLength());
             }
         }
 
@@ -106,6 +114,7 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
 
     @Override
     public void beforeWriteSettingFile(MXSetting setting) {
+        saveSequenceData();
         for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
             String prefix = "Setting[" + port + "].";
             StringBuffer str = new StringBuffer();
@@ -220,5 +229,37 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
             return false;
         }
         return _listRecorder[x].countMessage() > 0;
+    }
+
+    public boolean saveSequenceData() {
+        boolean error = false;
+        for (int i = 0; i < _listRecorder.length; ++ i) {
+            File seq = getSequenceDirectory(i);
+            if (seq != null) {
+                if (_listRecorder[i]._updateFlag) {
+                    if (_listRecorder[i].writeToDirectory(seq) == false) {
+                        error = true;
+                    }
+                    _listRecorder[i]._updateFlag = false;
+                }
+            }
+            else {
+                error = true;
+            }
+        }
+        return !error;
+    }
+    
+    public File getSequenceDirectory(int song) {
+        File base = MXUtil.getAppBaseDirectory();
+        File seq = new File(base, "songs");
+        File folder = new File(seq, "Song" + Character.toString('A' + song));
+        if (folder.exists() == false) {
+            folder.mkdirs();
+            if (folder.exists() == false) {
+                return null;
+            }
+        }
+        return folder;
     }
 }
