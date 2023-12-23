@@ -32,7 +32,7 @@ import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
  */
 public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
 
-    MX32Mixer _mixer;
+    MX32MixerProcess _mixer;
     int _row, _column;
     Color foreground = null;
     boolean _disconnectMoment = false;
@@ -48,7 +48,7 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
         _mixer.setStatus(MGStatus.TYPE_CIRCLE, _row, _column, status);
     }
 
-    public MGCircle(MX32Mixer process, int row, int column) {
+    public MGCircle(MX32MixerProcess process, int row, int column) {
         _row = row;
         _column = column;
         _mixer = process;

@@ -29,7 +29,7 @@ import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
  */
 public class MGDrumPad extends javax.swing.JPanel {
 
-    final MX32Mixer _mixer;
+    final MX32MixerProcess _mixer;
     int _row, _column;
 
     boolean _focusSelected = false;
@@ -42,7 +42,7 @@ public class MGDrumPad extends javax.swing.JPanel {
         _mixer.setStatus(MGStatus.TYPE_DRUMPAD, _row, _column, status);
     }
 
-    public MGDrumPad(MX32Mixer process, int row, int column) {
+    public MGDrumPad(MX32MixerProcess process, int row, int column) {
         _mixer = process;
         _row = row;
         _column = column;

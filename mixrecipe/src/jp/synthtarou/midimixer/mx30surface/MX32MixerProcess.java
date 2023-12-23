@@ -38,7 +38,7 @@ import jp.synthtarou.midimixer.libs.midi.port.MXVisitant16;
  *
  * @author Syntarou YOSHIDA
  */
-public class MX32Mixer extends MXReceiver implements MXSettingTarget {
+public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
 
     final int _port;
     final MX30Process _parent;
@@ -52,7 +52,7 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
     int _patchToMixer = -1;
     boolean _patchTogether = false;
 
-    public MX32Mixer(MX30Process parent, int port) {
+    public MX32MixerProcess(MX30Process parent, int port) {
         _parent = parent;
         _port = port;
         _view = new MX32MixerView(this);
@@ -157,7 +157,7 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
         setting.register("Pad[].switchTemplateText");
         setting.register("Pad[].switchTemplateTextGate");
 
-        /* program TODO */
+        /* program */
         setting.register("Pad[].switchProgramType");
         setting.register("Pad[].switchProgramNumber");
         setting.register("Pad[].switchProgramMSB");
@@ -451,7 +451,7 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
                 node.setSetting(prefix + "switchTemplateText", drum._templateText);
                 node.setSetting(prefix + "switchTemplateTextGate", drum._teplateTextGate);
 
-                /* program TODO */
+                /* program */
                 node.setSetting(prefix + "switchProgramType", drum._programType);
                 node.setSetting(prefix + "switchProgramNumber", drum._programNumber);
                 node.getSettingAsInt(prefix + "switchProgramMSB", drum._programMSB);
@@ -505,7 +505,7 @@ public class MX32Mixer extends MXReceiver implements MXSettingTarget {
             }
 
             if (_patchToMixer >= 0) {
-                MX32Mixer nextMixer = _parent.getPage(_patchToMixer);
+                MX32MixerProcess nextMixer = _parent.getPage(_patchToMixer);
                 MGStatus nextStatus = nextMixer.getStatus(status._uiType, row, column);
 
                 int nextMin = nextStatus._base.getValue()._min;

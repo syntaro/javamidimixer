@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.libs.midi;
 import java.util.ArrayList;
 import java.util.IllegalFormatException;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 
 /**
@@ -55,6 +55,13 @@ public class MXTemplate implements Comparable<MXTemplate>{
     }
 
     public MXTemplate(String text) throws IllegalFormatException {
+        while (text.startsWith(" ")) {
+            text = text.substring(1);
+        }
+        while (text.endsWith(" ")) {
+            text = text.substring(0, text.length() - 1);
+        }
+
         if (text == null || text.length() == 0) {
             _commands = new int[]{0, 0, 0};
             initFields();
@@ -206,7 +213,7 @@ public class MXTemplate implements Comparable<MXTemplate>{
         }
 
         if ((_commands[0] & 0xff00) != 0) {
-            //TODO illigual
+            new IllegalArgumentException("command[0] =  " + Integer.toHexString(_commands[0])).printStackTrace();
             return null;
         }
         boolean inChecksum = false;
@@ -701,15 +708,12 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
         switch (me.get(0)) {
             case MXMidi.COMMAND2_NONE:
                 if (data.length == 0) {
-                    //TODO cache
                     return new MXMessage(port, me);
                 }
                 return null;
             case MXMidi.COMMAND2_CH_RPN:
-                //TODO
                 return null;
             case MXMidi.COMMAND2_CH_NRPN:
-                //TODO
                 return null;
             case MXMidi.COMMAND2_CH_PROGRAM_INC:
                 return null;

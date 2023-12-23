@@ -662,11 +662,6 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
         gridBagConstraints.weightx = 1.0;
         add(jLabelSelection, gridBagConstraints);
 
-        jTree1.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jTree1MouseClicked(evt);
-            }
-        });
         jTree1.addTreeWillExpandListener(new javax.swing.event.TreeWillExpandListener() {
             public void treeWillCollapse(javax.swing.event.TreeExpansionEvent evt)throws javax.swing.tree.ExpandVetoException {
             }
@@ -748,10 +743,6 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
         setResultAndClose(false);
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
-    private void jTree1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTree1MouseClicked
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTree1MouseClicked
-
     private void jTree1KeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTree1KeyPressed
         switch (evt.getExtendedKeyCode()) {
             case KeyEvent.VK_ENTER:
@@ -775,7 +766,6 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
     }//GEN-LAST:event_formKeyPressed
 
     private void jCheckBoxNetworkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxNetworkActionPerformed
-        // TODO add your handling code here:
         if (_networkNode != null) {
             new StepRun().launchProcess((FileSystemCache.Element) _networkNode.getUserObject());
         }

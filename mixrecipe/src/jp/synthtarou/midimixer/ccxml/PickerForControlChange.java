@@ -35,7 +35,7 @@ import jp.synthtarou.midimixer.libs.navigator.INavigator;
  *
  * @author Syntarou YOSHIDA
  */
-public class EditorForControlChange extends javax.swing.JPanel implements INavigator<CCXParserForCCM>{
+public class PickerForControlChange extends javax.swing.JPanel implements INavigator<CCXParserForCCM>{
 
     boolean _editable = false;
     ArrayList<CXFile> _listXMLFile = CXXMLManager.getInstance()._listLoaded;
@@ -44,15 +44,15 @@ public class EditorForControlChange extends javax.swing.JPanel implements INavig
 
     TreeCellRenderer _base;
     
-    public EditorForControlChange() {
+    public PickerForControlChange() {
         this(false, null);
     }
 
-    public EditorForControlChange(boolean editable) {
+    public PickerForControlChange(boolean editable) {
         this(editable, null);
     }
     
-    public EditorForControlChange(boolean editable, CXFile file) {
+    public PickerForControlChange(boolean editable, CXFile file) {
         initComponents();
         
         _selectedFile = file;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Syntarou YOSHIDA.
+ * Copyright (C) 2023 Syntarou YOSHIDA
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,18 +14,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.midi.capture;
+package jp.synthtarou.midimixer.libs.wraplist;
 
-import java.util.TreeMap;
+import javax.swing.JTextField;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class TextInformation {
-    public String _data;
-    public int _command;
-    public int _channel;
-    TreeMap<Integer, GateInfomation> listGateValues = new TreeMap();
-}            
-    
+public interface PopupHandler<T> {
+    public boolean popupSelected(JTextField textField, MXWrapList<T> list, int selected);
+}

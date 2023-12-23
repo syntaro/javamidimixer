@@ -40,8 +40,8 @@ import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrap;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
@@ -55,11 +55,11 @@ import jp.synthtarou.midimixer.libs.swing.focus.MXFocusTargetInfo;
  */
 public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler {
 
-    MX32Mixer _mixer;
+    MX32MixerProcess _mixer;
     MXFocusGroup _focusGroup;
     MXWrapList<Integer> chainModel;
 
-    public MX32MixerView(MX32Mixer process) {
+    public MX32MixerView(MX32MixerProcess process) {
         int port = process._port;
         _mixer = process;
 
@@ -379,7 +379,7 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
     }
 
     public void initControllers() {
-        MX32Mixer mixer = this._mixer;
+        MX32MixerProcess mixer = this._mixer;
 
         try {
             _focusGroup = new MXFocusGroup(this);

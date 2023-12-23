@@ -35,9 +35,6 @@ import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_VSTi;
  * @author Syntarou YOSHIDA
  */
 public class MXMIDIOut {
-
-    public static final MXMIDIOut OUTPUT_NONE = new MXMIDIOut(/* TODO*/null, 0);
-
     private MXDriver _driver;
     private int _driverOrder;
     private String _name;

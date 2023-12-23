@@ -28,9 +28,9 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
  * @author Syntarou YOSHIDA
  */
 public class MX32MixerInitializer {
-    MX32Mixer _mixer;
+    MX32MixerProcess _mixer;
     
-    public MX32MixerInitializer(MX32Mixer mixer) {
+    public MX32MixerInitializer(MX32MixerProcess mixer) {
         _mixer = mixer;
     }
 

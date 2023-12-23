@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.common;
+package jp.synthtarou.midimixer.libs.wraplist;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -24,8 +24,9 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JTextField;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.navigator.INavigator;
-import jp.synthtarou.midimixer.libs.navigator.NavigatorForWrapList;
+import jp.synthtarou.midimixer.libs.navigator.NavigatorFor2ColumnList;
 
 /**
  *
@@ -45,52 +46,66 @@ public class MXWrapListPopup<T> {
         @Override
         public void actionPerformed(ActionEvent e) {
             _selectedIndex = _choice;
-            doAction();
+            if (_handler.popupSelected(_textField, _list, _selectedIndex)) {
+                _textField.setText(_list.nameOfIndex(_selectedIndex));
+            }
+            if (_menu != null) {
+                _menu.setVisible(false);
+                _menu = null;
+            }
         }
     }
 
     protected JTextField _textField;
     protected MXWrapList<T> _list;
     protected int _selectedIndex = -1;
+    protected PopupHandler _handler = null;
+    protected JPopupMenu _menu;
 
-    public MXWrapListPopup(JTextField target, MXWrapList<T> list) {
+    public MXWrapListPopup(JTextField target, MXWrapList<T> list, PopupHandler handler) {
         _textField = target;
         _list = list;
-        
+        _handler = handler;
+
         String targetText = target.getText();
-        
-        for (int x = 0; x < list.size(); ++ x) {
+
+        for (int x = 0; x < list.size(); ++x) {
             if (list.nameOfIndex(x).equals(targetText)) {
                 _selectedIndex = x;
                 break;
             }
         }
     }
+    
+    public void setSelectedIndex(int x) {
+        _selectedIndex = x;
+    }
 
     public void show() {
         if (_list.size() >= 20) {
-            NavigatorForWrapList navi = new NavigatorForWrapList(_list, _selectedIndex);
+            NavigatorFor2ColumnList navi = new NavigatorFor2ColumnList(_list, _selectedIndex);
             MXUtil.showAsDialog(_textField, navi, "Select");
             if (navi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-                _selectedIndex = navi.getReturnValue();
-                doAction();
+                _selectedIndex = navi.getReturnIndex();
+                if (_handler.popupSelected(_textField, _list, _selectedIndex)) {
+                    _textField.setText(_list.nameOfIndex(_selectedIndex));
+                }
             }
-        }
-        else {
-            JPopupMenu menu = new JPopupMenu();
+        } else {
+            _menu = new JPopupMenu();
             for (int i = 0; i < _list.size(); ++i) {
                 MXWrap<T> wrap = _list.get(i);
                 JRadioButtonMenuItem item = new JRadioButtonMenuItem(new WrapAction(i));
                 if (i == _selectedIndex) {
                     item.setSelected(true);
                 }
-                menu.add(item);
+                _menu.add(item);
             }
-            
+
             final Color prevColor = _textField.getBackground();
             _textField.setBackground(Color.pink);
-            menu.show(_textField, 0, _textField.getHeight());
-            menu.addPopupMenuListener(new PopupMenuListener() {
+            _menu.show(_textField, 0, _textField.getHeight());
+            _menu.addPopupMenuListener(new PopupMenuListener() {
                 @Override
                 public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
                 }
@@ -105,9 +120,5 @@ public class MXWrapListPopup<T> {
                 }
             });
         }
-    }
-
-    public void doAction() {
-        _textField.setText(_list.nameOfIndex(_selectedIndex));
     }
 }

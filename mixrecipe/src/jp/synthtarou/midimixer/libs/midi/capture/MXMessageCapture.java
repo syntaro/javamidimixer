@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.libs.midi.capture;
 
 import java.util.TreeMap;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
@@ -49,14 +49,14 @@ public class MXMessageCapture {
             TextInformation textNode = _captureData.get(dtext + channel);
             if (textNode == null) {
                 textNode = new TextInformation();
-                textNode.dtext = dtext;
+                textNode._data = dtext;
                 if (message.getStatus() >= 0x80 && message.getStatus() <= 0xef) {
-                    textNode.command = message.getStatus() & 0xf0;
+                    textNode._command = message.getStatus() & 0xf0;
                 }
                 else {
-                    textNode.command = message.getStatus();
+                    textNode._command = message.getStatus();
                 }
-                textNode.channel = message.getChannel();
+                textNode._channel = message.getChannel();
                 age ++;
                 _captureData.put(dtext + message.getChannel(), textNode);
             }
@@ -93,7 +93,7 @@ public class MXMessageCapture {
         //TODO
 
         int port = 0;
-        MXMessage message = MXMessageFactory.fromTemplate(0, new MXTemplate(text.dtext), gate._parent.channel, null, null);
+        MXMessage message = MXMessageFactory.fromTemplate(0, new MXTemplate(text._data), gate._parent._channel, null, null);
         return  message.toStringHeader(gate._hitLoValue, gate._hitHiValue);
     }
     

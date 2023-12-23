@@ -61,7 +61,7 @@ public class MX36StatusPanel extends javax.swing.JPanel implements MXAccordionEl
         jLabelName.setText("Name: " + _status._outName);
         jLabelPortAndCh.setText(_status.toOutputPortText());
         int gateDecimal = _status._outGateRange._var;
-        String gateLabel = _status._outGateTable.nameOfValue(gateDecimal);
+        String gateLabel = _status.getOutGateLabel();
         String gateDecimalText = String.valueOf(gateDecimal);
 
         if (gateLabel.equals(gateDecimal)) {
@@ -72,7 +72,7 @@ public class MX36StatusPanel extends javax.swing.JPanel implements MXAccordionEl
 
         jLabelGate.setText("Gate:" + gateLabel + gateDecimalText);
 
-        String valueLabel = _status._outValueTable.nameOfIndex(_status._outValueRange._var);
+        String valueLabel = _status.getOutValueLabel();
         int valueDecimal =_status._outValueRange._var;
         String valueDecimalText = String.valueOf(valueDecimal);
 

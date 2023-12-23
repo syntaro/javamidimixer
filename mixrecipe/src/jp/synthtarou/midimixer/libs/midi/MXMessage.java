@@ -219,8 +219,10 @@ public final class MXMessage implements Comparable<MXMessage> {
     }
 
     public void setGate(MXRangedValue gate) {
+        if (_gate.equals(gate)) {
+            return;
+        }
         _gate = gate;
-        //TODO checksame
         _dataBytes = null;
     }
 
@@ -804,7 +806,7 @@ public final class MXMessage implements Comparable<MXMessage> {
         return _template.toDText(this);
     }
 
-    public boolean hasSameTemplate(MXMessage message) {
+    public boolean hasSameTemplateChGate(MXMessage message) {
         MXTemplate temp1 = getTemplate();
         MXTemplate temp2 = message.getTemplate();
 
@@ -812,39 +814,62 @@ public final class MXMessage implements Comparable<MXMessage> {
             return false;
         }
 
-        if (temp1 != temp2) {
-            if (temp1.size() != temp2.size()) {
-                return false;
+        if (getChannel() != message.getChannel()) {
+            return false;
+        }
+
+        if (temp1 == temp2) {
+            if (getGate() == message.getGate()) {
+                return true;
             }
-            for (int i = 0; i < temp1.size(); ++i) {
-                int t1 = temp1.get(i);
-                int t2 = temp2.get(i);
+            return false;
+        }
 
-                if (t1 == t2) {
-                    continue;
+        if (temp1.size() != temp2.size()) {
+            return false;
+        }
+        for (int i = 0; i < temp1.size(); ++i) {
+            int t1 = temp1.get(i);
+            int t2 = temp2.get(i);
+
+            if (t1 == t2) {
+                continue;
+            }
+
+            //value can different
+            if (t1 == MXMidi.CCXML_VH || t1 == MXMidi.CCXML_VL
+                    || t2 == MXMidi.CCXML_VH || t2 == MXMidi.CCXML_VL) {
+                continue;
+            }
+
+            if (t1 == MXMidi.CCXML_GL || t2 == MXMidi.CCXML_GL) {
+                int gate1 = getGate()._var & 0x7f;
+                int gate2 = message.getGate()._var & 0x7f;
+
+                if (t1 != MXMidi.CCXML_GL) {
+                    gate1 = t1 & 0x7f;
                 }
-
-                if (t1 == MXMidi.CCXML_VH || t1 == MXMidi.CCXML_VL
-                        || t2 == MXMidi.CCXML_VH || t2 == MXMidi.CCXML_VL) {
-                    continue;
+                if (t2 != MXMidi.CCXML_GL) {
+                    gate2 = t2 & 0x7f;
                 }
-
-                int gate1 = getGate()._var;
-                int gate2 = message.getGate()._var;
-
-                if (t1 == MXMidi.CCXML_GL || t2 == MXMidi.CCXML_GL) {
-                    if (t1 != MXMidi.CCXML_GL) {
-                        gate1 = t1;
-                    }
-                    if (t2 != MXMidi.CCXML_GL) {
-                        gate2 = t2;
-                    }
-                    if (gate1 == gate2) {
-                        continue;
-                    }
+                if (gate1 != gate2) {
+                    return false;
                 }
+            }
 
-                return false;
+            if (t1 == MXMidi.CCXML_GH || t2 == MXMidi.CCXML_GH) {
+                int gateHi1 = (getGate()._var >> 7) & 0x7f;
+                int gateHi2 = (message.getGate()._var >> 7) % 0x7f;
+
+                if (t1 != MXMidi.CCXML_GH) {
+                    gateHi1 = t1 & 0x7f;
+                }
+                if (t2 != MXMidi.CCXML_GH) {
+                    gateHi2 = t2 & 0x7f;
+                }
+                if (gateHi1 != gateHi2) {
+                    return false;
+                }
             }
         }
 

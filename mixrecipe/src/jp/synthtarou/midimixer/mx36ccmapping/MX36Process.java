@@ -20,11 +20,10 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrap;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMessageWrapListFactory;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingNode;
@@ -201,7 +200,7 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                         }
                     }
                     if (parsedValueTable.size() == 0) {
-                        parsedValueTable  = MXMessageWrapListFactory.listupRange(status._outValueRange._min, status._outValueRange._max);
+                        parsedValueTable = null;
                     }
                     status._outValueTable = parsedValueTable;
                     
@@ -224,7 +223,7 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                         }
                     }
                     if (parsedGateTable.size() == 0) {
-                        parsedGateTable  = MXMessageWrapListFactory.listupRange(status._outGateRange._min, status._outGateRange._max);
+                        parsedGateTable  = null;
                     }
                     status._outGateTable = parsedGateTable;
                     status._outGateTypeKey = props.getSettingAsBoolean(props.getSetting("GateTypeIsKey"), false);
@@ -279,14 +278,14 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                 setting.setSetting(prefix2 + "Channel", status._outChannel);
                 setting.setSetting(prefix2 + "ValueRange", rangeToString(status._outValueRange));
                 setting.setSetting(prefix2 + "ValueOffset", status._outValueOffset);
-                if (!isSameAsTable(status._outValueRange, status._outValueTable)) {
+                if (!isSameRangeAndTable(status._outValueRange, status._outValueTable)) {
                     for (MXWrap<Integer> value : status._outValueTable) {
                         setting.setSetting(prefix2 + "ValueTable[" + value._value + "]", value._value);
                     }
                 }
                 setting.setSetting(prefix2 + "GateRange", rangeToString(status._outGateRange));
                 setting.setSetting(prefix2 + "GateOffset", status._outGateOffset);
-                if (!isSameAsTable(status._outGateRange, status._outGateTable)) {
+                if (!isSameRangeAndTable(status._outGateRange, status._outGateTable)) {
                     for (MXWrap<Integer> gate : status._outGateTable) {
                         setting.setSetting(prefix2 + "GateTable[" + gate._value + "]", gate._value);
                     }
@@ -358,7 +357,7 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
         folder.insertSorted(status);
     }
     
-    public boolean isSameAsTable(MXRangedValue range, MXWrapList<Integer> table) {
+    public boolean isSameRangeAndTable(MXRangedValue range, MXWrapList<Integer> table) {
         int rangeCount = range._max - range._min + 1;
         int tableCount = table.size();
         if (rangeCount == tableCount) {

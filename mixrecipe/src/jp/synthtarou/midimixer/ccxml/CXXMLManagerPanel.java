@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.ccxml;
 import java.awt.Dimension;
 import javax.swing.JOptionPane;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;

@@ -18,10 +18,10 @@ package jp.synthtarou.midimixer.mx36ccmapping;
 
 import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.navigator.INavigator;
 import jp.synthtarou.midimixer.libs.navigator.NavigatorForText;
-import jp.synthtarou.midimixer.libs.navigator.NavigatorForWrapList;
+import jp.synthtarou.midimixer.libs.navigator.NavigatorFor2ColumnList;
 import jp.synthtarou.midimixer.libs.navigator.NavigatorUtil;
 
 /**
@@ -143,23 +143,15 @@ public class MX36View extends javax.swing.JPanel {
         if (_detailPanel._status == null) {
             return;
         }
-        MXWrapList<Integer> listFolder = new MXWrapList<>();
-        int x = 0;
+        MXWrapList<MX36Folder> listFolder = new MXWrapList<>();
         for (MX36Folder folder : _process._list._listFolder) {
-            listFolder.addNameAndValue(folder._folderName, x ++);
+            listFolder.addNameAndValue(folder._folderName, folder);
         }
-        NavigatorForWrapList navi = new NavigatorForWrapList(listFolder);
+        NavigatorFor2ColumnList<MX36Folder> navi = new NavigatorFor2ColumnList<>(listFolder);
         NavigatorUtil.showNavigator(this, navi, "Move To ... < your choice >");
         if (navi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-            int y = navi.getReturnValue();
-            x = 0;
-            MX36Folder ret = null;
-            for (MX36Folder folder : _process._list._listFolder) {
-                if (x == y) {
-                    ret = folder;
-                }
-                ++ x;
-            }
+            int y = navi.getReturnIndex();
+            MX36Folder ret = navi.getReturnValue();
             if (ret != null) {
                 _process.moveFolder(ret, _detailPanel._status);
             }

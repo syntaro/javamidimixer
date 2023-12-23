@@ -24,14 +24,14 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrap;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXMessageWrapListFactory;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
@@ -42,10 +42,10 @@ import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
  *
  * @author Syntarou YOSHIDA
  */
-public class EditorForInstrument extends javax.swing.JPanel {
+public class PickerForinstrument extends javax.swing.JPanel {
 
     public static void main(String[] args) {
-        EditorForInstrument editor = new EditorForInstrument();
+        PickerForinstrument editor = new PickerForinstrument();
         MXModalFrame.showAsDialog(null, editor, "Test");
         MXMIDIInManager.getManager().initWithSetting();
         MXMIDIOutManager.getManager().initWithSetting();
@@ -55,15 +55,15 @@ public class EditorForInstrument extends javax.swing.JPanel {
     /**
      * Creates new form EditorForInstrument
      */
-    public EditorForInstrument() {
+    public PickerForinstrument() {
         this(null);
     }
 
-    public EditorForInstrument(CXFile file) {
+    public PickerForinstrument(CXFile file) {
         initComponents();
 
-        jComboBoxTestPort.setModel(MXMessageWrapListFactory.listupPort(null));
-        jComboBoxTestChannel.setModel(MXMessageWrapListFactory.listupChannel(null));
+        jComboBoxTestPort.setModel(MXWrapListFactory.listupPort(null));
+        jComboBoxTestChannel.setModel(MXWrapListFactory.listupChannel(null));
         _listXMLFile = CXXMLManager.getInstance()._listLoaded;
 
         if (file == null) {

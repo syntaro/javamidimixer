@@ -21,9 +21,9 @@ import java.awt.Rectangle;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXMessageWrapListFactory;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 import jp.synthtarou.midimixer.libs.navigator.INavigator;
 import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
 
@@ -38,8 +38,8 @@ public class MXNotePicker extends javax.swing.JPanel implements  INavigator<int[
     }
 
     MXSwingPiano _piano;
-    MXWrapList<Integer> _watchPort = MXMessageWrapListFactory.listupPort("Omni");
-    MXWrapList<Integer> _watchChannel = MXMessageWrapListFactory.listupChannel(null);
+    MXWrapList<Integer> _watchPort = MXWrapListFactory.listupPort("Omni");
+    MXWrapList<Integer> _watchChannel = MXWrapListFactory.listupChannel(null);
     private boolean _closeOK = false;
     private int[] _retNote = null;
     

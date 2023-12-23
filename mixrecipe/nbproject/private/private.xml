@@ -13,19 +13,12 @@
             <url>src/jp/synthtarou/midimixer/libs/midi/MXMessage.java</url>
             <bookmark id="2">
                 <name/>
-                <line>453</line>
+                <line>455</line>
                 <key/>
             </bookmark>
         </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group>
-            <file>file:/C:/github/mixrecipe/src/jp/synthtarou/midimixer/MXProgressDialog.java</file>
-            <file>file:/C:/github/mixrecipe/src/jp/synthtarou/midimixer/libs/midi/smf/SMFTempoArray.java</file>
-            <file>file:/C:/github/mixrecipe/src/jp/synthtarou/midimixer/libs/midi/smf/SMFParser.java</file>
-            <file>file:/C:/github/mixrecipe/src/jp/synthtarou/midimixer/MXAppConfig.java</file>
-            <file>file:/C:/github/mixrecipe/src/jp/synthtarou/midimixer/libs/midi/smf/SMFSequencer.java</file>
-            <file>file:/C:/github/mixrecipe/src/jp/synthtarou/midimixer/MXMainWindow.java</file>
-        </group>
+        <group/>
     </open-files>
 </project-private>

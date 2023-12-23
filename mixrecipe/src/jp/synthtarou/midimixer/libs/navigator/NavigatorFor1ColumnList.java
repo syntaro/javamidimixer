@@ -19,13 +19,13 @@ package jp.synthtarou.midimixer.libs.navigator;
 import java.awt.Dimension;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class NavigatorForList<T> extends javax.swing.JPanel implements INavigator<T>{
+public class NavigatorFor1ColumnList<T> extends javax.swing.JPanel implements INavigator<T>{
     
     public static void main(String[] args) {
         MXWrapList<String> model = new MXWrapList<>();
@@ -34,7 +34,7 @@ public class NavigatorForList<T> extends javax.swing.JPanel implements INavigato
         model.addNameAndValue("OPQ", "opqrstu");
         model.addNameAndValue("VWX", "vwxyz");
         
-        NavigatorForList<String> picker = new NavigatorForList<>(model, 2);
+        NavigatorFor1ColumnList<String> picker = new NavigatorFor1ColumnList<>(model, 2);
         MXUtil.showAsDialog(null, picker, "Navigator for List");
         System.out.println(picker.getReturnStatus() + " = " + picker.getReturnValue());
     }
@@ -46,13 +46,14 @@ public class NavigatorForList<T> extends javax.swing.JPanel implements INavigato
     /**
      * Creates new form NavigatorForList
      */
-    public NavigatorForList(MXWrapList<T> choise, int selectedIndex) {
+    public NavigatorFor1ColumnList(MXWrapList<T> choise, int selectedIndex) {
         initComponents();
         _listChoise = choise;
         int sel = selectedIndex;
         jListChoise.setModel(_listChoise);
         if (sel >= 0) {
            jListChoise.setSelectedIndex(selectedIndex);
+           jListChoise.scrollRectToVisible(jListChoise.getCellBounds(sel, sel));
         }
         _initDone = true;
 
@@ -155,7 +156,7 @@ public class NavigatorForList<T> extends javax.swing.JPanel implements INavigato
         String name = _listChoise.nameOfIndex(debugSel);
         T value = _listChoise.valueOfIndex(debugSel);
         
-        jLabelSelection.setText(name + " = " + value);
+        jLabelSelection.setText(value + " = \"" + name + "\"");
     }//GEN-LAST:event_jListChoiseValueChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -188,9 +188,6 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
                     if (isUsingThisRecipe() && _data.isMarkedAsSkip(message)) {
                     }
                     else {
-                        if (MXMidi.isReset(message.getBinary())) {
-                            System.out.println("Meow *****************");
-                        }
                         sendToNext(message);
                     }
                 }

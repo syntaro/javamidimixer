@@ -122,7 +122,7 @@ public class MXAttachSliderLikeEclipse extends BasicSliderUI {
     @Override
     public void paintThumb(Graphics g) {
         int bold = _thumbWeight - 2;
-
+        
         //TODO enabled or disabled
         calculateTrackRect();
         int trackHeight = slider.getHeight();

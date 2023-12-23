@@ -14,23 +14,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.midi;
+package jp.synthtarou.midimixer.libs.wraplist;
 
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.ccxml.CXGeneralMidiFile;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
 import static jp.synthtarou.midimixer.libs.midi.MXMidi.nameOfChannelMessage;
 import static jp.synthtarou.midimixer.libs.midi.MXMidi.nameOfControlChange;
 import static jp.synthtarou.midimixer.libs.midi.MXMidi.nameOfNote;
 import static jp.synthtarou.midimixer.libs.midi.MXMidi.nameOfSystemCommonMessage;
 import static jp.synthtarou.midimixer.libs.midi.MXMidi.nameOfSystemRealtimeMessage;
-import jp.synthtarou.midimixer.mx30surface.MGStatus;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MXMessageWrapListFactory {
+public class MXWrapListFactory {
 
     public static MXWrapList<Integer> listupGate7Bit() {
         MXWrapList<Integer> newList = new MXWrapList<>();
@@ -40,7 +38,7 @@ public class MXMessageWrapListFactory {
         return newList;
     }
 
-    public static MXWrapList<Integer> listupProgramNumber(boolean showNumber) {
+    public static MXWrapList<Integer> listupGeneralMidi(boolean showNumber) {
         CXGeneralMidiFile gmfile = CXGeneralMidiFile.getInstance();
         MXWrapList<Integer> newList = new MXWrapList<>();
         for (int i = 0; i < 128; ++i) {

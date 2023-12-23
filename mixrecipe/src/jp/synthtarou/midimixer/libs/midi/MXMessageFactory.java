@@ -96,18 +96,11 @@ public class MXMessageFactory {
     }
 
     public static MXMessage fromCCXMLText(int port, String text, int channel, MXRangedValue gate, MXRangedValue value) {
-        while (text.startsWith(" ")) {
-            text = text.substring(1);
-        }
-        while (text.endsWith(" ")) {
-            text = text.substring(0, text.length() - 1);
-        }
-        
         try {
             MXTemplate template = new MXTemplate(text);
             MXMessage msg = MXMessageFactory.fromTemplate(port, template, channel, gate, value);
             return msg;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             e.printStackTrace();
             return null;
         }

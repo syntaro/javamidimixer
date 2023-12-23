@@ -34,7 +34,7 @@ import jp.synthtarou.midimixer.libs.swing.themes.ThemeManager;
  * @author Syntarou YOSHIDA
  */
 public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
-    MX32Mixer _mixer;
+    MX32MixerProcess _mixer;
     int _row, _column;
     boolean _underInit;
 
@@ -47,7 +47,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
         _mixer.setStatus(MGStatus.TYPE_SLIDER, _row, _column, status);
     }
 
-    public MGSlider(MX32Mixer process, int row, int column) {
+    public MGSlider(MX32MixerProcess process, int row, int column) {
         _row = row;
         _column = column;
         _mixer = process;

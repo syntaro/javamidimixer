@@ -100,4 +100,8 @@ public class MX36Folder implements Comparable<MX36Folder> {
             new Throwable("after").printStackTrace();
         }
     }
+    
+    public String toString() {
+        return _folderName;
+    }
 }

@@ -17,8 +17,8 @@
 package jp.synthtarou.midimixer.ccxml;
 
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrap;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 
 /**
  *

@@ -23,7 +23,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.async.Transaction;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
@@ -336,7 +336,6 @@ public class VSTInstancePanel extends javax.swing.JPanel {
     }    
    
     private void jButtonLoadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonLoadActionPerformed
-        // TODO add your handling code here:
         if (_instance.getPath() != null && _instance.getPath().length() > 0) {
             enterGoodbyeVST();
             return;
@@ -355,7 +354,6 @@ public class VSTInstancePanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonLoadActionPerformed
     
     private void jButtonEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEditActionPerformed
-        // TODO add your handling code here:
         if (_instance.isEditorOpen()) {
             enterCloseEditor();
         }else {
@@ -398,7 +396,6 @@ public class VSTInstancePanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonLaunchActionPerformed
 
     private void jButtonPresetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPresetActionPerformed
-        // TODO add your handling code here:
         IndexedFile root = VSTInstance.getGlobalSetting(_instance.getPath());
         if (root.getLock() == false) {
             JOptionPane.showMessageDialog(this, "Can't occupation", "Error", JOptionPane.OK_OPTION);

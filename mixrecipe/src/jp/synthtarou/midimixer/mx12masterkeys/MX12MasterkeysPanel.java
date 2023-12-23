@@ -31,12 +31,12 @@ import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXMessageWrapListFactory;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
@@ -60,8 +60,8 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
 
     MX12Process _process;
     MXSwingPiano _piano;
-    MXWrapList<Integer> _watchPort = MXMessageWrapListFactory.listupPort(null);
-    MXWrapList<Integer> _watchChannel = MXMessageWrapListFactory.listupChannel(null);
+    MXWrapList<Integer> _watchPort = MXWrapListFactory.listupPort(null);
+    MXWrapList<Integer> _watchChannel = MXWrapListFactory.listupChannel(null);
     
     int _valuePitch = -1;
     int _valueModulation = -1;

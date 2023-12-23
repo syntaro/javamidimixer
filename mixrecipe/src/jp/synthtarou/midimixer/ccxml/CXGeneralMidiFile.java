@@ -21,13 +21,13 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrap;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.common.MXLineReader;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.midi.MXMessageWrapListFactory;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 
 /**
  *
@@ -187,7 +187,7 @@ public class CXGeneralMidiFile {
         CXNode folderTag1 = controlChangeMacroList.newTag("Folder", true);
         folderTag1._listAttributes.addNameAndValue("Name", "Command");
 
-        for (MXWrap<Integer> wrap : MXMessageWrapListFactory.listupCommand(false)) {
+        for (MXWrap<Integer> wrap : MXWrapListFactory.listupCommand(false)) {
             int command = wrap._value;
             if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
                 continue;

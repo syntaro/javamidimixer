@@ -163,7 +163,7 @@ public class MXMidiConsole implements ListModel<String> {
         return viewpos;
     }
 
-    public MXMidiConsoleElement getConsoleElement(int viewpos) {
+    public synchronized MXMidiConsoleElement getConsoleElement(int viewpos) {
         int index = viewIndex(viewpos);
         if (index >= 0) {
             return _list.get(index);
@@ -171,7 +171,7 @@ public class MXMidiConsole implements ListModel<String> {
         return null;
     }
 
-    public void add(MXMidiConsoleElement e) {
+    public synchronized void add(MXMidiConsoleElement e) {
         if (false) {
             addImpl(e);
         } else if (true) {
@@ -463,7 +463,7 @@ public class MXMidiConsole implements ListModel<String> {
         }
     }
 
-    public void clear() {
+    public synchronized void clear() {
         _list = new ArrayList();
         _queue = new LinkedList();
         _startPos = 0;

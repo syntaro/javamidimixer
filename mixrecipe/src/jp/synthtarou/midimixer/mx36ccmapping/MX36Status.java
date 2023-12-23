@@ -17,11 +17,10 @@
 package jp.synthtarou.midimixer.mx36ccmapping;
 
 import java.util.Collections;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMessageWrapListFactory;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
 
 /**
@@ -45,14 +44,36 @@ public class MX36Status {
     int _outChannel;
 
     MXRangedValue _outValueRange;
-    
     int _outValueOffset = 0;
     MXWrapList<Integer> _outValueTable;
     
     MXRangedValue _outGateRange;
     int _outGateOffset = 0;
     MXWrapList<Integer> _outGateTable;
+    
     boolean _outGateTypeKey;
+    
+    public String getOutValueLabel() {
+        String text = null;
+        if (_outValueTable != null) {
+            text = _outValueTable.nameOfValue(_outValueRange._var);
+        }
+        if (text == null) {
+            text =  Integer.toString(_outValueRange._var);
+        }
+        return text;
+    }
+
+    public String getOutGateLabel() {
+        String text = null;
+        if (_outGateTable != null) {
+            text = _outGateTable.nameOfValue(_outGateRange._var);
+        }
+        if (text == null) {
+            text =  Integer.toString(_outGateRange._var);
+        }
+        return text;
+    }
     
     int _bind1RCH, _bind2RCH, _bind4RCH;
     int _bindRSCTRT1, _bindRSCTRT2, _bindRSCTRT3;
@@ -70,10 +91,10 @@ public class MX36Status {
 
         _outGateRange = new MXRangedValue(64, 0, 127);
         _outGateOffset = 0;
-        _outGateTable = MXMessageWrapListFactory.listupRange(_outGateRange._min, _outGateRange._max);
+        _outGateTable = null;
         _outValueRange = new MXRangedValue(32, 0, 127);
         _outValueOffset = 0;
-        _outValueTable = MXMessageWrapListFactory.listupRange(_outValueRange._min, _outValueRange._max);
+        _outValueTable = null;
     }
     
     public String toSurfaceText() {
@@ -110,7 +131,7 @@ public class MX36Status {
 
         it._outChannel = status.getChannel();
         it._outValueRange = status.getValue();
-        it._outValueTable = MXMessageWrapListFactory.listupRange(it._outValueRange._min, it._outValueRange._max);
+        it._outValueTable = null;
         
         return it;
     }

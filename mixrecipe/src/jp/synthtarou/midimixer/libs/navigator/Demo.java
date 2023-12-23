@@ -19,10 +19,9 @@ package jp.synthtarou.midimixer.libs.navigator;
 import jp.synthtarou.midimixer.ccxml.CXGeneralMidiFile;
 import jp.synthtarou.midimixer.ccxml.CXNode;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrap;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
-import jp.synthtarou.midimixer.libs.midi.MXMessageWrapListFactory;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 
 /**
  *
@@ -35,7 +34,7 @@ public class Demo extends javax.swing.JPanel {
         MXUtil.showAsDialog(null, demo, "demo");
         System.exit(0);
     }
-    
+
     /**
      * Creates new form NavigatorTester
      */
@@ -77,7 +76,7 @@ public class Demo extends javax.swing.JPanel {
         gridBagConstraints.weighty = 1.0;
         add(jScrollPane1, gridBagConstraints);
 
-        jButtonList.setText("List");
+        jButtonList.setText("1 ColumnList");
         jButtonList.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonListActionPerformed(evt);
@@ -129,7 +128,12 @@ public class Demo extends javax.swing.JPanel {
         gridBagConstraints.weightx = 1.0;
         add(jButtonAttrib, gridBagConstraints);
 
-        jButton1.setText("-");
+        jButton1.setText("2 ColumnList");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
@@ -147,9 +151,16 @@ public class Demo extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonListActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonListActionPerformed
-        MXWrapList<Integer> list = MXMessageWrapListFactory.listupDrumnote(true);
-        NavigatorForList<Integer> navi = new NavigatorForList(list, 3);
-        MXUtil.showAsDialog(this, navi, "Which is your choice?");
+        MXWrapList<Integer> list = MXWrapListFactory.listupDrumnote(true);
+        int x = 0;
+        try {
+            int y = Integer.valueOf(jTextArea1.getText());
+            x = list.indexOfValue(y);
+        }catch(Exception e) {
+            x = -1;
+        }
+        NavigatorFor1ColumnList<Integer> navi = new NavigatorFor1ColumnList(list, x);
+        MXUtil.showAsDialog(this, navi, INavigator.DEFAULT_TITLE);
         if (navi._returnStatus == INavigator.RETURN_STATUS_APPROVED) {
             jTextArea1.setText(String.valueOf(navi._returnValue));
         }
@@ -157,7 +168,7 @@ public class Demo extends javax.swing.JPanel {
 
     private void jButtonTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonTextActionPerformed
         NavigatorForText navi = new NavigatorForText("Default");
-        MXUtil.showAsDialog(this, navi, "Which is your choice?");
+        MXUtil.showAsDialog(this, navi, INavigator.DEFAULT_TITLE);
         if (navi._returnStatus == INavigator.RETURN_STATUS_APPROVED) {
             jTextArea1.setText(String.valueOf(navi._returnValue));
         }
@@ -165,7 +176,7 @@ public class Demo extends javax.swing.JPanel {
 
     private void jButtonNumberActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNumberActionPerformed
         NavigatorForNumber navi = new NavigatorForNumber(MXRangedValue.ZERO7);
-        MXUtil.showAsDialog(this, navi, "Which is your choice?");
+        MXUtil.showAsDialog(this, navi, INavigator.DEFAULT_TITLE);
         if (navi._returnStatus == INavigator.RETURN_STATUS_APPROVED) {
             jTextArea1.setText(String.valueOf(navi._returnValue));
         }
@@ -175,11 +186,27 @@ public class Demo extends javax.swing.JPanel {
         CXGeneralMidiFile file = CXGeneralMidiFile.getInstance();
         CXNode node = file.simpleFindProgram(80);
         NavigatorForNodeAttribute navi = new NavigatorForNodeAttribute(node, "Name");
-        MXUtil.showAsDialog(this, navi, "Which is your choice?");
+        MXUtil.showAsDialog(this, navi, INavigator.DEFAULT_TITLE);
         if (navi._returnStatus == INavigator.RETURN_STATUS_APPROVED) {
             jTextArea1.setText(String.valueOf(navi._returnValue._name + " = " + navi._returnValue._value));
         }
     }//GEN-LAST:event_jButtonAttribActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        MXWrapList<Integer> list = MXWrapListFactory.listupDrumnote(true);
+        int x;
+        try {
+            int y = Integer.valueOf(jTextArea1.getText());
+            x = list.indexOfValue(y);
+        }catch(Exception e) {
+            x = -1;
+        }
+        NavigatorFor2ColumnList navi = new NavigatorFor2ColumnList(list, x);
+        MXUtil.showAsDialog(this, navi, INavigator.DEFAULT_TITLE);
+        if (navi._returnStatus == INavigator.RETURN_STATUS_APPROVED) {
+            jTextArea1.setText(String.valueOf(navi._returnValue));
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

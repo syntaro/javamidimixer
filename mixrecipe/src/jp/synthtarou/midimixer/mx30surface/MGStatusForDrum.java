@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.mx30surface;
 import java.io.File;
 import java.io.IOException;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
@@ -285,7 +285,7 @@ public class MGStatusForDrum implements Cloneable {
         }
 
         MX30Process parentProcess = MXMain.getMain().getKontrolProcess();
-        MX32Mixer mixer = _status._mixer;
+        MX32MixerProcess mixer = _status._mixer;
         MGDrumPad pad = mixer.getDrumPad(_status._row, _status._column);
         int port = _outPort;
         if (port < 0) {
@@ -383,9 +383,25 @@ public class MGStatusForDrum implements Cloneable {
                     return;
 
                 case STYLE_PROGRAM_CHANGE:
-                    message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, _programNumber, 0);
-                    message.setProgramBank(_programMSB, _programLSB);
-                    result.addTranslated(message);
+                    switch (_programType) {
+                        case PROGRAM_SET:
+                            message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, _programNumber, 0);
+                            message.setProgramBank(_programMSB, _programLSB);
+                            result.addTranslated(message);
+                            break;
+                        case PROGRAM_INC:
+                            message = MXMessageFactory.fromTemplate(port, 
+                                    new MXTemplate(new int[]{ MXMidi.COMMAND2_CH_PROGRAM_INC }), 
+                                    channel, null, null);
+                            result.addTranslated(message);
+                            break;
+                        case PROGRAM_DEC:
+                            message = MXMessageFactory.fromTemplate(port, 
+                                    new MXTemplate(new int[]{ MXMidi.COMMAND2_CH_PROGRAM_DEC }), 
+                                    channel, null, null);
+                            result.addTranslated(message);
+                            break;
+                    }
                     return;
             }
         } else {

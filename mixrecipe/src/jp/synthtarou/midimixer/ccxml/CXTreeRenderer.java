@@ -22,7 +22,7 @@ import java.util.HashSet;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeCellRenderer;
-import jp.synthtarou.midimixer.libs.common.MXWrap;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 
 /**
  *

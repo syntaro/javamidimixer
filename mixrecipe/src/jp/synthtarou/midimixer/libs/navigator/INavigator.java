@@ -23,6 +23,7 @@ import javax.swing.JPanel;
  * @author Syntarou YOSHIDA
  */
 public interface INavigator<T> {
+    public static String DEFAULT_TITLE = "Which is your Choice?";
     public static int TYPE_VIEWER = 1;
     public static int TYPE_SELECTOR = 2;
     public static int TYPE_EDITOR = 3;

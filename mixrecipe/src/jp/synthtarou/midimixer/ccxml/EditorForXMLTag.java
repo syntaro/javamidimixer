@@ -23,8 +23,8 @@ import javax.swing.table.DefaultTableModel;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.navigator.NavigatorForText;
 import jp.synthtarou.midimixer.libs.navigator.NavigatorForNodeAttribute;
-import jp.synthtarou.midimixer.libs.common.MXWrap;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.navigator.INavigator;
 
 /**
@@ -512,12 +512,12 @@ public class EditorForXMLTag extends javax.swing.JPanel {
     }//GEN-LAST:event_jList1ValueChanged
 
     private void jButtonEditInstActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEditInstActionPerformed
-        EditorForInstrument inst = new EditorForInstrument(_file);
+        PickerForinstrument inst = new PickerForinstrument(_file);
         MXUtil.showAsDialog(this, inst, "Edit Instruments");        
     }//GEN-LAST:event_jButtonEditInstActionPerformed
 
     private void jButtonEditCCActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEditCCActionPerformed
-        EditorForControlChange inst = new EditorForControlChange(true, _file);
+        PickerForControlChange inst = new PickerForControlChange(true, _file);
         MXUtil.showAsDialog(this, inst, "Edit ControlChange");        
     }//GEN-LAST:event_jButtonEditCCActionPerformed
 

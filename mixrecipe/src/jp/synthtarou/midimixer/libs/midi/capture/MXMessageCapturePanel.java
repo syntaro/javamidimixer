@@ -21,10 +21,10 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import javax.swing.JOptionPane;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrap;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
@@ -244,8 +244,8 @@ public class MXMessageCapturePanel extends javax.swing.JPanel {
         if (x >= 0) {
             try {
                 MXWrap<GateInfomation> wrap = (MXWrap)_templateModel.get(x);
-                int channel = wrap._value._parent.channel;
-                String dtext = wrap._value._parent.dtext;
+                int channel = wrap._value._parent._channel;
+                String dtext = wrap._value._parent._data;
                 int gate = wrap._value._gate;
                 int lowvalue = wrap._value._hitLoValue;
                 int hivalue = wrap._value._hitHiValue;

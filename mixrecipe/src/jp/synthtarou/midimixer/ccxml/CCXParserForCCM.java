@@ -17,9 +17,10 @@
 package jp.synthtarou.midimixer.ccxml;
 
 import java.util.IllegalFormatException;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
-import jp.synthtarou.midimixer.libs.midi.MXMessageWrapListFactory;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 
 /**
  *
@@ -34,14 +35,11 @@ public class CCXParserForCCM {
     public final String _memo;
     public final String _data;
 
-    public final int _minValue;
-    public final int _maxValue;
+    public final MXRangedValue _value;
     public final int _offsetValue;
-    public final int _defaultValue;
-    public final int _minGate;
-    public final int _maxGate;
+    public final MXRangedValue _gate;
     public final int _offsetGate;
-    public final int _defaultGate;
+
     public final MXWrapList<Integer> _valueTable;
     public final MXWrapList<Integer> _gateTable;
     public final boolean _gateTypeKey;
@@ -72,11 +70,12 @@ public class CCXParserForCCM {
         MXWrapList<Integer> gateTable = null;
 
         CXNode value = _node.firstChild("Value");
+        int minValue, maxValue, defaultValue, offsetValue;
         if (value != null) {
-            _minValue = value._listAttributes.numberOfName("Min", 0);
-            _maxValue = value._listAttributes.numberOfName("Max", hasValueHi ? 16383 : 127);
-            _offsetValue = value._listAttributes.numberOfName("Offset", 0);
-            _defaultValue = value._listAttributes.numberOfName("Default", _maxValue / 2 + 1);
+            minValue = value._listAttributes.numberOfName("Min", 0);
+            maxValue = value._listAttributes.numberOfName("Max", hasValueHi ? 16383 : 127);
+            offsetValue = value._listAttributes.numberOfName("Offset", 0);
+            defaultValue = value._listAttributes.numberOfName("Default", (minValue + maxValue) / 2 + 1);
             String tableId = value._listAttributes.valueOfName("TableID");
             if (tableId != null) {
                 Integer tableID2 = CXFile.parseNumber(tableId);
@@ -85,23 +84,23 @@ public class CCXParserForCCM {
                 }
             }
         } else {
-            _minValue = 0;
-            _maxValue = hasValueHi ? 16383 : 127;
-            _offsetValue = 0;
-            _defaultValue = _maxValue / 2 + 1;
+            minValue = 0;
+            maxValue = hasValueHi ? 16383 : 127;
+            offsetValue = 0;
+            defaultValue = (minValue + maxValue) / 2 + 1;
         }
-        if (valueTable == null) {
-            valueTable = MXMessageWrapListFactory.listupRange(_minValue, _maxValue);
-        }
+        _value = new MXRangedValue(defaultValue, minValue, maxValue);
+        _offsetValue = offsetValue;
         _valueTable = valueTable;
 
         CXNode gate = _node.firstChild("Gate");
         String gateType = null;
+        int minGate, maxGate, defaultGate, offsetGate;
         if (gate != null) {
-            _minGate = gate._listAttributes.numberOfName("Min", 0);
-            _maxGate = gate._listAttributes.numberOfName("Max", hasGateHi ? 16383 : 127);
-            _offsetGate = gate._listAttributes.numberOfName("Offset", 0);
-            _defaultGate = gate._listAttributes.numberOfName("Default", _maxGate / 2 + 1);
+            minGate = gate._listAttributes.numberOfName("Min", 0);
+            maxGate = gate._listAttributes.numberOfName("Max", hasGateHi ? 16383 : 127);
+            offsetGate = gate._listAttributes.numberOfName("Offset", 0);
+            defaultGate = gate._listAttributes.numberOfName("Default", (minGate + maxGate) / 2 + 1);
             String tableId = gate._listAttributes.valueOfName("TableID");
             if (tableId != null) {
                 int tableID2 = CXFile.parseNumber(tableId);
@@ -113,23 +112,22 @@ public class CCXParserForCCM {
                 gateType = gate._listAttributes.valueOfName("Type");
             }
         } else {
-            _minGate = 0;
-            _maxGate = hasGateHi ? 16383 : 127;
-            _offsetGate = 0;
-            _defaultGate = _maxGate / 2 + 1;
+            minGate = 0;
+            maxGate = hasGateHi ? 16383 : 127;
+            offsetGate = 0;
+            defaultGate = (minGate + maxGate) / 2 + 1;
         }
         if (gateType != null && gateType.equalsIgnoreCase("Key")) {
             if (gateTable == null) {
-                gateTable = MXMessageWrapListFactory.listupNoteNo(false);
+                gateTable = MXWrapListFactory.listupNoteNo(false);
             }
             _gateTypeKey = true;
         }
         else {
-            if (gateTable == null) {
-                gateTable = MXMessageWrapListFactory.listupRange(_minGate, _maxGate);
-            }
             _gateTypeKey = false;
         }
+        _gate = new MXRangedValue(defaultGate, minGate, maxGate);
+        _offsetGate = offsetGate;
         _gateTable = gateTable;
     }
 }

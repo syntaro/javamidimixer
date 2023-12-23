@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.common;
+package jp.synthtarou.midimixer.libs.wraplist;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +23,7 @@ import javax.swing.JComboBox;
 import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 
 /**
  *

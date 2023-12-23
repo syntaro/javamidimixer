@@ -46,7 +46,7 @@ import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.async.Transaction;
 import jp.synthtarou.midimixer.libs.navigator.INavigator;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
@@ -675,7 +675,6 @@ public class MX80Panel extends javax.swing.JPanel {
     }//GEN-LAST:event_jSliderMasterVolumeStateChanged
 
     private void jPanelSynthsContainerComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_jPanelSynthsContainerComponentResized
-        // TODO add your handling code here:
         onResizeSynth();
     }//GEN-LAST:event_jPanelSynthsContainerComponentResized
 

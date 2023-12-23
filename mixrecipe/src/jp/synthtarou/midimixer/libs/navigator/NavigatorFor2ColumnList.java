@@ -32,25 +32,26 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrap;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class NavigatorForWrapList extends javax.swing.JPanel implements INavigator<Integer> {
+public class NavigatorFor2ColumnList<T> extends javax.swing.JPanel implements INavigator<T> {
 
-    MXWrapList _list;
+    MXWrapList<T> _list;
 
     /**
      * Creates new form NavigatorForWrapList
      */
-    public NavigatorForWrapList(MXWrapList list) {
+    public NavigatorFor2ColumnList(MXWrapList<T> list) {
         this(list, -1);
     }
 
-    public NavigatorForWrapList(MXWrapList list, int selectedIndex) {
+    public NavigatorFor2ColumnList(MXWrapList<T> list, int selectedIndex) {
         initComponents();
         _list = list;
 
@@ -76,7 +77,7 @@ public class NavigatorForWrapList extends javax.swing.JPanel implements INavigat
                     if (match) {
                         jLabel1.setText(name);
                     } else {
-                        jLabel1.setText(name + " = " + value);
+                        jLabel1.setText(value + " = \"" + name + "\"");
                     }
                 }
             }
@@ -115,12 +116,12 @@ public class NavigatorForWrapList extends javax.swing.JPanel implements INavigat
             }
         };
         if (haveUnmatch) {
-            model.addColumn("Title");
             model.addColumn("Value");
+            model.addColumn("Name");
 
             for (Object row : list) {
                 MXWrap wrap = (MXWrap<Object>) row;
-                model.addRow(new Object[]{wrap._name, String.valueOf(wrap._value)});
+                model.addRow(new Object[]{String.valueOf(wrap._value), wrap._name});
             }
             jTable1.setModel(model);
         } else {
@@ -148,8 +149,9 @@ public class NavigatorForWrapList extends javax.swing.JPanel implements INavigat
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     _returnStatus = INavigator.RETURN_STATUS_APPROVED;
                     int row = jTable1.getSelectedRow();
-                    _returnValue = row;
-                    MXUtil.getOwnerWindow(NavigatorForWrapList.this).setVisible(false);
+                    _returnIndex = row;
+                    _returnValue = _list.valueOfIndex(row);
+                    MXUtil.getOwnerWindow(NavigatorFor2ColumnList.this).setVisible(false);
                }
             }
 
@@ -165,6 +167,7 @@ public class NavigatorForWrapList extends javax.swing.JPanel implements INavigat
             @Override
             public void run() {
                 jTable1.requestFocus();
+                new MXAttachTableResize(jTable1);
             }
         });
     }
@@ -232,14 +235,16 @@ public class NavigatorForWrapList extends javax.swing.JPanel implements INavigat
 
     private void jButtonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelActionPerformed
         _returnStatus = INavigator.RETURN_STATUS_CANCELED;
-        _returnValue = -1;
+        _returnIndex = -1;
+        _returnValue = null;
         MXUtil.getOwnerWindow(this).setVisible(false);
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
     private void jButtonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOKActionPerformed
         _returnStatus = INavigator.RETURN_STATUS_APPROVED;
         int row = jTable1.getSelectedRow();
-        _returnValue = row;
+        _returnIndex = row;
+        _returnValue = _list.valueOfIndex(row);
         MXUtil.getOwnerWindow(this).setVisible(false);
     }//GEN-LAST:event_jButtonOKActionPerformed
 
@@ -249,15 +254,20 @@ public class NavigatorForWrapList extends javax.swing.JPanel implements INavigat
     }
 
     int _returnStatus = INavigator.RETURN_STATUS_NOTSET;
-    int _returnValue = -1;
+    T _returnValue = null;
+    int _returnIndex = -1;
 
     @Override
     public int getReturnStatus() {
         return _returnStatus;
     }
 
+    public int getReturnIndex() {
+        return _returnIndex;
+    }
+
     @Override
-    public Integer getReturnValue() {
+    public T getReturnValue() {
         return _returnValue;
     }
 
@@ -267,7 +277,7 @@ public class NavigatorForWrapList extends javax.swing.JPanel implements INavigat
     }
 
     @Override
-    public boolean validateWithNavigator(Integer result) {
+    public boolean validateWithNavigator(T result) {
         return true;
     }
 

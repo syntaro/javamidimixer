@@ -36,7 +36,7 @@ public class MX30View extends javax.swing.JPanel {
         jCheckBoxUseThisMixRecipe.setSelected(true);
     }
     
-    public void addPage(int port, MX32Mixer mixer) {
+    public void addPage(int port, MX32MixerProcess mixer) {
         MX32MixerView view = (MX32MixerView)mixer.getReceiverView();
         jTabbedPane1.add(mixer.getReceiverName(), new JScrollPane(view));
         view.initControllers();

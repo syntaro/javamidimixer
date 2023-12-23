@@ -21,6 +21,8 @@ import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 
 /**
  *
@@ -38,6 +40,8 @@ public class NavigatorForNumber extends javax.swing.JPanel implements INavigator
         jSlider1.setMaximum(value._max);
         jSpinner1.setModel(new SpinnerNumberModel(value._var, value._min, value._max, 1));
         setPreferredSize(new Dimension(600, 200));
+        new MXAttachSliderSingleClick(jSlider1);
+        new MXAttachSliderLikeEclipse(jSlider1);
         _returnValue = value;
     }
 
