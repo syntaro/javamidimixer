@@ -70,10 +70,8 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
     
     @Override
     public void processMXMessage(MXMessage message) {
-        if (isUsingThisRecipe()) {
-            if (_data.isMarkedAsSkip(message)) {
-                return;
-            }
+        if (isUsingThisRecipe() && _data.isMarkedAsSkip(message)) {
+            return;
         }
 
         if (isRecording()) {
@@ -153,13 +151,13 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
 
     public synchronized void startPlaying(int x) {
         _playingTrack = _listRecorder[x];
-        _playingTrack.setStartMilliSecond(_playingTrack.getFirstNoteMilliSecond());
+        //_playingTrack.setStartMilliSecond(_playingTrack.getFirstNoteMilliSecond());
         _playingTrack.startPlayer(new SMFCallback() {
             MXNoteOffWatcher _noteOff = new MXNoteOffWatcher();
 
             @Override
             public void smfPlayNote(MXTiming timing, SMFMessage e) {
-                MXMessage message = e.fromSMFtoMX(e._port);
+                MXMessage message = e.fromSMFtoMX();
                 if (message == null) {
                     return;
                 }
@@ -187,7 +185,14 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
                             }
                         });
                     }
-                    sendToNext(message);
+                    if (isUsingThisRecipe() && _data.isMarkedAsSkip(message)) {
+                    }
+                    else {
+                        if (MXMidi.isReset(message.getBinary())) {
+                            System.out.println("Meow *****************");
+                        }
+                        sendToNext(message);
+                    }
                 }
             }
 

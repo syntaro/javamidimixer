@@ -195,7 +195,8 @@ public class MGStatusForDrum implements Cloneable {
         _songFilePlayer.startPlayer(new SMFCallback() {
             @Override
             public void smfPlayNote(MXTiming timing, SMFMessage e) {
-                MXMessage message = e.fromSMFtoMX(_port);
+                e._port = _port;
+                MXMessage message = e.fromSMFtoMX();
                 if (_sequencerSingleTrack) {                        
                     if (_channel >= 0) {
                         message.setChannel(_channel);

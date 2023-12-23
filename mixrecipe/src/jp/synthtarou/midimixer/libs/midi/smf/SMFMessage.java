@@ -41,7 +41,7 @@ public class SMFMessage implements Comparable<SMFMessage> {
 
     private final byte[] _binary;
 
-    public int _port = -1;
+    public int _port = 0;
     public long _tick;
     public int _seqTrack;
     public int _fileOrder;
@@ -184,14 +184,14 @@ public class SMFMessage implements Comparable<SMFMessage> {
         return str.toString();
     }
 
-    public MXMessage fromSMFtoMX(int port) {
+    public MXMessage fromSMFtoMX() {
         MXMessage message = null;
         int status = getStatus();
 
         if (status >= 0x80 && status <= 0xef) {
-            message = MXMessageFactory.fromShortMessage(port, getStatus(), getData1(), getData2());
+            message = MXMessageFactory.fromShortMessage(_port, getStatus(), getData1(), getData2());
         } else {
-            message = MXMessageFactory.fromBinary(port, getBinary());
+            message = MXMessageFactory.fromBinary(_port, getBinary());
         }
         return message;
     }
@@ -230,18 +230,19 @@ public class SMFMessage implements Comparable<SMFMessage> {
         if (y > 0) {
             return 1;
         }
-
-        //System.out.println("Unreach " + x + ", " + y + ", " + z);
+        
+        boolean isReset1 = MXMidi.isReset(o1.getBinary());
+        boolean isReset2 = MXMidi.isReset(o2.getBinary());
         boolean isProg1 = (o1.getStatus() & 0xf0) == MXMidi.COMMAND_CH_PROGRAMCHANGE;
         boolean isProg2 = (o2.getStatus() & 0xf0) == MXMidi.COMMAND_CH_PROGRAMCHANGE;
         boolean isBank1 = (o1.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE && (o1.getData1() == 0 || o1.getData1() == 32);
         boolean isBank2 = (o2.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE && (o2.getData1() == 0 || o2.getData1() == 32);
 
-        /* バンクとプログラムは早めに送信する */
-        if (isBank1 && !isBank2) {
+        /* リセットとバンクとプログラムは早めに送信する */
+        if (isReset1 && !isReset2) {
             return -1;
         }
-        if (!isBank1 && isBank2) {
+        if (!isReset1 && isReset2) {
             return 1;
         }
 
@@ -249,6 +250,13 @@ public class SMFMessage implements Comparable<SMFMessage> {
             return -1;
         }
         if (!isProg1 && isProg2) {
+            return 1;
+        }
+
+        if (isBank1 && !isBank2) {
+            return -1;
+        }
+        if (!isBank1 && isBank2) {
             return 1;
         }
 
@@ -265,6 +273,14 @@ public class SMFMessage implements Comparable<SMFMessage> {
             if (x > 0) {
                 return 1;
             }
+        }
+
+        y = o1._port - o2._port;
+        if (y < 0) {
+            return -1;
+        }
+        if (y > 0) {
+            return 1;
         }
 
         return 0;
@@ -303,5 +319,14 @@ public class SMFMessage implements Comparable<SMFMessage> {
         int dt1 = getData1() & 0xff;
         int dt2 = getData2() & 0xff;
         return (((st << 8) | dt1) << 8) | dt2;
+    }
+    
+    public boolean isTempoMessage() {
+        if (getStatus() == 0xff) {
+            if (getData1() == 0x51) {
+                return true;
+            }
+        }
+        return false;
     }
 }

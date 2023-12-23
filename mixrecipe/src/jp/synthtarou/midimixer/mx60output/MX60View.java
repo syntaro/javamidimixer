@@ -108,7 +108,6 @@ public class MX60View extends javax.swing.JPanel {
         jPanel1 = new javax.swing.JPanel();
         jCheckBoxUseSkip = new javax.swing.JCheckBox();
         jPanel4 = new javax.swing.JPanel();
-        jLabelRecorderText = new javax.swing.JLabel();
         jRadioButtonSong1 = new javax.swing.JRadioButton();
         jRadioButtonSong2 = new javax.swing.JRadioButton();
         jRadioButtonSong3 = new javax.swing.JRadioButton();
@@ -159,12 +158,6 @@ public class MX60View extends javax.swing.JPanel {
 
         jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("2. Recorder"));
         jPanel4.setLayout(new java.awt.GridBagLayout());
-
-        jLabelRecorderText.setText("Tempo");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        jPanel4.add(jLabelRecorderText, gridBagConstraints);
 
         jRadioButtonSong1.setText("Song1");
         jRadioButtonSong1.addActionListener(new java.awt.event.ActionListener() {
@@ -372,7 +365,6 @@ public class MX60View extends javax.swing.JPanel {
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton jButtonSongExport;
     private javax.swing.JCheckBox jCheckBoxUseSkip;
-    private javax.swing.JLabel jLabelRecorderText;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
@@ -396,11 +388,6 @@ public class MX60View extends javax.swing.JPanel {
     
     public void refreshList() {
         _midiPanel.refreshList();
-    }
-    
-    public void setRecorderText(String text) {
-        //String.valueOf("Tempo " + (60000000 / mpq) + " BPM"
-        jLabelRecorderText.setText(text);
     }
     
     public void setSongLength(int recorder, long count) {

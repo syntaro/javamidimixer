@@ -130,22 +130,22 @@ public class SMFParser {
     int _infoTrackCount = 1; // 1 or 16 ?
     int _smpteFormat = -99999; // 23.976fps、24.00fps、25.00fps、29.97fps、30.00fps
     int _fileResolution = 480;
-    SMFTempoArray _tempoArray = new SMFTempoArray(this);
+    SMFTempoArray _tempoArray;
 
     public SMFParser() {
         // as recorder
         _listMessage = new SortedArray<>();
     }
 
-    public SMFParser(File file) {
+    public SMFParser(File file) throws IOException{
         try {
             if (!readFile(file)) {
-                throw new IllegalArgumentException("Invalid MIDI File. " + file);
+                throw new IOException("Invalid MIDI File. " + file);
             }
         } catch (FileNotFoundException ioe) {
-            throw new IllegalArgumentException("MIDI File Not Found. " + file, ioe);
+            throw ioe;
         } catch (IOException ioe) {
-            throw new IllegalArgumentException("Invalid MIDI File. " + file, ioe);
+            throw ioe;
         }
     }
 
@@ -275,32 +275,19 @@ public class SMFParser {
                     _listMessage.add(seek);
                 }
             } else {
+                _tempoArray = new SMFTempoArray(this);
                 for (SMFMessage seek : list) {
-                    addMessageWithTick(seek, seek._tick);
+                    seek._millisecond = _tempoArray.calcMicrosecondByTick(seek._tick) / 1000;
+                    if (seek.getStatus() == 0xff && seek.getData1() == 0x51) {
+                        _tempoArray.addMPQwithTick(seek.getMetaTempo(), seek._tick);
+                    }
+                    _listMessage.add(seek);
                 }
             }
             return !_listMessage.isEmpty();
         } finally {
             input.close();
         }
-    }
-
-    public void addMessageWithTick(SMFMessage seek, long tick) {
-        seek._tick = tick;
-        seek._millisecond = _tempoArray.calcMicrosecondByTick(tick) / 1000;
-        if (seek.getStatus() == 0xff && seek.getData1() == 0x51) {
-            _tempoArray.addMPQwithTick(seek.getMetaTempo(), tick);
-        }
-        _listMessage.add(seek);
-    }
-
-    public void addMessageWithMillisecond(SMFMessage seek, long millisecond) {
-        seek._millisecond = millisecond;
-        seek._tick = _tempoArray.calcTicksByMicrosecond(millisecond * 1000);
-        if (seek.getStatus() == 0xff && seek.getData1() == 0x51) {
-            _tempoArray.addMPQwithMicrosecond(seek.getMetaTempo(), millisecond * 1000);
-        }
-        _listMessage.add(seek);
     }
 
     public SortedArray<SMFMessage> _listMessage;
@@ -431,13 +418,19 @@ public class SMFParser {
         _file = null;
 
         SortedArray<SMFMessage> list = new SortedArray<>();
-
+        canonicalizeWithMillisecond();
+        
+        int count = 0;
         for (SMFMessage seek : _listMessage) {
-            if (seek._port == port) {
+            if (seek.isTempoMessage()) {
                 list.insertSorted(seek);
             }
+            else if (seek._port == port) {
+                list.insertSorted(seek);
+                count ++;
+            }
         }
-        if (list.size() == 0) {
+        if (count == 0) {
             return;
         }
 
@@ -475,6 +468,17 @@ public class SMFParser {
             output.write(byteStream.toByteArray());
         } finally {
             output.close();
+        }
+    }
+    
+    public void  canonicalizeWithMillisecond() {
+        _tempoArray = new SMFTempoArray(this);
+        for (SMFMessage seek : _listMessage) {
+            long millisecond = seek._millisecond;
+            seek._tick = _tempoArray.calcTicksByMicrosecond(millisecond * 1000);
+            if (seek.getStatus() == 0xff && seek.getData1() == 0x51) {
+                _tempoArray.addMPQwithMicrosecond(seek.getMetaTempo(), millisecond * 1000);
+            }
         }
     }
 }

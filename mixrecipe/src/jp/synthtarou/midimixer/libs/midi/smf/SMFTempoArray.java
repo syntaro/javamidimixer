@@ -68,7 +68,12 @@ public class SMFTempoArray extends SortedArray<SMFTempo> {
         double deltaMicrosecond = deltaTick * tempo._mpq / _parent._fileResolution;
 
         if (deltaTick == 0) {
+            //上書き
             tempo._mpq = mpq;
+            return;
+        }
+        if (tempo._mpq == mpq) {
+            //変化なし
             return;
         }
         
@@ -110,10 +115,14 @@ public class SMFTempoArray extends SortedArray<SMFTempo> {
         double deltaTick = deltaMicroSecond * _parent._fileResolution / tempo._mpq;
 
         if (deltaMicroSecond == 0) {
+            //上書き
             tempo._mpq = mpq;
             return;
         }
-
+        if (tempo._mpq == mpq) {
+            //変化なし
+            return;
+        }
 
         SMFTempo newTempo = new SMFTempo();
 

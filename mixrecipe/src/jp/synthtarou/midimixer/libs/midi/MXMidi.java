@@ -257,6 +257,33 @@ public class MXMidi {
 
     protected static final String[] noteSymbols = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
 
+    public static final int[] gmReset = { 0xf0, 0x7e, 0x7f, 0x09, 0x01, 0xf7};
+    public static final int[] gsReset = { 0xF0, 0x41, -1, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0xF7 };
+    public static final int[] xgReset = { 0xF0, 0x43, -1, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0xF7 };
+
+    public static boolean isReset(byte[] data) {
+        if (checkReset(gmReset, data)) return true;
+        if (checkReset(gsReset, data)) return true;
+        if (checkReset(xgReset, data)) return true;
+        return false;
+    }
+    
+    public static boolean checkReset(int[] compare, byte[] data) {
+        if (data.length == compare.length) {
+            for (int i = 0; i < data.length; ++ i) {
+                int x = compare[i];
+                if (x < 0) {
+                    continue;
+                }
+                if ((data[i] & 0xff) == x) {
+                    continue;
+                }
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
     
     public static final String nameOfChannelMessage(int command) {
         switch (command) {

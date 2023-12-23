@@ -95,7 +95,7 @@ public class MX10Data {
             type = TYPE_ANOTHER_CC;
         } else if (command == 0xf0 || command == 0xf7) {
             byte[] data = message.getBinary();
-            if (checkReset(gmReset, data) || checkReset(gsReset, data) || checkReset(xgReset, data)) {
+            if (MXMidi.isReset(data)) {
                 type = TYPE_RESET_GENERAL;
             }
             else {                
@@ -107,26 +107,6 @@ public class MX10Data {
         return isSkip(port, type);
     }
 
-    static final int[] gmReset = { 0xf0, 0x7e, 0x7f, 0x09, 0x01, 0xf7};
-    static final int[] gsReset = { 0xF0, 0x41, -1, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0xF7 };
-    static final int[] xgReset = { 0xF0, 0x43, -1, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0xF7 };
-    
-    public boolean checkReset(int[] compare, byte[] data) {
-        if (data.length == compare.length) {
-            for (int i = 0; i < data.length; ++ i) {
-                int x = compare[i];
-                if (x < 0) {
-                    continue;
-                }
-                if ((data[i] & 0xff) == x) {
-                    continue;
-                }
-                return false;
-            }
-            return true;
-        }
-        return false;
-    }
     
     public void setSkip(int port, int type, boolean skipFlag) {
         long bit = 1L << (type + 1);

@@ -62,7 +62,7 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
         String fileName = file.toString();
  
         if (_sequencer != null) {
-           _sequencer.allNoteOff(null);
+           _sequencer.allNoteOff(null, 0); //not important number (will be overwrited
            
            if (_sequencer.getLastFile().equals(file)) {
                return;
