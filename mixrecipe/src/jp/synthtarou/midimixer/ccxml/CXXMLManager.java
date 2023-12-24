@@ -64,11 +64,11 @@ public class CXXMLManager extends MXReceiver implements MXSettingTarget {
         _setting.readSettingFile();
         CXGeneralMidiFile gmfile = CXGeneralMidiFile.getInstance();
         for (CXFile file : _listLoaded) {
-            if (file._file.getName().equals(gmfile._file._file.getName())) {
+            if (file._file.getName().equals(gmfile._file.getName())) {
                 return;
             }
         }
-        _listLoaded.add(gmfile._file);
+        _listLoaded.add(gmfile);
     }
     
     public static File getSaveDirectory() {

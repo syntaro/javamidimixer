@@ -26,27 +26,32 @@ import jp.synthtarou.midimixer.libs.common.MXRangedValue;
  *
  * @author Syntarou YOSHIDA
  */
-public class MXTemplate implements Comparable<MXTemplate>{
+public class MXTemplate implements Comparable<MXTemplate> {
 
-    private final int[] _commands;
-    private int _bytePosGate;
-    private int _bytePosHiGate;
-    private int _bytePosValue;
-    private int _bytePosHiValue;
-    private int _checksumCount;
+    public static class CheckSumInfo {
+
+        int _from;
+        int _to;
+    }
+
+    private int[] _commands;
+    private int _indexOfGateLow;
+    private int _indexOfGateHi;
+    private int _indexOfValueLow;
+    private int _indexOfValueHi;
+    private ArrayList<CheckSumInfo> _listChecksum;
 
     static MXWrapList<Integer> textCommand = new MXWrapList();
     static MXWrapList<Integer> textAlias = new MXWrapList();
 
     public MXTemplate(int[] template) {
         if (template == null || template.length == 0 || template[0] == 0) {
-            _commands = new int[]{0, 0, 0};
+            initFields(null);
         } else {
-            _commands = template;
+            initFields(template);
         }
-        initFields();
     }
-    
+
     public boolean isEmpty() {
         if (_commands[0] == 0) {
             return true;
@@ -63,8 +68,7 @@ public class MXTemplate implements Comparable<MXTemplate>{
         }
 
         if (text == null || text.length() == 0) {
-            _commands = new int[]{0, 0, 0};
-            initFields();
+            initFields(null);
             return;
         }
 
@@ -125,8 +129,7 @@ public class MXTemplate implements Comparable<MXTemplate>{
         }
 
         if (separated.size() <= 0) {
-            _commands = new int[]{0, 0, 0};
-            initFields();
+            initFields(null);
             return;
         }
 
@@ -156,8 +159,7 @@ public class MXTemplate implements Comparable<MXTemplate>{
             compiled[px++] = code;
         }
 
-        _commands = compiled;
-        initFields();
+        initFields(compiled);
     }
 
     public int get(int pos) {
@@ -177,76 +179,123 @@ public class MXTemplate implements Comparable<MXTemplate>{
         return _commands.length;
     }
 
-    private void initFields() {
-        _bytePosHiValue = -1;
-        _bytePosValue = -1;
-        _bytePosGate = -1;
-        _bytePosHiGate = -1;
-        _checksumCount = 0;
+    private void initFields(int[] template) {
+        _indexOfValueHi = -1;
+        _indexOfValueLow = -1;
+        _indexOfGateLow = -1;
+        _indexOfGateHi = -1;
+        if (template == null) {
+            template = new int[]{0, 0, 0};
+        }
+        _commands = template;
+        _listChecksum = null;
 
+        int countChecksumStart = 0;
+        int countChecksumEnd = 0;
         for (int i = 0; i < _commands.length; ++i) {
             switch (_commands[i]) {
+                case MXMidi.CCXML_CHECKSUM_START:
+                    countChecksumStart++;
+                    break;
+                case MXMidi.CCXML_CHECKSUM_END:
+                    countChecksumEnd++;
+                    break;
+            }
+        }
+
+        if (countChecksumStart != 0) {
+            if (countChecksumStart != countChecksumEnd) {
+                //will process on next chance
+            }
+            int[] writeBuffer = new int[template.length - countChecksumStart];
+            int writePos = 0;
+            CheckSumInfo checksum = null;
+
+            for (int i = 0; i < _commands.length; ++i) {
+                int x = _commands[i];
+                if (x == MXMidi.CCXML_CHECKSUM_START) {
+                    if (checksum != null) {
+                        throw new IllegalArgumentException("Checksum stasrt without past end");
+                    }
+                    checksum = new CheckSumInfo();
+                    checksum._from = writePos;
+                    if (_listChecksum == null) {
+                        _listChecksum = new ArrayList<>();
+                    }
+                    _listChecksum.add(checksum);
+                } else if (x == MXMidi.CCXML_CHECKSUM_END) {
+                    if (checksum == null) {
+                        throw new IllegalArgumentException("Checksum stasrt without past end");
+                    }
+                    checksum._to = writePos;
+                    if (checksum._from == checksum._to) {
+                        throw new IllegalArgumentException("Checksum start and end without span");
+                    }
+                    writeBuffer[writePos++] = x;
+                } else {
+                    writeBuffer[writePos++] = x;
+                }
+            }
+            if (checksum != null) {
+                throw new IllegalArgumentException("Checksum not closed");
+            }
+            _commands = writeBuffer;
+        }
+
+        for (int i = 0; i < _commands.length; ++i) {
+            int x = _commands[i];
+            switch (_commands[i]) {
                 case MXMidi.CCXML_VL:
-                    _bytePosValue = i;
+                    _indexOfValueLow = i;
                     break;
                 case MXMidi.CCXML_VH:
-                    _bytePosHiValue = i;
+                    _indexOfValueHi = i;
                     break;
                 case MXMidi.CCXML_GL:
-                    _bytePosGate = i;
+                    _indexOfGateLow = i;
                     break;
                 case MXMidi.CCXML_GH:
-                    _bytePosHiGate = i;
-                    break;
-                case MXMidi.CCXML_CHECKSUM_START:
-                    _checksumCount++;
+                    _indexOfGateHi = i;
                     break;
             }
         }
     }
 
     public byte[] makeBytes(byte[] data, MXMessage message) {
-        int dataLength = _commands.length - _checksumCount;
+        int dataLength = _commands.length;
 
         if (data == null || data.length != dataLength) {
             data = new byte[dataLength];
         }
 
         if ((_commands[0] & 0xff00) != 0) {
-            new IllegalArgumentException("command[0] =  " + Integer.toHexString(_commands[0])).printStackTrace();
+            new IllegalArgumentException("command[0] >= 0x100 , " + Integer.toHexString(_commands[0])).printStackTrace();
             return null;
         }
-        boolean inChecksum = false;
-        int sumChecksum = 0;
         int dpos = 0;
 
         for (int i = 0; i < _commands.length; ++i) {
             int x = _commands[i];
-            if ((x & 0xff00) != 0) {
-                if (x == MXMidi.CCXML_CHECKSUM_START) {
-                    sumChecksum = 0;
-                    inChecksum = true;
-                    continue;
-                } else if (x == MXMidi.CCXML_CHECKSUM_SET) {
-                    sumChecksum &= 0x7f;
-                    sumChecksum = 128 - sumChecksum;
-                    sumChecksum &= 0x7f;
-                    x = sumChecksum;
-                    inChecksum = false;
-                } else {
-                    try {
-                        x = parseDAlias(x, message);
-                    } catch (IllegalArgumentException e) {
-                        throw e;
-                    }
-                }
+            try {
+                x = parseDAlias(x, message);
+            } catch (IllegalArgumentException e) {
+                throw e;
             }
             data[dpos++] = (byte) (x & 0xff);
-            if (inChecksum) {
-                sumChecksum += x;
+        }
+        if (_listChecksum != null) {
+            for (CheckSumInfo seek : _listChecksum) {
+                int sumChecksum = 0;
+                for (int x = seek._from; x <= seek._to - 1; ++x) {
+                    sumChecksum += data[x] & 0x7f;
+                }
+                sumChecksum &= 0x7f;
+                sumChecksum = 128 - sumChecksum;
+                sumChecksum &= 0x7f;
+
+                data[seek._to] = (byte) sumChecksum;
             }
         }
-
         int command = data[0] & 0xff;
         if (command >= 0x80 && command <= 0xef) {
             data[0] = (byte) ((command & 0xf0) + message.getChannel());
@@ -338,11 +387,10 @@ public class MXTemplate implements Comparable<MXTemplate>{
             case MXMidi.CCXML_RSCTPT2P:
             case MXMidi.CCXML_RSCTPT3P:
                 throw new IllegalArgumentException("RSCTPT1P, RSCTPT2P, RSCTPT3P not supported.");
-            //break;
-/*
-static final int MXMidi.CCXML_CCNUM = 0x1500;
-             */
-            case MXMidi.CCXML_CHECKSUM_SET:
+
+            case MXMidi.CCXML_CHECKSUM_START:
+                return 0;
+            case MXMidi.CCXML_CHECKSUM_END:
                 return 0;
 
             case 0:
@@ -476,7 +524,7 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
                 texts.add("[");
                 continue;
             }
-            if (code == MXMidi.CCXML_CHECKSUM_SET) {
+            if (code == MXMidi.CCXML_CHECKSUM_END) {
                 texts.add("]");
                 continue;
             }
@@ -519,7 +567,7 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
         textAlias.addNameAndValue("#RSCTPT2P", MXMidi.CCXML_RSCTPT2P);
         textAlias.addNameAndValue("#RSCTPT3P", MXMidi.CCXML_RSCTPT3P);
         textAlias.addNameAndValue("[", MXMidi.CCXML_CHECKSUM_START);
-        textAlias.addNameAndValue("]", MXMidi.CCXML_CHECKSUM_SET);
+        textAlias.addNameAndValue("]", MXMidi.CCXML_CHECKSUM_END);
 
         textCommand.addNameAndValue("@NONE", MXMidi.COMMAND2_NONE);
         textCommand.addNameAndValue("@PB", MXMidi.COMMAND_CH_PITCHWHEEL);
@@ -567,32 +615,20 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
         return -1;
     }
 
-    /**
-     * @return the _bytePosHiValue
-     */
-    public int getBytePosHiValue() {
-        return _bytePosHiValue;
+    public int indexOfValueLow() {
+        return _indexOfValueLow;
     }
 
-    /**
-     * @return the _bytePosValue
-     */
-    public int getBytePosValue() {
-        return _bytePosValue;
+    public int indexOfValueHi() {
+        return _indexOfValueHi;
     }
 
-    /**
-     * @return the _bytePosGate
-     */
-    public int getBytePosGate() {
-        return _bytePosGate;
+    public int indexOfGateLow() {
+        return _indexOfGateLow;
     }
 
-    /**
-     * @return the _bytePosHiGate
-     */
-    public int getBytePosHiGate() {
-        return _bytePosHiGate;
+    public int indexOfGateHi() {
+        return _indexOfGateHi;
     }
 
     public String toString() {
@@ -613,43 +649,6 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
             }
             return str.toString();
         }
-    }
-
-    public boolean canReuseBinary(byte[] data) {
-        if (_commands.length - _checksumCount == data.length) {
-            int dpos = 0;
-            for (int tpos = 0; tpos < _commands.length; ++tpos) {
-                int seek = _commands[tpos];
-                if (seek == MXMidi.CCXML_CHECKSUM_START) {
-                    continue;
-                }
-                int d1 = data[dpos++] & 0xff;
-                if (seek != d1) {
-                    if (seek != MXMidi.CCXML_VH && seek != MXMidi.CCXML_VL) {
-                        return false;
-                    }
-                    if (seek != MXMidi.CCXML_CHECKSUM_SET) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
-    public boolean canReuseTemplate(int[] template) {
-        if (_commands.length == template.length) {
-            for (int i = 0; i < template.length; ++i) {
-                int seek = _commands[i];
-                int d1 = template[i];
-                if (seek != d1) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
     }
 
     public static MXTemplate fromDword1(int dword) {
@@ -744,7 +743,7 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
                 if (c1 == MXMidi.CCXML_CHECKSUM_START) {
                     continue;
                 }
-                if (c1 == MXMidi.CCXML_CHECKSUM_SET) {
+                if (c1 == MXMidi.CCXML_CHECKSUM_END) {
                     //any ok
                     dataSeek++;
                     continue;
@@ -826,13 +825,21 @@ static final int MXMidi.CCXML_CCNUM = 0x1500;
             return 0;
         }
         int x = _commands.length - o._commands.length;
-        if (x < 0) return -1;
-        if (x > 0) return 1;
-        
-        for (int n = 0; n < _commands.length; ++ n) {
+        if (x < 0) {
+            return -1;
+        }
+        if (x > 0) {
+            return 1;
+        }
+
+        for (int n = 0; n < _commands.length; ++n) {
             x = _commands[n] - o._commands[n];
-            if (x < 0) return -1;
-            if (x > 0) return 1;
+            if (x < 0) {
+                return -1;
+            }
+            if (x > 0) {
+                return 1;
+            }
         }
         return 0;
     }

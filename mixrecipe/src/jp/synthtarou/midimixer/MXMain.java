@@ -27,7 +27,7 @@ import jp.synthtarou.midimixer.libs.common.MXLog;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.capture.MXMessageCapture;
+import jp.synthtarou.midimixer.libs.midi.capture.MXCaptureProcess;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
@@ -117,9 +117,9 @@ public class MXMain  {
     private MX80Process _vstRack;
     private CXXMLManager _xmlManager;
     
-    public static MXMessageCapture _capture = null;
+    public static MXReceiver _capture = null;
     
-    public static void setCapture(MXMessageCapture capture) {
+    public static void setCapture(MXReceiver capture) {
         _capture = capture;
     }
     
@@ -325,7 +325,7 @@ public class MXMain  {
                 if (receiver == _mx10inputProcess) {
                     MXMain.addInsideInput(message);
                     if (_capture != null) {
-                        _capture.process(message);
+                        _capture.processMXMessage(message);
                     }   
                 }
                 if (receiver != null) {

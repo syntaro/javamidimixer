@@ -44,25 +44,25 @@ public class MGStatusFinder {
         _cachedDataentry = new ArrayList();
         for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++row) {
             for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
-                makeCacheInternal1(_mixer.getStatus(MGStatus.TYPE_SLIDER,  row, column));
+                makeCacheImpl(_mixer.getStatus(MGStatus.TYPE_SLIDER,  row, column));
             }
         }
 
         for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++row) {
             for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
-                makeCacheInternal1(_mixer.getStatus(MGStatus.TYPE_CIRCLE, row, column));
+                makeCacheImpl(_mixer.getStatus(MGStatus.TYPE_CIRCLE, row, column));
             }
         }
 
         for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++row) {
             for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
                 MGStatus status = _mixer.getStatus(MGStatus.TYPE_DRUMPAD, row, column);
-                makeCacheInternal1(status);
+                makeCacheImpl(status);
             }
         }
     }
 
-    public void makeCacheInternal1(MGStatus status) {
+    public void makeCacheImpl(MGStatus status) {
         if (status == null) {
             return;
         }

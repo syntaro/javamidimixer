@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Syntarou YOSHIDA.
+ * Copyright (C) 2023 Syntarou YOSHIDA
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,15 +16,16 @@
  */
 package jp.synthtarou.midimixer.libs.midi.capture;
 
-import jp.synthtarou.midimixer.libs.common.MXRangedValue;
+import java.util.ArrayList;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class GateInfomation {
-    public int _gate;
-    public int _hitLoValue;
-    public int _hitHiValue;
-    public TextInformation _parent;
+public class CounterFolder extends ArrayList<Counter> {
+    public CounterFolder(String name) {
+        _name = name;
+    }
+    
+    String _name;
 }

@@ -208,7 +208,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 int valueN = node.getSettingAsInt("value", 0);
                 int valueMin = node.getSettingAsInt("valuemin", 0);
                 int valueMax = node.getSettingAsInt("valuemax", 127);
-                MXRangedValue gate = template.getBytePosHiGate() >= 0 ? MXRangedValue.new14bit(gateN) : MXRangedValue.new7bit(gateN);
+                MXRangedValue gate = template.indexOfGateHi() >= 0 ? MXRangedValue.new14bit(gateN) : MXRangedValue.new7bit(gateN);
                 MXRangedValue value = new MXRangedValue(valueN, valueMin, valueMax);
                 status.setBaseMessage(MXMessageFactory.fromTemplate(_port, template, channel, gate, value));
 
@@ -241,7 +241,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 int valueN = node.getSettingAsInt("value", 0);
                 int valueMin = node.getSettingAsInt("valuemin", 0);
                 int valueMax = node.getSettingAsInt("valuemax", 127);
-                MXRangedValue gate = template.getBytePosHiGate() >= 0 ? MXRangedValue.new14bit(gateN) : MXRangedValue.new7bit(gateN);
+                MXRangedValue gate = template.indexOfGateHi() >= 0 ? MXRangedValue.new14bit(gateN) : MXRangedValue.new7bit(gateN);
                 MXRangedValue value = new MXRangedValue(valueN, valueMin, valueMax);
                 status.setBaseMessage(MXMessageFactory.fromTemplate(_port, template, channel, gate, value));
 
@@ -277,7 +277,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 int valueN = node.getSettingAsInt("value", 0);
                 int valueMin = node.getSettingAsInt("valuemin", 0);
                 int valueMax = node.getSettingAsInt("valuemax", 127);
-                MXRangedValue gate = template.getBytePosHiGate() >= 0 ? MXRangedValue.new14bit(gateN) : MXRangedValue.new7bit(gateN);
+                MXRangedValue gate = template.indexOfGateHi() >= 0 ? MXRangedValue.new14bit(gateN) : MXRangedValue.new7bit(gateN);
                 MXRangedValue value = new MXRangedValue(valueN, valueMin, valueMax);
                 status.setBaseMessage(MXMessageFactory.fromTemplate(_port, template, channel, gate, value));
 

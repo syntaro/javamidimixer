@@ -169,7 +169,7 @@ public class MXMidi {
     public static final int CCXML_RSCTPT1P = 0x2300;
     public static final int CCXML_RSCTPT2P = 0x2400;
     public static final int CCXML_RSCTPT3P = 0x2500;
-    public static final int CCXML_CHECKSUM_SET = 0x2600;
+    public static final int CCXML_CHECKSUM_END = 0x2600;
     public static final int CCXML_CHECKSUM_START = 0x2700;
 
     public static final int DATA1_CC_BANKSELECT = 0;

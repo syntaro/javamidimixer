@@ -38,7 +38,6 @@ import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.ccxml.CCXParserForCCM;
 import jp.synthtarou.midimixer.ccxml.PickerForControlChange;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.navigator.NavigatorForText;
@@ -47,9 +46,9 @@ import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
-import jp.synthtarou.midimixer.libs.midi.capture.GateInfomation;
-import jp.synthtarou.midimixer.libs.midi.capture.MXMessageCapture;
-import jp.synthtarou.midimixer.libs.midi.capture.MXMessageCapturePanel;
+import jp.synthtarou.midimixer.libs.midi.capture.Counter;
+import jp.synthtarou.midimixer.libs.midi.capture.MXCaptureProcess;
+import jp.synthtarou.midimixer.libs.midi.capture.MXCaptureView;
 import jp.synthtarou.midimixer.libs.navigator.INavigator;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
@@ -2120,24 +2119,19 @@ public class MGStatusPanel extends javax.swing.JPanel {
     static final String INTERNAL_DATARPN = "Dataentry RPN";
     static final String INTERNAL_DATANRPN = "Dataentry NRPN";
 
-    MXMessageCapture _capture = null;
+    MXCaptureProcess _capture = null;
 
     public void startCapture() {
-        _capture = new MXMessageCapture();
+        _capture = new MXCaptureProcess();
         MXMain.setCapture(_capture);
-        MXMessageCapturePanel panel = new MXMessageCapturePanel();
+        MXCaptureProcess capture = new MXCaptureProcess();
+        MXCaptureView panel = new MXCaptureView(capture);
         MXModalFrame.showAsDialog(this, panel, "Capture ...");
-        GateInfomation retval = panel._selected;
-        if (retval != null) {
-            /* TODO
-            _status._base = retval._parent.channel;
-            _status._base = MXTemplate.fromCCXMLText(_status._port, retval._parent.dtext, _status._channel);
-            _status._gate = new RangedValue(retval._gate, retval._hitLoValue, retval._hitHiValue);
-             */
-            String dtext = retval._parent._data;
 
-            displayStatusToPanelSlider();
-            MXMessage message = _status._base;
+        Counter retval = panel._selected;
+        if (retval != null) {
+            MXMessage message = retval._message;
+            String dtext = retval._message.getTemplateAsText();
 
             if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
                 int z = JOptionPane.showConfirmDialog(
@@ -2151,19 +2145,23 @@ public class MGStatusPanel extends javax.swing.JPanel {
                     _status.setBaseMessage(message);
                 }
             } else {
-                int max = 128 - 1;
-                if (message.hasValueHiField() || message.isValuePairCC14()) {
-                    max = 128 * 128 - 1;
+                int preferedMin = message.getValue()._min;
+                int preferedMax = message.getValue()._max;
+                int happenedMin = retval._value.getMin();
+                int happenedMax = retval._value.getMax();
+                _status.setBaseMessage(message);
+                
+                if (preferedMin == happenedMin && preferedMax == happenedMax) {
                 }
-                if (retval._hitLoValue != 0 || retval._hitHiValue != max) {
+                else {
                     int z = JOptionPane.showConfirmDialog(
                             this,
-                            "min-max = " + retval._hitLoValue + "-" + retval._hitHiValue + "\n"
-                            + " I will offer you reset to 0 - " + max,
-                            "Offer (adjust value rnage)",
+                            "min-max = " + happenedMin + "-" +  happenedMax + "\n"
+                            + " I will offer you reset to " +preferedMin + "-" + preferedMax,
+                            "Offer (value range)",
                             JOptionPane.YES_NO_OPTION);
-                    if (z == JOptionPane.YES_OPTION) {
-                        _status.setCustomRange(0, max);
+                    if (z == JOptionPane.NO_OPTION) {
+                        _status.setCustomRange(happenedMin, happenedMax);
                     }
                 }
             }

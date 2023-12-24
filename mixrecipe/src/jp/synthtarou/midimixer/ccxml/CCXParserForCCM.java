@@ -62,8 +62,8 @@ public class CCXParserForCCM {
         boolean hasValueHi = false;
         boolean hasGateHi = false;
         if (template != null) {
-            hasValueHi = (template.getBytePosHiValue() >= 0) ? true : false;
-            hasGateHi = (template.getBytePosHiGate() >= 0) ? true:  false;
+            hasValueHi = (template.indexOfValueHi() >= 0) ? true : false;
+            hasGateHi = (template.indexOfGateHi() >= 0) ? true:  false;
         }
         
         MXWrapList<Integer> valueTable = null;

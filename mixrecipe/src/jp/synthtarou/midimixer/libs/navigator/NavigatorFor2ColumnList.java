@@ -21,6 +21,7 @@ import java.awt.Component;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -317,7 +318,7 @@ public class NavigatorFor2ColumnList<T> extends javax.swing.JPanel implements IN
         public DefaultRowCellRenderer(int defaultRow) {
             _base = new DefaultTableCellRenderer();
             _defaultRow = defaultRow;
-            _baseTextColor = null;
+            _baseTextColor = new JLabel().getForeground();
         }
 
         int _defaultRow;
@@ -327,9 +328,6 @@ public class NavigatorFor2ColumnList<T> extends javax.swing.JPanel implements IN
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             Component order = _base.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-            if (_baseTextColor == null) {
-                _baseTextColor = order.getForeground();
-            }
             if (_defaultRow == row) {
                 order.setForeground(Color.green);
             }else {

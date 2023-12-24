@@ -33,7 +33,8 @@ import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
  *
  * @author Syntarou YOSHIDA
  */
-public class CXGeneralMidiFile {
+
+public class CXGeneralMidiFile extends CXFile {
 
     static CXGeneralMidiFile _instance = new CXGeneralMidiFile();
 
@@ -41,21 +42,20 @@ public class CXGeneralMidiFile {
         return _instance;
     }
 
-    CXFile _file;
-
     CXGeneralMidiFile() {
-        _file = new CXFile("GMLevel1.xml");
+        super("GMLevel1.xml");
 
-        if (_file.listModules() != null) {
-            if (_file.listModules().size() > 0) {
+        if (listModules() != null) {
+            if (listModules().size() > 0) {
                 return;
             }
         }
 
-        _file._document._listChildTags.clear();
-        _file._document._listAttributes.clear();
+        _loadError = null;
+        _document._listChildTags.clear();
+        _document._listAttributes.clear();
 
-        CXNode moduleData = _file._document.newTag("ModuleData", true);
+        CXNode moduleData = _document.newTag("ModuleData", true);
 
         moduleData._listAttributes.addNameAndValue("Name", "GMLevel1");
         moduleData._listAttributes.addNameAndValue("Folder", "Preinstall");
@@ -87,8 +87,8 @@ public class CXGeneralMidiFile {
         createControlChange(controlChangeMacroList);
 
         try {
-            _file.writeToTeporary();
-            _file.moveTemporaryToThis();
+            writeToTeporary();
+            moveTemporaryToThis();
         } catch (Exception e) {
             e.printStackTrace();;
         }
@@ -183,12 +183,50 @@ public class CXGeneralMidiFile {
     }
 
     public void createControlChange(CXNode controlChangeMacroList) {
+        CXNode folderTag0 = controlChangeMacroList.newTag("Folder", true);
+        folderTag0._listAttributes.addNameAndValue("Name", "Note");
+        for (MXWrap<Integer> wrap : MXWrapListFactory.listupCommand(false)) {
+            int command = wrap._value;
+            if (command != MXMidi.COMMAND_CH_NOTEON && command != MXMidi.COMMAND_CH_NOTEOFF) {
+                continue;
+            }
+            if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                continue;
+            }
+            String name = wrap._name;
+            MXMessage message = MXMessageFactory.fromShortMessage(0, command, 0, 0);
+
+            CXNode ccmTag = folderTag0.newTag("CCM", true);
+            ccmTag._listAttributes.addNameAndValue("ID", String.valueOf(1000 + command));
+            ccmTag._listAttributes.addNameAndValue("Name", name);
+            ccmTag._listAttributes.addNameAndValue("Color", "");
+            ccmTag._listAttributes.addNameAndValue("Sync", "Last");
+
+            CXNode valueTag = ccmTag.newTag("Value", true);
+            valueTag.setTextContent("");
+            CXNode gateTag = ccmTag.newTag("Gate", true);
+            gateTag.setTextContent("" + message.getGate()._var);
+            switch (message.getStatus() & 0xf0) {
+                case MXMidi.COMMAND_CH_POLYPRESSURE:
+                case MXMidi.COMMAND_CH_NOTEON:
+                case MXMidi.COMMAND_CH_NOTEOFF:
+                    gateTag._listAttributes.addNameAndValue("Type", "Key");
+                    break;
+            }
+            CXNode dataTag = ccmTag.newTag("Data", true);
+            dataTag.setTextContent(message.getTemplateAsText());
+            CXNode memoTag = ccmTag.newTag("Memo", true);
+            memoTag.setTextContent("");
+        }
 
         CXNode folderTag1 = controlChangeMacroList.newTag("Folder", true);
         folderTag1._listAttributes.addNameAndValue("Name", "Command");
 
         for (MXWrap<Integer> wrap : MXWrapListFactory.listupCommand(false)) {
             int command = wrap._value;
+            if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF) {
+                continue;
+            }
             if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
                 continue;
             }
@@ -351,7 +389,7 @@ public class CXGeneralMidiFile {
     public CXNode simpleFindProgram(int seekPC) {
         seekPC ++; // 0~>1
         
-        List<CXNode> listModuleData = _file._document.listChildren(CCRuleManager._instance.moduleData);
+        List<CXNode> listModuleData = _document.listChildren(CCRuleManager._instance.moduleData);
         List<CXNode> listInstrument = seekEveryonesChildren(listModuleData, CCRuleManager._instance.instrumentList);
         List<CXNode> listMap = seekEveryonesChildren(listInstrument, CCRuleManager._instance.instrumentList_map);
         List<CXNode> listPC = seekEveryonesChildren(listMap, CCRuleManager._instance.instrumentList_pc);
@@ -381,8 +419,8 @@ public class CXGeneralMidiFile {
     }
     
     public CXNode simpleFindDrum(int key) {
-        _file._document.getChangeStamp(); //TODO
-        List<CXNode> listModuileData = _file._document.listChildren(CCRuleManager._instance.moduleData);
+        _document.getChangeStamp(); //TODO
+        List<CXNode> listModuileData = _document.listChildren(CCRuleManager._instance.moduleData);
         List<CXNode> listDrumSet = CXGeneralMidiFile.this.seekEveryonesChildren(listModuileData, "DrumSetList");
         List<CXNode> listMap = CXGeneralMidiFile.this.seekEveryonesChildren(listDrumSet, "Map");
         List<CXNode> listPC = CXGeneralMidiFile.this.seekEveryonesChildren(listMap, "PC");

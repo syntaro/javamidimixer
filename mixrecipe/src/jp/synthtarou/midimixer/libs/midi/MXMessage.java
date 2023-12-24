@@ -268,18 +268,18 @@ public final class MXMessage implements Comparable<MXMessage> {
             throw new NullPointerException();
         }
         if (gate == null) {
-            if (template.getBytePosHiGate() >= 0) {
+            if (template.indexOfGateHi() >= 0) {
                 gate = MXRangedValue.new14bit(0);
-            } else if (template.getBytePosGate() >= 0) {
+            } else if (template.indexOfGateLow() >= 0) {
                 gate = MXRangedValue.new7bit(0);
             } else {
                 gate = MXRangedValue.new7bit(0);
             }
         }
         if (value == null) {
-            if (template.getBytePosHiValue() >= 0) {
+            if (template.indexOfValueHi() >= 0) {
                 value = MXRangedValue.new14bit(0);
-            } else if (template.getBytePosValue() >= 0) {
+            } else if (template.indexOfValueLow() >= 0) {
                 value = MXRangedValue.new7bit(0);
             } else {
                 value = MXRangedValue.new7bit(0);
@@ -431,11 +431,11 @@ public final class MXMessage implements Comparable<MXMessage> {
         if (command == MXMidi.COMMAND_CH_POLYPRESSURE) {
             int note = getGate()._var;
             int velocity = getValue()._var;
-            return chname + "PPrs";
+            return chname + "Prs";
         }
         if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
             int program = getGate()._var;
-            return chname + "PG" + program;
+            return chname + "Pg" + program;
         }
         if (command == MXMidi.COMMAND_CH_CHANNELPRESSURE) {
             return chname + "ChPrs";
@@ -716,25 +716,25 @@ public final class MXMessage implements Comparable<MXMessage> {
     }
 
     public boolean hasValueHiField() {
-        return _template.getBytePosHiValue() >= 0;
+        return _template.indexOfValueHi() >= 0;
     }
 
     public boolean hasValueLowField() {
-        return _template.getBytePosValue() >= 0;
+        return _template.indexOfValueLow() >= 0;
     }
 
     public boolean hasGateLowField() {
-        return _template.getBytePosGate() >= 0;
+        return _template.indexOfGateLow() >= 0;
     }
 
     public boolean hasGateHiField() {
         if (_template == null) {
             return false;
         }
-        return _template.getBytePosHiGate() >= 0;
+        return _template.indexOfGateHi() >= 0;
     }
 
-    MXTemplate getTemplate() {
+    public MXTemplate getTemplate() {
         return _template;
     }
 
@@ -749,15 +749,6 @@ public final class MXMessage implements Comparable<MXMessage> {
         message._mx30result = _mx30result;
 
         return message;
-    }
-
-    /*
-    public boolean takeTicket(int ticketNumber) {
-        return _timing.takeTicket(ticketNumber, this);
-    }*/
-
-    public boolean isSameTemplate(int dword) {
-        return true;
     }
 
     public MXMessage refillGate() {
@@ -797,7 +788,7 @@ public final class MXMessage implements Comparable<MXMessage> {
     public int getTemplateAsParsed(int pos) {
         return getTemplate().parseDAlias(getTemplate().get(pos), this);
     }
-
+    
     public int getTemplateAsPlain(int pos) {
         return getTemplate().get(pos);
     }
