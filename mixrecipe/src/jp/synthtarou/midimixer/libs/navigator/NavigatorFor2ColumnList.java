@@ -48,10 +48,6 @@ public class NavigatorFor2ColumnList<T> extends javax.swing.JPanel implements IN
     /**
      * Creates new form NavigatorForWrapList
      */
-    public NavigatorFor2ColumnList(MXWrapList<T> list) {
-        this(list, -1);
-    }
-
     public NavigatorFor2ColumnList(MXWrapList<T> list, int selectedIndex) {
         initComponents();
         _list = list;

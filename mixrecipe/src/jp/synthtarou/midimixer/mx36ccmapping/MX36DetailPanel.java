@@ -18,17 +18,13 @@ package jp.synthtarou.midimixer.mx36ccmapping;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JOptionPane;
-import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import jp.synthtarou.midimixer.ccxml.CCXParserForCCM;
@@ -266,8 +262,14 @@ public class MX36DetailPanel extends javax.swing.JPanel {
                         jTextFieldOutGate.setText(noteName);
                     }
                 }
-            } else {
+            } else if (_status._outGateTable != null) {
                 MXWrapListPopup<Integer> actions = new MXWrapListForPanel(target, _status._outGateTable);
+                actions.show();
+            }
+            else {
+                MXRangedValue range = _status._outGateRange;
+                MXWrapList<Integer> gate = MXWrapListFactory.listupRange(range._min, range._max);
+                MXWrapListPopup<Integer> actions = new MXWrapListForPanel(target, gate);
                 actions.show();
             }
             return;
@@ -999,6 +1001,9 @@ public class MX36DetailPanel extends javax.swing.JPanel {
     private void jTextFieldValueValueMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextFieldValueValueMousePressed
         MXWrapList<Integer> list = _status._outValueTable;
 
+        if (list == null) {
+            list = MXWrapListFactory.listupRange(_status._outValueRange._min, _status._outValueRange._max);
+        }
         PopupHandler<Integer> handler = new PopupHandler<Integer>() {
             @Override
             public boolean popupSelected(JTextField textField, MXWrapList<Integer> list, int selected) {

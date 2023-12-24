@@ -20,8 +20,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.navigator.INavigator;
+import jp.synthtarou.midimixer.libs.navigator.NavigatorFor1ColumnList;
 import jp.synthtarou.midimixer.libs.navigator.NavigatorForText;
-import jp.synthtarou.midimixer.libs.navigator.NavigatorFor2ColumnList;
 import jp.synthtarou.midimixer.libs.navigator.NavigatorUtil;
 
 /**
@@ -147,7 +147,7 @@ public class MX36View extends javax.swing.JPanel {
         for (MX36Folder folder : _process._list._listFolder) {
             listFolder.addNameAndValue(folder._folderName, folder);
         }
-        NavigatorFor2ColumnList<MX36Folder> navi = new NavigatorFor2ColumnList<>(listFolder);
+        NavigatorFor1ColumnList<MX36Folder> navi = new NavigatorFor1ColumnList<>(listFolder, -1);
         NavigatorUtil.showNavigator(this, navi, "Move To ... < your choice >");
         if (navi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
             int y = navi.getReturnIndex();

@@ -219,7 +219,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
                     }
                     checksum = new CheckSumInfo();
                     checksum._from = writePos;
-                    if (_listChecksum == null) {
+                     if (_listChecksum == null) {
                         _listChecksum = new ArrayList<>();
                     }
                     _listChecksum.add(checksum);
@@ -232,6 +232,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
                         throw new IllegalArgumentException("Checksum start and end without span");
                     }
                     writeBuffer[writePos++] = x;
+                    checksum = null;
                 } else {
                     writeBuffer[writePos++] = x;
                 }
@@ -447,32 +448,32 @@ public class MXTemplate implements Comparable<MXTemplate> {
         if (_commands == null) {
             return texts;
         }
+        
+        int code0 = _commands[0];
+        int index = textCommand.indexOfValue(code0);
+        String name;
+        if (index >= 0) {
+            int code = textCommand.get(index)._value;
+            name = textCommand.get(index)._name;
+            texts.add(fromType(code));
 
-        texts.add(fromType(_commands[0]));
-
-        if (message.isMessageTypeChannel()) {
-            int status = _commands[0];
-            int command = status;
-            int channel = message.getChannel();
-
-            int data1 = message.getData1();
-            int data2 = message.getData2();
-
-            switch (command) {
-                case MXMidi.COMMAND_CH_NOTEOFF:
+            switch(code) {
                 case MXMidi.COMMAND_CH_NOTEON:
+                case MXMidi.COMMAND_CH_NOTEOFF:
                 case MXMidi.COMMAND_CH_POLYPRESSURE:
                 case MXMidi.COMMAND_CH_CONTROLCHANGE:
                 case MXMidi.COMMAND_SONGPOSITION:
                     texts.add(fromAlias(_commands[1]));
                     texts.add(fromAlias(_commands[2]));
                     return texts;
+
                 case MXMidi.COMMAND_CH_PROGRAMCHANGE:
                 case MXMidi.COMMAND_CH_CHANNELPRESSURE:
                 case MXMidi.COMMAND_SONGSELECT:
                 case MXMidi.COMMAND_MIDITIMECODE:
                     texts.add(fromAlias(_commands[1]));
                     return texts;
+
                 case MXMidi.COMMAND_F4:
                 case MXMidi.COMMAND_F5:
                 case MXMidi.COMMAND_TUNEREQUEST:
@@ -485,6 +486,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
                 case MXMidi.COMMAND_ACTIVESENSING:
                 case MXMidi.COMMAND_META_OR_RESET:
                     return texts;
+
                 case MXMidi.COMMAND_SYSEX:
                 case MXMidi.COMMAND_SYSEX_END:
                     break;
@@ -496,6 +498,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
                     texts.add(fromAlias(_commands[3]));
                     texts.add(fromAlias(_commands[4]));
                     return texts;
+
                 case MXMidi.COMMAND2_NONE:
                 case MXMidi.COMMAND2_CH_PROGRAM_INC:
                 case MXMidi.COMMAND2_CH_PROGRAM_DEC:
@@ -503,16 +506,37 @@ public class MXTemplate implements Comparable<MXTemplate> {
                 case MXMidi.COMMAND2_SYSTEM:
                 case MXMidi.COMMAND2_META:
                     break;
+
+                case MXMidi.COMMAND_CH_PITCHWHEEL:
+                    texts.add("#VH");
+                    texts.add("#VL");
+                    return texts;
             }
         }
 
         texts.clear();
+        int[] sumHead = null;
+        if (_listChecksum != null) {
+            sumHead = new int[_listChecksum.size()];
+            for (int x = 0; x < _listChecksum.size(); ++ x) {
+                sumHead[x] = _listChecksum.get(x)._from;
+            }
+        }
+        int seekHead = 0;
+        int wrote = 0;
+        
         for (int i = 0; i < _commands.length; ++i) {
             int code = _commands[i];
+            if (sumHead != null && seekHead < sumHead.length && sumHead[seekHead] == wrote) {
+                texts.add("[");
+                seekHead ++;
+            }
+
             if (i == 0) {
                 String str1 = fromType(_commands[0]);
                 if (str1 != null) {
                     texts.add(str1);
+                    wrote ++;
                     continue;
                 }
             }
@@ -520,15 +544,13 @@ public class MXTemplate implements Comparable<MXTemplate> {
             if (i == 0 && message.isMessageTypeChannel()) {
                 code &= 0xf0;
             }
-            if (code == MXMidi.CCXML_CHECKSUM_START) {
-                texts.add("[");
-                continue;
-            }
             if (code == MXMidi.CCXML_CHECKSUM_END) {
                 texts.add("]");
+                wrote ++;
                 continue;
             }
             texts.add(fromAlias(code));
+            wrote ++;
         }
         return texts;
     }
@@ -694,6 +716,12 @@ public class MXTemplate implements Comparable<MXTemplate> {
         return new MXTemplate(template);
     }
 
+    /**
+     * dataを読み込んでメッセージ型に、ch, gate, valueをセットして返す
+     * @param port
+     * @param data
+     * @return 
+     */
     public MXMessage readDataForChGateValue(int port, byte[] data) {
         MXTemplate me = this;
 
@@ -740,15 +768,12 @@ public class MXTemplate implements Comparable<MXTemplate> {
                 int c1 = me.get(templateSeek);
                 templateSeek++;
 
-                if (c1 == MXMidi.CCXML_CHECKSUM_START) {
-                    continue;
-                }
                 if (c1 == MXMidi.CCXML_CHECKSUM_END) {
-                    //any ok
                     dataSeek++;
                     continue;
                 }
                 int c2 = data[dataSeek++] & 0xff;
+                // チャンネルメッセージはチャンネル番号を取り込む
                 if (templateSeek == 1 && c2 >= 0x80 && c2 <= 0xef) {
                     channel = c2 & 0x0f;
                     c1 = c1 & 0xf0;
@@ -842,5 +867,17 @@ public class MXTemplate implements Comparable<MXTemplate> {
             }
         }
         return 0;
+    }
+    
+    public static void main(String[] args) {
+        String[] test = { "0xf0 [1 2 #VL 3] 4 5 6 0xf7" };
+        for (String seek : test) {
+            MXTemplate template = new MXTemplate(seek);
+            for (int x = 0;  x < 127; x += 26) {
+                MXMessage message = MXMessageFactory.fromTemplate(1, template, 5, MXRangedValue.ZERO7, MXRangedValue.new7bit(x));
+                System.out.println(" x = " + x + " / " + MXUtil.dumpHex(message.getBinary()));
+                System.out.println(" template = " + message.getTemplateAsText());
+            }
+        }
     }
 }

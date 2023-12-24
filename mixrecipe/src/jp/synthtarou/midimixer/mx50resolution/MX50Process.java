@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
+import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
@@ -31,18 +32,19 @@ import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
  * @author Syntarou YOSHIDA
  */
 public class MX50Process extends MXReceiver implements MXSettingTarget {
+
     MXSetting _setting;
     MX50View _view;
     ArrayList<MXResolution> _listResolution;
 
     public MX50Process() {
         _listResolution = new ArrayList();
-        
+
         _view = new MX50View(this);
         _setting = new MXSetting("ResolutionDown");
         _setting.setTarget(this);
     }
-    
+
     @Override
     public String getReceiverName() {
         return "ResolutionDown";
@@ -59,14 +61,24 @@ public class MX50Process extends MXReceiver implements MXSettingTarget {
 
     @Override
     public void processMXMessage(MXMessage message) {
+        MXMessageBag result = new MXMessageBag();
+        boolean proc = false;
         for (MXResolution reso : _listResolution) {
-            if (reso.hasSameTemplateChGate(message)) {
-                message = reso.updateWithNewResolution(message);
-                sendToNext(message);
-                return;
+            if (reso.controlByMessage(message, result)) {
+                proc = true;
             }
         }
-        sendToNext(message);
+        if (proc) {
+            while (true) {
+                MXMessage seek = result.popTranslated();
+                if (seek == null) {
+                    break;
+                }
+                sendToNext(seek);
+            }
+        } else {
+            sendToNext(message);
+        }
     }
 
     @Override
@@ -77,8 +89,7 @@ public class MX50Process extends MXReceiver implements MXSettingTarget {
         setting.register("Resolution[].Gate");
         setting.register("Resolution[].Min");
         setting.register("Resolution[].Max");
-        setting.register("Resolution[].ResolutionMin");
-        setting.register("Resolution[].ResolutionMax");
+        setting.register("Resolution[].Resolution");
     }
 
     @Override
@@ -86,8 +97,9 @@ public class MX50Process extends MXReceiver implements MXSettingTarget {
         int x = 1;
         _listResolution.clear();
 
-        while(true) {
+        while (true) {
             String prefix = "Resolution[" + x + "].";
+            x++;
             String command = setting.getSetting(prefix + "Command");
             if (command == null || command.isBlank()) {
                 break;
@@ -97,22 +109,24 @@ public class MX50Process extends MXReceiver implements MXSettingTarget {
             int gate = setting.getSettingAsInt(prefix + "Gate", 0);
             int min = setting.getSettingAsInt(prefix + "Min", -1);
             int max = setting.getSettingAsInt(prefix + "Max", -1);
-            int resolutionMin = setting.getSettingAsInt(prefix + "ResolutionMin", -1);
-            int resolutionMax = setting.getSettingAsInt(prefix + "ResolutionMax", -1);
-            
+            int resolution = setting.getSettingAsInt(prefix + "Resolution", -1);
+
             MXResolution reso = new MXResolution();
             try {
                 MXTemplate template = new MXTemplate(command);
                 MXRangedValue gateObj = MXRangedValue.new7bit(gate);
                 MXRangedValue value = new MXRangedValue(0, min, max);
-
-                MXMessage message = MXMessageFactory.fromTemplate(port, template, channel, gateObj, value);
-                reso.setBaseMessage(message);
+                
+                reso._channel = channel;
+                reso._gate = gate;
+                reso._command = template;
                 reso._lastSent = -1;
-                reso._newResolution = new MXRangedValue(0, resolutionMin, resolutionMax);
+                reso._port = port;
+                reso._resolution = resolution;
+
                 _listResolution.add(reso);
 
-            }catch(Throwable e) {
+            } catch (Throwable e) {
                 e.printStackTrace();
                 continue;
             }
@@ -125,15 +139,12 @@ public class MX50Process extends MXReceiver implements MXSettingTarget {
         int x = 1;
         for (MXResolution reso : _listResolution) {
             String prefix = "Resolution[" + x + "].";
-            x ++;
-            setting.setSetting(prefix + "Command", reso._base.getTemplateAsText());
-            setting.setSetting(prefix + "Port", reso._base.getPort());
-            setting.setSetting(prefix + "Channel", reso._base.getChannel());
-            setting.setSetting(prefix + "Gate", reso._base.getGate()._var);
-            setting.setSetting(prefix + "Min",  reso._base.getValue()._min);
-            setting.setSetting(prefix + "Max",  reso._base.getValue()._max);
-            setting.setSetting(prefix + "ResolutionMin", reso._newResolution._min);
-            setting.setSetting(prefix + "ResolutionMax", reso._newResolution._max);
+            x++;
+            setting.setSetting(prefix + "Command", reso._command.toDText(null));
+            setting.setSetting(prefix + "Port", reso._port);
+            setting.setSetting(prefix + "Channel", reso._channel);
+            setting.setSetting(prefix + "Gate", reso._gate);
+            setting.setSetting(prefix + "Resolution", reso._resolution);
         }
     }
 }

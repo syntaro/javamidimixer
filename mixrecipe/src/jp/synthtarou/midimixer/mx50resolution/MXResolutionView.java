@@ -16,14 +16,15 @@
  */
 package jp.synthtarou.midimixer.mx50resolution;
 
+import java.util.TreeSet;
 import jp.synthtarou.midimixer.ccxml.CCXParserForCCM;
 import jp.synthtarou.midimixer.ccxml.PickerForControlChange;
-import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.navigator.INavigator;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 
 /**
  *
@@ -31,13 +32,28 @@ import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
  */
 public class MXResolutionView extends javax.swing.JPanel {
     MXResolution _resolution;
-
+    MXWrapList<Integer> _listResolution;
+        
     /**
      * Creates new form MX50ResolutionView
      */
     public MXResolutionView(MXResolution resolution) {
         initComponents();
-        _resolution = resolution;
+        _listResolution = new MXWrapList<>();
+        int []newReso = new int [] {
+            -1, 8, 16, 32, 64, 128, 256, 512
+        };
+        TreeSet<Integer> sort = new TreeSet();
+        for (int x : newReso) {
+            sort.add(x);
+        }
+        sort.add(resolution._resolution);
+        for (Integer x : sort) {
+            _listResolution.addNameAndValue(Integer.toString(x), x);
+        }
+        jComboBoxResolution.setModel(_listResolution);
+        jComboBoxResolution.setSelectedIndex(_listResolution.indexOfValue(resolution._resolution));
+       _resolution = resolution;
     }
 
     /**
@@ -54,18 +70,19 @@ public class MXResolutionView extends javax.swing.JPanel {
         jLabel3 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
-        jLabel9 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
-        jTextField1 = new javax.swing.JTextField();
+        jLabelGate = new javax.swing.JLabel();
+        jLabelChannel = new javax.swing.JLabel();
+        jButtonChange = new javax.swing.JButton();
+        jTextFieldCommand = new javax.swing.JTextField();
         jPanel2 = new javax.swing.JPanel();
-        jComboBox1 = new javax.swing.JComboBox<>();
+        jComboBoxResolution = new javax.swing.JComboBox<>();
         jPanel3 = new javax.swing.JPanel();
         jLabelLastDetect = new javax.swing.JLabel();
 
-        setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        setBorder(javax.swing.BorderFactory.createTitledBorder("Resolution"));
         setLayout(new java.awt.GridBagLayout());
 
+        jPanel1.setBackground(new java.awt.Color(255, 255, 204));
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Command"));
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
@@ -88,43 +105,41 @@ public class MXResolutionView extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         jPanel1.add(jLabel7, gridBagConstraints);
 
-        jLabel8.setText("jLabel8");
+        jLabelGate.setText("-");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        jPanel1.add(jLabel8, gridBagConstraints);
+        jPanel1.add(jLabelGate, gridBagConstraints);
 
-        jLabel9.setText("jLabel9");
+        jLabelChannel.setText("-");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        jPanel1.add(jLabel9, gridBagConstraints);
+        jPanel1.add(jLabelChannel, gridBagConstraints);
 
-        jButton1.setText("Change");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        jButtonChange.setText("Change");
+        jButtonChange.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                jButtonChangeActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        jPanel1.add(jButton1, gridBagConstraints);
-
-        jTextField1.setText("jTextField1");
+        jPanel1.add(jButtonChange, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel1.add(jTextField1, gridBagConstraints);
+        jPanel1.add(jTextFieldCommand, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -134,25 +149,25 @@ public class MXResolutionView extends javax.swing.JPanel {
         gridBagConstraints.weightx = 1.0;
         add(jPanel1, gridBagConstraints);
 
+        jPanel2.setBackground(new java.awt.Color(255, 255, 204));
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("New Resolution"));
         jPanel2.setLayout(new java.awt.GridBagLayout());
-
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        jPanel2.add(jComboBox1, gridBagConstraints);
+        jPanel2.add(jComboBoxResolution, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         add(jPanel2, gridBagConstraints);
 
+        jPanel3.setBackground(new java.awt.Color(255, 255, 204));
         jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Last Detect"));
         jPanel3.setLayout(new java.awt.GridBagLayout());
 
@@ -163,14 +178,17 @@ public class MXResolutionView extends javax.swing.JPanel {
         jPanel3.add(jLabelLastDetect, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         add(jPanel3, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void jButtonChangeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonChangeActionPerformed
+        startEditCommand();
+    }//GEN-LAST:event_jButtonChangeActionPerformed
+
+    public void startEditCommand() {
         PickerForControlChange picker = new PickerForControlChange(false);
         MXModalFrame.showAsDialog(this, picker, "Picker");
         if (picker.getReturnStatus() != INavigator.RETURN_STATUS_APPROVED) {
@@ -181,29 +199,28 @@ public class MXResolutionView extends javax.swing.JPanel {
         if (x != null) {
             try {
                 MXTemplate template = new MXTemplate(x._data);
-                int port = 0;
-                int ch = 0;
+                int port = _resolution._port;
+                int gate = _resolution._gate;
+                int ch = _resolution._channel;
                 MXMessage message = MXMessageFactory.fromTemplate(port, template, ch, x._gate, x._value);
-                //TODO
             } catch (Throwable e) {
                 e.printStackTrace();
             }
         }
-    }//GEN-LAST:event_jButton1ActionPerformed
-
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JComboBox<String> jComboBox1;
+    private javax.swing.JButton jButtonChange;
+    private javax.swing.JComboBox<String> jComboBoxResolution;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
+    private javax.swing.JLabel jLabelChannel;
+    private javax.swing.JLabel jLabelGate;
     private javax.swing.JLabel jLabelLastDetect;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
-    private javax.swing.JTextField jTextField1;
+    private javax.swing.JTextField jTextFieldCommand;
     // End of variables declaration//GEN-END:variables
 }

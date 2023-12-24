@@ -16,13 +16,20 @@
  */
 package jp.synthtarou.midimixer.mx50resolution;
 
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MX50View extends javax.swing.JPanel {
+
     MX50Process _process;
-    
+
     /**
      * Creates new form MX50View
      */
@@ -30,6 +37,8 @@ public class MX50View extends javax.swing.JPanel {
         initComponents();
         _process = process;
     }
+
+    int count = 0;
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -42,9 +51,14 @@ public class MX50View extends javax.swing.JPanel {
         java.awt.GridBagConstraints gridBagConstraints;
 
         jScrollPane1 = new javax.swing.JScrollPane();
+        jPanel1 = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
 
         setLayout(new java.awt.GridBagLayout());
+
+        jPanel1.setLayout(new java.awt.GridBagLayout());
+        jScrollPane1.setViewportView(jPanel1);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -54,6 +68,11 @@ public class MX50View extends javax.swing.JPanel {
         add(jScrollPane1, gridBagConstraints);
 
         jButton1.setText("Add");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -61,9 +80,42 @@ public class MX50View extends javax.swing.JPanel {
         add(jButton1, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+
+        JOptionPane.showMessageDialog(this, "Sorry, Not Yet");
+        if (false) {
+            MXResolution reso = new MXResolution();
+            _process._listResolution.add(reso);
+            addToScrollPanel(new MXResolutionView(reso));
+        }
+
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    JLabel blankLabel = new JLabel("");
+
+    public void addToScrollPanel(JPanel panel) {
+        GridBagConstraints layout = new GridBagConstraints(
+                0, count, 1, 1, 1, 0,
+                GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL,
+                new Insets(0, 0, 0, 0), 0, 0);
+
+        jPanel1.add(panel, layout);
+
+        jPanel1.remove(blankLabel);
+        GridBagConstraints layout2 = new GridBagConstraints(
+                0, count, 1, 1, 1, 1,
+                GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL,
+                new Insets(0, 0, 0, 0), 0, 0);
+        jPanel1.add(blankLabel, layout2);
+
+        jScrollPane1.setViewportView(jPanel1);
+        ++count;
+        System.out.println("addeD " + count);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
 }

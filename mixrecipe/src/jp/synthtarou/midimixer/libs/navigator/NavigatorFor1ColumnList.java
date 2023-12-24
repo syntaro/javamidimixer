@@ -133,6 +133,7 @@ public class NavigatorFor1ColumnList<T> extends javax.swing.JPanel implements IN
         }
         _returnStatus = INavigator.RETURN_STATUS_CANCELED;
         _returnValue = null;
+        _returnIndex = -1;
         MXUtil.getOwnerWindow(this).setVisible(false);
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
@@ -142,6 +143,7 @@ public class NavigatorFor1ColumnList<T> extends javax.swing.JPanel implements IN
         }
         int sel = jListChoise.getSelectedIndex();
         if (sel >= 0) {
+            _returnIndex = sel;
             _returnValue = _listChoise.valueOfIndex(sel);
             _returnStatus = INavigator.RETURN_STATUS_APPROVED;
             MXUtil.getOwnerWindow(this).setVisible(false);
@@ -197,6 +199,11 @@ public class NavigatorFor1ColumnList<T> extends javax.swing.JPanel implements IN
         return _returnValue;
     }
 
+    public int getReturnIndex() {
+        return _returnIndex;
+    }
+
     int _returnStatus = INavigator.RETURN_STATUS_NOTSET;
     T _returnValue = null;
+    int _returnIndex = -1;
 }

@@ -157,7 +157,6 @@ public class MXSettingNode {
             try {
                 return Integer.parseInt(text);
             }catch(NumberFormatException e) {
-                e.printStackTrace();
                 return defval;
             }
         }

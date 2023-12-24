@@ -63,6 +63,9 @@ public class MXWrapListPopup<T> {
     protected JPopupMenu _menu;
 
     public MXWrapListPopup(JTextField target, MXWrapList<T> list, PopupHandler handler) {
+        if (list == null) {
+            throw new NullPointerException("list can't null");
+        }
         _textField = target;
         _list = list;
         _handler = handler;

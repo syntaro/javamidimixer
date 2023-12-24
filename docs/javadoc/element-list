@@ -20,6 +20,7 @@ jp.synthtarou.midimixer.libs.swing.focus
 jp.synthtarou.midimixer.libs.swing.folderbrowser
 jp.synthtarou.midimixer.libs.swing.themes
 jp.synthtarou.midimixer.libs.vst
+jp.synthtarou.midimixer.libs.wraplist
 jp.synthtarou.midimixer.mx00playlist
 jp.synthtarou.midimixer.mx10input
 jp.synthtarou.midimixer.mx11vcurve
@@ -28,6 +29,7 @@ jp.synthtarou.midimixer.mx30surface
 jp.synthtarou.midimixer.mx36ccmapping
 jp.synthtarou.midimixer.mx36ccmapping.accordion
 jp.synthtarou.midimixer.mx40layer
+jp.synthtarou.midimixer.mx50resolution
 jp.synthtarou.midimixer.mx60output
 jp.synthtarou.midimixer.mx70console
 jp.synthtarou.midimixer.mx80vst
