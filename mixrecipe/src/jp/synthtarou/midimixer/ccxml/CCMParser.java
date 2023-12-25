@@ -26,7 +26,7 @@ import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
  *
  * @author Syntarou YOSHIDA
  */
-public class CCXParserForCCM {
+public class CCMParser {
 
     public final CXFile _file;
     public final CXNode _node;
@@ -43,29 +43,62 @@ public class CCXParserForCCM {
     public final MXWrapList<Integer> _valueTable;
     public final MXWrapList<Integer> _gateTable;
     public final boolean _gateTypeKey;
-    
-    public CCXParserForCCM(CXFile file, CXNode node) {
+
+    public final boolean isCCMLink;
+    public final int _ccmLinkValue;
+    public final int _ccmLinkGate;
+
+    public CCMParser(CXFile file, CXNode node) {
         _node = node;
         _file = file;
+
+        int intValue = Integer.MIN_VALUE;
+        int intGate = Integer.MIN_VALUE;
+        if (node.getName().equalsIgnoreCase("CCMLink")) {
+            isCCMLink = true;
+            String textValue = node._listAttributes.valueOfName("Value");
+            String textGate = node._listAttributes.valueOfName("Gate");
+            try {
+                if (textValue != null) {
+                    intValue = Integer.parseInt(textValue);
+                }
+            } catch (Exception E) {
+
+            }
+            try {
+                if (textGate != null) {
+                    intGate = Integer.parseInt(textGate);
+                }
+            } catch (Exception E) {
+
+            }
+        }
+        else {
+            isCCMLink = false;
+        }
+        _ccmLinkGate = intGate;
+        _ccmLinkValue = intValue;
 
         _name = _node._listAttributes.valueOfName("Name");
         _memo = _node.firstChildsTextContext("Memo");
         _data = _node.firstChildsTextContext("Data");
-        
+
         MXTemplate template = null;
         try {
-            template = new MXTemplate(_data);
-        }catch(IllegalFormatException ex) {
+            if (_data != null) {
+                template = new MXTemplate(_data);
+            }
+        } catch (IllegalFormatException ex) {
             ex.printStackTrace();
         }
-        
+
         boolean hasValueHi = false;
         boolean hasGateHi = false;
         if (template != null) {
             hasValueHi = (template.indexOfValueHi() >= 0) ? true : false;
-            hasGateHi = (template.indexOfGateHi() >= 0) ? true:  false;
+            hasGateHi = (template.indexOfGateHi() >= 0) ? true : false;
         }
-        
+
         MXWrapList<Integer> valueTable = null;
         MXWrapList<Integer> gateTable = null;
 
@@ -107,8 +140,7 @@ public class CCXParserForCCM {
                 if (tableID2 >= 0) {
                     gateTable = file.getTable(tableID2);
                 }
-            }
-            else {
+            } else {
                 gateType = gate._listAttributes.valueOfName("Type");
             }
         } else {
@@ -122,8 +154,7 @@ public class CCXParserForCCM {
                 gateTable = MXWrapListFactory.listupNoteNo(false);
             }
             _gateTypeKey = true;
-        }
-        else {
+        } else {
             _gateTypeKey = false;
         }
         _gate = new MXRangedValue(defaultGate, minGate, maxGate);

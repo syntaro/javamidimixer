@@ -184,6 +184,16 @@ public class CXNode  {
         return list.size() > 0 ? list : null;
     }
 
+    public List<CXNode> listChildren() {
+        ArrayList<CXNode> list = new ArrayList<>();
+
+        for (CXNode tag : _listChildTags) {
+            list.add(tag);
+        }
+
+        return list.size() > 0 ? list : null;
+    }
+
     public List<CXNode> listModule() {
         CCRuleManager def = CCRuleManager.getInstance();
         return listChildren(def.getModuleDataTag());

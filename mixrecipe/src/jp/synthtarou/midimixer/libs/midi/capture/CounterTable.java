@@ -21,7 +21,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import jp.synthtarou.midimixer.ccxml.CCXParserForCCM;
+import jp.synthtarou.midimixer.ccxml.CCMParser;
 import jp.synthtarou.midimixer.ccxml.CXGeneralMidiFile;
 import jp.synthtarou.midimixer.ccxml.CXNode;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
@@ -69,7 +69,7 @@ public class CounterTable {
                     Counter cap = new Counter();
                     cap._ccNode = child;
 
-                    CCXParserForCCM ccm = new CCXParserForCCM(_generalMidi, child);
+                    CCMParser ccm = new CCMParser(_generalMidi, child);
                     MXTemplate template = null;
                     try {
                         template = new MXTemplate(ccm._data);

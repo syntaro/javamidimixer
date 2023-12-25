@@ -35,7 +35,7 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.ccxml.CCXParserForCCM;
+import jp.synthtarou.midimixer.ccxml.CCMParser;
 import jp.synthtarou.midimixer.ccxml.PickerForControlChange;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
@@ -2082,7 +2082,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
         PickerForControlChange picker = new PickerForControlChange(false);
         MXUtil.showAsDialog(jTextFieldTemplate, picker, "Which You Choose?");
         if (picker.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-            CCXParserForCCM ccm = picker.getReturnValue();
+            CCMParser ccm = picker.getReturnValue();
 
             if (ccm == null) {
                 return;

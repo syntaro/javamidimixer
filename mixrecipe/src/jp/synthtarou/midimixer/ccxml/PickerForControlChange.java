@@ -35,7 +35,7 @@ import jp.synthtarou.midimixer.libs.navigator.INavigator;
  *
  * @author Syntarou YOSHIDA
  */
-public class PickerForControlChange extends javax.swing.JPanel implements INavigator<CCXParserForCCM>{
+public class PickerForControlChange extends javax.swing.JPanel implements INavigator<CCMParser>{
 
     boolean _editable = false;
     ArrayList<CXFile> _listXMLFile = CXXMLManager.getInstance()._listLoaded;
@@ -283,14 +283,14 @@ public class PickerForControlChange extends javax.swing.JPanel implements INavig
                         jTextFieldData.setText(textData);
                     }
 
-                    _returnValue = new CCXParserForCCM(_selectedFile, cc);
+                    _returnValue = new CCMParser(_selectedFile, cc);
                 }
             }
         }
     }//GEN-LAST:event_jTree1ValueChanged
 
     int _returnStatus = INavigator.RETURN_STATUS_NOTSET;
-    CCXParserForCCM _returnValue;
+    CCMParser _returnValue;
     
     private void jButtonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOKActionPerformed
         _returnStatus = INavigator.RETURN_STATUS_APPROVED;
@@ -320,7 +320,7 @@ public class PickerForControlChange extends javax.swing.JPanel implements INavig
     }
 
     @Override
-    public CCXParserForCCM getReturnValue() {
+    public CCMParser getReturnValue() {
         return _returnValue;
     }
 
@@ -335,7 +335,7 @@ public class PickerForControlChange extends javax.swing.JPanel implements INavig
     }
 
     @Override
-    public boolean validateWithNavigator(CCXParserForCCM result) {
+    public boolean validateWithNavigator(CCMParser result) {
         return true;
     }
 }

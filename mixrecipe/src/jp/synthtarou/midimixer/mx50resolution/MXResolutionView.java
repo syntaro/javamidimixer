@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.mx50resolution;
 
 import java.util.TreeSet;
-import jp.synthtarou.midimixer.ccxml.CCXParserForCCM;
+import jp.synthtarou.midimixer.ccxml.CCMParser;
 import jp.synthtarou.midimixer.ccxml.PickerForControlChange;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
@@ -195,7 +195,7 @@ public class MXResolutionView extends javax.swing.JPanel {
             return;
         }
 
-        CCXParserForCCM x = picker.getReturnValue();
+        CCMParser x = picker.getReturnValue();
         if (x != null) {
             try {
                 MXTemplate template = new MXTemplate(x._data);

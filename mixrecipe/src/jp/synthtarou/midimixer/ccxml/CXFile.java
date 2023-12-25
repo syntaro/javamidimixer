@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,6 +42,7 @@ import javax.xml.transform.stream.StreamResult;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXLineReader;
+import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -66,6 +68,9 @@ public class CXFile {
         return _document.listChildren(CCRuleManager._instance.moduleData);
     }
 
+    static int testSame = 0;
+    static int testDiffectent = 0;
+    
     public static void main(String[] args) {
         CCRuleManager.dumpRules();
 
@@ -84,9 +89,100 @@ public class CXFile {
                     System.out.println("XMLFile [" + name + "]");
                     CXFile f2 = new CXFile(file);
                     f2.dumpWarning();
+
+                    for (CXNode seek : f2.listModules()) {
+                        deepCheckCCM(f2, seek);
+                    }
                 }
             }
         }
+        System.out.println("testSame = " + testSame);
+        System.out.println("testDifferent = " + testDiffectent);
+    }
+
+    public static void deepCheckCCM(CXFile file, CXNode node) {
+        LinkedList<CXNode> pool = new LinkedList();
+        pool.add(node);
+        while (pool.isEmpty() == false) {
+            CXNode seek = pool.removeFirst();
+            if (seek.getName().equals("CCM")) {
+                CCMParser ccm = new CCMParser(file, seek);
+                if (ccm._data == null) {
+                    System.err.println("CCM Data = no text *** Attributes = " + seek._listAttributes + " Childs = " + seek.listChildren());
+                    continue;
+                }
+                deepCheckCCM(ccm);
+                continue;
+            }
+            List<CXNode> childs = seek.listChildren();
+            if (childs != null) {
+                pool.addAll(childs);
+
+            }
+        }
+    }
+
+    public static void deepCheckCCM(CCMParser ccm) {
+
+        try {
+            MXTemplate temp = new MXTemplate(ccm._data);
+            String data2 = temp.toDText(null);
+            if (nearly(ccm._data, data2)) {
+                testSame ++;
+            }
+            else {
+                testDiffectent ++;
+                System.err.println(ccm._data + " != " + data2);
+            }
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public static boolean nearly(String text1, String text2) {
+        text1 = text1.replace("[", " [ ");
+        text2 = text2.replace("[", " [ ");
+        text1 = text1.replace("]", " ] ");
+        text2 = text2.replace("]", " ] ");
+
+        text1 = text1.replace("  ", " ");
+        text2 = text2.replace("  ", " ");
+
+        text1 = text1.replace("  ", " ");
+        text2 = text2.replace("  ", " ");
+        
+        String[] array1 = text1.split(" ");
+        String[] array2 = text2.split(" ");
+        
+        if (array1.length != array2.length) {
+            return false;
+        }
+        
+        for (int x = 0; x < array1.length; ++ x) {
+            String seg1 = array1[x].toUpperCase();
+            String seg2 = array2[x].toUpperCase();
+            
+            if (seg1.equals(seg2)) {
+                continue;
+            }
+            
+            if (seg1.endsWith("H")) {
+                String hex = seg1.substring(0, seg1.length() -1);
+                int var = Integer.parseInt(hex, 16);
+                seg1 = Integer.toString(var);
+            }
+            if (seg2.endsWith("H")) {
+                String hex = seg2.substring(0, seg2.length() -1);
+                int var = Integer.parseInt(hex, 16);
+                seg2 = Integer.toString(var);
+            }
+            
+            if (seg1.equals(seg2) == false) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     static File _editingDirecotory = new File(MXUtil.getAppBaseDirectory(), "Editing");
@@ -414,7 +510,7 @@ public class CXFile {
                     label = value;
                 }
                 int x = parseNumber(value);
-                
+
                 contents.addNameAndValue(label, x);
             }
 

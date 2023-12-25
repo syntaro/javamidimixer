@@ -27,7 +27,7 @@ import java.awt.event.MouseListener;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
-import jp.synthtarou.midimixer.ccxml.CCXParserForCCM;
+import jp.synthtarou.midimixer.ccxml.CCMParser;
 import jp.synthtarou.midimixer.ccxml.PickerForControlChange;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
@@ -284,7 +284,7 @@ public class MX36DetailPanel extends javax.swing.JPanel {
             PickerForControlChange picker = new PickerForControlChange(false);
             MXUtil.showAsDialog(this, picker, "Which You Choose?");
             if (picker.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-                CCXParserForCCM ccm = picker.getReturnValue();
+                CCMParser ccm = picker.getReturnValue();
 
                 if (ccm == null) {
                     return;
