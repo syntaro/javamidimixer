@@ -104,7 +104,7 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
             command &= 0xf0;
         }
         
-        int first = message.getTemplateAsPlain(0);
+        int first = message.getTemplate().get(0);
 
         if (first == MXMidi.COMMAND2_CH_PROGRAM_INC) {
             int x = message.getVisitant().getProgram() + 1;

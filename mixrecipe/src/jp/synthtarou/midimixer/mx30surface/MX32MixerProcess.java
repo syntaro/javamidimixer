@@ -516,7 +516,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
 
             if (_patchToMixer < 0 || _patchTogether) {
                 if (message != null) {
-                    message._mx30result = new MGStatus[]{status};
+                    message._mx30record = new MGStatus[]{status};
                     processMXMessage(message);
                 }
             }
@@ -735,7 +735,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                         }
                     }
                 }
-                message._mx30result = segment.listTouchedStatus();
+                message._mx30record = segment.listTouchedStatus();
             }
             if (segment == null) {
                 sendToNext(message);

@@ -80,6 +80,7 @@ public class MXResolution implements Cloneable {
             proc = true;
             MXMessage translated = updateWithNewResolution(message);
             if (translated != null) {
+               _bindedView.updateMonitor(message.getValue()._var, translated.getValue()._var);
                 result.addTranslated(translated);
             }
         }

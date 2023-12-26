@@ -136,14 +136,28 @@ public class CXTreeModel implements TreeModel {
 
     @Override
     public Object getChild(Object parent, int index) {
-        CXNode it =  (CXNode)parent;
-        return it._listChildTags.get(index);
+        if (parent instanceof InformationForModule) {
+            InformationForModule module = (InformationForModule)parent;
+            parent = module._node;
+        }
+        if (parent instanceof CXNode) {
+            CXNode it =  (CXNode)parent;
+            return it._listChildTags.get(index);
+        }
+        return null;
     }
 
     @Override
     public int getChildCount(Object parent) {
-        CXNode it =  (CXNode)parent;
-        return it._listChildTags.size();
+        if (parent instanceof InformationForModule) {
+            InformationForModule module = (InformationForModule)parent;
+            parent = module._node;
+        }
+        if (parent instanceof CXNode) {
+            CXNode it =  (CXNode)parent;
+            return it._listChildTags.size();
+        }
+        return 0;
     }
 
     @Override

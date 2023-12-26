@@ -271,7 +271,7 @@ public int getChannel() {
     }
 
     public boolean hasCustomRange() {
-        int wishMax = _base.hasValueHiField() ? (128 * 128 - 1) : 127;
+        int wishMax = _base.indexOfValueHi() >= 0 ? (128 * 128 - 1) : 127;
 
         if (_ccPair14) {
             wishMax = 128 * 128 - 1;
@@ -289,7 +289,7 @@ public int getChannel() {
         if (hasCustomRange()) {
             
         }
-        if (_base.hasValueHiField()) {
+        if (_base.indexOfValueHi() >= 0) {
             setMessageValue(_base.getValue().changeRange(0, 128 * 128 - 1));
         } else if (_ccPair14) {
             setMessageValue(_base.getValue().changeRange(0, 128 * 128 - 1));

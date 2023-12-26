@@ -204,10 +204,10 @@ public class Counter {
         }
 
         _channel.record(message.getChannel());
-        if (message.hasGateLowField()) {
+        if (message.indexOfGateLow() >=0) {
             _gate.record(message.getGate()._var);
         }
-        if (message.hasValueLowField()) {
+        if (message.indexOfValueLow() >= 0) {
             _value.record(message.getValue()._var);
         }
         return true;

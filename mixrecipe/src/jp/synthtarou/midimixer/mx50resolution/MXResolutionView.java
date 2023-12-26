@@ -22,6 +22,7 @@ import java.awt.Container;
 import java.util.LinkedList;
 import java.util.TreeSet;
 import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
 import jp.synthtarou.midimixer.ccxml.ui.PickerForControlChange;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -145,6 +146,7 @@ public class MXResolutionView extends javax.swing.JPanel {
                         public void approvedIndex(int selectedIndex) {
                             int gate = gateTable.valueOfIndex(selectedIndex);
                             _resolution._gate = gate;
+                            //refill
                             if (_resolution._command != null) {
                                 if (_resolution._command.get(0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
                                     int[] template = _resolution._command.toIntArray();
@@ -370,4 +372,17 @@ public class MXResolutionView extends javax.swing.JPanel {
     private javax.swing.JTextField jTextFieldPort;
     private javax.swing.JTextField jTextFieldResolution;
     // End of variables declaration//GEN-END:variables
+
+    public void updateMonitor(int original, int translated) {
+        if (SwingUtilities.isEventDispatchThread() == false) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    updateMonitor(original, translated);
+                }
+            });
+            return;
+        }
+        jTextFieldMonitor.setText("from " + original + " To " + translated);
+    }
 }

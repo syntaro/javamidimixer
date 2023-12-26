@@ -64,7 +64,7 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
 
     @Override
     public void processMXMessage(MXMessage message) {
-        MGStatus[] result = message._mx30result;
+        MGStatus[] result = message._mx30record;
         boolean done = false;
         
         if (result != null && result.length > 0) {

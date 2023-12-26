@@ -33,7 +33,7 @@ public final class MXMessage implements Comparable<MXMessage> {
     int _progBankMSB = -1;
     int _progBankLSB = -1;
     
-    public MGStatus[] _mx30result = null;
+    public MGStatus[] _mx30record = null;
 
     public void setProgramBank(int msb, int lsb) {
         _progBankMSB = msb;
@@ -612,16 +612,19 @@ public final class MXMessage implements Comparable<MXMessage> {
 
     public int toDataroomMSB1() {
         int status, data1, data2;
-
-        if (getTemplateAsPlain(0) == MXMidi.COMMAND2_CH_RPN) {
+        byte[] data = createBytes();
+        /* reformat */
+        status = data[0] & 0xff;
+        
+        if (status == MXMidi.COMMAND2_CH_RPN) {
             status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_RPN_MSB;
-            data2 = getTemplateAsParsed(1);
+            data2 = data[1] & 0xff;
             return (((status << 8) | data1) << 8) | data2;
-        } else if (getTemplateAsPlain(0) == MXMidi.COMMAND2_CH_NRPN) {
+        } else if (status == MXMidi.COMMAND2_CH_NRPN) {
             status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_NRPN_MSB;
-            data2 = getTemplateAsParsed(1);
+            data2 = data[11] & 0xff;
             return (((status << 8) | data1) << 8) | data2;
         }
         if (getVisitant() == null) {
@@ -643,16 +646,19 @@ public final class MXMessage implements Comparable<MXMessage> {
 
     public int toDataroomLSB2() {
         int status, data1, data2;
+        /* reformat */
+        byte[] data = createBytes();
+        status = data[0] & 0xff;
 
-        if (getTemplateAsPlain(0) == MXMidi.COMMAND2_CH_RPN) {
+        if (status == MXMidi.COMMAND2_CH_RPN) {
             status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_RPN_LSB;
-            data2 = getTemplateAsParsed(2);
+            data2 = data[1] & 0xff;
             return (((status << 8) | data1) << 8) | data2;
-        } else if (getTemplateAsPlain(0) == MXMidi.COMMAND2_CH_NRPN) {
+        } else if (status == MXMidi.COMMAND2_CH_NRPN) {
             status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_NRPN_LSB;
-            data2 = getTemplateAsParsed(2);
+            data2 = data[1] & 0xff;
             return (((status << 8) | data1) << 8) | data2;
         }
         if (getVisitant() == null) {
@@ -675,10 +681,13 @@ public final class MXMessage implements Comparable<MXMessage> {
 
     public int toDatavalueMSB1() {
         int status, data1, data2;
-        if (getTemplateAsPlain(0) == MXMidi.COMMAND2_CH_RPN || getTemplateAsPlain(0) == MXMidi.COMMAND2_CH_NRPN) {
+        /* reformat */
+        byte[] data = createBytes();
+        status = data[0] & 0xff;
+        if (status == MXMidi.COMMAND2_CH_RPN || status == MXMidi.COMMAND2_CH_NRPN) {
             status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_DATAENTRY;
-            data2 = getTemplateAsParsed(3);
+            data2 = data[3] & 0xff;
             return (((status << 8) | data1) << 8) | data2;
         }
         if (getVisitant() == null) {
@@ -696,10 +705,13 @@ public final class MXMessage implements Comparable<MXMessage> {
 
     public int toDatavalueLSB2() {
         int status, data1, data2;
-        if (getTemplateAsPlain(0) == MXMidi.COMMAND2_CH_RPN || getTemplateAsPlain(0) == MXMidi.COMMAND2_CH_NRPN) {
+        /* reformat */
+        byte[] data = createBytes();
+        status = data[0] & 0xff;
+        if (status == MXMidi.COMMAND2_CH_RPN || status == MXMidi.COMMAND2_CH_NRPN) {
             status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_DATAENTRY + 0x20;
-            data2 = getTemplateAsParsed(4);
+            data2 = data[4];
             return (((status << 8) | data1) << 8) | data2;
         }
         if (getVisitant() == null) {
@@ -715,23 +727,20 @@ public final class MXMessage implements Comparable<MXMessage> {
         return 0;
     }
 
-    public boolean hasValueHiField() {
-        return _template.indexOfValueHi() >= 0;
+    public int indexOfValueHi() {
+        return _template.indexOfValueHi();
     }
 
-    public boolean hasValueLowField() {
-        return _template.indexOfValueLow() >= 0;
+    public int indexOfValueLow() {
+        return _template.indexOfValueLow();
     }
 
-    public boolean hasGateLowField() {
-        return _template.indexOfGateLow() >= 0;
+    public int indexOfGateLow() {
+        return _template.indexOfGateLow();
     }
 
-    public boolean hasGateHiField() {
-        if (_template == null) {
-            return false;
-        }
-        return _template.indexOfGateHi() >= 0;
+    public int indexOfGateHi() {
+        return _template.indexOfGateHi();
     }
 
     public MXTemplate getTemplate() {
@@ -746,7 +755,7 @@ public final class MXMessage implements Comparable<MXMessage> {
 
         message._visitant = _visitant;
         message._valuePair14bit = _valuePair14bit;
-        message._mx30result = _mx30result;
+        message._mx30record = _mx30record;
 
         return message;
     }
@@ -779,18 +788,6 @@ public final class MXMessage implements Comparable<MXMessage> {
                 break;
         }
         return null;
-    }
-
-    public int getTemplateSize() {
-        return getTemplate().size();
-    }
-
-    public int getTemplateAsParsed(int pos) {
-        return getTemplate().parseDAlias(getTemplate().get(pos), this);
-    }
-    
-    public int getTemplateAsPlain(int pos) {
-        return getTemplate().get(pos);
     }
 
     public String getTemplateAsText() {

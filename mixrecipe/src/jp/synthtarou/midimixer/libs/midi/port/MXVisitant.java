@@ -460,13 +460,14 @@ public class MXVisitant implements Cloneable {
                     return true;
                 case MXMidi.COMMAND2_CH_RPN:
                 case MXMidi.COMMAND2_CH_NRPN:
-                    if (message.getTemplateSize() >= 5) {
+                    byte[] data = message.createBytes();
+                    if (data.length >= 5) {
                         int type = 0, msb = 0, lsb = 0, datamsb = 0, datalsb = 0;
-                        type = message.getTemplateAsParsed(0);
-                        msb = message.getTemplateAsParsed(1);
-                        lsb = message.getTemplateAsParsed(2);
-                        datamsb = message.getTemplateAsParsed(3);
-                        datalsb = message.getTemplateAsParsed(4);
+                        type = data[0] & 0xff;
+                        msb = data[1] & 0xff;
+                        lsb = data[2] & 0xff;
+                        datamsb = data[3] & 0xff;
+                        datalsb = data[4] & 0xff;
                         if (type == MXMidi.COMMAND2_CH_RPN) {
                             setDataroomType(ROOMTYPE_RPN);
                         }
