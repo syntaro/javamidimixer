@@ -21,7 +21,6 @@ import javax.swing.JPanel;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
-import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
@@ -36,9 +35,11 @@ public class MX50Process extends MXReceiver implements MXSettingTarget {
     MXSetting _setting;
     MX50View _view;
     ArrayList<MXResolution> _listResolution;
+    ArrayList<MXResolutionView> _listResolutionView;
 
     public MX50Process() {
         _listResolution = new ArrayList();
+        _listResolutionView = new ArrayList();
 
         _view = new MX50View(this);
         _setting = new MXSetting("ResolutionDown");
@@ -57,6 +58,10 @@ public class MX50Process extends MXReceiver implements MXSettingTarget {
 
     public void readSettings() {
         _setting.readSettingFile();
+    }
+
+    public int indexOfResolution(MXResolution reso) {
+        return  _listResolution.indexOf(reso);
     }
 
     @Override
@@ -111,7 +116,7 @@ public class MX50Process extends MXReceiver implements MXSettingTarget {
             int max = setting.getSettingAsInt(prefix + "Max", -1);
             int resolution = setting.getSettingAsInt(prefix + "Resolution", -1);
 
-            MXResolution reso = new MXResolution();
+            MXResolution reso = new MXResolution(this);
             try {
                 MXTemplate template = new MXTemplate(command);
                 MXRangedValue gateObj = MXRangedValue.new7bit(gate);
@@ -140,11 +145,20 @@ public class MX50Process extends MXReceiver implements MXSettingTarget {
         for (MXResolution reso : _listResolution) {
             String prefix = "Resolution[" + x + "].";
             x++;
-            setting.setSetting(prefix + "Command", reso._command.toDText(null));
+            setting.setSetting(prefix + "Command", reso._command != null ? reso._command.toDText(): "-");
             setting.setSetting(prefix + "Port", reso._port);
             setting.setSetting(prefix + "Channel", reso._channel);
             setting.setSetting(prefix + "Gate", reso._gate);
             setting.setSetting(prefix + "Resolution", reso._resolution);
         }
+    }
+
+
+    public MXResolution newResolution() {
+        MXResolution reso = new MXResolution(this);
+        MXResolutionView view = new MXResolutionView(reso);
+        _listResolution.add(reso);
+        _listResolutionView.add(view);
+        return reso;
     }
 }

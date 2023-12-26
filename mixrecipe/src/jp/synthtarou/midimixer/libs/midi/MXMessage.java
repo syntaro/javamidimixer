@@ -459,7 +459,7 @@ public final class MXMessage implements Comparable<MXMessage> {
 
     public static void main(String[] args) {
         MXMessage message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_NOTEON + 0, 64, 127);
-        String dtext = message._template.toDText(message);
+        String dtext = message._template.toDText();
         MXMessage msg = MXMessageFactory.fromTemplate(message.getPort(), new MXTemplate(dtext), message.getChannel(), message.getGate(), message.getValue());
 
         PrintStream output = System.out;
@@ -477,7 +477,7 @@ public final class MXMessage implements Comparable<MXMessage> {
 
         MXMessage message2 = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + 1, MXMidi.DATA1_CC_CHANNEL_VOLUME, 127);
         output.println(message2);
-        String dtext2 = message2._template.toDText(message2);
+        String dtext2 = message2._template.toDText();
         MXMessage msg2 = MXMessageFactory.fromTemplate(message2.getPort(), new MXTemplate(dtext2), message2.getChannel(), message2.getGate(), message2.getValue());
 
         output.println(dtext2);
@@ -495,7 +495,7 @@ public final class MXMessage implements Comparable<MXMessage> {
         PrintStream output = System.out;
         StringBuffer buf = new StringBuffer();
         buf.append(func + " debugDump [template = ");
-        buf.append(_template.toDArray(this));
+        buf.append(_template.toDArray());
         buf.append("] bytes = [ ");
         byte[] b = getBinary();
         for (int i = 0; i < b.length; ++i) {
@@ -794,10 +794,10 @@ public final class MXMessage implements Comparable<MXMessage> {
     }
 
     public String getTemplateAsText() {
-        return _template.toDText(this);
+        return _template.toDText();
     }
 
-    public boolean hasSameTemplateChGate(MXMessage message) {
+    public boolean hasSameParamsForCatchValue(MXMessage message) {
         MXTemplate temp1 = getTemplate();
         MXTemplate temp2 = message.getTemplate();
 

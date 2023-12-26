@@ -68,8 +68,8 @@ public class CXFile {
         return _document.listChildren(CCRuleManager._instance.moduleData);
     }
 
-    static int testSame = 0;
-    static int testDiffectent = 0;
+    static int countRunSame = 0;
+    static int counrRunDiffectent = 0;
     
     public static void main(String[] args) {
         CCRuleManager.dumpRules();
@@ -96,8 +96,8 @@ public class CXFile {
                 }
             }
         }
-        System.out.println("testSame = " + testSame);
-        System.out.println("testDifferent = " + testDiffectent);
+        System.out.println("testSame = " + countRunSame);
+        System.out.println("testDifferent = " + counrRunDiffectent);
     }
 
     public static void deepCheckCCM(CXFile file, CXNode node) {
@@ -126,12 +126,12 @@ public class CXFile {
 
         try {
             MXTemplate temp = new MXTemplate(ccm._data);
-            String data2 = temp.toDText(null);
+            String data2 = temp.toDText();
             if (nearly(ccm._data, data2)) {
-                testSame ++;
+                countRunSame ++;
             }
             else {
-                testDiffectent ++;
+                counrRunDiffectent ++;
                 System.err.println(ccm._data + " != " + data2);
             }
         }catch(Exception e) {

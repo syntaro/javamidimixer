@@ -19,12 +19,6 @@ package jp.synthtarou.midimixer.mx30surface;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.IllegalFormatException;
 import javax.swing.ButtonGroup;
@@ -55,8 +49,7 @@ import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXSwingFolderBrowser;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapListPopup;
-import jp.synthtarou.midimixer.libs.wraplist.PopupHandler;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 
 /**
  *
@@ -153,38 +146,160 @@ public class MGStatusPanel extends javax.swing.JPanel {
         jLabelBlank7.setText("");
 
         skipDataExchange = false;
+        
+        new MXAttachPopupForText(jTextFieldName) {
+            @Override
+            public void approvedText(String text) {
+                _status._name = text;
+                displayStatusToPanelSlider();
+            }
+        };
+        
+        int index = _listChannel.indexOfName(jTextFieldName.getText());
+        new MXAttachPopupForList<Integer>(jTextFieldChannel, _listChannel) {
+            @Override
+            public void approvedIndex(int selected) {
+                int channel  = _listChannel.valueOfIndex(selected);
+                _status._base.setChannel(channel);
+                displayStatusToPanelSlider();
+            }
+        };
 
-        MouseListener mouseHandle = new MouseAdapter() {
+        new MXAttachPopupForList<Integer>(jTextFieldGate, null) {
             @Override
-            public void mousePressed(MouseEvent e) {
-                if (e.getSource() instanceof JTextField) {
-                    JTextField target = (JTextField) e.getSource();
-                    startPopup(target);
+            public void approvedIndex(int selected) {
+                int x = getList().valueOfIndex(selected);
+                _status._base.setGate(_status._base.getGate().changeValue(x));
+                displayStatusToPanelSlider();
+            }
+            
+            @Override
+            public MXWrapList<Integer> getList() {
+                if (_status._outGateTable != null) {
+                    return _status._outGateTable;
                 }
+                return _currentGateModel;
             }
         };
-        KeyListener keyHandle = new KeyAdapter() {
+
+        new MXAttachPopupForText(jTextFieldMemo) {
             @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER || e.getKeyCode() == KeyEvent.VK_SPACE) {
-                    if (e.getSource() instanceof JTextField) {
-                        JTextField target = (JTextField) e.getSource();
-                        startPopup(target);
+            public void approvedText(String text) {
+                _status._memo = text;
+                displayStatusToPanelSlider();
+            }
+        };
+
+        new MXAttachPopup(jTextFieldTemplate) {
+            @Override
+            public void showPopup() {
+                JPopupMenu popup = new JPopupMenu();
+                JMenuItem item1 = new JMenuItem("Edit");
+                popup.add(item1);
+                item1.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        startEdit();
                     }
-                }
+                });
+
+                JMenuItem item2 = new JMenuItem("From XML");
+                popup.add(item2);
+                item2.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        startBrowseXML();
+                    }
+                });
+                JMenuItem item3 = new JMenuItem("Capture");
+                popup.add(item3);
+                item3.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        startCapture();
+                    }
+                });
+                popup.addSeparator();
+
+                JMenuItem item5 = new JMenuItem("Note");
+                item5.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        _status.clearAll();
+                        _status.setBaseMessage("@ON 64 #VL");
+                        _status._name = "note";
+                        displayStatusToPanelSlider();
+                        displayStatusToPanelDrum();
+                    }
+                });
+                popup.add(item5);
+
+                JMenuItem item6 = new JMenuItem("Control Change");
+                item6.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        _status.clearAll();
+                        _status.setBaseMessage("@CC #GL #VL");
+                        displayStatusToPanelSlider();
+                        displayStatusToPanelDrum();
+                    }
+                });
+                popup.add(item6);
+
+                JMenuItem item7 = new JMenuItem("DataEntry RPN");
+                item7.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        _status.clearAll();
+                        _status.setBaseMessage("@RPN 0 0 #VL 0");
+                        displayStatusToPanelSlider();
+                        displayStatusToPanelDrum();
+                    }
+                });
+
+                popup.add(item7);
+
+                JMenuItem item8 = new JMenuItem("DataEntry NRPN");
+                item8.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        _status.clearAll();
+                        _status.setBaseMessage("@NRPN 0 0 #VL 0");
+                        displayStatusToPanelSlider();
+                        displayStatusToPanelDrum();
+                    }
+                });
+                popup.add(item8);
+
+                JMenuItem item9 = new JMenuItem("Program +1");
+                item9.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        _status.setBaseMessage("@PROG_INC");
+                        MGStatusPanel.this.displayStatusToPanelSlider();
+                        displayStatusToPanelSlider();
+                        displayStatusToPanelDrum();
+                    }
+                });
+                popup.add(item9);
+
+                JMenuItem item10 = new JMenuItem("Program -1");
+                item10.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        _status.setBaseMessage("@PROG_DEC");
+                        MGStatusPanel.this.displayStatusToPanelSlider();
+                        displayStatusToPanelSlider();
+                        displayStatusToPanelDrum();
+                    }
+                });
+                popup.add(item10);
+
+                popup.show(_target, 0, _target.getHeight());
             }
+
         };
-        _listBindMouse = new JTextField[]{
-            jTextFieldName,
-            jTextFieldTemplate,
-            jTextFieldMemo,
-            jTextFieldChannel,
-            jTextFieldGate
-        };
-        for (JTextField textField : _listBindMouse) {
-            textField.addMouseListener(mouseHandle);
-            textField.addKeyListener(keyHandle);
-        }
+
 
         displayStatusToPanelSlider();
         displayStatusToPanelDrum();
@@ -193,168 +308,9 @@ public class MGStatusPanel extends javax.swing.JPanel {
         validateStatus();
     }
 
-    class MXWrapListForPanel extends MXWrapListPopup<Integer> {
-
-        public MXWrapListForPanel(JTextField target, MXWrapList<Integer> list) {
-            super(target, list, new PopupHandler<Integer>() {
-                @Override
-                public boolean popupSelected(JTextField textField, MXWrapList<Integer> list, int selected) {
-                    Integer value = list.valueOfIndex(selected);
-                    catchPopupResult(textField, value);
-                    displayStatusToPanelSlider();
-                    return false;
-                }
-            });
-        }
-    }
-
     MXWrapList<Integer> _listPort = MXWrapListFactory.listupPort("-");
     MXWrapList<Integer> _listColumn = MXWrapListFactory.listupColumn("-");
     MXWrapList<Integer> _listChannel = MXWrapListFactory.listupChannel(null);
-
-    public void startPopup(JTextField target) {
-        if (target == jTextFieldName) {
-            NavigatorForText navi = new NavigatorForText(_status._name);
-            MXUtil.showAsDialog(this, navi,  "Name");
-            if (navi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-                String value = navi.getReturnValue();
-                _status._name = value;
-                displayStatusToPanelSlider();
-                return;
-            }
-        }
-        if (target == jTextFieldTemplate) {
-            JPopupMenu popup = new JPopupMenu();
-            JMenuItem item1 = new JMenuItem("Edit");
-            popup.add(item1);
-            item1.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    startEdit();
-                }
-            });
-
-            JMenuItem item2 = new JMenuItem("From XML");
-            popup.add(item2);
-            item2.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    startBrowseXML();
-                }
-            });
-            JMenuItem item3 = new JMenuItem("Capture");
-            popup.add(item3);
-            item3.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    startCapture();
-                }
-            });
-            popup.addSeparator();
-            
-            JMenuItem item5 = new JMenuItem("Note");
-            item5.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    _status.clearAll();
-                    _status.setBaseMessage("@ON 64 #VL");
-                    _status._name = "note";
-                    displayStatusToPanelSlider();
-                    displayStatusToPanelDrum();
-                }
-            });
-            popup.add(item5);
-
-            JMenuItem item6 = new JMenuItem("Control Change");
-            item6.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    _status.clearAll();
-                    _status.setBaseMessage("@CC #GL #VL");
-                    displayStatusToPanelSlider();
-                    displayStatusToPanelDrum();
-                }
-            });
-            popup.add(item6);
-
-            JMenuItem item7 = new JMenuItem("DataEntry RPN");
-            item7.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    _status.clearAll();
-                    _status.setBaseMessage("@RPN 0 0 #VL 0");
-                    displayStatusToPanelSlider();
-                    displayStatusToPanelDrum();
-                }
-            });
-
-            popup.add(item7);
-
-            JMenuItem item8 = new JMenuItem("DataEntry NRPN");
-            item8.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    _status.clearAll();
-                    _status.setBaseMessage("@NRPN 0 0 #VL 0");
-                    displayStatusToPanelSlider();
-                    displayStatusToPanelDrum();
-                }
-            });
-            popup.add(item8);
-
-            JMenuItem item9 = new JMenuItem("Program +1");
-            item9.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    _status.setBaseMessage("@PROG_INC");
-                    MGStatusPanel.this.displayStatusToPanelSlider();
-                    displayStatusToPanelSlider();
-                    displayStatusToPanelDrum();
-                }
-            });
-            popup.add(item9);
-
-            JMenuItem item10 = new JMenuItem("Program -1");
-            item10.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    _status.setBaseMessage("@PROG_DEC");
-                    MGStatusPanel.this.displayStatusToPanelSlider();
-                    displayStatusToPanelSlider();
-                    displayStatusToPanelDrum();
-                }
-            });
-            popup.add(item10);
-
-            popup.show(jTextFieldTemplate, 0, jTextFieldTemplate.getHeight());
-
-            return;
-        }
-        if (target == jTextFieldMemo) {
-            NavigatorForText navi = new NavigatorForText(_status._memo);
-            MXUtil.showAsDialog(this, navi,  "Memo");
-            if (navi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-                String value = navi.getReturnValue();
-                _status._memo = value;
-                displayStatusToPanelSlider();
-                return;
-            }
-        }
-        if (target == jTextFieldChannel) {
-            MXWrapListPopup<Integer> actions = new MXWrapListForPanel(target, _listChannel);
-            actions.show();
-        }
-        if (target == jTextFieldGate) {
-            MXWrapList<Integer> gateTable = _status._outGateTable;
-            if (gateTable == null) {
-                gateTable = _currentGateModel;
-            }
-            MXWrapListPopup<Integer> actions = new MXWrapListForPanel(target, gateTable);
-            int index = gateTable.indexOfValue(_status._base.getGate()._var);
-            actions.setSelectedIndex(index);
-            actions.show();
-        }
-    }
 
     public boolean catchPopupResult(JTextField target, int value) {
         if (target == jTextFieldChannel) {
@@ -365,7 +321,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
         }
         return true;
     }
-    
+
     public void displayStatusToPanelSlider() {
         if (skipDataExchange) {
             return;
@@ -420,7 +376,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
             } else {
                 _currentGateModel = _normalGateModel;
             }
-            
+
             jTextFieldGate.setText(_currentGateModel.nameOfValue(_status._base.getGate()._var));
             /*
             jSpinnerOutOnValueFixed.setModel(new SafeSpinnerNumberModel(_status.getSwitchOutOnValueFixed(), 0, 16383, 1));
@@ -2077,7 +2033,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
             }
         }
     }
-    
+
     public void startBrowseXML() {
         PickerForControlChange picker = new PickerForControlChange(false);
         MXUtil.showAsDialog(jTextFieldTemplate, picker, "Which You Choose?");
@@ -2150,14 +2106,13 @@ public class MGStatusPanel extends javax.swing.JPanel {
                 int happenedMin = retval._value.getMin();
                 int happenedMax = retval._value.getMax();
                 _status.setBaseMessage(message);
-                
+
                 if (preferedMin == happenedMin && preferedMax == happenedMax) {
-                }
-                else {
+                } else {
                     int z = JOptionPane.showConfirmDialog(
                             this,
-                            "min-max = " + happenedMin + "-" +  happenedMax + "\n"
-                            + " I will offer you reset to " +preferedMin + "-" + preferedMax,
+                            "min-max = " + happenedMin + "-" + happenedMax + "\n"
+                            + " I will offer you reset to " + preferedMin + "-" + preferedMax,
                             "Offer (value range)",
                             JOptionPane.YES_NO_OPTION);
                     if (z == JOptionPane.NO_OPTION) {

@@ -81,16 +81,11 @@ public class MX50View extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-
-        JOptionPane.showMessageDialog(this, "Sorry, Not Yet");
-        if (false) {
-            MXResolution reso = new MXResolution();
-            _process._listResolution.add(reso);
-            addToScrollPanel(new MXResolutionView(reso));
-        }
-
+        MXResolution reso = _process.newResolution();
+        addToScrollPanel(reso._bindedView);
     }//GEN-LAST:event_jButton1ActionPerformed
 
+    
     JLabel blankLabel = new JLabel("");
 
     public void addToScrollPanel(JPanel panel) {
@@ -110,7 +105,6 @@ public class MX50View extends javax.swing.JPanel {
 
         jScrollPane1.setViewportView(jPanel1);
         ++count;
-        System.out.println("addeD " + count);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

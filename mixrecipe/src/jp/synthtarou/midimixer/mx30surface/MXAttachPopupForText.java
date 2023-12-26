@@ -14,14 +14,33 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.wraplist;
+package jp.synthtarou.midimixer.mx30surface;
 
 import javax.swing.JTextField;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.libs.navigator.INavigator;
+import jp.synthtarou.midimixer.libs.navigator.NavigatorForText;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public interface PopupHandler<T> {
-    public void popupSelected(MXWrapList<T> list, int selected);
+public abstract class MXAttachPopupForText extends MXAttachPopup {
+
+    public MXAttachPopupForText(JTextField target) {
+        super(target);
+    }
+
+    @Override
+    public void showPopup() {
+        NavigatorForText text = new NavigatorForText(_target.getText());
+        MXUtil.showAsDialog(_target, text, "Your Choice ?");
+        if (text.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+            approvedText(text.getReturnValue());
+        } else {
+
+        }
+    }
+    
+    public abstract void approvedText(String text);
 }

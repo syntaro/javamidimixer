@@ -205,7 +205,7 @@ public class MXSetting {
             temporary.renameTo(_settingFile);
             
             if (backup != null) {
-                if (MXSettingUtil.isSameFile(backup, _settingFile)) {
+                if (MXSettingUtil.isFileContentsSame(backup, _settingFile)) {
                     try {
                         backup.delete();
                     }catch(Exception e) {

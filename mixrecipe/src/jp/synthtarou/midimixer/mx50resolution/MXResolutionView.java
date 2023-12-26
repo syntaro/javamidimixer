@@ -16,6 +16,10 @@
  */
 package jp.synthtarou.midimixer.mx50resolution;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.util.LinkedList;
 import java.util.TreeSet;
 import jp.synthtarou.midimixer.ccxml.CCMParser;
 import jp.synthtarou.midimixer.ccxml.PickerForControlChange;
@@ -39,6 +43,8 @@ public class MXResolutionView extends javax.swing.JPanel {
      */
     public MXResolutionView(MXResolution resolution) {
         initComponents();
+        _resolution = resolution;
+        resolution._bindedView = this;
         _listResolution = new MXWrapList<>();
         int []newReso = new int [] {
             -1, 8, 16, 32, 64, 128, 256, 512
@@ -53,9 +59,40 @@ public class MXResolutionView extends javax.swing.JPanel {
         }
         jComboBoxResolution.setModel(_listResolution);
         jComboBoxResolution.setSelectedIndex(_listResolution.indexOfValue(resolution._resolution));
-       _resolution = resolution;
+        resetBackground();
+    }
+    
+    @Override
+    public Color getBackground() {
+        if (_resolution == null) {
+            return Color.white;
+        }
+        int x = _resolution._process.indexOfResolution(_resolution) % 3;
+        switch(x) {
+            case 0:            
+                return new Color(255, 255, 240);
+            case 1:
+                return new Color( 255, 240, 255);
+            default:
+                return new Color(240, 255, 255);
+        }
     }
 
+    public void resetBackground() {
+        LinkedList<Component> list = new LinkedList<>();
+        list.add(this);
+        while(list.isEmpty() == false) {
+            Component seek = list.removeFirst();
+            seek.setBackground(null);
+            if (seek instanceof Container) {
+                Container cont = (Container)seek; 
+                for (Component child : cont.getComponents()) {
+                    list.add(child);
+                }
+            }
+        }
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -66,127 +103,117 @@ public class MXResolutionView extends javax.swing.JPanel {
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        jPanel1 = new javax.swing.JPanel();
+        jPanelNewResolution = new javax.swing.JPanel();
+        jComboBoxResolution = new javax.swing.JComboBox<>();
+        jPanelLastDetected = new javax.swing.JPanel();
+        jLabelLastDetect = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
-        jLabelGate = new javax.swing.JLabel();
-        jLabelChannel = new javax.swing.JLabel();
-        jButtonChange = new javax.swing.JButton();
         jTextFieldCommand = new javax.swing.JTextField();
-        jPanel2 = new javax.swing.JPanel();
-        jComboBoxResolution = new javax.swing.JComboBox<>();
-        jPanel3 = new javax.swing.JPanel();
-        jLabelLastDetect = new javax.swing.JLabel();
+        jTextFieldGate = new javax.swing.JTextField();
+        jTextFieldChannel = new javax.swing.JTextField();
 
         setBorder(javax.swing.BorderFactory.createTitledBorder("Resolution"));
         setLayout(new java.awt.GridBagLayout());
 
-        jPanel1.setBackground(new java.awt.Color(255, 255, 204));
-        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Command"));
-        jPanel1.setLayout(new java.awt.GridBagLayout());
+        jPanelNewResolution.setLayout(new java.awt.GridBagLayout());
+
+        jComboBoxResolution.setPreferredSize(new java.awt.Dimension(50, 26));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        jPanelNewResolution.add(jComboBoxResolution, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        add(jPanelNewResolution, gridBagConstraints);
+
+        jPanelLastDetected.setLayout(new java.awt.GridBagLayout());
+
+        jLabelLastDetect.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        jPanelLastDetected.add(jLabelLastDetect, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        add(jPanelLastDetected, gridBagConstraints);
+
+        jLabel1.setText("New Resolution");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
+        add(jLabel1, gridBagConstraints);
+
+        jLabel2.setText("Monitor");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
+        add(jLabel2, gridBagConstraints);
 
         jLabel3.setText("Command");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel1.add(jLabel3, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
+        add(jLabel3, gridBagConstraints);
 
         jLabel6.setText("Gate");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel1.add(jLabel6, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
+        add(jLabel6, gridBagConstraints);
 
         jLabel7.setText("Channel");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel1.add(jLabel7, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
+        add(jLabel7, gridBagConstraints);
 
-        jLabelGate.setText("-");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        jPanel1.add(jLabelGate, gridBagConstraints);
-
-        jLabelChannel.setText("-");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        jPanel1.add(jLabelChannel, gridBagConstraints);
-
-        jButtonChange.setText("Change");
-        jButtonChange.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonChangeActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        jPanel1.add(jButtonChange, gridBagConstraints);
+        jTextFieldCommand.setEditable(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel1.add(jTextFieldCommand, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
-        add(jPanel1, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 10);
+        add(jTextFieldCommand, gridBagConstraints);
 
-        jPanel2.setBackground(new java.awt.Color(255, 255, 204));
-        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("New Resolution"));
-        jPanel2.setLayout(new java.awt.GridBagLayout());
+        jTextFieldGate.setEditable(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 10);
+        add(jTextFieldGate, gridBagConstraints);
+
+        jTextFieldChannel.setEditable(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        jPanel2.add(jComboBoxResolution, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        add(jPanel2, gridBagConstraints);
-
-        jPanel3.setBackground(new java.awt.Color(255, 255, 204));
-        jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Last Detect"));
-        jPanel3.setLayout(new java.awt.GridBagLayout());
-
-        jLabelLastDetect.setText("Detect");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        jPanel3.add(jLabelLastDetect, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        add(jPanel3, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 10);
+        add(jTextFieldChannel, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
-
-    private void jButtonChangeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonChangeActionPerformed
-        startEditCommand();
-    }//GEN-LAST:event_jButtonChangeActionPerformed
 
     public void startEditCommand() {
         PickerForControlChange picker = new PickerForControlChange(false);
@@ -210,17 +237,17 @@ public class MXResolutionView extends javax.swing.JPanel {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButtonChange;
     private javax.swing.JComboBox<String> jComboBoxResolution;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabelChannel;
-    private javax.swing.JLabel jLabelGate;
     private javax.swing.JLabel jLabelLastDetect;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanelLastDetected;
+    private javax.swing.JPanel jPanelNewResolution;
+    private javax.swing.JTextField jTextFieldChannel;
     private javax.swing.JTextField jTextFieldCommand;
+    private javax.swing.JTextField jTextFieldGate;
     // End of variables declaration//GEN-END:variables
 }

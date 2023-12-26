@@ -192,7 +192,7 @@ public int getChannel() {
         if (_base.isEmpty()) {
             return false;
         }
-        if (_base.hasSameTemplateChGate(message)) {
+        if (_base.hasSameParamsForCatchValue(message)) {
             MXRangedValue value = getValue();
             MXVisitant visit = message.getVisitant();
 
@@ -245,7 +245,7 @@ public int getChannel() {
                 }
             }
             return false;
-        } else if (hasSameTemplateChGate(message)) { //long message
+        } else if (hasSameParamsForCatchValue(message)) { //long message
             MXRangedValue value = _base.getValue();
             int newValue = message.getValue()._var;
             if (newValue >= value._min && newValue <= value._max) {
@@ -302,8 +302,8 @@ public int getChannel() {
         setMessageValue(_base.getValue().changeRange(min, max));
     }
 
-    public boolean hasSameTemplateChGate(MXMessage message) {
-        if (_base.hasSameTemplateChGate(message)) {
+    public boolean hasSameParamsForCatchValue(MXMessage message) {
+        if (_base.hasSameParamsForCatchValue(message)) {
 
             return true;
         }

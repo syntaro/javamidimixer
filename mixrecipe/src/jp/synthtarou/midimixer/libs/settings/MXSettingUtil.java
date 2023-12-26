@@ -158,7 +158,7 @@ public class MXSettingUtil {
         return null;
     }
     
-    public static boolean isSameFile(File f1, File f2) {
+    public static boolean isFileContentsSame(File f1, File f2) {
         FileInputStream in1 = null, in2 = null;
         try {
             if (f1.isFile() == false || f2.isFile() == false) {

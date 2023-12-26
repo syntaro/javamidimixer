@@ -46,53 +46,35 @@ public class MXWrapListPopup<T> {
         @Override
         public void actionPerformed(ActionEvent e) {
             _selectedIndex = _choice;
-            if (_handler.popupSelected(_textField, _list, _selectedIndex)) {
-                _textField.setText(_list.nameOfIndex(_selectedIndex));
-            }
-            if (_menu != null) {
-                _menu.setVisible(false);
-                _menu = null;
-            }
+            _handler.popupSelected(_list, _selectedIndex);
         }
     }
 
-    protected JTextField _textField;
     protected MXWrapList<T> _list;
     protected int _selectedIndex = -1;
-    protected PopupHandler _handler = null;
+    protected PopupHandler<T> _handler = null;
     protected JPopupMenu _menu;
 
-    public MXWrapListPopup(JTextField target, MXWrapList<T> list, PopupHandler handler) {
+    public MXWrapListPopup(MXWrapList<T> list, PopupHandler<T> handler) {
         if (list == null) {
             throw new NullPointerException("list can't null");
         }
-        _textField = target;
         _list = list;
         _handler = handler;
-
-        String targetText = target.getText();
-
-        for (int x = 0; x < list.size(); ++x) {
-            if (list.nameOfIndex(x).equals(targetText)) {
-                _selectedIndex = x;
-                break;
-            }
-        }
+        _selectedIndex = -1;
     }
     
     public void setSelectedIndex(int x) {
         _selectedIndex = x;
     }
 
-    public void show() {
+    public void show(JTextField textField) {
         if (_list.size() >= 20) {
             NavigatorFor2ColumnList navi = new NavigatorFor2ColumnList(_list, _selectedIndex);
-            MXUtil.showAsDialog(_textField, navi, "Select");
+            MXUtil.showAsDialog(textField, navi, "Select");
             if (navi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
                 _selectedIndex = navi.getReturnIndex();
-                if (_handler.popupSelected(_textField, _list, _selectedIndex)) {
-                    _textField.setText(_list.nameOfIndex(_selectedIndex));
-                }
+                _handler.popupSelected(_list, _selectedIndex);
             }
         } else {
             _menu = new JPopupMenu();
@@ -105,9 +87,9 @@ public class MXWrapListPopup<T> {
                 _menu.add(item);
             }
 
-            final Color prevColor = _textField.getBackground();
-            _textField.setBackground(Color.pink);
-            _menu.show(_textField, 0, _textField.getHeight());
+            final Color prevColor = textField.getBackground();
+            textField.setBackground(Color.pink);
+            _menu.show(textField, 0, textField.getHeight());
             _menu.addPopupMenuListener(new PopupMenuListener() {
                 @Override
                 public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
@@ -115,7 +97,7 @@ public class MXWrapListPopup<T> {
 
                 @Override
                 public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-                    _textField.setBackground(prevColor);
+                    textField.setBackground(prevColor);
                 }
 
                 @Override

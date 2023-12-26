@@ -420,8 +420,8 @@ public class MXTemplate implements Comparable<MXTemplate> {
         return Integer.toHexString(code) + "h";
     }
 
-    public String toDText(MXMessage message) {
-        ArrayList<String> array = toDArray(message);
+    public String toDText() {
+        ArrayList<String> array = toDArray();
 
         StringBuffer text = new StringBuffer();
         String last = "]";
@@ -442,7 +442,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
         return text.toString();
     }
 
-    public ArrayList<String> toDArray(MXMessage message) {
+    public ArrayList<String> toDArray() {
         ArrayList<String> texts = new ArrayList();
 
         if (_commands == null) {
@@ -451,13 +451,14 @@ public class MXTemplate implements Comparable<MXTemplate> {
         
         int code0 = _commands[0];
         int index = textCommand.indexOfValue(code0);
+        int status = 0;
         String name;
         if (index >= 0) {
-            int code = textCommand.get(index)._value;
+            status = textCommand.get(index)._value;
             name = textCommand.get(index)._name;
-            texts.add(fromType(code));
+            texts.add(fromType(status));
 
-            switch(code) {
+            switch(status) {
                 case MXMidi.COMMAND_CH_NOTEON:
                 case MXMidi.COMMAND_CH_NOTEOFF:
                 case MXMidi.COMMAND_CH_POLYPRESSURE:
@@ -541,7 +542,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
                 }
             }
 
-            if (i == 0 && message.isMessageTypeChannel()) {
+            if (i == 0 && code >= 0x80 && code <= 0xef) {
                 code &= 0xf0;
             }
             if (code == MXMidi.CCXML_CHECKSUM_END) {

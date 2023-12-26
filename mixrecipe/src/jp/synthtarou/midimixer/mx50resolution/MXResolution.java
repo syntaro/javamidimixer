@@ -32,8 +32,11 @@ public class MXResolution implements Cloneable {
     int _gate;
     int _channel;
     MXTemplate _command;
+    MX50Process _process;
+    MXResolutionView _bindedView;   
     
-    public MXResolution() {
+    public MXResolution(MX50Process process) {
+        _process = process;
     }
     
     int _lastSent = -1;
@@ -64,9 +67,12 @@ public class MXResolution implements Cloneable {
     }
 
     public boolean controlByMessage(MXMessage message, MXMessageBag result) {
+        if (_command == null || _command.isEmpty()) {
+            return false;
+        }
         MXMessage base = MXMessageFactory.fromTemplate(_port, _command, _channel, MXRangedValue.new7bit(_gate), MXRangedValue.ZERO7);
         boolean proc = false;
-        if (base.hasSameTemplateChGate(message)) {
+        if (base.hasSameParamsForCatchValue(message)) {
             proc = true;
             MXMessage translated = updateWithNewResolution(message);
             if (translated != null) {
