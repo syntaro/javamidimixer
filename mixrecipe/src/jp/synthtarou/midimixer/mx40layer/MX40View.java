@@ -35,7 +35,7 @@ import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.ccxml.PickerForinstrument;
+import jp.synthtarou.midimixer.ccxml.ui.PickerForinstrument;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;

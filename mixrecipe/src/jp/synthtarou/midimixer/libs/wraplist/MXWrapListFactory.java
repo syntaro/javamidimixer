@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.libs.wraplist;
 
 import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.ccxml.CXGeneralMidiFile;
+import jp.synthtarou.midimixer.ccxml.xml.CXGeneralMidiFile;
 import static jp.synthtarou.midimixer.libs.midi.MXMidi.nameOfChannelMessage;
 import static jp.synthtarou.midimixer.libs.midi.MXMidi.nameOfControlChange;
 import static jp.synthtarou.midimixer.libs.midi.MXMidi.nameOfNote;

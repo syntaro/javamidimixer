@@ -19,7 +19,6 @@ package jp.synthtarou.midimixer.mx50resolution;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 /**
@@ -37,6 +36,14 @@ public class MX50View extends javax.swing.JPanel {
         initComponents();
         _process = process;
     }
+    
+    public void reloadList() {
+        jPanelWindow.removeAll();
+        for (MXResolution reso : _process._listResolution) {
+            addToScrollPanel(reso._bindedView);
+        }
+        jPanelWindow.repaint();
+    }
 
     int count = 0;
 
@@ -51,13 +58,13 @@ public class MX50View extends javax.swing.JPanel {
         java.awt.GridBagConstraints gridBagConstraints;
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        jPanel1 = new javax.swing.JPanel();
+        jPanelWindow = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
 
         setLayout(new java.awt.GridBagLayout());
 
-        jPanel1.setLayout(new java.awt.GridBagLayout());
-        jScrollPane1.setViewportView(jPanel1);
+        jPanelWindow.setLayout(new java.awt.GridBagLayout());
+        jScrollPane1.setViewportView(jPanelWindow);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -81,7 +88,7 @@ public class MX50View extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        MXResolution reso = _process.newResolution();
+        MXResolution reso = _process.createNewResolution();
         addToScrollPanel(reso._bindedView);
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -94,22 +101,22 @@ public class MX50View extends javax.swing.JPanel {
                 GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL,
                 new Insets(0, 0, 0, 0), 0, 0);
 
-        jPanel1.add(panel, layout);
+        jPanelWindow.add(panel, layout);
 
-        jPanel1.remove(blankLabel);
+        jPanelWindow.remove(blankLabel);
         GridBagConstraints layout2 = new GridBagConstraints(
                 0, count, 1, 1, 1, 1,
                 GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL,
                 new Insets(0, 0, 0, 0), 0, 0);
-        jPanel1.add(blankLabel, layout2);
+        jPanelWindow.add(blankLabel, layout2);
 
-        jScrollPane1.setViewportView(jPanel1);
+        jScrollPane1.setViewportView(jPanelWindow);
         ++count;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
-    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanelWindow;
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
 }

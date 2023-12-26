@@ -17,8 +17,8 @@
 package jp.synthtarou.midimixer.libs.midi.capture;
 
 import java.util.TreeSet;
-import jp.synthtarou.midimixer.ccxml.CXGeneralMidiFile;
-import jp.synthtarou.midimixer.ccxml.CXNode;
+import jp.synthtarou.midimixer.ccxml.xml.CXGeneralMidiFile;
+import jp.synthtarou.midimixer.ccxml.xml.CXNode;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;

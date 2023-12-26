@@ -16,12 +16,17 @@
  */
 package jp.synthtarou.midimixer.mx30surface;
 
+import jp.synthtarou.midimixer.libs.navigator.legacy.NavigatorForNote;
+import jp.synthtarou.midimixer.libs.navigator.MXPopupForList;
+import jp.synthtarou.midimixer.libs.navigator.MXPopupForText;
+import jp.synthtarou.midimixer.libs.navigator.MXPopup;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.IllegalFormatException;
 import javax.swing.ButtonGroup;
+import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -29,12 +34,12 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.ccxml.CCMParser;
-import jp.synthtarou.midimixer.ccxml.PickerForControlChange;
+import jp.synthtarou.midimixer.ccxml.InformationForCCM;
+import jp.synthtarou.midimixer.ccxml.ui.PickerForControlChange;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
-import jp.synthtarou.midimixer.libs.navigator.NavigatorForText;
+import jp.synthtarou.midimixer.libs.navigator.legacy.NavigatorForText;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -43,7 +48,7 @@ import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.capture.Counter;
 import jp.synthtarou.midimixer.libs.midi.capture.MXCaptureProcess;
 import jp.synthtarou.midimixer.libs.midi.capture.MXCaptureView;
-import jp.synthtarou.midimixer.libs.navigator.INavigator;
+import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
@@ -147,7 +152,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
 
         skipDataExchange = false;
         
-        new MXAttachPopupForText(jTextFieldName) {
+        new MXPopupForText(jTextFieldName) {
             @Override
             public void approvedText(String text) {
                 _status._name = text;
@@ -156,7 +161,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
         };
         
         int index = _listChannel.indexOfName(jTextFieldName.getText());
-        new MXAttachPopupForList<Integer>(jTextFieldChannel, _listChannel) {
+        new MXPopupForList<Integer>(jTextFieldChannel, _listChannel) {
             @Override
             public void approvedIndex(int selected) {
                 int channel  = _listChannel.valueOfIndex(selected);
@@ -165,7 +170,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
             }
         };
 
-        new MXAttachPopupForList<Integer>(jTextFieldGate, null) {
+        new MXPopupForList<Integer>(jTextFieldGate, null) {
             @Override
             public void approvedIndex(int selected) {
                 int x = getList().valueOfIndex(selected);
@@ -182,7 +187,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
             }
         };
 
-        new MXAttachPopupForText(jTextFieldMemo) {
+        new MXPopupForText(jTextFieldMemo) {
             @Override
             public void approvedText(String text) {
                 _status._memo = text;
@@ -190,9 +195,9 @@ public class MGStatusPanel extends javax.swing.JPanel {
             }
         };
 
-        new MXAttachPopup(jTextFieldTemplate) {
+        new MXPopup(jTextFieldTemplate) {
             @Override
-            public void showPopup() {
+            public void showPopup(JComponent mouseBase) {
                 JPopupMenu popup = new JPopupMenu();
                 JMenuItem item1 = new JMenuItem("Edit");
                 popup.add(item1);
@@ -295,7 +300,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
                 });
                 popup.add(item10);
 
-                popup.show(_target, 0, _target.getHeight());
+                popup.show(mouseBase, 0, mouseBase.getHeight());
             }
 
         };
@@ -2038,7 +2043,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
         PickerForControlChange picker = new PickerForControlChange(false);
         MXUtil.showAsDialog(jTextFieldTemplate, picker, "Which You Choose?");
         if (picker.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-            CCMParser ccm = picker.getReturnValue();
+            InformationForCCM ccm = picker.getReturnValue();
 
             if (ccm == null) {
                 return;
@@ -2231,7 +2236,8 @@ public class MGStatusPanel extends javax.swing.JPanel {
 
     private void jButtonNotesKeysActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNotesKeysActionPerformed
         if (_status._drum != null) {
-            MXNotePicker picker = new MXNotePicker(true);
+            NavigatorForNote picker = new NavigatorForNote();
+            picker.setAllowMultiSelect(true);
             picker.setSelectedNoteList(_status._drum.getHarmonyNotesAsArray());
             MXUtil.showAsDialog(this, picker, "NoteNumbers");
             if (picker.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {

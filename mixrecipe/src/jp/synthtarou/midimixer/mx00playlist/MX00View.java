@@ -40,7 +40,7 @@ import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInForPlayer;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFCallback;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
-import jp.synthtarou.midimixer.libs.navigator.INavigator;
+import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;

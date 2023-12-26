@@ -51,6 +51,17 @@ public class MXTemplate implements Comparable<MXTemplate> {
             initFields(template);
         }
     }
+    
+    public int getLengthWithChecksum() {
+        int len = 0;
+        if (_commands != null) {
+            len = _commands.length;
+        }
+        if (_listChecksum != null) {
+            len += _listChecksum.size();
+        }
+        return len;
+    }
 
     public boolean isEmpty() {
         if (_commands[0] == 0) {
@@ -309,7 +320,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
         int value = message.getValue()._var;
         int channel = message.getChannel();
 
-        String str = fromAlias(alias);
+        String str = fromAliasText(alias);
 
         switch (alias & 0xff00) {
             case MXMidi.CCXML_NONE:
@@ -399,20 +410,20 @@ public class MXTemplate implements Comparable<MXTemplate> {
 
             default:
                 boolean haveEx = false;
-                throw new IllegalArgumentException("something wrong " + Integer.toHexString(alias) + " , " + fromAlias(alias));
+                throw new IllegalArgumentException("something wrong " + Integer.toHexString(alias) + " , " + fromAliasText(alias));
         }
         return (byte) alias;
     }
 
-    public static String fromType(int code) {
+    public static String fromTypeText(int code) {
         int index = textCommand.indexOfValue(code);
         if (index >= 0) {
             return textCommand.get(index)._name;
         }
         return Integer.toHexString(code) + "h";
     }
-
-    public static String fromAlias(int code) {
+    
+    public static String fromAliasText(int code) {
         int index = textAlias.indexOfValue(code);
         if (index >= 0) {
             return textAlias.get(index)._name;
@@ -420,8 +431,9 @@ public class MXTemplate implements Comparable<MXTemplate> {
         return Integer.toHexString(code) + "h";
     }
 
+
     public String toDText() {
-        ArrayList<String> array = toDArray();
+        ArrayList<String> array = toDTextArray();
 
         StringBuffer text = new StringBuffer();
         String last = "]";
@@ -441,22 +453,23 @@ public class MXTemplate implements Comparable<MXTemplate> {
         }
         return text.toString();
     }
-
-    public ArrayList<String> toDArray() {
-        ArrayList<String> texts = new ArrayList();
-
+    
+    public int[] toIntArray() {
         if (_commands == null) {
-            return texts;
+            return null;
         }
         
         int code0 = _commands[0];
         int index = textCommand.indexOfValue(code0);
+        int[] data = new int[getLengthWithChecksum()];
+        int wrote = 0;
+        
         int status = 0;
         String name;
         if (index >= 0) {
             status = textCommand.get(index)._value;
             name = textCommand.get(index)._name;
-            texts.add(fromType(status));
+            data[wrote++] = status;
 
             switch(status) {
                 case MXMidi.COMMAND_CH_NOTEON:
@@ -464,16 +477,16 @@ public class MXTemplate implements Comparable<MXTemplate> {
                 case MXMidi.COMMAND_CH_POLYPRESSURE:
                 case MXMidi.COMMAND_CH_CONTROLCHANGE:
                 case MXMidi.COMMAND_SONGPOSITION:
-                    texts.add(fromAlias(_commands[1]));
-                    texts.add(fromAlias(_commands[2]));
-                    return texts;
+                    data[wrote++] = _commands[1];
+                    data[wrote++] = _commands[2];
+                    return data;
 
                 case MXMidi.COMMAND_CH_PROGRAMCHANGE:
                 case MXMidi.COMMAND_CH_CHANNELPRESSURE:
                 case MXMidi.COMMAND_SONGSELECT:
                 case MXMidi.COMMAND_MIDITIMECODE:
-                    texts.add(fromAlias(_commands[1]));
-                    return texts;
+                    data[wrote++] = _commands[1];
+                    return data;
 
                 case MXMidi.COMMAND_F4:
                 case MXMidi.COMMAND_F5:
@@ -486,7 +499,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
                 case MXMidi.COMMAND_FD:
                 case MXMidi.COMMAND_ACTIVESENSING:
                 case MXMidi.COMMAND_META_OR_RESET:
-                    return texts;
+                    return data;
 
                 case MXMidi.COMMAND_SYSEX:
                 case MXMidi.COMMAND_SYSEX_END:
@@ -494,28 +507,28 @@ public class MXTemplate implements Comparable<MXTemplate> {
 
                 case MXMidi.COMMAND2_CH_RPN:
                 case MXMidi.COMMAND2_CH_NRPN:
-                    texts.add(fromAlias(_commands[1]));
-                    texts.add(fromAlias(_commands[2]));
-                    texts.add(fromAlias(_commands[3]));
-                    texts.add(fromAlias(_commands[4]));
-                    return texts;
+                    data[wrote++] = _commands[1];
+                    data[wrote++] = _commands[2];
+                    data[wrote++] = _commands[3];
+                    data[wrote++] = _commands[4];
+                    return data;
 
                 case MXMidi.COMMAND2_NONE:
                 case MXMidi.COMMAND2_CH_PROGRAM_INC:
                 case MXMidi.COMMAND2_CH_PROGRAM_DEC:
-                    return texts;
+                    return data;
+                    
                 case MXMidi.COMMAND2_SYSTEM:
                 case MXMidi.COMMAND2_META:
                     break;
 
                 case MXMidi.COMMAND_CH_PITCHWHEEL:
-                    texts.add("#VH");
-                    texts.add("#VL");
-                    return texts;
+                    data[wrote ++] = MXMidi.CCXML_VH;
+                    data[wrote ++] = MXMidi.CCXML_VL;
+                    return data;
             }
         }
 
-        texts.clear();
         int[] sumHead = null;
         if (_listChecksum != null) {
             sumHead = new int[_listChecksum.size()];
@@ -524,35 +537,46 @@ public class MXTemplate implements Comparable<MXTemplate> {
             }
         }
         int seekHead = 0;
-        int wrote = 0;
+        wrote = 0;
         
         for (int i = 0; i < _commands.length; ++i) {
             int code = _commands[i];
             if (sumHead != null && seekHead < sumHead.length && sumHead[seekHead] == wrote) {
-                texts.add("[");
+                data[wrote++] = MXMidi.CCXML_CHECKSUM_START;
                 seekHead ++;
             }
 
             if (i == 0) {
-                String str1 = fromType(_commands[0]);
-                if (str1 != null) {
-                    texts.add(str1);
-                    wrote ++;
-                    continue;
-                }
+                int int1 = _commands[0];
+                data[wrote++]  = int1;
+                continue;
             }
 
             if (i == 0 && code >= 0x80 && code <= 0xef) {
                 code &= 0xf0;
             }
             if (code == MXMidi.CCXML_CHECKSUM_END) {
-                texts.add("]");
-                wrote ++;
+                data[wrote ++] = MXMidi.CCXML_CHECKSUM_END;
                 continue;
             }
-            texts.add(fromAlias(code));
-            wrote ++;
+            data[wrote ++] = code;
         }
+        return data;
+    }
+    public ArrayList<String> toDTextArray() {
+        int[] data = toIntArray();
+        ArrayList<String> texts = new ArrayList();
+        boolean first = true;
+        
+        for (int seek : data) {
+            if (first) {
+                texts.add(fromTypeText(seek));
+                first = false;
+            }else {
+                texts.add(fromAliasText(seek));
+            }
+        }
+        
         return texts;
     }
 
@@ -661,7 +685,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
             StringBuffer str = new StringBuffer();
             for (int i = 0; i < _commands.length; ++i) {
                 int x = _commands[i];
-                String seg = fromAlias(x);
+                String seg = fromAliasText(x);
                 if (seg == null) {
                     seg = Integer.toHexString(x);
                 }

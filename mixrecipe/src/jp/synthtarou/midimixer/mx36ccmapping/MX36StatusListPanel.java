@@ -24,7 +24,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
-import jp.synthtarou.midimixer.mx36ccmapping.accordion.MXAccordion;
+import jp.synthtarou.midimixer.libs.accordion.MXAccordion;
 /**
  *
  * @author Syntarou YOSHIDA

@@ -39,7 +39,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
-import jp.synthtarou.midimixer.libs.navigator.INavigator;
+import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
 
 /**
  *

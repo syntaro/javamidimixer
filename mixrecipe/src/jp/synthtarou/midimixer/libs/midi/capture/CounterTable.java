@@ -21,9 +21,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import jp.synthtarou.midimixer.ccxml.CCMParser;
-import jp.synthtarou.midimixer.ccxml.CXGeneralMidiFile;
-import jp.synthtarou.midimixer.ccxml.CXNode;
+import jp.synthtarou.midimixer.ccxml.InformationForCCM;
+import jp.synthtarou.midimixer.ccxml.xml.CXGeneralMidiFile;
+import jp.synthtarou.midimixer.ccxml.xml.CXNode;
+import jp.synthtarou.midimixer.ccxml.InformationForModule;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
@@ -47,7 +48,7 @@ public class CounterTable {
     public CounterTable() {
         _listAll = new ArrayList<>();
         _listDetected = new ArrayList<>();
-        for (CXNode module : _generalMidi.listModules()) {
+        for (InformationForModule module : _generalMidi.listModules()) {
             seekEveryCCM(module);
         }
     }
@@ -55,9 +56,9 @@ public class CounterTable {
     List<Counter> _listAll;
     List<Counter> _listDetected;
     
-    public void seekEveryCCM(CXNode module) {
+    public void seekEveryCCM(InformationForModule module) {
         LinkedList<CXNode> listTarget = new LinkedList();
-        listTarget.add(module);
+        listTarget.add(module._node);
         
         while (listTarget.isEmpty() == false) {
             CXNode parent = listTarget.removeFirst();
@@ -69,7 +70,7 @@ public class CounterTable {
                     Counter cap = new Counter();
                     cap._ccNode = child;
 
-                    CCMParser ccm = new CCMParser(_generalMidi, child);
+                    InformationForCCM ccm = new InformationForCCM(module, child);
                     MXTemplate template = null;
                     try {
                         template = new MXTemplate(ccm._data);

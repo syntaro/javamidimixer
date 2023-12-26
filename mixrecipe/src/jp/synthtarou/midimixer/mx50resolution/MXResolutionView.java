@@ -21,23 +21,65 @@ import java.awt.Component;
 import java.awt.Container;
 import java.util.LinkedList;
 import java.util.TreeSet;
-import jp.synthtarou.midimixer.ccxml.CCMParser;
-import jp.synthtarou.midimixer.ccxml.PickerForControlChange;
-import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
+import javax.swing.JComponent;
+import jp.synthtarou.midimixer.ccxml.InformationForCCM;
+import jp.synthtarou.midimixer.ccxml.ui.PickerForControlChange;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
-import jp.synthtarou.midimixer.libs.navigator.INavigator;
+import jp.synthtarou.midimixer.libs.navigator.MXPopup;
+import jp.synthtarou.midimixer.libs.navigator.MXPopupForList;
+import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MXResolutionView extends javax.swing.JPanel {
+
     MXResolution _resolution;
-    MXWrapList<Integer> _listResolution;
-        
+
+    MXWrapList<Integer> _ccGateModel;
+    MXWrapList<Integer> _keyGateModel;
+    MXWrapList<Integer> _normalGateModel;
+    MXWrapList<Integer> _currentGateModel;
+
+    MXWrapList<Integer> _listPort = MXWrapListFactory.listupPort(null);
+    MXWrapList<Integer> _listChannel = MXWrapListFactory.listupChannel(null);
+    MXWrapList<Integer> _listResolution = new MXWrapList<>();
+
+    public void displayResolutionToPanel() {
+        int command = 0;
+        try {
+            command = _resolution._command.get(0);
+        } catch (Exception e) {
+        }
+
+        if (command == MXMidi.COMMAND_CH_CHANNELPRESSURE || command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF) {
+            _currentGateModel = _keyGateModel;
+        } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+            _currentGateModel = _ccGateModel;
+        } else {
+            _currentGateModel = _normalGateModel;
+        }
+        MXWrapList<Integer> gateTable = _resolution._gateTable;
+        if (gateTable == null) {
+            gateTable = _currentGateModel;
+        }
+        String gateText = gateTable.nameOfValue(_resolution._gate);
+        if (_resolution._command == null) {
+            jTextFieldCommand.setText("");
+        } else {
+            jTextFieldCommand.setText(_resolution._command.toDText());
+        }
+        jTextFieldGate.setText(gateText);
+        jTextFieldPort.setText(_listPort.nameOfValue(_resolution._port));
+        jTextFieldChannel.setText(_listChannel.nameOfValue(_resolution._channel));
+        jTextFieldResolution.setText(_listResolution.nameOfValue(_resolution._resolution));
+    }
+
     /**
      * Creates new form MX50ResolutionView
      */
@@ -45,9 +87,38 @@ public class MXResolutionView extends javax.swing.JPanel {
         initComponents();
         _resolution = resolution;
         resolution._bindedView = this;
+
+        _ccGateModel = MXWrapListFactory.listupControlChange(true);
+        _keyGateModel = MXWrapListFactory.listupNoteNo(true);
+        _normalGateModel = MXWrapListFactory.listupGate7Bit();
+
+        new MXPopup(jTextFieldCommand) {
+            @Override
+            public void showPopup(JComponent mouseBase) {
+                startEditCommand();
+                displayResolutionToPanel();
+            }
+        };
+
+        resetBackground();
+
+        new MXPopupForList<Integer>(jTextFieldPort, _listPort) {
+            @Override
+            public void approvedIndex(int selectedIndex) {
+                _resolution._port= _listPort.valueOfIndex(selectedIndex);
+                displayResolutionToPanel();
+            }
+        };
+        new MXPopupForList<Integer>(jTextFieldChannel, _listChannel) {
+            @Override
+            public void approvedIndex(int selectedIndex) {
+                _resolution._channel = _listChannel.valueOfIndex(selectedIndex);
+                displayResolutionToPanel();
+            }
+        };
         _listResolution = new MXWrapList<>();
-        int []newReso = new int [] {
-            -1, 8, 16, 32, 64, 128, 256, 512
+        int[] newReso = new int[]{
+            0, 8, 16, 32, 64, 128, 256, 512
         };
         TreeSet<Integer> sort = new TreeSet();
         for (int x : newReso) {
@@ -55,24 +126,54 @@ public class MXResolutionView extends javax.swing.JPanel {
         }
         sort.add(resolution._resolution);
         for (Integer x : sort) {
-            _listResolution.addNameAndValue(Integer.toString(x), x);
+            _listResolution.addNameAndValue(x == 0 ? "-" : Integer.toString(x), x);
         }
-        jComboBoxResolution.setModel(_listResolution);
-        jComboBoxResolution.setSelectedIndex(_listResolution.indexOfValue(resolution._resolution));
-        resetBackground();
+        new MXPopupForList<Integer>(jTextFieldResolution, _listResolution) {
+            @Override
+            public void approvedIndex(int selectedIndex) {
+                _resolution._resolution = _listResolution.valueOfIndex(selectedIndex);
+                displayResolutionToPanel();
+            }
+        };
+        new MXPopup(jTextFieldGate) {
+            @Override
+            public void showPopup(JComponent mouseBase) {
+                MXWrapList<Integer> gateTable = _resolution._gateTable == null ? _currentGateModel : _resolution._gateTable;
+                if (gateTable != null) {
+                    MXPopupForList<Integer> popup = new MXPopupForList(null, gateTable) {
+                        @Override
+                        public void approvedIndex(int selectedIndex) {
+                            int gate = gateTable.valueOfIndex(selectedIndex);
+                            _resolution._gate = gate;
+                            if (_resolution._command != null) {
+                                if (_resolution._command.get(0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                                    int[] template = _resolution._command.toIntArray();
+                                    template[1] = _resolution._gate;
+                                    _resolution._command = new MXTemplate(template);
+                                }
+                            }
+                            displayResolutionToPanel();
+                        }
+                    };
+                    popup.setSelectedIndex(gateTable.indexOfValue(_resolution._gate));
+                    popup.showPopup(mouseBase);
+                }
+            }
+        };
+        displayResolutionToPanel();
     }
-    
+
     @Override
     public Color getBackground() {
         if (_resolution == null) {
             return Color.white;
         }
         int x = _resolution._process.indexOfResolution(_resolution) % 3;
-        switch(x) {
-            case 0:            
+        switch (x) {
+            case 0:
                 return new Color(255, 255, 240);
             case 1:
-                return new Color( 255, 240, 255);
+                return new Color(255, 240, 255);
             default:
                 return new Color(240, 255, 255);
         }
@@ -81,18 +182,18 @@ public class MXResolutionView extends javax.swing.JPanel {
     public void resetBackground() {
         LinkedList<Component> list = new LinkedList<>();
         list.add(this);
-        while(list.isEmpty() == false) {
+        while (list.isEmpty() == false) {
             Component seek = list.removeFirst();
             seek.setBackground(null);
             if (seek instanceof Container) {
-                Container cont = (Container)seek; 
+                Container cont = (Container) seek;
                 for (Component child : cont.getComponents()) {
                     list.add(child);
                 }
             }
         }
     }
-    
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -103,10 +204,6 @@ public class MXResolutionView extends javax.swing.JPanel {
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        jPanelNewResolution = new javax.swing.JPanel();
-        jComboBoxResolution = new javax.swing.JComboBox<>();
-        jPanelLastDetected = new javax.swing.JPanel();
-        jLabelLastDetect = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
@@ -115,105 +212,122 @@ public class MXResolutionView extends javax.swing.JPanel {
         jTextFieldCommand = new javax.swing.JTextField();
         jTextFieldGate = new javax.swing.JTextField();
         jTextFieldChannel = new javax.swing.JTextField();
+        jTextFieldResolution = new javax.swing.JTextField();
+        jTextFieldMonitor = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
+        jTextFieldPort = new javax.swing.JTextField();
+        jButtonRemove = new javax.swing.JButton();
 
         setBorder(javax.swing.BorderFactory.createTitledBorder("Resolution"));
         setLayout(new java.awt.GridBagLayout());
 
-        jPanelNewResolution.setLayout(new java.awt.GridBagLayout());
-
-        jComboBoxResolution.setPreferredSize(new java.awt.Dimension(50, 26));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        jPanelNewResolution.add(jComboBoxResolution, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        add(jPanelNewResolution, gridBagConstraints);
-
-        jPanelLastDetected.setLayout(new java.awt.GridBagLayout());
-
-        jLabelLastDetect.setText("-");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        jPanelLastDetected.add(jLabelLastDetect, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        add(jPanelLastDetected, gridBagConstraints);
-
         jLabel1.setText("New Resolution");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
+        gridBagConstraints.gridy = 4;
         add(jLabel1, gridBagConstraints);
 
         jLabel2.setText("Monitor");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jLabel2, gridBagConstraints);
 
         jLabel3.setText("Command");
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
         add(jLabel3, gridBagConstraints);
 
         jLabel6.setText("Gate");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
         add(jLabel6, gridBagConstraints);
 
         jLabel7.setText("Channel");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
         add(jLabel7, gridBagConstraints);
 
         jTextFieldCommand.setEditable(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 10);
         add(jTextFieldCommand, gridBagConstraints);
 
         jTextFieldGate.setEditable(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 10);
+        gridBagConstraints.weightx = 1.0;
         add(jTextFieldGate, gridBagConstraints);
 
         jTextFieldChannel.setEditable(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 10);
+        gridBagConstraints.weightx = 1.0;
         add(jTextFieldChannel, gridBagConstraints);
+
+        jTextFieldResolution.setEditable(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        add(jTextFieldResolution, gridBagConstraints);
+
+        jTextFieldMonitor.setEditable(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        add(jTextFieldMonitor, gridBagConstraints);
+
+        jLabel4.setText("Port");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        add(jLabel4, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        add(jTextFieldPort, gridBagConstraints);
+
+        jButtonRemove.setText("Remove");
+        jButtonRemove.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonRemoveActionPerformed(evt);
+            }
+        });
+        add(jButtonRemove, new java.awt.GridBagConstraints());
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jButtonRemoveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRemoveActionPerformed
+        // TODO add your handling code here:
+        _resolution._process.removeResolution(_resolution);
+        _resolution._process._view.reloadList();
+    }//GEN-LAST:event_jButtonRemoveActionPerformed
 
     public void startEditCommand() {
         PickerForControlChange picker = new PickerForControlChange(false);
@@ -222,14 +336,19 @@ public class MXResolutionView extends javax.swing.JPanel {
             return;
         }
 
-        CCMParser x = picker.getReturnValue();
-        if (x != null) {
+        InformationForCCM ccm = picker.getReturnValue();
+        if (ccm != null) {
             try {
-                MXTemplate template = new MXTemplate(x._data);
-                int port = _resolution._port;
-                int gate = _resolution._gate;
-                int ch = _resolution._channel;
-                MXMessage message = MXMessageFactory.fromTemplate(port, template, ch, x._gate, x._value);
+                _resolution._command = new MXTemplate(ccm._data);
+                if (_resolution._command.get(0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                    int gate = _resolution._command.get(1);
+                    if (gate != MXMidi.CCXML_GL) {
+                        _resolution._gate = gate;
+                    }
+                }
+                _resolution._gateTable = ccm._gateTable;
+                _resolution._valueTable = ccm._valueTable;
+                displayResolutionToPanel();
             } catch (Throwable e) {
                 e.printStackTrace();
             }
@@ -237,17 +356,18 @@ public class MXResolutionView extends javax.swing.JPanel {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JComboBox<String> jComboBoxResolution;
+    private javax.swing.JButton jButtonRemove;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabelLastDetect;
-    private javax.swing.JPanel jPanelLastDetected;
-    private javax.swing.JPanel jPanelNewResolution;
     private javax.swing.JTextField jTextFieldChannel;
     private javax.swing.JTextField jTextFieldCommand;
     private javax.swing.JTextField jTextFieldGate;
+    private javax.swing.JTextField jTextFieldMonitor;
+    private javax.swing.JTextField jTextFieldPort;
+    private javax.swing.JTextField jTextFieldResolution;
     // End of variables declaration//GEN-END:variables
 }

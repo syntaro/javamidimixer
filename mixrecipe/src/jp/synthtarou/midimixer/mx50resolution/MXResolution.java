@@ -21,17 +21,21 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MXResolution implements Cloneable {
-    int _resolution;
-    int _port;
-    int _gate;
-    int _channel;
     MXTemplate _command;
+    int _port;
+    int _channel;
+    int _gate;
+    int _resolution;
+    MXWrapList<Integer> _gateTable;
+    MXWrapList<Integer> _valueTable;
+    
     MX50Process _process;
     MXResolutionView _bindedView;   
     
@@ -43,20 +47,20 @@ public class MXResolution implements Cloneable {
     
     int shrinkAndExpand(int oldValue, int min, int max) {
         MXRangedValue in = new MXRangedValue(oldValue, min, max);
-        if ((in._max - in._min) < _resolution || _resolution < 0) {
+        if ((in._max - in._min) < _resolution || _resolution <= 0) {
             return oldValue;
         }
         MXRangedValue temp = in.changeRange(0, _resolution);
-        MXRangedValue mathFloor = temp.changeValue(temp._var);
+        MXRangedValue mathFloor = new MXRangedValue(temp._var, temp._min, temp._max);
         MXRangedValue ret = mathFloor.changeRange(in._min, in._max);
-
+ 
         return ret._var;
     }
     
     MXMessage updateWithNewResolution(MXMessage message) {
         int detect = message.getValue()._var;
         int newValue = shrinkAndExpand(detect, message.getValue()._min, message.getValue()._max);
-        
+
         if (_lastSent != newValue) {
             _lastSent = newValue;
             message = (MXMessage)message.clone();

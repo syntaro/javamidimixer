@@ -22,12 +22,11 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.ccxml.CXXMLManager;
+import jp.synthtarou.midimixer.ccxml.xml.CXXMLManager;
 import jp.synthtarou.midimixer.libs.common.MXLog;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.capture.MXCaptureProcess;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
@@ -193,7 +192,6 @@ public class MXMain  {
         //_mx12masterkeyProcess.readSettings();
         _mx00playlistProcess.readSettings();
         
-
         _mx10inputProcess.readSettings();
         _mx60outputProcess.readSettings();
         _mx40layerProcess.readSettings();

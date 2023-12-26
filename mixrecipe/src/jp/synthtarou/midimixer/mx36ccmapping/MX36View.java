@@ -18,11 +18,12 @@ package jp.synthtarou.midimixer.mx36ccmapping;
 
 import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
-import jp.synthtarou.midimixer.libs.navigator.INavigator;
-import jp.synthtarou.midimixer.libs.navigator.NavigatorFor1ColumnList;
-import jp.synthtarou.midimixer.libs.navigator.NavigatorForText;
-import jp.synthtarou.midimixer.libs.navigator.NavigatorUtil;
+import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
+import jp.synthtarou.midimixer.libs.navigator.MXPopupForList;
+import jp.synthtarou.midimixer.libs.navigator.MXPopupForText;
+import jp.synthtarou.midimixer.libs.navigator.legacy.NavigatorForText;
 
 /**
  *
@@ -123,20 +124,21 @@ public class MX36View extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonNewFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNewFolderActionPerformed
-        NavigatorForText navigator = new NavigatorForText("");
-        NavigatorUtil.showNavigator(this, navigator,"Input Folder Name");
-        if (navigator.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-            String text = navigator.getReturnValue();
-            if (_process._list.getFolder(text) != null) {
-                JOptionPane.showMessageDialog(this, "Already Exists", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
+        MXPopupForText navi = new MXPopupForText(null) {
+            @Override
+            public void approvedText(String text) {
+                if (_process._list.getFolder(text) != null) {
+                    JOptionPane.showMessageDialog(MX36View.this, "Already Exists", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                _process._list.newFolder(text);
+                if (_process._view != null) {
+                    _process._view.fullReloadList(_process._list);
+                }
             }
-            _process._list.newFolder(text);
-            if (_process._view != null) {
-                _process._view.fullReloadList(_process._list);
-            }
-        }
-        
+        };
+        navi.setDialogTitle("Input Folder Name");
+        navi.showPopup(this);
     }//GEN-LAST:event_jButtonNewFolderActionPerformed
 
     private void jButtonMoveFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveFolderActionPerformed
@@ -147,15 +149,16 @@ public class MX36View extends javax.swing.JPanel {
         for (MX36Folder folder : _process._list._listFolder) {
             listFolder.addNameAndValue(folder._folderName, folder);
         }
-        NavigatorFor1ColumnList<MX36Folder> navi = new NavigatorFor1ColumnList<>(listFolder, -1);
-        NavigatorUtil.showNavigator(this, navi, "Move To ... < your choice >");
-        if (navi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-            int y = navi.getReturnIndex();
-            MX36Folder ret = navi.getReturnValue();
-            if (ret != null) {
-                _process.moveFolder(ret, _detailPanel._status);
+        MXPopupForList<MX36Folder> navi = new MXPopupForList<MX36Folder>(null, listFolder) {
+            @Override
+            public void approvedIndex(int selectedIndex) {
+                MX36Folder ret = listFolder.valueOfIndex(selectedIndex);
+                if (ret != null) {
+                    _process.moveFolder(ret, _detailPanel._status);
+                }
             }
-        }
+        };
+        navi.showPopup(this);
     }//GEN-LAST:event_jButtonMoveFolderActionPerformed
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

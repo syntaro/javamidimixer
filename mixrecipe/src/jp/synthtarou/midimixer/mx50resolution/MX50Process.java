@@ -40,8 +40,8 @@ public class MX50Process extends MXReceiver implements MXSettingTarget {
     public MX50Process() {
         _listResolution = new ArrayList();
         _listResolutionView = new ArrayList();
-
         _view = new MX50View(this);
+
         _setting = new MXSetting("ResolutionDown");
         _setting.setTarget(this);
     }
@@ -58,6 +58,7 @@ public class MX50Process extends MXReceiver implements MXSettingTarget {
 
     public void readSettings() {
         _setting.readSettingFile();
+        _view.reloadList();
     }
 
     public int indexOfResolution(MXResolution reso) {
@@ -101,36 +102,37 @@ public class MX50Process extends MXReceiver implements MXSettingTarget {
     public void afterReadSettingFile(MXSetting setting) {
         int x = 1;
         _listResolution.clear();
+        _listResolutionView.clear();
 
         while (true) {
             String prefix = "Resolution[" + x + "].";
             x++;
             String command = setting.getSetting(prefix + "Command");
-            if (command == null || command.isBlank()) {
+            int port = setting.getSettingAsInt(prefix + "Port", -1);
+            if (port < 0) {
                 break;
             }
-            int port = setting.getSettingAsInt(prefix + "Port", 0);
             int channel = setting.getSettingAsInt(prefix + "Channel", 0);
             int gate = setting.getSettingAsInt(prefix + "Gate", 0);
             int min = setting.getSettingAsInt(prefix + "Min", -1);
             int max = setting.getSettingAsInt(prefix + "Max", -1);
             int resolution = setting.getSettingAsInt(prefix + "Resolution", -1);
 
-            MXResolution reso = new MXResolution(this);
             try {
                 MXTemplate template = new MXTemplate(command);
                 MXRangedValue gateObj = MXRangedValue.new7bit(gate);
                 MXRangedValue value = new MXRangedValue(0, min, max);
                 
+                MXResolution reso = new MXResolution(this);
                 reso._channel = channel;
                 reso._gate = gate;
                 reso._command = template;
                 reso._lastSent = -1;
                 reso._port = port;
                 reso._resolution = resolution;
-
                 _listResolution.add(reso);
-
+                _listResolutionView.add(new MXResolutionView(reso));
+                
             } catch (Throwable e) {
                 e.printStackTrace();
                 continue;
@@ -153,12 +155,19 @@ public class MX50Process extends MXReceiver implements MXSettingTarget {
         }
     }
 
-
-    public MXResolution newResolution() {
+    public MXResolution createNewResolution() {
         MXResolution reso = new MXResolution(this);
         MXResolutionView view = new MXResolutionView(reso);
         _listResolution.add(reso);
         _listResolutionView.add(view);
         return reso;
+    }
+
+    public void removeResolution(MXResolution reso) {
+        int index = _listResolution.indexOf(reso);
+        if (index >= 0) {
+            _listResolution.remove(index);
+            _listResolutionView.remove(index);
+        }
     }
 }

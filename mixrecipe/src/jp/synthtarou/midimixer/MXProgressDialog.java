@@ -48,6 +48,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
 
     public void setMessageAsVersion() {
         StringBuffer text = new StringBuffer();
+        text.append("V0.58 ResolutionDown\n");
         text.append("V0.57 fixed CheckSum, GateTable etc\n");
         text.append("V0.56 Changed Program Change Timing on Sequencer to General\n");
         text.append("V0.55 MIDI Recorder (save support) in Output Panel\n");

@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.mx00playlist;
 import java.awt.Dimension;
 import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
 import javax.swing.BorderFactory;
-import jp.synthtarou.midimixer.ccxml.CXGeneralMidiFile;
+import jp.synthtarou.midimixer.ccxml.xml.CXGeneralMidiFile;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 
 /**

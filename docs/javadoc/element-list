@@ -3,6 +3,10 @@ example.ateraimemo
 example.stackoverflow
 jp.synthtarou.midimixer
 jp.synthtarou.midimixer.ccxml
+jp.synthtarou.midimixer.ccxml.rules
+jp.synthtarou.midimixer.ccxml.ui
+jp.synthtarou.midimixer.ccxml.xml
+jp.synthtarou.midimixer.libs.accordion
 jp.synthtarou.midimixer.libs.common
 jp.synthtarou.midimixer.libs.common.async
 jp.synthtarou.midimixer.libs.loopmidi
@@ -13,6 +17,7 @@ jp.synthtarou.midimixer.libs.midi.driver
 jp.synthtarou.midimixer.libs.midi.port
 jp.synthtarou.midimixer.libs.midi.smf
 jp.synthtarou.midimixer.libs.navigator
+jp.synthtarou.midimixer.libs.navigator.legacy
 jp.synthtarou.midimixer.libs.settings
 jp.synthtarou.midimixer.libs.swing
 jp.synthtarou.midimixer.libs.swing.attachment
@@ -27,7 +32,6 @@ jp.synthtarou.midimixer.mx11vcurve
 jp.synthtarou.midimixer.mx12masterkeys
 jp.synthtarou.midimixer.mx30surface
 jp.synthtarou.midimixer.mx36ccmapping
-jp.synthtarou.midimixer.mx36ccmapping.accordion
 jp.synthtarou.midimixer.mx40layer
 jp.synthtarou.midimixer.mx50resolution
 jp.synthtarou.midimixer.mx60output

@@ -495,7 +495,7 @@ public final class MXMessage implements Comparable<MXMessage> {
         PrintStream output = System.out;
         StringBuffer buf = new StringBuffer();
         buf.append(func + " debugDump [template = ");
-        buf.append(_template.toDArray());
+        buf.append(_template.toDTextArray());
         buf.append("] bytes = [ ");
         byte[] b = getBinary();
         for (int i = 0; i < b.length; ++i) {
