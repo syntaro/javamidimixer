@@ -192,10 +192,10 @@ public int getChannel() {
         if (_base.isEmpty()) {
             return false;
         }
-        if (_base.hasSameParamsForCatchValue(message)) {
-            MXRangedValue value = getValue();
+        MXRangedValue value = _base.catchValue(message);
+        if (value != null) {
             MXVisitant visit = message.getVisitant();
-
+            
             if (message.isDataentryByCC()) {
                 int original = value._var;
                 int newVar = visit.getDataentryValue14();
@@ -245,14 +245,6 @@ public int getChannel() {
                 }
             }
             return false;
-        } else if (hasSameParamsForCatchValue(message)) { //long message
-            MXRangedValue value = _base.getValue();
-            int newValue = message.getValue()._var;
-            if (newValue >= value._min && newValue <= value._max) {
-                setMessageValue(value.changeValue(newValue));
-                return true;
-            }
-            return false;
         }
 
         return false;
@@ -300,15 +292,6 @@ public int getChannel() {
 
     public void setCustomRange(int min, int max) {
         setMessageValue(_base.getValue().changeRange(min, max));
-    }
-
-    public boolean hasSameParamsForCatchValue(MXMessage message) {
-        if (_base.hasSameParamsForCatchValue(message)) {
-
-            return true;
-        }
-        
-        return false;
     }
 
     public int compareTo(MGStatus another) {

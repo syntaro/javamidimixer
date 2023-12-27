@@ -226,6 +226,14 @@ public final class MXMessage implements Comparable<MXMessage> {
         _dataBytes = null;
     }
 
+    public void setGate(int gate) {
+        if (_gate._var == gate) {
+            return;
+        }
+        _gate = _gate.changeValue(gate);
+        _dataBytes = null;
+    }
+
     public boolean isMetaMessage() {
         byte[] data = getBinary();
         if (data.length > 0) {
@@ -743,6 +751,11 @@ public final class MXMessage implements Comparable<MXMessage> {
         return _template.indexOfGateHi();
     }
 
+    public int valueOfIndex(int x) {
+        byte[] data = getBinary();
+        return data[x] & 0xff;
+    }
+    
     public MXTemplate getTemplate() {
         return _template;
     }
@@ -794,27 +807,27 @@ public final class MXMessage implements Comparable<MXMessage> {
         return _template.toDText();
     }
 
-    public boolean hasSameParamsForCatchValue(MXMessage message) {
+    public MXRangedValue catchValue(MXMessage message) {
         MXTemplate temp1 = getTemplate();
         MXTemplate temp2 = message.getTemplate();
 
         if (temp1.isEmpty() || temp2.isEmpty()) {
-            return false;
+            return null;
         }
 
         if (getChannel() != message.getChannel()) {
-            return false;
+            return null;
         }
 
         if (temp1 == temp2) {
             if (getGate() == message.getGate()) {
-                return true;
+                return message.getValue();
             }
-            return false;
+            return null;
         }
 
         if (temp1.size() != temp2.size()) {
-            return false;
+            return null;
         }
         for (int i = 0; i < temp1.size(); ++i) {
             int t1 = temp1.get(i);
@@ -841,7 +854,7 @@ public final class MXMessage implements Comparable<MXMessage> {
                     gate2 = t2 & 0x7f;
                 }
                 if (gate1 != gate2) {
-                    return false;
+                    return null;
                 }
             }
 
@@ -856,12 +869,31 @@ public final class MXMessage implements Comparable<MXMessage> {
                     gateHi2 = t2 & 0x7f;
                 }
                 if (gateHi1 != gateHi2) {
-                    return false;
+                    return null;
                 }
             }
+            
+            if (t1 != t2) {
+                return null;
+            }
         }
+        
+        int vh = 0, vl = 0, gh = 0, gl = 0;
 
-        return true;
+        int indexVH = indexOfValueHi();
+        if (indexVH >= 0) vh = message.valueOfIndex(indexVH);
+        int indexVL = indexOfValueLow();
+        if (indexVL >= 0) vl = message.valueOfIndex(indexVL);
+        int indexGH = indexOfGateHi();
+        if (indexGH >= 0) gh = message.valueOfIndex(indexGH);
+        int indexGL = indexOfGateLow();
+        if (indexGL >= 0) gl = message.valueOfIndex(indexGL);
+        
+        MXRangedValue value = getValue().changeValue((vh << 7) | vl);
+        if (isBinaryMessage()) {
+            System.out.println(MXUtil.dumpHex(message.getBinary()) + " = " + value + " <" + _template.toDText());
+        }
+        return value;
     }
 
     @Override

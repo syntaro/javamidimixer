@@ -76,7 +76,9 @@ public class MXResolution implements Cloneable {
         }
         MXMessage base = MXMessageFactory.fromTemplate(_port, _command, _channel, MXRangedValue.new7bit(_gate), MXRangedValue.ZERO7);
         boolean proc = false;
-        if (base.hasSameParamsForCatchValue(message)) {
+        MXRangedValue value = base.catchValue(message);
+        if (value != null) {
+            base.setValue(value);
             proc = true;
             MXMessage translated = updateWithNewResolution(message);
             if (translated != null) {
