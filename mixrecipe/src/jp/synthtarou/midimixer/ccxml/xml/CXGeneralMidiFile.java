@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import jp.synthtarou.midimixer.ccxml.InformationForModule;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -87,6 +88,16 @@ public class CXGeneralMidiFile extends CXFile {
 
         CXNode controlChangeMacroList = moduleData.newTag(CCRuleManager.getInstance().getControlChangeMacroListTag().getName(), true);
         createControlChange(controlChangeMacroList);
+
+        CCRuleManager rule = CCRuleManager.getInstance();
+        for (CXNode seek : _document._listChildTags) {
+            if (seek._nodeName.equals("ModuleData")) {
+                InformationForModule module = new InformationForModule(this,seek);
+                module.fillCCMLink();
+                _listModules.add(module);
+                checkWaring(module, seek, rule.getModuleDataTag());
+            }
+        }
 
         try {
             writeToTeporary();
@@ -207,7 +218,7 @@ public class CXGeneralMidiFile extends CXFile {
             CXNode valueTag = ccmTag.newTag("Value", true);
             valueTag.setTextContent("");
             CXNode gateTag = ccmTag.newTag("Gate", true);
-            gateTag.setTextContent("" + message.getGate()._var);
+            gateTag.setTextContent("" + message.getGate()._value);
             switch (message.getStatus() & 0xf0) {
                 case MXMidi.COMMAND_CH_POLYPRESSURE:
                 case MXMidi.COMMAND_CH_NOTEON:
@@ -244,7 +255,7 @@ public class CXGeneralMidiFile extends CXFile {
             CXNode valueTag = ccmTag.newTag("Value", true);
             valueTag.setTextContent("");
             CXNode gateTag = ccmTag.newTag("Gate", true);
-            gateTag.setTextContent("" + message.getGate()._var);
+            gateTag.setTextContent("" + message.getGate()._value);
             switch(message.getStatus() & 0xf0) {
                 case MXMidi.COMMAND_CH_POLYPRESSURE:
                 case MXMidi.COMMAND_CH_NOTEON:

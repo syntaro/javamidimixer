@@ -447,8 +447,8 @@ public class MXVisitant implements Cloneable {
 
     public synchronized boolean updateVisitantChannel(MXMessage message) {
         if (message.isMessageTypeChannel()) {
-            int gate = message.getGate()._var;
-            int value = message.getValue()._var;
+            int gate = message.getGate()._value;
+            int value = message.getValue()._value;
             
             switch (message.getStatus() & 0xfff0) {
                 case MXMidi.COMMAND_CH_PROGRAMCHANGE:

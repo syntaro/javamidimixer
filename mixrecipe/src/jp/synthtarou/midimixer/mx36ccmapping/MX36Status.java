@@ -56,10 +56,10 @@ public class MX36Status {
     public String getOutValueLabel() {
         String text = null;
         if (_outValueTable != null) {
-            text = _outValueTable.nameOfValue(_outValueRange._var);
+            text = _outValueTable.nameOfValue(_outValueRange._value);
         }
         if (text == null) {
-            text =  Integer.toString(_outValueRange._var);
+            text =  Integer.toString(_outValueRange._value);
         }
         return text;
     }
@@ -67,10 +67,10 @@ public class MX36Status {
     public String getOutGateLabel() {
         String text = null;
         if (_outGateTable != null) {
-            text = _outGateTable.nameOfValue(_outGateRange._var);
+            text = _outGateTable.nameOfValue(_outGateRange._value);
         }
         if (text == null) {
-            text =  Integer.toString(_outGateRange._var);
+            text =  Integer.toString(_outGateRange._value);
         }
         return text;
     }
@@ -114,7 +114,7 @@ public class MX36Status {
     }
 
     public String toString() {
-        return "#" + Character.toString('A'+_surfacePort) + "-" + MGStatus.getRowAsText(_surfaceUIType, _surfaceRow) + (_surfaceColumn+1) + "=" + _outValueRange._var;
+        return "#" + Character.toString('A'+_surfacePort) + "-" + MGStatus.getRowAsText(_surfaceUIType, _surfaceRow) + (_surfaceColumn+1) + "=" + _outValueRange._value;
     }
     
     public static MX36Status fromMGStatus(MX36Folder folder, MGStatus status) {

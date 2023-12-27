@@ -55,7 +55,7 @@ public abstract class MXPopupForNumber extends MXPopup {
         NavigatorForNumber navi = new NavigatorForNumber(_base);
         MXUtil.showAsDialog(mouseBase, navi, _dialogTitle);
         if (navi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-            int result = navi.getReturnValue()._var;
+            int result = navi.getReturnValue()._value;
             approvedValue(result);
         }
     }

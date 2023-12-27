@@ -125,7 +125,7 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
 
     private void jCircleValueStateChanged(javax.swing.event.ChangeEvent evt) {
         int newValue = jCircleValue.getValue();
-        if (getStatus().getValue()._var == newValue) {
+        if (getStatus().getValue()._value == newValue) {
             return;
         }
         if (_ignoreEvent) {
@@ -148,7 +148,7 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
             return;
         }
         MXRangedValue newValue = status._base.getValue();
-        if (jCircleValue.getValue() == newValue._var) {
+        if (jCircleValue.getValue() == newValue._value) {
             return;
         }
         _ignoreEvent = true;
@@ -165,7 +165,7 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
         MGStatus status = getStatus();
         MXRangedValue var = status.getValue().increment();
         if (var != null) {
-            _mixer.updateStatusAndSend(status, var._var, null);
+            _mixer.updateStatusAndSend(status, var._value, null);
         }
     }
 
@@ -173,7 +173,7 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
         MGStatus status = getStatus();
         MXRangedValue var = status.getValue().decrement();
         if (var != null) {
-            _mixer.updateStatusAndSend(status, var._var, null);
+            _mixer.updateStatusAndSend(status, var._value, null);
         }
     }
 

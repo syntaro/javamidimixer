@@ -197,9 +197,9 @@ public int getChannel() {
             MXVisitant visit = message.getVisitant();
             
             if (message.isDataentryByCC()) {
-                int original = value._var;
+                int original = value._value;
                 int newVar = visit.getDataentryValue14();
-                switch (message.getGate()._var) {
+                switch (message.getGate()._value) {
                     case MXMidi.DATA1_CC_DATAENTRY:
                         if (newVar >= value._min && newVar <= value._max) {
                         } else {
@@ -228,7 +228,7 @@ public int getChannel() {
                 return false;
             }
 
-            int newValue = message.getValue()._var;
+            int newValue = message.getValue()._value;
 
             if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
                 newValue = 0;

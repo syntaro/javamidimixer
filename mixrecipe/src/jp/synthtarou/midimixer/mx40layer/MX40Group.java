@@ -138,13 +138,13 @@ public class MX40Group {
         int channel = message.getChannel();
         
         if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-            if (_noteOff.raiseHandler(port, message._timing, channel, message.getGate()._var)) {
+            if (_noteOff.raiseHandler(port, message._timing, channel, message.getGate()._value)) {
                 return true;
             }
         }
 
         if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
-            int cc = message.getGate()._var;
+            int cc = message.getGate()._value;
             if (cc == MXMidi.DATA1_CC_BANKSELECT) {
                 return true;
             }
@@ -200,14 +200,14 @@ public class MX40Group {
             MX40Layer layer = _listLayer.get(found);
             proced = layer.processByLayer(message);
 
-            MXMessage msg2 = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + channel, message.getGate()._var, 0);
+            MXMessage msg2 = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + channel, message.getGate()._value, 0);
             msg2._timing = message._timing;
             _noteOff.setHandler(message, msg2,  new NoteOffWatcher2(layer, found));
         }else {
             for (MX40Layer layer: _listLayer) {
                 layer.processByLayer(message);
                 if (command == MXMidi.COMMAND_CH_NOTEON) {
-                    MXMessage msg2 = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + channel, message.getGate()._var, 0);
+                    MXMessage msg2 = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + channel, message.getGate()._value, 0);
                     msg2._timing = message._timing;
                     _noteOff.setHandler(message, msg2,  new NoteOffWatcher2(layer, -1));
                 }

@@ -54,7 +54,6 @@ import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXSwingFolderBrowser;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 
 /**
  *
@@ -175,6 +174,20 @@ public class MGStatusPanel extends javax.swing.JPanel {
             public void approvedIndex(int selected) {
                 int x = getList().valueOfIndex(selected);
                 _status._base.setGate(_status._base.getGate().changeValue(x));
+                if ((_status._base.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                    int[] temp = _status._base.getTemplate().toIntArray();
+                    if (temp.length == 3) {
+                        temp[1] = x;
+                        MXTemplate template = new MXTemplate(temp);
+                        MXMessage newMsg = MXMessageFactory.fromTemplate(
+                                _status._base.getPort(), 
+                                template,
+                                _status._base.getChannel(),
+                                MXRangedValue.new7bit(x),
+                                _status._base.getValue());
+                        _status.setBaseMessage(newMsg);
+                    }
+                }
                 displayStatusToPanelSlider();
             }
             
@@ -372,7 +385,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
             jLabelDefaultName.setText("'" + _status._base.toStringForUI() + "' if blank");
 
             int command = _status._base.getStatus() & 0xf0;
-            int gateValue = _status._base.getGate()._var;
+            int gateValue = _status._base.getGate()._value;
 
             if (command == MXMidi.COMMAND_CH_CHANNELPRESSURE || command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF) {
                 _currentGateModel = _keyGateModel;
@@ -382,7 +395,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
                 _currentGateModel = _normalGateModel;
             }
 
-            jTextFieldGate.setText(_currentGateModel.nameOfValue(_status._base.getGate()._var));
+            jTextFieldGate.setText(_currentGateModel.nameOfValue(_status._base.getGate()._value));
             /*
             jSpinnerOutOnValueFixed.setModel(new SafeSpinnerNumberModel(_status.getSwitchOutOnValueFixed(), 0, 16383, 1));
             jSpinnerOutOffValueFixed.setModel(new SafeSpinnerNumberModel(_status.getSwitchOutOffValueFixed(), 0, 16383, 1));
@@ -2030,6 +2043,10 @@ public class MGStatusPanel extends javax.swing.JPanel {
         if (textNavi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
             MXMessage message = MXMessageFactory.fromCCXMLText(0, textNavi.getReturnValue(), 0, null, null);
             if (message != null) {
+                if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                    int messageGate = message.getData1();
+                    message.setGate(messageGate);
+                }
                 _status.setBaseMessage(message);
                 displayStatusToPanelSlider();
                 disableUnusedOnPanel();
@@ -2052,10 +2069,10 @@ public class MGStatusPanel extends javax.swing.JPanel {
             String data = ccm._data;
             String name = ccm._name;
             String memo = ccm._memo;
-            MXRangedValue gate = ccm._gate;
-            MXWrapList<Integer> gateTable = ccm._gateTable;
-            MXRangedValue value = ccm._value;
-            MXWrapList<Integer> valueTable = ccm._valueTable;
+            MXRangedValue gate = ccm.getParsedGate();
+            MXWrapList<Integer> gateTable = ccm.getParsedGateTable();
+            MXRangedValue value = ccm.getParsedValue();
+            MXWrapList<Integer> valueTable = ccm.getParsedValueTable();
             MXTemplate template = null;
             try {
                 template = new MXTemplate(data);
@@ -2065,6 +2082,10 @@ public class MGStatusPanel extends javax.swing.JPanel {
             }
 
             MXMessage message = MXMessageFactory.fromTemplate(_status._port, template, _status.getChannel(), gate, value);
+            if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                int messageGate = message.getData1();
+                message.setGate(messageGate);
+            }
             _status.setBaseMessage(message);
             _status._outValueTable = valueTable;
             _status._memo = memo;
@@ -2110,6 +2131,10 @@ public class MGStatusPanel extends javax.swing.JPanel {
                 int preferedMax = message.getValue()._max;
                 int happenedMin = retval._value.getMin();
                 int happenedMax = retval._value.getMax();
+                if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                    int messageGate = message.getData1();
+                    message.setGate(messageGate);
+                }
                 _status.setBaseMessage(message);
 
                 if (preferedMin == happenedMin && preferedMax == happenedMax) {

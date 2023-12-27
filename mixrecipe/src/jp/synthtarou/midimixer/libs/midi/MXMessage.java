@@ -86,7 +86,7 @@ public final class MXMessage implements Comparable<MXMessage> {
     //Utilitie
     public boolean isPairAbleCC14() {
         if (isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
-            int cc = getGate()._var;
+            int cc = getGate()._value;
             if (cc >= 0 && cc <= 31) {
                 return true;
             }
@@ -207,7 +207,7 @@ public final class MXMessage implements Comparable<MXMessage> {
     }
 
     public void setValue(int value) {
-        if (_value._var == value) {
+        if (_value._value == value) {
             return;
         }
         _value = _value.changeValue(value);
@@ -227,7 +227,7 @@ public final class MXMessage implements Comparable<MXMessage> {
     }
 
     public void setGate(int gate) {
-        if (_gate._var == gate) {
+        if (_gate._value == gate) {
             return;
         }
         _gate = _gate.changeValue(gate);
@@ -427,22 +427,22 @@ public final class MXMessage implements Comparable<MXMessage> {
             int data1 = getData1();
             return chname + MXMidi.nameOfControlChange(data1);
         } else if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-            int note = getGate()._var;
-            int velocity = getValue()._var;
+            int note = getGate()._value;
+            int velocity = getValue()._value;
             return chname + MXMidi.nameOfNote(note) + "-";
         }
         if (command == MXMidi.COMMAND_CH_NOTEON) {
-            int note = getGate()._var;
-            int velocity = getValue()._var;
+            int note = getGate()._value;
+            int velocity = getValue()._value;
             return chname + MXMidi.nameOfNote(note);
         }
         if (command == MXMidi.COMMAND_CH_POLYPRESSURE) {
-            int note = getGate()._var;
-            int velocity = getValue()._var;
+            int note = getGate()._value;
+            int velocity = getValue()._value;
             return chname + "Prs";
         }
         if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
-            int program = getGate()._var;
+            int program = getGate()._value;
             return chname + "Pg" + program;
         }
         if (command == MXMidi.COMMAND_CH_CHANNELPRESSURE) {
@@ -607,10 +607,10 @@ public final class MXMessage implements Comparable<MXMessage> {
             int data2 = getData2();
             if ((getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE && isValuePairCC14()) {
                 if (column == 0) {
-                    data2 = (getValue()._var >> 7) & 0x7f;
+                    data2 = (getValue()._value >> 7) & 0x7f;
                 } else {
                     data1 += 0x20;
-                    data2 = getValue()._var & 0x7f;
+                    data2 = getValue()._value & 0x7f;
                 }
             }
             return (status << 16) | (data1 << 8) | data2;
@@ -844,8 +844,8 @@ public final class MXMessage implements Comparable<MXMessage> {
             }
 
             if (t1 == MXMidi.CCXML_GL || t2 == MXMidi.CCXML_GL) {
-                int gate1 = getGate()._var & 0x7f;
-                int gate2 = message.getGate()._var & 0x7f;
+                int gate1 = getGate()._value & 0x7f;
+                int gate2 = message.getGate()._value & 0x7f;
 
                 if (t1 != MXMidi.CCXML_GL) {
                     gate1 = t1 & 0x7f;
@@ -859,8 +859,8 @@ public final class MXMessage implements Comparable<MXMessage> {
             }
 
             if (t1 == MXMidi.CCXML_GH || t2 == MXMidi.CCXML_GH) {
-                int gateHi1 = (getGate()._var >> 7) & 0x7f;
-                int gateHi2 = (message.getGate()._var >> 7) % 0x7f;
+                int gateHi1 = (getGate()._value >> 7) & 0x7f;
+                int gateHi2 = (message.getGate()._value >> 7) % 0x7f;
 
                 if (t1 != MXMidi.CCXML_GH) {
                     gateHi1 = t1 & 0x7f;
@@ -889,11 +889,12 @@ public final class MXMessage implements Comparable<MXMessage> {
         int indexGL = indexOfGateLow();
         if (indexGL >= 0) gl = message.valueOfIndex(indexGL);
         
-        MXRangedValue value = getValue().changeValue((vh << 7) | vl);
-        if (isBinaryMessage()) {
-            System.out.println(MXUtil.dumpHex(message.getBinary()) + " = " + value + " <" + _template.toDText());
+        int newValue = (vh << 7) | vl;
+        if (getValue().contains(newValue)) {
+            MXRangedValue value = getValue().changeValue(newValue);
+            return value;
         }
-        return value;
+        return null;
     }
 
     @Override

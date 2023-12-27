@@ -137,7 +137,7 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
     }
     
     static String rangeToString(MXRangedValue value) {
-        return value._var  +"," + value._min + "," + value._max;
+        return value._value  +"," + value._min + "," + value._max;
     }
     
     static MXRangedValue stringToRange(String text) {

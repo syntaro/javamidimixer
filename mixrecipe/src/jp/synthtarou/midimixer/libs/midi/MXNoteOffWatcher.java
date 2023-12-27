@@ -70,7 +70,7 @@ public class MXNoteOffWatcher {
             }
             for (Element e : _list) {
                 MXMessage base = e.sendSide;
-                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_CH_NOTEOFF + base.getChannel(), base.getGate()._var, 0);
+                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_CH_NOTEOFF + base.getChannel(), base.getGate()._value, 0);
                 e.listener.onNoteOffEvent(timing, msg);
             }
             _list.clear();
@@ -90,7 +90,7 @@ public class MXNoteOffWatcher {
                 }
                 //it.remove();
                 MXMessage base = e.sendSide;
-                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_CH_NOTEOFF + base.getChannel(), base.getGate()._var, 0);
+                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_CH_NOTEOFF + base.getChannel(), base.getGate()._value, 0);
                 e.listener.onNoteOffEvent(timing, msg);
             }
             //_list.clear();
@@ -107,7 +107,7 @@ public class MXNoteOffWatcher {
                 }
                 //it.remove();
                 MXMessage base = e.sendSide;
-                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_CH_NOTEOFF + base.getChannel(), base.getGate()._var, 0);
+                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_CH_NOTEOFF + base.getChannel(), base.getGate()._value, 0);
                 e.listener.onNoteOffEvent(timing, msg);
             }
             //_list.clear();

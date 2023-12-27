@@ -46,13 +46,13 @@ public class MX11Process extends MXReceiver {
 
         if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
             int port = message.getPort();
-            int velocity = message.getGate()._var;
+            int velocity = message.getGate()._value;
             int newVelocity = _data.transform(port, velocity);
             if (velocity == newVelocity) {
                 sendToNext(message);
             }else {
                 int channel = message.getChannel();
-                int note = message.getGate()._var;
+                int note = message.getGate()._value;
                 MXMessage newMessage = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEON + channel, note, newVelocity);
                 newMessage._timing = message._timing;
                 sendToNext(newMessage);

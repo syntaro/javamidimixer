@@ -35,10 +35,10 @@ public class NavigatorForNumber extends javax.swing.JPanel implements INavigator
     public NavigatorForNumber(MXRangedValue value) {
         initComponents();
         _returnValue = null;
-        jSlider1.setValue(value._var);
+        jSlider1.setValue(value._value);
         jSlider1.setMinimum(value._min);
         jSlider1.setMaximum(value._max);
-        jSpinner1.setModel(new SpinnerNumberModel(value._var, value._min, value._max, 1));
+        jSpinner1.setModel(new SpinnerNumberModel(value._value, value._min, value._max, 1));
         setPreferredSize(new Dimension(600, 200));
         new MXAttachSliderSingleClick(jSlider1);
         new MXAttachSliderLikeEclipse(jSlider1);

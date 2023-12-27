@@ -183,7 +183,7 @@ public class MXMIDIOut {
                     MXVisitant visitant = _visitant16.get(message.getChannel());
                     int status = message.getStatus();
                     int channel = message.getChannel();
-                    int gate = message.getGate()._var;
+                    int gate = message.getGate()._value;
                     int command = status;
                     if (status >= 0x80 && status <= 0xef) {
                         command = status & 0xf0;

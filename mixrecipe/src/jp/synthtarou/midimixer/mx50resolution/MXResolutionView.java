@@ -342,14 +342,17 @@ public class MXResolutionView extends javax.swing.JPanel {
         if (ccm != null) {
             try {
                 _resolution._command = new MXTemplate(ccm._data);
+                _resolution._gate = ccm.getParsedGate()._value;
+                _resolution._defaultValue = ccm.getParsedValue()._value;
+                _resolution._gateTable = ccm.getParsedGateTable();
+                _resolution._valueTable = ccm.getParsedValueTable();
+                
                 if (_resolution._command.get(0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
                     int gate = _resolution._command.get(1);
                     if (gate != MXMidi.CCXML_GL) {
                         _resolution._gate = gate;
                     }
                 }
-                _resolution._gateTable = ccm._gateTable;
-                _resolution._valueTable = ccm._valueTable;
                 displayResolutionToPanel();
             } catch (Throwable e) {
                 e.printStackTrace();

@@ -49,7 +49,7 @@ public class MXRangedValue implements Comparable<MXRangedValue>{
     public final int _max;
     public final int _count;
 
-    public final int _var;
+    public final int _value;
     public final double _position;
 
     public MXRangedValue(int value, int min, int max) {
@@ -75,7 +75,7 @@ public class MXRangedValue implements Comparable<MXRangedValue>{
             _count = min - max + 1;
         }
 
-        _var = value;
+        _value = value;
         _position = position;
     }
 
@@ -128,20 +128,20 @@ public class MXRangedValue implements Comparable<MXRangedValue>{
         if (oldMin <= oldMax) {
             for (int i = oldMin; i <= oldMax; ++i) {
                 MXRangedValue calc = sample.changeValue(i).changeRange(newMin, newMax);
-                Integer x = count.get(calc._var);
+                Integer x = count.get(calc._value);
                 if (x == null) {
                     x = 0;
                 }
-                count.put(calc._var, x + 1);
+                count.put(calc._value, x + 1);
             }
         } else {
             for (int i = oldMin; i >= oldMax; --i) {
                 MXRangedValue calc = sample.changeValue(i).changeRange(newMin, newMax);
-                Integer x = count.get(calc._var);
+                Integer x = count.get(calc._value);
                 if (x == null) {
                     x = 0;
                 }
-                count.put(calc._var, x + 1);
+                count.put(calc._value, x + 1);
             }
         }
 
@@ -242,15 +242,15 @@ public class MXRangedValue implements Comparable<MXRangedValue>{
     }
 
     public MXRangedValue increment() {
-        return changeValue(_var + (_min < _max ? 1 : -1));
+        return changeValue(_value + (_min < _max ? 1 : -1));
     }
 
     public MXRangedValue decrement() {
-        return changeValue(_var + (_min < _max ? -1 : 1));
+        return changeValue(_value + (_min < _max ? -1 : 1));
     }
 
     public MXRangedValue changeValue(int value) {
-        if (_var == value) {
+        if (_value == value) {
             return this;
         }
         if (_min < _max) {
@@ -276,7 +276,7 @@ public class MXRangedValue implements Comparable<MXRangedValue>{
 
     @Override
     public String toString() {
-        return "" + _var + " (" + _min + "-"  + _max + ")";
+        return "" + _value + " (" + _min + "-"  + _max + ")";
     }
     
     @Override
@@ -286,7 +286,7 @@ public class MXRangedValue implements Comparable<MXRangedValue>{
         }
         if (obj instanceof MXRangedValue) { 
             MXRangedValue x = (MXRangedValue)obj;
-            if (x._var == _var) {
+            if (x._value == _value) {
                 if (x._min == _min && x._max == _max) {
                     return true;
                 }
@@ -297,7 +297,7 @@ public class MXRangedValue implements Comparable<MXRangedValue>{
 
     @Override
     public int compareTo(MXRangedValue o) {
-        int x = this._var - o._var;
+        int x = this._value - o._value;
         if (x == 0) {
             x = this._min - o._min;
             if (x == 0) {

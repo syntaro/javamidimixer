@@ -48,6 +48,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
 
     public void setMessageAsVersion() {
         StringBuffer text = new StringBuffer();
+        text.append("V0.58.3 offset in XML, gate int XML\n");
         text.append("V0.58.2 Minor BugFix\n");
         text.append("V0.58 ResolutionDown\n");
         text.append("V0.57 fixed CheckSum, GateTable etc\n");

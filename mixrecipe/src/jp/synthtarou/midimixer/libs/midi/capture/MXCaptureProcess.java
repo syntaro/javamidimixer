@@ -48,8 +48,8 @@ public class MXCaptureProcess extends MXReceiver{
     @Override
     public void processMXMessage(MXMessage message) {
         int channel = message.getChannel();
-        int gate = message.getGate()._var;
-        int value = message.getValue()._var;
+        int gate = message.getGate()._value;
+        int value = message.getValue()._value;
         
         Counter count = _table.captureIt(message);
     }

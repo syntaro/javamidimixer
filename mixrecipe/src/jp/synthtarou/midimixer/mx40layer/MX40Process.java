@@ -126,7 +126,7 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
         }
 
         if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-            if (_noteOff.raiseHandler(port, message._timing, channel, message.getGate()._var)) {
+            if (_noteOff.raiseHandler(port, message._timing, channel, message.getGate()._value)) {
                 return;
             }
         }
@@ -142,7 +142,7 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
                             public void onNoteOffEvent(MXTiming timing, MXMessage target) {
                                 MXMessage msg = MXMessageFactory.fromShortMessage(target.getPort(), 
                                         MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(), 
-                                        target.getGate()._var, 0);
+                                        target.getGate()._value, 0);
                                 msg._timing = timing;
                                 col.processByGroup(msg);
                             }
@@ -159,13 +159,13 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
                     public void onNoteOffEvent(MXTiming timing, MXMessage target) {
                         MXMessage msg = MXMessageFactory.fromShortMessage(target.getPort(), 
                                 MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(), 
-                                target.getGate()._var, 0);
+                                target.getGate()._value, 0);
                         msg._timing = timing;
                         sendToNext(msg);
                     }
                 });
             }
-            if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_PROGRAMCHANGE && message.getGate()._var < 0) {
+            if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_PROGRAMCHANGE && message.getGate()._value < 0) {
                 return;
             }
             sendToNext(message);

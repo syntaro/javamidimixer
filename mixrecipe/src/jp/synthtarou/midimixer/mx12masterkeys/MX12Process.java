@@ -128,7 +128,7 @@ public class MX12Process extends MXReceiver implements MXSettingTarget {
             target._timing = timing;
             MXMain.getMain().messageDispatch(target, _receiver);
             if (_view != null) {
-                _view._piano.noteOff(target.getGate()._var);
+                _view._piano.noteOff(target.getGate()._value);
             }
         }
     }
@@ -171,9 +171,9 @@ public class MX12Process extends MXReceiver implements MXSettingTarget {
             }else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_DAMPERPEDAL) {
                 _view._piano.sustain(data2);
             }else if (command == MXMidi.COMMAND_CH_PITCHWHEEL) {
-                _view.setPitchBend(message.getValue()._var);
+                _view.setPitchBend(message.getValue()._value);
             }else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_MODULATION) {
-                _view.setModulatoinWheel(message.getValue()._var);
+                _view.setModulatoinWheel(message.getValue()._value);
             }
             if (newMessage != null) {
                 sendToNext(newMessage);

@@ -73,7 +73,7 @@ public class MX10Data {
         }
 
         int type = TYPE_ALL;
-        int data1 = message.getGate()._var;
+        int data1 = message.getGate()._value;
     
         if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF) {
             type = TYPE_NOTE;

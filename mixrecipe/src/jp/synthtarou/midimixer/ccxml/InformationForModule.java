@@ -30,9 +30,11 @@ import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
  */
 public class InformationForModule {
     public final CXNode _node;
+    public final CXFile _file;
     
-    public InformationForModule(CXNode moduleNode) {
+    public InformationForModule(CXFile file, CXNode moduleNode) {
         _node = moduleNode;
+        _file = file;
         if (_node._nodeName.equals("ModuleData") == false) {
             throw new IllegalArgumentException("This is not module node."); 
         }

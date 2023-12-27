@@ -32,6 +32,7 @@ public class MXResolution implements Cloneable {
     int _port;
     int _channel;
     int _gate;
+    int _defaultValue;
     int _resolution;
     MXWrapList<Integer> _gateTable;
     MXWrapList<Integer> _valueTable;
@@ -51,14 +52,14 @@ public class MXResolution implements Cloneable {
             return oldValue;
         }
         MXRangedValue temp = in.changeRange(0, _resolution);
-        MXRangedValue mathFloor = new MXRangedValue(temp._var, temp._min, temp._max);
+        MXRangedValue mathFloor = new MXRangedValue(temp._value, temp._min, temp._max);
         MXRangedValue ret = mathFloor.changeRange(in._min, in._max);
  
-        return ret._var;
+        return ret._value;
     }
     
     MXMessage updateWithNewResolution(MXMessage message) {
-        int detect = message.getValue()._var;
+        int detect = message.getValue()._value;
         int newValue = shrinkAndExpand(detect, message.getValue()._min, message.getValue()._max);
 
         if (_lastSent != newValue) {
@@ -82,7 +83,7 @@ public class MXResolution implements Cloneable {
             proc = true;
             MXMessage translated = updateWithNewResolution(message);
             if (translated != null) {
-               _bindedView.updateMonitor(message.getValue()._var, translated.getValue()._var);
+               _bindedView.updateMonitor(message.getValue()._value, translated.getValue()._value);
                 result.addTranslated(translated);
             }
         }

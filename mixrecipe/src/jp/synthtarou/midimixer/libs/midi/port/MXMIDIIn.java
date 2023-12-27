@@ -428,7 +428,7 @@ public class MXMIDIIn {
                 boolean worked = false;
                 int ch = message.getChannel();
                 int status = message.getStatus();
-                int gate = message.getGate()._var;
+                int gate = message.getGate()._value;
 
                 int command = status;
                 if (command >= 0x80 && command <= 0xef) {

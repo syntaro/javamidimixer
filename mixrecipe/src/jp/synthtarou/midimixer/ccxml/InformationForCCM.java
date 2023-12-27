@@ -22,6 +22,7 @@ import java.util.IllegalFormatException;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 
 /**
@@ -29,6 +30,7 @@ import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
  * @author Syntarou YOSHIDA
  */
 public class InformationForCCM {
+
     public final CXNode _node;
     public final InformationForModule _module;
 
@@ -49,7 +51,6 @@ public class InformationForCCM {
     public final int _ccmLinkValue;
     public final int _ccmLinkGate;
     public final boolean _isLink;
-    
 
     public InformationForCCM(InformationForModule module, CXNode node) {
         _module = module;
@@ -66,7 +67,7 @@ public class InformationForCCM {
 
         }
         _id = intId;
-        
+
         int intValue = Integer.MIN_VALUE;
         int intGate = Integer.MIN_VALUE;
 
@@ -88,8 +89,7 @@ public class InformationForCCM {
 
             }
             _isLink = true;
-        }
-        else {
+        } else {
             _isLink = false;
         }
         _ccmLinkGate = intGate;
@@ -139,8 +139,8 @@ public class InformationForCCM {
             defaultValue = (minValue + maxValue) / 2 + 1;
         }
         _value = new MXRangedValue(defaultValue, minValue, maxValue);
-        _offsetValue = offsetValue;
         _valueTable = valueTable;
+        _offsetValue = offsetValue;
 
         CXNode gate = _node.firstChild("Gate");
         String gateType = null;
@@ -176,6 +176,19 @@ public class InformationForCCM {
         _gate = new MXRangedValue(defaultGate, minGate, maxGate);
         _offsetGate = offsetGate;
         _gateTable = gateTable;
+    }    
+    
+    public MXWrapList<Integer> canonicalTable(MXWrapList<Integer> original, int offset) {
+        if (offset == 0) {
+            return original;
+        }
+        System.out.println("Having offset " + _module._file._file);
+        MXWrapList<Integer> result = new MXWrapList<>();
+        for (MXWrap<Integer> wrap : original) {
+            result.addNameAndValue(wrap._name, wrap._value + offset);
+            System.out.println("Adding " + (wrap._value + offset) + " orignal = "+  wrap._value);
+        }
+        return result;
     }
 
     public InformationForCCM(InformationForCCM linkFrom, int newGate, int newValue) {
@@ -183,34 +196,84 @@ public class InformationForCCM {
 
         _module = linkFrom._module;
         _node = linkFrom._node;
-        
+
         _name = linkFrom._name;
         _memo = linkFrom._memo;
         _data = linkFrom._data;
-        
+
         if (newValue == Integer.MIN_VALUE) {
             _value = linkFrom._value;
-        }
-        else {
+        } else {
             _value = linkFrom._value.changeValue(newValue);
         }
         _offsetValue = linkFrom._offsetValue;
-        
+
         if (newGate == Integer.MIN_VALUE) {
             _gate = linkFrom._gate;
-        }
-        else {
+        } else {
             _gate = linkFrom._gate.changeValue(newGate);
         }
         _offsetGate = linkFrom._offsetGate;
-        
+
         _valueTable = linkFrom._valueTable;
         _gateTable = linkFrom._gateTable;
-        
+
         _gateTypeKey = linkFrom._gateTypeKey;
 
         _id = linkFrom._id;
         _ccmLinkValue = linkFrom._ccmLinkValue;
         _ccmLinkGate = linkFrom._ccmLinkGate;
+    }
+
+    public MXRangedValue getParsedGate() {
+        if (_offsetGate == 0) {
+            return _gate;
+        }
+        int value = _gate._value + _offsetGate;
+        int min = _gate._min + _offsetGate;
+        int max = _gate._max+ _offsetGate;
+        System.out.println("Recreate Gate " + _gate._value +" >> " + value);
+        return new MXRangedValue(value, min, max);
+    }
+
+    public MXWrapList<Integer> getParsedGateTable() {
+        if (_offsetGate == 0) {
+            return _gateTable;
+        }
+        if (_gateTable == null) {
+            return null;
+        }
+        MXWrapList<Integer> result = new MXWrapList<>();
+        for (MXWrap<Integer> wrap : _gateTable) {
+            int value = wrap._value + _offsetGate;
+            result.addNameAndValue(wrap._name, value);
+        }
+        return result;
+    }
+
+    public MXRangedValue getParsedValue() {
+        if (_offsetValue == 0) {
+            return _value;
+        }
+        int value = _value._value + _offsetValue;
+        int min = _value._min + _offsetValue;
+        int max = _value._max+ _offsetValue;
+        System.out.println("Recreate Value " + _value._value +" >> " + value);
+        return new MXRangedValue(value, min, max);
+    }
+
+    public MXWrapList<Integer> getParsedValueTable() {
+        if (_offsetValue == 0) {
+            return _valueTable;
+        }
+        if (_valueTable == null) {
+            return null;
+        }
+        MXWrapList<Integer> result = new MXWrapList<>();
+        for (MXWrap<Integer> wrap : _valueTable) {
+            int value = wrap._value + _offsetValue;
+            result.addNameAndValue(wrap._name, value);
+        }
+        return result;
     }
 }

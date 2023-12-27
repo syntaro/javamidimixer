@@ -244,7 +244,7 @@ public class MGStatusForDrum implements Cloneable {
     }
 
     boolean messageDetected(MXMessageBag result) {
-        boolean flag = _strikeZone.contains(_status.getValue()._var);
+        boolean flag = _strikeZone.contains(_status.getValue()._value);
 
         if (flag == _lastDetected) {
             return false;
@@ -272,7 +272,7 @@ public class MGStatusForDrum implements Cloneable {
             return;
         }
         _lastSent = flag;
-        int velocity = _status.getValue()._var;
+        int velocity = _status.getValue()._value;
 
         if (flag) {
             if (_customOutOnValue >= 0) {
@@ -295,7 +295,7 @@ public class MGStatusForDrum implements Cloneable {
         if (channel < 0) {
             channel = _status._base.getChannel();
         }
-        if (_strikeZone.contains(_status.getValue()._var)) {
+        if (_strikeZone.contains(_status.getValue()._value)) {
             pad.setDrumActive(true);
         } else {
             pad.setDrumActive(false);
@@ -303,7 +303,7 @@ public class MGStatusForDrum implements Cloneable {
         if (flag) {
             switch(_outValueTypeOn) {
                 case VALUETYPE_AS_INPUT:
-                    velocity = _status.getValue()._var;
+                    velocity = _status.getValue()._value;
                     break;
                 case VALUETYPE_AS_MOUSE:
                     velocity = _mouseOnValue;

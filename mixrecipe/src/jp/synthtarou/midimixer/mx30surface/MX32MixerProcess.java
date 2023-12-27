@@ -378,8 +378,8 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 node.setSetting(prefix + "column", column);
                 node.setSetting(prefix + "message", base.getTemplateAsText());
                 node.setSetting(prefix + "channel", base.getChannel());
-                node.setSetting(prefix + "gate", base.getGate()._var);
-                node.setSetting(prefix + "value", base.getValue()._var);
+                node.setSetting(prefix + "gate", base.getGate()._value);
+                node.setSetting(prefix + "value", base.getValue()._value);
                 node.setSetting(prefix + "valuemin", base.getValue()._min);
                 node.setSetting(prefix + "valuemax", base.getValue()._max);
                 node.setSetting(prefix + "isCCPair", status._ccPair14);
@@ -399,8 +399,8 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 node.setSetting(prefix + "column", column);
                 node.setSetting(prefix + "message", base.getTemplateAsText());
                 node.setSetting(prefix + "channel", base.getChannel());
-                node.setSetting(prefix + "gate", base.getGate()._var);
-                node.setSetting(prefix + "value", base.getValue()._var);
+                node.setSetting(prefix + "gate", base.getGate()._value);
+                node.setSetting(prefix + "value", base.getValue()._value);
                 node.setSetting(prefix + "valuemin", base.getValue()._min);
                 node.setSetting(prefix + "valuemax", base.getValue()._max);
                 node.setSetting(prefix + "isCCPair", status._ccPair14);
@@ -421,8 +421,8 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 node.setSetting(prefix + "column", column);
                 node.setSetting(prefix + "message", base.getTemplateAsText());
                 node.setSetting(prefix + "channel", base.getChannel());
-                node.setSetting(prefix + "gate", base.getGate()._var);
-                node.setSetting(prefix + "value", base.getValue()._var);
+                node.setSetting(prefix + "gate", base.getGate()._value);
+                node.setSetting(prefix + "value", base.getValue()._value);
                 node.setSetting(prefix + "valuemin", base.getValue()._min);
                 node.setSetting(prefix + "valuemax", base.getValue()._max);
                 node.setSetting(prefix + "isCCPair", status._ccPair14);
@@ -510,7 +510,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
 
                 int nextMin = nextStatus._base.getValue()._min;
                 int nextMax = nextStatus._base.getValue()._max;
-                newValue = status._base.getValue().changeRange(nextMin, nextMax)._var;
+                newValue = status._base.getValue().changeRange(nextMin, nextMax)._value;
                 nextMixer.updateStatusAndSend(nextStatus, newValue, timing);
             }
 
@@ -530,13 +530,13 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
     public boolean isPairToPooled14bit(MXMessage message) {
         if (_poolFor14bit != null) {
             if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
-                int gate = message.getGate()._var;
+                int gate = message.getGate()._value;
                 if (gate >= 0 && gate < 32) {
-                    if (gate + 32 == _poolFor14bit.getGate()._var) {
+                    if (gate + 32 == _poolFor14bit.getGate()._value) {
                         return true;
                     }
                 } else if (gate >= 32 && gate < 64) {
-                    if (gate == _poolFor14bit.getGate()._var + 32) {
+                    if (gate == _poolFor14bit.getGate()._value + 32) {
                         return true;
                     }
                 }
@@ -548,14 +548,14 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
     public int valueForPair(MXMessage message) {
         if (isPairToPooled14bit(message)) {
             if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
-                int gate = message.getGate()._var;
+                int gate = message.getGate()._value;
                 if (gate >= 0 && gate < 32) {
-                    if (gate + 32 == _poolFor14bit.getGate()._var) {
-                        return message.getValue()._var * 128 + _poolFor14bit.getValue()._var;
+                    if (gate + 32 == _poolFor14bit.getGate()._value) {
+                        return message.getValue()._value * 128 + _poolFor14bit.getValue()._value;
                     }
                 } else if (gate >= 32 && message.getChannel() <= 64) {
-                    if (gate == _poolFor14bit.getGate()._var + 32) {
-                        return message.getValue()._var + _poolFor14bit.getValue()._var * 128;
+                    if (gate == _poolFor14bit.getGate()._value + 32) {
+                        return message.getValue()._value + _poolFor14bit.getValue()._value * 128;
                     }
                 }
             }
@@ -566,7 +566,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
     public boolean isSameToPooled14bit(MXMessage message) {
         if (_poolFor14bit != null) {
             if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
-                if (message.getGate()._var == _poolFor14bit.getGate()._var) {
+                if (message.getGate()._value == _poolFor14bit.getGate()._value) {
                     return true;
                 }
             }

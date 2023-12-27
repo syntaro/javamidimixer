@@ -116,10 +116,10 @@ public class MGStatusFinder {
                 if (data1 == MXMidi.DATA1_CC_DATAENTRY || data1 == MXMidi.DATA1_CC_DATAINC || data1 == MXMidi.DATA1_CC_DATADEC) {
                     return _cachedDataentry;
                 }
-                return _cachedControlChange[request.getChannel()][request.getGate()._var];
+                return _cachedControlChange[request.getChannel()][request.getGate()._value];
             } else if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF
                     || command == MXMidi.COMMAND_CH_POLYPRESSURE) {
-                return _cachedNoteMessage[request.getChannel()][request.getGate()._var];
+                return _cachedNoteMessage[request.getChannel()][request.getGate()._value];
             }
 
             return _cachedChannelMessage[request.getChannel()][command];

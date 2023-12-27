@@ -86,7 +86,7 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
 
     public int getValue()
     {
-        return _value._var;
+        return _value._value;
     }
 
     @Override
@@ -108,7 +108,7 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
         g.setColor(background);
         g.fillRect(0,0,getWidth(),getHeight());
         
-        int value = _value._var;
+        int value = _value._value;
         int rangeFrom = _value._min;
         int rangeTo = _value._max;
 
@@ -178,7 +178,7 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
         g.setColor(background);
         g.fill(b1inner);
 
-        String str = String.valueOf(_value._var);
+        String str = String.valueOf(_value._value);
         if (ThemeManager.getInstance().isColorfulMetalTheme()) {        
             g.setColor(MXUtil.mixtureColor(Color.red, 70, Color.yellow, 30));
         }
@@ -273,7 +273,7 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
             if(SwingUtilities.isRightMouseButton(e)){
             }else{
                 startPoint = e.getPoint();
-                startValue = _value._var;
+                startValue = _value._value;
                 updateAngle(e.getPoint());
             }
         }

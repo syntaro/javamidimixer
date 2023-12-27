@@ -29,6 +29,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
@@ -89,7 +90,15 @@ public class CXFile {
                 if (file.canRead()) {
                     System.out.println("XMLFile [" + name + "]");
                     CXFile f2 = new CXFile(file);
-                    f2.dumpWarning();
+                    for (String text : f2._listWarningOffset.keySet()) {
+                        ArrayList<CXNode> nodeList = f2._listWarningOffset.get(text);
+                        System.out.println(text);
+                        for (CXNode seek : nodeList) {
+                            System.out.print(seek._listAttributes.valueOfName("Name") + "@" + seek._lineNumber);
+                        }
+                        System.out.println();
+                    }
+                    //System.out.println(f2.getAdviceForXML());
                 }
             }
         }
@@ -154,6 +163,7 @@ public class CXFile {
 
     public final CXNode _document = new CXNode(null, "", CCRuleManager.getInstance().getRootTag());
     final ArrayList<CXNode> _listWarning = new ArrayList<>();
+    final TreeMap<String, ArrayList<CXNode>> _listWarningOffset = new TreeMap();
     final ArrayList<InformationForModule> _listModules = new ArrayList<>();
     Throwable _loadError;
 
@@ -163,7 +173,6 @@ public class CXFile {
 
     public CXFile(File file) {
         _file = file;
-        System.out.println("file = " + file);
         Element docElement;
 
         String encoding = null;
@@ -211,11 +220,11 @@ public class CXFile {
 
             CCRuleManager rule = CCRuleManager.getInstance();
             for (CXNode seek : _document._listChildTags) {
-                checkWaring(seek, rule.getModuleDataTag());
                 if (seek._nodeName.equals("ModuleData")) {
-                    InformationForModule module = new InformationForModule(seek);
+                    InformationForModule module = new InformationForModule(this,seek);
                     module.fillCCMLink();
                     _listModules.add(module);
+                    checkWaring(module, seek, rule.getModuleDataTag());
                 }
             }
         } catch (ParserConfigurationException ex) {
@@ -234,9 +243,39 @@ public class CXFile {
         }
         _loadError = null;
     }
+    
+    public void recordCCMWarning(String key, CXNode node) {
+        ArrayList<CXNode> list  = _listWarningOffset.get(key);
+        if (list == null) {
+            list = new ArrayList<>();
+            _listWarningOffset.put(key, list);
+        }
+        list.add(node);
+    }
 
-    public void checkWaring(CXNode target, CCRuleForTag targetRule) {
+    public void checkWaring(InformationForModule module, CXNode target, CCRuleForTag targetRule) {
         target._warningText = null;
+        
+        if (target._nodeName.equals("CCM")) {
+            InformationForCCM ccm = new InformationForCCM(module, target);
+            String err;
+            if (ccm._offsetGate != 0) {
+                err = module._file +" have offset gate";
+                recordCCMWarning(err, target);
+                if (ccm._gateTable != null) {
+                    err = module._file +" have offset gateTable";
+                    recordCCMWarning(err, target);
+                }
+            }
+            if (ccm._offsetValue != 0) {
+                err = module._file +" have offset value";
+                recordCCMWarning(err, target);
+                if (ccm._valueTable != null) {
+                    err = module._file +" have offset valueTable";
+                    recordCCMWarning(err, target);
+                }
+            }
+        }
 
         if (targetRule == null) {
             target._warningText = " this is undocumented ";
@@ -275,7 +314,7 @@ public class CXFile {
             if (childRule == null) {
                 undocumentedTag.add(child._nodeName);
             }
-            checkWaring(child, childRule);
+            checkWaring(module, child, childRule);
         }
 
         if (undocumentedTag.size() > 0) {
@@ -286,10 +325,6 @@ public class CXFile {
             target._warningText = warning.toString();
             _listWarning.add(target);
         }
-    }
-
-    public void dumpWarning() {
-        System.out.println(getAdviceForXML());
     }
 
     public List<CXNode> listWarning() {

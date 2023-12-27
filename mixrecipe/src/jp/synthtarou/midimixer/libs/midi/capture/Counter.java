@@ -72,7 +72,7 @@ public class Counter {
     public String formatCounter() {
         String value;
         MXMessage message = _message; 
-        int gate = message.getGate()._var;
+        int gate = message.getGate()._value;
         switch (message.getStatus() & 0xf0) {
             case MXMidi.COMMAND_CH_NOTEON:
                 value = "@ON " + MXMidi.nameOfNote(gate) + " (" + gate + ")";
@@ -162,10 +162,10 @@ public class Counter {
             if (checkGate) {
                 if (t1 == MXMidi.CCXML_GL || t2 == MXMidi.CCXML_GL) {
                     if (t1 == MXMidi.CCXML_GL) {
-                        t1 = msg1.getGate()._var & 0x7f;
+                        t1 = msg1.getGate()._value & 0x7f;
                     }
                     if (t2 == MXMidi.CCXML_GL) {
-                        t2 = msg2.getGate()._var & 0x7f;
+                        t2 = msg2.getGate()._value & 0x7f;
                     }
                     if (t1 != t2) {
                         return false;
@@ -173,10 +173,10 @@ public class Counter {
                 }
                 if (t1 == MXMidi.CCXML_GH || t2 == MXMidi.CCXML_GH) {
                     if (t1 == MXMidi.CCXML_GH) {
-                        t1 = (msg1.getGate()._var >> 7) & 0x7f;
+                        t1 = (msg1.getGate()._value >> 7) & 0x7f;
                     }
                     if (t2 == MXMidi.CCXML_GH) {
-                        t2 = (msg2.getGate()._var >> 7) & 0x7f;
+                        t2 = (msg2.getGate()._value >> 7) & 0x7f;
                     }
                     if (t1 != t2) {
                         return false;
@@ -205,10 +205,10 @@ public class Counter {
 
         _channel.record(message.getChannel());
         if (message.indexOfGateLow() >=0) {
-            _gate.record(message.getGate()._var);
+            _gate.record(message.getGate()._value);
         }
         if (message.indexOfValueLow() >= 0) {
-            _value.record(message.getValue()._var);
+            _value.record(message.getValue()._value);
         }
         return true;
     }

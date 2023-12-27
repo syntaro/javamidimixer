@@ -53,7 +53,7 @@ public abstract class MXPopupForList<T> extends MXPopup {
                 _selectedIndex = x;
             }
         }
-        if (_list.size() >= 20) {
+        if (list.size() >= 20) {
             boolean found = false;
             for (MXWrap<T> seek : list) {
                 String str = String.valueOf(seek._value);
@@ -63,14 +63,14 @@ public abstract class MXPopupForList<T> extends MXPopup {
                 }
             }
             if (found) {
-                NavigatorFor2ColumnList navi = new NavigatorFor2ColumnList(_list, _selectedIndex);
+                NavigatorFor2ColumnList navi = new NavigatorFor2ColumnList(list, _selectedIndex);
                 MXUtil.showAsDialog(_target, navi, _dialogTitle);
                 if (navi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
                     _selectedIndex = navi.getReturnIndex();
                     approvedIndex(_selectedIndex);
                 }
             }else {
-                NavigatorFor1ColumnList navi = new NavigatorFor1ColumnList(_list, _selectedIndex);
+                NavigatorFor1ColumnList navi = new NavigatorFor1ColumnList(list, _selectedIndex);
                 MXUtil.showAsDialog(_target, navi, _dialogTitle);
                 if (navi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
                     _selectedIndex = navi.getReturnIndex();
@@ -79,8 +79,8 @@ public abstract class MXPopupForList<T> extends MXPopup {
             }
         } else {
             _menu = new JPopupMenu();
-            for (int i = 0; i < _list.size(); ++i) {
-                MXWrap<T> wrap = _list.get(i);
+            for (int i = 0; i < list.size(); ++i) {
+                MXWrap<T> wrap = list.get(i);
                 JRadioButtonMenuItem item = new JRadioButtonMenuItem(new WrapAction(i));
                 if (i == _selectedIndex) {
                     item.setSelected(true);
@@ -102,7 +102,7 @@ public abstract class MXPopupForList<T> extends MXPopup {
         int _choice;
 
         WrapAction(int choice) {
-            super(_list.nameOfIndex(choice));
+            super(getList().nameOfIndex(choice));
             _choice = choice;
         }
 

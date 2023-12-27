@@ -78,8 +78,8 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
             jSliderValue.setMinimum(value._min);
             jSliderValue.setMaximum(value._max);
             jSliderValue.setPaintLabels(true);
-            jSliderValue.setValue(value._var);
-            jLabelValue.setText(String.valueOf(value._var));
+            jSliderValue.setValue(value._value);
+            jLabelValue.setText(String.valueOf(value._value));
             if (status._name == null || status._name.length() == 0) {
                 MXMessage message = status._base;
                 jLabelName.setText(message.toStringForUI());
@@ -158,7 +158,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
             return;
         }
         int newValue = jSliderValue.getValue();
-        if (getStatus()._base.getValue()._var == newValue) {
+        if (getStatus()._base.getValue()._value == newValue) {
             return;
         }
         jLabelValue.setText(String.valueOf(newValue));
@@ -180,12 +180,12 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
             return;
         }
         MXRangedValue newValue = status._base.getValue();
-        if (jSliderValue.getValue() == newValue._var) {
+        if (jSliderValue.getValue() == newValue._value) {
             return;
         }
         _ignoreEvent = true;
-        jLabelValue.setText(String.valueOf(newValue._var));
-        jSliderValue.setValue(newValue._var);
+        jLabelValue.setText(String.valueOf(newValue._value));
+        jSliderValue.setValue(newValue._value);
         _ignoreEvent = false;
     }
 
@@ -216,7 +216,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
         MGStatus status = getStatus();
         MXRangedValue var = status._base.getValue().increment();
         if (var != null) {
-            _mixer.updateStatusAndSend(status, var._var, null);
+            _mixer.updateStatusAndSend(status, var._value, null);
         }
     }
     
@@ -224,7 +224,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
         MGStatus status = getStatus();
         MXRangedValue var = status._base.getValue().decrement();
         if (var != null) {
-            _mixer.updateStatusAndSend(status, var._var, null);
+            _mixer.updateStatusAndSend(status, var._value, null);
         }
     }
 

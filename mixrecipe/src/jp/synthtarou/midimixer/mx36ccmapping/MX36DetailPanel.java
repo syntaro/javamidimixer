@@ -66,7 +66,7 @@ public class MX36DetailPanel extends javax.swing.JPanel {
             public void showPopup(JComponent mouseBase) {
                 if (_status._outGateTypeKey) {
                     NavigatorForNote picker = new NavigatorForNote();
-                    picker.setSelectedNoteList(new int[]{_status._outGateRange._var});
+                    picker.setSelectedNoteList(new int[]{_status._outGateRange._value});
                     MXUtil.showAsDialog(mouseBase, picker, "Note Number");
                     if (picker.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
                         int[] ret = picker.getReturnValue();
@@ -255,7 +255,7 @@ public class MX36DetailPanel extends javax.swing.JPanel {
 
                 jTextFieldOutPort.setText(_listPort.nameOfValue(status._outPort));
                 jTextFieldOutChannel.setText(_listChannel.nameOfValue(status._outChannel));
-                jTextFieldOutGate.setText(status._outGateTable.nameOfValue(status._outGateRange._var));
+                jTextFieldOutGate.setText(status._outGateTable.nameOfValue(status._outGateRange._value));
                 jTextFieldOutName.setText(status._outName);
                 jTextFieldOutData.setText(status._outDataText);
                 jLabelOutValueRange.setText(status._outValueRange._min + " ... " + status._outValueRange._max);
@@ -272,10 +272,10 @@ public class MX36DetailPanel extends javax.swing.JPanel {
                 jTextFieldBindRSCTRT2.setText(Integer.toString(status._bindRSCTRT2));
                 jTextFieldBindRSCTRT3.setText(Integer.toString(status._bindRSCTRT3));
 
-                jTextFieldValueValue.setText(status._outValueTable.nameOfValue(status._outValueRange._var));
+                jTextFieldValueValue.setText(status._outValueTable.nameOfValue(status._outValueRange._value));
                 jSliderValueValue.setMinimum(status._outValueRange._min);
                 jSliderValueValue.setMaximum(status._outValueRange._max);
-                jSliderValueValue.setValue(status._outValueRange._var);
+                jSliderValueValue.setValue(status._outValueRange._value);
                 if (status._folder != null) {
                     //最初のダミーだけnull
                     status._folder.refill(status);
@@ -291,7 +291,7 @@ public class MX36DetailPanel extends javax.swing.JPanel {
             MX36Status status = _status;
             //再突入を防ぐ
             _status = null;
-            jSliderValueValue.setValue(status._outValueRange._var);
+            jSliderValueValue.setValue(status._outValueRange._value);
             _status = status;
         }
     }
@@ -988,7 +988,7 @@ public class MX36DetailPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonOutTextClearActionPerformed
 
     private void jButtonValueIncActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonValueIncActionPerformed
-        int var = _status._outValueRange._var;
+        int var = _status._outValueRange._value;
         var++;
         if (_status._outValueRange._max >= var) {
             _status._outValueRange = _status._outValueRange.changeValue(var);
@@ -997,7 +997,7 @@ public class MX36DetailPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonValueIncActionPerformed
 
     private void jButtonValueDecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonValueDecActionPerformed
-        int var = _status._outValueRange._var;
+        int var = _status._outValueRange._value;
         var--;
         if (_status._outValueRange._min <= var) {
             _status._outValueRange = _status._outValueRange.changeValue(var);
