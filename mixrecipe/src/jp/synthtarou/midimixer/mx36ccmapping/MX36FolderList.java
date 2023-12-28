@@ -16,7 +16,9 @@
  */
 package jp.synthtarou.midimixer.mx36ccmapping;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.TreeSet;
 import jp.synthtarou.midimixer.libs.accordion.MXAccordion;
 import jp.synthtarou.midimixer.libs.accordion.MXAccordionElement;
@@ -128,5 +130,35 @@ public class MX36FolderList {
                 folder._accordion.setColorFull(false);
             }
         }
+    }
+    
+    public synchronized List<MX36Folder> findConflict(MX36Folder target) {
+        List<MX36Folder> result = null;
+        for (MX36Folder folder : _listFolder) {
+            if (folder == target) {
+                continue;
+            }
+            boolean hit = false;
+            for (MX36Status status1 : folder._list) {
+                for (MX36Status status2 : target._list) {
+                    if (status1._surfacePort == status2._surfacePort
+                     && status1._surfaceRow == status2._surfaceRow
+                     && status1._surfaceColumn == status2._surfaceColumn) {
+                        hit = true;
+                        break;
+                    }
+                }
+                if (hit) {
+                    break;
+                }
+            }
+            if (hit) {
+                if (result == null) {
+                    result = new ArrayList<>();
+                }
+                result.add(folder);
+            }
+        }
+        return result;
     }
 }

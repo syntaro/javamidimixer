@@ -17,6 +17,7 @@
 package jp.synthtarou.midimixer.mx36ccmapping;
 
 import java.util.Comparator;
+import java.util.List;
 import jp.synthtarou.midimixer.libs.accordion.MXAccordion;
 import jp.synthtarou.midimixer.libs.accordion.MXAccordionElement;
 import jp.synthtarou.midimixer.libs.accordion.MXAccordionFocus;
@@ -40,10 +41,26 @@ public class MX36Folder implements Comparable<MX36Folder> {
         _order = order;
         _process = process;
         _focus = focus;
-        _accordion = new MXAccordion(focus, name);
+        _accordion = new MXAccordion(focus, name) {
+            @Override
+            public void openAccordion(boolean sel) {
+                if (sel) {
+                    disableAnotherFolder();
+                }
+                super.openAccordion(sel);
+            }
+        };
         _folderName = name;
     }
+    
+    public boolean isSelected() {
+        return _accordion.isAccordionOpened();
+    }
 
+    public void setSelected(boolean selected) {
+        _accordion.openAccordion(selected);
+    }
+    
     @Override
     public int compareTo(MX36Folder o) {
         if (_order < o._order) {
@@ -76,12 +93,14 @@ public class MX36Folder implements Comparable<MX36Folder> {
         int count = 0;
         for (MX36Status seek : _list) {
             if (seek == status) {
-                _accordion.refresh(count);
+                _accordion.refill(count);
                 return;
             }
             count++;
         }
-        _accordion.refresh(-1);
+        if (count == 0) {
+            _accordion.refill(-1);
+        }
     }
 
     public void setupMouse() {
@@ -103,5 +122,15 @@ public class MX36Folder implements Comparable<MX36Folder> {
     
     public String toString() {
         return _folderName;
+    }
+
+    public void disableAnotherFolder() {
+        List<MX36Folder> conflicts = _process._folders.findConflict(this);
+        if (conflicts == null) {
+            return;
+        }
+        for (MX36Folder seek : conflicts) {
+            seek.setSelected(false);
+        }
     }
 }

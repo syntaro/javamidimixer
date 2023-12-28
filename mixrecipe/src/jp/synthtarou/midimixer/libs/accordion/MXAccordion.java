@@ -110,7 +110,7 @@ public class MXAccordion extends javax.swing.JPanel {
     private void jSlider1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSlider1StateChanged
         Integer v = jSlider1.getValue();
         boolean sel = v.intValue() != 0;
-        if (_accordionOpened != sel) {
+        if (_selected != sel) {
             openAccordion(sel);
         }
     }//GEN-LAST:event_jSlider1StateChanged
@@ -123,7 +123,7 @@ public class MXAccordion extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     MXAccordionInnerPanel _contentsList;
-    boolean _accordionOpened = true;
+    boolean _selected = true;
     boolean _colorfull = true;
     
     public void setColorFull(boolean selected) {
@@ -155,11 +155,11 @@ public class MXAccordion extends javax.swing.JPanel {
             return;
         }
 
-        if (_accordionOpened == opened) {
+        if (_selected == opened) {
             return;
         }
 
-        _accordionOpened = opened;
+        _selected = opened;
 
         Integer v = jSlider1.getValue();
         boolean sel = v.intValue() != 0;
@@ -167,17 +167,18 @@ public class MXAccordion extends javax.swing.JPanel {
             jSlider1.setValue(opened ? 1 : 0);
         }
         _contentsList.openWithAnimation(opened);
+       
     }
 
     public boolean isAccordionOpened() {
-        return _accordionOpened;
+        return _selected;
     }
     
     public void insertElement(int pos, MXAccordionElement element) {
         _contentsList.add(element, pos);
     }
     
-    public void refresh(int pos) {
+    public void refill(int pos) {
         if (pos >= 0) {
             _contentsList._listElement.get(pos).refill();
         }

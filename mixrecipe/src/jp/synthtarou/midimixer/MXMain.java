@@ -75,11 +75,6 @@ public class MXMain  {
         }
     }
     
-    /*
-    public MX12Process getMasterKeys() {
-        return _mx12masterkeyProcess;
-    }*/
-
     public static void addOutsideInput(MXMessage msg) {
         if (getMain()._mx70CosoleProcess != null) {
             getMain()._mx70CosoleProcess.addOutsideInput(new MXMidiConsoleElement(msg));
@@ -105,7 +100,6 @@ public class MXMain  {
     }
 
     private MX10Process _mx10inputProcess;
-    //private MX12Process _mx12masterkeyProcess;
     private MX00Process _mx00playlistProcess;
     private MX30Process _mx30kontrolProcess;
     private MX36Process _mx36ccmappingProcess;
@@ -189,10 +183,10 @@ public class MXMain  {
 
 
         _mx30kontrolProcess.readSettings();
-        //_mx12masterkeyProcess.readSettings();
         _mx00playlistProcess.readSettings();
         
         _mx10inputProcess.readSettings();
+        _mx36ccmappingProcess.readSettings();
         _mx60outputProcess.readSettings();
         _mx40layerProcess.readSettings();
         _mx50resolutionProcess.readSettings();

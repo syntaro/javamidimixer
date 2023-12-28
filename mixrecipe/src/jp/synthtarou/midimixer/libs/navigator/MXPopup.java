@@ -51,6 +51,9 @@ public abstract class MXPopup {
             @Override
             public void mousePressed(MouseEvent e) {
                 try {
+                    if (_target == null || _target.isEnabled() == false) {
+                        return;
+                    }
                     setupColor(true);
                     showPopup(_target);
                 }catch(Throwable ex) {
@@ -63,6 +66,9 @@ public abstract class MXPopup {
         _listener2 = new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
+                if (_target == null || _target.isEnabled() == false) {
+                    return;
+                }
                 if (e.getKeyCode() == KeyEvent.VK_SPACE || e.getKeyCode() == KeyEvent.VK_ENTER) {
                     try {
                         setupColor(true);

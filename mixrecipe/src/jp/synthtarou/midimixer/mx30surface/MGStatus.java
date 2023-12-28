@@ -54,19 +54,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         }
         return _name;
     }
-    
-    public static String getRowAsText(int type, int row) {
-        switch(type) {
-            case TYPE_CIRCLE:
-                return Character.toString('A' + row);
-            case TYPE_SLIDER:
-                return "S";
-            case TYPE_DRUMPAD:
-                return Character.toString('X' + row);
-        }
-        return "-";
-    }
-    
+
     MXMessage _base = MXMessageFactory.fromTemplate(0, new MXTemplate(""), 0, null, null);
 /*
     int _dataroomType = MXVisitant.ROOMTYPE_NODATA;

@@ -26,6 +26,6 @@ public interface MXAccordionElement {
     public JPanel getRenderer();
     public MXAccordion getAccordion();
     public void refill();
-    public void accordionFocus(boolean flag);
+    public void accordionFocused(boolean flag);
 }
 

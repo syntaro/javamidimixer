@@ -282,7 +282,7 @@ public class MXMainWindow extends javax.swing.JFrame {
                 }
                 if (view instanceof MX36View) {
                     MX36View v36 = (MX36View) view;
-                    v36.refreshList();
+                    v36.fullReloadList();
                 }
             }
         }

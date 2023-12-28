@@ -83,11 +83,12 @@ public class MX36StatusPanel extends javax.swing.JPanel implements MXAccordionEl
         jLabelValue.setText(valueLabel);
         jLabelValueDecimal.setText(valueDecimalText);
         jLabelValueHex.setText("=" + Integer.toHexString(valueDecimal) + "h");
-        if (_status._outDataText == null || _status._outDataText.isBlank()) {
+        String text = _status.getOutDataText();
+        if (text == null || text.isBlank()) {
             jLabelText.setText("Format: <none>");
         }
         else {
-            jLabelText.setText("Format:" + _status._outDataText);
+            jLabelText.setText("Format:" + text);
         }
         invalidate();
     }
@@ -248,7 +249,7 @@ public class MX36StatusPanel extends javax.swing.JPanel implements MXAccordionEl
     }
 
     @Override
-    public void accordionFocus(boolean flag) {
+    public void accordionFocused(boolean flag) {
         _process._view.focusStatus(_status);
     }
 }

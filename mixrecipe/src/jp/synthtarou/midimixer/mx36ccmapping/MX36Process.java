@@ -30,7 +30,6 @@ import jp.synthtarou.midimixer.libs.settings.MXSettingNode;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
 
-
 /**
  *
  * @author Syntarou YOSHIDA
@@ -39,17 +38,17 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
 
     MX36View _view;
     MXSetting _setting;
-    MX36FolderList _list;
+    MX36FolderList _folders;
 
     public MX36Process() {
         _setting = new MXSetting("CCMapping");
         _setting.setTarget(this);
-        _list = new MX36FolderList(this);
-        _view = new MX36View(this, _list);
-        _setting.readSettingFile();
+        _folders = new MX36FolderList(this);
+        _view = new MX36View(this, _folders);
     }
 
-    public void processStatus(MGStatus status) {
+    public void readSettings() {
+        _setting.readSettingFile();
     }
 
     @Override
@@ -66,32 +65,32 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
     public void processMXMessage(MXMessage message) {
         MGStatus[] result = message._mx30record;
         boolean done = false;
-        
+
         if (result != null && result.length > 0) {
             for (MGStatus status : result) {
                 if (status._uiType == MGStatus.TYPE_DRUMPAD) {
                     continue;
                 }
                 List<MX36Status> indexed = indexedSearch(status);
-                if(indexed == null) {                    
-                    MX36Folder folder2 = _list._autodetectedFolder;
+                if (indexed == null) {
+                    MX36Folder folder2 = _folders._autodetectedFolder;
                     MX36Status added = MX36Status.fromMGStatus(folder2, status);
                     folder2.insertSorted(added);
                     folder2.refill(added);
                     _index.safeAdd(added);
                     //メッセージがアサインされてないので不要
                     //updateSurfaceValue(status2, status.getValue());
-                }
-                else {
+                } else {
                     for (MX36Status seek : indexed) {
                         MX36Folder folder2 = seek._folder;
-                        updateSurfaceValue(seek, status.getValue());
-                        if (seek._outDataText == null || seek._outDataText.isBlank()) {
-
-                        }else {
-                            done = true;
+                        if (folder2.isSelected()) {
+                            MXMessage msg = updateSurfaceValue(seek, status.getValue());
+                            if (msg != null) {
+                                sendToNext(msg);
+                                done = true;
+                            }
+                            folder2.refill(seek);
                         }
-                        folder2.refill(seek);
                     }
                 }
             }
@@ -104,6 +103,7 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
     @Override
     public void prepareSettingFields(MXSetting setting) {
         setting.register("Folder[].Name");
+        setting.register("Folder[].Selected");
         setting.register("Folder[].Status[].Name");
 
         setting.register("Folder[].Status[].Memo");
@@ -135,15 +135,15 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
         setting.register("Folder[].Status[].BindRSCTPT2");
         setting.register("Folder[].Status[].BindRSCTPT3");
     }
-    
+
     static String rangeToString(MXRangedValue value) {
-        return value._value  +"," + value._min + "," + value._max;
+        return value._value + "," + value._min + "," + value._max;
     }
-    
+
     static MXRangedValue stringToRange(String text) {
         ArrayList<String> split = new ArrayList<>();
         MXUtil.split(text, split, ',');
-        if(split.size() >= 3) {
+        if (split.size() >= 3) {
             try {
                 int var = Integer.parseInt(MXUtil.shrinkText(split.get(0)));
                 int min = Integer.parseInt(MXUtil.shrinkText(split.get(1)));
@@ -154,30 +154,33 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                     }
                     return new MXRangedValue(var, min, max);
                 }
-            }catch(Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
         return null;
     }
-        
-        
+
     @Override
     public void afterReadSettingFile(MXSetting setting) {
         List<MXSettingNode> listFolder = setting.findByPath("Folder[]");
         for (MXSettingNode folderNode : listFolder) {
             String folderName = folderNode.getSetting("Name");
-            MX36Folder folder = _list.newFolder(folderName);
+            MX36Folder folder = _folders.newFolder(folderName);
             
+            folder.setSelected(folderNode.getSettingAsBoolean("Selected", true));
+
             MXSettingNode statusNode = folderNode.findNode("Status");
+            System.out.println("statusNode = " + statusNode);
+
             if (statusNode != null) {
                 List<MXSettingNode> numbers = statusNode.findNumbers();
-                for(MXSettingNode props : numbers) {
+                for (MXSettingNode props : numbers) {
                     MX36Status status = new MX36Status();
-                    
+
                     status._outName = props.getSetting("Name");
                     status._outMemo = props.getSetting("Memo");
-                    status._outDataText = props.getSetting("DataText");
+                    status.setOutDataText(props.getSetting("DataText"));
                     status._outPort = props.getSettingAsInt("Port", -1);
                     status._outChannel = props.getSettingAsInt("Channel", 0);
                     status._outValueRange = stringToRange(props.getSetting("ValueRange"));
@@ -193,7 +196,7 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                                     int name = Integer.valueOf(valueNode.getName());
                                     String var = valueNode._value;
                                     parsedValueTable.addNameAndValue(var, name);
-                                }catch(Exception e) {
+                                } catch (Exception e) {
                                     continue;
                                 }
                             }
@@ -203,7 +206,7 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                         parsedValueTable = null;
                     }
                     status._outValueTable = parsedValueTable;
-                    
+
                     status._outGateRange = stringToRange(props.getSetting("GateRange"));
                     status._outGateOffset = props.getSettingAsInt("GateOffset", 0);
                     MXSettingNode gateTable = props.findNode("GateTable");
@@ -216,14 +219,14 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                                     int name = Integer.valueOf(gateNode.getName());
                                     String var = gateNode._value;
                                     parsedGateTable.addNameAndValue(var, name);
-                                }catch(Exception e) {
+                                } catch (Exception e) {
                                     continue;
                                 }
                             }
                         }
                     }
                     if (parsedGateTable.size() == 0) {
-                        parsedGateTable  = null;
+                        parsedGateTable = null;
                     }
                     status._outGateTable = parsedGateTable;
                     status._outGateTypeKey = props.getSettingAsBoolean(props.getSetting("GateTypeIsKey"), false);
@@ -233,22 +236,24 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                     status._surfaceRow = props.getSettingAsInt("SurfaceRow", 0);
                     status._surfaceColumn = props.getSettingAsInt("SurfaceColumn", 0);
 
-                    status._bind1RCH = props.getSettingAsInt("Bind1RCH1" ,0);
+                    status._bind1RCH = props.getSettingAsInt("Bind1RCH1", 0);
                     status._bind2RCH = props.getSettingAsInt("Bind1RCH2", 0);
                     status._bind4RCH = props.getSettingAsInt("Bind1RCH4", 0);
 
-                    status._bindRSCTRT1 =  props.getSettingAsInt("BindRSCTRT1", 0);
-                    status._bindRSCTRT2 =  props.getSettingAsInt("BindRSCTRT2", 0);
-                    status._bindRSCTRT3 =  props.getSettingAsInt("BindRSCTRT3", 0);
+                    status._bindRSCTRT1 = props.getSettingAsInt("BindRSCTRT1", 0);
+                    status._bindRSCTRT2 = props.getSettingAsInt("BindRSCTRT2", 0);
+                    status._bindRSCTRT3 = props.getSettingAsInt("BindRSCTRT3", 0);
 
-                    status._bindRSCTPT1 =  props.getSettingAsInt("BindRSCTPT1", 0);
-                    status._bindRSCTPT2 =  props.getSettingAsInt("BindRSCTPT2", 0);
-                    status._bindRSCTPT3 =  props.getSettingAsInt("BindRSCTPT3", 0);
+                    status._bindRSCTPT1 = props.getSettingAsInt("BindRSCTPT1", 0);
+                    status._bindRSCTPT2 = props.getSettingAsInt("BindRSCTPT2", 0);
+                    status._bindRSCTPT3 = props.getSettingAsInt("BindRSCTPT3", 0);
 
                     folder.insertSorted(status);
                 }
             }
         }
+
+        _view.fullReloadList();
     }
 
     @Override
@@ -256,43 +261,50 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
         int folderN = 0;
 
         setting.clearValue();
-        for (MX36Folder folder : _list._listFolder) {
+        for (MX36Folder folder : _folders._listFolder) {
             String prefix = "Folder[" + folderN + "].";
-            folderN ++;
-            
+            folderN++;
+
             setting.setSetting(prefix + "Name", folder._folderName);
-            
-            if (folder == this._list._autodetectedFolder) {
+            setting.setSetting(prefix + "Selected", folder.isSelected());
+
+            if (folder == this._folders._autodetectedFolder) {
                 continue;
             }
 
             int statusN = 0;
+            System.out.println("Writing Folder = " + folder + " = " + folder._folderName);
             for (MX36Status status : folder._list) {
+                System.out.println("Status = " + status + " = " + status._outName);
                 String prefix2 = prefix + "Status[" + statusN + "].";
-                statusN ++;
+                statusN++;
 
                 setting.setSetting(prefix2 + "Name", status._outName);
                 setting.setSetting(prefix2 + "Memo", status._outMemo);
-                setting.setSetting(prefix2 + "DataText", status._outDataText);
+                setting.setSetting(prefix2 + "DataText", status.getOutDataText());
                 setting.setSetting(prefix2 + "Port", status._outPort);
                 setting.setSetting(prefix2 + "Channel", status._outChannel);
                 setting.setSetting(prefix2 + "ValueRange", rangeToString(status._outValueRange));
                 setting.setSetting(prefix2 + "ValueOffset", status._outValueOffset);
-                if (!isSameRangeAndTable(status._outValueRange, status._outValueTable)) {
-                    for (MXWrap<Integer> value : status._outValueTable) {
-                        setting.setSetting(prefix2 + "ValueTable[" + value._value + "]", value._value);
+                if (status._outValueTable != null) {
+                    if (!isSameRangeAndTable(status._outValueRange, status._outValueTable)) {
+                        for (MXWrap<Integer> value : status._outValueTable) {
+                            setting.setSetting(prefix2 + "ValueTable[" + value._value + "]", value._value);
+                        }
                     }
                 }
                 setting.setSetting(prefix2 + "GateRange", rangeToString(status._outGateRange));
                 setting.setSetting(prefix2 + "GateOffset", status._outGateOffset);
-                if (!isSameRangeAndTable(status._outGateRange, status._outGateTable)) {
-                    for (MXWrap<Integer> gate : status._outGateTable) {
-                        setting.setSetting(prefix2 + "GateTable[" + gate._value + "]", gate._value);
+                if (status._outGateTable != null) {
+                    if (!isSameRangeAndTable(status._outGateRange, status._outGateTable)) {
+                        for (MXWrap<Integer> gate : status._outGateTable) {
+                            setting.setSetting(prefix2 + "GateTable[" + gate._value + "]", gate._value);
+                        }
                     }
                 }
                 setting.setSetting(prefix2 + "GateTypeIsKey", status._outGateTypeKey);
 
-                setting.setSetting(prefix2 + "SurfacePort",  status._surfacePort);
+                setting.setSetting(prefix2 + "SurfacePort", status._surfacePort);
                 setting.setSetting(prefix2 + "SurfaceUIType", status._surfaceUIType);
                 setting.setSetting(prefix2 + "SurfaceRow", status._surfaceRow);
                 setting.setSetting(prefix2 + "SurfaceColumn", status._surfaceColumn);
@@ -309,39 +321,42 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                 setting.setSetting(prefix2 + "BindRSCTPT2", status._bindRSCTPT2);
                 setting.setSetting(prefix2 + "BindRSCTPT3", status._bindRSCTPT3);
             }
-            
+
         }
     }
 
-    public void updateSurfaceValue(MX36Status status, int value) {
-        updateSurfaceValue(status, status._surfaceValueRange.changeValue(value));
+    MXMessage updateSurfaceValue(MX36Status status, int value) {
+        return updateSurfaceValue(status, status._surfaceValueRange.changeValue(value));
     }
 
-    public void updateSurfaceValue(MX36Status status, MXRangedValue value) {
+    MXMessage updateSurfaceValue(MX36Status status, MXRangedValue value) {
         if (status._surfaceValueRange.equals(value)) {
-            return;
+            return null;
         }
         status._surfaceValueRange = value;
-        updateOutputValue(status, value.changeRange(status._outValueRange._min, status._outValueRange._max));
+        return updateOutputValue(status, value.changeRange(status._outValueRange._min, status._outValueRange._max));
     }
 
-    public void updateOutputValue(MX36Status status, int value) {
-        updateOutputValue(status, status._outValueRange.changeValue(value));
+    MXMessage updateOutputValue(MX36Status status, int value) {
+        return updateOutputValue(status, status._outValueRange.changeValue(value));
     }
 
-    public void updateOutputValue(MX36Status status, MXRangedValue value) {
+    MXMessage updateOutputValue(MX36Status status, MXRangedValue value) {
         if (status._outValueRange.equals(value)) {
-            return;
+            return null;
         }
         status._outValueRange = value;
-        _view._detailPanel.updateSliderByStatus();
+        if (_view._detailPanel._status == status) {
+            _view._detailPanel.updateSliderByStatus();
+        }
         if (status._folder != null) {
             status._folder.refill(status);
         }
-        raiseSignal(status);
-        _view.refreshList();
+        _view.fullReloadList();
+        return status.createOutMessage();
     }
 
+    /*
     public void raiseSignal(MX36Status status) {
         MXMessage message = status.createOutMessage();
         if (message == null) {
@@ -349,6 +364,7 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
         }
         sendToNext(message);
     }
+    */
 
     public void moveFolder(MX36Folder folder, MX36Status status) {
         if (status._folder != null) {
@@ -356,33 +372,32 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
         }
         folder.insertSorted(status);
     }
-    
+
     public boolean isSameRangeAndTable(MXRangedValue range, MXWrapList<Integer> table) {
         int rangeCount = range._max - range._min + 1;
         int tableCount = table.size();
         if (rangeCount == tableCount) {
-            for (int i = range._min; i <= range._max; ++ i) {
+            for (int i = range._min; i <= range._max; ++i) {
                 String name = String.valueOf(i);
                 Integer value = table.valueOfName(name);
-                
+
                 if (String.valueOf(value).equals(name) == false) {
                     return false;
                 }
             }
             return true;
-        }
-        else {        
+        } else {
             return false;
         }
     }
 
     MX36Index _index = null;
-    
+
     public ArrayList<MX36Status> indexedSearch(MGStatus status) {
         if (_index == null) {
             System.out.println("recreate");
             _index = new MX36Index();
-            for (MX36Folder folder : _list._listFolder) {
+            for (MX36Folder folder : _folders._listFolder) {
                 for (MX36Status seek : folder._list) {
                     _index.safeAdd(seek);
                 }

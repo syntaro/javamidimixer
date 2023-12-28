@@ -91,7 +91,7 @@ public class MXAccordionFocus {
             if (focusPast != null) {
                 JPanel panel = focusPast.getRenderer();
                 panel.setBorder(BorderFactory.createEtchedBorder());
-                focusPast.accordionFocus(false);
+                focusPast.accordionFocused(false);
             }
         }
 
@@ -99,7 +99,7 @@ public class MXAccordionFocus {
         childPanel.setBorder(BorderFactory.createEtchedBorder(Color.green, Color.green));
         if (focusPast != child) {
             _selectedAccordionChild.put(group, child); 
-            child.accordionFocus(true);
+            child.accordionFocused(true);
         }
     }
     

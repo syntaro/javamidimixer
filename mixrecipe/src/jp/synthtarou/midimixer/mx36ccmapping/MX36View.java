@@ -17,13 +17,11 @@
 package jp.synthtarou.midimixer.mx36ccmapping;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JOptionPane;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
-import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
 import jp.synthtarou.midimixer.libs.navigator.MXPopupForList;
 import jp.synthtarou.midimixer.libs.navigator.MXPopupForText;
-import jp.synthtarou.midimixer.libs.navigator.legacy.NavigatorForText;
 
 /**
  *
@@ -32,32 +30,30 @@ import jp.synthtarou.midimixer.libs.navigator.legacy.NavigatorForText;
 public class MX36View extends javax.swing.JPanel {
 
     MX36Process _process;
-    MX36DetailPanel _detailPanel;
+    MX36StatusDetailPanel _detailPanel;
     MX36StatusListPanel _listPanel;
+
     /**
      * Creates new form MX36View
      */
     public MX36View(MX36Process process, MX36FolderList list) {
         initComponents();
         _process = process;
-        _detailPanel = new MX36DetailPanel(process);
-        jPanel2.add(_detailPanel);        
+        _detailPanel = new MX36StatusDetailPanel(process);
+        jPanel2.add(_detailPanel);
         jPanel2.setBorder(BorderFactory.createEmptyBorder());
         _listPanel = new MX36StatusListPanel(list);
         jPanel3.add(_listPanel);
     }
 
-    public void fullReloadList(MX36FolderList list) {
+    public void fullReloadList() {
         jPanel3.remove(_listPanel);
-        _listPanel = new MX36StatusListPanel(list);
+        _listPanel = new MX36StatusListPanel(_process._folders);
         jPanel3.add(_listPanel);
         _listPanel.revalidate();
         jPanel3.revalidate();
     }
-    
-    public void refreshList() {
-    }
-    
+
     public void focusStatus(MX36Status status) {
         _detailPanel.updateViewByStatus(status);
     }
@@ -72,36 +68,10 @@ public class MX36View extends javax.swing.JPanel {
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        jButtonNewFolder = new javax.swing.JButton();
-        jButtonMoveFolder = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jPanel3 = new javax.swing.JPanel();
 
         setLayout(new java.awt.GridBagLayout());
-
-        jButtonNewFolder.setText("New Folder");
-        jButtonNewFolder.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonNewFolderActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        add(jButtonNewFolder, gridBagConstraints);
-
-        jButtonMoveFolder.setText("move Folder");
-        jButtonMoveFolder.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonMoveFolderActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        add(jButtonMoveFolder, gridBagConstraints);
 
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Pickuped"));
         jPanel2.setLayout(new javax.swing.BoxLayout(jPanel2, javax.swing.BoxLayout.LINE_AXIS));
@@ -123,32 +93,35 @@ public class MX36View extends javax.swing.JPanel {
         add(jPanel3, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButtonNewFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNewFolderActionPerformed
+    public void startCreateFolder(JButton button) {
         MXPopupForText navi = new MXPopupForText(null) {
+
             @Override
             public void approvedText(String text) {
-                if (_process._list.getFolder(text) != null) {
+                if (_process._folders.getFolder(text) != null) {
                     JOptionPane.showMessageDialog(MX36View.this, "Already Exists", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                _process._list.newFolder(text);
+                MX36Folder newFolder = _process._folders.newFolder(text);
+                _process.moveFolder(newFolder, _detailPanel._status);
                 if (_process._view != null) {
-                    _process._view.fullReloadList(_process._list);
+                    _process._view.fullReloadList();
                 }
             }
         };
         navi.setDialogTitle("Input Folder Name");
-        navi.showPopup(this);
-    }//GEN-LAST:event_jButtonNewFolderActionPerformed
+        navi.showPopup(button);
+    }
 
-    private void jButtonMoveFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveFolderActionPerformed
+    public void startMoveFolder(JButton button) {
         if (_detailPanel._status == null) {
             return;
         }
         MXWrapList<MX36Folder> listFolder = new MXWrapList<>();
-        for (MX36Folder folder : _process._list._listFolder) {
+        for (MX36Folder folder : _process._folders._listFolder) {
             listFolder.addNameAndValue(folder._folderName, folder);
         }
+        listFolder.addNameAndValue("...", null);
         MXPopupForList<MX36Folder> navi = new MXPopupForList<MX36Folder>(null, listFolder) {
             @Override
             public void approvedIndex(int selectedIndex) {
@@ -156,14 +129,16 @@ public class MX36View extends javax.swing.JPanel {
                 if (ret != null) {
                     _process.moveFolder(ret, _detailPanel._status);
                 }
+                else {
+                    startCreateFolder(button);
+                }
             }
         };
-        navi.showPopup(this);
-    }//GEN-LAST:event_jButtonMoveFolderActionPerformed
-    
+       
+        navi.showPopup(button);
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButtonMoveFolder;
-    private javax.swing.JButton jButtonNewFolder;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     // End of variables declaration//GEN-END:variables

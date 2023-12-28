@@ -17,10 +17,12 @@
 package jp.synthtarou.midimixer.mx36ccmapping;
 
 import java.util.Collections;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
 
 /**
@@ -33,12 +35,12 @@ public class MX36Status {
     int _surfaceRow;
     int _surfaceColumn;
     MXRangedValue _surfaceValueRange = new MXRangedValue(0, 0, 127);
-    
+   
     MGStatus _surface;
     
     String _outName;
     String _outMemo;
-    String _outDataText;
+    private String _outDataText;
     int _outPort;
     MXMessage _outCachedMessage;
     int _outChannel;
@@ -52,6 +54,45 @@ public class MX36Status {
     MXWrapList<Integer> _outGateTable;
     
     boolean _outGateTypeKey;
+    
+    static int findRowTypeFromValue(int value) {
+        return (value >> 8) & 0xff;
+    }
+    
+    static int findRowNumberFromValue(int value) {
+        return value & 0xff;
+    }
+    
+    static int makeRowValue(int rowType, int rowNumber) {
+        return (rowType << 8) | rowNumber;
+    }
+    
+    static MXWrapList<Integer> _listRowType;
+
+    static {
+        _listRowType = new MXWrapList<>();
+        for (int i = 0; i < MXAppConfig.CIRCLE_ROW_COUNT; ++ i) {
+            String caption = "Knob";
+            if (i != 0) {
+                caption += Integer.toString(i + 1);
+            }
+            _listRowType.addNameAndValue(caption, makeRowValue(MGStatus.TYPE_CIRCLE, i));
+        }
+        for (int i = 0; i < MXAppConfig.SLIDER_ROW_COUNT; ++ i) {
+            String caption = "Slider";
+            if (i != 0) {
+                caption += Integer.toString(i + 1);
+            }
+            _listRowType.addNameAndValue(caption, makeRowValue(MGStatus.TYPE_SLIDER, i));
+        }
+        for (int i = 0; i < MXAppConfig.DRUM_ROW_COUNT; ++ i) {
+            String caption = "Drum";
+            if (i != 0) {
+                caption += Integer.toString(i + 1);
+            }
+            _listRowType.addNameAndValue(caption, makeRowValue(MGStatus.TYPE_DRUMPAD, i));
+        }
+    }
     
     public String getOutValueLabel() {
         String text = null;
@@ -83,6 +124,19 @@ public class MX36Status {
     
     MX36StatusPanel _view;
     
+    public String getOutDataText() {
+        return _outDataText;
+    }
+
+    public void setOutDataText(String text) {
+        _outDataText = text;
+        _outCachedMessage = null;
+    }
+    
+    public MXMessage getOutDataMessage() {
+        return null;
+    }
+    
     public MX36Status() {
         _outPort = -1;
         _folder = null;
@@ -98,7 +152,9 @@ public class MX36Status {
     }
     
     public String toSurfaceText() {
-        return "#" + Character.toString('A'+_surfacePort) + "-" + MGStatus.getRowAsText(_surfaceUIType, _surfaceRow) + (_surfaceColumn+1);
+        int x = MX36Status.makeRowValue(_surfaceUIType, _surfaceRow);
+        String row = _listRowType.nameOfValue(x);
+        return "#" + Character.toString('A'+_surfacePort) + "-" + row + "-" + (_surfaceColumn+1);
     }
     
     public String toOutputPortText() {
@@ -114,7 +170,7 @@ public class MX36Status {
     }
 
     public String toString() {
-        return "#" + Character.toString('A'+_surfacePort) + "-" + MGStatus.getRowAsText(_surfaceUIType, _surfaceRow) + (_surfaceColumn+1) + "=" + _outValueRange._value;
+        return toSurfaceText() + "=" + _outValueRange._value;
     }
     
     public static MX36Status fromMGStatus(MX36Folder folder, MGStatus status) {
@@ -222,4 +278,31 @@ public class MX36Status {
         if (_outDataText.isBlank()) return false;
         return true;
     }
+    
+    static MXWrapList<Integer> listForDefault = MXWrapListFactory.listupRange(0, 127);
+
+    public MXWrapList<Integer> safeGateTable() {
+        if (_outGateTable != null) {
+            return _outGateTable;
+        }
+        MXRangedValue range = _outGateRange;
+        if (range._min == 0 && range._max == 127) {
+            return listForDefault;
+        }
+        MXWrapList<Integer> listForGate = MXWrapListFactory.listupRange(range._min, range._max);
+        return listForGate;
+    }
+
+    public MXWrapList<Integer> safeValueTable() {
+        if (_outValueTable != null) {
+            return _outValueTable;
+        }
+        MXRangedValue range = _outValueRange;
+        if (range._min == 0 && range._max == 127) {
+            return listForDefault;
+        }
+        MXWrapList<Integer> listForValue = MXWrapListFactory.listupRange(range._min, range._max);
+        return listForValue;
+    }
+    
 }
