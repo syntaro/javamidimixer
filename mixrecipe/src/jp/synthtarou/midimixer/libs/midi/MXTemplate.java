@@ -295,6 +295,16 @@ public class MXTemplate implements Comparable<MXTemplate> {
             }
             data[dpos++] = (byte) (x & 0xff);
         }
+        if (data.length >= 3
+         && (data[0] & 0xff) == MXMidi.COMMAND_SYSEX
+         && (data[1] & 0xff) == MXMidi.COMMAND_SYSEX) {
+            dataLength --;
+            byte []copyData = new byte[dataLength];
+            for (int i = 0; i < copyData.length; ++ i) {
+                copyData[i] = data[i + 1];
+            }            
+            data = copyData;
+        }
         if (_listChecksum != null) {
             for (CheckSumInfo seek : _listChecksum) {
                 int sumChecksum = 0;

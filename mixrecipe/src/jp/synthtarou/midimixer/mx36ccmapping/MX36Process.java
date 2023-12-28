@@ -73,6 +73,8 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                 }
                 List<MX36Status> indexed = indexedSearch(status);
                 if (indexed == null) {
+                    
+                    /*
                     MX36Folder folder2 = _folders._autodetectedFolder;
                     MX36Status added = MX36Status.fromMGStatus(folder2, status);
                     folder2.insertSorted(added);
@@ -80,6 +82,7 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                     _index.safeAdd(added);
                     //メッセージがアサインされてないので不要
                     //updateSurfaceValue(status2, status.getValue());
+                    */
                 } else {
                     for (MX36Status seek : indexed) {
                         MX36Folder folder2 = seek._folder;
@@ -87,9 +90,9 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                             MXMessage msg = updateSurfaceValue(seek, status.getValue());
                             if (msg != null) {
                                 sendToNext(msg);
-                                done = true;
+                                folder2.refill(seek);
                             }
-                            folder2.refill(seek);
+                            done = true;
                         }
                     }
                 }

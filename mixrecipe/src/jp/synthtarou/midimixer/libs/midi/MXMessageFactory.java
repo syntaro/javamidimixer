@@ -16,9 +16,6 @@
  */
 package jp.synthtarou.midimixer.libs.midi;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 
 /**
