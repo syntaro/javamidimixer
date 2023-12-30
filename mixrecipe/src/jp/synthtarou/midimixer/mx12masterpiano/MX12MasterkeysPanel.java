@@ -67,8 +67,8 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     MXWrapList<Integer> _watchPort = MXWrapListFactory.listupPort(null);
     MXWrapList<Integer> _watchChannel = MXWrapListFactory.listupChannel(null);
     
-    int _valuePitch = -1;
-    int _valueModulation = -1;
+    int _sentPitch = 8192;
+    int _sentModulation = 0;
     boolean _beforeBuild = true;
     
     /**
@@ -85,7 +85,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         new MXAttachSliderLikeEclipse(jSliderPitch);
         new MXAttachSliderLikeEclipse(jSliderModwheel);
         new MXAttachSliderSingleClick(jSliderPitch);
-
+        
         jSliderPitch.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseReleased(java.awt.event.MouseEvent evt) {
                 setPitchBend(8192);
@@ -100,11 +100,11 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         jSliderPitch.setPaintTicks(true);
         
         Hashtable table = new Hashtable();
-        table.put(0, new JLabel("0"));
-        table.put(8192, new JLabel("8192"));
-        table.put(16383, new JLabel("16383"));
+        table.put(0, new JLabel("-1.0"));
+        table.put(8192, new JLabel("0"));
+        table.put(16383, new JLabel("+1.0"));
         jSliderPitch.setLabelTable(table);
-        jSliderPitch.setPaintLabels(true);
+        jSliderPitch.setPaintLabels(false);
         
         jSliderModwheel.setMinimum(0);
         jSliderModwheel.setMaximum(127);
@@ -115,9 +115,9 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         
         Hashtable table2 = new Hashtable();
         table2.put(0, new JLabel("0"));
-        table2.put(127, new JLabel("127"));
+        table2.put(127, new JLabel("+1.0"));
         jSliderModwheel.setLabelTable(table2);
-        jSliderModwheel.setPaintLabels(true);
+        jSliderModwheel.setPaintLabels(false);
 
         _piano = new MXSwingPiano();
         
@@ -201,8 +201,6 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         }
     }
     
-    boolean _updateLock = false;
-    
     public void setPitchBend(int value) {
         if (SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(new Runnable() {
@@ -212,12 +210,20 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             });
             return;
         }
-        if (_valuePitch != value) {
-            _valuePitch = value;
-            _updateLock = true;
+        if (_sentPitch != value) {
+            _sentPitch = value;
             jSliderPitch.setValue(value);
-            _updateLock = false;
-         }
+            synchronized(MXTiming.mutex) {            
+                MXMessage msg = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_PITCHWHEEL + _process.getMouseChannel(), 0, 0);
+                if (msg.indexOfValueHi() >= 0) {
+                    msg.setValue(MXRangedValue.new14bit(value));
+                }
+                else {
+                    msg.setValue(MXRangedValue.new7bit(value));
+                }
+                _process.mouseMessage(msg);
+            }         
+        }
     }
     
     public void setModulatoinWheel(int value) {
@@ -229,11 +235,16 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             });
             return;
         }
-        if (_valueModulation != value) {
-            _valueModulation = value;
-            _updateLock = true;
+        if (_sentModulation != value) {
+            _sentModulation = value;
             jSliderModwheel.setValue(value);
-            _updateLock = false;
+
+            _sentModulation = value;
+            synchronized(MXTiming.mutex) {            
+                MXMessage msg = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_CONTROLCHANGE + _process.getMouseChannel(), MXMidi.DATA1_CC_MODULATION, 0);
+                msg.setValue(MXRangedValue.new7bit(value));
+                _process.mouseMessage(msg);
+            }
         }
     }
 
@@ -252,7 +263,6 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         jSliderPitch = new javax.swing.JSlider();
         jSliderModwheel = new javax.swing.JSlider();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jLabelEdit = new javax.swing.JLabel();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -268,10 +278,12 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 18, 0);
         add(jSliderPitch, gridBagConstraints);
 
         jSliderModwheel.setOrientation(javax.swing.JSlider.VERTICAL);
         jSliderModwheel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        jSliderModwheel.setInverted(true);
         jSliderModwheel.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 jSliderModwheelStateChanged(evt);
@@ -281,6 +293,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 18, 0);
         add(jSliderModwheel, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -291,58 +304,27 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         add(jScrollPane1, gridBagConstraints);
-
-        jLabelEdit.setText("Config");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        add(jLabelEdit, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jSliderModwheelStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderModwheelStateChanged
         if (_beforeBuild) {
             return;
         }
-        if (_updateLock) {
-            return;
-        }
         int value = jSliderModwheel.getValue();
-        _valueModulation = value;
-        synchronized(MXTiming.mutex) {            
-            MXMessage msg = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_CONTROLCHANGE + _process.getMouseChannel(), MXMidi.DATA1_CC_MODULATION, 0);
-            msg.setValue(MXRangedValue.new7bit(value));
-            _process.mouseMessage(msg);
-        }
-
+        setModulatoinWheel(value);
     }//GEN-LAST:event_jSliderModwheelStateChanged
 
     private void jSliderPitchStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderPitchStateChanged
         if (_beforeBuild) {
             return;
         }
-        if (_updateLock) {
-            return;
-        }
         int value = jSliderPitch.getValue();
-        _valuePitch = value;
-        synchronized(MXTiming.mutex) {            
-            MXMessage msg = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_PITCHWHEEL + _process.getMouseChannel(), 0, 0);
-            if (msg.indexOfValueHi() >= 0) {
-                msg.setValue(MXRangedValue.new14bit(value));
-            }
-            else {
-                msg.setValue(MXRangedValue.new7bit(value));
-            }
-            _process.mouseMessage(msg);
-        }
+        setPitchBend(value);
     }//GEN-LAST:event_jSliderPitchStateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
-    private javax.swing.JLabel jLabelEdit;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSlider jSliderModwheel;
     private javax.swing.JSlider jSliderPitch;
