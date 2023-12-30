@@ -718,7 +718,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
             status = status & 0xf0;
             switch (status) {
                 case MXMidi.COMMAND_CH_PITCHWHEEL:
-                    template = new int[]{MXMidi.COMMAND_CH_PITCHWHEEL, MXMidi.CCXML_VH, MXMidi.CCXML_VL};
+                    template = new int[]{MXMidi.COMMAND_CH_PITCHWHEEL, MXMidi.CCXML_VL, MXMidi.CCXML_VH};
                     break;
                 case MXMidi.COMMAND_CH_CHANNELPRESSURE:
                     template = new int[]{MXMidi.COMMAND_CH_CHANNELPRESSURE, MXMidi.CCXML_VL};
