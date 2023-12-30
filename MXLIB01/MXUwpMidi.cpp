@@ -101,7 +101,7 @@ bool openerOpen(PortInformation* info, int timeout) {
 
         info->itsOutput = nullptr;
         if (ope.Status() == Windows::Foundation::AsyncStatus::Completed) {
-            debugText("Complete");
+            debugText(L"Complete");
             info->itsOutput = ope.GetResults();
             return true;
         }
@@ -112,7 +112,7 @@ bool openerOpen(PortInformation* info, int timeout) {
             return true;
         }
     }
-    debugText("openerOpen9");
+    debugText(L"openerOpen9");
     return false;
 }
 
@@ -360,7 +360,7 @@ void MXDeviceManager::InClose(int device) {
     }
 
     if (info->itsInput != nullptr) {
-        debugText("InputClosed");
+        debugText(L"InputClosed");
         info->itsInput.Close();
         info->itsInput = nullptr;
     }
@@ -686,13 +686,11 @@ extern jmethodID cbCallText, cbCallShortMessage, cbCallLongMessage, cbDeviceList
 
 void refCallText(const jchar* text) {
     std::wcout << text << std:: endl;
-    /*
     JNIEnv* env2 = nullptr;
     _javaVM->AttachCurrentThread((void**)&env2, nullptr);
 
     jstring str = env2->NewString((uint16_t*)text, wcslen((const wchar_t*)text));
     env2->CallStaticVoidMethod(_javaClass, cbCallText, str);
-    */
 }
 
 void refCallShortMessage(jint device, jint message) {

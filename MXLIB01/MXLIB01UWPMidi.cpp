@@ -287,7 +287,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     //if (cbCallText == nullptr) return JNI_ERR;
     //if (cbCallLongMessage == nullptr) return JNI_ERR;
 
-    debugText("MXLIB01 -> 2023-3-24");
+    debugText(L"MXLIB01 -> 2023-3-24");
 
     return JNI_VERSION_1_1;
 }

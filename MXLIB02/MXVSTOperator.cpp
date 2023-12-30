@@ -177,7 +177,7 @@ int MXVSTOperator::processQueuedThreadCommand() {
 			case Thread_OpenVSTEditor:
 				vst = getSynth(effect, synth);
 				if (vst != nullptr && vst->isOpen()) {
-					debugTextw2("openVstEditor", vst->_path.c_str());
+					debugText2(L"openVstEditor", vst->_path.c_str());
 					if (vst->_easyVst->openVstEditor()) {
 						result = Thread_Success;
 					}
@@ -187,7 +187,7 @@ int MXVSTOperator::processQueuedThreadCommand() {
 			case Thread_CloseVSTEditor:
 				vst = getSynth(effect, synth);
 				if (vst != nullptr && vst->isOpen()) {
-					debugTextw2("closeVstEditor", vst->_path.c_str());
+					debugText2(L"closeVstEditor", vst->_path.c_str());
 					if (vst->_easyVst->closeVstEditor()) {
 						result = Thread_Success;
 					}
@@ -205,7 +205,7 @@ int MXVSTOperator::processQueuedThreadCommand() {
 			case Thread_RemoveVST: {
 				vst = getSynth(effect, synth);
 				if (vst != nullptr) {
-					std::cout << "postRemoveSynth " << std::endl;
+					debugText(L"postRemoveSynth");
 					if (vst->isOpen()) {
 						vst->_easyVst->closeVstEditor();
 					}
@@ -228,6 +228,7 @@ int MXVSTOperator::processQueuedThreadCommand() {
 				vst = getSynth(effect, synth);
 				if (vst != nullptr && vst->isOpen()) {
 					if (command->fileName != nullptr) {
+						debugText2(L"%s", command->fileName->c_str());
 						vst->savePreset(*command->fileName);
 						result = Thread_Success;
 					}
@@ -251,7 +252,7 @@ int MXVSTOperator::processQueuedThreadCommand() {
 		__except (systemExceptionMyHandler("processQueuedThreadCommand", GetExceptionInformation()))
 		{
 			result = Thread_Exception;
-			debugNumber("command was", command->command);
+			debugNumber(L"command was", command->command);
 			if (vst != nullptr) {
 				refBlackListed(effect, synth);
 			}
@@ -492,7 +493,7 @@ void MXVSTOperator::setRecycle(ThreadCommandSturct* command) {
 ThreadCommandSturct* MXVSTOperator::createCommand() {
 	if (_recycleBin.empty()) {
 		++countNew;
-		debugNumber("Not Recycle, Count New = ", countNew);
+		debugNumber(L"Not Recycle, Count New = ", countNew);
 		return new ThreadCommandSturct();
 	}
 	ThreadCommandSturct* ret;

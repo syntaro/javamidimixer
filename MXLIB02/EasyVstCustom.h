@@ -53,8 +53,8 @@ public:
 	const char* name();
 	bool openVstEditor();
 	bool closeVstEditor();
-	bool savePreset(const char* utfPath);
-	bool loadPreset(const char* utfPath);
+	bool savePreset(const wchar_t* path);
+	bool loadPreset(const wchar_t* path);
 	HWND getHWnd();
 	bool isOpen();
 	void reset();

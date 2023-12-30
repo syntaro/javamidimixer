@@ -5,17 +5,17 @@
 #include "MXVSTStream.h"
 
 #ifdef DEBUG
-#pragma comment(lib,"C:/github/vst3sdk_build/lib/Debug/base.lib")
-#pragma comment(lib,"C:/github/vst3sdk_build/lib/Debug/pluginterfaces.lib")
-#pragma comment(lib,"C:/github/vst3sdk_build/lib/Debug/sdk.lib")
-#pragma comment(lib,"C:/github/vst3sdk_build/lib/Debug/sdk_hosting.lib")
-#pragma comment(lib,"C:/github/vst3sdk_build/lib/Debug/sdk_common.lib")
+#pragma comment(lib,"C:/github/vstsdk_build/lib/Debug/base.lib")
+#pragma comment(lib,"C:/github/vstsdk_build/lib/Debug/pluginterfaces.lib")
+#pragma comment(lib,"C:/github/vstsdk_build/lib/Debug/sdk.lib")
+#pragma comment(lib,"C:/github/vstsdk_build/lib/Debug/sdk_hosting.lib")
+#pragma comment(lib,"C:/github/vstsdk_build/lib/Debug/sdk_common.lib")
 #else
-#pragma comment(lib,"C:/github/vst3sdk_build/lib/Release/base.lib")
-#pragma comment(lib,"C:/github/vst3sdk_build/lib/Release/pluginterfaces.lib")
-#pragma comment(lib,"C:/github/vst3sdk_build/lib/Release/sdk.lib")
-#pragma comment(lib,"C:/github/vst3sdk_build/lib/Release/sdk_hosting.lib")
-#pragma comment(lib,"C:/github/vst3sdk_build/lib/Release/sdk_common.lib")
+#pragma comment(lib,"C:/github/vstsdk_build/lib/Release/base.lib")
+#pragma comment(lib,"C:/github/vstsdk_build/lib/Release/pluginterfaces.lib")
+#pragma comment(lib,"C:/github/vstsdk_build/lib/Release/sdk.lib")
+#pragma comment(lib,"C:/github/vstsdk_build/lib/Release/sdk_hosting.lib")
+#pragma comment(lib,"C:/github/vstsdk_build/lib/Release/sdk_common.lib")
 #endif
 
 HostApplication* EasyVstCustom::_standardPluginContext = nullptr;
@@ -54,8 +54,8 @@ bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool r
 	_processSetup.sampleRate = sampleRate;
 	_processSetup.maxSamplesPerBlock = 4096;
 
-	debugNumber("first sampleRate", sampleRate);
-	debugNumber("first blockSize", blockSize);
+	debugNumber(L"first sampleRate", sampleRate);
+	debugNumber(L"first blockSize", blockSize);
 
 	_processData.numSamples = blockSize;
 	_processData.symbolicSampleSize = _symbolicSampleSize;
@@ -284,9 +284,9 @@ void EasyVstCustom::reset()
 	_superDestroty(false);
 }
 
-BOOL bufferToFile(const char* utfPath, IBStream& buffer) {
+BOOL bufferToFile(const wchar_t* path, IBStream& buffer) {
 	FILE* fp;
-	if (fopen_s(&fp, utfPath, "wb") != 0) {
+	if (_wfopen_s(&fp, path, L"wb") != 0) {
 		return FALSE;
 	}
 	int trans;
@@ -304,7 +304,7 @@ BOOL bufferToFile(const char* utfPath, IBStream& buffer) {
 		//std::cout << "::write wrote " << std::to_string(wrote) << " bytes " << std::endl;
 		if (wrote != trans) {
 			::fclose(fp);
-			remove(utfPath);
+			_wremove(path);
 			return FALSE;
 		}
 	}
@@ -313,9 +313,9 @@ BOOL bufferToFile(const char* utfPath, IBStream& buffer) {
 	return TRUE;
 }
 
-BOOL fileToBuffer(const char* utfPath, IBStream& buffer) {
+BOOL fileToBuffer(const wchar_t* path, IBStream& buffer) {
 	FILE* fp;
-	if (fopen_s(&fp, utfPath, "rb") != 0) {
+	if (_wfopen_s(&fp, path, L"rb") != 0) {
 		return FALSE;
 	}
 	int trans;
@@ -335,7 +335,7 @@ BOOL fileToBuffer(const char* utfPath, IBStream& buffer) {
 	return TRUE;
 }
 
-bool EasyVstCustom::savePreset(const char* utfPath) {
+bool EasyVstCustom::savePreset(const wchar_t* path) {
 	bool success0 = FALSE, success1 = FALSE;
 	try {
 		BufferStream buffer0;
@@ -361,10 +361,10 @@ bool EasyVstCustom::savePreset(const char* utfPath) {
 			buffer0.tell(&pos0);
 			buffer1.tell(&pos1);
 			if (pos0 < pos1) {
-				return bufferToFile(utfPath, buffer1);
+				return bufferToFile(path, buffer1);
 			}
 			else {
-				return bufferToFile(utfPath, buffer0);
+				return bufferToFile(path, buffer0);
 			}
 		}
 		if (!success0) {
@@ -377,14 +377,14 @@ bool EasyVstCustom::savePreset(const char* utfPath) {
 	return success0;
 }
 
-bool EasyVstCustom::loadPreset(const char* utfPath) {
+bool EasyVstCustom::loadPreset(const wchar_t* path) {
 	bool success = FALSE;
 	try {
 		BufferStream buffer;
 		FUID uid;
 		_component->getControllerClassId((char*)&uid);
 
-		success = fileToBuffer(utfPath, buffer);
+		success = fileToBuffer(path, buffer);
 
 		if (success) {
 			success = PresetFile::loadPreset(

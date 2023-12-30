@@ -408,6 +408,7 @@ public class VSTInstancePanel extends javax.swing.JPanel {
                 public boolean presetActionSave(File file) {
                     if (file != null) {
                         Transaction tr = new Transaction("presetActinoSave");
+                        System.out.println(".presetSave" + file.getPath());
                         _instance.postSavePreset(file.getPath(), tr);
                         return tr.awaitResult() == 0 ? true : false;
                     }

@@ -247,17 +247,16 @@ bool MXVSTInstrument::savePreset(std::wstring& path) {
     if (isOpen() == false) {
         return false;
     }
-    std::string utfPath = wide_to_utf8(path);
-    _easyVst->savePreset(utfPath.c_str());
-    return _easyVst->savePreset(utfPath.c_str());
+    //2回実行しないとダメなケースがある
+    _easyVst->savePreset(path.c_str());
+    return _easyVst->savePreset(path.c_str());
 }
 
 bool  MXVSTInstrument::loadPreset(std::wstring& path) {
     if (isOpen() == false) {
         return false;
     }
-    std::string utfPath = wide_to_utf8(path);
-    return _easyVst->loadPreset(utfPath.c_str());
+    return _easyVst->loadPreset(path.c_str());
 }
 
 bool MXVSTInstrument::isOpen() {

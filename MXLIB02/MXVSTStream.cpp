@@ -31,7 +31,7 @@ bool MXVSTStream::Initialize() {
     if (!_initDone) {
         _initRetcode = Pa_Initialize();
         if (_initRetcode != paNoError) {
-            debugNumber("Pa_Initialize Failed ", _initRetcode);
+            debugNumber(L"Pa_Initialize Failed ", _initRetcode);
             return false;
         }
         _initDone = true;
@@ -57,7 +57,7 @@ int MXVst_AudioCallback(const void* inputBuffer, void* pOutputBuffer, unsigned l
 
 bool MXVSTStream::closeStream() {
     if (_openedStream != nullptr) {
-        debugText("PA_CloseStream");
+        debugText(L"PA_CloseStream");
         Pa_CloseStream(_openedStream);
         _openedStream = nullptr;
         return true;

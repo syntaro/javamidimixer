@@ -438,8 +438,8 @@ jint JNICALL JNI_getBusCount(JNIEnv* env, jobject obj, jboolean  effect, jint sy
     }
     __except (systemExceptionMyHandler("JNI_getBusCount", GetExceptionInformation()))
     {
-        debugNumber("getBusCount effect = ", effect ? 1 : 0);
-        debugNumber("getBusCount synth = ", synth);
+        debugNumber(L"getBusCount effect = ", effect ? 1 : 0);
+        debugNumber(L"getBusCount synth = ", synth);
         return 0;
     }
 }
@@ -452,9 +452,9 @@ jfloat JNICALL JNI_getBusVolume(JNIEnv* env, jobject obj, jboolean  effect, jint
     }
     __except (systemExceptionMyHandler("JNI_getBusVolume", GetExceptionInformation()))
     {
-        debugNumber("effect", effect ? 1 : 0);
-        debugNumber("synth", synth);
-        debugNumber("bus", bus);
+        debugNumber(L"effect", effect ? 1 : 0);
+        debugNumber(L"synth", synth);
+        debugNumber(L"bus", bus);
         return 0;
     }
 }
@@ -615,7 +615,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     cbTaskDone = env->GetStaticMethodID(_javaClass, "cbTaskDone", "(II)V");
     cbBlackListed = env->GetStaticMethodID(_javaClass, "cbBlackListed", "(ZI)V");
 
-    debugText("MXLIB02 2023-03-24");
+    debugText(L"MXLIB02 2023-03-24");
 
     return JNI_VERSION_1_1;
 }
