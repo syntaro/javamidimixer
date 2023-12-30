@@ -268,7 +268,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
 
         jSliderPitch.setOrientation(javax.swing.JSlider.VERTICAL);
         jSliderPitch.setToolTipText("Pitch");
-        jSliderPitch.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        jSliderPitch.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         jSliderPitch.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 jSliderPitchStateChanged(evt);
@@ -282,8 +282,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         add(jSliderPitch, gridBagConstraints);
 
         jSliderModwheel.setOrientation(javax.swing.JSlider.VERTICAL);
-        jSliderModwheel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        jSliderModwheel.setInverted(true);
+        jSliderModwheel.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         jSliderModwheel.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 jSliderModwheelStateChanged(evt);
