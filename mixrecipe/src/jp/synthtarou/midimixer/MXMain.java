@@ -45,6 +45,7 @@ import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.vst.VSTInstance;
 import jp.synthtarou.midimixer.mx36ccmapping.MX36Process;
+import jp.synthtarou.midimixer.mx12masterpiano.MX12Process;
 import jp.synthtarou.midimixer.mx50resolution.MX50Process;
 import jp.synthtarou.midimixer.mx70console.MX70Process;
 
@@ -101,14 +102,15 @@ public class MXMain  {
 
     private MX10Process _mx10inputProcess;
     private MX00Process _mx00playlistProcess;
+    private MX12Process _mx12pianoProcess;
     private MX30Process _mx30kontrolProcess;
     private MX36Process _mx36ccmappingProcess;
     private MX40Process _mx40layerProcess;
     private MX50Process _mx50resolutionProcess;
     private MX60Process _mx60outputProcess;
     private MX70Process _mx70CosoleProcess;
-    private MX80Process _vstRack;
-    private CXXMLManager _xmlManager;
+    private MX80Process _mx80VstRack;
+    private CXXMLManager _mx100XMLManager;
     
     public static MXReceiver _capture = null;
     
@@ -143,9 +145,7 @@ public class MXMain  {
         
         MXLog._logger.info("starting program");
         
-        _mainWindow = new MXMainWindow(this);
-
-        _progress = new MXProgressDialog(_mainWindow, false);        
+        _progress = new MXProgressDialog(null, false);        
         _progress.setMessageAsStartUP();
         _progress.setVisible(true);
 
@@ -154,18 +154,20 @@ public class MXMain  {
 
         _mx00playlistProcess = new MX00Process();
         _mx10inputProcess = new MX10Process();
+        _mx12pianoProcess = new MX12Process();
         _mx30kontrolProcess =  new MX30Process();
         _mx36ccmappingProcess = new MX36Process();
         _mx40layerProcess = new MX40Process();
         _mx50resolutionProcess = new MX50Process();
         
-        _vstRack = MX80Process.getInstance();
-        _xmlManager = CXXMLManager.getInstance();
+        _mx80VstRack = MX80Process.getInstance();
+        _mx100XMLManager = CXXMLManager.getInstance();
 
         _mx60outputProcess = new MX60Process();
         _mx70CosoleProcess = new MX70Process();
         
-        _masterToList.addNameAndValue("PushBack", MXMIDIIn.returnReceirer);
+        _masterToList.addNameAndValue("*OpendPage", null);
+        _masterToList.addNameAndValue(_mx10inputProcess.getReceiverName(), _mx10inputProcess);
         _masterToList.addNameAndValue(_mx30kontrolProcess.getReceiverName(), _mx30kontrolProcess);
         _masterToList.addNameAndValue(_mx36ccmappingProcess.getReceiverName(), _mx36ccmappingProcess);
         _masterToList.addNameAndValue(_mx40layerProcess.getReceiverName(), _mx40layerProcess);
@@ -186,6 +188,7 @@ public class MXMain  {
         _mx00playlistProcess.readSettings();
         
         _mx10inputProcess.readSettings();
+        _mx12pianoProcess.readSettings();
         _mx36ccmappingProcess.readSettings();
         _mx60outputProcess.readSettings();
         _mx40layerProcess.readSettings();
@@ -193,6 +196,7 @@ public class MXMain  {
 
         _mx70CosoleProcess.readSettings();                
 
+        _mainWindow = new MXMainWindow(this);
         _mainWindow.setEnabled(false);
         _mainWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         _mainWindow.addWindowListener(new WindowAdapter(){
@@ -231,14 +235,13 @@ public class MXMain  {
         ArrayList<MXReceiver> reList = new ArrayList();
         reList.add(_mx00playlistProcess);
         reList.add(_mx10inputProcess);
-        //reList.add(_velocityProcess);
         reList.add(_mx30kontrolProcess);
         reList.add(_mx36ccmappingProcess);
         reList.add(_mx40layerProcess);
         reList.add(_mx50resolutionProcess);
         reList.add(_mx60outputProcess);
-        reList.add(_vstRack);
-        reList.add(_xmlManager);
+        reList.add(_mx80VstRack);
+        reList.add(_mx100XMLManager);
 
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -302,12 +305,6 @@ public class MXMain  {
         return _mx10inputProcess;
     }
 
-/*    
-    public void masterKeyDispatch(MXMessage message) {
-        _mx12masterkeyProcess.processMasterPath(message);
-    }
-*/
-
     public void messageDispatch(MXMessage message, MXReceiver receiver) {
         synchronized(MXTiming.mutex) {
             try {
@@ -344,8 +341,32 @@ public class MXMain  {
     public MX40Process getLayerProcess() {
         return _mx40layerProcess;
     }
+
+    public MX12Process getPianoProcess() {
+        return _mx12pianoProcess;
+    }
     
     public CXXMLManager getXMLManager() {
-        return _xmlManager;
+        return _mx100XMLManager;
+    }
+    
+    public MXReceiver getActiveSendableReceiver() {
+        if (_mainWindow == null) {
+            return _mx10inputProcess;
+        }
+        MXReceiver receiver = _mainWindow.getSelectedReceiver();
+        if (receiver == _mx00playlistProcess) {
+            return _mx10inputProcess;
+        }
+        if (receiver == _mx80VstRack) {
+            return _mx60outputProcess;
+        }
+        if (receiver == _mx100XMLManager) {
+            return _mx10inputProcess;
+        }
+        if (receiver == null) {
+            return _mx10inputProcess;
+        }
+        return receiver;
     }
 }

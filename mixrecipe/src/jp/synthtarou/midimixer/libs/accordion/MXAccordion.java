@@ -19,6 +19,7 @@ package jp.synthtarou.midimixer.libs.accordion;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
@@ -32,11 +33,17 @@ public class MXAccordion extends javax.swing.JPanel {
      * Creates new form MXAccordionPanel
      */
     public MXAccordion() {
-        this(new MXAccordionFocus(), "Accordion");
+        this(null, "Accordion", false);
     }
     
-    public MXAccordion(MXAccordionFocus focus, String name) {
+    boolean _invert;
+    
+    public MXAccordion(MXAccordionFocus focus, String name, boolean invert) {
         initComponents();
+        
+        if (focus == null) {
+            focus = new MXAccordionFocus();
+        }
         
         jLabel1.setText(name);
         
@@ -50,8 +57,10 @@ public class MXAccordion extends javax.swing.JPanel {
 
         //overwrite
         _contentsList = new MXAccordionInnerPanel();
-        jScrollPane1.setViewportView(_contentsList.getAnimationPanel());
+        _invert = invert;
+        jPanelContents.add(_contentsList.getAnimationPanel());
         setColorFull(false);
+        remove(jButtonDummy);
     }
 
     /**
@@ -64,24 +73,12 @@ public class MXAccordion extends javax.swing.JPanel {
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jPanelContents = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jSlider1 = new javax.swing.JSlider();
+        jPanelContents = new javax.swing.JPanel();
+        jButtonDummy = new javax.swing.JButton();
 
         setLayout(new java.awt.GridBagLayout());
-
-        jPanelContents.setLayout(new javax.swing.BoxLayout(jPanelContents, javax.swing.BoxLayout.LINE_AXIS));
-        jScrollPane1.setViewportView(jPanelContents);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        add(jScrollPane1, gridBagConstraints);
 
         jLabel1.setFont(new java.awt.Font("メイリオ", 0, 14)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(255, 51, 0));
@@ -91,7 +88,6 @@ public class MXAccordion extends javax.swing.JPanel {
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
         add(jLabel1, gridBagConstraints);
 
         jSlider1.addChangeListener(new javax.swing.event.ChangeListener() {
@@ -100,11 +96,27 @@ public class MXAccordion extends javax.swing.JPanel {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 10);
         add(jSlider1, gridBagConstraints);
+
+        jPanelContents.setLayout(new javax.swing.BoxLayout(jPanelContents, javax.swing.BoxLayout.LINE_AXIS));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        add(jPanelContents, gridBagConstraints);
+
+        jButtonDummy.setText("dummy");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        add(jButtonDummy, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jSlider1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSlider1StateChanged
@@ -116,9 +128,9 @@ public class MXAccordion extends javax.swing.JPanel {
     }//GEN-LAST:event_jSlider1StateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButtonDummy;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanelContents;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSlider jSlider1;
     // End of variables declaration//GEN-END:variables
 
@@ -166,12 +178,20 @@ public class MXAccordion extends javax.swing.JPanel {
         if (sel != opened) {
             jSlider1.setValue(opened ? 1 : 0);
         }
-        _contentsList.openWithAnimation(opened);
+        _contentsList.openWithAnimation(opened, _invert);
        
     }
 
     public boolean isAccordionOpened() {
         return _selected;
+    }
+   
+    public void setLabelAfterName(JComponent compo) {
+        remove(jButtonDummy);
+        GridBagConstraints con = new java.awt.GridBagConstraints();
+        con.gridx = 2;
+        con.gridy = 0;
+        add(compo, con);
     }
     
     public void insertElement(int pos, MXAccordionElement element) {
@@ -180,7 +200,7 @@ public class MXAccordion extends javax.swing.JPanel {
     
     public void refill(int pos) {
         if (pos >= 0) {
-            _contentsList._listElement.get(pos).refill();
+            _contentsList._listElement.get(pos).repaintAccordion();
         }
         _contentsList.revalidateASAP();
     }

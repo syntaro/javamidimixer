@@ -41,7 +41,7 @@ public class MX36Folder implements Comparable<MX36Folder> {
         _order = order;
         _process = process;
         _focus = focus;
-        _accordion = new MXAccordion(focus, name) {
+        _accordion = new MXAccordion(focus, name, false) {
             @Override
             public void openAccordion(boolean sel) {
                 if (sel) {
@@ -114,10 +114,19 @@ public class MX36Folder implements Comparable<MX36Folder> {
         
         MX36StatusPanel p = (MX36StatusPanel)elem;
         _accordion.removeElement(elem);
-        _list.remove(p.getStatus());
+        if (p._status != null) {
+            _list.remove(p.getStatus());
+        }
         if (_list.size() != _accordion.elementCount()) {
             new Throwable("after").printStackTrace();
         }
+    }
+    
+    public void removeAll() {
+        for (MX36Status seek :  _list) {
+            _accordion.removeElement(seek._view);
+        }
+        _list.clear();
     }
     
     public String toString() {

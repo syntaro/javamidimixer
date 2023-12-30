@@ -23,7 +23,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.net.URI;
-import java.util.Collection;
+import java.util.List;
 import javax.swing.Box;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -32,6 +32,8 @@ import javax.swing.JTabbedPane;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.themes.ThemeManagerDialog;
 import jp.synthtarou.midimixer.mx10input.MX10View;
+import jp.synthtarou.midimixer.mx12masterpiano.MX12MasterkeysPanel;
+import jp.synthtarou.midimixer.mx12masterpiano.MX12Process;
 import jp.synthtarou.midimixer.mx36ccmapping.MX36View;
 import jp.synthtarou.midimixer.mx60output.MX60View;
 import jp.synthtarou.midimixer.mx80vst.MX80Panel;
@@ -106,7 +108,7 @@ public class MXMainWindow extends javax.swing.JFrame {
             }
         });
 
-        getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.LINE_AXIS));
+        //getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.LINE_AXIS));
         /*
         if (true) {
             new JFXPanel(); //initialize before runLater (safety call -> Platform.startup)
@@ -138,15 +140,20 @@ public class MXMainWindow extends javax.swing.JFrame {
                 }
             });
         } else */{
-            getContentPane().add(jTabbedPane1);
+            jPanelForTab.remove(jButtonDummyTab);;
+            jPanelForTab.add(jTabbedPane1);
+            jPanelForPiano.remove(jButtonDummyPiano);
+            jPanelForPiano.add(_main.getPianoProcess().getReceiverView());
         }
 
     }
+    
+    List<MXReceiver> _viewList = null;
 
     /**
      * ウィンドウの初期化
      */
-    public void initLatebind(Collection<MXReceiver> viewList) {
+    public void initLatebind(List<MXReceiver> viewList) {
         setTitle(MXAppConfig.MX_APPNAME);
         setSize(new Dimension(1200, 800));
 
@@ -154,6 +161,7 @@ public class MXMainWindow extends javax.swing.JFrame {
         setVisible(true);
 
         int count = 0;
+        _viewList = viewList;
         for (MXReceiver re : viewList) {
             jTabbedPane1.add(re.getReceiverName(), re.getReceiverView());
             JMenuItem menu = new JMenuItem(re.getReceiverName());
@@ -161,18 +169,6 @@ public class MXMainWindow extends javax.swing.JFrame {
             count++;
             jMenuWindow.add(menu);
         }
-        /*
-        {
-            JMenuItem menu = new JMenuItem("Master Key");
-            menu.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    MXMain.getMain().getMasterKeys().createWindow();
-                }
-            });
-            jMenuWindow.add(menu);
-        }
-         */
         {
             JMenuItem menu = new JMenuItem("Free Console / SysEX");
             menu.addActionListener(new ActionListener() {
@@ -213,14 +209,41 @@ public class MXMainWindow extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+        java.awt.GridBagConstraints gridBagConstraints;
 
+        jPanelForTab = new javax.swing.JPanel();
+        jButtonDummyTab = new javax.swing.JButton();
+        jPanelForPiano = new javax.swing.JPanel();
+        jButtonDummyPiano = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenuFile = new javax.swing.JMenu();
         jMenuSaveNow = new javax.swing.JMenuItem();
         jMenuWindow = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.LINE_AXIS));
+        getContentPane().setLayout(new java.awt.GridBagLayout());
+
+        jPanelForTab.setLayout(new javax.swing.BoxLayout(jPanelForTab, javax.swing.BoxLayout.LINE_AXIS));
+
+        jButtonDummyTab.setText("jButton1");
+        jPanelForTab.add(jButtonDummyTab);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        getContentPane().add(jPanelForTab, gridBagConstraints);
+
+        jPanelForPiano.setLayout(new javax.swing.BoxLayout(jPanelForPiano, javax.swing.BoxLayout.LINE_AXIS));
+
+        jButtonDummyPiano.setText("jButton2");
+        jPanelForPiano.add(jButtonDummyPiano);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        getContentPane().add(jPanelForPiano, gridBagConstraints);
 
         jMenuFile.setText("File");
 
@@ -247,10 +270,14 @@ public class MXMainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuSaveNowActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButtonDummyPiano;
+    private javax.swing.JButton jButtonDummyTab;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenu jMenuFile;
     private javax.swing.JMenuItem jMenuSaveNow;
     private javax.swing.JMenu jMenuWindow;
+    private javax.swing.JPanel jPanelForPiano;
+    private javax.swing.JPanel jPanelForTab;
     // End of variables declaration//GEN-END:variables
 
     /**
@@ -261,6 +288,14 @@ public class MXMainWindow extends javax.swing.JFrame {
     public JTabbedPane getTabbedPanel() {
         return jTabbedPane1;
     }
+    
+    public MXReceiver getSelectedReceiver() {
+        int x = jTabbedPane1.getSelectedIndex();
+        if (_viewList != null) {
+            return _viewList.get(x);
+        }
+        return null;
+    }
 
     private void tabPanelStateChanged(javax.swing.event.ChangeEvent evt) {
         int x = jTabbedPane1.getSelectedIndex();
@@ -270,21 +305,23 @@ public class MXMainWindow extends javax.swing.JFrame {
                 view.requestFocusInWindow();
                 if (view instanceof MX60View) {
                     MX60View v60 = (MX60View) view;
-                    v60.refreshList();
+                    v60.tabActivated();
                 }
                 if (view instanceof MX10View) {
                     MX10View v10 = (MX10View) view;
-                    v10.refreshList();
+                    v10.tabActivated();
                 }
                 if (view instanceof MX80Panel) {
                     MX80Panel v80 = (MX80Panel) view;
-                    v80.onResizeSynth();
+                    v80.tabActivated();
                 }
                 if (view instanceof MX36View) {
                     MX36View v36 = (MX36View) view;
-                    v36.fullReloadList();
+                    v36.tabActivated();
                 }
             }
+            MX12Process piano = MXMain.getMain().getPianoProcess();
+            piano.updateViewForSettingChange();
         }
     }
 }

@@ -229,14 +229,8 @@ public class MGStatusForDrum implements Cloneable {
     void mouseDetected(boolean push, MXMessageBag result) {
         int velocity;
         if (push) {
-            if (_outValueTypeOn == VALUETYPE_NOTHING) {
-                return;
-            }
             _status.setMessageValue(_mouseOnValue);
         } else {
-            if (_outValueTypeOff == VALUETYPE_NOTHING) {
-                return;
-            }
             _status.setMessageValue(_mouseOffValue);
         }
 

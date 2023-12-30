@@ -39,7 +39,7 @@ public class MX36StatusListPanel extends javax.swing.JPanel {
         folder.insertSorted(new MX36Status());
         folder.insertSorted(new MX36Status());
         folder.insertSorted(new MX36Status());
-        folder = list.getAutoDetectedFolder();
+        folder = list.getFolderForNosave();
         folder.insertSorted(new MX36Status());
         folder.insertSorted(new MX36Status());
         folder.insertSorted(new MX36Status());

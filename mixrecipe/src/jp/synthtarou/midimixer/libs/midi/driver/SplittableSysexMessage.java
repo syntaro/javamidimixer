@@ -19,6 +19,7 @@ package jp.synthtarou.midimixer.libs.midi.driver;
 import java.io.ByteArrayOutputStream;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiMessage;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 
 /**
  *　Java20以上で、MME(Java標準）のSysEXを処理するMidiMessageラッパー
@@ -36,7 +37,7 @@ public class SplittableSysexMessage extends MidiMessage {
                 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        if (_status == 0xf0 && last == 0xf7) {
+        if (_status == MXMidi.COMMAND_SYSEX && last == MXMidi.COMMAND_SYSEX_END) {
             _status = 0xf0;
             _offset = 0;
         }else if (_status == 0xf0) {

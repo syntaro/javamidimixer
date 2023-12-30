@@ -18,6 +18,7 @@ package jp.synthtarou.midimixer;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import javax.swing.SwingUtilities;
@@ -43,11 +44,16 @@ public class MXProgressDialog extends javax.swing.JDialog {
         text.append("java.vendor=" + System.getProperty("java.vendor") + "\n");
         text.append("java.version=" + System.getProperty("java.version") + "\n\n");
         jTextArea1.setText(text.toString());
+        jTextArea1.setCaretPosition(0);
         jTextArea1.setEditable(false);
     }
 
     public void setMessageAsVersion() {
         StringBuffer text = new StringBuffer();
+        text.append("It is beta release, please send me issue,\n");
+        text.append("Im waiting for public relesae timing.\n\n");
+        text.append("V0.58.8 Virtual Key\n");
+        text.append("V0.58.7 CCEditor for XML -> rebuild cache\n");
         text.append("V0.58.6 CCMapping now support Sysex From XML\n");
         text.append("V0.58.5 CCMapping released beta\n");
         text.append("V0.58.3 offset in XML, gate int XML\n");
@@ -82,6 +88,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
         text.append("V0.05 supported Drum Pad\n");
         text.append("V0.04B supported SysEX Checksum\n\n");
         jTextArea1.setText(text.toString());
+        jTextArea1.setCaretPosition(0);
         jTextArea1.setEditable(false);
     }
 
@@ -92,6 +99,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
         text.append("Closing Devices.\n");
         text.append("Shutting Down.\n\n");
         jTextArea1.setText(text.toString());
+        jTextArea1.setCaretPosition(0);
         jTextArea1.setEditable(false);
     }
     
@@ -117,13 +125,14 @@ public class MXProgressDialog extends javax.swing.JDialog {
 
         _piano = new MXSwingPiano();
         _piano.setNoteRange(0, 3);
-        _piano.setSelectedColor(MXUtil.mixtureColor(Color.white, 30, Color.green, 50, Color.yellow, 20));
+        _piano.setLastSelectedColor(MXUtil.mixtureColor(Color.white, 30, Color.green, 50, Color.yellow, 20));
         _piano.setPreferredSize(new Dimension(480, 120));
         jPanelPiano.add(_piano);
 
         Thread pianoColor = new Thread() {
             public void run() {
                 int x = 0;
+                int last = -1;
                 while (true) {
                     try {
                         Thread.sleep(8);
@@ -132,15 +141,27 @@ public class MXProgressDialog extends javax.swing.JDialog {
                     }
                     x += 1;
                     if (x >= 0 && x <= 36) {
-                        _piano.selectNote(x, true);
+                        if (last >= 0) {
+                            _piano.noteOff(last);
+                        }
+                        last = x;
+                        _piano.noteOn(x);
                     } else if (x >= 37 && x <= 72) {
                         int y = 72 - x;
-                        _piano.selectNote(y, true);
+                        if (last >= 0) {
+                            _piano.noteOff(last);
+                        }
+                        last = y;
+                        _piano.noteOn(y);
                     } else {
                         x = 0;
                     }
                     if (_pianoStop) {
-                        _piano.selectNote(40, true);
+                        if (last >= 0) {
+                            _piano.noteOff(last);
+                        }
+                        last = 40;
+                        _piano.noteOn(40);
                     }
                     SwingUtilities.invokeLater(new Runnable() {
                         @Override

@@ -48,7 +48,7 @@ public class NavigatorForNote extends javax.swing.JPanel implements  INavigator<
     int _valueModulation = -1;
 
     public void setAllowMultiSelect(boolean multi) {
-        _piano.setAllowMultiSelect(multi);
+        _piano.setAllowSelect(true, multi);
     }
     
     /**

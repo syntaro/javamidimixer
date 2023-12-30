@@ -202,7 +202,7 @@ public class CXXMLManagerPanel extends javax.swing.JPanel {
             CXFile file = _listModel.valueOfIndex(sel);
             EditorForXMLTag panel = new EditorForXMLTag(file);
             MXUtil.showAsDialog(this, panel, file.toString());
-
+            
             try {
                 if (file.writeToTeporary() == false) {
                     JOptionPane.showMessageDialog(this, "File Not Changed");
@@ -213,6 +213,11 @@ public class CXXMLManagerPanel extends javax.swing.JPanel {
                 }
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Sorry, Error happened while saving XML: " + ex.toString(), "Close without save?", JOptionPane.YES_NO_OPTION);
+            } finally {
+                try {
+                    file.rebuildCache();
+                }catch(Exception ex) {
+                }
             }
         }
     }//GEN-LAST:event_jButtonEditXMLActionPerformed

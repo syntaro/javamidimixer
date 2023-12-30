@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.mx40layer;
+package jp.synthtarou.midimixer.mx12masterpiano;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -84,10 +84,12 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
         
         jSpinnerMouseVelocity.setModel(new SafeSpinnerNumberModel(_process.getMouseVelocity(), 1, 127, 1));
         
+        /*
         jCheckBoxAdjustPort.setSelected(_process.isOverwriteInputChannel());
 
         jCheckBoxInputPagePort.setSelected(_process.isAcceptInputPanelSignal());
         jCheckBoxThisPagePort.setSelected(_process.isAcceptThisPageSignal());
+        */
     }
     
     public void catchParameters() {
@@ -95,9 +97,11 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
         _process.setMousePort((int) _portModel.get(jComboBoxPort.getSelectedIndex())._value);
         _process.setMouseChannel((int) _channelModel.get(jComboBoxChannel.getSelectedIndex())._value);
         _process.setMouseVelocity((int)jSpinnerMouseVelocity.getValue());
+       /*
         _process.setOverwriteInputChannel(this.jCheckBoxAdjustPort.isSelected());
         _process.setAcceptInputPanelSignal(jCheckBoxInputPagePort.isSelected());
         _process.setAcceptThisPageSignal(jCheckBoxThisPagePort.isSelected());
+        */
         _process._view._piano.allNoteOff();
     }
 
@@ -125,16 +129,11 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
         jComboBoxChannel = new javax.swing.JComboBox<>();
         jLabel4 = new javax.swing.JLabel();
         jSpinnerMouseVelocity = new javax.swing.JSpinner();
-        jCheckBoxAdjustPort = new javax.swing.JCheckBox();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jLabel6 = new javax.swing.JLabel();
-        jLabel7 = new javax.swing.JLabel();
-        jCheckBoxInputPagePort = new javax.swing.JCheckBox();
-        jCheckBoxThisPagePort = new javax.swing.JCheckBox();
-        jButtonReset = new javax.swing.JButton();
 
-        setBorder(javax.swing.BorderFactory.createTitledBorder("Master Key Controller"));
+        setBorder(javax.swing.BorderFactory.createTitledBorder("Virtual Key"));
         setLayout(new java.awt.GridBagLayout());
 
         jLabel1.setText("Receiver");
@@ -195,17 +194,6 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
         gridBagConstraints.weightx = 1.0;
         add(jSpinnerMouseVelocity, gridBagConstraints);
 
-        jCheckBoxAdjustPort.setText("With Re-Adjust Ch/Port ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 40, 0, 0);
-        add(jCheckBoxAdjustPort, gridBagConstraints);
-
         jButton1.setText("OK");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -213,11 +201,9 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
         add(jButton1, gridBagConstraints);
 
         jButton2.setText("Cancel");
@@ -227,57 +213,18 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         add(jButton2, gridBagConstraints);
 
         jLabel6.setText("jLabel6");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weighty = 1.0;
         add(jLabel6, gridBagConstraints);
-
-        jLabel7.setText("Process");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        add(jLabel7, gridBagConstraints);
-
-        jCheckBoxInputPagePort.setText("Input Panel Page's Signal <- Top Left");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        add(jCheckBoxInputPagePort, gridBagConstraints);
-
-        jCheckBoxThisPagePort.setText("This Page's Signal");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        add(jCheckBoxThisPagePort, gridBagConstraints);
-
-        jButtonReset.setText("Reset");
-        jButtonReset.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonResetActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        add(jButtonReset, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -289,15 +236,6 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
         MXUtil.getOwnerWindow(this).setVisible(false);
     }//GEN-LAST:event_jButton2ActionPerformed
 
-    private void jButtonResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonResetActionPerformed
-        _receiverModel.writeComboBox(jComboBoxReciever, MXMain.getMain().getInputProcess());
-        _portModel.writeComboBox(jComboBoxPort, 0);
-        _channelModel.writeComboBox(jComboBoxChannel, 0);
-        jCheckBoxAdjustPort.setSelected(false);
-        jCheckBoxInputPagePort.setSelected(true);
-        jCheckBoxThisPagePort.setSelected(true);
-    }//GEN-LAST:event_jButtonResetActionPerformed
-
     private void jComboBoxRecieverActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxRecieverActionPerformed
         
     }//GEN-LAST:event_jComboBoxRecieverActionPerformed
@@ -306,10 +244,6 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButtonReset;
-    private javax.swing.JCheckBox jCheckBoxAdjustPort;
-    private javax.swing.JCheckBox jCheckBoxInputPagePort;
-    private javax.swing.JCheckBox jCheckBoxThisPagePort;
     private javax.swing.JComboBox<String> jComboBoxChannel;
     private javax.swing.JComboBox<String> jComboBoxPort;
     private javax.swing.JComboBox<String> jComboBoxReciever;
@@ -318,7 +252,6 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
     private javax.swing.JSpinner jSpinnerMouseVelocity;
     // End of variables declaration//GEN-END:variables
 }

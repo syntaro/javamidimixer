@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
-    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="3">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="4">
+        <file>
+            <url>src/jp/synthtarou/midimixer/ccxml/xml/CXFile.java</url>
+            <bookmark id="4">
+                <name/>
+                <line>167</line>
+                <key/>
+            </bookmark>
+        </file>
         <file>
             <url>src/jp/synthtarou/midimixer/libs/midi/port/MXMIDIInForPlayer.java</url>
             <bookmark id="1">
@@ -13,7 +21,7 @@
             <url>src/jp/synthtarou/midimixer/libs/midi/MXMessage.java</url>
             <bookmark id="2">
                 <name/>
-                <line>455</line>
+                <line>463</line>
                 <key/>
             </bookmark>
         </file>

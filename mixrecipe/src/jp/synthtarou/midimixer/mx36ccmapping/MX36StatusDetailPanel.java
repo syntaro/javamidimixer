@@ -31,8 +31,6 @@ import jp.synthtarou.midimixer.ccxml.ui.PickerForControlChange;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
@@ -289,7 +287,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
     public void updateViewByStatus(MX36Status status) {
         setEnabledRecurs(true);
 
-        if (_process._folders._autodetectedFolder == status._folder) {
+        if (_process._folders._nosaveFolder == status._folder) {
             if (status.isValidForWork()) {
                 JOptionPane.showMessageDialog(this, "Moved from AutoDecteted to Primal.");
                 _process.moveFolder(_process._folders._primalFolder, status);

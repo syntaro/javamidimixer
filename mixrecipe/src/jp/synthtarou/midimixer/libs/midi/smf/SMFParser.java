@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.TreeSet;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
 
 /**
@@ -317,8 +318,8 @@ public class SMFParser {
             case 0xF0:
                 // sys-ex or meta
                 switch (status) {
-                    case 0xF0:
-                    case 0xF7:
+                    case MXMidi.COMMAND_SYSEX:
+                    case MXMidi.COMMAND_SYSEX_END:
                         // sys ex
                         int sysexLength = (int) child.readVariable();
                         if (sysexLength == 0) {
@@ -331,7 +332,7 @@ public class SMFParser {
                         message = new SMFMessage(0, sysexData);
                         break;
 
-                    case 0xFF:
+                    case MXMidi.COMMAND_META_OR_RESET:
                         // meta
                         int metaType = child.read8();
                         int metaLength = (int) child.readVariable();
@@ -380,8 +381,8 @@ public class SMFParser {
             case 0xF0:
                 // sys-ex or meta
                 switch (message.getStatus()) {
-                    case 0xF0:
-                    case 0xF7:
+                    case MXMidi.COMMAND_SYSEX:
+                    case MXMidi.COMMAND_SYSEX_END:
                         byte[] binary = message.getBinary();
                         int length = binary.length;
                         out.writeVariable(length - 1);
@@ -390,7 +391,7 @@ public class SMFParser {
                         }
                         break;
 
-                    case 0xFF:
+                    case MXMidi.COMMAND_META_OR_RESET:
                         byte[] data = message.getBinary();
                         out.write8(message.getData1());
                         out.writeVariable(data.length - 2);

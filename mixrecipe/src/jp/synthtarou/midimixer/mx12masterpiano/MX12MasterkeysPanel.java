@@ -14,38 +14,41 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.mx40layer;
+package jp.synthtarou.midimixer.mx12masterpiano;
 
-import java.awt.Container;
-import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachLabelSeemsButton;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Rectangle;
-import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Hashtable;
+import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.libs.accordion.MXAccordionElement;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX12MasterkeysPanel extends javax.swing.JPanel {
+public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordionElement {
     public static void main(String[] args) {
         JFrame win = new JFrame("Piano");
         win.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -57,7 +60,8 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
         win.add(keys);
         win.setVisible(true);
     }
-
+    
+    JButton _jButtonEdit = new JButton("Edit");
     MX12Process _process;
     MXSwingPiano _piano;
     MXWrapList<Integer> _watchPort = MXWrapListFactory.listupPort(null);
@@ -77,7 +81,11 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
         jSliderPitch.setMinimum(0);
         jSliderPitch.setMaximum(16384 - 1);
         jSliderPitch.setValue(8192);
+
+        new MXAttachSliderLikeEclipse(jSliderPitch);
+        new MXAttachSliderLikeEclipse(jSliderModwheel);
         new MXAttachSliderSingleClick(jSliderPitch);
+
         jSliderPitch.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseReleased(java.awt.event.MouseEvent evt) {
                 setPitchBend(8192);
@@ -139,17 +147,6 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
 
         final String title = "Select Output to Connect.";
         new MXAttachSliderSingleClick(jSliderModwheel);
-        new MXAttachLabelSeemsButton(jLabelEdit, new Runnable() {
-            public void run() {
-                Window w = SwingUtilities.getWindowAncestor(MX12MasterkeysPanel.this);
-                JFrame frame = MXMain.getMain().getMainWindow();
-                if (w instanceof JFrame) {
-                    frame = (JFrame)w;
-                }
-                MX12MasterPanelEditor.showAsDialog(frame, _process, true);
-                updateViewForSettingChange();
-            }
-        });
 
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
@@ -157,6 +154,16 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
             }
         });
         _beforeBuild = false;
+        _jButtonEdit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame frame = MXMain.getMain().getMainWindow();
+                MX12MasterPanelEditor.showAsDialog(frame, _process, true);
+                updateViewForSettingChange();
+            }
+        });
+        
+        setMinimumSize(new Dimension(150, 150));
     }
     
     public void scrollToCenter() {
@@ -168,28 +175,30 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
     
     public void updateViewForSettingChange() {
         StringBuffer info = new StringBuffer();
-        info.append(_process.getReceiverName() +", ");
-        info.append("Port " + MXMidi.nameOfPortInput(_process.getMousePort()) + ", ");
-        info.append("Channel " + (_process.getMouseChannel() + 1));
-        jLabelInfo1.setText(info.toString());
-        info = new StringBuffer();
-        if (_process.isAcceptThisPageSignal()) {
-            info.append("Process This page's Signal ");
+        MXReceiver rec = MXMain.getMain().getActiveSendableReceiver();
+        if (rec != null) {
+            info.append("To " + rec.getReceiverName() +", ");
+            info.append("Port " + MXMidi.nameOfPortInput(_process.getMousePort()) + ", ");
+            info.append("Channel " + (_process.getMouseChannel() + 1));
+            /*
+            if (_process.isAcceptThisPageSignal()) {
+                info.append("Process This page's Signal ");
+                if (_process.isAcceptInputPanelSignal()) {
+                    info.append(", And ");
+                }
+            }else {
+                if (_process.isAcceptInputPanelSignal()) {
+                    info.append("And Process ");
+                }
+            }
             if (_process.isAcceptInputPanelSignal()) {
-                info.append(", And ");
-            }
-        }else {
-            if (_process.isAcceptInputPanelSignal()) {
-                info.append("And Process ");
-            }
+                info.append("Input Panel's Signal ");
+                if (_process.isOverwriteInputChannel()) {
+                    info.append("( With Re-Adjust Ch/Port ) ");
+                }
+            }*/
+            _jButtonEdit.setText(info.toString());
         }
-        if (_process.isAcceptInputPanelSignal()) {
-            info.append("Input Panel's Signal ");
-            if (_process.isOverwriteInputChannel()) {
-                info.append("( With Re-Adjust Ch/Port ) ");
-            }
-        }
-        jLabelInfo2.setText(info.toString());
     }
     
     boolean _updateLock = false;
@@ -243,10 +252,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
         jSliderPitch = new javax.swing.JSlider();
         jSliderModwheel = new javax.swing.JSlider();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jPanelOutput = new javax.swing.JPanel();
         jLabelEdit = new javax.swing.JLabel();
-        jLabelInfo1 = new javax.swing.JLabel();
-        jLabelInfo2 = new javax.swing.JLabel();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -260,7 +266,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         add(jSliderPitch, gridBagConstraints);
 
@@ -273,51 +279,26 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         add(jSliderModwheel, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         add(jScrollPane1, gridBagConstraints);
 
-        jPanelOutput.setBorder(javax.swing.BorderFactory.createTitledBorder("Output"));
-        jPanelOutput.setLayout(new java.awt.GridBagLayout());
-
         jLabelEdit.setText("Config");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 3;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        jPanelOutput.add(jLabelEdit, gridBagConstraints);
-
-        jLabelInfo1.setText("Info1");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        jPanelOutput.add(jLabelInfo1, gridBagConstraints);
-
-        jLabelInfo2.setText("jLabel2");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        jPanelOutput.add(jLabelInfo2, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        add(jPanelOutput, gridBagConstraints);
+        add(jLabelEdit, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jSliderModwheelStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderModwheelStateChanged
@@ -348,7 +329,12 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
         _valuePitch = value;
         synchronized(MXTiming.mutex) {            
             MXMessage msg = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_PITCHWHEEL + _process.getMouseChannel(), 0, 0);
-            msg.setValue(MXRangedValue.new7bit(value));
+            if (msg.indexOfValueHi() >= 0) {
+                msg.setValue(MXRangedValue.new14bit(value));
+            }
+            else {
+                msg.setValue(MXRangedValue.new7bit(value));
+            }
             _process.mouseMessage(msg);
         }
     }//GEN-LAST:event_jSliderPitchStateChanged
@@ -357,41 +343,28 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel {
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.JLabel jLabelEdit;
-    private javax.swing.JLabel jLabelInfo1;
-    private javax.swing.JLabel jLabelInfo2;
-    private javax.swing.JPanel jPanelOutput;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSlider jSliderModwheel;
     private javax.swing.JSlider jSliderPitch;
     // End of variables declaration//GEN-END:variables
 
-    public boolean isOwnerwindowVisible() {
-        try {
-            Container cont = MXUtil.getOwnerWindow(this);
-            if (cont == null) {
-                //initializing
-                return true;
-            }
-            if (cont.isVisible()) {
-                return true;
-            }
-            return false;
-        }catch(Exception e) {
-            e.printStackTrace();
-        }
-        return false;
+    @Override
+    public JPanel getAccordionView() {
+        return this;
     }
-    
-    public void showAsWindow() {
-        JFrame newFrame = new JFrame();
-        newFrame.setTitle("Master Keys (" + MXAppConfig.MX_APPNAME + ")");
-        //dialog.setAlwaysOnTop(modal ? true : false);
-        newFrame.pack();
-        newFrame.getContentPane().add(this);
-        setPreferredSize(new Dimension(1000, 250));
-        newFrame.pack();
-        MXUtil.centerWindow(newFrame);
-        newFrame.setVisible(true);
-        scrollToCenter();
+
+    @Override
+    public void repaintAccordion() {
+        invalidate();
+        repaint();
+    }
+
+    @Override
+    public void accordionFocused(boolean flag) {
+        //mothing
+    }
+
+    public JComponent getComponentAfterName() {
+        return _jButtonEdit;
     }
 }

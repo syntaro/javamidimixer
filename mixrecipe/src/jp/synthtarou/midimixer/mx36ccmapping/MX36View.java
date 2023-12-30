@@ -46,7 +46,22 @@ public class MX36View extends javax.swing.JPanel {
         jPanel3.add(_listPanel);
     }
 
-    public void fullReloadList() {
+    boolean _firstActive = true;
+    
+    public void tabActivated() {
+        if (_firstActive) {
+            if (_process.haveTrashedItem()) {
+                if (JOptionPane.showConfirmDialog(this, "Delete Past Trashed?", "Question", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                    _process.cleanupTrash();
+                }
+            }
+            if (_process.haveEmptyFolder()) {
+                if (JOptionPane.showConfirmDialog(this, "Delete Empty Folders?", "Question", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                    _process.cleanupEmptyFolder();
+                }
+            }
+            _firstActive = false;
+        }
         jPanel3.remove(_listPanel);
         _listPanel = new MX36StatusListPanel(_process._folders);
         jPanel3.add(_listPanel);
@@ -102,10 +117,14 @@ public class MX36View extends javax.swing.JPanel {
                     JOptionPane.showMessageDialog(MX36View.this, "Already Exists", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
+                if (text.startsWith("*")) {
+                    JOptionPane.showMessageDialog(MX36View.this, "Can' create * starting name", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
                 MX36Folder newFolder = _process._folders.newFolder(text);
                 _process.moveFolder(newFolder, _detailPanel._status);
                 if (_process._view != null) {
-                    _process._view.fullReloadList();
+                    _process._view.tabActivated();
                 }
             }
         };

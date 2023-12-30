@@ -165,7 +165,7 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
                     }
                 });
             }
-            if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_PROGRAMCHANGE && message.getGate()._value < 0) {
+            if (message.isCommand(MXMidi.COMMAND_CH_PROGRAMCHANGE) && message.getGate()._value < 0) {
                 return;
             }
             sendToNext(message);

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.TreeMap;
 import javax.swing.JPanel;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.common.async.Transaction;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;

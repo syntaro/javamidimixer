@@ -123,15 +123,6 @@ public class MXMessageFactory {
 
         int c = data[0] & 0xff;
         
-        boolean seekCache = true;
-        
-        if (c == 0xff && data.length >= 100) {
-            seekCache = false;
-        }
-        if (c == 0xf0 && data.length >= 100) {
-            seekCache = false;
-        }
-
         int[] template= new int[data.length];
         for (int i = 0; i < data.length; ++ i) {
             template[i] = data[i] & 0xff;

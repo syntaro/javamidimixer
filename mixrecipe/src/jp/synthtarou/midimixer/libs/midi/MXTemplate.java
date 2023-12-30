@@ -273,7 +273,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
         }
     }
 
-    public byte[] makeBytes(byte[] data, MXMessage message) {
+    byte[] makeBytes(byte[] data, MXMessage message) {
         int dataLength = _commands.length;
 
         if (data == null || data.length != dataLength) {
@@ -297,7 +297,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
         }
         if (data.length >= 3
          && (data[0] & 0xff) == MXMidi.COMMAND_SYSEX
-         && (data[1] & 0xff) == MXMidi.COMMAND_SYSEX) {
+         && ((data[1] & 0xff) == MXMidi.COMMAND_SYSEX || (data[1] & 0xff) == MXMidi.COMMAND_SYSEX_END)) {
             dataLength --;
             byte []copyData = new byte[dataLength];
             for (int i = 0; i < copyData.length; ++ i) {

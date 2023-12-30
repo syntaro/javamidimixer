@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.accordion;
 
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 /**
@@ -23,9 +24,8 @@ import javax.swing.JPanel;
  * @author Syntarou YOSHIDA
  */
 public interface MXAccordionElement {
-    public JPanel getRenderer();
-    public MXAccordion getAccordion();
-    public void refill();
+    public JPanel getAccordionView();
+    public void repaintAccordion();
     public void accordionFocused(boolean flag);
 }
 

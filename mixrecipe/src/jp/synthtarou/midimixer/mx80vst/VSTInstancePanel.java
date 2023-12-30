@@ -109,7 +109,7 @@ public class VSTInstancePanel extends javax.swing.JPanel {
             }
             createVolumePanel();
             if (_parent != null) {
-                _parent.onResizeSynth();
+                _parent.tabActivated();
             }
         }
     };

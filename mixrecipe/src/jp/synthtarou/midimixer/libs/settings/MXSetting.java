@@ -39,13 +39,13 @@ public class MXSetting {
 
     public static void main(String[] args) {
         MXSetting root = new MXSetting("test");
-         
+
         root.register("base.attribute");
         root.register("base.attribute[].text");
         root.register("base[b]");
         root.register("base[1]");
         root.register("base.[].position");
-        
+
         root.setSetting("base", "123");
         root.setSetting("base.attribute[1].text", "a1");
         root.setSetting("base.attribute[2].text", "a2");
@@ -54,10 +54,10 @@ public class MXSetting {
         root.setSetting("base[12].position", "12");
         root.setSetting("base.[13].position", "13");
         root.setSetting("base[14]position", "14");
-        
+
         try {
             root.dump(new OutputStreamWriter(System.out));
-        }catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -68,7 +68,7 @@ public class MXSetting {
     public File getFile() {
         return _settingFile;
     }
-    
+
     public MXSetting(File file) {
         this(file, true);
     }
@@ -87,32 +87,34 @@ public class MXSetting {
     }
 
     public MXSetting(String name, boolean addToEvery) {
-        this(new File(MXSettingUtil.getSettingDirectory(), name +".ini"), addToEvery);
+        this(new File(MXSettingUtil.getSettingDirectory(), name + ".ini"), addToEvery);
     }
-    
+
     public static void saveEverySettingToFile() {
-         for (MXSetting setting : everySetting) {
+        for (MXSetting setting : everySetting) {
             try {
-                
+
                 setting.writeSettingFile();
-            }catch(Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-   }
-   
+    }
+
     protected static class Detail {
+
         String key;
         String value;
     }
-    
+
     protected static class DetailArray {
+
         ArrayList<Detail> list = new ArrayList();
     }
-    
+
     private MXSettingTarget _target = null;
     private String _targetName;
-    
+
     public void setTarget(MXSettingTarget target) {
         if (target == null) {
             throw new NullPointerException();
@@ -122,20 +124,20 @@ public class MXSetting {
         _targetName = getClassName(_target.getClass());
         //System.out.println("MXSetting " + _targetName +" : setTarget");
     }
-    
+
     public static String getClassName(Class cls) {
         String name = cls.getName();
         if (name != null) {
             int x = name.lastIndexOf('.');
             if (x >= 0) {
-                name = name.substring(x+1);
+                name = name.substring(x + 1);
             }
         }
         return name;
     }
 
     MXSettingNode _root = new MXSettingNode(this, null, null);
-    
+
     public boolean readSettingFile() {
         //System.out.println("MXSetting " + _targetName +" : readSettingFile " + _settingFile);
         if (_registered.size() == 0) {
@@ -145,9 +147,15 @@ public class MXSetting {
         try {
             _root.clearValues();
             fin = new FileInputStream(_settingFile);
-            MXMain.progress("reading " + _settingFile + " = " + _targetName);
+
+            String fileName = _settingFile.toString();
+            String dir = MXSettingUtil.getSettingDirectory().getParent();
+            if (fileName.startsWith(dir)) {
+                fileName = "$(APP)" + fileName.substring(dir.length());
+            }
+            MXMain.progress("reading " + _targetName + " from " + fileName);
             MXLineReader reader = new MXLineReader(fin, "utf-8");
-            while(true) {
+            while (true) {
                 String line = reader.readLine();
                 if (line == null) {
                     break;
@@ -167,13 +175,13 @@ public class MXSetting {
                 String value = line.substring(index + 1);
                 _root.setSetting(key, value);
             }
-        }catch(IOException e) {
+        } catch (IOException e) {
             System.out.println("First Time for [" + _settingFile + "]");
-        }finally {
+        } finally {
             if (fin != null) {
                 try {
                     fin.close();
-                }catch(IOException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -183,7 +191,7 @@ public class MXSetting {
         }
         return true;
     }
-    
+
     public boolean writeSettingFile() {
         //System.out.println("MXSetting " + _targetName +" : writeSettingFile " + _settingFile);
         if (_target != null) {
@@ -192,48 +200,54 @@ public class MXSetting {
         }
         File temporary = MXSettingUtil.createTemporaryFile(_settingFile);
         MXLineWriter writer = null;
-        MXMain.progress("writing " + _settingFile + " = " + _targetName);
-        
+
+        String fileName = _settingFile.toString();
+        String dir = MXSettingUtil.getSettingDirectory().getParent();
+        if (fileName.startsWith(dir)) {
+            fileName = "$(APP)" + fileName.substring(dir.length());
+        }
+        MXMain.progress("writing " + _targetName + " from " + fileName);
+
         try {
             writer = new MXLineWriter(temporary, "utf-8");
-            
+
             dump(writer.getWriter());
 
             writer.close();
 
             File backup = MXSettingUtil.autobackupFile(_settingFile);
             temporary.renameTo(_settingFile);
-            
+
             if (backup != null) {
                 if (MXSettingUtil.isFileContentsSame(backup, _settingFile)) {
                     try {
                         backup.delete();
-                    }catch(Exception e) {
+                    } catch (Exception e) {
                     }
-                }else {
+                } else {
                     try {
                         Desktop.getDesktop().moveToTrash(backup);
-                    }catch(Exception e) {
+                    } catch (Exception e) {
                     }
                 }
             }
 
-        }catch(IOException ioe) {
+        } catch (IOException ioe) {
             ioe.printStackTrace();
             if (writer != null) {
                 try {
                     writer.close();
-                }catch(Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 temporary.delete();
             }
             return false;
         }
-        
+
         return true;
     }
-    
+
     public void clearValue() {
         _root.clearValues();
     }
@@ -249,11 +263,11 @@ public class MXSetting {
     public boolean getSettingAsBoolean(String name, boolean defvalue) {
         return _root.getSettingAsBoolean(name, defvalue);
     }
-    
+
     public boolean setSetting(String name, String value) {
         return _root.setSetting(name, value);
     }
-    
+
     public boolean isEmpty() {
         return _root.isEmpty();
     }
@@ -261,24 +275,24 @@ public class MXSetting {
     public boolean setSetting(String name, int value) {
         return setSetting(name, String.valueOf(value));
     }
-    
+
     public boolean setSetting(String name, boolean value) {
         if (value) {
             return setSetting(name, "1");
-        }else {            
+        } else {
             return setSetting(name, "0");
         }
     }
-    
+
     public boolean havingName(String name) {
         return _root.childByKey(name) != null;
     }
-    
+
     public void dump(Writer writer) throws IOException {
         _root.recuesiveDump(writer);
         writer.flush();
     }
-    
+
     public void register(String name) {
         StringPath p = _root.getPath().clone();
         p.addAll(StringPath.parsePath(name));
@@ -303,20 +317,20 @@ public class MXSetting {
 
     protected Comparator comparatorForRegister = new Comparator() {
         public int compare(Object o1, Object o2) {
-            StringPath p1 = (StringPath)o1;
-            StringPath p2 = (StringPath)o2;
+            StringPath p1 = (StringPath) o1;
+            StringPath p2 = (StringPath) o2;
             int length = Math.min(p1.size(), p2.size());
-            for (int x = 0; x < length; ++ x) {
+            for (int x = 0; x < length; ++x) {
                 String str1 = p1.get(x);
                 String str2 = p2.get(x);
-                
+
                 if (MXSettingUtil.isInteger(str1)) {
                     str1 = "0";
                 }
                 if (MXSettingUtil.isInteger(str2)) {
                     str2 = "0";
                 }
-                
+
                 int d = str1.compareTo(str2);
                 if (d != 0) {
                     return d;
@@ -324,40 +338,40 @@ public class MXSetting {
             }
             if (p1.size() < p2.size()) {
                 return -1;
-            }else if (p1.size() > p2.size()) {
+            } else if (p1.size() > p2.size()) {
                 return 1;
             }
-            
+
             return 0;
         }
     };
-    
+
     public ArrayList<MXSettingNode> findByPath(String name) {
         StringPath path = StringPath.parsePath(name);
-    
+
         ArrayList<MXSettingNode> seeking = new ArrayList();
         seeking.add(_root);
 
         for (String text : path) {
             ArrayList<MXSettingNode> hit = new ArrayList();
             boolean isInteger = MXSettingUtil.isInteger(text);
-            
+
             for (MXSettingNode parent : seeking) {
                 int count = parent.size();
-                for (int x = 0; x < count; ++ x) {
+                for (int x = 0; x < count; ++x) {
                     MXSettingNode child = parent.childByIndex(x);
                     if (isInteger) {
                         if (child.isInteger()) {
                             hit.add(child);
                         }
-                    }else {
+                    } else {
                         if (child.getName().equalsIgnoreCase(text)) {
                             hit.add(child);
                         }
                     }
                 }
             }
-            
+
             seeking = hit;
         }
 

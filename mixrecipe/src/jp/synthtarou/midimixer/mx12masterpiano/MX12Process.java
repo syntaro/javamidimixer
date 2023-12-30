@@ -14,14 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.mx40layer;
+package jp.synthtarou.midimixer.mx12masterpiano;
 
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXMain;
+import jp.synthtarou.midimixer.libs.accordion.MXAccordion;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
@@ -35,6 +34,7 @@ public class MX12Process extends MXReceiver implements MXSettingTarget {
 
     private MXSetting _setting;
     MX12MasterkeysPanel _view;
+    MXAccordion _accordion;
     MXNoteOffWatcher _noteOff;
     
     private int _mousePort = 0;
@@ -49,18 +49,20 @@ public class MX12Process extends MXReceiver implements MXSettingTarget {
     
     public MX12Process() {
         _construction = true;
-        _setting = new MXSetting("MasterKey");
+        _setting = new MXSetting("VirtualKey");
         _setting.setTarget(this);
         _noteOff = new MXNoteOffWatcher();
         _overwriteInputChannel = false;
         _construction = false;
+        _view = new MX12MasterkeysPanel(this);
+        _accordion = new MXAccordion(null, "Virtual Key", true);
+        _accordion.insertElement(0, _view);
+        _accordion.setLabelAfterName(_view.getComponentAfterName());
     }
 
     public void readSettings() {
         _setting.readSettingFile();
-        if (_view != null) {
-            _view.updateViewForSettingChange();
-        }
+        _view.updateViewForSettingChange();
     }
    
     @Override
@@ -108,12 +110,12 @@ public class MX12Process extends MXReceiver implements MXSettingTarget {
 
     @Override
     public String getReceiverName() {
-        return "Master Key";
+        return "Virtual Key";
     }
 
     @Override
     public JPanel getReceiverView() {
-        return _view;
+        return _accordion;
     }
    
     public class MyNoteOffHandler implements MXNoteOffWatcher.Handler {
@@ -127,72 +129,19 @@ public class MX12Process extends MXReceiver implements MXSettingTarget {
         public void onNoteOffEvent(MXTiming timing, MXMessage target) {
             target._timing = timing;
             MXMain.getMain().messageDispatch(target, _receiver);
-            if (_view != null) {
-                _view._piano.noteOff(target.getGate()._value);
-            }
+            _view._piano.noteOff(target.getGate()._value);
         }
     }
 
-    public void processMasterPath(MXMessage message) {
-        if (message.isMessageTypeChannel()) {
-            int port = message.getPort();
-            int ch = message.getChannel();
-            int status = message.getStatus();
-            int data1 = message.getData1();
-            int data2 = message.getData2();
-            int command = status & 0xf0;
-
-            if (command == MXMidi.COMMAND_CH_NOTEON && data2 == 0) {
-                command = MXMidi.COMMAND_CH_NOTEOFF;
-            }
-
-            if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-               if (_noteOff.raiseHandler(port, message._timing, ch, data1)) {
-                    return;
-                }
-            }
-
-            MXMessage newMessage = null;
-            if (isOverwriteInputChannel()) {
-                newMessage = MXMessageFactory.fromClone(message);
-                newMessage.setPort(getMousePort());
-                if (newMessage.isMessageTypeChannel()) {
-                    newMessage.setChannel(getMouseChannel());
-                }
-            }
-
-            if (command == MXMidi.COMMAND_CH_NOTEON) {
-                _view._piano.noteOn(data1);
-                if (newMessage != null) {
-                    _noteOff.setHandler(message, newMessage, new MyNoteOffHandler(getNextReceiver()));
-                }else {
-                    _noteOff.setHandler(message, message, new MyNoteOffHandler(getNextReceiver()));
-                }
-            }else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_DAMPERPEDAL) {
-                _view._piano.sustain(data2);
-            }else if (command == MXMidi.COMMAND_CH_PITCHWHEEL) {
-                _view.setPitchBend(message.getValue()._value);
-            }else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_MODULATION) {
-                _view.setModulatoinWheel(message.getValue()._value);
-            }
-            if (newMessage != null) {
-                sendToNext(newMessage);
-            }else {
-                sendToNext(message);
-            }
-            return;
-        }
-        sendToNext(message);
-    }
-    
     public void processMXMessage(MXMessage message) {
     }
 
     public void mouseMessage(MXMessage message) {
-        if (_construction) {
-            return;
+        MXReceiver receiver = getNextReceiver();
+        if (receiver == null) {
+            receiver = MXMain.getMain().getActiveSendableReceiver();
         }
-        sendToNext(message);
+        MXMain.getMain().messageDispatch(message, receiver);
     }
 
     /**
@@ -279,25 +228,8 @@ public class MX12Process extends MXReceiver implements MXSettingTarget {
         this._mouseVelocity = _mouseVelocity;
     }
     
-    public void createWindow() {
-        if (_view != null) {
-            if (_view.isOwnerwindowVisible()) { 
-                return;
-            }
-        }
-        _view = new MX12MasterkeysPanel(this);
-        _view.showAsWindow();
-    }
-    
-    public boolean isAvail() {
-        if (_view == null) {
-            return false;
-        }else {
-            if (!_view.isOwnerwindowVisible()) { 
-                _view = null;
-                return false;
-            }
-        }
-        return true;
+
+    public void updateViewForSettingChange() {
+        _view.updateViewForSettingChange();
     }
 }

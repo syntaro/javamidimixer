@@ -64,7 +64,7 @@ public class MXAccordionFocus {
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            JPanel panel = _element.getRenderer();
+            JPanel panel = _element.getAccordionView();
             Point ownerPos = panel.getLocationOnScreen();
             Rectangle ownerDim = new Rectangle(ownerPos.x, ownerPos.y, panel.getWidth(), panel.getHeight());
             if (ownerDim.contains(e.getXOnScreen(), e.getYOnScreen())) {
@@ -89,13 +89,13 @@ public class MXAccordionFocus {
         MXAccordionElement focusPast = _selectedAccordionChild.get(group);
         if (focusPast != child) {
             if (focusPast != null) {
-                JPanel panel = focusPast.getRenderer();
+                JPanel panel = focusPast.getAccordionView();
                 panel.setBorder(BorderFactory.createEtchedBorder());
                 focusPast.accordionFocused(false);
             }
         }
 
-        JPanel childPanel = child.getRenderer();
+        JPanel childPanel = child.getAccordionView();
         childPanel.setBorder(BorderFactory.createEtchedBorder(Color.green, Color.green));
         if (focusPast != child) {
             _selectedAccordionChild.put(group, child); 
@@ -104,7 +104,7 @@ public class MXAccordionFocus {
     }
     
     void focusableMousePressed(int group, MXAccordion accordion, MXAccordionElement element) {
-        JPanel panel = element.getRenderer();
+        JPanel panel = element.getAccordionView();
         panel.setBorder(BorderFactory.createEtchedBorder(Color.yellow,Color.yellow));
     }
     
@@ -113,7 +113,7 @@ public class MXAccordionFocus {
             setSelected(group, accordion, element);
         }
         else {
-            JPanel panel = element.getRenderer();
+            JPanel panel = element.getAccordionView();
             panel.setBorder(BorderFactory.createEtchedBorder());
         }
     }
@@ -129,7 +129,7 @@ public class MXAccordionFocus {
         int childCount = accordion.elementCount();
         for (int i = 0; i < childCount; ++ i) {
             MXAccordionElement child = accordion.elementAt(i);
-            JPanel childPanel = child.getRenderer();
+            JPanel childPanel = child.getAccordionView();
 
             LinkedList<JComponent> list = new LinkedList<>();
             list.add(childPanel);
@@ -164,7 +164,7 @@ public class MXAccordionFocus {
         int childCount = accordion.elementCount();
         for (int i = 0; i < childCount; ++ i) {
             MXAccordionElement child = accordion.elementAt(i);
-            JPanel childPanel = child.getRenderer();
+            JPanel childPanel = child.getAccordionView();
 
             LinkedList<JComponent> list = new LinkedList<>();
             list.add(childPanel);

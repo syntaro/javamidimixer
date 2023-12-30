@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -47,6 +48,7 @@ import jp.synthtarou.midimixer.ccxml.InformationForModule;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXLineReader;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -218,15 +220,7 @@ public class CXFile {
                 stream.close();
             }
 
-            CCRuleManager rule = CCRuleManager.getInstance();
-            for (CXNode seek : _document._listChildTags) {
-                if (seek._nodeName.equals("ModuleData")) {
-                    InformationForModule module = new InformationForModule(this,seek);
-                    module.fillCCMLink();
-                    _listModules.add(module);
-                    checkWaring(module, seek, rule.getModuleDataTag());
-                }
-            }
+            rebuildCache();
         } catch (ParserConfigurationException ex) {
             _loadError = ex;
             return;
@@ -244,6 +238,21 @@ public class CXFile {
         _loadError = null;
     }
     
+    public void rebuildCache() {
+        _listModules.clear();
+        _listWarning.clear();
+        _listWarningOffset.clear();
+        CCRuleManager rule = CCRuleManager.getInstance();
+         for (CXNode seek : _document._listChildTags) {
+             if (seek._nodeName.equals("ModuleData")) {
+                 InformationForModule module = new InformationForModule(this,seek);
+                 module.fillCCMLink();
+                 _listModules.add(module);
+                 checkWaring(module, seek, rule.getModuleDataTag());
+             }
+         }
+    }
+    
     public void recordCCMWarning(String key, CXNode node) {
         ArrayList<CXNode> list  = _listWarningOffset.get(key);
         if (list == null) {
@@ -255,10 +264,35 @@ public class CXFile {
 
     public void checkWaring(InformationForModule module, CXNode target, CCRuleForTag targetRule) {
         target._warningText = null;
-        
+
         if (target._nodeName.equals("CCM")) {
             InformationForCCM ccm = new InformationForCCM(module, target);
             String err;
+            
+            if (ccm._data == null) {
+                err = module._file +" have null SysEx";
+                recordCCMWarning(err, target);
+            }else  if (ccm._data.startsWith("@SYSEX")) {
+                boolean templateOK = false;
+                try {
+                    MXTemplate template = null;
+                    try {
+                        template = new MXTemplate(ccm._data);
+                        if (template.get(1) == MXMidi.COMMAND_SYSEX || template.get(1) == MXMidi.COMMAND_SYSEX_END) 
+                            if (template.get(template.size() - 1) == 0xf7) {
+                                templateOK = true;
+                        }
+                    } catch (IllegalFormatException ex) {
+                        ex.printStackTrace();
+                    }
+                }catch(Exception e) {
+                    e.printStackTrace();
+                }
+                if (!templateOK) {
+                    err = module._file +" have Wrong SysEx [" + ccm._data+ "]";
+                    recordCCMWarning(err, target);
+                }
+            }
             if (ccm._offsetGate != 0) {
                 err = module._file +" have offset gate";
                 recordCCMWarning(err, target);

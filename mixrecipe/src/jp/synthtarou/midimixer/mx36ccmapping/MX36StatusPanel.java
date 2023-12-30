@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.mx36ccmapping;
 
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
@@ -40,19 +41,19 @@ public class MX36StatusPanel extends javax.swing.JPanel implements MXAccordionEl
         _status = status;
         status._view = this;
         _accordion = accordion;
-        refill();
+        repaintAccordion();
     }
     
     public MX36Status getStatus() {
         return _status;
     }
     
-    public void refill() {
+    public void repaintAccordion() {
         if (SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    refill();
+                    repaintAccordion();
                 }
             });
             return;
@@ -239,13 +240,8 @@ public class MX36StatusPanel extends javax.swing.JPanel implements MXAccordionEl
     // End of variables declaration//GEN-END:variables
 
     @Override
-    public JPanel getRenderer() {
+    public JPanel getAccordionView() {
         return this;
-    }
-
-    @Override
-    public MXAccordion getAccordion() {
-        return _accordion;
     }
 
     @Override

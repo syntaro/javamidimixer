@@ -93,7 +93,7 @@ public class MX10Data {
             type = TYPE_DATA_ENTRY;
         }else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
             type = TYPE_ANOTHER_CC;
-        } else if (command == 0xf0 || command == 0xf7) {
+        } else if (command == MXMidi.COMMAND_SYSEX || command == MXMidi.COMMAND_SYSEX_END) {
             byte[] data = message.getBinary();
             if (MXMidi.isReset(data)) {
                 type = TYPE_RESET_GENERAL;

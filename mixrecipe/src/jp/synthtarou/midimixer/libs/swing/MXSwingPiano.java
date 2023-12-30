@@ -46,14 +46,22 @@ public class MXSwingPiano extends JComponent {
      * @return the allowMultiSelect
      */
     public boolean isAllowMultiSelect() {
-        return _allowMultiSelect;
+        return _allowSelect && _allowMulti;
+    }
+
+    /**
+     * @return the allowMultiSelect
+     */
+    public boolean isAllowSelect() {
+        return _allowSelect;
     }
 
     /**
      * @param allowMultiSelect the allowMultiSelect to set
      */
-    public void setAllowMultiSelect(boolean allowMultiSelect) {
-        this._allowMultiSelect = allowMultiSelect;
+    public void setAllowSelect(boolean allow, boolean multi) {
+        this._allowSelect = allow;
+        this._allowMulti = multi;
     }
 
     public static interface Handler {
@@ -95,7 +103,7 @@ public class MXSwingPiano extends JComponent {
 
             @Override
             public void mousePressed(MouseEvent e) {
-                MXSwingPiano.this.pushNoteByMouse(e.getPoint());
+                pushNoteByMouse(e.getPoint());
             }
 
             @Override
@@ -114,7 +122,7 @@ public class MXSwingPiano extends JComponent {
         addMouseMotionListener(new MouseMotionListener() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                MXSwingPiano.this.pushNoteByMouse(e.getPoint());
+                pushNoteByMouse(e.getPoint());
             }
 
             @Override
@@ -222,7 +230,7 @@ public class MXSwingPiano extends JComponent {
         return widthOne * 5 + 40;
     }
     
-    public void setSelectedColor(Color back) {
+    public void setLastSelectedColor(Color back) {
         selectedColor = back;
     }
 
@@ -235,7 +243,7 @@ public class MXSwingPiano extends JComponent {
                 Color color;
                 if (key._note == _mouseNoteOn) {
                     color = mouseColor;
-                }else if (isSelectedNote(key._note)) {
+                }else if (_selectedNote[key._note]) {
                     color = selectedColor;
                 }else if (_sequenceNoteOn[key._note]) {
                     color = sequenceColor;
@@ -244,6 +252,9 @@ public class MXSwingPiano extends JComponent {
                 }else if (key._note == 60) {
                     color = centerColor;
                 }else {
+                    color = Color.white;
+                }
+                if (color == null) {
                     color = Color.white;
                 }
                 g.setColor(color);
@@ -264,14 +275,17 @@ public class MXSwingPiano extends JComponent {
                 Color color;
                 if (key._note == _mouseNoteOn) {
                     color = mouseColor;
-                }else if (isSelectedNote(key._note)) {
+                }else if (_selectedNote[key._note]) {
                     color = selectedColor;
                 }else if (_sequenceNoteOn[key._note]) {
                     color = sequenceColor;
                 }else if (_sequenceSustain[key._note]) {
                     color = sustainColor;
                 }else {
-                    color = Color.BLACK;
+                    color = Color.black;
+                }
+                if (color == null) {
+                    color = Color.black;
                 }
                 g.setColor(color);
                 g.fillRoundRect(fill.x + 1, fill.y + 1, fill.width - 2, fill.height - 2, 10, 10);
@@ -444,7 +458,12 @@ public class MXSwingPiano extends JComponent {
                 if (prevNote != key._note) {                    
                     releaseNoteByMouse();
                     _mouseNoteOn = key._note;
-                    toggleNoteSelected(key._note);
+                    if (_allowMulti) {
+                        selectNote(key._note, !_selectedNote[key._note]);
+                    }
+                    else {
+                        selectNote(key._note, true);
+                    }
                     if (_handler != null) {
                         _handler.noteOn(key._note);
                     }
@@ -463,7 +482,12 @@ public class MXSwingPiano extends JComponent {
                 if (prevNote != key._note) {                    
                     releaseNoteByMouse();
                     _mouseNoteOn = key._note;
-                    toggleNoteSelected(key._note);
+                    if (_allowMulti) {
+                        selectNote(key._note, !_selectedNote[key._note]);
+                    }
+                    else {
+                        selectNote(key._note, true);
+                    }
                     if (_handler != null) {
                         _handler.noteOn(key._note);
                     }
@@ -542,7 +566,7 @@ public class MXSwingPiano extends JComponent {
         for (int i = 1 ; i <= 7; ++ i) {
             MXSwingPiano comp = new MXSwingPiano();
             if (i == 0) {
-                comp.setAllowMultiSelect(true);
+                comp.setAllowSelect(true, true);
             }
             comp._keyboardOctave = i;
             win.add(comp);
@@ -550,7 +574,8 @@ public class MXSwingPiano extends JComponent {
         win.setVisible(true);
     }
     
-    private boolean _allowMultiSelect = false;
+    private boolean _allowSelect = false;
+    private boolean _allowMulti = false;
     boolean[] _selectedNote =  new boolean[256];
 
     public boolean isSelectedNote(int note) {
@@ -558,20 +583,17 @@ public class MXSwingPiano extends JComponent {
     }
     
     public void selectNote(int note, boolean flag) {
-        if (!_allowMultiSelect) {
-            for (int i = 0; i < _selectedNote.length; ++ i) {
-                _selectedNote[i] = false;
+        if (_allowSelect) {
+            if (!_allowMulti) {
+                for (int i = 0; i < _selectedNote.length; ++ i) {
+                    _selectedNote[i] = false;
+                }
+            }
+            _selectedNote[note] = flag;
+            if (_handler != null) {                
+                _handler.selectionChanged();
             }
         }
-        _selectedNote[note] = flag;
-        if (_handler != null) {                
-            _handler.selectionChanged();
-        }
-        
-    }
-    
-    public void toggleNoteSelected(int note) {
-        selectNote(note, !_selectedNote[note]);
     }
     
     public int[] listMultiSelected() {

@@ -386,7 +386,7 @@ public class MX60View extends javax.swing.JPanel {
         _jTableSkip.getColumnModel().getColumn(0).setMinWidth(150);
     }
     
-    public void refreshList() {
+    public void tabActivated() {
         _midiPanel.refreshList();
     }
     

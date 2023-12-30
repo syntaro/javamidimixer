@@ -73,19 +73,19 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                 }
                 List<MX36Status> indexed = indexedSearch(status);
                 if (indexed == null) {
-                    
-                    /*
-                    MX36Folder folder2 = _folders._autodetectedFolder;
+                    MX36Folder folder2 = _folders._nosaveFolder;
                     MX36Status added = MX36Status.fromMGStatus(folder2, status);
                     folder2.insertSorted(added);
                     folder2.refill(added);
                     _index.safeAdd(added);
                     //メッセージがアサインされてないので不要
                     //updateSurfaceValue(status2, status.getValue());
-                    */
                 } else {
                     for (MX36Status seek : indexed) {
                         MX36Folder folder2 = seek._folder;
+                        if (folder2 == _folders._trashedFolder) {
+                            continue;
+                        }
                         if (folder2.isSelected()) {
                             MXMessage msg = updateSurfaceValue(seek, status.getValue());
                             if (msg != null) {
@@ -255,8 +255,6 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                 }
             }
         }
-
-        _view.fullReloadList();
     }
 
     @Override
@@ -271,7 +269,7 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
             setting.setSetting(prefix + "Name", folder._folderName);
             setting.setSetting(prefix + "Selected", folder.isSelected());
 
-            if (folder == this._folders._autodetectedFolder) {
+            if (folder == this._folders._nosaveFolder) {
                 continue;
             }
 
@@ -355,7 +353,7 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
         if (status._folder != null) {
             status._folder.refill(status);
         }
-        _view.fullReloadList();
+        _view.tabActivated();
         return status.createOutMessage();
     }
 
@@ -398,7 +396,6 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
 
     public ArrayList<MX36Status> indexedSearch(MGStatus status) {
         if (_index == null) {
-            System.out.println("recreate");
             _index = new MX36Index();
             for (MX36Folder folder : _folders._listFolder) {
                 for (MX36Status seek : folder._list) {
@@ -407,5 +404,41 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
             }
         }
         return _index.safeGet(status._port, status._uiType, status._row, status._column);
+    }
+    
+    public boolean haveTrashedItem() {
+        if (_folders._trashedFolder._list.isEmpty() == false) {
+            return true;
+        }
+        return false;
+    }
+    
+    public void cleanupTrash() {
+        _folders._trashedFolder.removeAll();
+    }
+
+    public boolean haveEmptyFolder() {
+        for (MX36Folder seek : _folders._listFolder) {
+            if (seek._list.isEmpty() && seek._folderName.startsWith("*") == false) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public void cleanupEmptyFolder() {
+        List<MX36Folder> listEmpty = new ArrayList<>();
+        for (MX36Folder seek : _folders._listFolder) {
+            if (seek._list.isEmpty()&& seek._folderName.startsWith("*") == false) {
+                listEmpty.add(seek);
+            }
+        }
+        for (MX36Folder seek : listEmpty) {
+            _folders._listFolder.remove(seek);
+        }
+    }
+
+    public void ownwerTabChanged() {
+        //_view._detailPanel.updateViewByStatus();
     }
 }

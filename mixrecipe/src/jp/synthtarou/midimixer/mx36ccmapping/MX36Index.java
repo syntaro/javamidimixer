@@ -34,7 +34,7 @@ public class MX36Index {
 
         public PortData() {
             int totalRow = typeToIndex(-1, 0);
-            _listPocket = new ArrayList[totalRow];
+            _listPocket = new ArrayList[totalRow + 1];
             
             for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++ row) {
                 _listPocket[typeToIndex(MGStatus.TYPE_CIRCLE, row)] = new ArrayList<Column>();

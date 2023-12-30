@@ -64,9 +64,9 @@ public final class MXMessage implements Comparable<MXMessage> {
             int b = _dataBytes[0] & 0xff;
             if (b >= 0x80 && b <= 0xff) {
                 switch (b) {
-                    case 0xf0:
-                    case 0xf7:
-                    case 0xff:
+                    case MXMidi.COMMAND_SYSEX:
+                    case MXMidi.COMMAND_SYSEX_END:
+                    case MXMidi.COMMAND_META_OR_RESET:
                         return true;
                 }
                 return false;
@@ -891,6 +891,7 @@ public final class MXMessage implements Comparable<MXMessage> {
         
         int newValue = (vh << 7) | vl;
         if (getValue().contains(newValue)) {
+            //Rangeは考慮しない O　フォーマットに依存する
             MXRangedValue value = getValue().changeValue(newValue);
             return value;
         }

@@ -675,11 +675,11 @@ public class MX80Panel extends javax.swing.JPanel {
     }//GEN-LAST:event_jSliderMasterVolumeStateChanged
 
     private void jPanelSynthsContainerComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_jPanelSynthsContainerComponentResized
-        onResizeSynth();
+        tabActivated();
     }//GEN-LAST:event_jPanelSynthsContainerComponentResized
 
     private void jSplitPane1PropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_jSplitPane1PropertyChange
-        onResizeSynth();
+        tabActivated();
     }//GEN-LAST:event_jSplitPane1PropertyChange
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -1002,7 +1002,7 @@ public class MX80Panel extends javax.swing.JPanel {
         return model;
     }
 
-    public void onResizeSynth() {
+    public void tabActivated() {
         int width;
         width = (int) jScrollPaneSynthContainer.getViewport().getViewRect().getWidth();
         jScrollPaneSynthContainer.getViewport().setMinimumSize(new Dimension(200, 100));

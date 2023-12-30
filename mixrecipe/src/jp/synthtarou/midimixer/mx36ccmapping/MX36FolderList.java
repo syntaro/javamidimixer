@@ -33,15 +33,17 @@ public class MX36FolderList {
     final TreeSet<MX36Folder> _listFolder = new TreeSet<>();
 
     MXAccordionFocus _focus;
-    MX36Folder _autodetectedFolder;
+    MX36Folder _nosaveFolder;
     MX36Folder _primalFolder;
+    MX36Folder _trashedFolder;
     MX36Process _process;
- 
+
     public MX36FolderList(MX36Process process) {
         _focus = new MXAccordionFocus();
         _process = process;
-        _autodetectedFolder = newFolder(Integer.MAX_VALUE, "AutoDectected");
-        _primalFolder = newFolder("Primal");
+        _nosaveFolder = newFolder(Integer.MAX_VALUE, "*NoSave(AutoDetected)");
+        _primalFolder = newFolder("*Primal");
+        _trashedFolder = newFolder(Integer.MAX_VALUE - 1, "*Trash");
     }
 
     int _orderNext = 1;
@@ -58,15 +60,12 @@ public class MX36FolderList {
         _orderNext = newOrder;
     }
 
-    public synchronized MX36Folder newFolder(String name) {
-        for (MX36Folder seek : _listFolder) {
-            if (seek._folderName.equals(name)) {
-                return seek;
-            }
-        }
-        MX36Folder folder = new MX36Folder(_process, _focus, _orderNext++, name);
-        _listFolder.add(folder);
-        return folder;
+    public synchronized MX36Folder getFolderForNosave() {
+        return _nosaveFolder;
+    }
+
+    public synchronized MX36Folder getPrimalFolder() {
+        return _primalFolder;
     }
 
     public synchronized MX36Folder getFolder(String name) {
@@ -78,12 +77,15 @@ public class MX36FolderList {
         return null;
     }
 
-    public synchronized MX36Folder getAutoDetectedFolder() {
-        return _autodetectedFolder;
-    }
-
-    public synchronized MX36Folder getPrimalFolder() {
-        return _primalFolder;
+    public synchronized MX36Folder newFolder(String name) {
+        for (MX36Folder seek : _listFolder) {
+            if (seek._folderName.equals(name)) {
+                return seek;
+            }
+        }
+        MX36Folder folder = new MX36Folder(_process, _focus, _orderNext++, name);
+        _listFolder.add(folder);
+        return folder;
     }
 
     public synchronized MX36Folder newFolder(int index, String name) {
@@ -92,9 +94,16 @@ public class MX36FolderList {
                 return seek;
             }
         }
-        MX36Folder folder = new MX36Folder(_process,_focus, index, name);
+        MX36Folder folder = new MX36Folder(_process, _focus, index, name);
         _listFolder.add(folder);
         return folder;
+    }
+
+    public synchronized void deleteFolder(MX36Folder target) {
+        _listFolder.remove(target);
+        if (target._accordion != null) {
+            _process._view.tabActivated();
+        }
     }
 
     public void sortWith(Comparator<MX36Status> comp) {
@@ -102,7 +111,7 @@ public class MX36FolderList {
             folder.sort(comp);
         }
     }
-    
+
     public void selectFirstAtm() {
         MXAccordion accordion = null;
         MXAccordionElement panel = null;
@@ -111,16 +120,16 @@ public class MX36FolderList {
         for (MX36Folder folder : _listFolder) {
             accordion = folder._accordion;
         }
-        
+
         //first child
         if (accordion != null) {
-   
+
             try {
                 panel = accordion.elementAt(0);
-            }catch(Exception e) {
+            } catch (Exception e) {
             }
         }
-        
+
         if (accordion != null && panel != null) {
             _focus.setSelected(0, accordion, panel);
         }
@@ -131,19 +140,22 @@ public class MX36FolderList {
             }
         }
     }
-    
+
     public synchronized List<MX36Folder> findConflict(MX36Folder target) {
         List<MX36Folder> result = null;
         for (MX36Folder folder : _listFolder) {
             if (folder == target) {
                 continue;
             }
+            if (folder == _trashedFolder) {
+                continue;
+            }
             boolean hit = false;
             for (MX36Status status1 : folder._list) {
                 for (MX36Status status2 : target._list) {
                     if (status1._surfacePort == status2._surfacePort
-                     && status1._surfaceRow == status2._surfaceRow
-                     && status1._surfaceColumn == status2._surfaceColumn) {
+                            && status1._surfaceRow == status2._surfaceRow
+                            && status1._surfaceColumn == status2._surfaceColumn) {
                         hit = true;
                         break;
                     }

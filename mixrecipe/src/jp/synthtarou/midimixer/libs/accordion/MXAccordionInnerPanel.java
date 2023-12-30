@@ -41,7 +41,7 @@ public class MXAccordionInnerPanel {
         for (int i = 0; i < _listElement.size(); ++ i) {
             if (element == _listElement.get(i)) {
                 _listElement.remove(i);
-                _animationPanel.remove(element.getRenderer());
+                _animationPanel.remove(element.getAccordionView());
             }
         }
     }
@@ -50,7 +50,7 @@ public class MXAccordionInnerPanel {
     
     public void add(MXAccordionElement child,int index) {
         _listElement.add(index, child);
-        _animationPanel.add(child.getRenderer(), index);
+        _animationPanel.add(child.getAccordionView(), index);
     }
 
     public int count() {
@@ -61,7 +61,7 @@ public class MXAccordionInnerPanel {
         return _listElement.get(x);
     }
     
-    public void openWithAnimation(boolean open) {
+    public void openWithAnimation(boolean open, boolean invert) {
         _doingAnimation = true;
         if (open) {
             new Thread(new Runnable() {
@@ -74,12 +74,24 @@ public class MXAccordionInnerPanel {
                     }catch(Throwable e) {
                         e.printStackTrace();;
                     }
-                    for (int p = 0; p < 100; p += 5) {
-                        _animationPanel.setScrollPercent(p);
-                        try {
-                            Thread.sleep(10);
-                        } catch (Exception e) {
-                            e.printStackTrace();;
+                    if (invert) {
+                        for (int p = 200; p > 100; p -= 5) {
+                            _animationPanel.setScrollPercent(p);
+                            try {
+                                Thread.sleep(10);
+                            } catch (Exception e) {
+                                e.printStackTrace();;
+                            }
+                        }
+                    }
+                    else {
+                        for (int p = 0; p < 100; p += 5) {
+                            _animationPanel.setScrollPercent(p);
+                            try {
+                                Thread.sleep(10);
+                            } catch (Exception e) {
+                                e.printStackTrace();;
+                            }
                         }
                     }
                     _animationPanel.setScrollPercent(100);
@@ -91,14 +103,28 @@ public class MXAccordionInnerPanel {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    for (int p = 100; p >= 0; p -= 5) {
-                        _animationPanel.setScrollPercent(p);
-                        try {
-                            if (p != 0) {
-                                Thread.sleep(10);
+                    if (invert) {
+                        for (int p = 100; p <= 200; p += 5) {
+                            _animationPanel.setScrollPercent(p);
+                            try {
+                                if (p != 0) {
+                                    Thread.sleep(10);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();;
                             }
-                        } catch (Exception e) {
-                            e.printStackTrace();;
+                        }
+                    }
+                    else {
+                        for (int p = 100; p >= 0; p -= 5) {
+                            _animationPanel.setScrollPercent(p);
+                            try {
+                                if (p != 0) {
+                                    Thread.sleep(10);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();;
+                            }
                         }
                     }
                     SwingUtilities.invokeLater(new Runnable() {

@@ -204,7 +204,7 @@ public class MX10View extends javax.swing.JPanel {
         new MXAttachTableResize(_jTableSkip);
     }
     
-    public void refreshList() {
+    public void tabActivated() {
         _inPanel.refreshList();
     }
 }
