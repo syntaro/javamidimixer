@@ -43,7 +43,7 @@ public class MXAppConfig {
         }
     }
     public static final String LOOPMIDI_NAME = "EX MIDIMixer Out";
-    public static final String MX_APPNAME = "MixRecipe 0.59.0 (Beta)";
+    public static final String MX_APPNAME = "MixRecipe 0.59.2 (Beta)";
     public static final String MX_EDITING = "*** EDIT CONTROl MODE ***";
     public static final int DRUM_CH = 9;
     

@@ -74,7 +74,7 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                 for (MX36Folder folder : _folders._listFolder) {
                     for (int i = 0; i < folder._accordion.getElementCount(); ++ i) {
                         MX36StatusPanel panel = (MX36StatusPanel)folder._accordion.getElementAt(i);
-                        if (panel._status.getOutDataText()!= null
+                        if (panel._status._outCachedMessage != null
                          && panel._status._surfacePort == status._port
                          && panel._status._surfaceUIType == status._uiType
                          && panel._status._surfaceRow == status._row

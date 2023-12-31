@@ -129,14 +129,10 @@ public class MX36Status {
         return _outDataText;
     }
 
-    public boolean setOutDataText(String text) {
+    public void setOutDataText(String text) {
         _outDataText = text;
         _outCachedMessage = null;
-        if (createOutMessage() == null) {
-            _outDataText = null;
-            return false;
-        }
-        return true;
+        createOutMessage();
     }
     
     public MX36Status() {
