@@ -26,7 +26,7 @@ import java.util.Comparator;
  */
 public class SortedArray<T> extends ArrayList<T> {
     Comparator<T> _insertComparator;
-    boolean _duplicateOk = false;
+    boolean _duplicateOk = true;
 
     public SortedArray() {
         _insertComparator = new BasicComparator();
@@ -60,7 +60,7 @@ public class SortedArray<T> extends ArrayList<T> {
             }
         }
         if (low == high) {
-            if (_duplicateOk) {
+            if (_duplicateOk == false) {
                 set(low, value);
                 return -1;
             }
