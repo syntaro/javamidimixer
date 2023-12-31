@@ -1052,7 +1052,9 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         jTextFieldValueValue.setText(name);
         if (_status != null) {
             MXMessage message = _process.updateOutputValue(_status, value);
-            _process.sendToNext(message);
+            if (message != null) {
+                _process.sendToNext(message);
+            }
         }
     }//GEN-LAST:event_jSliderValueValueStateChanged
 

@@ -71,29 +71,27 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                 if (status._uiType == MGStatus.TYPE_DRUMPAD) {
                     continue;
                 }
-                List<MX36StatusPanel> indexed = indexedSearch(status);
-                if (indexed == null) {
-                    MX36Folder folder2 = _folders._nosaveFolder;
-                    MX36Status added = MX36Status.fromMGStatus(folder2, status);
-                    folder2.addCCItem(added);
-                    folder2.refill(added);
-                    _index.safeAdd(added._panel);
-                    //メッセージがアサインされてないので不要
-                    //updateSurfaceValue(status2, status.getValue());
-                } else {
-                    for (MX36StatusPanel seek : indexed) {
-                        MX36Status status2 = seek._status;
-                        MX36Folder folder2 = status2._folder;
-                        if (folder2 == _folders._trashedFolder) {
-                            continue;
-                        }
-                        if (folder2.isSelected()) {
-                            MXMessage msg = updateSurfaceValue(status2, status.getValue());
-                            if (msg != null) {
-                                sendToNext(msg);
-                                folder2.refill(status2);
+                for (MX36Folder folder : _folders._listFolder) {
+                    for (int i = 0; i < folder._accordion.getElementCount(); ++ i) {
+                        MX36StatusPanel panel = (MX36StatusPanel)folder._accordion.getElementAt(i);
+                        if (panel._status.getOutDataText() != null
+                         && panel._status._surfacePort == status._port
+                         && panel._status._surfaceUIType == status._uiType
+                         && panel._status._surfaceRow == status._row
+                         && panel._status._surfaceColumn == status._column) {
+                            MX36Status status2 = panel._status;
+                            MX36Folder folder2 = status2._folder;
+                            if (folder2 == _folders._trashedFolder) {
+                                continue;
                             }
-                            done = true;
+                            if (folder2.isSelected()) {
+                                MXMessage msg = updateSurfaceValue(status2, status.getValue());
+                                if (msg != null) {
+                                    sendToNext(msg);
+                                    folder2.refill(status2);
+                                }
+                                done = true;
+                            }
                         }
                     }
                 }
@@ -391,21 +389,6 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
         }
     }
 
-    MX36Index _index = null;
-
-    public ArrayList<MX36StatusPanel> indexedSearch(MGStatus status) {
-        if (_index == null) {
-            _index = new MX36Index();
-            for (MX36Folder folder : _folders._listFolder) {
-                for (int i = 0; i < folder._accordion.getElementCount(); ++ i) {
-                    MX36StatusPanel panel = (MX36StatusPanel)folder._accordion.getElementAt(i);
-                    _index.safeAdd(panel);
-                }
-            }
-        }
-        return _index.safeGet(status._port, status._uiType, status._row, status._column);
-    }
-    
     public boolean haveTrashedItem() {
         if (_folders._trashedFolder._accordion.getElementCount() != 0) {
             return true;
