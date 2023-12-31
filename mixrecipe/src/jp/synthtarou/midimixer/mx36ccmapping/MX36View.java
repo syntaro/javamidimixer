@@ -51,7 +51,7 @@ public class MX36View extends javax.swing.JPanel {
     public void tabActivated() {
         if (_firstActive) {
             if (_process.haveTrashedItem()) {
-                if (JOptionPane.showConfirmDialog(this, "Delete Past Trashed?", "Question", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                if (JOptionPane.showConfirmDialog(this, "Delete Trashed Past?", "Question", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                     _process.cleanupTrash();
                 }
             }
@@ -107,55 +107,6 @@ public class MX36View extends javax.swing.JPanel {
         gridBagConstraints.weighty = 1.0;
         add(jPanel3, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
-
-    public void startCreateFolder(JButton button) {
-        MXPopupForText navi = new MXPopupForText(null) {
-
-            @Override
-            public void approvedText(String text) {
-                if (_process._folders.getFolder(text) != null) {
-                    JOptionPane.showMessageDialog(MX36View.this, "Already Exists", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                if (text.startsWith("*")) {
-                    JOptionPane.showMessageDialog(MX36View.this, "Can' create * starting name", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                MX36Folder newFolder = _process._folders.newFolder(text);
-                _process.moveFolder(newFolder, _detailPanel._status);
-                if (_process._view != null) {
-                    _process._view.tabActivated();
-                }
-            }
-        };
-        navi.setDialogTitle("Input Folder Name");
-        navi.showPopup(button);
-    }
-
-    public void startMoveFolder(JButton button) {
-        if (_detailPanel._status == null) {
-            return;
-        }
-        MXWrapList<MX36Folder> listFolder = new MXWrapList<>();
-        for (MX36Folder folder : _process._folders._listFolder) {
-            listFolder.addNameAndValue(folder._folderName, folder);
-        }
-        listFolder.addNameAndValue("...", null);
-        MXPopupForList<MX36Folder> navi = new MXPopupForList<MX36Folder>(null, listFolder) {
-            @Override
-            public void approvedIndex(int selectedIndex) {
-                MX36Folder ret = listFolder.valueOfIndex(selectedIndex);
-                if (ret != null) {
-                    _process.moveFolder(ret, _detailPanel._status);
-                }
-                else {
-                    startCreateFolder(button);
-                }
-            }
-        };
-       
-        navi.showPopup(button);
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel jPanel2;

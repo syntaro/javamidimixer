@@ -43,6 +43,7 @@ public abstract class MXPopupForText extends MXPopup {
         if (text.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
             approvedText(text.getReturnValue());
         }
+        popupHiddenAndGoNext();
     }
     
     public void setDialogTitle(String title) {

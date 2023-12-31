@@ -25,6 +25,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.IllegalFormatException;
+import java.util.List;
 import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
@@ -2057,10 +2058,14 @@ public class MGStatusPanel extends javax.swing.JPanel {
     }
 
     public void startBrowseXML() {
-        PickerForControlChange picker = new PickerForControlChange(false);
+        PickerForControlChange picker = new PickerForControlChange();
         MXUtil.showAsDialog(jTextFieldTemplate, picker, "Which You Choose?");
         if (picker.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-            InformationForCCM ccm = picker.getReturnValue();
+            List<InformationForCCM> ccmList = picker.getReturnValue();
+            InformationForCCM ccm = null;
+            if (ccmList != null && ccmList.isEmpty() == false) {
+                ccm = ccmList.getFirst();
+            }
 
             if (ccm == null) {
                 return;

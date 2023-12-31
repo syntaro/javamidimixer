@@ -521,7 +521,7 @@ public class EditorForXMLTag extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonEditInstActionPerformed
 
     private void jButtonEditCCActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEditCCActionPerformed
-        PickerForControlChange inst = new PickerForControlChange(true, _file);
+        PickerForControlChange inst = new PickerForControlChange(_file);
         MXUtil.showAsDialog(this, inst, "Edit ControlChange");        
     }//GEN-LAST:event_jButtonEditCCActionPerformed
 

@@ -106,12 +106,6 @@ public class MX36FolderList {
         }
     }
 
-    public void sortWith(Comparator<MX36Status> comp) {
-        for (MX36Folder folder : _listFolder) {
-            folder.sort(comp);
-        }
-    }
-
     public void selectFirstAtm() {
         MXAccordion accordion = null;
         MXAccordionElement panel = null;
@@ -125,7 +119,7 @@ public class MX36FolderList {
         if (accordion != null) {
 
             try {
-                panel = accordion.elementAt(0);
+                panel = accordion.getElementAt(0);
             } catch (Exception e) {
             }
         }
@@ -151,8 +145,12 @@ public class MX36FolderList {
                 continue;
             }
             boolean hit = false;
-            for (MX36Status status1 : folder._list) {
-                for (MX36Status status2 : target._list) {
+            for (int i = 0; i < folder._accordion.getElementCount(); ++ i) {
+                MX36StatusPanel panel1 = (MX36StatusPanel)folder._accordion.getElementAt(i);
+                MX36Status status1 = panel1._status;
+                for (int j = 0; j < target._accordion.getElementCount(); ++ j) {
+                    MX36StatusPanel panel2 = (MX36StatusPanel)target._accordion.getElementAt(j);
+                    MX36Status status2 = panel2._status;
                     if (status1._surfacePort == status2._surfacePort
                             && status1._surfaceRow == status2._surfaceRow
                             && status1._surfaceColumn == status2._surfaceColumn) {

@@ -20,6 +20,8 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
+import java.util.ArrayList;
+import java.util.Comparator;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
@@ -29,24 +31,25 @@ import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
  * @author Syntarou YOSHIDA
  */
 public class MXAccordion extends javax.swing.JPanel {
+
     /**
      * Creates new form MXAccordionPanel
      */
     public MXAccordion() {
         this(null, "Accordion", false);
     }
-    
+
     boolean _invert;
-    
+
     public MXAccordion(MXAccordionFocus focus, String name, boolean invert) {
         initComponents();
-        
+
         if (focus == null) {
             focus = new MXAccordionFocus();
         }
-        
+
         jLabel1.setText(name);
-        
+
         int height = jSlider1.getHeight();
         jSlider1.setMinimumSize(new Dimension(50, 20));
         jSlider1.setMaximumSize(new Dimension(50, 20));
@@ -137,25 +140,25 @@ public class MXAccordion extends javax.swing.JPanel {
     MXAccordionInnerPanel _contentsList;
     boolean _selected = true;
     boolean _colorfull = true;
-    
+
     public void setColorFull(boolean selected) {
         _colorfull = selected;
         JComponent panel = _contentsList.getAnimationPanel();
         setColorfullSub(panel, selected);
     }
-    
+
     void setColorfullSub(JComponent panel, boolean selected) {
         panel.setEnabled(selected);
         if (panel instanceof Container) {
-            Component[] list = ((Container)panel).getComponents();
+            Component[] list = ((Container) panel).getComponents();
             for (Component child : list) {
                 if (child instanceof JComponent) {
-                    setColorfullSub((JComponent)child, selected);
+                    setColorfullSub((JComponent) child, selected);
                 }
             }
         }
     }
-    
+
     public void openAccordion(boolean opened) {
         if (SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(new Runnable() {
@@ -179,13 +182,13 @@ public class MXAccordion extends javax.swing.JPanel {
             jSlider1.setValue(opened ? 1 : 0);
         }
         _contentsList.openWithAnimation(opened, _invert);
-       
+
     }
 
     public boolean isAccordionOpened() {
         return _selected;
     }
-   
+
     public void setLabelAfterName(JComponent compo) {
         remove(jButtonDummy);
         GridBagConstraints con = new java.awt.GridBagConstraints();
@@ -193,27 +196,50 @@ public class MXAccordion extends javax.swing.JPanel {
         con.gridy = 0;
         add(compo, con);
     }
-    
+
     public void insertElement(int pos, MXAccordionElement element) {
         _contentsList.add(element, pos);
     }
-    
+
     public void refill(int pos) {
         if (pos >= 0) {
             _contentsList._listElement.get(pos).repaintAccordion();
         }
         _contentsList.revalidateASAP();
     }
-    
-    public int elementCount() {
+
+    public int getElementCount() {
         return _contentsList.count();
     }
-    
-    public MXAccordionElement elementAt(int x) {
+
+    public MXAccordionElement getElementAt(int x) {
         return _contentsList.get(x);
     }
-    
+
     public void removeElement(MXAccordionElement elem) {
         _contentsList.remove(elem);
+    }
+
+    public void removeElementAt(int x) {
+        _contentsList.removeAt(x);
+    }
+
+    public boolean sortElements(Comparator<MXAccordionElement> comparator) {
+        ArrayList<MXAccordionElement> childs = new ArrayList();
+        for (int i = 0; i < getElementCount(); ++i) {
+            childs.add((MXAccordionElement) getElementAt(i));
+        }
+        childs.sort(comparator);
+        for (int i = 0; i < getElementCount(); ++i) {
+            if (getElementAt(i) != childs.get(i)) {
+                _contentsList.removeAll();
+                for (MXAccordionElement e : childs) {
+                    _contentsList.add(e, _contentsList.count());
+                }
+                _contentsList.revalidateASAP();
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -37,6 +37,12 @@ public class MXAccordionInnerPanel {
         return _animationPanel;
     }
 
+    public void removeAt(int i) {
+       MXAccordionElement element = _listElement.get(i);
+        _listElement.remove(i);
+        _animationPanel.remove(element.getAccordionView());
+    }
+
     public void remove(MXAccordionElement element) {
         for (int i = 0; i < _listElement.size(); ++ i) {
             if (element == _listElement.get(i)) {
@@ -44,6 +50,11 @@ public class MXAccordionInnerPanel {
                 _animationPanel.remove(element.getAccordionView());
             }
         }
+    }
+    
+    public void removeAll() {
+        _listElement.clear();
+        _animationPanel.removeAll();
     }
     
     boolean _doingAnimation = false;

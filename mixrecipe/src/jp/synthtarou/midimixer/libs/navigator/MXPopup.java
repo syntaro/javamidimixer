@@ -116,4 +116,21 @@ public abstract class MXPopup {
     }
 
     public abstract void showPopup(JComponent mouseBase);
+    
+    boolean _hidden = false;
+    
+    public synchronized  void popupHiddenAndGoNext() {
+        _hidden = true;
+        notifyAll();
+    }
+    
+    public void waitForPopupClose() {
+        while (_hidden == false) {
+            try {
+                wait(1000);
+            }catch(InterruptedException ex) {
+                return;
+            }
+        }
+    }
 }

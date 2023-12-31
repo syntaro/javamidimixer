@@ -58,6 +58,7 @@ public abstract class MXPopupForNumber extends MXPopup {
             int result = navi.getReturnValue()._value;
             approvedValue(result);
         }
+        popupHiddenAndGoNext();
     }
 
     public abstract void approvedValue(int selectedValue);

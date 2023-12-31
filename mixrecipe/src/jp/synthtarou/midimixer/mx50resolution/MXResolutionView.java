@@ -20,6 +20,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.TreeSet;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
@@ -332,13 +333,17 @@ public class MXResolutionView extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonRemoveActionPerformed
 
     public void startEditCommand() {
-        PickerForControlChange picker = new PickerForControlChange(false);
+        PickerForControlChange picker = new PickerForControlChange();
         MXModalFrame.showAsDialog(this, picker, "Picker");
         if (picker.getReturnStatus() != INavigator.RETURN_STATUS_APPROVED) {
             return;
         }
 
-        InformationForCCM ccm = picker.getReturnValue();
+        List<InformationForCCM> ccmList = picker.getReturnValue();
+        InformationForCCM ccm = null;
+        if (ccmList != null && ccmList.isEmpty() == false) {
+            ccm = ccmList.getFirst();
+        }
         if (ccm != null) {
             try {
                 _resolution._command = new MXTemplate(ccm._data);

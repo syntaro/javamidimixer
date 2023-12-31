@@ -71,6 +71,7 @@ public class MX36Status {
 
     static {
         _listRowType = new MXWrapList<>();
+        _listRowType.addNameAndValue("-", -1);
         for (int i = 0; i < MXAppConfig.CIRCLE_ROW_COUNT; ++ i) {
             String caption = "Knob";
             if (i != 0) {
@@ -122,7 +123,7 @@ public class MX36Status {
     
     MX36Folder _folder;
     
-    MX36StatusPanel _view;
+    MX36StatusPanel _panel;
     
     public String getOutDataText() {
         return _outDataText;

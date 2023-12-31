@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.mx36ccmapping;
 
-import java.util.Comparator;
 import java.util.List;
 import jp.synthtarou.midimixer.libs.accordion.MXAccordion;
 import jp.synthtarou.midimixer.libs.accordion.MXAccordionElement;
@@ -28,7 +27,6 @@ import jp.synthtarou.midimixer.libs.accordion.MXAccordionFocus;
  */
 public class MX36Folder implements Comparable<MX36Folder> {
 
-    MX36StatusList _list;
     MXAccordionFocus _focus;
     MX36Process _process;
 
@@ -37,7 +35,6 @@ public class MX36Folder implements Comparable<MX36Folder> {
     final MXAccordion _accordion;
 
     public MX36Folder(MX36Process process, MXAccordionFocus focus, int order, String name) {
-        _list = new MX36StatusList();
         _order = order;
         _process = process;
         _focus = focus;
@@ -72,29 +69,20 @@ public class MX36Folder implements Comparable<MX36Folder> {
         return 0;
     }
 
-    public void sort(Comparator<MX36Status> comp) {
-        _list._insertComparator = comp;
-        _list.sort(comp);
-    }
-
-    public void insertSorted(MX36Status status) {
+    public void addCCItem(MX36Status status) {
         status._folder = this;
-        int pos = _list.insertSorted(status);
-        if (pos < 0) {
-            return;
-        }
         MX36StatusPanel element = new MX36StatusPanel(_process, _accordion, status);
-        _accordion.insertElement(pos, element);
+        _accordion.insertElement(_accordion.getElementCount(), element);
         refill(status);
         setupMouse();
     }
 
     public void refill(MX36Status status) {
         int count = 0;
-        for (MX36Status seek : _list) {
-            if (seek == status) {
+        for (int i = 0; i < _accordion.getElementCount(); ++ i){
+            MX36StatusPanel panel  =(MX36StatusPanel)_accordion.getElementAt(i);
+            if (panel._status == status) {
                 _accordion.refill(count);
-                return;
             }
             count++;
         }
@@ -108,25 +96,15 @@ public class MX36Folder implements Comparable<MX36Folder> {
     }
 
     public void remove(MXAccordionElement elem) {
-        if (_list.size() != _accordion.elementCount()) {
-            new Throwable("before").printStackTrace();
-        }
-        
         MX36StatusPanel p = (MX36StatusPanel)elem;
         _accordion.removeElement(elem);
-        if (p._status != null) {
-            _list.remove(p.getStatus());
-        }
-        if (_list.size() != _accordion.elementCount()) {
-            new Throwable("after").printStackTrace();
-        }
     }
     
     public void removeAll() {
-        for (MX36Status seek :  _list) {
-            _accordion.removeElement(seek._view);
+        int count = 0;
+        while(_accordion.getElementCount() != 0){
+            _accordion.removeElementAt(_accordion.getElementCount() -1);
         }
-        _list.clear();
     }
     
     public String toString() {
@@ -141,5 +119,9 @@ public class MX36Folder implements Comparable<MX36Folder> {
         for (MX36Folder seek : conflicts) {
             seek.setSelected(false);
         }
+    }
+    
+    public boolean sortElements() {
+        return _accordion.sortElements(MX36StatusPanel._sortOrder);
     }
 }

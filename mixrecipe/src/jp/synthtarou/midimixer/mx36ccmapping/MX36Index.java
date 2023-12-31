@@ -25,7 +25,7 @@ import jp.synthtarou.midimixer.mx30surface.MGStatus;
  * @author Syntarou YOSHIDA
  */
 public class MX36Index {
-    static class Column extends ArrayList<MX36Status> {
+    static class Column extends ArrayList<MX36StatusPanel> {
     
     }
 
@@ -50,7 +50,8 @@ public class MX36Index {
 
     PortData[] _listPort;
 
-    public void safeAdd(MX36Status status) {
+    public void safeAdd(MX36StatusPanel panel) {
+        MX36Status status = panel._status;
         int port = status._surfacePort;
         int type = status._surfaceUIType;
         int row = status._surfaceRow;
@@ -81,10 +82,10 @@ public class MX36Index {
         if (col.indexOf(status) >= 0) {
             return;
         }
-        col.add(status);
+        col.add(panel);
     }
     
-    public ArrayList<MX36Status> safeGet(int port, int type, int row, int column) {
+    public ArrayList<MX36StatusPanel> safeGet(int port, int type, int row, int column) {
         if (_listPort == null) {
             return null;
         }
@@ -105,14 +106,15 @@ public class MX36Index {
         return columnList.get(column);
     }
 
-    public void safeRemove(MX36Status status) {
+    public void safeRemove(MX36StatusPanel panel) {
+        MX36Status status = panel._status;
         int port = status._surfacePort;
         int type = status._surfaceUIType;
         int row = status._surfaceRow;
         int column = status._surfaceColumn;
-        ArrayList<MX36Status> hit = safeGet(port, type, row, column);
+        ArrayList<MX36StatusPanel> hit = safeGet(port, type, row, column);
         if (hit !=null) {
-            hit.remove(status);
+            hit.remove(panel);
         }
     }
     

@@ -22,6 +22,8 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.IllegalFormatException;
+import java.util.List;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
@@ -92,7 +94,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                 updateViewByStatus(_status);
             }
         };
-        
+
         new MXPopupForText(jTextFieldOutName) {
             @Override
             public void approvedText(String text) {
@@ -107,7 +109,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                 startBrowseXML();
             }
         };
-        
+
         new MXPopupForList<Integer>(jTextFieldOutPort, _listPort) {
             @Override
             public void approvedIndex(int selectedIndex) {
@@ -142,7 +144,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                 }
             }
         };
-        
+
         new MXPopupForList<Integer>(jTextFieldOutChannel, _listChannel) {
             @Override
             public void approvedIndex(int selectedIndex) {
@@ -227,56 +229,75 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         new MXAttachSliderSingleClick(jSliderValueValue);
         setEnabledRecurs(false);
     }
-    
+
     public void startBrowseXML() {
-        PickerForControlChange picker = new PickerForControlChange(false);
-        MXUtil.showAsDialog(this, picker, "Which You Choose?");
+        PickerForControlChange picker = new PickerForControlChange();
+        picker.setAllowMultiSelect(true);
+        MXUtil.showAsDialog(this, picker, "Which You Choose? (Multi OK)");
         if (picker.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-            InformationForCCM ccm = picker.getReturnValue();
-
-            if (ccm == null) {
+            List<InformationForCCM> ccmList = picker.getReturnValue();
+            if (ccmList == null) {
                 return;
             }
+            boolean isFirst = true;
+            for (InformationForCCM ccm : ccmList) {
 
-            String data = ccm._data;
-            String name = ccm._name;
-            String memo = ccm._memo;
-            MXRangedValue gate = ccm.getParsedGate();
-            MXWrapList<Integer> gateTable = ccm.getParsedGateTable();
-            MXRangedValue value = ccm.getParsedValue();
-            MXWrapList<Integer> valueTable = ccm.getParsedValueTable();
-            MXTemplate template = null;
-            try {
-                template = new MXTemplate(data);
-            } catch (IllegalFormatException ex) {
-                ex.printStackTrace();
-                return;
+                if (ccm == null) {
+                    return;
+                }
+
+                String data = ccm._data;
+                String name = ccm._name;
+                String memo = ccm._memo;
+                MXRangedValue gate = ccm.getParsedGate();
+                MXWrapList<Integer> gateTable = ccm.getParsedGateTable();
+                MXRangedValue value = ccm.getParsedValue();
+                MXWrapList<Integer> valueTable = ccm.getParsedValueTable();
+                MXTemplate template = null;
+                try {
+                    template = new MXTemplate(data);
+                } catch (IllegalFormatException ex) {
+                    ex.printStackTrace();
+                    return;
+                }
+
+                if (isFirst) {
+                    isFirst = false;
+                    _status._outName = name;
+                    _status._outValueRange = value;
+                    _status._outValueTable = valueTable;
+                    _status._outGateRange = gate;
+                    _status._outGateTable = gateTable;
+                    _status.setOutDataText(data);
+                    updateViewByStatus(_status);
+                } else {
+                    MX36Status next = new MX36Status();
+                    next._outName = name;
+                    next._outValueRange = value;
+                    next._outValueTable = valueTable;
+                    next._outGateRange = gate;
+                    next._outGateTable = gateTable;
+                    next.setOutDataText(data);
+                    _process.moveFolder(_status._folder, next);
+                }
             }
-
-            _status._outName = name;
-            _status._outValueRange = value;
-            _status._outValueTable = valueTable;
-            _status._outGateRange = gate;
-            _status._outGateTable = gateTable;
-            _status.setOutDataText(data);
-            updateViewByStatus(_status);
         }
-
     }
+
     public void setEnabledRecurs(boolean ena) {
         ArrayList<Component> list = new ArrayList<>();
         list.add(this);
-        while(list.isEmpty() == false) {
+        while (list.isEmpty() == false) {
             Component c = list.removeLast();
             c.setEnabled(ena);
             if (c instanceof Container) {
-                Container cont = (Container)c;
-                for (int i = 0; i < cont.getComponentCount(); ++ i) {
+                Container cont = (Container) c;
+                for (int i = 0; i < cont.getComponentCount(); ++i) {
                     list.add(cont.getComponent(i));
                 }
             }
         }
-        jButtonNewPrimal.setEnabled(true);
+        jButtonNewInFolder.setEnabled(true);
     }
 
     MXWrapList<Integer> _listPort = MXWrapListFactory.listupPort("-");
@@ -337,6 +358,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                     //最初のダミーだけnull
                     status._folder.refill(status);
                 }
+                status._folder.sortElements();
             } finally {
                 _status = status;
             }
@@ -499,7 +521,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         jButtonValueDec = new javax.swing.JButton();
         jButton1 = new javax.swing.JButton();
         jButtonMoveFolder = new javax.swing.JButton();
-        jButtonNewPrimal = new javax.swing.JButton();
+        jButtonNewInFolder = new javax.swing.JButton();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -975,16 +997,16 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         gridBagConstraints.gridy = 1;
         add(jButtonMoveFolder, gridBagConstraints);
 
-        jButtonNewPrimal.setText("New In Primal");
-        jButtonNewPrimal.addActionListener(new java.awt.event.ActionListener() {
+        jButtonNewInFolder.setText("New In Folder");
+        jButtonNewInFolder.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonNewPrimalActionPerformed(evt);
+                jButtonNewInFolderActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        add(jButtonNewPrimal, gridBagConstraints);
+        add(jButtonNewInFolder, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jSliderValueValueMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {//GEN-FIRST:event_jSliderValueValueMouseWheelMoved
@@ -1062,7 +1084,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                 jSliderValueValue.setValue(value);
                 jTextFieldValueValue.setText(Integer.toString(value));
             }
-            
+
         }.showPopup(jTextFieldValueValue);
     }//GEN-LAST:event_jTextFieldValueValueMousePressed
 
@@ -1089,23 +1111,91 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jButtonValueDecActionPerformed
 
+    
+    MX36Folder _newFolderResult = null;
+    
+    MX36Folder createFolder(JButton button) {
+        _newFolderResult = null;
+        MXPopupForText navi = new MXPopupForText(null) {
+            @Override
+            public void approvedText(String text) {
+                if (_process._folders.getFolder(text) != null) {
+                    JOptionPane.showMessageDialog(jButtonMoveFolder, "Already Exists", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                if (text.startsWith("*")) {
+                    JOptionPane.showMessageDialog(jButtonMoveFolder, "Can' create * starting name", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                MX36Folder newFolder = _process._folders.newFolder(text);
+                _newFolderResult = newFolder;
+                if (_process._view != null) {
+                    _process._view.tabActivated();
+                }
+            }
+        };
+        navi.setDialogTitle("Input Folder Name");
+        navi.showPopup(button);
+        navi.waitForPopupClose();;
+        return _newFolderResult;
+    }
+    
     private void jButtonMoveFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveFolderActionPerformed
-        _process._view.startMoveFolder(jButtonMoveFolder);
+        MXWrapList<MX36Folder> listFolder = new MXWrapList<>();
+        for (MX36Folder folder : _process._folders._listFolder) {
+            listFolder.addNameAndValue(folder._folderName, folder);
+        }
+        listFolder.addNameAndValue("...", null);
+        MXPopupForList<MX36Folder> navi = new MXPopupForList<MX36Folder>(null, listFolder) {
+            @Override
+            public void approvedIndex(int selectedIndex) {
+                MX36Folder ret = listFolder.valueOfIndex(selectedIndex);
+                if (ret == null) {
+                    ret = createFolder(jButtonMoveFolder);
+                    if (ret == null) {
+                        return;
+                    }
+                }
+                _process.moveFolder(ret, _status);
+                _process._view.tabActivated();
+                updateViewByStatus(_status);
+            }
+        };
+
+        navi.showPopup(jButtonMoveFolder);
     }//GEN-LAST:event_jButtonMoveFolderActionPerformed
 
-    private void jButtonNewPrimalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNewPrimalActionPerformed
-        // TODO add your handling code here:
-        _status = new MX36Status();
-        _process.moveFolder(_process._folders._primalFolder, _status);
-        _process._folders._primalFolder._accordion.setColorFull(true);
-        updateViewByStatus(_status);
-    }//GEN-LAST:event_jButtonNewPrimalActionPerformed
+    private void jButtonNewInFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNewInFolderActionPerformed
+        MXWrapList<MX36Folder> listFolder = new MXWrapList<>();
+        for (MX36Folder folder : _process._folders._listFolder) {
+            listFolder.addNameAndValue(folder._folderName, folder);
+        }
+        listFolder.addNameAndValue("...", null);
+        MXPopupForList<MX36Folder> navi = new MXPopupForList<MX36Folder>(null, listFolder) {
+            @Override
+            public void approvedIndex(int selectedIndex) {
+                MX36Folder ret = listFolder.valueOfIndex(selectedIndex);
+                if (ret == null) {
+                    ret = createFolder(jButtonMoveFolder);
+                    if (ret == null) {
+                        return;
+                    }
+                }
+                _status = new MX36Status();
+                ret._accordion.setColorFull(true);
+                _process.moveFolder(ret, _status);
+                _process._view.tabActivated();
+                updateViewByStatus(_status);
+            }
+        };
+        navi.showPopup(jButtonNewInFolder);
+    }//GEN-LAST:event_jButtonNewInFolderActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButtonMoveFolder;
-    private javax.swing.JButton jButtonNewPrimal;
+    private javax.swing.JButton jButtonNewInFolder;
     private javax.swing.JButton jButtonOutTextClear;
     private javax.swing.JButton jButtonValueDec;
     private javax.swing.JButton jButtonValueInc;

@@ -31,6 +31,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
 import jp.synthtarou.midimixer.ccxml.InformationForModule;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
@@ -40,9 +41,7 @@ import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
  *
  * @author Syntarou YOSHIDA
  */
-public class PickerForControlChange extends javax.swing.JPanel implements INavigator<InformationForCCM> {
-
-    boolean _editable = false;
+public class PickerForControlChange extends javax.swing.JPanel implements INavigator<List<InformationForCCM>> {
     ArrayList<CXFile> _listXMLFile = CXXMLManager.getInstance().listLoaded();
     boolean _wideScan;
     CXFile _selectedFile;
@@ -50,20 +49,15 @@ public class PickerForControlChange extends javax.swing.JPanel implements INavig
     TreeCellRenderer _rendererBase;
 
     public PickerForControlChange() {
-        this(false, null);
+        this(null);
     }
 
-    public PickerForControlChange(boolean editable) {
-        this(editable, null);
-    }
-
-    public PickerForControlChange(boolean editable, CXFile file) {
+    public PickerForControlChange(CXFile file) {
         initComponents();
 
         _selectedFile = file;
         _wideScan = (file == null) ? true : false;
 
-        _editable = editable;
         _rendererBase = jTree1.getCellRenderer();
         jTree1.setCellRenderer(new DefaultTreeCellRenderer() {
 
@@ -116,8 +110,18 @@ public class PickerForControlChange extends javax.swing.JPanel implements INavig
 
         jTree1.setModel(createTreeModel());
         jTree1.setRootVisible(false);
-
         setPreferredSize(new Dimension(600, 500));
+        setAllowMultiSelect(false);
+    }
+    
+    public void setAllowMultiSelect(boolean multi) {
+        if (multi) {
+            jTree1.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
+        }
+        else {
+            jTree1.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        }
+              
     }
 
     public TreeModel createTreeModel() {
@@ -215,16 +219,6 @@ public class PickerForControlChange extends javax.swing.JPanel implements INavig
 
         setLayout(new java.awt.GridBagLayout());
 
-        jTree1.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
-            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
-                jTree1ValueChanged(evt);
-            }
-        });
-        jTree1.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                jTree1PropertyChange(evt);
-            }
-        });
         jScrollPane1.setViewportView(jTree1);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -276,21 +270,27 @@ public class PickerForControlChange extends javax.swing.JPanel implements INavig
         add(jLabelName, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jTree1PropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_jTree1PropertyChange
-    }//GEN-LAST:event_jTree1PropertyChange
+    int _returnStatus = INavigator.RETURN_STATUS_NOTSET;
+    List<InformationForCCM> _returnValue;
 
-    private void jTree1ValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_jTree1ValueChanged
-        TreePath path = jTree1.getSelectionPath();
-        if (path == null || path.getPathCount() <= 2) {
+    private void jButtonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOKActionPerformed
+        TreePath[] pathList = jTree1.getSelectionPaths();
+        if (pathList == null || pathList.length == 0) {
             return;
         }
-        DefaultMutableTreeNode lastNode = (DefaultMutableTreeNode) path.getLastPathComponent();
-        DefaultMutableTreeNode firstNode = (DefaultMutableTreeNode) path.getPathComponent(1);
+        ArrayList<InformationForCCM> result = new ArrayList<>();
 
-        if (lastNode == null) {
-            return;
-        }
-        if (lastNode.isLeaf()) {
+        _returnValue = null;
+        for (TreePath path : pathList) {
+            DefaultMutableTreeNode lastNode = (DefaultMutableTreeNode) path.getLastPathComponent();
+            DefaultMutableTreeNode firstNode = (DefaultMutableTreeNode) path.getPathComponent(1);
+
+            if (lastNode == null) {
+                continue;
+            }
+            if (lastNode.isLeaf() == false) {
+                continue;
+            }
             Object last = lastNode.getUserObject();
             Object first = firstNode.getUserObject();
 
@@ -318,16 +318,11 @@ public class PickerForControlChange extends javax.swing.JPanel implements INavig
                         jTextFieldData.setText(textData);
                     }
 
-                    _returnValue = new InformationForCCM(findParentModule(cc), cc);
+                    result.add(new InformationForCCM(findParentModule(cc), cc));
                 }
             }
         }
-    }//GEN-LAST:event_jTree1ValueChanged
-
-    int _returnStatus = INavigator.RETURN_STATUS_NOTSET;
-    InformationForCCM _returnValue;
-
-    private void jButtonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOKActionPerformed
+        _returnValue = result;
         _returnStatus = INavigator.RETURN_STATUS_APPROVED;
         MXUtil.getOwnerWindow(this).setVisible(false);
     }//GEN-LAST:event_jButtonOKActionPerformed
@@ -354,7 +349,7 @@ public class PickerForControlChange extends javax.swing.JPanel implements INavig
     }
 
     @Override
-    public InformationForCCM getReturnValue() {
+    public List<InformationForCCM> getReturnValue() {
         return _returnValue;
     }
 
@@ -369,7 +364,7 @@ public class PickerForControlChange extends javax.swing.JPanel implements INavig
     }
 
     @Override
-    public boolean validateWithNavigator(InformationForCCM result) {
+    public boolean validateWithNavigator(List<InformationForCCM> result) {
         return true;
     }
 }

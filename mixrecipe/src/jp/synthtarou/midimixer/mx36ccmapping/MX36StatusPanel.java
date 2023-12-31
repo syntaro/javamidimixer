@@ -16,12 +16,13 @@
  */
 package jp.synthtarou.midimixer.mx36ccmapping;
 
-import javax.swing.JComponent;
+import java.util.Comparator;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.accordion.MXAccordion;
 import jp.synthtarou.midimixer.libs.accordion.MXAccordionElement;
+import jp.synthtarou.midimixer.mx30surface.MGStatus;
 
 /**
  *
@@ -31,6 +32,30 @@ public class MX36StatusPanel extends javax.swing.JPanel implements MXAccordionEl
     MXAccordion _accordion;
     MX36Status _status;
     MX36Process _process;
+    
+    public static Comparator<MXAccordionElement> _sortOrder =  new Comparator<MXAccordionElement>() {
+        @Override
+        public int compare(MXAccordionElement o1, MXAccordionElement o2) {
+            MX36StatusPanel p1 = (MX36StatusPanel)o1;
+            MX36StatusPanel p2 = (MX36StatusPanel)o2;
+            
+            MX36Status s1 = p1._status;
+            MX36Status s2 = p2._status;
+            
+            int x = s1._surfacePort - s2._surfacePort;
+            if (x == 0) {
+                x = s1._surfaceUIType - s2._surfaceUIType;
+            }
+            if (x == 0) {
+                x = s1._surfaceRow - s2._surfaceRow;
+            }
+            if (x == 0) {
+                x = s1._surfaceColumn - s2._surfaceColumn;
+            }
+            
+            return x;
+        }
+    };
 
     /**
      * Creates new form Example1
@@ -39,7 +64,7 @@ public class MX36StatusPanel extends javax.swing.JPanel implements MXAccordionEl
         initComponents();
         _process = process;
         _status = status;
-        status._view = this;
+        status._panel = this;
         _accordion = accordion;
         repaintAccordion();
     }

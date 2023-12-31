@@ -25,6 +25,8 @@ import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JTextField;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
@@ -77,6 +79,7 @@ public abstract class MXPopupForList<T> extends MXPopup {
                     approvedIndex(_selectedIndex);
                 }
             }
+            popupHiddenAndGoNext();
         } else {
             _menu = new JPopupMenu();
             for (int i = 0; i < list.size(); ++i) {
@@ -89,6 +92,21 @@ public abstract class MXPopupForList<T> extends MXPopup {
             }
 
             _menu.show(mouseBasea, 0, mouseBasea.getHeight());
+            _menu.addPopupMenuListener(new PopupMenuListener() {
+                @Override
+                public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                }
+
+                @Override
+                public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+                    popupHiddenAndGoNext();
+                }
+
+                @Override
+                public void popupMenuCanceled(PopupMenuEvent e) {
+                    popupHiddenAndGoNext();
+                }
+            });
         }
     }
     

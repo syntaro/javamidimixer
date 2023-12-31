@@ -71,26 +71,27 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                 if (status._uiType == MGStatus.TYPE_DRUMPAD) {
                     continue;
                 }
-                List<MX36Status> indexed = indexedSearch(status);
+                List<MX36StatusPanel> indexed = indexedSearch(status);
                 if (indexed == null) {
                     MX36Folder folder2 = _folders._nosaveFolder;
                     MX36Status added = MX36Status.fromMGStatus(folder2, status);
-                    folder2.insertSorted(added);
+                    folder2.addCCItem(added);
                     folder2.refill(added);
-                    _index.safeAdd(added);
+                    _index.safeAdd(added._panel);
                     //メッセージがアサインされてないので不要
                     //updateSurfaceValue(status2, status.getValue());
                 } else {
-                    for (MX36Status seek : indexed) {
-                        MX36Folder folder2 = seek._folder;
+                    for (MX36StatusPanel seek : indexed) {
+                        MX36Status status2 = seek._status;
+                        MX36Folder folder2 = status2._folder;
                         if (folder2 == _folders._trashedFolder) {
                             continue;
                         }
                         if (folder2.isSelected()) {
-                            MXMessage msg = updateSurfaceValue(seek, status.getValue());
+                            MXMessage msg = updateSurfaceValue(status2, status.getValue());
                             if (msg != null) {
                                 sendToNext(msg);
-                                folder2.refill(seek);
+                                folder2.refill(status2);
                             }
                             done = true;
                         }
@@ -174,7 +175,6 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
             folder.setSelected(folderNode.getSettingAsBoolean("Selected", true));
 
             MXSettingNode statusNode = folderNode.findNode("Status");
-            System.out.println("statusNode = " + statusNode);
 
             if (statusNode != null) {
                 List<MXSettingNode> numbers = statusNode.findNumbers();
@@ -251,8 +251,9 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                     status._bindRSCTPT2 = props.getSettingAsInt("BindRSCTPT2", 0);
                     status._bindRSCTPT3 = props.getSettingAsInt("BindRSCTPT3", 0);
 
-                    folder.insertSorted(status);
+                    folder.addCCItem(status);
                 }
+                folder.sortElements();
             }
         }
     }
@@ -273,13 +274,11 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                 continue;
             }
 
-            int statusN = 0;
-            System.out.println("Writing Folder = " + folder + " = " + folder._folderName);
-            for (MX36Status status : folder._list) {
-                System.out.println("Status = " + status + " = " + status._outName);
+            for (int statusN = 0; statusN < folder._accordion.getElementCount(); ++ statusN) {
+                MX36StatusPanel  panel  = (MX36StatusPanel) folder._accordion.getElementAt(statusN);
+                MX36Status status = panel._status;
                 String prefix2 = prefix + "Status[" + statusN + "].";
-                statusN++;
-
+                
                 setting.setSetting(prefix2 + "Name", status._outName);
                 setting.setSetting(prefix2 + "Memo", status._outMemo);
                 setting.setSetting(prefix2 + "DataText", status.getOutDataText());
@@ -369,9 +368,9 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
 
     public void moveFolder(MX36Folder folder, MX36Status status) {
         if (status._folder != null) {
-            status._folder.remove(status._view);
+            status._folder.remove(status._panel);
         }
-        folder.insertSorted(status);
+        folder.addCCItem(status);
     }
 
     public boolean isSameRangeAndTable(MXRangedValue range, MXWrapList<Integer> table) {
@@ -394,12 +393,13 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
 
     MX36Index _index = null;
 
-    public ArrayList<MX36Status> indexedSearch(MGStatus status) {
+    public ArrayList<MX36StatusPanel> indexedSearch(MGStatus status) {
         if (_index == null) {
             _index = new MX36Index();
             for (MX36Folder folder : _folders._listFolder) {
-                for (MX36Status seek : folder._list) {
-                    _index.safeAdd(seek);
+                for (int i = 0; i < folder._accordion.getElementCount(); ++ i) {
+                    MX36StatusPanel panel = (MX36StatusPanel)folder._accordion.getElementAt(i);
+                    _index.safeAdd(panel);
                 }
             }
         }
@@ -407,7 +407,7 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
     }
     
     public boolean haveTrashedItem() {
-        if (_folders._trashedFolder._list.isEmpty() == false) {
+        if (_folders._trashedFolder._accordion.getElementCount() != 0) {
             return true;
         }
         return false;
@@ -419,7 +419,7 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
 
     public boolean haveEmptyFolder() {
         for (MX36Folder seek : _folders._listFolder) {
-            if (seek._list.isEmpty() && seek._folderName.startsWith("*") == false) {
+            if (seek._accordion.getElementCount() == 0 && seek._folderName.startsWith("*") == false) {
                 return true;
             }
         }
@@ -429,7 +429,7 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
     public void cleanupEmptyFolder() {
         List<MX36Folder> listEmpty = new ArrayList<>();
         for (MX36Folder seek : _folders._listFolder) {
-            if (seek._list.isEmpty()&& seek._folderName.startsWith("*") == false) {
+            if (seek._accordion.getElementCount() == 0 && seek._folderName.startsWith("*") == false) {
                 listEmpty.add(seek);
             }
         }

@@ -35,15 +35,15 @@ public class MX36StatusListPanel extends javax.swing.JPanel {
         MX36FolderList list = new MX36FolderList(process);
         
         MX36Folder folder = list.getPrimalFolder();
-        folder.insertSorted(new MX36Status());
-        folder.insertSorted(new MX36Status());
-        folder.insertSorted(new MX36Status());
-        folder.insertSorted(new MX36Status());
+        folder.addCCItem(new MX36Status());
+        folder.addCCItem(new MX36Status());
+        folder.addCCItem(new MX36Status());
+        folder.addCCItem(new MX36Status());
         folder = list.getFolderForNosave();
-        folder.insertSorted(new MX36Status());
-        folder.insertSorted(new MX36Status());
-        folder.insertSorted(new MX36Status());
-        folder.insertSorted(new MX36Status());
+        folder.addCCItem(new MX36Status());
+        folder.addCCItem(new MX36Status());
+        folder.addCCItem(new MX36Status());
+        folder.addCCItem(new MX36Status());
 
         list.selectFirstAtm();
 

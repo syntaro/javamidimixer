@@ -126,9 +126,9 @@ public class MXAccordionFocus {
             accordion.setBorder(BorderFactory.createEtchedBorder());
         }
 
-        int childCount = accordion.elementCount();
+        int childCount = accordion.getElementCount();
         for (int i = 0; i < childCount; ++ i) {
-            MXAccordionElement child = accordion.elementAt(i);
+            MXAccordionElement child = accordion.getElementAt(i);
             JPanel childPanel = child.getAccordionView();
 
             LinkedList<JComponent> list = new LinkedList<>();
@@ -161,9 +161,9 @@ public class MXAccordionFocus {
             }
         }
         
-        int childCount = accordion.elementCount();
+        int childCount = accordion.getElementCount();
         for (int i = 0; i < childCount; ++ i) {
-            MXAccordionElement child = accordion.elementAt(i);
+            MXAccordionElement child = accordion.getElementAt(i);
             JPanel childPanel = child.getAccordionView();
 
             LinkedList<JComponent> list = new LinkedList<>();

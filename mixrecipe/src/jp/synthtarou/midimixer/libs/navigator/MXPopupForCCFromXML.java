@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.navigator;
 
+import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
@@ -36,12 +37,16 @@ public abstract class MXPopupForCCFromXML extends  MXPopup {
 
     @Override
     public void showPopup(JComponent mouseBase) {
-        _picker = new PickerForControlChange(false);
+        _picker = new PickerForControlChange();
+        _picker.setAllowMultiSelect(false);
         MXUtil.showAsDialog(mouseBase, _picker, _dialogTitle);
         if (_picker.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-            InformationForCCM parser = _picker.getReturnValue();
-            approvedCC(parser);
+            List<InformationForCCM> parser = _picker.getReturnValue();
+            if (parser.isEmpty() == false) {
+                approvedCC(parser.getFirst());
+            }
         }
+        popupHiddenAndGoNext();
     }
     
     public abstract void approvedCC(InformationForCCM parser);

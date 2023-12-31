@@ -52,7 +52,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
         StringBuffer text = new StringBuffer();
         text.append("It is beta release, please send me issue,\n");
         text.append("Im waiting for public relesae timing.\n\n");
-        text.append("V0.58.9 Fixed Virtual Key PitchCenter\n");
+        text.append("V0.59.0 Easy Opratable CCMapping (ListAdd etc)\n");
         text.append("V0.58.8 Virtual Key\n");
         text.append("V0.58.7 CCEditor for XML -> rebuild cache\n");
         text.append("V0.58.6 CCMapping now support Sysex From XML\n");
