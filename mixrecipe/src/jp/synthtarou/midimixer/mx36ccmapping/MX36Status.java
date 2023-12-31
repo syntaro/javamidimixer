@@ -129,13 +129,14 @@ public class MX36Status {
         return _outDataText;
     }
 
-    public void setOutDataText(String text) {
+    public boolean setOutDataText(String text) {
         _outDataText = text;
         _outCachedMessage = null;
-    }
-    
-    public MXMessage getOutDataMessage() {
-        return null;
+        if (createOutMessage() == null) {
+            _outDataText = null;
+            return false;
+        }
+        return true;
     }
     
     public MX36Status() {
@@ -249,10 +250,12 @@ public class MX36Status {
                 e.printStackTrace();;
             }
             if (_outCachedMessage == null) {
+                _outDataText = null;
                 return null;
             }
         }
         if (_outCachedMessage.getStatus() == 0) {
+            _outDataText = null;
             return null;
         }
         int port = _surfacePort;
