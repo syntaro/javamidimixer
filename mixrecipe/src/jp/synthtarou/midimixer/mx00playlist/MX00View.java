@@ -39,8 +39,6 @@ import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInForPlayer;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFCallback;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFParser;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
 import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
@@ -481,7 +479,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         jPanelPianoRollKeys.setMinimumSize(new Dimension(100, 150));
         autoResizePiano();
     }
-
+    
     MXPianoRoll _pianoRollRoll;
     MXPianoKeys _pianoRollKeys;
             
@@ -520,7 +518,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
             if (_pianoRollKeys != null && _pianoRollRoll != null) {
                 _pianoRollRoll.resetTiming(4000, 50);
                 int width = _pianoRollRoll.getWidth();
-                _pianoRollKeys.setPreferredSize(new Dimension(width, 111));
+                _pianoRollKeys.setPreferredSize(new Dimension(width, 100));
             }
             revalidate();
         } catch (Exception e) {

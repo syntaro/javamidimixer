@@ -21,6 +21,8 @@ import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Rectangle;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -30,8 +32,11 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.smf.MXPianoKeys.KeyRect;
+import jp.synthtarou.midimixer.libs.navigator.MXPopupForList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 
 /**
  *
@@ -55,7 +60,7 @@ public class MXPianoRoll extends JComponent {
             return false;
         }
     }
-
+    
     ArrayList<NoteRect> _whiteKeysList = new ArrayList<NoteRect>();
     ArrayList<NoteRect> _blackKeysList = new ArrayList<NoteRect>();
 
@@ -77,6 +82,24 @@ public class MXPianoRoll extends JComponent {
         _sequencer._pianoRoll = this;
         _sequenceNoteOn = new boolean[256];
         _sequenceSustain = new boolean[256];
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                MXWrapList<Integer> list = new MXWrapList();
+                list.addNameAndValue("All", -1);
+                for (int i = 0; i < 16; ++ i) {
+                    list.addNameAndValue("CH." + (i+1), i);
+                }
+                MXPopupForList popu = new MXPopupForList(null, list) {
+                    @Override
+                    public void approvedIndex(int selectedIndex) {
+                        setFocusChannel(list.valueOfIndex(selectedIndex));
+                    }
+                };
+                popu.setSelectedIndex(list.indexOfValue(_focusChannel));
+                popu.showPopup(MXPianoRoll.this);
+            }
+        });
     }
 
     @Override
@@ -117,7 +140,7 @@ public class MXPianoRoll extends JComponent {
         }
     }
 
-    public void invalidate() {
+    public synchronized void invalidate() {
         _bufferedImage = null;
         super.invalidate();
     }
@@ -257,6 +280,10 @@ public class MXPianoRoll extends JComponent {
             if (channel == 9) {
                 continue;
             }
+            
+            if (channel != _focusChannel && _focusChannel >= 0) {
+                continue;
+            }
 
             switch (command) {
                 case MXMidi.COMMAND_CH_NOTEON:
@@ -316,14 +343,10 @@ public class MXPianoRoll extends JComponent {
             int[] playing = listNoteOn(pos - _soundMargin);
             int keysRoot = _keyboardRoot;
             int keysCount = _keyboardOctave * 12;
+            int onlyDrum = 1 << 9;
             for (int i = keysRoot; i < keysRoot + keysCount; ++i) {
                 boolean selected = false;
-                if (playing[i] > 0) {
-                    Color col = bitColor(playing[i]);
-                    if (col == null) {
-                        continue;
-                    }
-                    _bufferedImageGraphics.setColor(col);
+                if (playing[i] > 0 && playing[i] != onlyDrum) {
                     selected = true;
                     double from = 1.0 * (i - keysRoot) * width / keysCount;
                     double to = 1.0 * (i - keysRoot + 1) * width / keysCount;
@@ -339,47 +362,80 @@ public class MXPianoRoll extends JComponent {
                         to = center +  blackWidth / 2 + (blackWidth / 4) + 1;
                     }
                     to -= div;
+                    Color col = bitColor(playing[i]);
+                    if (col == null) {
+                        continue;
+                    }
+                    _bufferedImageGraphics.setColor(col);
                     _bufferedImageGraphics.drawLine((int) from, y, (int) to, y);
                 }
             }
         }
     }
 
-    Color[] colors = {
-        Color.green, Color.cyan, Color.red, Color.yellow, Color.pink, Color.white, Color.gray
-    };
-    Color[] hibridSource = new Color[16];
+    public void setFocusChannel(int ch) {
+        _focusChannel = ch;
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                synchronized (this) {
+                    _keys.allNoteOff();
+                    _bufferedImage = null;
+                    repaint();
+                }
+            }
+        });
+    }
 
+    Color[] colors = null;
+    Color[] hibridSource = new Color[16];
+   
+    int _focusChannel = 0;
+    
     public Color bitColor(int channel) {
-        int count = 0;
-        for (int b = 0; b < 16; ++b) {
-            hibridSource[b] = null;
-            if (b == 9) {
-                continue;
+        if (_focusChannel >= 0) {
+            int mask = 1 << _focusChannel;
+            if ((channel & mask) == mask) {
+                return Color.orange;
             }
-            int bit = 1 << b;
-            if ((channel & bit) == bit) {
-                Color c = colors[b % colors.length];
-                hibridSource[b] = c;
-                count++;
+            int count = 0;
+            for (int b = 0; b < 16; ++b) {
+                int bit = 1 << b;
+                if ((channel & bit) == bit) {
+                    if (b == 9) {
+                        continue;
+                    }
+                    count ++;
+                }
             }
-        }
-        if (count == 0) {// durm only
-            return null;
-        }
-        int red = 0, green = 0, blue = 0;
-        for (int i = 0; i < 16; ++i) {
-            Color c = hibridSource[i];
-            if (c != null) {
-                red += c.getRed();
-                green += c.getGreen();
-                blue += c.getBlue();
+            if (count > 4) {
+                count = 4;
             }
+            return MXUtil.mixtureColor(new Color(50, 50, 50), 4 - count, Color.white, 4 + count);
         }
-        red /= count * 2;
-        green /= count * 2;
-        blue /= count * 2;
-        return new Color(red + 64, green + 64, blue + 64);
+        else {
+            int count = 0;
+            for (int b = 0; b < 16; ++b) {
+                hibridSource[b] = null;
+                if (b == 9) {
+                    continue;
+                }
+                int bit = 1 << b;
+                if ((channel & bit) == bit) {
+                    if (colors == null) {
+                        colors = new Color[] {
+                            Color.pink, Color.cyan, Color.orange, Color.blue, Color.green, Color.yellow, Color.red, Color.white
+                        };
+                    }
+                    Color c = colors[b % colors.length];
+                    hibridSource[b] = c;
+                    count++;
+                }
+            }
+            if (count == 0) {// durm only
+                return null;
+            }
+            return MXUtil.mixedColorXYZ(hibridSource);
+        }
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
@@ -449,4 +505,6 @@ public class MXPianoRoll extends JComponent {
         _keyboardOctave = octave;
         _keys.setAllowSelect(true, true);
     }
+    
+
 }

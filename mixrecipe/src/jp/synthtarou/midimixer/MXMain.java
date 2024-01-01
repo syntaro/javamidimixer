@@ -42,7 +42,6 @@ import jp.synthtarou.midimixer.mx40layer.MX40Process;
 import jp.synthtarou.midimixer.mx60output.MX60Process;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.vst.VSTInstance;
 import jp.synthtarou.midimixer.mx36ccmapping.MX36Process;
 import jp.synthtarou.midimixer.mx12masterpiano.MX12Process;

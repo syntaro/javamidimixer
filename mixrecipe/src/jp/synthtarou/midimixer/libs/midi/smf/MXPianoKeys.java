@@ -640,3 +640,4 @@ public class MXPianoKeys extends JComponent {
         return 20;
     }
 }
+

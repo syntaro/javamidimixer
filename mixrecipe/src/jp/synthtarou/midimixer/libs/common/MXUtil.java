@@ -24,6 +24,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.Window;
+import java.awt.color.ColorSpace;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -45,9 +46,6 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.mx30surface.MGCircle;
-import jp.synthtarou.midimixer.mx30surface.MGDrumPad;
-import jp.synthtarou.midimixer.mx30surface.MGSlider;
 
 /**
  *
@@ -592,4 +590,53 @@ public class MXUtil {
         return "" + sec;
      }
     
+    static ColorSpace _colorSpaceXYZ = ColorSpace.getInstance(ColorSpace.CS_CIEXYZ);
+
+    public static Color mixedColorXYZ(Color[] list) {
+        float[] mixed = null;
+        int count = 0;
+        for (Color seek : list) {
+            if (seek == null) {
+                continue;
+            }
+            float red = (float)(seek.getRed() * 1.0 / 0xff);
+            float green = (float)(seek.getGreen() * 1.0 / 0xff);
+            float blue = (float)(seek.getBlue() * 1.0 / 0xff);
+            float[] rgb = new float[] { red, green, blue };
+            float[] conv = _colorSpaceXYZ.fromRGB(rgb);
+            if (mixed == null) {
+                mixed = new float[conv.length];
+                for (int i = 0; i < conv.length; ++ i) {
+                    mixed[i] = conv[i];
+                }
+            }
+            else if (mixed.length < conv.length) {
+                float[] newMixed = new float[conv.length];
+                for (int i = 0; i < conv.length; ++ i) {
+                    if (i < mixed.length) {
+                        newMixed[i] = mixed[i];
+                    }else {
+                        break;
+                    }
+                }
+                mixed = newMixed;
+            }
+            for (int i = 0; i < conv.length; ++ i) {
+                mixed[i] += conv[i];
+            }
+            count ++;
+        }
+        if (mixed != null) {
+            for (int i = 0; i < mixed.length; ++ i) {
+                mixed[i] = mixed[i] / count;
+            }
+            float[] result = _colorSpaceXYZ.toRGB(mixed);
+            
+            int red = (int)(result[0] * 0xff);
+            int green  = (int)(result[1] * 0xff);
+            int blue  = (int)(result[2] * 0xff);
+            return new Color(red, green, blue);
+        }
+        return null;
+    }
 }

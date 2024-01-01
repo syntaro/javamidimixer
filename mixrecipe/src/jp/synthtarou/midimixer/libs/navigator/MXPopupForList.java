@@ -45,7 +45,7 @@ public abstract class MXPopupForList<T> extends MXPopup {
         install();
     }
 
-    public void showPopup(JComponent mouseBasea) {
+    public void showPopup(JComponent mouseBase) {
         MXWrapList<T> list = getList();
 
         if (_target != null) {
@@ -91,7 +91,16 @@ public abstract class MXPopupForList<T> extends MXPopup {
                 _menu.add(item);
             }
 
-            _menu.show(mouseBasea, 0, mouseBasea.getHeight());
+            int width = mouseBase.getWidth();
+            int height = mouseBase.getHeight();
+            if (height >= 70) {
+                height = height /2 - 10;
+                width = width / 2 - 30;
+            }
+            else {
+                width = 0;
+            }
+            _menu.show(mouseBase, width, height);
             _menu.addPopupMenuListener(new PopupMenuListener() {
                 @Override
                 public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
