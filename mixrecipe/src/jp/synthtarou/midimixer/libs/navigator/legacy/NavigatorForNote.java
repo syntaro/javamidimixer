@@ -24,7 +24,7 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
-import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
+import jp.synthtarou.midimixer.libs.midi.smf.MXPianoKeys;
 
 /**
  *
@@ -38,7 +38,7 @@ public class NavigatorForNote extends javax.swing.JPanel implements  INavigator<
         System.exit(0);
     }
 
-    MXSwingPiano _piano;
+    MXPianoKeys _piano;
     MXWrapList<Integer> _watchPort = MXWrapListFactory.listupPort("Omni");
     MXWrapList<Integer> _watchChannel = MXWrapListFactory.listupChannel(null);
     private boolean _closeOK = false;
@@ -57,7 +57,7 @@ public class NavigatorForNote extends javax.swing.JPanel implements  INavigator<
     public NavigatorForNote() {
         initComponents();
 
-        _piano = new MXSwingPiano();
+        _piano = new MXPianoKeys();
 
         _piano.setNoteRange(0, 11);
         _piano.setMinimumSize(new Dimension(9 * 200, 1));
@@ -67,7 +67,7 @@ public class NavigatorForNote extends javax.swing.JPanel implements  INavigator<
         jScrollPane1.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         jScrollPane1.setViewportView(_piano);
 
-        _piano.setHandler(new MXSwingPiano.Handler() {
+        _piano.setHandler(new MXPianoKeys.MXMouseHandler() {
             @Override
             public void noteOn(int note) {
             }

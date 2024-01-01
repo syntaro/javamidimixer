@@ -40,7 +40,7 @@ import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
-import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
+import jp.synthtarou.midimixer.libs.midi.smf.MXPianoKeys;
 
 /**
  *
@@ -81,7 +81,7 @@ public class PickerForinstrument extends javax.swing.JPanel {
         }
         updateXMLFileView();
 
-        _piano = new MXSwingPiano();
+        _piano = new MXPianoKeys();
         jPanelPiano.add(_piano);
         _piano.setHandler(new MyHandler());
         jTextFieldSearch.getDocument().addDocumentListener(new DocumentListener() {
@@ -142,7 +142,7 @@ public class PickerForinstrument extends javax.swing.JPanel {
     MXWrapList<CXNode> _modelListProgram;
     MXWrapList<CXNode> _modelListBank;
 
-    MXSwingPiano _piano;
+    MXPianoKeys _piano;
 
     MXWrapList<MXReceiver> _listReceiver;
 
@@ -164,7 +164,7 @@ public class PickerForinstrument extends javax.swing.JPanel {
     /* 0-FF */
     String _scanText = "";
 
-    class MyHandler implements MXSwingPiano.Handler {
+    class MyHandler implements MXPianoKeys.MXMouseHandler {
 
         @Override
         public void noteOn(int note) {

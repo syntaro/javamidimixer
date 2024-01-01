@@ -45,7 +45,7 @@ import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
-import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
+import jp.synthtarou.midimixer.libs.swing.MXFileChooser;
 import jp.synthtarou.midimixer.libs.swing.focus.MXFocusHandler;
 import jp.synthtarou.midimixer.libs.swing.focus.MXFocusTargetInfo;
 
@@ -337,7 +337,7 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
     }
 
     public void doImportMixer() {
-        MXSwingFileChooser chooser = new MXSwingFileChooser();
+        MXFileChooser chooser = new MXFileChooser();
         chooser.addExtension(".xml", "XML File");
         chooser.setAcceptAllFileFilterUsed(false);
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {

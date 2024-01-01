@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.ShortMessage;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -36,7 +37,8 @@ public class SMFSequencer {
     private long _startMilliSeconds;
     private File _lastFile;
     boolean _paraPlay = false;
-    private SMFParser _parser;
+    public SMFParser _parser;
+    public MXPianoRoll _pianoRoll;
     public boolean _updateFlag = false;
 
     public SMFSequencer() {
@@ -189,6 +191,8 @@ public class SMFSequencer {
 
         return didProgramChange;
     }
+    
+    public int _progressSpan = 500;
 
     protected void playWithMilliSeconds() throws InvalidMidiDataException {
         _stopPlayer = false;
@@ -230,13 +234,17 @@ public class SMFSequencer {
         long launched = System.currentTimeMillis() - _startMilliSeconds;
         long lastSent = 0;
         
+        if (_pianoRoll != null) {
+            _pianoRoll.resetTiming(_pianoRoll.getSoundSpan(), _pianoRoll.getSoundMargin());
+        }
         while (!_stopPlayer && pos < list.size()) {
             long elapsed = (System.currentTimeMillis() - launched);
             
-            if (lastSent + 500 < elapsed) {
+            if (lastSent + _progressSpan < elapsed) {
                 _callback.smfProgress(list.get(pos)._millisecond, getMaxMilliSecond());
                 lastSent = elapsed;
             }
+            _pianoRoll.setTiming(elapsed);
             
             while (!_stopPlayer && list.get(pos)._millisecond <= elapsed) {
                 SMFMessage currentEvent = list.get(pos++);
@@ -252,20 +260,6 @@ public class SMFSequencer {
                     int data2 = currentEvent.getData2();
                     int command = status & 0xf0;
                     int channel = status & 0x0f;
-
-                    /*
-                    if (_firstNote != null) {
-                        if (_firstNote[channel] != null) {
-                            if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE
-                                    || (command == MXMidi.COMMAND_CH_CONTROLCHANGE && (data1 == 0 || data1 == 32))) {
-                                continue;
-                            } else if (command == MXMidi.COMMAND_CH_NOTEON) {
-                                if (_firstNote[channel] == currentEvent) {
-                                    _firstNote[channel] = null;
-                                }
-                            }
-                        }
-                    }*/
 
                     smfPlayNote(null, currentEvent);
                     if (pos >= list.size()) {

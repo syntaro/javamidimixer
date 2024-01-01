@@ -311,9 +311,9 @@ public class SMFMessage implements Comparable<SMFMessage> {
         return _binary;
     }
 
-    public int toDwordMessage() throws SMFException {
+    public int toDwordMessage() {
         if (isBinaryMessage()) {
-            throw new SMFException("Its binary");
+            return 0;
         }
         int st = getStatus() & 0xff;
         int dt1 = getData1() & 0xff;

@@ -31,8 +31,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.themes.ThemeManagerDialog;
+import jp.synthtarou.midimixer.mx00playlist.MX00View;
 import jp.synthtarou.midimixer.mx10input.MX10View;
-import jp.synthtarou.midimixer.mx12masterpiano.MX12MasterkeysPanel;
 import jp.synthtarou.midimixer.mx12masterpiano.MX12Process;
 import jp.synthtarou.midimixer.mx36ccmapping.MX36View;
 import jp.synthtarou.midimixer.mx60output.MX60View;
@@ -306,6 +306,10 @@ public class MXMainWindow extends javax.swing.JFrame {
                 if (view instanceof MX60View) {
                     MX60View v60 = (MX60View) view;
                     v60.tabActivated();
+                }
+                if (view instanceof MX00View) {
+                    MX00View v00 = (MX00View) view;
+                    v00.tabActivated();
                 }
                 if (view instanceof MX10View) {
                     MX10View v10 = (MX10View) view;

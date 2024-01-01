@@ -38,7 +38,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.ccxml.ui.PickerForinstrument;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
-import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
+import jp.synthtarou.midimixer.libs.swing.MXFileChooser;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 
@@ -1423,7 +1423,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
     }//GEN-LAST:event_jButtonSendPortMousePressed
 
     public void doImportLayer() {
-        MXSwingFileChooser chooser = new MXSwingFileChooser();
+        MXFileChooser chooser = new MXFileChooser();
         chooser.addExtension(".xml", "XML File");
         chooser.setAcceptAllFileFilterUsed(false);
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {

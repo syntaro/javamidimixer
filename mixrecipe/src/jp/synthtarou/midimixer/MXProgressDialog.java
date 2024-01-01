@@ -18,12 +18,11 @@ package jp.synthtarou.midimixer;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Rectangle;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
+import jp.synthtarou.midimixer.libs.midi.smf.MXPianoKeys;
 
 /**
  *
@@ -31,7 +30,7 @@ import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
  */
 public class MXProgressDialog extends javax.swing.JDialog {
 
-    MXSwingPiano _piano;
+    MXPianoKeys _piano;
 
     public void setMessageAsStartUP() {
         StringBuffer text = new StringBuffer();
@@ -52,6 +51,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
         StringBuffer text = new StringBuffer();
         text.append("It is beta release, please send me issue,\n");
         text.append("Im waiting for public relesae timing.\n\n");
+        text.append("V0.59.3 Auto Scroll PianoRoll\n");
         text.append("V0.59.0 Easy Opratable CCMapping (ListAdd etc)\n");
         text.append("V0.58.8 Virtual Key\n");
         text.append("V0.58.7 CCEditor for XML -> rebuild cache\n");
@@ -124,7 +124,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
         jLabelVersion.setText(MXAppConfig.MX_APPNAME);
         getContentPane().setBackground(Color.white);
 
-        _piano = new MXSwingPiano();
+        _piano = new MXPianoKeys();
         _piano.setNoteRange(0, 3);
         _piano.setLastSelectedColor(MXUtil.mixtureColor(Color.white, 30, Color.green, 50, Color.yellow, 20));
         _piano.setPreferredSize(new Dimension(480, 120));

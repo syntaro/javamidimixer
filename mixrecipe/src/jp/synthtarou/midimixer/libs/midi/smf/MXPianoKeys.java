@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.swing;
+package jp.synthtarou.midimixer.libs.midi.smf;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -40,44 +40,51 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
  *
  * @author Syntarou YOSHIDA
  */
-public class MXSwingPiano extends JComponent {
+public class MXPianoKeys extends JComponent {
 
-    /**
-     * @return the allowMultiSelect
-     */
+    public static class KeyRect {
+        Rectangle _rect = new Rectangle();
+        final int _note;
+        
+        public KeyRect(int note) {
+            this._note = note;
+        }
+        
+        public boolean isValid() {
+            if (_note >= 0 && _note < 128) {
+                return true;
+            }
+            return false;
+        }
+    }
+
     public boolean isAllowMultiSelect() {
         return _allowSelect && _allowMulti;
     }
 
-    /**
-     * @return the allowMultiSelect
-     */
     public boolean isAllowSelect() {
         return _allowSelect;
     }
 
-    /**
-     * @param allowMultiSelect the allowMultiSelect to set
-     */
     public void setAllowSelect(boolean allow, boolean multi) {
         this._allowSelect = allow;
         this._allowMulti = multi;
     }
 
-    public static interface Handler {
+    public static interface MXMouseHandler {
         public void noteOn(int note);
         public void noteOff(int note);
         public void selectionChanged();
     }
     
-    Handler _handler;
+    MXMouseHandler _handler;
     
-    public void setHandler(Handler handler) {
+    public void setHandler(MXMouseHandler handler) {
         _handler = handler;
     }
     
-    ArrayList<KeyRect> _whiteKeysList = new ArrayList<KeyRect>();
-    ArrayList<KeyRect> _blackKeysList = new ArrayList<KeyRect>();
+    ArrayList<KeyRect> _whiteKeysList;
+    ArrayList<KeyRect> _blackKeysList;
 
     int _mouseNoteOn = -1;
     boolean[] _sequenceNoteOn;
@@ -88,13 +95,7 @@ public class MXSwingPiano extends JComponent {
     Graphics _bufferedImageGraphics = null;
     Rectangle _bufferedRect = null;
  
-    private int _rootNote = 36;
-    private int _keyboardOctave = 4;
-    
-    /**
-     *
-     */
-    public MXSwingPiano() {
+    public MXPianoKeys() {
         addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -132,11 +133,15 @@ public class MXSwingPiano extends JComponent {
         setSize(new Dimension(100, 30));
         _sequenceNoteOn = new boolean[256];
         _sequenceSustain  = new boolean[256];
+        //generateKeysRect();
     }
     
     static int[] whiteNote = { 0, 2, 4, 5, 7, 9, 11 };
     static int[] blackNoteLow = { 1, 3 };
     static int[] blackNoteHi = { 6, 8, 10 };
+    
+    private int _rootNote = 36;
+    private int _keyboardOctave = 4;
     
     public void setNoteRange(int rootNote, int octave) {
         _rootNote = rootNote;
@@ -249,9 +254,9 @@ public class MXSwingPiano extends JComponent {
                     color = sequenceColor;
                 }else if (_sequenceSustain[key._note]) {
                     color = sustainColor;
-                }else if (key._note == 60) {
+                }else /*if (key._note == 60) {
                     color = centerColor;
-                }else {
+                }else*/ {
                     color = Color.white;
                 }
                 if (color == null) {
@@ -296,6 +301,15 @@ public class MXSwingPiano extends JComponent {
         }
     }
     
+    public void generateKeysRect() {
+        int widthAll = getWidth(), heightAll = getHeight();
+        TreeSet<KeyRect> whiteKeys = new TreeSet<KeyRect>(noteComp);
+        TreeSet<KeyRect> blackKeys = new TreeSet<KeyRect>(noteComp);
+        makeWhiteAndBlack(_rootNote, new Rectangle(0, 0, widthAll, heightAll), whiteKeys, blackKeys);
+        _whiteKeysList = new ArrayList(whiteKeys);
+        _blackKeysList = new ArrayList(blackKeys);
+    }
+
     @Override
     public synchronized void paintComponent(Graphics g) {
         int widthAll = getWidth(), heightAll = getHeight();
@@ -307,6 +321,7 @@ public class MXSwingPiano extends JComponent {
             }
         }
         if (_bufferedImage == null) {
+            generateKeysRect();
             paintOnBuffer(null);
             bounds = new Rectangle(_bufferedImage.getWidth(), _bufferedImage.getHeight());
         }
@@ -369,6 +384,11 @@ public class MXSwingPiano extends JComponent {
         }
     }
 
+    
+    public boolean isNoteOn(int note) {
+        return _sequenceNoteOn[note];
+    }
+    
     public void noteOn(int note) {
         _sequenceNoteOn[note] = true;
         if (_sequenceSustainGlobal) {
@@ -420,22 +440,6 @@ public class MXSwingPiano extends JComponent {
                 }
             }
             orderRedrawNote(-1);
-        }
-    }
-
-    public static class KeyRect {
-        Rectangle _rect = new Rectangle();
-        final int _note;
-        
-        public KeyRect(int note) {
-            this._note = note;
-        }
-        
-        public boolean isValid() {
-            if (_note >= 0 && _note < 128) {
-                return true;
-            }
-            return false;
         }
     }
     
@@ -510,8 +514,19 @@ public class MXSwingPiano extends JComponent {
             }
         }
     }
+
+    public KeyRect findRectByNote(int note) {
+        MXPianoKeys.KeyRect key = findRectByNote(_whiteKeysList, note);
+        if (key == null) {
+            key = findRectByNote(_blackKeysList, note);
+        }
+        return key;
+    }
     
     public KeyRect findRectByNote(ArrayList<KeyRect> list, int note) {
+        if (list == null) {
+            return null;
+        }
         int from = 0;
         int to  = list.size() - 1;
         while(from <= to) {
@@ -542,7 +557,7 @@ public class MXSwingPiano extends JComponent {
             return;
         }
         if (note >= 0) {
-            MXSwingPiano.KeyRect key = findRectByNote(_whiteKeysList, note);
+            MXPianoKeys.KeyRect key = findRectByNote(_whiteKeysList, note);
             if (key == null) {
                 key = findRectByNote(_blackKeysList, note);
             }
@@ -564,7 +579,7 @@ public class MXSwingPiano extends JComponent {
         win.setLayout(new GridLayout(7, 1));
 
         for (int i = 1 ; i <= 7; ++ i) {
-            MXSwingPiano comp = new MXSwingPiano();
+            MXPianoKeys comp = new MXPianoKeys();
             if (i == 0) {
                 comp.setAllowSelect(true, true);
             }
@@ -609,5 +624,19 @@ public class MXSwingPiano extends JComponent {
             ret[x++] = n;
         }
         return ret;
+    }
+    
+    public int getBlackKeysWidth() {
+        for (KeyRect seek : _blackKeysList) {
+            return seek._rect.width;
+        }
+        return 10;
+    }
+
+    public int getWhiteKeysWidth() {
+        for (KeyRect seek : _whiteKeysList) {
+            return seek._rect.width;
+        }
+        return 20;
     }
 }

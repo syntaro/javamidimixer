@@ -56,6 +56,7 @@ public class MX12Process extends MXReceiver implements MXSettingTarget {
         _construction = false;
         _view = new MX12MasterkeysPanel(this);
         _accordion = new MXAccordion(null, "Virtual Key", true);
+        _accordion.openAccordion(false);
         _accordion.insertElement(0, _view);
         _accordion.setLabelAfterName(_view.getComponentAfterName());
     }

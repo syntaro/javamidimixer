@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.TreeSet;
+import javax.sound.midi.ShortMessage;
+import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
 
@@ -285,6 +287,7 @@ public class SMFParser {
                     _listMessage.add(seek);
                 }
             }
+            parseAdditionalInfo();
             return !_listMessage.isEmpty();
         } finally {
             input.close();
@@ -479,6 +482,58 @@ public class SMFParser {
             seek._tick = _tempoArray.calcTicksByMicrosecond(millisecond * 1000);
             if (seek.getStatus() == 0xff && seek.getData1() == 0x51) {
                 _tempoArray.addMPQwithMicrosecond(seek.getMetaTempo(), millisecond * 1000);
+            }
+        }
+    }
+    
+    public boolean[] _existNoteChannel;
+    public int _firstNotePos;
+    public int _noteLowest;
+    public int _noteHighest;
+    public ArrayList<Integer> _drums;
+    public int[] _programList;
+
+    public void parseAdditionalInfo() {
+        _existNoteChannel = new boolean[16];
+        _firstNotePos = -1;
+        _noteLowest = 128;
+        _noteHighest = -1;
+        _drums = new ArrayList<Integer>();
+        _programList = new int[16];
+        for (int i = 0; i < _programList.length; ++ i) {
+            _programList[i] = -1;
+        }
+        
+        for (int i = 0; i < _listMessage.size(); ++ i) {
+            SMFMessage smf = _listMessage.get(i);
+            if (smf.isBinaryMessage()) {
+                continue;
+            }
+            int msg = smf.toDwordMessage();
+            
+            int status = (msg >> 16) & 0xff;
+            int ch = status & 0x0f;
+            int data1 = (msg >> 8) & 0xff;
+            int data2 = msg & 0xff;
+
+            int command = status & 0xf0;
+
+            if (command == MXMidi.COMMAND_CH_NOTEON) {
+                if (_firstNotePos < 0) {
+                    _firstNotePos = i;
+                }
+                _existNoteChannel[ch] = true;
+                if (ch == MXAppConfig.DRUM_CH && data2 >= 1) {
+                    _drums.add(data1);
+                }else {
+                    if (data1 < _noteLowest) _noteLowest = data1;
+                    if (data1 > _noteHighest) _noteHighest = data1;
+                }
+            }
+            else if (command == ShortMessage.PROGRAM_CHANGE) {
+                if (_programList[ch]  < 0) {
+                    _programList[ch] = data1;
+                }
             }
         }
     }

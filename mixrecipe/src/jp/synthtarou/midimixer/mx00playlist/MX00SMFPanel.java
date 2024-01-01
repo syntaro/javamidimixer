@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Syntarou YOSHIDA.
+ * Copyright (C) 2024 Syntarou YOSHIDA
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,50 +16,19 @@
  */
 package jp.synthtarou.midimixer.mx00playlist;
 
-import java.awt.Dimension;
-import jp.synthtarou.midimixer.libs.midi.smf.MXPianoKeys;
-import javax.swing.BorderFactory;
-import jp.synthtarou.midimixer.ccxml.xml.CXGeneralMidiFile;
-
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX00PianoPanel extends javax.swing.JPanel {
-    MXPianoKeys _keys;
-    int _channel;
+public class MX00SMFPanel extends javax.swing.JPanel {
 
-    public MX00PianoPanel(MXPianoKeys keys) {
+    /**
+     * Creates new form MX00SMFPanel
+     */
+    public MX00SMFPanel() {
         initComponents();
-        _keys = keys;
-        add(_keys);
-    }
-    
-    public void autoAdjustHeight(int width) {
-        this._keys.paintOnBuffer(null);
-        int newHeight = _keys.getAdjustedHeight(width);
-        Dimension d = new Dimension(width, newHeight);
-        setPreferredSize(d);
-    }
-    
-    public MXPianoKeys getKeys() {
-        return _keys;
-    }
-    
-    public void setChannel(int ch) {
-        _channel = ch;
     }
 
-    public int getChannel() {
-        return _channel;
-    }
-
-    public void updateProgramNumber(int program) {
-        String name = CXGeneralMidiFile.getInstance().simpleFindProgramName(program);
-        name = "(" + (program) + ")" + name;
-        setBorder(BorderFactory.createTitledBorder("TR "  + (_channel + 1) + " " + name));
-    }
-    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -69,8 +38,16 @@ public class MX00PianoPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        setBorder(javax.swing.BorderFactory.createTitledBorder("abc"));
-        setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 400, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 300, Short.MAX_VALUE)
+        );
     }// </editor-fold>//GEN-END:initComponents
 
 

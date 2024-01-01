@@ -40,7 +40,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
+import jp.synthtarou.midimixer.libs.midi.smf.MXPianoKeys;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 
@@ -63,7 +63,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     
     JButton _jButtonEdit = new JButton("Edit");
     MX12Process _process;
-    MXSwingPiano _piano;
+    MXPianoKeys _piano;
     MXWrapList<Integer> _watchPort = MXWrapListFactory.listupPort(null);
     MXWrapList<Integer> _watchChannel = MXWrapListFactory.listupChannel(null);
     
@@ -119,7 +119,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         jSliderModwheel.setLabelTable(table2);
         jSliderModwheel.setPaintLabels(false);
 
-        _piano = new MXSwingPiano();
+        _piano = new MXPianoKeys();
         
         _piano.setNoteRange(0, 11);
         _piano.setMinimumSize(new Dimension(9 * 200, 1));
@@ -129,7 +129,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         jScrollPane1.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         jScrollPane1.setViewportView(_piano);
 
-        _piano.setHandler(new MXSwingPiano.Handler() {
+        _piano.setHandler(new MXPianoKeys.MXMouseHandler() {
             public void noteOn(int note) {
                 MXMessage message = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_NOTEON + _process.getMouseChannel(), note, _process.getMouseVelocity());
                 _process.mouseMessage(message);
