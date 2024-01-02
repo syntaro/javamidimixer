@@ -168,7 +168,7 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
         if (_sequencer != null) {
             _sequencer.stopPlayer();
         }
-
+        
         _gotBreak = false;
         _sequencer.setStartMilliSecond(position);
         _sequencer.startPlayer(new SMFCallback() {

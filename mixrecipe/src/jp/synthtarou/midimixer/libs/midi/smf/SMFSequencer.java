@@ -34,6 +34,7 @@ import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
  * @author Syntarou YOSHIDA
  */
 public class SMFSequencer {
+
     private long _startMilliSeconds;
     private File _lastFile;
     boolean _paraPlay = false;
@@ -46,7 +47,7 @@ public class SMFSequencer {
         _lastFile = null;
         _firstNote = new SMFMessage[16];
     }
-    
+
     public int getResolution() {
         return _parser._fileResolution;
     }
@@ -135,7 +136,7 @@ public class SMFSequencer {
 
         int doneCh = 0;
         int pos = 0;
-        
+
         for (SMFMessage smf : _parser._listMessage) {
             int status = smf.getStatus();
             int command = status & 0xf0;
@@ -191,25 +192,48 @@ public class SMFSequencer {
 
         return didProgramChange;
     }
-    
+
     public int _progressSpan = 500;
+    long _nextDraw = 0;
+    long _divDraw = 33;
+
+    public void paintPiano(long elapsed) {
+        if (_pianoRoll != null) {
+            double pixel = _pianoRoll.getHeight();
+            double disptime = _pianoRoll.getSoundSpan();
+            while (elapsed >= _nextDraw) {
+                if (pixel >= 1) {
+                    double needTime = disptime / pixel;
+                    _divDraw = (long) needTime;
+                    if (_divDraw <= 0) {
+                        _divDraw = 1;
+                    }
+                }
+                _pianoRoll.setTiming(elapsed);
+                _nextDraw += _divDraw;
+            }
+        }
+    }
 
     protected void playWithMilliSeconds() throws InvalidMidiDataException {
         _stopPlayer = false;
-        
-        boolean []reset = new boolean[MXAppConfig.TOTAL_PORT_COUNT];
+        if (_pianoRoll != null) {
+            _pianoRoll.clearPickedNote();
+        }
+
+        boolean[] reset = new boolean[MXAppConfig.TOTAL_PORT_COUNT];
 
         SortedArray<SMFMessage> list = _parser._listMessage;
         int pos = 0;
 
-        for (int i = 0; i < list.size(); ++ i) {
+        for (int i = 0; i < list.size(); ++i) {
             if (list.get(i)._millisecond >= _startMilliSeconds) {
                 pos = i;
                 break;
             }
         }
 
-        for (int i = pos; i < list.size(); ++ i) {
+        for (int i = pos; i < list.size(); ++i) {
             SMFMessage message = list.get(i);
             if (reset[message._port] == false) {
                 reset[message._port] = true;
@@ -217,7 +241,7 @@ public class SMFSequencer {
         }
 
         if (pos == 0) {
-            for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
+            for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++i) {
                 if (reset[i]) {
                     resetControllers(i);
                 }
@@ -233,32 +257,21 @@ public class SMFSequencer {
 
         long launched = System.currentTimeMillis() - _startMilliSeconds;
         long lastSent = 0;
-        
+
         if (_pianoRoll != null) {
-            _pianoRoll.resetTiming(_pianoRoll.getSoundSpan(), _pianoRoll.getSoundMargin());
+            _pianoRoll.clearPickedNote();
         }
-        long nextDraw = 33;
+        _nextDraw = 0;
 
         while (!_stopPlayer && pos < list.size()) {
             long elapsed = (System.currentTimeMillis() - launched);
             long nextNote = list.get(pos)._millisecond;
-            if (_pianoRoll != null) {
-                while (elapsed >= nextDraw) {
-                    _pianoRoll.setTiming(elapsed);
-                    nextDraw += 33;
-                }
-            }
+            paintPiano(elapsed);
             while (nextNote - elapsed >= 5) {
-                if (_pianoRoll != null) {
-                    if (elapsed >= nextDraw) {
-                        _pianoRoll.setTiming(elapsed);
-                        nextDraw += 33;
-                    }
-                }
                 try {
                     long waiting = nextNote - elapsed - 5;
-                    long waiting2 = nextDraw - elapsed;
-                    if (waiting >= waiting2) {
+                    long waiting2 = _nextDraw - elapsed;
+                    if (waiting >= waiting2)  {
                         waiting = waiting2;
                     }
                     Thread.sleep(waiting);
@@ -266,18 +279,13 @@ public class SMFSequencer {
                 }
                 elapsed = (System.currentTimeMillis() - launched);
                 nextNote = list.get(pos)._millisecond;
-                if (_pianoRoll != null) {
-                    while (elapsed >= nextDraw) {
-                        _pianoRoll.setTiming(elapsed);
-                        nextDraw += 33;
-                    }
-                }
+                paintPiano(elapsed);
             }
             if (lastSent + _progressSpan < elapsed) {
                 _callback.smfProgress(list.get(pos)._millisecond, getMaxMilliSecond());
                 lastSent = elapsed;
             }
-            
+
             while (!_stopPlayer && list.get(pos)._millisecond <= elapsed) {
                 SMFMessage currentEvent = list.get(pos++);
 
@@ -308,7 +316,7 @@ public class SMFSequencer {
             }
         }
 
-        for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
+        for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++i) {
             if (reset[i]) {
                 allNoteOff(null, i);
             }
@@ -323,7 +331,7 @@ public class SMFSequencer {
             if (_forceSingleChannel >= 0) {
                 start = _forceSingleChannel;
                 end = _forceSingleChannel;
-            }            
+            }
             synchronized (MXTiming.mutex) {
                 MXTiming timing = new MXTiming();
                 for (int i = start; i <= end; ++i) {
@@ -347,7 +355,7 @@ public class SMFSequencer {
     public int countMessage() {
         return _parser._listMessage.size();
     }
-    
+
     public void allNoteOff(MXTiming timing, int port) {
         if (_paraPlay) {
             return;
@@ -392,7 +400,7 @@ public class SMFSequencer {
         long t = 0;
         ArrayList<SMFMessage> list = _parser._listMessage;
         if (list.isEmpty() == false) {
-            t = list.get(list.size()  -1)._millisecond;
+            t = list.get(list.size() - 1)._millisecond;
         }
         return t + 500;
     }
@@ -412,7 +420,7 @@ public class SMFSequencer {
                 } else {
                     if (!_noteOnly) {
                         _callback.smfPlayNote(timing, smf);
-                    }else {
+                    } else {
                         boolean skip = true;
                         int dword = smf.toDwordMessage();
 
@@ -434,9 +442,9 @@ public class SMFSequencer {
                                 break;
                             case MXMidi.COMMAND_CH_CONTROLCHANGE:
                                 if (data1 == MXMidi.DATA1_CC_DAMPERPEDAL
-                                    || data1 == MXMidi.DATA1_CC_MODULATION
-                                    || data1 == MXMidi.DATA1_CC_ALLNOTEOFF
-                                    || data1 == MXMidi.DATA1_CC_ALLSOUNDOFF) {
+                                        || data1 == MXMidi.DATA1_CC_MODULATION
+                                        || data1 == MXMidi.DATA1_CC_ALLNOTEOFF
+                                        || data1 == MXMidi.DATA1_CC_ALLSOUNDOFF) {
                                     skip = false;
                                 }
                                 break;
@@ -473,14 +481,14 @@ public class SMFSequencer {
 
     boolean _recording = false;
     long _startRecord;
-    
+
     public synchronized void startRecording() {
         _parser = new SMFParser();
         _updateFlag = true;
         _recording = true;
         _startRecord = -1;
     }
-    
+
     public synchronized void record(MXMessage message) {
         if (_recording == false) {
             return;
@@ -496,9 +504,8 @@ public class SMFSequencer {
             smf._millisecond = timing;
             smf._port = message.getPort();
             _parser._listMessage.insertSorted(smf);
-        }
-        else {
-            for (int i = 0; i < message.getDwordCount(); ++ i) {
+        } else {
+            for (int i = 0; i < message.getDwordCount(); ++i) {
                 int dword = message.getAsDword(i);
                 int status = (dword >> 16) & 0xff;
                 int data1 = (dword >> 8) & 0xff;
@@ -509,15 +516,15 @@ public class SMFSequencer {
                 _parser._listMessage.insertSorted(smf);
             }
         }
-               
+
     }
-    
+
     public synchronized void stopRecording() {
         if (_recording) {
             _recording = false;
         }
     }
-    
+
     public boolean writeToDirectory(File directory) {
         if (directory.exists()) {
             if (directory.isDirectory()) {
@@ -525,7 +532,7 @@ public class SMFSequencer {
                 for (File f : children) {
                     Desktop.getDesktop().moveToTrash(f);
                 }
-            }else {
+            } else {
                 return false;
             }
         }
@@ -533,24 +540,24 @@ public class SMFSequencer {
         if (directory.isDirectory() == false) {
             return false;
         }
-        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
+        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++port) {
             File f = new File(directory, directory.getName() + "-" + MXMidi.nameOfPortInput(port) + ".mid");
             try {
                 _parser.writeFile(f, port);
-            }catch(IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();;
                 return false;
             }
         }
         return true;
     }
-    
+
     public boolean readFromDirectory(File directory) {
         if (directory.isDirectory() == false) {
             return false;
         }
-        SortedArray<SMFMessage> marge  = new SortedArray<>();
-        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
+        SortedArray<SMFMessage> marge = new SortedArray<>();
+        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++port) {
             File f = new File(directory, directory.getName() + "-" + MXMidi.nameOfPortInput(port) + ".mid");
             if (f.isFile()) {
                 try {
@@ -559,13 +566,13 @@ public class SMFSequencer {
                         seek._port = port;
                         marge.add(seek);
                     }
-                }catch(IOException e) {
+                } catch (IOException e) {
                     e.printStackTrace();;
                 }
             }
         }
         _parser._listMessage.clear();
-        for (SMFMessage seek : marge) {            
+        for (SMFMessage seek : marge) {
             _parser._listMessage.insertSorted(seek);
         }
         return true;
@@ -575,7 +582,7 @@ public class SMFSequencer {
         try {
             SMFMessage message = _parser._listMessage.getLast();
             return message._millisecond;
-        }catch(Exception e) {
+        } catch (Exception e) {
             return 0;
         }
     }
