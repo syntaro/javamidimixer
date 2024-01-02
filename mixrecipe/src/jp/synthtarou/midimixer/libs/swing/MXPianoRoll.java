@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.midi.smf;
+package jp.synthtarou.midimixer.libs.swing;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -34,7 +34,10 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.smf.MXPianoKeys.KeyRect;
+import jp.synthtarou.midimixer.libs.swing.MXPianoKeys.KeyRect;
+import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
+import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
+import jp.synthtarou.midimixer.libs.midi.smf.SMFTestSynthesizer;
 import jp.synthtarou.midimixer.libs.navigator.MXPopupForList;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 
@@ -43,6 +46,14 @@ import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
  * @author Syntarou YOSHIDA
  */
 public class MXPianoRoll extends JComponent {
+    boolean _doPaint = true;
+    
+    public void setSelectedPaint(boolean flag) {
+        _doPaint = flag;
+        if (flag) {
+            clearPickedNote();
+        }
+    }
 
     public static class NoteRect {
 
@@ -69,10 +80,7 @@ public class MXPianoRoll extends JComponent {
     boolean[] _sequenceSustain;
 
     BufferedImage _bufferedImage = null;
-    BufferedImage _bufferedImage2 = null;
     Graphics _bufferedImageGraphics = null;
-    Graphics _bufferedImageGraphics2 = null;
-    Rectangle _bufferedRect = null;
     SMFSequencer _sequencer;
     MXPianoKeys _keys;
 
@@ -86,7 +94,7 @@ public class MXPianoRoll extends JComponent {
             @Override
             public void mousePressed(MouseEvent e) {
                 MXWrapList<Integer> list = new MXWrapList();
-                list.addNameAndValue("All", -1);
+                list.addNameAndValue("Colorful", -1);
                 for (int i = 0; i < 16; ++ i) {
                     list.addNameAndValue("CH." + (i+1), i);
                 }
@@ -104,34 +112,31 @@ public class MXPianoRoll extends JComponent {
 
     @Override
     public synchronized void paintComponent(Graphics g) {
-        int widthAll = getWidth(), heightAll = getHeight();
+        if (!_doPaint) {
+            return;
+        }
+        int widthAll = getWidth();
+        int heightAll = getHeight();
         Rectangle bounds = g.getClipBounds();
 
         if (_bufferedImage != null) {
             if (widthAll != _bufferedImage.getWidth() || heightAll != _bufferedImage.getHeight()) {
                 _bufferedImage = null;
-                _bufferedImage2 = null;
             }
         }
         if (_bufferedImage == null) {
             paintOnBuffer(null);
             bounds = new Rectangle(_bufferedImage.getWidth(), _bufferedImage.getHeight());
         }
+        
+        g.drawImage(_bufferedImage, 
+                0, 0, widthAll, (int)(heightAll - _rollingY)
+               ,0, (int)_lastRollingY, widthAll, heightAll, this);
 
-        Rectangle rect = _bufferedRect;
-        if (rect == null && bounds == null) {
-            rect = new Rectangle(widthAll, heightAll);
-        }
-        if (rect == null) {
-            rect = bounds;
-        } else if (bounds != null) {
-            rect = rect.union(bounds);
-        }
-        _bufferedRect = null;
+        g.drawImage(_bufferedImage, 
+                0, (int)(heightAll - _rollingY), widthAll, heightAll
+               ,0, 0, widthAll, (int)(_rollingY), this);
 
-        g.drawImage(_bufferedImage,
-                rect.x, rect.y, rect.x + rect.width, rect.y + rect.height,
-                rect.x, rect.y, rect.x + rect.width, rect.y + rect.height, this);
         if (_soundMargin >= 150) {
             double pos = getHeight() * 1.0 / _soundSpan * _soundMargin;
             int y = (int) (getHeight() - pos);
@@ -140,48 +145,26 @@ public class MXPianoRoll extends JComponent {
         }
     }
 
-    public synchronized void invalidate() {
-        _bufferedImage = null;
-        super.invalidate();
-    }
-
     public synchronized void paintOnBuffer(Rectangle rect) {
+        if (!_doPaint) {
+            return;
+        }
         int widthAll = getWidth();
         int heightAll = getHeight();
 
         if (_bufferedImage != null) {
             if (widthAll != _bufferedImage.getWidth() || heightAll != _bufferedImage.getHeight()) {
                 _bufferedImage = null;
-                _bufferedImage2 = null;
             }
         }
         if (_bufferedImage == null) {
             if (_bufferedImageGraphics != null) {
                 _bufferedImageGraphics.dispose();
             }
-            if (_bufferedImageGraphics2 != null) {
-                _bufferedImageGraphics2.dispose();
-            }
             _bufferedImage = new BufferedImage(widthAll, heightAll, BufferedImage.TYPE_3BYTE_BGR);
-            _bufferedImage2 = new BufferedImage(widthAll, heightAll, BufferedImage.TYPE_3BYTE_BGR);
             _bufferedImageGraphics = _bufferedImage.getGraphics();
-            _bufferedImageGraphics2 = _bufferedImage2.getGraphics();
-            paintOnGraphics(null);
-            _lastSongPos = -1;
-            _bufferedRect = new Rectangle(0, 0, widthAll, heightAll);
-        } else {
-            paintOnGraphics(rect);
-            Rectangle a = _bufferedRect;
-            if (rect == null) {
-                rect = new Rectangle(widthAll, heightAll);
-            }
-            if (a == null) {
-                a = rect;
-            } else {
-                a = a.union(rect);
-            }
-            _bufferedRect = a;
         }
+        paintOnGraphics(null);
     }
 
     static Comparator<NoteRect> noteComp = new Comparator<NoteRect>() {
@@ -220,17 +203,21 @@ public class MXPianoRoll extends JComponent {
 
     int _lastPickupForPaint = 0;
     int[] _pickedNoteForPaint = new int[256];
-
     int _lastPickupForKick = 0;
 
-    public void clearPickedNote() {
+    public synchronized  void clearPickedNote() {
+        _lastSongPos = -1;
         _lastPickupForPaint = 0;
         for (int i = 0; i < _pickedNoteForPaint.length; ++i) {
             _pickedNoteForPaint[i] = 0;
         }
+        _rollingY = 0;
+        _bufferedImage = null;
+        _keys.allNoteOff();
+        repaint();
     }
 
-    public int[] listNoteOn(long milliSeconds) {
+    public synchronized int[] listNoteOn(long milliSeconds) {
         List<SMFMessage> list = _sequencer.listMessage();
         for (int x = _lastPickupForPaint; x < list.size(); ++x) {
             SMFMessage smf = list.get(x);
@@ -310,12 +297,17 @@ public class MXPianoRoll extends JComponent {
     long _songPos = 0;
     long _soundSpan = 4000;
     long _soundMargin = 500;
+    long _rollingY = 0;
+    long _lastRollingY = 0;
     Color back = new Color(0, 50, 50);
     
-    private void paintOnGraphics(Rectangle rect) {
-        clearPickedNote();
+    private synchronized void paintOnGraphics(Rectangle rect) {
         int width = getWidth();
         int height = getHeight();
+        
+        if (!_doPaint) {
+            return;
+        }
 
         long needDraw = _soundSpan;
         if (_lastSongPos >= 0) {
@@ -331,19 +323,20 @@ public class MXPianoRoll extends JComponent {
         }
 
         _lastSongPos = _songPos;
+        _lastRollingY = _rollingY;
+        long x  = 0;
 
-        _bufferedImageGraphics2.drawImage(_bufferedImage, 0, 0, this);
-        _bufferedImageGraphics.drawImage(_bufferedImage2, 0, shiftY, this);
-        _bufferedImageGraphics.setColor(back);
-        _bufferedImageGraphics.fillRect(0, 0, width, shiftY);
-
-        for (int y = shiftY - 1; y >= 0; --y) {
+        for (int y = shiftY - 1 ; y >= 0; --y) {
             double dig = 1.0 * (shiftY - y) / height * _soundSpan;
             long pos = (long) dig + _songPos + _soundSpan - needDraw;
             int[] playing = listNoteOn(pos - _soundMargin);
             int keysRoot = _keyboardRoot;
             int keysCount = _keyboardOctave * 12;
             int onlyDrum = 1 << 9;
+            long realY2 = _rollingY - (x ++);
+            realY2 = (realY2 + height) % height;
+            _bufferedImageGraphics.setColor(back);
+            _bufferedImageGraphics.drawLine((int) 0, (int)realY2, (int) width, (int)realY2);
             for (int i = keysRoot; i < keysRoot + keysCount; ++i) {
                 boolean selected = false;
                 if (playing[i] > 0 && playing[i] != onlyDrum) {
@@ -367,9 +360,13 @@ public class MXPianoRoll extends JComponent {
                         continue;
                     }
                     _bufferedImageGraphics.setColor(col);
-                    _bufferedImageGraphics.drawLine((int) from, y, (int) to, y);
+                    _bufferedImageGraphics.drawLine((int) from, (int)realY2, (int) to, (int)realY2);
                 }
             }
+        }
+        _rollingY -= shiftY;
+        if (_rollingY < 0) {
+            _rollingY = height;
         }
     }
 
@@ -378,9 +375,7 @@ public class MXPianoRoll extends JComponent {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 synchronized (this) {
-                    _keys.allNoteOff();
-                    _bufferedImage = null;
-                    repaint();
+                    clearPickedNote();
                 }
             }
         });
@@ -389,7 +384,7 @@ public class MXPianoRoll extends JComponent {
     Color[] colors = null;
     Color[] hibridSource = new Color[16];
    
-    int _focusChannel = 0;
+    int _focusChannel = -1;
     
     public Color bitColor(int channel) {
         if (_focusChannel >= 0) {
@@ -464,11 +459,12 @@ public class MXPianoRoll extends JComponent {
         return _soundMargin;
     }
 
-    public void resetTiming(long span, long margin) {
+    public synchronized void resetTiming(long span, long margin) {
         _lastSongPos = -1;
         _songPos = 0;
         _soundSpan = span;
         _soundMargin = margin;
+        clearPickedNote();
     }
 
     public void setTiming(long pos) {
@@ -505,6 +501,4 @@ public class MXPianoRoll extends JComponent {
         _keyboardOctave = octave;
         _keys.setAllowSelect(true, true);
     }
-    
-
 }

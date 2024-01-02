@@ -309,7 +309,7 @@ public class MXMainWindow extends javax.swing.JFrame {
                 }
                 if (view instanceof MX00View) {
                     MX00View v00 = (MX00View) view;
-                    v00.tabActivated();
+                    v00.tabActivatedTwoCases();
                 }
                 if (view instanceof MX10View) {
                     MX10View v10 = (MX10View) view;

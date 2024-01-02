@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi.smf;
 
+import jp.synthtarou.midimixer.libs.swing.MXPianoRoll;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
@@ -236,14 +237,46 @@ public class SMFSequencer {
         if (_pianoRoll != null) {
             _pianoRoll.resetTiming(_pianoRoll.getSoundSpan(), _pianoRoll.getSoundMargin());
         }
+        long nextDraw = 33;
+
         while (!_stopPlayer && pos < list.size()) {
             long elapsed = (System.currentTimeMillis() - launched);
-            
+            long nextNote = list.get(pos)._millisecond;
+            if (_pianoRoll != null) {
+                while (elapsed >= nextDraw) {
+                    _pianoRoll.setTiming(elapsed);
+                    nextDraw += 33;
+                }
+            }
+            while (nextNote - elapsed >= 5) {
+                if (_pianoRoll != null) {
+                    if (elapsed >= nextDraw) {
+                        _pianoRoll.setTiming(elapsed);
+                        nextDraw += 33;
+                    }
+                }
+                try {
+                    long waiting = nextNote - elapsed - 5;
+                    long waiting2 = nextDraw - elapsed;
+                    if (waiting >= waiting2) {
+                        waiting = waiting2;
+                    }
+                    Thread.sleep(waiting);
+                } catch (InterruptedException ex) {
+                }
+                elapsed = (System.currentTimeMillis() - launched);
+                nextNote = list.get(pos)._millisecond;
+                if (_pianoRoll != null) {
+                    while (elapsed >= nextDraw) {
+                        _pianoRoll.setTiming(elapsed);
+                        nextDraw += 33;
+                    }
+                }
+            }
             if (lastSent + _progressSpan < elapsed) {
                 _callback.smfProgress(list.get(pos)._millisecond, getMaxMilliSecond());
                 lastSent = elapsed;
             }
-            _pianoRoll.setTiming(elapsed);
             
             while (!_stopPlayer && list.get(pos)._millisecond <= elapsed) {
                 SMFMessage currentEvent = list.get(pos++);

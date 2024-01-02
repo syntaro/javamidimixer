@@ -40,7 +40,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.midi.smf.MXPianoKeys;
+import jp.synthtarou.midimixer.libs.swing.MXPianoKeys;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 

@@ -16,7 +16,7 @@
  */
 package jp.synthtarou.midimixer.mx00playlist;
 
-import jp.synthtarou.midimixer.libs.midi.smf.MXPianoKeys;
+import jp.synthtarou.midimixer.libs.swing.MXPianoKeys;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -42,7 +42,7 @@ import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
 import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
-import jp.synthtarou.midimixer.libs.midi.smf.MXPianoRoll;
+import jp.synthtarou.midimixer.libs.swing.MXPianoRoll;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
@@ -318,6 +318,11 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                 jTabbedPanePianoStateChanged(evt);
             }
         });
+        jTabbedPanePiano.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                jTabbedPanePianoPropertyChange(evt);
+            }
+        });
 
         jPanelPianoRollParent.setLayout(new java.awt.GridBagLayout());
 
@@ -516,7 +521,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                 }
             }
             if (_pianoRollKeys != null && _pianoRollRoll != null) {
-                _pianoRollRoll.resetTiming(4000, 50);
+                _pianoRollRoll.resetTiming(4000,  33);
                 int width = _pianoRollRoll.getWidth();
                 _pianoRollKeys.setPreferredSize(new Dimension(width, 100));
             }
@@ -667,8 +672,12 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     }//GEN-LAST:event_jPanelPianoParentComponentShown
 
     private void jTabbedPanePianoStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jTabbedPanePianoStateChanged
-        repainPianoRoll();
+        tabActivatedTwoCases();
     }//GEN-LAST:event_jTabbedPanePianoStateChanged
+
+    private void jTabbedPanePianoPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_jTabbedPanePianoPropertyChange
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTabbedPanePianoPropertyChange
 
     public void updatePianoKeys(int dword) {
         if (SwingUtilities.isEventDispatchThread() == false) {
@@ -868,14 +877,10 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
             ex.printStackTrace();
         }
     }
-
-    public void repainPianoRoll() {
-        if (_pianoRollRoll != null) {
-            _pianoRollRoll.invalidate();
-        }
-    }
     
-    public void tabActivated() {
-        repainPianoRoll();;
+    public void tabActivatedTwoCases() {
+        if (_pianoRollRoll != null) {
+            _pianoRollRoll.setSelectedPaint(jTabbedPanePiano.getSelectedIndex() == 0);
+        }
     }
 }

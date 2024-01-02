@@ -40,7 +40,7 @@ import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
-import jp.synthtarou.midimixer.libs.midi.smf.MXPianoKeys;
+import jp.synthtarou.midimixer.libs.swing.MXPianoKeys;
 
 /**
  *
