@@ -16,10 +16,8 @@
  */
 package jp.synthtarou.midimixer.libs.swing;
 
-import com.sun.jdi.connect.ListeningConnector;
 import java.awt.Dimension;
 import javax.swing.JFrame;
-import javax.swing.JWindow;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.navigator.MXPopupForList;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
@@ -86,7 +84,7 @@ public class MXPianoRollControl extends javax.swing.JFrame {
                 jTextFieldSpan.setText(listSpan.nameOfValue((int)_roll.getSoundSpan()));
             }
         };
-        setPreferredSize(new Dimension(300, 70));
+        this.setSize(new Dimension(350, 150));
 
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
     }

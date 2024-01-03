@@ -394,6 +394,7 @@ public class SMFSequencer {
 
     public void setStartMilliSecond(long pos) {
         _startMilliSeconds = pos;
+        _pianoRoll.setTiming(pos);
     }
 
     public long getMaxMilliSecond() {
