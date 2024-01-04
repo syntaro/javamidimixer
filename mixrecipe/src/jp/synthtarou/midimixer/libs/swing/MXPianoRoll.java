@@ -296,6 +296,9 @@ public class MXPianoRoll extends JComponent {
         _lastSongPos = _songPos - _soundSpan;
         _lastPickupForKick = 0;
         _keys.allNoteOff();
+        for (int i = 0; i < _kickedChannelList.length; ++ i) {
+            _kickedChannelList[i] = 0;
+        }
         _lastPickupForPaint = 0;
         for (int i = 0; i < _pickedNoteForPaint.length; ++i) {
             _pickedNoteForPaint[i] = 0;
@@ -348,9 +351,9 @@ public class MXPianoRoll extends JComponent {
         return _pickedNoteForPaint;
     }
 
-    int[] kicked = new int[128];
+    int[] _kickedChannelList = new int[128];
 
-    public void noteForKick(long milliSeconds) {
+    public synchronized void noteForKick(long milliSeconds) {
         List<SMFMessage> list = _sequencer.listMessage();
         if (list != null && list.size() > _lastPickupForKick) {
             if (milliSeconds < list.get(_lastPickupForKick)._millisecond) {
@@ -383,17 +386,17 @@ public class MXPianoRoll extends JComponent {
             switch (command) {
                 case MXMidi.COMMAND_CH_NOTEON:
                     if (velocity >= 1) {
-                        if (kicked[note] == 0) {
+                        if (_kickedChannelList[note] == 0) {
                             _keys.noteOn(note);
                         }
-                        kicked[note] |= 1 << channel;
+                        _kickedChannelList[note] |= 1 << channel;
                         break;
                     }
                 case MXMidi.COMMAND_CH_NOTEOFF:
-                    if ((kicked[note] & (1 << channel)) != 0) {
-                        kicked[note] -= (1 << channel);
+                    if ((_kickedChannelList[note] & (1 << channel)) != 0) {
+                        _kickedChannelList[note] -= (1 << channel);
                     }
-                    if (kicked[note] == 0) {
+                    if (_kickedChannelList[note] == 0) {
                         _keys.noteOff(note);
                     }
                     break;
