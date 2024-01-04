@@ -151,8 +151,7 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
 
     public synchronized void startPlaying(int x) {
         _playingTrack = _listRecorder[x];
-        //_playingTrack.setStartMilliSecond(_playingTrack.getFirstNoteMilliSecond());
-        _playingTrack.startPlayer(new SMFCallback() {
+        _playingTrack.startPlayer(0, new SMFCallback() {
             MXNoteOffWatcher _noteOff = new MXNoteOffWatcher();
 
             @Override

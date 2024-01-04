@@ -165,7 +165,7 @@ public class MXMain  {
         _mx60outputProcess = new MX60Process();
         _mx70CosoleProcess = new MX70Process();
         
-        _masterToList.addNameAndValue("*OpendPage", null);
+        _masterToList.addNameAndValue("*Auto", null);
         _masterToList.addNameAndValue(_mx10inputProcess.getReceiverName(), _mx10inputProcess);
         _masterToList.addNameAndValue(_mx30kontrolProcess.getReceiverName(), _mx30kontrolProcess);
         _masterToList.addNameAndValue(_mx36ccmappingProcess.getReceiverName(), _mx36ccmappingProcess);

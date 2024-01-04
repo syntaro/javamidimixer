@@ -52,7 +52,7 @@ public class MXPianoRoll extends JComponent {
     public void setSelectedPaint(boolean flag) {
         _doPaint = flag;
         if (flag) {
-            clearPickedNote();
+            clearCache(_songPos);
         }
     }
 
@@ -76,10 +76,6 @@ public class MXPianoRoll extends JComponent {
     ArrayList<NoteRect> _whiteKeysList = new ArrayList<NoteRect>();
     ArrayList<NoteRect> _blackKeysList = new ArrayList<NoteRect>();
 
-    boolean[] _sequenceNoteOn;
-    boolean _sequenceSustainGlobal;
-    boolean[] _sequenceSustain;
-
     BufferedImage _bufferedImage = null;
     Graphics _bufferedImageGraphics = null;
     SMFSequencer _sequencer;
@@ -90,8 +86,6 @@ public class MXPianoRoll extends JComponent {
         _sequencer = sequencer;
         _keys = keys;
         _sequencer._pianoRoll = this;
-        _sequenceNoteOn = new boolean[256];
-        _sequenceSustain = new boolean[256];
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -112,7 +106,7 @@ public class MXPianoRoll extends JComponent {
             public void componentResized(ComponentEvent e) {
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
-                        clearPickedNote();
+                        clearCache(_songPos);
                     }
                 });
             }
@@ -120,7 +114,7 @@ public class MXPianoRoll extends JComponent {
             public void componentShown(ComponentEvent e) {
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
-                        clearPickedNote();
+                        clearCache(_songPos);
                     }
                 });
             }
@@ -190,18 +184,18 @@ public class MXPianoRoll extends JComponent {
             long y0 = (long)(((_lastSongPos) * 1.0 / _soundSpan) * heightAll);
             long y1 = (long)(((_songPos) * 1.0 / _soundSpan) * heightAll);
 
-            long startDrawY = _lastRollingY;
+            long startDrawY = _rollingY;
             double startTime = _lastSongPos + _soundSpan - _soundMargin;
             
             for (long y = y0 ; y <= y1; ++ y) {
                 double distanceY = (double)(y - y0);
                 double distanceTime = distanceY * _soundSpan / heightAll;
                 
-                int[] playing = listNoteOn((long)(startTime + distanceTime ));
+                int[] playing = listPaintNote((long)(startTime + distanceTime ));
                 int keysRoot = _keyboardRoot;
                 int keysCount = _keyboardOctave * 12;
                 int onlyDrum = 1 << 9;
-                long realY2 = _rollingY - y + y0;
+                long realY2 = startDrawY - y + y0;
                 while(realY2 <= 0) {
                     realY2 += heightAll;
                 }
@@ -287,9 +281,19 @@ public class MXPianoRoll extends JComponent {
     int[] _pickedNoteForPaint = new int[256];
     int _lastPickupForKick = 0;
 
-    public synchronized void clearPickedNote() {
+    public synchronized void clearCache(long position) {
+        if (SwingUtilities.isEventDispatchThread() == false) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    clearCache(position);
+                }
+            });
+            return;
+        }
+        _rollingY = 0;
+        _lastRollingY = 0;
+        _songPos = position;
         _lastSongPos = _songPos - _soundSpan;
-        //_lastSongPos = - _soundSpan;
         _lastPickupForKick = 0;
         _lastPickupForPaint = 0;
         for (int i = 0; i < _pickedNoteForPaint.length; ++i) {
@@ -300,16 +304,19 @@ public class MXPianoRoll extends JComponent {
             _bufferedImageGraphics.dispose();
             _bufferedImageGraphics = null;
         }
-        _keys.allNoteOff();
+        _keys.repaint();
+        paintOnBuffer();
         repaint();
     }
 
-    public synchronized int[] listNoteOn(long milliSeconds) {
+    public synchronized int[] listPaintNote(long milliSeconds) {
         List<SMFMessage> list = _sequencer.listMessage();
-        if (_lastPickupForPaint >= milliSeconds) {
-            _lastPickupForPaint = 0;
-            for (int i = 0; i < _pickedNoteForPaint.length; ++i) {
-                _pickedNoteForPaint[i] = 0;
+        if (list != null && list.size() > _lastPickupForPaint) {
+            if (milliSeconds < list.get(_lastPickupForPaint)._millisecond) {
+                _lastPickupForPaint = 0;
+                for (int i = 0; i < _pickedNoteForPaint.length; ++i) {
+                    _pickedNoteForPaint[i] = 0;
+                }
             }
         }
         for (int x = _lastPickupForPaint; x < list.size(); ++x) {
@@ -344,6 +351,12 @@ public class MXPianoRoll extends JComponent {
 
     public void noteForKick(long milliSeconds) {
         List<SMFMessage> list = _sequencer.listMessage();
+        if (list != null && list.size() > _lastPickupForKick) {
+            if (milliSeconds < list.get(_lastPickupForKick)._millisecond) {
+                _keys.allNoteOff();
+                _lastPickupForKick = 0;
+            }
+        }
         for (int x = _lastPickupForKick; x < list.size(); ++x) {
             SMFMessage smf = list.get(x);
             if (smf._millisecond > milliSeconds) {
@@ -387,6 +400,10 @@ public class MXPianoRoll extends JComponent {
         }
     }
 
+    public long getSongPos() {
+        return _songPos;
+    }
+    
     long _songPos = 0;
     long _soundSpan = 4000;
     long _lastSongPos = -_soundSpan;
@@ -397,13 +414,7 @@ public class MXPianoRoll extends JComponent {
 
     public void setFocusChannel(int ch) {
         _focusChannel = ch;
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                synchronized (this) {
-                    clearPickedNote();
-                }
-            }
-        });
+        clearCache(_songPos);
     }
     
     public int getFocuChannel() {
@@ -475,7 +486,7 @@ public class MXPianoRoll extends JComponent {
         sequencer._progressSpan = 50;
         MXPianoKeys key = new MXPianoKeys();
 
-        sequencer.startPlayer(new SMFTestSynthesizer());
+        sequencer.startPlayer(0, new SMFTestSynthesizer());
     }
 
     public synchronized long getSoundSpan() {
@@ -488,22 +499,23 @@ public class MXPianoRoll extends JComponent {
 
     public synchronized void setSoundSpan(long span) {
         _soundSpan = span;
-        clearPickedNote();
+        clearCache(_songPos);
     }
 
     public synchronized void setSoundMargin(long margin) {
         _soundMargin = margin;
-        clearPickedNote();
+        clearCache(_songPos);
     }
 
     public void setTiming(long pos) {
         _songPos = pos;
-
+        
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 synchronized (MXPianoRoll.this) {
-                    paintOnBuffer();
                     noteForKick(_songPos);
+                    _keys.repaint();
+                    paintOnBuffer();
                     repaint();
                 }
             }

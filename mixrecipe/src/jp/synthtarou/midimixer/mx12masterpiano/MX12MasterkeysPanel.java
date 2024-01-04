@@ -23,6 +23,7 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Hashtable;
+import javax.sound.midi.Receiver;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -175,9 +176,17 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     
     public void updateViewForSettingChange() {
         StringBuffer info = new StringBuffer();
-        MXReceiver rec = MXMain.getMain().getActiveSendableReceiver();
-        if (rec != null) {
-            info.append("To " + rec.getReceiverName() +", ");
+        MXReceiver autoRec = MXMain.getMain().getActiveSendableReceiver();
+        if (autoRec != null) {
+            String name = "";
+            if (_process.getNextReceiver() != null) {
+                autoRec = _process.getNextReceiver();
+                name = autoRec.getReceiverName();
+            }
+            else {
+                name = autoRec.getReceiverName() + "(auto)";
+            }
+            info.append("To " + name + ", ");
             info.append("Port " + MXMidi.nameOfPortInput(_process.getMousePort()) + ", ");
             info.append("Channel " + (_process.getMouseChannel() + 1));
             /*

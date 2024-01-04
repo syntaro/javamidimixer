@@ -72,7 +72,7 @@ public class SMFSequencer {
 
     boolean _stopPlayer;
 
-    public void startPlayer(SMFCallback callback) {
+    public void startPlayer(long position, SMFCallback callback) {
         if (isRunning()) {
             stopPlayer();
         }
@@ -82,7 +82,7 @@ public class SMFSequencer {
             public void run() {
                 _callback.smfStarted();
                 try {
-                    playWithMilliSeconds();
+                    playWithMilliSeconds(position);
                     _isRunning = false;
                 } catch (Throwable e) {
                     _isRunning = false;
@@ -215,11 +215,13 @@ public class SMFSequencer {
         }
     }
 
-    protected void playWithMilliSeconds() throws InvalidMidiDataException {
+    protected void playWithMilliSeconds(long position) throws InvalidMidiDataException {
         _stopPlayer = false;
         if (_pianoRoll != null) {
-            _pianoRoll.clearPickedNote();
+            _pianoRoll.clearCache(position);
         }
+        _startMilliSeconds = position;
+        paintPiano(position);
 
         boolean[] reset = new boolean[MXAppConfig.TOTAL_PORT_COUNT];
 
@@ -258,9 +260,6 @@ public class SMFSequencer {
         long launched = System.currentTimeMillis() - _startMilliSeconds;
         long lastSent = 0;
 
-        if (_pianoRoll != null) {
-            _pianoRoll.clearPickedNote();
-        }
         _nextDraw = 0;
 
         while (!_stopPlayer && pos < list.size()) {
@@ -390,11 +389,6 @@ public class SMFSequencer {
 
     public long getStartMilliSecond() {
         return _startMilliSeconds;
-    }
-
-    public void setStartMilliSecond(long pos) {
-        _startMilliSeconds = pos;
-        _pianoRoll.setTiming(pos);
     }
 
     public long getMaxMilliSecond() {

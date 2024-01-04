@@ -522,7 +522,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
             }
             if (_pianoRollKeys != null && _pianoRollRoll != null) {
                 //_pianoRollRoll.resetTiming(4000,  20);
-                _pianoRollRoll.clearPickedNote();
+                _pianoRollRoll.clearCache(_pianoRollRoll.getSongPos());
                 int width = _pianoRollRoll.getWidth();
                 _pianoRollKeys.setPreferredSize(new Dimension(width, 100));
             }

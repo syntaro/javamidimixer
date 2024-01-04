@@ -170,8 +170,7 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
         }
         
         _gotBreak = false;
-        _sequencer.setStartMilliSecond(position);
-        _sequencer.startPlayer(new SMFCallback() {
+        _sequencer.startPlayer(position, new SMFCallback() {
             Thread _last;
             @Override
             public void smfPlayNote(MXTiming timing, SMFMessage smf) {
