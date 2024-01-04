@@ -535,9 +535,6 @@ public final class MXMessage implements Comparable<MXMessage> {
     }
 
     public int getDwordCount() {
-        if (isBinaryMessage()) {
-            return 0;
-        }
         if (_template.size() == 0) {
             return 0;
         }
@@ -560,6 +557,9 @@ public final class MXMessage implements Comparable<MXMessage> {
                 }
             }
             return -1;
+        }
+        if (isBinaryMessage()) {
+            return 0;
         }
         if (isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE) && isValuePairCC14()) {
             return 2;

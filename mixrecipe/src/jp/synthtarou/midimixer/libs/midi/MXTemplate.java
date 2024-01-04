@@ -280,9 +280,10 @@ public class MXTemplate implements Comparable<MXTemplate> {
             data = new byte[dataLength];
         }
 
+        /*
         if ((_commands[0] & 0xff00) != 0) {
             return null;
-        }
+        }*/
         int dpos = 0;
 
         for (int i = 0; i < _commands.length; ++i) {
@@ -290,7 +291,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
             try {
                 x = parseDAlias(x, message);
             } catch (IllegalArgumentException e) {
-                throw e;
+                //throw e;
             }
             data[dpos++] = (byte) (x & 0xff);
         }
