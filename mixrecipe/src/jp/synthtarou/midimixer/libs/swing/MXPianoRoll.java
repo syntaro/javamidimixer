@@ -295,6 +295,7 @@ public class MXPianoRoll extends JComponent {
         _songPos = position;
         _lastSongPos = _songPos - _soundSpan;
         _lastPickupForKick = 0;
+        _keys.allNoteOff();
         _lastPickupForPaint = 0;
         for (int i = 0; i < _pickedNoteForPaint.length; ++i) {
             _pickedNoteForPaint[i] = 0;
