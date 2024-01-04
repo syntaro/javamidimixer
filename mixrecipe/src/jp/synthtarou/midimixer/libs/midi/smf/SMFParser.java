@@ -253,11 +253,6 @@ public class SMFParser {
                 }
 
                 SMFStreamForTrack child = new SMFStreamForTrack(reader, trackLength);
-                if (child._length != trackLength) {
-                    throw new IllegalArgumentException("SMFSTreamForTrack readed " + child._length  +", was for " + trackLength);
-                }
-                System.out.println("trackLength " + trackLength);
-                System.out.println("binary " + MXUtil.dumpHex(child._buffer));
                 long tick = 0;
                 int fileOrder = 0;
 
