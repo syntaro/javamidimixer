@@ -38,6 +38,9 @@ public class MXRangedValue implements Comparable<MXRangedValue>{
     public static final MXRangedValue ZERO7 = _cache128[0];
 
     public static final MXRangedValue new7bit(int x) {
+        if (x < 0 || x >= 128)  {
+            throw new IllegalArgumentException("Maybe error");
+        }
         return _cache128[x];
     }
 

@@ -758,8 +758,6 @@ public class MXTemplate implements Comparable<MXTemplate> {
      * @return 
      */
     public MXMessage readDataForChGateValue(int port, byte[] data) {
-        MXTemplate me = this;
-
         boolean checkMatch = false;
         MXTemplate found = null;
 
@@ -767,10 +765,10 @@ public class MXTemplate implements Comparable<MXTemplate> {
         MXRangedValue gate = MXRangedValue.ZERO7;
         MXRangedValue value = MXRangedValue.ZERO7;
 
-        switch (me.get(0)) {
+        switch (get(0)) {
             case MXMidi.COMMAND2_NONE:
                 if (data.length == 0) {
-                    return new MXMessage(port, me);
+                    return new MXMessage(port, this);
                 }
                 return null;
             case MXMidi.COMMAND2_CH_RPN:
@@ -799,8 +797,8 @@ public class MXTemplate implements Comparable<MXTemplate> {
             int dataSeek = 0;
             int templateSeek = 0;
 
-            while (templateSeek < me.size() && dataSeek < data.length) {
-                int c1 = me.get(templateSeek);
+            while (templateSeek < size() && dataSeek < data.length) {
+                int c1 = get(templateSeek);
                 templateSeek++;
 
                 if (c1 == MXMidi.CCXML_CHECKSUM_END) {
@@ -859,7 +857,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
                     value = MXRangedValue.new14bit((valueHi << 7) | valueLo);
                 }
             }
-            return new MXMessage(port, me, channel, gate, value);
+            return new MXMessage(port, this, channel, gate, value);
         }
 
         return null;

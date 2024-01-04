@@ -32,6 +32,7 @@ import java.util.LinkedList;
 import java.util.TreeSet;
 import javax.sound.midi.ShortMessage;
 import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
 
@@ -42,29 +43,40 @@ import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
 public class SMFParser {
 
     public static void main(String[] args) {
-        ArrayList<String> skip = new ArrayList();
-        skip.add("C:/Windows");
-        String[] paths = {"C:/MIDI", "C:/Program Files", "C:/Users"};
-
-        for (String loop : paths) {
-            int countSmpte = 0, countTempo = 0;
-            ArrayList<File> fileList = SMFParser.scanSMF(loop, skip);
-            skip.add(loop);
-            for (File seek : fileList) {
-                try {
-                    SMFParser parse = new SMFParser(seek);
-                    //System.out.println(parse._file + " = " + parse._messageList.size());
-                    if (parse._smpteFormat >= 0) {
-                        System.out.println(seek);
-                        countSmpte++;
-                    } else {
-                        countTempo++;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        if (true) {
+            File file = new File("C:\\midi\\johnwilliams\\et_advtg.mid");
+            try {
+                SMFParser parse = new SMFParser(file);
+                    System.out.println(file);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            System.out.println("SMPTE " + countSmpte + " / TEMPO " + countTempo);
+        }
+        else {
+            ArrayList<String> skip = new ArrayList();
+            skip.add("C:/Windows");
+            String[] paths = {"C:/MIDI", "C:/Program Files", "C:/Users"};
+
+            for (String loop : paths) {
+                int countSmpte = 0, countTempo = 0;
+                ArrayList<File> fileList = SMFParser.scanSMF(loop, skip);
+                skip.add(loop);
+                for (File seek : fileList) {
+                    try {
+                        SMFParser parse = new SMFParser(seek);
+                        //System.out.println(parse._file + " = " + parse._messageList.size());
+                        if (parse._smpteFormat >= 0) {
+                            System.out.println(seek);
+                            countSmpte++;
+                        } else {
+                            countTempo++;
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                System.out.println("SMPTE " + countSmpte + " / TEMPO " + countTempo);
+            }
         }
     }
 
@@ -184,7 +196,7 @@ public class SMFParser {
             }
 
             if (reader._eof) {
-                System.out.println("Illegual OEF. @" + file);
+                System.out.println("Illegual EOF. @" + file);
                 return false;
             }
 
@@ -241,6 +253,11 @@ public class SMFParser {
                 }
 
                 SMFStreamForTrack child = new SMFStreamForTrack(reader, trackLength);
+                if (child._length != trackLength) {
+                    throw new IllegalArgumentException("SMFSTreamForTrack readed " + child._length  +", was for " + trackLength);
+                }
+                System.out.println("trackLength " + trackLength);
+                System.out.println("binary " + MXUtil.dumpHex(child._buffer));
                 long tick = 0;
                 int fileOrder = 0;
 
@@ -295,11 +312,19 @@ public class SMFParser {
     }
 
     public SortedArray<SMFMessage> _listMessage;
+    static int _runningStatus = 0;
 
     public SMFMessage fromStream(SMFStreamForTrack child) {
         SMFMessage message = null;
 
-        int status = child.read8();
+        int status = child.peek();
+        if (status < 0x80) {
+            status = _runningStatus;
+        }
+        else {
+            status = child.read8();
+            _runningStatus = status;
+        }
         int data1, data2;
 
         switch (status & 0xF0) {
@@ -340,9 +365,6 @@ public class SMFParser {
                         int metaType = child.read8();
                         int metaLength = (int) child.readVariable();
                         if (metaType < 0 || metaLength < 0) {
-                            break;
-                        }
-                        if (metaLength == 0) {
                             break;
                         }
                         byte[] metaData = new byte[metaLength + 2];

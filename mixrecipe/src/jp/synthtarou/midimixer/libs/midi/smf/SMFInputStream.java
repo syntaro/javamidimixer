@@ -88,17 +88,6 @@ public class SMFInputStream extends InputStream {
         }
         return -1;
     }
-    
-    public int read14() {
-        int x = read8();
-        int y = read8();
-        if (x < 0 || y <0) {
-            return  -1;
-        }
-        x = x & 0x7f;
-        y = y & 0x7f;
-        return x << 7 | y;
-    }
 
     public int read16() {
         int x = read8();

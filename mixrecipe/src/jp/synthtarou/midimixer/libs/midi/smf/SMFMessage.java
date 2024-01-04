@@ -28,7 +28,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
 public class SMFMessage implements Comparable<SMFMessage> {
 
     public SMFMessage(long tick, int status, int data1, int data2) {
-        this(tick, new byte[]{(byte) status, (byte) data1, (byte) data2});
+        this(tick, new byte[]{(byte) status, (byte) (data1 & 0x7f), (byte) (data2 & 0x7f)});
     }
 
     public SMFMessage(long tick, byte[] binary) {
@@ -48,15 +48,15 @@ public class SMFMessage implements Comparable<SMFMessage> {
     public long _millisecond;
 
     public int getStatus() {
-        return _binary[0] & 0xff;
+        return _binary.length >= 1 ? _binary[0] & 0xff : 0;
     }
 
     public int getData1() {
-        return _binary[1] & 0xff;
+        return _binary.length >= 2 ? _binary[1] & 0xff : 0;
     }
 
     public int getData2() {
-        return _binary[2] & 0xff;
+        return _binary.length >= 3 ? _binary[2] & 0xff : 0;
     }
 
     public String getMetaTitle() {
@@ -316,8 +316,8 @@ public class SMFMessage implements Comparable<SMFMessage> {
             return 0;
         }
         int st = getStatus() & 0xff;
-        int dt1 = getData1() & 0xff;
-        int dt2 = getData2() & 0xff;
+        int dt1 = getData1() & 0x7f;
+        int dt2 = getData2() & 0x7f;
         return (((st << 8) | dt1) << 8) | dt2;
     }
     

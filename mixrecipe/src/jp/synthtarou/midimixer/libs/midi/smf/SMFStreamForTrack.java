@@ -34,29 +34,22 @@ public class SMFStreamForTrack {
         _pos = 0;
     }
     
-    public int read8() {
-        if (_eof) {
-            return -1;
-        }
-        if (_pos >= _length) {
+    public int peek() {
+        if (_pos < _length) {
+            return _buffer[_pos] & 0x00ff;
+        }else {
             _eof = true;
             return -1;
         }
+    }
+
+    public int read8() {
         if (_pos < _length) {
             return _buffer[_pos ++] & 0x00ff;
+        }else {
+            _eof = true;
+            return -1;
         }
-        return -1;
-    }
-    
-    public int read14() {
-        int x = read8();
-        int y = read8();
-        if (x < 0 || y <0) {
-            return  -1;
-        }
-        x = x & 0x7f;
-        y = y & 0x7f;
-        return x << 7 | y;
     }
 
     public int read16() {
@@ -96,6 +89,7 @@ public class SMFStreamForTrack {
     public long readVariable() {
         long value = 0; // the variable-lengh int value
         int currentByte = 0;
+        //4ステップ以上のデータはないが
         do {
             currentByte = read8();
             if (currentByte < 0) {
