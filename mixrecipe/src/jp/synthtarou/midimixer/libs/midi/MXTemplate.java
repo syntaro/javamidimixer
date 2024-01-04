@@ -281,7 +281,6 @@ public class MXTemplate implements Comparable<MXTemplate> {
         }
 
         if ((_commands[0] & 0xff00) != 0) {
-            new IllegalArgumentException("command[0] >= 0x100 , " + Integer.toHexString(_commands[0])).printStackTrace();
             return null;
         }
         int dpos = 0;
