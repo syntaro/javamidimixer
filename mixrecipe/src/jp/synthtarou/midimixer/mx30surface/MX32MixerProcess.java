@@ -706,23 +706,19 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             ArrayList<MGStatus> listStatus = _finder.findCandidate(message);
             MXMessageBag segment = _emptyBag;
             _emptyBag = null;
+            boolean proc = false;
             if (listStatus != null && listStatus.isEmpty() == false) {
                 if (segment == null) {
-                    //_emptyBagCreated++;
                     segment = new MXMessageBag();
-                    //System.out.println("used " + _emptyBagUsed + " New " + _emptyBagCreated);
-                } else {
-                    //_emptyBagUsed++;
-                    //if ((_emptyBagUsed % 100) == 0) {
-                    //    System.out.println("used " + _emptyBagUsed + " New " + _emptyBagCreated);
-                    //}
                 }
                 for (MGStatus seek : listStatus) {
                     if (segment.isTouchedStatus(seek)) {
                         continue;
                     }
+                    segment.addTouchedStatus(seek);
                     if (seek.controlByMessage(message, segment)) {
-                        segment.addTouochedStatus(seek);
+                        proc = true;
+                        segment.addTouchedStatus(seek);
                         if (seek._uiType == MGStatus.TYPE_SLIDER) {
                             MGSlider slider = (MGSlider) seek.getComponent();
                             slider.publishUI();
@@ -737,36 +733,38 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 }
                 message._mx30record = segment.listTouchedStatus();
             }
-            if (segment == null) {
+            if (!proc) {
                 sendToNext(message);
             } else if (segment.isTranslatedEmpty()) {
-                sendToNext(message);
                 segment.clearTouchedStatus();
                 _emptyBag = segment;
-            } else {
-                segment.addTranslated(message);
-                while (true) {
-                    MXMessage message2 = segment.popTranslated();
-                    if (message2 == null) {
-                        break;
-                    }
-                    message2._timing = message._timing;
-                    sendToNext(message2);
-                    bag.addQueue(message2);
-                }
-                while (true) {
-                    Runnable task = segment.popTranslatedTask();
-                    if (task == null) {
-                        break;
-                    }
-
-                    try {
-                        task.run();
-                    } catch (Throwable e) {
-                        e.printStackTrace();
-                    }
-                }
+            } else if (proc) {
+                flushResult(segment);
+            }else {
+                sendToNext(message);
             }
         }
     }
+
+
+    void flushResult(MXMessageBag result) {
+        while (true) {
+            MXMessage message = result.popTranslated();
+            if (message == null) {
+                break;
+            }
+            _parent.processMXMessage(message);
+        }
+        while(true) {
+            Runnable run = result.popTranslatedTask();
+            if (run == null) {
+                break;
+            }
+            try {
+                run.run();
+            }catch(Throwable e) {
+                e.printStackTrace();;
+            }
+        }
+    }        
 }

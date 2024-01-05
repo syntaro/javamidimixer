@@ -31,7 +31,9 @@ import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXMain;
@@ -135,6 +137,19 @@ public class MGStatusPanel extends javax.swing.JPanel {
         jSpinnerDrumOnRangeMax.setModel(new SpinnerNumberModel(127, 0, 127, 1));
         jSpinnerDrumMouseOnValue.setModel(new SpinnerNumberModel(100, 0, 127, 1));
         jSpinnerDrumMouseOffValue.setModel(new SpinnerNumberModel(0, 0, 127, 1));
+        
+        int height = jSpinnerDrumOnRangeMin.getPreferredSize().height;
+        if (height < 17) {
+            height = 17;
+        }
+        int width = 80;
+        Dimension size = new Dimension(width, height);
+        jSpinnerMin.setPreferredSize(size);
+        jSpinnerMax.setPreferredSize(size);
+        jSpinnerDrumOnRangeMin.setPreferredSize(size);
+        jSpinnerDrumOnRangeMax.setPreferredSize(size);
+        jSpinnerDrumMouseOnValue.setPreferredSize(size);
+        jSpinnerDrumMouseOffValue.setPreferredSize(size);
 
         _drumOutPort = MXWrapListFactory.listupPort("as Input");
         _drumOutChannel = MXWrapListFactory.listupChannel("as Input");
@@ -150,13 +165,13 @@ public class MGStatusPanel extends javax.swing.JPanel {
         jLabelBlank6.setText("");
         jLabelBlank7.setText("");
 
-        skipDataExchange = false;
         
         new MXPopupForText(jTextFieldName) {
             @Override
             public void approvedText(String text) {
                 _status._name = text;
                 displayStatusToPanelSlider();
+                displayStatusToPanelDrum();
             }
         };
         
@@ -167,6 +182,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
                 int channel  = _listChannel.valueOfIndex(selected);
                 _status._base.setChannel(channel);
                 displayStatusToPanelSlider();
+                displayStatusToPanelDrum();
             }
         };
 
@@ -190,6 +206,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
                     }
                 }
                 displayStatusToPanelSlider();
+                displayStatusToPanelDrum();
             }
             
             @Override
@@ -206,6 +223,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
             public void approvedText(String text) {
                 _status._memo = text;
                 displayStatusToPanelSlider();
+                displayStatusToPanelDrum();
             }
         };
 
@@ -319,6 +337,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
 
         };
 
+        skipDataExchange = false;
 
         displayStatusToPanelSlider();
         displayStatusToPanelDrum();
@@ -397,12 +416,15 @@ public class MGStatusPanel extends javax.swing.JPanel {
             }
 
             jTextFieldGate.setText(_currentGateModel.nameOfValue(_status._base.getGate()._value));
-            /*
-            jSpinnerOutOnValueFixed.setModel(new SafeSpinnerNumberModel(_status.getSwitchOutOnValueFixed(), 0, 16383, 1));
-            jSpinnerOutOffValueFixed.setModel(new SafeSpinnerNumberModel(_status.getSwitchOutOffValueFixed(), 0, 16383, 1));
-             */
-            jSpinnerMin.setModel(new SafeSpinnerNumberModel(_status.getValue()._min, 0, 128 * 128 - 1, 1));
-            jSpinnerMax.setModel(new SafeSpinnerNumberModel(_status.getValue()._max, 0, 128 * 128 - 1, 1));
+
+            if (_status._base != null && _status._base.indexOfValueHi() >= 0) {
+                jSpinnerMin.setModel(new SafeSpinnerNumberModel(_status.getValue()._min, 0, 128 * 128 - 1, 1));
+                jSpinnerMax.setModel(new SafeSpinnerNumberModel(_status.getValue()._max, 0, 128 * 128 - 1, 1));
+            }
+            else {
+                jSpinnerMin.setModel(new SafeSpinnerNumberModel(_status.getValue()._min, 0, 128 - 1, 1));
+                jSpinnerMax.setModel(new SafeSpinnerNumberModel(_status.getValue()._max, 0, 128 - 1, 1));
+            }
 
             jCheckBoxCC14bit.setSelected(_status._ccPair14);
             jCheckBoxCustomRange.setSelected(_status.hasCustomRange());
@@ -524,15 +546,23 @@ public class MGStatusPanel extends javax.swing.JPanel {
 
         try {
             /* Drum */
-            jSpinnerDrumOnRangeMin.setValue(_status._drum._strikeZone._min);
-            jSpinnerDrumOnRangeMax.setValue(_status._drum._strikeZone._max);
-
-            jLabelOffRange.setText(textForOffRange(_status._drum._strikeZone, _status._base.getValue()));
-
-            jSpinnerDrumMouseOnValue.setValue(_status._drum._mouseOnValue);
-            jSpinnerDrumMouseOffValue.setValue(_status._drum._mouseOffValue);
             jCheckBoxDrumModeToggle.setSelected(_status._drum._modeToggle);
             jCheckBoxDrumOnlySwitch.setSelected(_status._drum._onlySwitched);
+            
+            textForOffRange();
+
+            MXRangedValue range = _status._base.getValue();
+
+            jSpinnerDrumOnRangeMin.setValue(_status._drum._strikeZone._min);
+            jSpinnerDrumOnRangeMax.setValue(_status._drum._strikeZone._max);
+            jSpinnerDrumMouseOnValue.setValue(_status._drum._mouseOnValue);
+            jSpinnerDrumMouseOffValue.setValue(_status._drum._mouseOffValue);
+            if (_status._drum != null) {
+                adjustSpinnerSub(jSpinnerDrumOnRangeMin, range);
+                adjustSpinnerSub(jSpinnerDrumOnRangeMax, range);
+                adjustSpinnerSub(jSpinnerDrumMouseOnValue, range);
+                adjustSpinnerSub(jSpinnerDrumMouseOffValue, range);
+            }
 
             /* Drum Output */
             switch (_status._drum._outStyle) {
@@ -638,6 +668,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
                     jRadioButtonJumpDec.setSelected(true);
                     break;
             }
+            
         } finally {
             skipDataExchange = false;
         }
@@ -2097,6 +2128,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
             _status._name = name;
             _status._outGateTable = gateTable;
             displayStatusToPanelSlider();
+            displayStatusToPanelDrum();
         }
 
     }
@@ -2156,6 +2188,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
                 }
             }
             displayStatusToPanelSlider();
+            displayStatusToPanelDrum();
         }
     }
 
@@ -2287,25 +2320,13 @@ public class MGStatusPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonCCTemplateActionPerformed
 
     private void jSpinnerDrumOnRangeMinStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinnerDrumOnRangeMinStateChanged
-        int onRangeMin = (Integer) jSpinnerDrumOnRangeMin.getValue();
-        int onRangeMax = (Integer) jSpinnerDrumOnRangeMax.getValue();
-        if (onRangeMin > onRangeMax) {
-            onRangeMax = onRangeMin;
-            jSpinnerDrumOnRangeMax.setValue(onRangeMax);
-            return;
-        }
-        jLabelOffRange.setText(textForOffRange(new MXRangedValue(0, onRangeMin, onRangeMax), _status._base.getValue()));
+        readOffRange(true);
+        textForOffRange();
     }//GEN-LAST:event_jSpinnerDrumOnRangeMinStateChanged
 
     private void jSpinnerDrumOnRangeMaxStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinnerDrumOnRangeMaxStateChanged
-        int onRangeMin = (Integer) jSpinnerDrumOnRangeMin.getValue();
-        int onRangeMax = (Integer) jSpinnerDrumOnRangeMax.getValue();
-        if (onRangeMin > onRangeMax) {
-            onRangeMin = onRangeMax;
-            jSpinnerDrumOnRangeMin.setValue(onRangeMin);
-            return;
-        }
-        jLabelOffRange.setText(textForOffRange(new MXRangedValue(0, onRangeMin, onRangeMax), _status._base.getValue()));
+        readOffRange(false);
+        textForOffRange();
     }//GEN-LAST:event_jSpinnerDrumOnRangeMaxStateChanged
 
     private void jRadioButtonDrumTypeCustomActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonDrumTypeCustomActionPerformed
@@ -2500,7 +2521,28 @@ public class MGStatusPanel extends javax.swing.JPanel {
          */
     }
 
-    public String textForOffRange(MXRangedValue on, MXRangedValue all) {
+    public void readOffRange(boolean minChanged) {
+        int onRangeMin = (Integer) jSpinnerDrumOnRangeMin.getValue();
+        int onRangeMax = (Integer) jSpinnerDrumOnRangeMax.getValue();
+        if (onRangeMin > onRangeMax) {
+            if (minChanged) {
+                onRangeMax = onRangeMin;
+                jSpinnerDrumOnRangeMax.setValue(onRangeMax);
+            }else {
+                onRangeMin = onRangeMax;
+                jSpinnerDrumOnRangeMin.setValue(onRangeMin);
+            }
+        }
+       
+        _status._drum._strikeZone = new MXRangedValue(_status._drum._strikeZone._value, onRangeMin, onRangeMax);
+    }
+    
+    public void textForOffRange() {
+        int onRangeMin = _status._drum._strikeZone._min;
+        int onRangeMax = _status._drum._strikeZone._max;
+
+        MXRangedValue on = new MXRangedValue(0, onRangeMin, onRangeMax);
+        MXRangedValue all = _status._base.getValue();
         String min = "";
         if (on._min > all._min) {
             if (all._min == on._min - 1) {
@@ -2518,9 +2560,37 @@ public class MGStatusPanel extends javax.swing.JPanel {
             }
         }
         if (min.isEmpty() || max.isEmpty()) {
-            return min + max;
+            jLabelOffRange.setText(min +  max);
         }
-        return min + ", " + max;
-
+        else {
+            jLabelOffRange.setText(min + ", " + max);
+        }
+    }
+        
+    public void adjustSpinnerSub(JSpinner spinner, MXRangedValue range) {
+        SpinnerNumberModel model = null;
+        SpinnerModel test = spinner.getModel();
+        if (test instanceof SpinnerNumberModel) {
+            model = (SpinnerNumberModel)test;
+        }
+        boolean needReset = false;
+        if (model == null) {
+            needReset = true;
+        }
+        else {
+            if ((Integer)model.getMinimum() != range._min) {
+                needReset = true;
+            }
+            if ((Integer)model.getMaximum()!= range._max) {
+                needReset = true;
+            }
+            if (range.contains((Integer)model.getValue()) == false) {
+                needReset = true;
+            }
+        }
+        if (needReset) {
+            model = new SpinnerNumberModel(range._value, range._min, range._max, 1);
+            spinner.setModel(model);
+        }
     }
 }

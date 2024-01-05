@@ -121,25 +121,13 @@ public class MGDrumPad extends javax.swing.JPanel {
     public void increment() {
         MXMessageBag bag = new MXMessageBag();
         getStatus()._drum.mouseDetected(true, bag);
-        while (true) {
-            MXMessage message = bag.popTranslated();
-            if (message == null) {
-                break;
-            }
-            _mixer.startProcess(message);
-        }
+        _mixer.flushResult(bag);
     }
 
     public void decriment() {
         MXMessageBag bag = new MXMessageBag();
         getStatus()._drum.mouseDetected(false, bag);
-        while (true) {
-            MXMessage message = bag.popTranslated();
-            if (message == null) {
-                break;
-            }
-            _mixer.startProcess(message);
-        }
+        _mixer.flushResult(bag);
     }
 
     public void editContoller() {

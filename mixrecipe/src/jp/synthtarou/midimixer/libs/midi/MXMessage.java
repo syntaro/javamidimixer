@@ -41,7 +41,7 @@ public final class MXMessage implements Comparable<MXMessage> {
     }
 
     public MXTiming _timing;
-    int _port;
+    private int _port;
 
     private MXRangedValue _value = MXRangedValue.ZERO7;
     private MXRangedValue _gate = MXRangedValue.ZERO7;

@@ -273,7 +273,9 @@ public class SMFSequencer {
                     if (waiting >= waiting2)  {
                         waiting = waiting2;
                     }
-                    Thread.sleep(waiting);
+                    if (waiting >= 1) {
+                        Thread.sleep(waiting);
+                    }
                 } catch (InterruptedException ex) {
                 }
                 elapsed = (System.currentTimeMillis() - launched);

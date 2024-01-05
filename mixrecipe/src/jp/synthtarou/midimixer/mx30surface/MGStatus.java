@@ -128,7 +128,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         }
     }
 
-public int getChannel() {
+    public int getChannel() {
         if (_base != null) {
             return _base.getChannel();
         }
@@ -180,7 +180,14 @@ public int getChannel() {
         if (_base.isEmpty()) {
             return false;
         }
+
+        if ((_base.getStatus() & 0xf0) == MXMidi.COMMAND_CH_NOTEON) {
+            if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_NOTEOFF) {
+                message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_NOTEON + message.getChannel(), message.getData1(), 0);
+            }
+        }
         MXRangedValue value = _base.catchValue(message);
+
         if (value != null) {
             MXVisitant visit = message.getVisitant();
             
