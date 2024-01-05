@@ -53,7 +53,7 @@ public class MGDrumPad extends javax.swing.JPanel {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     return;
                 }
-                increment();
+                increment(null);
             }
 
             @Override
@@ -61,7 +61,7 @@ public class MGDrumPad extends javax.swing.JPanel {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     return;
                 }
-                decriment();
+                decriment(null);
             }
         });
         updateUI();
@@ -118,14 +118,18 @@ public class MGDrumPad extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
 
-    public void increment() {
-        MXMessageBag bag = new MXMessageBag();
+    public void increment(MXMessageBag bag) {
+        if (bag == null) {
+            bag = new MXMessageBag();
+        }
         getStatus()._drum.mouseDetected(true, bag);
         _mixer.flushResult(bag);
     }
 
-    public void decriment() {
-        MXMessageBag bag = new MXMessageBag();
+    public void decriment(MXMessageBag bag) {
+        if (bag == null) {
+            bag = new MXMessageBag();
+        }
         getStatus()._drum.mouseDetected(false, bag);
         _mixer.flushResult(bag);
     }

@@ -23,6 +23,7 @@ import java.awt.event.MouseWheelListener;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
+import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 
@@ -131,7 +132,7 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
         if (_ignoreEvent) {
             return;
         }
-        _mixer.updateStatusAndSend(getStatus(), newValue, null);
+        _mixer.updateStatusAndSend(getStatus(), newValue, null, null);
     }
 
     MXTiming _trackNumer;
@@ -161,19 +162,19 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
     private CurvedSlider jCircleValue;
     // End of variables declaration                   
 
-    public void increment() {
+    public void increment(MXMessageBag bag) {
         MGStatus status = getStatus();
         MXRangedValue var = status.getValue().increment();
         if (var != null) {
-            _mixer.updateStatusAndSend(status, var._value, null);
+            _mixer.updateStatusAndSend(status, var._value, null, bag);
         }
     }
 
-    public void decriment() {
+    public void decriment(MXMessageBag bag) {
         MGStatus status = getStatus();
         MXRangedValue var = status.getValue().decrement();
         if (var != null) {
-            _mixer.updateStatusAndSend(status, var._value, null);
+            _mixer.updateStatusAndSend(status, var._value, null, bag);
         }
     }
 
@@ -194,9 +195,9 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
     public void mouseWheelMoved(MouseWheelEvent e) {
         int d = e.getUnitsToScroll();
         if (d > 0) {
-            this.decriment();
+            this.decriment(null);
         } else {
-            this.increment();
+            this.increment(null);
         }
     }
 }

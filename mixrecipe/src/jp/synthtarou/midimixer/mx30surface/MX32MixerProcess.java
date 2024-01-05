@@ -83,7 +83,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             return;
         }
 
-        startProcess(message);
+        startProcess(message, null);
     }
 
     @Override
@@ -479,13 +479,31 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
         }
     }
 
-    MXMessage updateStatusAndSend(MGStatus status, int newValue, MXTiming timing) {
+    void updateStatusAndSend(MGStatus status, int newValue, MXTiming timing, MXMessageBag result) {
+        if (result == null) {
+            result = new MXMessageBag();
+        }
+        updateStatusAndGetResult(status, newValue, timing, result);
+        while (true) {
+            MXMessage message = result.popTranslated();
+            if (message == null) {
+                break;
+            }
+            sendToNext(message);
+            _parent.processMXMessage(message);
+        }
+    }
+
+    private void updateStatusAndGetResult(MGStatus status, int newValue, MXTiming timing, MXMessageBag result) {
         if (_parent._underConstruction) {
-            return null;
+            return;
         }
         synchronized (MXTiming.mutex) {
             if (timing == null) {
                 timing = new MXTiming();
+            }
+            if (result.isTouchedStatus(status)) {
+                return;
             }
             MXMessage message = null;
             int row = status._row, column = status._column;
@@ -511,17 +529,17 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 int nextMin = nextStatus._base.getValue()._min;
                 int nextMax = nextStatus._base.getValue()._max;
                 newValue = status._base.getValue().changeRange(nextMin, nextMax)._value;
-                nextMixer.updateStatusAndSend(nextStatus, newValue, timing);
+                nextMixer.updateStatusAndSend(nextStatus, newValue, timing, result);
             }
 
             if (_patchToMixer < 0 || _patchTogether) {
                 if (message != null) {
                     message._mx30record = new MGStatus[]{status};
-                    processMXMessage(message);
+                    startProcess(message, result);
+                    result.addTranslated(message);
                 }
             }
         }
-        return null;
     }
 
     MXMessage _poolFor14bit = null;
@@ -673,9 +691,12 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
     long _emptyBagUsed = 0;
     long _emptyBagCreated = 0;
 */
-    public void startProcess(MXMessage message) {
+    public void startProcess(MXMessage message, MXMessageBag bag) {
         if (message == null) {
             return;
+        }
+        if (bag == null) {
+            bag = new MXMessageBag();
         }
 
         if (message.isEmpty()) {
@@ -695,7 +716,6 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             }
         }
 
-        MXMessageBag bag = new MXMessageBag();
         bag.addQueue(message);
 
         while (true) {

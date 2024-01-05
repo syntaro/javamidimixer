@@ -257,10 +257,12 @@ public class MGStatusForDrum implements Cloneable {
     class SliderOperation implements Runnable {
         MGStatus _slider;
         int _newValue;
+        MXMessageBag _bag;
         
-        public SliderOperation(MGStatus slider, int newValue) {
+        public SliderOperation(MGStatus slider, int newValue, MXMessageBag bag) {
             _slider = slider;
             _newValue = newValue;
+            _bag = bag;
         }
         
         @Override
@@ -270,13 +272,13 @@ public class MGStatusForDrum implements Cloneable {
                     MGSlider slider = (MGSlider)_slider.getComponent();
                     _slider.setMessageValue(_newValue);
                     slider.publishUI();
-                    _slider._mixer.updateStatusAndSend(_slider, _newValue, null);
+                    _slider._mixer.updateStatusAndSend(_slider, _newValue, null, _bag);
                     break;
                 case MGStatus.TYPE_CIRCLE:
                     MGCircle circle = (MGCircle)_slider.getComponent();
                     _slider.setMessageValue(_newValue);
                     circle.publishUI();
-                    _slider._mixer.updateStatusAndSend(_slider, _newValue, null);
+                    _slider._mixer.updateStatusAndSend(_slider, _newValue, null, _bag);
                     break;
                 case MGStatus.TYPE_DRUMPAD:
                     return;
@@ -384,7 +386,7 @@ public class MGStatusForDrum implements Cloneable {
                         default:
                             return;
                     }
-                    result.addTranslatedTask(new SliderOperation(status, value));
+                    result.addTranslatedTask(new SliderOperation(status, value, result));
                     return;
 
                 case STYLE_PROGRAM_CHANGE:
