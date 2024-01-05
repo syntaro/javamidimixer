@@ -479,13 +479,11 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
         }
     }
 
-    void updateStatusAndSend(MGStatus status, int newValue, MXTiming timing, MXMessageBag result) {
-        if (result == null) {
-            result = new MXMessageBag();
-        }
-        updateStatusAndGetResult(status, newValue, timing, result);
+    void updateStatusAndSend(MGStatus status, int newValue) {
+        MXMessageBag bag = new MXMessageBag();
+        updateStatusAndGetResult(status, newValue, null, bag);
         while (true) {
-            MXMessage message = result.popTranslated();
+            MXMessage message = bag.popTranslated();
             if (message == null) {
                 break;
             }
@@ -494,7 +492,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
         }
     }
 
-    private void updateStatusAndGetResult(MGStatus status, int newValue, MXTiming timing, MXMessageBag result) {
+    void updateStatusAndGetResult(MGStatus status, int newValue, MXTiming timing, MXMessageBag bag) {
         if (_parent._underConstruction) {
             return;
         }
@@ -502,7 +500,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             if (timing == null) {
                 timing = new MXTiming();
             }
-            if (result.isTouchedStatus(status)) {
+            if (bag.isTouchedStatus(status)) {
                 return;
             }
             MXMessage message = null;
@@ -520,6 +518,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 circle.publishUI();
             } else {
                 new IllegalStateException("Dont use this. See MGStatusForDrum.messageDetected").printStackTrace();
+                // not throw
             }
 
             if (_patchToMixer >= 0) {
@@ -529,14 +528,15 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 int nextMin = nextStatus._base.getValue()._min;
                 int nextMax = nextStatus._base.getValue()._max;
                 newValue = status._base.getValue().changeRange(nextMin, nextMax)._value;
-                nextMixer.updateStatusAndSend(nextStatus, newValue, timing, result);
+                nextMixer.updateStatusAndGetResult(nextStatus, newValue, timing, bag);
             }
 
             if (_patchToMixer < 0 || _patchTogether) {
                 if (message != null) {
+                    message._timing = timing;
                     message._mx30record = new MGStatus[]{status};
-                    startProcess(message, result);
-                    result.addTranslated(message);
+                    startProcess(message, bag);
+                    bag.addTranslated(message);
                 }
             }
         }
@@ -685,12 +685,6 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
         notifyCacheBroken();
     }
 
-    MXMessageBag _emptyBag = null;
-
-/*
-    long _emptyBagUsed = 0;
-    long _emptyBagCreated = 0;
-*/
     public void startProcess(MXMessage message, MXMessageBag bag) {
         if (message == null) {
             return;
@@ -698,7 +692,6 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
         if (bag == null) {
             bag = new MXMessageBag();
         }
-
         if (message.isEmpty()) {
             sendToNext(message);
             return;
@@ -724,21 +717,15 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 break;
             }
             ArrayList<MGStatus> listStatus = _finder.findCandidate(message);
-            MXMessageBag segment = _emptyBag;
-            _emptyBag = null;
             boolean proc = false;
             if (listStatus != null && listStatus.isEmpty() == false) {
-                if (segment == null) {
-                    segment = new MXMessageBag();
-                }
                 for (MGStatus seek : listStatus) {
-                    if (segment.isTouchedStatus(seek)) {
+                    if (bag.isTouchedStatus(seek)) {
                         continue;
                     }
-                    segment.addTouchedStatus(seek);
-                    if (seek.controlByMessage(message, segment)) {
+                    if (seek.controlByMessage(message, bag)) {
                         proc = true;
-                        segment.addTouchedStatus(seek);
+                        bag.addTouchedStatus(seek);
                         if (seek._uiType == MGStatus.TYPE_SLIDER) {
                             MGSlider slider = (MGSlider) seek.getComponent();
                             slider.publishUI();
@@ -751,32 +738,29 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                         }
                     }
                 }
-                message._mx30record = segment.listTouchedStatus();
+                message._mx30record = bag.listTouchedStatus();
             }
             if (!proc) {
-                sendToNext(message);
-            } else if (segment.isTranslatedEmpty()) {
-                segment.clearTouchedStatus();
-                _emptyBag = segment;
-            } else if (proc) {
-                flushResult(segment);
-            }else {
-                sendToNext(message);
+                bag.addTranslated(message);
             }
         }
+        flushSendQueue(bag);
     }
 
 
-    void flushResult(MXMessageBag result) {
+    void flushSendQueue(MXMessageBag bag) {
         while (true) {
-            MXMessage message = result.popTranslated();
+            MXMessage message = bag.popTranslated();
             if (message == null) {
                 break;
             }
-            _parent.processMXMessage(message);
+            
+            int port = message.getPort();
+            sendToNext(message);
+            _parent._pageProcess[port].startProcess(message, bag);
         }
         while(true) {
-            Runnable run = result.popTranslatedTask();
+            Runnable run = bag.popTranslatedTask();
             if (run == null) {
                 break;
             }

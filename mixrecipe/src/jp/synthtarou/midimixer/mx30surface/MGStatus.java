@@ -173,7 +173,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
                 + message.toString() + (message.isValuePairCC14() ? " (=14bit)" : "");
     }
 
-    public boolean controlByMessage(MXMessage message, MXMessageBag result) {
+    public boolean controlByMessage(MXMessage message, MXMessageBag bag) {
         if (message.isEmpty()) {
             return false;
         }
@@ -231,7 +231,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
             if (newValue >= value._min && newValue <= value._max) {
                 setMessageValue(newValue);
                 if (_drum != null) {
-                    _drum.messageDetected(result);
+                    _drum.messageDetected(bag);
                     return true;
                 }
                 else {

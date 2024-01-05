@@ -166,7 +166,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
         if (_ignoreEvent) {
             return;
         }
-        _mixer.updateStatusAndSend(getStatus(), newValue, null, null);        
+        _mixer.updateStatusAndSend(getStatus(), newValue);        
     }//GEN-LAST:event_jSliderValueStateChanged
 
     public void publishUI() {
@@ -215,17 +215,19 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
 
     public void increment(MXMessageBag bag) {
         MGStatus status = getStatus();
-        MXRangedValue var = status._base.getValue().increment();
+        MXRangedValue var = status.getValue().increment();
         if (var != null) {
-            _mixer.updateStatusAndSend(status, var._value, null, bag);
+            _mixer.updateStatusAndGetResult(status, var._value, null, bag);
+            _mixer.flushSendQueue(bag);
         }
     }
-    
+
     public void decriment(MXMessageBag bag) {
         MGStatus status = getStatus();
-        MXRangedValue var = status._base.getValue().decrement();
+        MXRangedValue var = status.getValue().decrement();
         if (var != null) {
-            _mixer.updateStatusAndSend(status, var._value, null, bag);
+            _mixer.updateStatusAndGetResult(status, var._value, null, bag);
+            _mixer.flushSendQueue(bag);
         }
     }
 

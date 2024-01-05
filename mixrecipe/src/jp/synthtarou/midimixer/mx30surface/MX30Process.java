@@ -32,7 +32,7 @@ import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 public class MX30Process extends MXReceiver implements MXSettingTarget {
 
     private MX30View _rootView;
-    private MX32MixerProcess[] _pageProcess;
+    MX32MixerProcess[] _pageProcess;
     MXSetting _setting;
     boolean _underConstruction;
     

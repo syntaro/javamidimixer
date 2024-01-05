@@ -123,7 +123,7 @@ public class MGDrumPad extends javax.swing.JPanel {
             bag = new MXMessageBag();
         }
         getStatus()._drum.mouseDetected(true, bag);
-        _mixer.flushResult(bag);
+        _mixer.flushSendQueue(bag);
     }
 
     public void decriment(MXMessageBag bag) {
@@ -131,7 +131,7 @@ public class MGDrumPad extends javax.swing.JPanel {
             bag = new MXMessageBag();
         }
         getStatus()._drum.mouseDetected(false, bag);
-        _mixer.flushResult(bag);
+        _mixer.flushSendQueue(bag);
     }
 
     public void editContoller() {

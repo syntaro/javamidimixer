@@ -132,7 +132,7 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
         if (_ignoreEvent) {
             return;
         }
-        _mixer.updateStatusAndSend(getStatus(), newValue, null, null);
+        _mixer.updateStatusAndSend(getStatus(), newValue);
     }
 
     MXTiming _trackNumer;
@@ -166,7 +166,8 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
         MGStatus status = getStatus();
         MXRangedValue var = status.getValue().increment();
         if (var != null) {
-            _mixer.updateStatusAndSend(status, var._value, null, bag);
+            _mixer.updateStatusAndGetResult(status, var._value, null, bag);
+            _mixer.flushSendQueue(bag);
         }
     }
 
@@ -174,7 +175,8 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
         MGStatus status = getStatus();
         MXRangedValue var = status.getValue().decrement();
         if (var != null) {
-            _mixer.updateStatusAndSend(status, var._value, null, bag);
+            _mixer.updateStatusAndGetResult(status, var._value, null, bag);
+            _mixer.flushSendQueue(bag);
         }
     }
 

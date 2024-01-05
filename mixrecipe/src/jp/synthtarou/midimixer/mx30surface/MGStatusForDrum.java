@@ -222,7 +222,7 @@ public class MGStatusForDrum implements Cloneable {
         }
     }
 
-    void mouseDetected(boolean push, MXMessageBag result) {
+    void mouseDetected(boolean push, MXMessageBag bag) {
         int velocity;
         if (push) {
             _status.setMessageValue(_mouseOnValue);
@@ -230,10 +230,10 @@ public class MGStatusForDrum implements Cloneable {
             _status.setMessageValue(_mouseOffValue);
         }
 
-        messageDetected(result);
+        messageDetected(bag);
     }
 
-    boolean messageDetected(MXMessageBag result) {
+    boolean messageDetected(MXMessageBag bag) {
         boolean flag = _strikeZone.contains(_status.getValue()._value);
 
         if (flag == _lastDetected) {
@@ -250,7 +250,7 @@ public class MGStatusForDrum implements Cloneable {
                 return false;
             }
         }
-        doAction(flag, result);
+        doAction(flag, bag);
         return true;
     }
 
@@ -272,13 +272,15 @@ public class MGStatusForDrum implements Cloneable {
                     MGSlider slider = (MGSlider)_slider.getComponent();
                     _slider.setMessageValue(_newValue);
                     slider.publishUI();
-                    _slider._mixer.updateStatusAndSend(_slider, _newValue, null, _bag);
+                    _slider._mixer.updateStatusAndGetResult(_slider, _newValue, null, _bag);
+                    _slider._mixer.flushSendQueue(_bag);
                     break;
                 case MGStatus.TYPE_CIRCLE:
                     MGCircle circle = (MGCircle)_slider.getComponent();
                     _slider.setMessageValue(_newValue);
                     circle.publishUI();
-                    _slider._mixer.updateStatusAndSend(_slider, _newValue, null, _bag);
+                    _slider._mixer.updateStatusAndGetResult(_slider, _newValue, null, _bag);
+                    _slider._mixer.flushSendQueue(_bag);
                     break;
                 case MGStatus.TYPE_DRUMPAD:
                     return;
@@ -286,7 +288,7 @@ public class MGStatusForDrum implements Cloneable {
         }
         
     }
-    void doAction(boolean flag, MXMessageBag result) {
+    void doAction(boolean flag, MXMessageBag bag) {
         MXMessage message;
         if (_lastSent == flag) {
             return;
@@ -325,13 +327,13 @@ public class MGStatusForDrum implements Cloneable {
                 case STYLE_SAME_CC:
                     message = (MXMessage) _status._base.clone();
                     message.setValue(velocity);
-                    result.addTranslated(message);
+                    bag.addTranslated(message);
                     return;
 
                 case STYLE_CUSTOM_CC:
                     if (_customTemplate != null) {
                         message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, MXRangedValue.new7bit(velocity));
-                        result.addTranslated(message);
+                        bag.addTranslated(message);
                         return;
                     }
                     break;
@@ -339,11 +341,11 @@ public class MGStatusForDrum implements Cloneable {
                     int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
                     for (int note : noteList) {
                         message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEON + channel, note, velocity);
-                        result.addTranslated(message);
+                        bag.addTranslated(message);
                     }
                     break;
                 case STYLE_SEQUENCE:
-                    result.addTranslatedTask(new Runnable() {
+                    bag.addTranslatedTask(new Runnable() {
                         @Override
                         public void run() {
                             startSongPlayer();
@@ -386,7 +388,7 @@ public class MGStatusForDrum implements Cloneable {
                         default:
                             return;
                     }
-                    result.addTranslatedTask(new SliderOperation(status, value, result));
+                    bag.addTranslatedTask(new SliderOperation(status, value, bag));
                     return;
 
                 case STYLE_PROGRAM_CHANGE:
@@ -394,19 +396,19 @@ public class MGStatusForDrum implements Cloneable {
                         case PROGRAM_SET:
                             message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, _programNumber, 0);
                             message.setProgramBank(_programMSB, _programLSB);
-                            result.addTranslated(message);
+                            bag.addTranslated(message);
                             break;
                         case PROGRAM_INC:
                             message = MXMessageFactory.fromTemplate(port,
                                     new MXTemplate(new int[]{MXMidi.COMMAND2_CH_PROGRAM_INC}),
                                     channel, null, null);
-                            result.addTranslated(message);
+                            bag.addTranslated(message);
                             break;
                         case PROGRAM_DEC:
                             message = MXMessageFactory.fromTemplate(port,
                                     new MXTemplate(new int[]{MXMidi.COMMAND2_CH_PROGRAM_DEC}),
                                     channel, null, null);
-                            result.addTranslated(message);
+                            bag.addTranslated(message);
                             break;
                     }
                     return;
@@ -426,24 +428,24 @@ public class MGStatusForDrum implements Cloneable {
                 case STYLE_SAME_CC:
                     message = (MXMessage) _status._base.clone();
                     message.setValue(velocity);
-                    result.addTranslated(message);
+                    bag.addTranslated(message);
                     break;
 
                 case STYLE_CUSTOM_CC:
                     if (_customTemplate != null) {
                         message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, MXRangedValue.new7bit(velocity));
-                        result.addTranslated(message);
+                        bag.addTranslated(message);
                     }
                     break;
                 case STYLE_NOTES:
                     int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
                     for (int note : noteList) {
                         message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + channel, note, 0);
-                        result.addTranslated(message);
+                        bag.addTranslated(message);
                     }
                     break;
                 case STYLE_SEQUENCE:
-                    result.addTranslatedTask(new Runnable() {
+                    bag.addTranslatedTask(new Runnable() {
                         @Override
                         public void run() {
                             stopSongPlayer();
