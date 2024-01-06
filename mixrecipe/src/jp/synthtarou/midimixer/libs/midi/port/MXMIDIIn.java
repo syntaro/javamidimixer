@@ -39,6 +39,7 @@ import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
 public class MXMIDIIn {
 
     public static final MXMIDIInForPlayer INTERNAL_PLAYER = new MXMIDIInForPlayer();
+    public static final MXMIDIInForTest INTERNAL_TESTER = new MXMIDIInForTest();
 
     private String _name;
     private MXDriver _driver;
@@ -421,7 +422,7 @@ public class MXMIDIIn {
         _messageQueue.push(message);
     }
 
-    private void dispatchToPortMain(MXMessage message) {
+    protected void dispatchToPortMain(MXMessage message) {
         int port = message.getPort();
         synchronized (MXTiming.mutex) {
             if (message.isMessageTypeChannel()) {

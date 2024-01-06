@@ -284,26 +284,12 @@ public class MXMIDIOut {
                     byte[] data = message.getBinary();
                     _driver.OutputLongMessage(_driverOrder, data);
                     MXMain.addOutsideOutput(new MXMidiConsoleElement(message._timing, message.getPort(), data));
-                } else if (col > 0) {
+                } else {
                     for (int i = 0; i < col; ++i) {
                         int dword = message.getAsDword(i);
                         _driver.OutputShortMessage(_driverOrder, dword);
                         MXMain.addOutsideOutput(new MXMidiConsoleElement(message._timing, message.getPort(), dword));
                     }
-                } else {
-                    if (message.isDataentry()) {
-                        if (message.getVisitant() == null) {
-                            System.out.println("DATAENTRY no set VISITANT");
-                            return;
-                        }
-                        if (message.getVisitant().isHaveDataentryRPN() == false
-                                && message.getVisitant().isHaveDataentryNRPN() == false) {
-                            System.out.println("DATAENTRY no set RPN / NRPN");
-                            return;
-                        }
-                    }
-                    //Nothing
-                    System.out.println("nothing to send : " + message);
                 }
             } catch (Throwable e) {
                 e.printStackTrace();

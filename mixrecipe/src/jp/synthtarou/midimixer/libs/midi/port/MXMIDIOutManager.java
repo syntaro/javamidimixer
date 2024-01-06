@@ -26,7 +26,7 @@ import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver;
-import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Empty;
+import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_NotFound;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_VSTi;
 
 /**
@@ -209,7 +209,7 @@ public class MXMIDIOutManager implements MXSettingTarget {
 
     @Override
     public void afterReadSettingFile(MXSetting setting) {
-        MXDriver_Empty dummy = MXDriver_Empty.getInstance();
+        MXDriver_NotFound dummy = MXDriver_NotFound.getInstance();
 
         for (int seek = 0; seek < 1000; ++seek) {
             String deviceName = setting.getSetting("device[" + seek + "].name");

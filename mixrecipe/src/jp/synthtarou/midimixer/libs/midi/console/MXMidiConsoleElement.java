@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi.console;
 
+import javax.imageio.plugins.tiff.ExifGPSTagSet;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -103,14 +104,21 @@ public class MXMidiConsoleElement implements Comparable<MXMidiConsoleElement>{
             }
             case CONSOLE_MESSAGE: {
                 String exString = "";
-                if (_message.isBinaryMessage()) {
+                if (_message.getDwordCount() >= 1) {
+                    StringBuffer str = new StringBuffer();
+                    for (int i = 0; i < _message.getDwordCount(); ++ i) {
+                        int dword = _message.getAsDword(i);
+                        int status = (dword >> 14) & 0x7f;
+                        int data1 = (dword >> 7) & 0x7f;
+                        int data2 = (dword) & 0x7f;
+                        str.append("[");
+                        str.append(MXUtil.toHexFF(status) +" " + MXUtil.toHexFF(data1) + " " + MXUtil.toHexFF(data2));
+                        str.append("]");
+                    }
+                    return str.toString();
+                }else {
                     byte[] data = _message.getBinary();
                     return MXUtil.dumpHex(data);
-                }else {
-                    int status = _message.getStatus();
-                    int data1 = _message.getData1();
-                    int data2 = _message.getData2();
-                    return "" + MXUtil.toHexFF(status) +" " + MXUtil.toHexFF(data1) + " " + MXUtil.toHexFF(data2);
                 }
             }
         }
@@ -130,7 +138,7 @@ public class MXMidiConsoleElement implements Comparable<MXMidiConsoleElement>{
             }
             case CONSOLE_MESSAGE: {
                 String exString = "";
-                if(_message.isBinaryMessage() == false || _message.isDataentry()) {
+                if(_message.getDwordCount() > 0) {
                     int col = _message.getDwordCount();
                     StringBuffer ret = new StringBuffer();
                     for (int i = 0 ; i < col; ++ i) {
@@ -201,7 +209,7 @@ public class MXMidiConsoleElement implements Comparable<MXMidiConsoleElement>{
             String ccname = MXMidi.nameOfControlChange(data1);
             return  "[CC-" + ccname + " " + channel + ":" + MXUtil.toHexFF(data2) + "]";
         }
-
+        
         return "****" + MXUtil.toHexFF(status) + MXUtil.toHexFF(data1) + MXUtil.toHexFF(data2);
         //return  "[" + MXMidi.nameOfMessage(status, data1, data2) + " " + channel + "]";
     }

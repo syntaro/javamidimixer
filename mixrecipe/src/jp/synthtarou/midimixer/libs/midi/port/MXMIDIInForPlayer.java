@@ -40,7 +40,7 @@ import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
 public class MXMIDIInForPlayer extends MXMIDIIn {
  
     public MXMIDIInForPlayer() {
-        super(new MXDriver_PlayList(), 0);
+        super(MXDriver_PlayList._instance, 0);
     }
 
     /*

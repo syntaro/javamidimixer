@@ -48,7 +48,7 @@ public final class MXMessage implements Comparable<MXMessage> {
     private int _channel = 0;
 
     protected byte[] _dataBytes = null;
-    private boolean _valuePair14bit;
+    private boolean _pairedWith14;
 
     private final MXTemplate _template;
 
@@ -97,15 +97,15 @@ public final class MXMessage implements Comparable<MXMessage> {
     /**
      * @return the it14bitCC
      */
-    public boolean isValuePairCC14() {
-        return _valuePair14bit;
+    public boolean isPairedWith14() {
+        return _pairedWith14;
     }
 
     /**
      * @param value14bit the it14bitCC to set
      */
-    public void setValuePairCC14(boolean value14bit) {
-        this._valuePair14bit = value14bit;
+    public void setPairedWith14(boolean value14bit) {
+        this._pairedWith14 = value14bit;
     }
 
     private MXVisitant _visitant;
@@ -120,12 +120,13 @@ public final class MXMessage implements Comparable<MXMessage> {
     }
 
     public byte[] createBytes() {
+        /*
         if (_dataBytes != null) {
             return _dataBytes;
         }
         if (_template == null) {
             return null;
-        }
+        }*/
         _dataBytes = _template.makeBytes(_dataBytes, this);
         return _dataBytes;
     }
@@ -301,6 +302,9 @@ public final class MXMessage implements Comparable<MXMessage> {
     }
 
     public byte[] getBinary() {
+        if (getDwordCount() >= 2) {
+            new IllegalStateException("dword count == "+  getDwordCount()).printStackTrace();
+        }
         createBytes();
         return _dataBytes;        //SYSEXの場合１バイト目は、STATUSに入る
     }
@@ -315,12 +319,12 @@ public final class MXMessage implements Comparable<MXMessage> {
         return false;
     }
 
-    public boolean isDataentry() {
+    public boolean isDataentryBy2() {
         if (_template.get(0) == MXMidi.COMMAND2_CH_RPN
                 || _template.get(0) == MXMidi.COMMAND2_CH_NRPN) {
             return true;
         }
-        return isDataentryByCC();
+        return false;
     }
 
     public boolean isDataentryByCC() {
@@ -332,6 +336,7 @@ public final class MXMessage implements Comparable<MXMessage> {
         if (isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
             switch (getData1()) {
                 case MXMidi.DATA1_CC_DATAENTRY:
+                case MXMidi.DATA1_CC_DATAENTRY + 0x20:
                 case MXMidi.DATA1_CC_DATAINC:
                 case MXMidi.DATA1_CC_DATADEC:
                     return true;
@@ -373,23 +378,41 @@ public final class MXMessage implements Comparable<MXMessage> {
             case 0xf7:
                 return "SysexSpecial [" + MXUtil.dumpHex(getBinary()) + "]";
         }
-        if (isDataentry()) {
+        if (isDataentryBy2()) {
             int r1 = toDataroomMSB1();
             int r2 = toDataroomLSB2();
             int d1 = toDatavalueMSB1();
             int d2 = toDatavalueLSB2();
+            
+            if (r1 == 0 || r2 == 0 || d1 ==0 || d2 == 0) {
+                System.err.println(":::::" + getVisitant() + " ," 
+                    + r1 + "/" + r2 + "/" + d1 + "/" + d2
+                    + "from"+  MXUtil.dumpHex(createBytes()));
+                new Throwable().printStackTrace();
+            }
 
             return MXMidiConsoleElement.toSegmentText(r1)
                     + MXMidiConsoleElement.toSegmentText(r2)
                     + MXMidiConsoleElement.toSegmentText(d1)
                     + MXMidiConsoleElement.toSegmentText(d2);
         }
-        if (isBinaryMessage()) {
+        if (getDwordCount() >= 1) {
+            StringBuffer str = new StringBuffer();
+            for (int i = 0; i < getDwordCount(); ++ i) {
+                int dword = getAsDword(i);
+                if (i != 0) {
+                    str.append(", ");
+                }
+                str.append(MXMidiConsoleElement.toSegmentText(dword));
+            }
+            return str.toString();
+        }
+        else if (isBinaryMessage()) {
             return "Binary[" + MXUtil.dumpHex(getBinary()) + "]";
         }
-
-        int dword = (((getStatus() << 8) | getData1()) << 8) | getData2();
-        return MXMidiConsoleElement.toSegmentText(dword);
+        else {
+            return "*Nan*";
+        }
     }
 
     public String toStringForUI() {
@@ -561,14 +584,14 @@ public final class MXMessage implements Comparable<MXMessage> {
         if (isBinaryMessage()) {
             return 0;
         }
-        if (isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE) && isValuePairCC14()) {
+        if (isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE) && isPairedWith14()) {
             return 2;
         }
         return 1;
     }
 
     public int getAsDword(int column) {
-        if (isDataentry()) {
+        if (isDataentryBy2()) {
             switch (column) {
                 case 0:
                     return toDataroomMSB1();
@@ -605,7 +628,7 @@ public final class MXMessage implements Comparable<MXMessage> {
             int status = getStatus();
             int data1 = getData1();
             int data2 = getData2();
-            if ((getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE && isValuePairCC14()) {
+            if ((getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE && isPairedWith14()) {
                 if (column == 0) {
                     data2 = (getValue()._value >> 7) & 0x7f;
                 } else {
@@ -767,7 +790,7 @@ public final class MXMessage implements Comparable<MXMessage> {
         message._timing = _timing;
 
         message._visitant = _visitant;
-        message._valuePair14bit = _valuePair14bit;
+        message._pairedWith14 = _pairedWith14;
         message._mx30record = _mx30record;
 
         return message;
@@ -794,7 +817,7 @@ public final class MXMessage implements Comparable<MXMessage> {
                     message._timing = this._timing;
 
                     message.setVisitant(getVisitant());
-                    message.setValuePairCC14(isValuePairCC14());
+                    message.setPairedWith14(isPairedWith14());
 
                     return message;
                 }

@@ -47,6 +47,7 @@ import jp.synthtarou.midimixer.mx36ccmapping.MX36Process;
 import jp.synthtarou.midimixer.mx12masterpiano.MX12Process;
 import jp.synthtarou.midimixer.mx50resolution.MX50Process;
 import jp.synthtarou.midimixer.mx70console.MX70Process;
+import jp.synthtarou.midimixer.mx90debug.MX90Process;
 
 /**
  *
@@ -109,7 +110,8 @@ public class MXMain  {
     private MX60Process _mx60outputProcess;
     private MX70Process _mx70CosoleProcess;
     private MX80Process _mx80VstRack;
-    private CXXMLManager _mx100XMLManager;
+    private MX90Process _mx90Debugger;
+    private CXXMLManager _mxXMLManager;
     
     public static MXReceiver _capture = null;
     
@@ -160,7 +162,8 @@ public class MXMain  {
         _mx50resolutionProcess = new MX50Process();
         
         _mx80VstRack = MX80Process.getInstance();
-        _mx100XMLManager = CXXMLManager.getInstance();
+        _mx90Debugger = new MX90Process();
+        _mxXMLManager = CXXMLManager.getInstance();
 
         _mx60outputProcess = new MX60Process();
         _mx70CosoleProcess = new MX70Process();
@@ -181,7 +184,6 @@ public class MXMain  {
         _mx40layerProcess.setNextReceiver(_mx50resolutionProcess);
         _mx50resolutionProcess.setNextReceiver(_mx60outputProcess);
         _mx60outputProcess.setNextReceiver(FinalMIDIOut.getInstance());
-
 
         _mx30kontrolProcess.readSettings();
         _mx00playlistProcess.readSettings();
@@ -240,7 +242,8 @@ public class MXMain  {
         reList.add(_mx50resolutionProcess);
         reList.add(_mx60outputProcess);
         reList.add(_mx80VstRack);
-        reList.add(_mx100XMLManager);
+        reList.add(_mxXMLManager);
+        reList.add(_mx90Debugger);
 
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -346,7 +349,7 @@ public class MXMain  {
     }
     
     public CXXMLManager getXMLManager() {
-        return _mx100XMLManager;
+        return _mxXMLManager;
     }
     
     public MXReceiver getActiveSendableReceiver() {
@@ -360,7 +363,7 @@ public class MXMain  {
         if (receiver == _mx80VstRack) {
             return _mx60outputProcess;
         }
-        if (receiver == _mx100XMLManager) {
+        if (receiver == _mxXMLManager) {
             return _mx10inputProcess;
         }
         if (receiver == null) {

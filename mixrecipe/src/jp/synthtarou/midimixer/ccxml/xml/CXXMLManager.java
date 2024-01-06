@@ -330,7 +330,7 @@ public class CXXMLManager extends MXReceiver implements MXSettingTarget {
 
     @Override
     public String getReceiverName() {
-        return "XML Manager";
+        return "(XML Manager)";
     }
 
     CXXMLManagerPanel _view = null;

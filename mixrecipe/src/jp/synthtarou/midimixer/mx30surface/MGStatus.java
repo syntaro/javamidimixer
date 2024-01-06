@@ -170,7 +170,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         }
         return name + " (" + _memo + ")" + ", "
                 + text + "[row " + (_row + 1) + ", col " + (_column + 1) + "], "
-                + message.toString() + (message.isValuePairCC14() ? " (=14bit)" : "");
+                + message.toString() + (message.isPairedWith14() ? " (=14bit)" : "");
     }
 
     public boolean controlByMessage(MXMessage message, MXMessageBag bag) {

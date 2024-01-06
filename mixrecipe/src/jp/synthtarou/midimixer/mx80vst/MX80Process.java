@@ -487,7 +487,7 @@ public class MX80Process extends MXReceiver implements MXSettingTarget {
 
     @Override
     public String getReceiverName() {
-        return "VSTRack";
+        return "(VSTRack)";
     }
 
     @Override

@@ -599,7 +599,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             if (_poolFor14bit != null) {
                 MXMessage prev = _poolFor14bit;
                 _poolFor14bit = null;
-                prev.setValuePairCC14(true);
+                prev.setPairedWith14(true);
                 sendToNext(prev);
             }
         }
