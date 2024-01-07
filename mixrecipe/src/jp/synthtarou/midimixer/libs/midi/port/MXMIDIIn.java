@@ -399,7 +399,7 @@ public class MXMIDIIn {
     static Thread _threadQueue = null;
 
     private void dispatchToPort(MXMessage message) {
-        if (false) {
+        if (true) {
             if (_threadQueue == null || _threadQueue.isAlive() == false) {
                 _threadQueue = new Thread(new Runnable() {
                     @Override
