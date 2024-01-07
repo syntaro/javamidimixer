@@ -130,7 +130,6 @@ public class MX80Panel extends javax.swing.JPanel {
                 Container cont = MXUtil.getOwnerWindow(MX80Panel.this);
                 if (cont != null && cont instanceof JDialog) {
                     JDialog frame = (JDialog) cont;
-                    System.out.println("Install Close Fook");
                     frame.addWindowListener(new WindowAdapter() {
                         @Override
                         public void windowClosing(WindowEvent e) {

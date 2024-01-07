@@ -553,7 +553,6 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                 return;
             }
             for (File file : selected) {
-                System.out.println("addFile "+ file);
                 _process._playListModel.addElement(new FileWithId(file));
             }
         } else {

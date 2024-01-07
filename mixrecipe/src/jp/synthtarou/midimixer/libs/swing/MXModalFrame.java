@@ -106,7 +106,6 @@ public class MXModalFrame {
             return this;
         }
 
-        System.out.println("doOpen");
         synchronized (this) {
             if (_jframe != null) {
                 return this;
@@ -170,7 +169,6 @@ public class MXModalFrame {
     }
 
     protected void doClosing() {
-        System.out.println("doClosing");
         synchronized (this) {
             _jframe = null;
             notifyAll();
@@ -178,7 +176,6 @@ public class MXModalFrame {
     }
 
     public void waitForClose() {
-        System.out.println("waitForClose");
         while (true) {
             if (_jframe == null) {
                 return;

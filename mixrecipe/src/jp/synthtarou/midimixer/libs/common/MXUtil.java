@@ -104,9 +104,14 @@ public class MXUtil {
 
     public static final int numberFromText(String text, int errorNumber) {
         int mum = 10;
+        boolean negative = false;
 
         if (text == null) {
             return errorNumber;
+        }
+        if (text.startsWith("-")) {
+            negative = true;
+            text = text.substring(1);
         }
         if (text.startsWith("0x")) {
             text = text.substring(2);
@@ -139,6 +144,9 @@ public class MXUtil {
             } else {
                 return errorNumber;
             }
+        }
+        if (negative) {
+            return -x;
         }
         return x;
     }

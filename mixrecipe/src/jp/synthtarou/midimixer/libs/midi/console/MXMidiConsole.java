@@ -27,6 +27,7 @@ import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -261,10 +262,7 @@ public class MXMidiConsole implements ListModel<String> {
                 MXTiming prevNumber = prevE.getTiming();
                 int comp = prevNumber.compareTo(e.getTiming());
                 if (comp > 0) {
-                    System.err.println("***********************************************************");
-                    System.err.println("This " + e.formatMessageLong());
-                    //e.getTiming()._arrivePath.printStackTrace();
-                    System.err.println("Before" + prevE.formatMessageLong());
+                    MXMain.printTrace("This " + e.formatMessageLong() + "\n" + "Before " + prevE.formatMessageLong());
                     //prevE.getTiming()._arrivePath.printStackTrace();
                 }
             }
@@ -473,70 +471,5 @@ public class MXMidiConsole implements ListModel<String> {
             listener.contentsChanged(e);
         }
     }
-
-
-    /*
-                String text ="-";
-                if (value != null) {
-                    byte[] data = value.getData();
-                    System.out.println("data = " + data.length + MXUtil.dumpHex(data));
-                    text = MXUtil.dumpHex(data);
-                }
-                
-                JViewport port = (JViewport)_refList.getParent();
-                int maxWidth = ((int)port.getWidth() - 10);
-                
-                if (maxWidth >= 10) {                
-                    StringBuffer all = new StringBuffer();
-                    int x = 0;
-                    all.append("<html>");
-
-                    System.out.println("maxWidth " + maxWidth);
-                    boolean first = true;
-                    FontMetrics font = list.getGraphics().getFontMetrics(new JLabel().getFont());
-
-                    while (x < text.length()) {
-                        String parts1 = text.substring(x, x + 1);
-                        int lastSpaceX = -1;
-                        boolean isOver = false;
-                        int charWidth = 0;
-
-                        for (int x1 = x; x1 < text.length(); ++ x1) {
-                            charWidth += font.charWidth(text.charAt(x1));
-                            if (charWidth >= maxWidth) {
-                                isOver = true;
-                                break;
-                            }else if (text.charAt(x1) == ' ') {
-                                lastSpaceX = x1;
-                            }
-                        }
-                        if (isOver && lastSpaceX > 0) {
-                            String parts3 = text.substring(x, lastSpaceX);
-                            first = false;
-                            if (!first) {
-                                all.append("<br>");
-                            }
-                            all.append(parts3);
-                            x = lastSpaceX + 1;
-                        }else {
-                            String parts3 = text.substring(x);
-                            first = false;
-                            if (!first) {
-                                all.append("<br>");
-                            }
-                            all.append(parts3);
-                            x = lastSpaceX + 1;
-                            break;
-                        }
-                    }
-
-                    all.append("</html>");
-                    System.out.println(all);
-                    JLabel l = new JLabel(all.toString());
-                    c = l;
-                    l.setBackground(back);
-                }else {
-                    c = new JLabel(text);
-                }
-     */
 }
+

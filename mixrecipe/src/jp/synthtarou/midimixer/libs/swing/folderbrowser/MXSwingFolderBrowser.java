@@ -442,13 +442,11 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
                     w.addWindowListener(new WindowAdapter() {
                         @Override
                         public void windowClosing(WindowEvent e) {
-                            System.out.println(".windowClosing()");
                             _deepScan.noticeCancelScan();
                         }
 
                         @Override
                         public void windowClosed(WindowEvent e) {
-                            System.out.println(".windowClosed()");
                             _deepScan.noticeCancelScan();
                         }
                     });

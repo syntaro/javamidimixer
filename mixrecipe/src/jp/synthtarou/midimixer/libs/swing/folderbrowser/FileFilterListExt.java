@@ -78,9 +78,7 @@ public class FileFilterListExt implements FileFilter {
         }
         for (String ext : _listExtension) {
             if (path.toLowerCase().endsWith(ext)) {
-                if (pathname.isDirectory()) {
-                    System.out.println("Dirctory return true " + ext);
-                }
+                //file and directory , accept also
                 return true;
             }
         }

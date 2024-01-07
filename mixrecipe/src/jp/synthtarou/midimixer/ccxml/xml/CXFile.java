@@ -75,7 +75,7 @@ public class CXFile {
     }
  
     static int countRunSame = 0;
-    static int counrRunDiffectent = 0;
+    static int countRunDiffectent = 0;
 
     public static void main(String[] args) {
         File moduleDirectory = new File("C:/Domino144/Module");
@@ -92,11 +92,11 @@ public class CXFile {
                 if (file.canRead()) {
                     System.out.println("XMLFile [" + name + "]");
                     CXFile f2 = new CXFile(file);
-                    for (String text : f2._listWarningOffset.keySet()) {
-                        ArrayList<CXNode> nodeList = f2._listWarningOffset.get(text);
+                    for (String text : f2._listDebug.keySet()) {
+                        ArrayList<CXNode> nodeList = f2._listDebug.get(text);
                         System.out.println(text);
                         for (CXNode seek : nodeList) {
-                            System.out.print(seek._listAttributes.valueOfName("Name") + "@" + seek._lineNumber);
+                            System.out.println("  " + seek._listAttributes.valueOfName("Name") + "@" + seek._lineNumber);
                         }
                         System.out.println();
                     }
@@ -105,7 +105,7 @@ public class CXFile {
             }
         }
         System.out.println("testSame = " + countRunSame);
-        System.out.println("testDifferent = " + counrRunDiffectent);
+        System.out.println("testDifferent = " + countRunDiffectent);
     }
 
     public static boolean nearly(String text1, String text2) {
@@ -165,7 +165,7 @@ public class CXFile {
 
     public final CXNode _document = new CXNode(null, "", CCRuleManager.getInstance().getRootTag());
     final ArrayList<CXNode> _listWarning = new ArrayList<>();
-    final TreeMap<String, ArrayList<CXNode>> _listWarningOffset = new TreeMap();
+    final TreeMap<String, ArrayList<CXNode>> _listDebug = new TreeMap();
     final ArrayList<InformationForModule> _listModules = new ArrayList<>();
     Throwable _loadError;
 
@@ -214,8 +214,6 @@ public class CXFile {
             try {
                 InputSource source = new InputSource(stream);
                 saxParser.parse(source, handler);
-                System.out.println("source encoding  = " + source.getEncoding());
-
             } finally {
                 stream.close();
             }
@@ -241,7 +239,7 @@ public class CXFile {
     public void rebuildCache() {
         _listModules.clear();
         _listWarning.clear();
-        _listWarningOffset.clear();
+        _listDebug.clear();
         CCRuleManager rule = CCRuleManager.getInstance();
          for (CXNode seek : _document._listChildTags) {
              if (seek._nodeName.equals("ModuleData")) {
@@ -253,11 +251,11 @@ public class CXFile {
          }
     }
     
-    public void recordCCMWarning(String key, CXNode node) {
-        ArrayList<CXNode> list  = _listWarningOffset.get(key);
+    public void recordCCMDebug(String key, CXNode node) {
+        ArrayList<CXNode> list  = _listDebug.get(key);
         if (list == null) {
             list = new ArrayList<>();
-            _listWarningOffset.put(key, list);
+            _listDebug.put(key, list);
         }
         list.add(node);
     }
@@ -271,7 +269,7 @@ public class CXFile {
             
             if (ccm._data == null) {
                 err = module._file +" have null SysEx";
-                recordCCMWarning(err, target);
+                recordCCMDebug(err, target);
             }else  if (ccm._data.startsWith("@SYSEX")) {
                 boolean templateOK = false;
                 try {
@@ -282,6 +280,10 @@ public class CXFile {
                             if (template.get(template.size() - 1) == 0xf7) {
                                 templateOK = true;
                         }
+                        if (template.haveChecksum()) {
+                            err = module._file +" have checksum";
+                            recordCCMDebug(err, target);
+                        }
                     } catch (IllegalFormatException ex) {
                         ex.printStackTrace();
                     }
@@ -290,23 +292,23 @@ public class CXFile {
                 }
                 if (!templateOK) {
                     err = module._file +" have Wrong SysEx [" + ccm._data+ "]";
-                    recordCCMWarning(err, target);
+                    recordCCMDebug(err, target);
                 }
             }
             if (ccm._offsetGate != 0) {
                 err = module._file +" have offset gate";
-                recordCCMWarning(err, target);
+                recordCCMDebug(err, target);
                 if (ccm._gateTable != null) {
                     err = module._file +" have offset gateTable";
-                    recordCCMWarning(err, target);
+                    recordCCMDebug(err, target);
                 }
             }
             if (ccm._offsetValue != 0) {
                 err = module._file +" have offset value";
-                recordCCMWarning(err, target);
+                recordCCMDebug(err, target);
                 if (ccm._valueTable != null) {
                     err = module._file +" have offset valueTable";
-                    recordCCMWarning(err, target);
+                    recordCCMDebug(err, target);
                 }
             }
         }
@@ -431,9 +433,7 @@ public class CXFile {
 
     public boolean writeToTeporary() throws IOException, TransformerException {
         _temporary = null;
-        System.out.println("writing " + _file);
         File temporary = MXUtil.createTemporaryFile(_file);
-        System.out.println("temp " + temporary);
         writeDocumentSub(temporary, prepareDocument());
         if (MXUtil.compareFileText(_file, temporary) == 0) {
             temporary.delete();
@@ -506,7 +506,7 @@ public class CXFile {
             if (nearly(ccm._data, data3)) {
                 countRunSame++;
             } else {
-                counrRunDiffectent++;
+                countRunDiffectent++;
                 System.err.println(ccm._data + " != " + data2 + "  != " + data3);
             }
         } catch (Exception e) {

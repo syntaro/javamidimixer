@@ -25,6 +25,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
@@ -160,7 +161,7 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
             //String newMaster = (String)newModel.getValueAt(i, 3);
             
             if (name.equals(newName) == false) {
-                System.out.println("any troubole?");
+                MXMain.printDebug("any troubole?");
                 break;
             }
             
@@ -205,7 +206,7 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
                     
                     if (newAssign >= 0) {
                         if (input == null) {
-                            System.err.println("Wrong way");
+                            MXMain.printDebug("Can't create / Wrong way");
                             return;
                         }
                         if (input.isPortAssigned(newAssign)) {

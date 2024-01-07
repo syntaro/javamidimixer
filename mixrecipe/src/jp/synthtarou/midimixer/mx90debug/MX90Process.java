@@ -18,6 +18,9 @@ package jp.synthtarou.midimixer.mx90debug;
 
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.MXMain;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -82,8 +85,8 @@ public class MX90Process extends MXReceiver {
             }
         }
         result.println("Testing Data Entry1");
-        for (int msb =0; msb < 128; msb += 12) {
-            for (int lsb =0; lsb < 128; lsb += 12) {
+        for (int msb =0; msb < 128; msb += random(20)) {
+            for (int lsb =0; lsb < 128; lsb += random(20)) {
                 int varMSB = random(127);
                 int varLSB = random(127);
                 new MXDebugDataEntry(result, true, msb, lsb, (varMSB << 7) | varLSB);
@@ -91,8 +94,8 @@ public class MX90Process extends MXReceiver {
             }
         }
         result.println("Testing Data Entry2");
-        for (int msb =0; msb < 128; msb += 3) {
-            for (int lsb =0; lsb < 128; lsb += 3) {
+        for (int msb =0; msb < 128; msb += random(20)) {
+            for (int lsb =0; lsb < 128; lsb += random(20)) {
                 int varMSB = random(127);
                 int varLSB = random(127);
                 String textRPN = "@RPN " + msb + " "  +lsb + " " + varMSB + " " + varLSB;
@@ -104,12 +107,59 @@ public class MX90Process extends MXReceiver {
                 MXTemplate temp2 = new MXTemplate(textNRPN);
                 MXMessage message2 = MXMessageFactory.fromTemplate(0, temp2, 0, null, null);
                 new MXDebugSame(result, message2);
+                
             }
         }
-        result.println("Finished All Test");
+        result.println("Testing Sysex");
+        for (int value =0; value < 128; value += random(20)) {
+            for (int gate =0; gate < 128; gate += random(20)) {
+                MXTemplate template3 = new MXTemplate("@SYSEX F0H #GL #VL F7H");
+                MXTemplate template4 = new MXTemplate("@SYSEX F0H [ #GL #VL ] F7H");
+                MXMessage message3 = MXMessageFactory.fromTemplate(0, template3, 10, MXRangedValue.new7bit(gate), MXRangedValue.new7bit(value));
+                MXMessage message4 = MXMessageFactory.fromTemplate(0, template4, 10, MXRangedValue.new7bit(gate), MXRangedValue.new7bit(value));
+                byte[] question3 = message3.getBinary();
+                byte[] answer = { (byte)0xf0, (byte)gate, (byte)value, (byte)0xf7 };
+                byte[] question4 = message4.getBinary();
+                
+                if (checkSame(question3, answer) == false) {
+                    result.println("Sysex Error: " + MXUtil.dumpHex(question3) + " -> " + MXUtil.dumpHex(answer));
+                }
+                if (question4.length == 5 && question3.length  == 4) {
+                    for (int i = 0; i < 3; ++ i) {
+                        if (question3[i] != question4[i]) {
+                            result.println("checksum broken " + MXUtil.dumpHex(question3) + " != " + MXUtil.dumpHex(question4));
+                        }
+                    }
+                    if (question3[3] != question4[4]) {
+                        result.println("checksum broken " + MXUtil.dumpHex(question3) + " != " + MXUtil.dumpHex(question4));
+                    }
+                }
+                else {
+                    result.println("checksum not work");
+                }
+            }
+        }
+        result.println("Finished All Tests");
+        MXMain.printAlert("Finished All Tests");
     }
 
+    public boolean checkSame(byte[] data1, byte[] data2) {
+        if (data1.length != data2.length) {
+            return false;
+        }
+        for (int i = 0; i < data1.length; ++ i) {
+            if (data1[i] != data2[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
     public int random(int capacity) {
         return (int) (Math.random() * capacity);
+    }
+
+    public void println(String text) {
+        _view.debugMessages.println(text);
     }
 }

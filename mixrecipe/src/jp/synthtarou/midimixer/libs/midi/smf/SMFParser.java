@@ -32,6 +32,7 @@ import java.util.LinkedList;
 import java.util.TreeSet;
 import javax.sound.midi.ShortMessage;
 import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
@@ -177,7 +178,7 @@ public class SMFParser {
                     return true;
                 }
             } else {
-                System.out.println("Seeking " + Integer.toHexString(c) + " before " + magic);
+                MXMain.printDebug("Seeking " + Integer.toHexString(c) + " before " + magic);
                 x = 0;
             }
         }
@@ -191,18 +192,18 @@ public class SMFParser {
             SMFInputStream reader = new SMFInputStream(input);
 
             if (seekMagicNumber(reader, "MThd") == false) {
-                System.out.println("Magic Number MThd not found. @" + file);
+                MXMain.printDebug("Magic Number MThd not found. @" + file);
                 return false;
             }
 
             if (reader._eof) {
-                System.out.println("Illegual EOF. @" + file);
+                MXMain.printDebug("Illegual EOF. @" + file);
                 return false;
             }
 
             int headerLength = reader.read32();
             if (headerLength < 6) {
-                System.out.println("Header Length != 6.@" + file);
+                MXMain.printDebug("Header Length != 6.@" + file);
                 return false;
             }
 
@@ -238,11 +239,11 @@ public class SMFParser {
 
             for (int tr = 0; tr < trackCount; tr++) {
                 if (seekMagicNumber(reader, "MTrk") == false) {
-                    System.out.println("Magic Number MTrk not Found. @" + file);
+                    MXMain.printDebug("Magic Number MTrk not Found. @" + file);
                     break;
                 }
                 if (reader._eof) {
-                    System.out.println("EOF Before count " + trackCount + "@" + file);
+                    MXMain.printDebug("EOF Before count " + trackCount + "@" + file);
                     break;
                 }
 

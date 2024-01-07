@@ -21,6 +21,7 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.ccxml.xml.CXXMLManager;
 import jp.synthtarou.midimixer.libs.common.MXLog;
@@ -370,5 +371,34 @@ public class MXMain  {
             return _mx10inputProcess;
         }
         return receiver;
+    }
+    
+    public static void printDebug(String text) {
+        if (MXMain.getMain()._mx90Debugger != null)
+        {
+            MXMain.getMain()._mx90Debugger.println(text);
+        }
+        else {
+            System.out.println(text);
+        }
+    }
+    
+    public static void printTrace(String text) {
+        Exception e = new Exception(text);
+        e.printStackTrace();
+        StackTraceElement[] list = e.getStackTrace();
+        printDebug("Warning: " + text);
+        for (StackTraceElement seek : list) {
+            printDebug(seek.toString());
+        }
+    }
+    
+    public static void printAlert(String text) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                JOptionPane.showMessageDialog(MXMain.getMain()._mainWindow, text, MXAppConfig.MX_APPNAME, JOptionPane.OK_OPTION);
+            }
+        });
     }
 }

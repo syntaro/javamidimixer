@@ -52,6 +52,13 @@ public class MXTemplate implements Comparable<MXTemplate> {
         }
     }
     
+    public boolean haveChecksum() {
+        if (_listChecksum != null) {
+            return _listChecksum.size() >= 1;
+        }
+        return false;
+    }
+    
     public int getLengthWithChecksum() {
         int len = 0;
         if (_commands != null) {
@@ -295,16 +302,6 @@ public class MXTemplate implements Comparable<MXTemplate> {
             }
             data[dpos++] = (byte) (x & 0xff);
         }
-        if (data.length >= 3
-         && (data[0] & 0xff) == MXMidi.COMMAND_SYSEX
-         && ((data[1] & 0xff) == MXMidi.COMMAND_SYSEX || (data[1] & 0xff) == MXMidi.COMMAND_SYSEX_END)) {
-            dataLength --;
-            byte []copyData = new byte[dataLength];
-            for (int i = 0; i < copyData.length; ++ i) {
-                copyData[i] = data[i + 1];
-            }            
-            data = copyData;
-        }
         if (_listChecksum != null) {
             for (CheckSumInfo seek : _listChecksum) {
                 int sumChecksum = 0;
@@ -317,6 +314,16 @@ public class MXTemplate implements Comparable<MXTemplate> {
 
                 data[seek._to] = (byte) sumChecksum;
             }
+        }
+        if (data.length >= 3
+         && (data[0] & 0xff) == MXMidi.COMMAND_SYSEX
+         && ((data[1] & 0xff) == MXMidi.COMMAND_SYSEX || (data[1] & 0xff) == MXMidi.COMMAND_SYSEX_END)) {
+            dataLength --;
+            byte []copyData = new byte[dataLength];
+            for (int i = 0; i < copyData.length; ++ i) {
+                copyData[i] = data[i + 1];
+            }            
+            data = copyData;
         }
         int command = data[0] & 0xff;
         if (command >= 0x80 && command <= 0xef) {

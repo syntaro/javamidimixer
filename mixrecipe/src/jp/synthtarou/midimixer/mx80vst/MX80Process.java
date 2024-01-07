@@ -170,7 +170,6 @@ public class MX80Process extends MXReceiver implements MXSettingTarget {
 
     @Override
     public void prepareSettingFields(MXSetting setting) {
-        System.out.println("setting file = " + setting.getFile().toString());
         setting.register("stream.name");
         setting.register("stream.open");
         setting.register("stream.latency");

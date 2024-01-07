@@ -287,7 +287,13 @@ public class MXMIDIOut {
                 } else {
                     for (int i = 0; i < col; ++i) {
                         int dword = message.getAsDword(i);
-                        _driver.OutputShortMessage(_driverOrder, dword);
+                        if (dword == 0) {
+                            //MidiINでまとめるのに失敗して次のデータによりフラッシュされたケース
+                            new Throwable("input dataentry was solo(not pair)").printStackTrace();
+                        }
+                        else {
+                            _driver.OutputShortMessage(_driverOrder, dword);
+                        }
                         MXMain.addOutsideOutput(new MXMidiConsoleElement(message._timing, message.getPort(), dword));
                     }
                 }

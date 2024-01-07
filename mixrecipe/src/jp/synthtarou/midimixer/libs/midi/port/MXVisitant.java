@@ -122,7 +122,7 @@ public class MXVisitant implements Cloneable {
         return true;
     }
 
-    public void forceCompleteBankDataroom() {
+    public void forceCompleteDataroom() {
         if (_gotDataroom != HAVE_VAL_NOT) {
             _gotDataroom = HAVE_VAL_BOTH;
         }
@@ -135,32 +135,34 @@ public class MXVisitant implements Cloneable {
         return true;
     }
 
-    public void forceCompleteBankDataentry() {
+    public boolean forceCompleteDataentry() {
         if (_gotDatavalue != HAVE_VAL_NOT) {
             _gotDatavalue = HAVE_VAL_BOTH;
+            return true;
         }
+        return false;
     }
 
-    public boolean isHaveDataroom() {
+    public boolean isHavingDataroom() {
         if (_gotDataroom == HAVE_VAL_BOTH) {
             return true;
         }
         return false;
     }
 
-    public boolean isHaveDataentryRPN() {
+    public boolean isHavingDataentryRPN() {
         if (_gotDatavalue == HAVE_VAL_BOTH) {
             if (_dataroomType == MXVisitant.ROOMTYPE_RPN) {
-                return isHaveDataroom();
+                return isHavingDataroom();
             }
         }
         return false;
     }
 
-    public boolean isHaveDataentryNRPN() {
+    public boolean isHavingDataentryNRPN() {
         if (_gotDatavalue == HAVE_VAL_BOTH) {
             if (_dataroomType == MXVisitant.ROOMTYPE_NRPN) {
-                return isHaveDataroom();
+                return isHavingDataroom();
             }
         }
         return false;
@@ -207,8 +209,13 @@ public class MXVisitant implements Cloneable {
             throw new IllegalStateException("Immutable can't change");
         }
         _dataroomType = roomType;
+        resetDataEntryValue();
+    }
+
+    public void resetDataEntryValue() {
         _gotDatavalue = 0;
     }
+
 
     public int getDataroomType() {
         return _dataroomType;
@@ -347,7 +354,7 @@ public class MXVisitant implements Cloneable {
 
         return obj;
     }
-
+    
     public boolean mergeNew(MXVisitant visitant) {
         boolean mod = false;
         if (visitant == null) {

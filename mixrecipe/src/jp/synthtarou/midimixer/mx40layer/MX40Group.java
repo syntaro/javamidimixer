@@ -19,6 +19,7 @@ package jp.synthtarou.midimixer.mx40layer;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitantRecorder;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import java.util.ArrayList;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
@@ -260,11 +261,11 @@ public class MX40Group {
 
     public void checkEquals(String name, Object v1, Object v2) {
         if (v1.equals(v2) == false) {
-            System.out.println(name +" is changing " + v1 + " > " + v2);
+            MXMain.printDebug(name +" is changing " + v1 + " > " + v2);
         }
     }
     
-    public void caneChageTo(MX40Group target) {
+    public void debugPrintChanging(MX40Group target) {
         checkEquals("titile", _title, target._title);
         checkEquals("isWatchPort", _isWatchPort, target._isWatchPort);
         checkEquals("watchingPort", _watchingPort, target._watchingPort);

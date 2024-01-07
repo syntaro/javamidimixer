@@ -102,7 +102,6 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
             StringBuffer str = new StringBuffer();
             for (int j = 0; j <_data.countOfTypes(); ++ j) {
                 String name = _data.typeNames[j];
-                //System.out.println(name + " = " + setting.getSetting(prefix + name));
                 boolean set = setting.getSettingAsBoolean(prefix + name, false);
                 _data.setSkip(port, j, set);
             }

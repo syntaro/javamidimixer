@@ -14,22 +14,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.midi.port;
+package jp.synthtarou.midimixer.mx90debug;
 
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Tester;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MXMIDIInForTest extends MXMIDIIn {
-    
-    public MXMIDIInForTest() {
-        super(MXDriver_Tester._instance, 0);
+public class MXDebugSysex extends MXDebug {
+    public MXDebugSysex(ResultModel debugMessages, MXMessage target) {
+        super(debugMessages, target);
     }
-    
-    public void startTest(MXMessage message) {
-        super.dispatchToPortMain(message);
+
+    @Override
+    public void checkResult() {
+        checkResultSame();
     }
 }

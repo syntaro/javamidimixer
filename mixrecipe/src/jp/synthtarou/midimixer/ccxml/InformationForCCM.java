@@ -182,11 +182,9 @@ public class InformationForCCM {
         if (offset == 0) {
             return original;
         }
-        System.out.println("Having offset " + _module._file._file);
         MXWrapList<Integer> result = new MXWrapList<>();
         for (MXWrap<Integer> wrap : original) {
             result.addNameAndValue(wrap._name, wrap._value + offset);
-            System.out.println("Adding " + (wrap._value + offset) + " orignal = "+  wrap._value);
         }
         return result;
     }
@@ -232,7 +230,6 @@ public class InformationForCCM {
         int value = _gate._value + _offsetGate;
         int min = _gate._min + _offsetGate;
         int max = _gate._max+ _offsetGate;
-        System.out.println("Recreate Gate " + _gate._value +" >> " + value);
         return new MXRangedValue(value, min, max);
     }
 
@@ -258,7 +255,6 @@ public class InformationForCCM {
         int value = _value._value + _offsetValue;
         int min = _value._min + _offsetValue;
         int max = _value._max+ _offsetValue;
-        System.out.println("Recreate Value " + _value._value +" >> " + value);
         return new MXRangedValue(value, min, max);
     }
 

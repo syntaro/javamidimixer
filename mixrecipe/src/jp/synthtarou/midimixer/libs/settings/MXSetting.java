@@ -176,7 +176,7 @@ public class MXSetting {
                 _root.setSetting(key, value);
             }
         } catch (IOException e) {
-            System.out.println("First Time for [" + _settingFile + "]");
+            //System.out.println("First Time for [" + _settingFile + "]");
         } finally {
             if (fin != null) {
                 try {

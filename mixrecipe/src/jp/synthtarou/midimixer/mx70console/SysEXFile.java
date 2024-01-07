@@ -124,7 +124,6 @@ public class SysEXFile {
                 }
             }
             setContentsFromSingleFile(out.toByteArray());
-            System.out.println("Read bininary size=" + out.size());
             fin.close();
             fin = null;
             return true;
@@ -148,7 +147,7 @@ public class SysEXFile {
                 break;
             }
             if (sig != 0xf0) {
-                System.err.println("Error " + MXUtil.toHexFF(sig));
+                MXMain.printDebug("Error " + MXUtil.toHexFF(sig));
                 reader.read8();
                 continue;
             }

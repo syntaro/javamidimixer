@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.windows;
 
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
 
@@ -32,6 +33,7 @@ public class MXLIB01UWPMidi {
             StartLibrary();
             _loaded = true;
         }catch(Throwable e) {
+            e.printStackTrace();
             System.err.println("App can't load MXLIB01(UWP Support). Function disabled.");
         }
     }
@@ -62,7 +64,7 @@ public class MXLIB01UWPMidi {
     public native boolean OutputLongMessage(int device, byte[] data);
 
     static private void cbCallText(String text) {
-        System.out.println("UWP-[" + text.toString() + "]");
+        MXMain.printDebug("UWP-[" + text.toString() + "]");
     }
     
     int _microsoftSynthIndex = -1;

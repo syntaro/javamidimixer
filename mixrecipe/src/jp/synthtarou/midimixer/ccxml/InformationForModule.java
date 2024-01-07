@@ -81,7 +81,6 @@ public class InformationForModule {
                 try {
                     int linkId = Integer.parseInt(textId);
                     seek._ccmLinkTo = getCCMById(linkId);
-                    System.out.println("link From " + linkId + " = " + seek);
                 }catch(Exception ex) {
                 }
             }

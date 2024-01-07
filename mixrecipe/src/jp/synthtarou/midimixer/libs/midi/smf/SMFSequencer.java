@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import javax.sound.midi.InvalidMidiDataException;
 import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -183,7 +184,7 @@ public class SMFSequencer {
 
         if (didProgramChange) {
             try {
-                System.out.println("*** Sleep 150 x Program Change Count*");
+                MXMain.printDebug("*** Sleep 150 x Program Change Count*");
                 Thread.sleep(150 * doneCh);
             } catch (Exception e) {
 

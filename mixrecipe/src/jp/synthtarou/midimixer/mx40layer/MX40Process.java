@@ -269,11 +269,9 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
             newGroupList.add(group);
 
             MXSettingNode layerNode = node.findNode("Layer");
-            //_debug.println("layerNode = " + layerNode);
             if (layerNode != null) {
                 List<MXSettingNode> numbers = layerNode.findNumbers();
                 for (MXSettingNode node2 : numbers) {
-                    //_debug.println("node2 = " + node2);
                     MX40Layer layer = new MX40Layer(this, group);
                     layer._title = node2.getSetting("title");
                     layer._disabled  = node2.getSettingAsBoolean("disabled", false);

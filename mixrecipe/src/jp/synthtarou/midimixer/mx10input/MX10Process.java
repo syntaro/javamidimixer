@@ -88,9 +88,6 @@ public class MX10Process extends MXReceiver implements MXSettingTarget {
             for (int j = 0; j < _data.countOfTypes(); ++ j) {
                 String name = _data.typeNames[j];
                 boolean set = setting.getSettingAsBoolean(prefix + name, false);
-                if (set) {
-                    System.out.println("skip = " + prefix + name);
-                }
                 _data.setSkip(port, j, set);
             }
         }

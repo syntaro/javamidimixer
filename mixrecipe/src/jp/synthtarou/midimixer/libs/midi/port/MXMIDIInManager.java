@@ -18,6 +18,7 @@ package jp.synthtarou.midimixer.libs.midi.port;
 
 import java.util.ArrayList;
 import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
@@ -123,7 +124,7 @@ public class MXMIDIInManager implements MXSettingTarget {
         for (int i = 0; i < uwp.InputDevicesRoomSize(); i++) {
             MXMIDIIn device = new MXMIDIIn(uwp, i);
             try {
-                System.out.println("UWP : "+ device.getName());
+                MXMain.printDebug("UWP : "+ device.getName());
                 if (device.getName().equals("Real Time Sequencer")) {
                     continue;
                 }
@@ -163,7 +164,6 @@ public class MXMIDIInManager implements MXSettingTarget {
     public synchronized void closeAll() {
         for(MXMIDIIn input : listAllInput().valueList()) {
             if (input.isOpen()) {
-                System.out.println("closing input " + input);
                 input.close();
             }
         }

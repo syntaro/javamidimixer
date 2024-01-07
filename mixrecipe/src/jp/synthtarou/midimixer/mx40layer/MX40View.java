@@ -1774,7 +1774,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
             }
 
             if (askGroupChanged) {
-                _editingGroup.caneChageTo(panelGroup);
+                _editingGroup.debugPrintChanging(panelGroup);
                 int ret = JOptionPane.showConfirmDialog(this, "Will discard Changes", "Group Changed", JOptionPane.OK_CANCEL_OPTION);
                 if (ret == JOptionPane.CANCEL_OPTION) {
                     jListGroupList.setSelectedIndex(_groupsModel.indexOfValue(_editingGroup));

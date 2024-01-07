@@ -631,7 +631,7 @@ public class PickerForinstrument extends javax.swing.JPanel {
     boolean _internalChange = false;
 
     public void updateXMLFileView() {
-        System.out.println("scanXMLFile = " + _scanXMLFile);
+        MXMain.printDebug("scanXMLFile = " + _scanXMLFile);
         /* XML一覧を更新し、_scanXMLFileを選択する */
         _modelListXML = new MXWrapList();
         if (_resultXMLFile != _scanXMLFile || _modelListXML == null) {
@@ -662,7 +662,7 @@ public class PickerForinstrument extends javax.swing.JPanel {
     }
 
     public void updateModuleView() {
-        System.out.println("scanModule = " + _scanModule);
+        MXMain.printDebug("scanModule = " + _scanModule);
         /* MAP一覧を更新し、_scanMapを選択する */
         if (_resultModule != _scanModule || _scanText.equals(_resultText) == false || _modelListModule == null) {
             _resultModule = _scanModule;
@@ -704,7 +704,6 @@ public class PickerForinstrument extends javax.swing.JPanel {
     }
 
     public void updateMapView() {
-        System.out.println("scanMap= " + _scanMap);
         /* MAP一覧を更新し、_scanMapを選択する */
         if (_resultMap != _scanMap || _scanText.equals(_resultText) == false || _modelListMap == null) {
             _resultMap = _scanMap;
@@ -717,10 +716,8 @@ public class PickerForinstrument extends javax.swing.JPanel {
             if (_scanModule != null) {
                 CCRuleManager rule = CCRuleManager.getInstance();
                 List<CXNode> instrumentList = _scanModule.listChildren(rule.instrumentList);
-                System.out.println("instrumentList  " + instrumentList.size());
                 if (instrumentList != null && instrumentList.size() > 0) {
                     List<CXNode> mapList = instrumentList.get(0).listChildren(rule.instrumentList_map);
-                    System.out.println("mapList " + mapList.size());
                     for (int seek = 0; seek < mapList.size(); ++seek) {
                         CXNode mapSeek = mapList.get(seek);
                         _modelListMap.addNameAndValue(mapSeek._listAttributes.valueOfName("Name"), mapSeek);
@@ -745,7 +742,6 @@ public class PickerForinstrument extends javax.swing.JPanel {
     }
 
     public void updateProgramView() {
-        System.out.println("scanProgram = " + _scanProgram);
         /* プログラム一覧を更新し、_scanProgramを選択する */
         int resultPC = -1;
         if (_resultProgram != null) {
@@ -758,7 +754,6 @@ public class PickerForinstrument extends javax.swing.JPanel {
             if (_resultMap != null) {
                 //一覧を更新する
                 List<CXNode> PCList = _resultMap.listChildren("PC");
-                System.out.println("PCList " + PCList.size());
                 for (int i = 0; i < PCList.size(); ++i) {
                     CXNode programSeek = PCList.get(i);
                     String pc = programSeek._listAttributes.valueOfName("PC");
@@ -789,7 +784,6 @@ public class PickerForinstrument extends javax.swing.JPanel {
     }
 
     public void updateBankView() {
-        System.out.println("scanBank = " + _scanBankMSB + ":" + _scanBankLSB);
         //BANK一覧を更新し、_scanBankMSB::_scanBankSBを選択する
         int resultMSB = -1;
         int resultLSB = -1;

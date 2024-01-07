@@ -66,7 +66,6 @@ public class SplittableSysexMessage extends MidiMessage {
             inst._status = _status;
             inst._length = _length;
             inst.setMessagePlain(plain, plain.length);
-            System.out.println("@clone");
             return inst;
         }
         catch(InvalidMidiDataException midiEx) {

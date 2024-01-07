@@ -192,9 +192,7 @@ public class MXMIDIOutManager implements MXSettingTarget {
         synchronized (MXTiming.mutex) {
             for (MXMIDIOut output : listAllOutput().valueList()) {
                 if (output.isOpen()) {
-                    System.out.println("closing output " + output);
                     output.close();
-                    System.out.println("closing done " + output);
                 }
             }
         }

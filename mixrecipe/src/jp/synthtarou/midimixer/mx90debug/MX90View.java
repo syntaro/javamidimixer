@@ -71,6 +71,8 @@ public class MX90View extends javax.swing.JPanel {
         add(jScrollPane1, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
+    ResultModel debugMessages = new ResultModel();
+    
     boolean _testing = false;
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         if (_testing) {
@@ -78,14 +80,12 @@ public class MX90View extends javax.swing.JPanel {
         }
         int opt = JOptionPane.showConfirmDialog(this, "Test run will dispose all your settings / send random data to SoundModules.", "Take care", JOptionPane.OK_CANCEL_OPTION);
         if (opt == JOptionPane.CANCEL_OPTION) {
-            ResultModel debugMessages = new ResultModel();
             debugMessages.println("Canceled");
             jList1.setModel(debugMessages);            
             return;
         }
         _testing = true;
         try {
-            ResultModel debugMessages = new ResultModel();
             jList1.setModel(debugMessages);            
             new Thread() {
                 public void run() {

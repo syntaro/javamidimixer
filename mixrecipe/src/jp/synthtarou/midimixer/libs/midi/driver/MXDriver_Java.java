@@ -85,8 +85,6 @@ public class MXDriver_Java implements MXDriver {
 
                             System.out.println(name + " = " + name2 + " = " + name3);
                             continue;
-                        } else {
-                            System.out.println(name + " = safe for " + charset2 + " ," + charset3);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();

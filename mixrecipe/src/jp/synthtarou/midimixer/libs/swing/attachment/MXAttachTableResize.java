@@ -52,7 +52,6 @@ public class MXAttachTableResize {
 
             @Override
             public void componentShown(ComponentEvent e) {
-                System.out.println(".componentShown()");
             }
 
             @Override

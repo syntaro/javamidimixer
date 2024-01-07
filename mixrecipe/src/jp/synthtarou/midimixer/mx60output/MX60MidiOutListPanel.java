@@ -26,6 +26,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -158,7 +159,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
             String newOpen = (String)newModel.getValueAt(i, 2);
             
             if (name.equals(newName) == false) {
-                System.out.println("any troubole?");
+                MXMain.printAlert("any troubole?");
                 break;
             }
             
