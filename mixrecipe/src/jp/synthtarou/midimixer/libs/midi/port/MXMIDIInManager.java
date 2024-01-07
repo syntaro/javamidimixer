@@ -101,10 +101,15 @@ public class MXMIDIInManager implements MXSettingTarget {
 
         MXMIDIIn tester = MXMIDIIn.INTERNAL_TESTER;
         temp.addNameAndValue(tester.getName(), tester);
-        tester.setPortAssigned(0, true);
+        if (tester.getPortAssignCount() == 0) {
+            tester.setPortAssigned(0, true);
+        }
         
         MXMIDIIn sequencer = MXMIDIIn.INTERNAL_PLAYER;
         temp.addNameAndValue(sequencer.getName(), sequencer);
+        if (sequencer.getPortAssignCount() == 0) {
+            sequencer.setPortAssigned(0, true);
+        }
 
         MXDriver java = MXDriver_Java._instance;
         
