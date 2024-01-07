@@ -399,27 +399,31 @@ public class MXMIDIIn {
     static Thread _threadQueue = null;
 
     private void dispatchToPort(MXMessage message) {
-        if (_threadQueue == null || _threadQueue.isAlive() == false) {
-            _threadQueue = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    while (true) {
-                        try {
-                            MXMessage messsage = _messageQueue.pop();
-                            if (message != null) {
-                                dispatchToPortMain(messsage);
+        if (false) {
+            if (_threadQueue == null || _threadQueue.isAlive() == false) {
+                _threadQueue = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        while (true) {
+                            try {
+                                MXMessage msg2 = _messageQueue.pop();
+                                if (message != null) {
+                                    dispatchToPortMain(msg2);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
-                        } catch (Exception e) {
-                            e.printStackTrace();
                         }
                     }
-                }
-            });
-            _threadQueue.setDaemon(true);
-            _threadQueue.setPriority(Thread.MAX_PRIORITY);
-            _threadQueue.start();
+                });
+                _threadQueue.setDaemon(true);
+                _threadQueue.setPriority(Thread.MAX_PRIORITY);
+                _threadQueue.start();
+            }
+            _messageQueue.push(message);
+        } else {
+            dispatchToPortMain(message);
         }
-        _messageQueue.push(message);
     }
 
     protected void dispatchToPortMain(MXMessage message) {
@@ -502,13 +506,13 @@ public class MXMIDIIn {
                                     if (visit.isHavingDataentryRPN()) {
                                         message = MXMessageFactory.fromCCXMLText(port, "@RPN #GH #GL #VH #VL", ch);
                                         message.setVisitant(visit.getSnapShot());
-                                        visit.resetDataEntryValue();
                                         dispatchMainPath(message);
+                                        visit.resetDataEntryValue();
                                     } else if (visit.isHavingDataentryNRPN()) {
                                         message = MXMessageFactory.fromCCXMLText(port, "@NRPN #GH #GL #VH #VL", ch);
                                         message.setVisitant(visit.getSnapShot());
-                                        visit.resetDataEntryValue();
                                         dispatchMainPath(message);
+                                        visit.resetDataEntryValue();
                                     } else {
                                     }
                                     //cotinue;
@@ -523,6 +527,10 @@ public class MXMIDIIn {
                                 ;
                             } else {
                                 visit.forceCompleteDataroom();
+                                message = MXMessageFactory.fromCCXMLText(port, "@NRPN #GH #GL #VH #VL", ch);
+                                message.setVisitant(visit.getSnapShot());
+                                visit.resetDataEntryValue();
+                                dispatchMainPath(message);
                             }
                         }
                     }

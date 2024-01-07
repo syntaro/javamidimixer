@@ -62,7 +62,13 @@ public class MX90Process extends MXReceiver {
             MXMessage program = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_PROGRAMCHANGE + ch, pg, 0);
             new MXDebugSame(result, program);
         }
-        result.println("Testing Note Grissand");
+        result.println("Testing Volume");
+        for (int ch = 0; ch < 16; ++ch) {
+            int vol = random(128);
+            MXMessage program = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + ch, MXMidi.DATA1_CC_CHANNEL_VOLUME, vol);
+            new MXDebugSame(result, program);
+        }
+        result.println("Testing Note 2");
         for (int i = 0; i < 127; ++i) {
             int port = 0;
             int channel = random(16);

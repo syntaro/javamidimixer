@@ -38,15 +38,13 @@ import jp.synthtarou.midimixer.libs.midi.MXTiming;
  * @author Syntarou YOSHIDA
  */
 public class MXMidiConsole implements ListModel<String> {
-
-    ArrayList<MXMidiConsoleElement> _list = new ArrayList();
+    static final int _capacity = 5000;
+    static final int _timer = 500;
+ 
+    public final ShiftableList<MXMidiConsoleElement> _list = new ShiftableList(_capacity);
     ArrayList<ListDataListener> _listener = new ArrayList();
     LinkedList<MXMidiConsoleElement> _queue = new LinkedList();
 
-    static final int _capacity = 5000;
-    static final int _timer = 500;
-    int _startPos = 0;
-    int _writePos = 0;
     JList _refList;
     MXTiming _selectedTiming = null;
     public boolean _showAllLine = false;
@@ -57,7 +55,7 @@ public class MXMidiConsole implements ListModel<String> {
 
         public Component getListCellRendererComponent(JList list, Object var, int index, boolean isSelected, boolean cellHasFocus) {
 
-            MXMidiConsoleElement value = getConsoleElement(index);
+            MXMidiConsoleElement value = _list.get(index);
 
             if (_globalSelection) {
                 boolean prevSele = isSelected;
@@ -126,50 +124,20 @@ public class MXMidiConsole implements ListModel<String> {
 
     @Override
     public int getSize() {
-        return _capacity;
-        //return _list.size();
+        return _list.size();
     }
 
+    public MXMidiConsoleElement getConsoleElement(int index) {
+        return _list.get(index);
+    }
+    
     @Override
     public String getElementAt(int index) {
-        MXMidiConsoleElement e = getConsoleElement(index);
+        MXMidiConsoleElement e = _list.get(index);
         if (e == null) {
             return "";
         }
         return e.formatMessageLong();
-    }
-
-    public int viewIndex(int viewpos) {
-        int index = viewpos + _list.size() - _capacity + _startPos;
-        if (index < 0) {
-            return -1;
-        }
-        while (index >= _capacity) {
-            index -= _capacity;
-        }
-        if (index >= _list.size()) {
-            return -1;
-        }
-        return index;
-    }
-
-    public int indexView(int index) {
-        int viewpos = index - _list.size() + _capacity - _startPos;
-        while (viewpos < 0) {
-            viewpos += _capacity;
-        }
-        while (viewpos >= _capacity) {
-            viewpos -= _capacity;
-        }
-        return viewpos;
-    }
-
-    public synchronized MXMidiConsoleElement getConsoleElement(int viewpos) {
-        int index = viewIndex(viewpos);
-        if (index >= 0) {
-            return _list.get(index);
-        }
-        return null;
     }
 
     public synchronized void add(MXMidiConsoleElement e) {
@@ -248,32 +216,18 @@ public class MXMidiConsole implements ListModel<String> {
                 }
             }
         }
-        //e.getTiming()._arrivePath = new Throwable();
-        if (_writePos >= _capacity) {
-            _writePos = 0;
-        }
-        if (_list.size() >= _capacity) {
-            int prev = _writePos - 1;
-            if (prev < 0) {
-                prev = _capacity - 1;
-            }
-            MXMidiConsoleElement prevE = _list.get(prev);
+        _list.add(e);
+        if (_list.size() >= 2) {
+            MXMidiConsoleElement prevE = _list.get(_list.size() - 1);
             if (prevE != null) {
                 MXTiming prevNumber = prevE.getTiming();
                 int comp = prevNumber.compareTo(e.getTiming());
                 if (comp > 0) {
                     MXMain.printTrace("This " + e.formatMessageLong() + "\n" + "Before " + prevE.formatMessageLong());
-                    //prevE.getTiming()._arrivePath.printStackTrace();
                 }
             }
-
-            _list.set(_writePos, e);
-            _writePos++;
-            _startPos = _writePos;
-        } else {
-            _list.add(e);
-            _writePos++;
         }
+        countDown();
     }
 
     long _repaintLastTick = 0;
@@ -328,8 +282,7 @@ public class MXMidiConsole implements ListModel<String> {
                 for (ListDataListener listener : _listener) {
                     listener.contentsChanged(e);
                 }
-                _refList.ensureIndexIsVisible(_capacity - 1);
-                _refList.repaint();
+                _refList.ensureIndexIsVisible(_list.size()- 1);
             } catch (Throwable ex) {
 
             }
@@ -374,7 +327,7 @@ public class MXMidiConsole implements ListModel<String> {
         if (SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    fireImpl();
+                    fireSelectByTiming(selection);
                 }
             });
             return;
@@ -387,85 +340,30 @@ public class MXMidiConsole implements ListModel<String> {
             lastTick2 = System.currentTimeMillis();
             reserved2 = false;
             synchronized (this) {
-                int low = 0;
-                int high = getSize();
-                while (low < high) {
-                    int middle = (high + low) / 2;
-                    MXMidiConsoleElement elem = getConsoleElement(middle);
+                for (int i = 0; i < getSize(); ++ i) {
+                    MXMidiConsoleElement elem = _list.get(i);
                     if (elem == null) {
-                        low = middle + 1;
                         continue;
                     }
-                    MXTiming middlesNumber = elem.getTiming();
-                    if (middlesNumber == null) {
-                        low = middle + 1;
-                        continue;
-                    }
-
-                    int comp = middlesNumber.compareTo(selection);
-                    if (comp == 0) {
-                        low = high = middle;
-                        break;
-                    }
-                    if (comp < 0) {
-                        low = middle + 1;
-                    } else {
-                        high = middle - 1;
+                    if (elem.getTiming() == selection) {
+                        int start = _refList.getFirstVisibleIndex();
+                        int fin = start + _refList.getVisibleRowCount() - 1;
+                        if (start <= i && i <= fin) {
+                            return;
+                        }else {                           
+                            System.out.println("SELECT " + elem.formatMessageLong());
+                            _refList.ensureIndexIsVisible(i);
+                        }
+                        return;
                     }
                 }
-                if (low != high) {
-                    //該当しなかった
-                    _refList.ensureIndexIsVisible(low);
-                    _refList.repaint();
-                    return;
-                }
-                while (low >= 0) {
-                    MXMidiConsoleElement e1 = getConsoleElement(low);
-                    MXMidiConsoleElement e2 = getConsoleElement(low - 1);
-                    if (e1 == null || e2 == null) {
-                        break;
-                    }
-                    MXTiming t1 = e1.getTiming();
-                    MXTiming t2 = e2.getTiming();
-                    if (t1 == null || t2 == null) {
-                        break;
-                    }
-                    if (t1.compareTo(t2) == 0) {
-                        low--;
-                        continue;
-                    } else {
-                        break;
-                    }
-                }
-                while (high + 1 < getSize()) {
-                    MXMidiConsoleElement e1 = getConsoleElement(high);
-                    MXMidiConsoleElement e2 = getConsoleElement(high + 1);
-                    if (e1 == null || e2 == null) {
-                        break;
-                    }
-                    MXTiming t1 = e1.getTiming();
-                    MXTiming t2 = e2.getTiming();
-                    if (t1 == null || t2 == null) {
-                        break;
-                    }
-                    if (t1.compareTo(t2) == 0) {
-                        high++;
-                        continue;
-                    } else {
-                        break;
-                    }
-                }
-                _refList.ensureIndexIsVisible(low);
-                _refList.repaint();
             };
         }
     }
 
     public synchronized void clear() {
-        _list = new ArrayList();
+        _list.clear();
         _queue = new LinkedList();
-        _startPos = 0;
-        _writePos = 0;
         final ListDataEvent e = new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 0, _list.size());
         for (ListDataListener listener : _listener) {
             listener.contentsChanged(e);

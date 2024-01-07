@@ -610,11 +610,18 @@ public class MX70Panel extends javax.swing.JPanel {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                int count = MXMidiConsole.getGlobalCapacity() - 1;
-                jListOutsideInput.ensureIndexIsVisible(count);
-                jListInsideInput.ensureIndexIsVisible(count);
-                jListInsideOutput.ensureIndexIsVisible(count);
-                jListOutsideOutput.ensureIndexIsVisible(count);
+                if (_process._outsideInput.getSize() >= 1) {
+                    jListOutsideInput.ensureIndexIsVisible(_process._outsideInput.getSize() - 1);
+                }
+                if (_process._insideInput.getSize() >= 1) {
+                    jListInsideInput.ensureIndexIsVisible(_process._insideInput.getSize()- 1);
+                }
+                if (_process._insideOutput.getSize() >= 1) {
+                    jListInsideOutput.ensureIndexIsVisible(_process._insideOutput.getSize() - 1);
+                }
+                if (_process._outsideOutput.getSize() >= 1) {
+                    jListOutsideOutput.ensureIndexIsVisible(_process._outsideOutput.getSize()-1);
+                }
             }
         });
     }

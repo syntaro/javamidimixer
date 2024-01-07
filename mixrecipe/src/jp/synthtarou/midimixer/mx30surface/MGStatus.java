@@ -17,6 +17,7 @@
 package jp.synthtarou.midimixer.mx30surface;
 
 import java.util.IllegalFormatException;
+import javax.imageio.metadata.IIOMetadataFormat;
 import javax.swing.JComponent;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -223,7 +224,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
                 return false;
             }
 
-            int newValue = message.getValue()._value;
+            int newValue = value._value;
 
             if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
                 newValue = 0;

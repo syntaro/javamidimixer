@@ -517,8 +517,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 message = (MXMessage) status._base.clone();
                 circle.publishUI();
             } else {
-                new IllegalStateException("Dont use this. See MGStatusForDrum.messageDetected").printStackTrace();
-                // not throw
+                return;//nothing
             }
 
             if (_patchToMixer >= 0) {
@@ -724,7 +723,9 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                         continue;
                     }
                     if (seek.controlByMessage(message, bag)) {
+                        updateStatusAndGetResult(seek, seek.getValue()._value, message._timing, bag);
                         proc = true;
+                        /*
                         bag.addTouchedStatus(seek);
                         if (seek._uiType == MGStatus.TYPE_SLIDER) {
                             MGSlider slider = (MGSlider) seek.getComponent();
@@ -735,7 +736,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                             circle.publishUI();
                         }
                         if (seek._uiType == MGStatus.TYPE_DRUMPAD) {
-                        }
+                        }*/
                     }
                 }
                 message._mx30record = bag.listTouchedStatus();

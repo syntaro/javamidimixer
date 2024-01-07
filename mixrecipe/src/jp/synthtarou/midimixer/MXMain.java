@@ -378,9 +378,7 @@ public class MXMain  {
         {
             MXMain.getMain()._mx90Debugger.println(text);
         }
-        else {
-            System.out.println(text);
-        }
+        System.err.println(text);
     }
     
     public static void printTrace(String text) {

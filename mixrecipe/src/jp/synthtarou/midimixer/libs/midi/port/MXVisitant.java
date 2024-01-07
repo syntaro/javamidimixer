@@ -60,6 +60,7 @@ public class MXVisitant implements Cloneable {
             throw new IllegalStateException("Immutable can't change");
         }
         _bankMSB = msb;
+        _currentAge ++;
         switch (_havingBank) {
             case HAVE_VAL_NOT:
             case HAVE_VAL_BOTH:
@@ -83,6 +84,7 @@ public class MXVisitant implements Cloneable {
             throw new IllegalStateException("Immutable can't change");
         }
         _bankLSB = lsb;
+        _currentAge ++;
         switch (_havingBank) {
             case HAVE_VAL_NOT:
             case HAVE_VAL_BOTH:
@@ -112,6 +114,7 @@ public class MXVisitant implements Cloneable {
     public void forceCompleteBankInfo() {
         if (_havingBank != HAVE_VAL_NOT) {
             _havingBank = HAVE_VAL_BOTH;
+            _currentAge ++;
         }
     }
 
@@ -125,6 +128,7 @@ public class MXVisitant implements Cloneable {
     public void forceCompleteDataroom() {
         if (_gotDataroom != HAVE_VAL_NOT) {
             _gotDataroom = HAVE_VAL_BOTH;
+            _currentAge ++;
         }
     }
 
@@ -138,6 +142,7 @@ public class MXVisitant implements Cloneable {
     public boolean forceCompleteDataentry() {
         if (_gotDatavalue != HAVE_VAL_NOT) {
             _gotDatavalue = HAVE_VAL_BOTH;
+            _currentAge ++;
             return true;
         }
         return false;
@@ -194,6 +199,7 @@ public class MXVisitant implements Cloneable {
         setDataroomMSB(msb);
         setDataroomLSB(lsb);
         _gotDataroom = MXVisitant.HAVE_VAL_BOTH;
+        _currentAge ++;
     }
 
     public void setDataentry14(int longValue) {
@@ -202,6 +208,7 @@ public class MXVisitant implements Cloneable {
         setDataentryMSB(msb);
         setDataentryLSB(lsb);
         _gotDatavalue = MXVisitant.HAVE_VAL_BOTH;
+        _currentAge ++;
     }
 
     public void setDataroomType(int roomType) {
@@ -209,6 +216,7 @@ public class MXVisitant implements Cloneable {
             throw new IllegalStateException("Immutable can't change");
         }
         _dataroomType = roomType;
+        _currentAge ++;
         resetDataEntryValue();
     }
 
@@ -226,6 +234,7 @@ public class MXVisitant implements Cloneable {
             throw new IllegalStateException("Immutable can't change");
         }
         _dataroomMSB = msb;
+        _currentAge ++;
         switch (_gotDataroom) {
             case HAVE_VAL_NOT:
                 _gotDataroom = HAVE_VAL_MSB;
@@ -246,6 +255,7 @@ public class MXVisitant implements Cloneable {
             throw new IllegalStateException("Immutable can't change");
         }
         _dataroomLSB = lsb;
+        _currentAge ++;
         switch (_gotDataroom) {
             case HAVE_VAL_NOT:
                 _gotDataroom = HAVE_VAL_LSB;
@@ -266,6 +276,7 @@ public class MXVisitant implements Cloneable {
             throw new IllegalStateException("Immutable can't change");
         }
         _dataentryMSB = msb;
+        _currentAge ++;
         switch (_gotDatavalue) {
             case HAVE_VAL_NOT:
                 _gotDatavalue = HAVE_VAL_MSB;
@@ -286,6 +297,7 @@ public class MXVisitant implements Cloneable {
             throw new IllegalStateException("Immutable can't change");
         }
         _dataentryLSB = lsb;
+        _currentAge ++;
         switch (_gotDatavalue) {
             case HAVE_VAL_NOT:
                 _gotDatavalue = HAVE_VAL_LSB;
@@ -319,11 +331,15 @@ public class MXVisitant implements Cloneable {
         if (_havingExpression) {
             str += " Expression." + _infoExpression; // + ":" + GMProgramList.getInstance().nameOfValue(_program)
         }
-        if (_dataroomType == ROOMTYPE_RPN) {
+        if (isHavingDataentryRPN()) {
             str += " RPN." + _dataroomMSB + "," + _dataroomLSB + " = " + getDataentryValue14();
         }
-        if (_dataroomType == ROOMTYPE_NRPN) {
+        else if (isHavingDataentryNRPN()) {
             str += " NRPN." + _dataroomMSB + "," + _dataroomLSB + " = " + getDataentryValue14();
+        }
+        else {
+            str += " RPN/NRPN broken.";
+            
         }
 
         return str.substring(1);
@@ -408,6 +424,9 @@ public class MXVisitant implements Cloneable {
                 _dataentryLSB = visitant._dataentryLSB;
                 mod = true;
             }
+        }
+        if (mod) {
+            _currentAge ++;
         }
         return mod;
     }
@@ -511,11 +530,9 @@ public class MXVisitant implements Cloneable {
                     switch (message.getData1()) {
                         case MXMidi.DATA1_CC_DATAENTRY:
                             setDataentryMSB(value);
-                            _currentAge++;
                             return true;
                         case MXMidi.DATA1_CC_DATAENTRY + 32:
                             setDataentryLSB(value);
-                            _currentAge++;
                             return true;
                         case MXMidi.DATA1_CC_DATAINC:
                             value = getDataentryValue14() + 1;
@@ -523,7 +540,6 @@ public class MXVisitant implements Cloneable {
                                 value = 16383;
                             }
                             setDataentry14(value);
-                            _currentAge++;
                             return true;
                         case MXMidi.DATA1_CC_DATADEC:
                             value = getDataentryValue14() - 1;
@@ -531,26 +547,21 @@ public class MXVisitant implements Cloneable {
                                 value = 0;
                             }
                             setDataentry14(value);
-                            _currentAge++;
                             return true;
                         case MXMidi.DATA1_CC_BANKSELECT:
                             setBankMSB(value);
-                            _currentAge++;
                             return true;
                         case MXMidi.DATA1_CC_BANKSELECT + 32:
                             setBankLSB(value);
                             forceCompleteBankInfo();
-                            _currentAge++;
                             return true;
                         case MXMidi.DATA1_CC_RPN_MSB:
                             setDataroomType(ROOMTYPE_RPN);
                             setDataroomMSB(value);
-                            _currentAge++;
                             return true;
                         case MXMidi.DATA1_CC_RPN_LSB:
                             setDataroomType(ROOMTYPE_RPN);
                             setDataroomLSB(value);
-                            _currentAge++;
                             return true;
                         case MXMidi.DATA1_CC_NRPN_MSB:
                             setDataroomType(ROOMTYPE_NRPN);
@@ -559,22 +570,18 @@ public class MXVisitant implements Cloneable {
                         case MXMidi.DATA1_CC_NRPN_LSB:
                             setDataroomType(ROOMTYPE_NRPN);
                             setDataroomLSB(value);
-                            _currentAge++;
                             return true;
                         case MXMidi.DATA1_CC_PANPOT:
                             setHavingPan(true);
                             setInfoPan(value);
-                            _currentAge++;
                             return true;
                         case MXMidi.DATA1_CC_EXPRESSION:
                             setHavingExpression(true);
                             setInfoExpression(value);
-                            _currentAge++;
                             return true;
                         case MXMidi.DATA1_CC_CHANNEL_VOLUME:
                             setHavingVolume(true);
                             setInfoVolume(value);
-                            _currentAge++;
                             return true;
                     }
             }
@@ -605,6 +612,7 @@ public class MXVisitant implements Cloneable {
         if (_isImmutable) {
             throw new IllegalStateException("Immutable can't change");
         }
+        _currentAge ++;
         _program = program;
     }
 
@@ -612,6 +620,7 @@ public class MXVisitant implements Cloneable {
         if (_isImmutable) {
             throw new IllegalStateException("Immutable can't change");
         }
+        _currentAge ++;
         _havingBank = havingBank;
     }
 
@@ -623,6 +632,7 @@ public class MXVisitant implements Cloneable {
         if (_isImmutable) {
             throw new IllegalStateException("Immutable can't change");
         }
+        _currentAge ++;
         _havingVolume = havingVolume;
     }
 
@@ -634,6 +644,7 @@ public class MXVisitant implements Cloneable {
         if (_isImmutable) {
             throw new IllegalStateException("Immutable can't change");
         }
+        _currentAge ++;
         _infoVolume = infoVolume;
     }
 
@@ -645,6 +656,7 @@ public class MXVisitant implements Cloneable {
         if (_isImmutable) {
             throw new IllegalStateException("Immutable can't change");
         }
+        _currentAge ++;
         _havingExpression = havingExpression;
     }
 
@@ -656,6 +668,7 @@ public class MXVisitant implements Cloneable {
         if (_isImmutable) {
             throw new IllegalStateException("Immutable can't change");
         }
+        _currentAge ++;
         _infoExpression = infoExpression;
     }
 
@@ -667,6 +680,7 @@ public class MXVisitant implements Cloneable {
         if (_isImmutable) {
             throw new IllegalStateException("Immutable can't change");
         }
+        _currentAge ++;
         _havingPan = havingPan;
     }
 
@@ -678,6 +692,7 @@ public class MXVisitant implements Cloneable {
         if (_isImmutable) {
             throw new IllegalStateException("Immutable can't change");
         }
+        _currentAge ++;
         _infoPan = infoPan;
     }
 }

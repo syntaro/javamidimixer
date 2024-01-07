@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.libs.midi.console;
 
-import javax.imageio.plugins.tiff.ExifGPSTagSet;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -171,6 +170,7 @@ public class MXMidiConsoleElement implements Comparable<MXMidiConsoleElement>{
         int data1 = (dword >> 8) & 0xff;
         int data2 = dword & 0xff;
         String channel;
+        
         int command;
 
         if (status >= 0x80 && status <= 0xf0) {

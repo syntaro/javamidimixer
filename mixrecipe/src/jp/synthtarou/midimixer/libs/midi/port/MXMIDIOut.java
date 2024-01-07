@@ -289,7 +289,7 @@ public class MXMIDIOut {
                         int dword = message.getAsDword(i);
                         if (dword == 0) {
                             //MidiINでまとめるのに失敗して次のデータによりフラッシュされたケース
-                            new Throwable("input dataentry was solo(not pair)").printStackTrace();
+                            MXMain.printDebug("input dataentry was solo(not pair) " +  message);
                         }
                         else {
                             _driver.OutputShortMessage(_driverOrder, dword);

@@ -22,6 +22,7 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
+import static jp.synthtarou.midimixer.libs.midi.port.MXVisitant.HAVE_VAL_BOTH;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
 
 /**
@@ -379,23 +380,6 @@ public final class MXMessage implements Comparable<MXMessage> {
             case 0xf7:
                 return "SysexSpecial [" + MXUtil.dumpHex(getBinary()) + "]";
         }
-        if (isDataentryBy2()) {
-            int r1 = toDataroomMSB1();
-            int r2 = toDataroomLSB2();
-            int d1 = toDatavalueMSB1();
-            int d2 = toDatavalueLSB2();
-            
-            if (r1 == 0 || r2 == 0 || d1 ==0 || d2 == 0) {
-                MXMain.printTrace(":::::" + getVisitant() + " ," 
-                    + r1 + "/" + r2 + "/" + d1 + "/" + d2
-                    + "from"+  MXUtil.dumpHex(createBytes()));
-            }
-
-            return MXMidiConsoleElement.toSegmentText(r1)
-                    + MXMidiConsoleElement.toSegmentText(r2)
-                    + MXMidiConsoleElement.toSegmentText(d1)
-                    + MXMidiConsoleElement.toSegmentText(d2);
-        }
         if (getDwordCount() >= 1) {
             StringBuffer str = new StringBuffer();
             for (int i = 0; i < getDwordCount(); ++ i) {
@@ -674,6 +658,8 @@ public final class MXMessage implements Comparable<MXMessage> {
                 data2 = getVisitant().getDataroomMSB();
                 return (((status << 8) | data1) << 8) | data2;
             }
+            MXMain.printDebug("Incomplete  ?" + getVisitant().isIncomplemteDataentry());
+            MXMain.printTrace("Visitant has nodata  "+ getVisitant());
         }
         return 0;
     }
