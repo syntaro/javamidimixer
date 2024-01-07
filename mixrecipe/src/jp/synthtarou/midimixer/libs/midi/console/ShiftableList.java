@@ -16,8 +16,6 @@
  */
 package jp.synthtarou.midimixer.libs.midi.console;
 
-import java.util.ArrayList;
-
 /**
  *
  * @author Syntarou YOSHIDA
@@ -25,37 +23,40 @@ import java.util.ArrayList;
 public class ShiftableList<T> {
     public ShiftableList(int capacity) {
         _capacity = capacity;
-        _base = new ArrayList<>(capacity);
+        _base = new Object[capacity];
     }
     
+    Object[] _base;
+    int _lastWrite = -1;
     int _capacity;
-    ArrayList<T> _base;
 
-    public int size() {
-        return _base.size();
+    public synchronized  int size() {
+        return _base.length;
     }
     
-    public void removeFirst() {
-        _base.remove(0);
-    }
-
-    public void add(T obj) {
-        while (size() >= _capacity) {
-            removeFirst();
+    public synchronized  void add(T obj) {
+        _lastWrite ++;
+        if (_lastWrite >= _capacity) {
+            _lastWrite -= _capacity;
         }
-        _base.add(obj);
+        _base[_lastWrite] = obj;
     }
     
-    public T get(int index) {
-        if (index < size()) {
-            return _base.get(index);
+    public synchronized  T get(int index) {
+        int top = _lastWrite + 1;
+        if (top >= _capacity) {
+            top -= _capacity;
         }
-        else {
-            return null;
+        index += top;
+        if (index >= _capacity) {
+            index -= _capacity;
         }
+        return (T)_base[index];
     }
    
-    public void clear() {
-        _base.clear();
+    public synchronized  void clear() {
+        for (int i = 0; i < _base.length; ++i ){
+            _base[i] = null;
+        }
     }
 }

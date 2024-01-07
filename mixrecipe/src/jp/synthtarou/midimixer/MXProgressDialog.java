@@ -51,6 +51,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
         StringBuffer text = new StringBuffer();
         text.append("It is beta release, please send me issue,\n");
         text.append("Im waiting for public relesae timing.\n\n");
+        text.append("V0.63.2 CPU Optimized for Console\n");
         text.append("V0.63 sysex bug fixed 2\n");
         text.append("V0.62 dataentry bug fixed 2\n");
         text.append("V0.61 DrumPad Implementation\n");

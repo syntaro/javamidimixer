@@ -38,7 +38,7 @@ import jp.synthtarou.midimixer.libs.midi.MXTiming;
  * @author Syntarou YOSHIDA
  */
 public class MXMidiConsole implements ListModel<String> {
-    static final int _capacity = 5000;
+    static final int _capacity = 500;
     static final int _timer = 500;
  
     public final ShiftableList<MXMidiConsoleElement> _list = new ShiftableList(_capacity);
@@ -299,66 +299,35 @@ public class MXMidiConsole implements ListModel<String> {
         _listener.remove(l);
     }
 
-    boolean reserved2 = false;
-    long lastTick2 = 0;
-
     public void setSelectedTiming(MXTiming selection) {
-        _selectedTiming = selection;
-
-        long tickNow = System.currentTimeMillis();
-        if (tickNow - lastTick2 >= 100) {
-            reserved2 = true;
-            fireSelectByTiming(selection);
-        } else {
-            if (reserved2) {
-                return;
-            }
-            reserved2 = true;
-            MXGlobalTimer.letsCountdown(100 - (tickNow - lastTick2), new Runnable() {
-                @Override
-                public void run() {
-                    fireSelectByTiming(selection);
-                }
-            });
-        }
-    }
-
-    public void fireSelectByTiming(MXTiming selection) {
         if (SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    fireSelectByTiming(selection);
+                    setSelectedTiming(selection);
                 }
             });
             return;
         }
-        if (selection == null) {
-            _refList.repaint();
-            return;
-        }
-        if (reserved2) {
-            lastTick2 = System.currentTimeMillis();
-            reserved2 = false;
-            synchronized (this) {
-                for (int i = 0; i < getSize(); ++ i) {
-                    MXMidiConsoleElement elem = _list.get(i);
-                    if (elem == null) {
-                        continue;
-                    }
-                    if (elem.getTiming() == selection) {
-                        int start = _refList.getFirstVisibleIndex();
-                        int fin = start + _refList.getVisibleRowCount() - 1;
-                        if (start <= i && i <= fin) {
-                            return;
-                        }else {                           
-                            System.out.println("SELECT " + elem.formatMessageLong());
-                            _refList.ensureIndexIsVisible(i);
-                        }
-                        return;
-                    }
+        synchronized (_list) {
+            _selectedTiming = selection;
+            for (int i = 0; i < getSize(); ++ i) {
+                MXMidiConsoleElement elem = _list.get(i);
+                if (elem == null) {
+                    continue;
                 }
-            };
-        }
+                if (elem.getTiming() == selection) {
+                    int start = _refList.getFirstVisibleIndex();
+                    int fin = start + _refList.getVisibleRowCount() - 1;
+                    if (start <= i && i <= fin) {
+                        return;
+                    }else {                           
+                        _refList.ensureIndexIsVisible(i);
+                    }
+                    return;
+                }
+            }
+            _refList.invalidate();
+        };
     }
 
     public synchronized void clear() {
