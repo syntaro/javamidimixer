@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.libs.midi.driver;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 
 /**
- *
+ * SongPlayListのドライバ（実際にはからっぽ）
  * @author Syntarou YOSHIDA
  */
 public class MXDriver_PlayList implements MXDriver {
@@ -37,11 +37,11 @@ public class MXDriver_PlayList implements MXDriver {
     }
     
     public String InputDeviceName(int x) {
-        return "<PlayList>";
+        return "<SMFPlayer>";
     }
     
     public String InputDeviceId(int x) {
-        return "PlayL+ist>";
+        return "SMFPlayer<" + x + ">";
     }
 
     public boolean InputDeviceIsOpen(int x) {

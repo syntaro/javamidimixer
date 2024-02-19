@@ -46,9 +46,9 @@ import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.async.Transaction;
-import jp.synthtarou.midimixer.libs.navigator.INavigator;
+import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXSwingFolderBrowser;
@@ -74,8 +74,8 @@ public class MX80Panel extends javax.swing.JPanel {
     public static void main(String[] args) {
         MX80Panel panel = MX80Panel.getInstance();
 
-        panel.addFilter(new File("C:/Program Files/Common Files/VST3"));
-        panel.addFilter(new File("C:/Program Files/Steinberg"));
+        panel.addFolder(new File("C:/Program Files/Common Files/VST3"));
+        panel.addFolder(new File("C:/Program Files/Steinberg"));
 
         MXModalFrame.showAsDialog(null, panel, "VST Picker");
     }
@@ -130,7 +130,6 @@ public class MX80Panel extends javax.swing.JPanel {
                 Container cont = MXUtil.getOwnerWindow(MX80Panel.this);
                 if (cont != null && cont instanceof JDialog) {
                     JDialog frame = (JDialog) cont;
-                    System.out.println("Install Close Fook");
                     frame.addWindowListener(new WindowAdapter() {
                         @Override
                         public void windowClosing(WindowEvent e) {
@@ -574,7 +573,7 @@ public class MX80Panel extends javax.swing.JPanel {
         if (selected != null) {
             for (File f : selected) {
                 if (f != null) {
-                    addFilter(f);
+                    addFolder(f);
                 }
             }
         }
@@ -592,7 +591,7 @@ public class MX80Panel extends javax.swing.JPanel {
                 if (path.getPathCount() <= 2) {
                     int opt = JOptionPane.showConfirmDialog(this, "Remove " + file + " from List", "Confirm", JOptionPane.YES_NO_OPTION);
                     if (opt == JOptionPane.YES_OPTION) {
-                        removeFilter(file);
+                        removeFolder(file);
                     }
                 } else {
                     JOptionPane.showMessageDialog(this, file + " is not Root Folder", "Error", JOptionPane.OK_OPTION);
@@ -675,12 +674,11 @@ public class MX80Panel extends javax.swing.JPanel {
     }//GEN-LAST:event_jSliderMasterVolumeStateChanged
 
     private void jPanelSynthsContainerComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_jPanelSynthsContainerComponentResized
-        // TODO add your handling code here:
-        onResizeSynth();
+        tabActivated();
     }//GEN-LAST:event_jPanelSynthsContainerComponentResized
 
     private void jSplitPane1PropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_jSplitPane1PropertyChange
-        onResizeSynth();
+        tabActivated();
     }//GEN-LAST:event_jSplitPane1PropertyChange
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -771,12 +769,12 @@ public class MX80Panel extends javax.swing.JPanel {
         updateSkipList();
     }
 
-    public void addFilter(File file) {
+    public void addFolder(File file) {
         MX80Process.getInstance().addFolder(file);
         updateMainTree();
     }
 
-    public void removeFilter(File file) {
+    public void removeFolder(File file) {
         MX80Process.getInstance().removeFolder(file);
         updateMainTree();
     }
@@ -1003,7 +1001,7 @@ public class MX80Panel extends javax.swing.JPanel {
         return model;
     }
 
-    public void onResizeSynth() {
+    public void tabActivated() {
         int width;
         width = (int) jScrollPaneSynthContainer.getViewport().getViewRect().getWidth();
         jScrollPaneSynthContainer.getViewport().setMinimumSize(new Dimension(200, 100));

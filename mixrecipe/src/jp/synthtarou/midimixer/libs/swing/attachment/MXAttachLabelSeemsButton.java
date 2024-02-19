@@ -36,6 +36,11 @@ public class MXAttachLabelSeemsButton {
     String _title;
     JLabel _toInstall;
 
+    /**
+     *
+     * @param label
+     * @param target
+     */
     public MXAttachLabelSeemsButton(JLabel label, Runnable target) {
         _title = label.getText();
         _toInstall = label;

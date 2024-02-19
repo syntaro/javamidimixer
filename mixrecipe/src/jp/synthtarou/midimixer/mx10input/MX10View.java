@@ -77,19 +77,17 @@ public class MX10View extends javax.swing.JPanel {
         int row = _jTableSkip.rowAtPoint(evt.getPoint());
         int column = _jTableSkip.columnAtPoint(evt.getPoint());
         
-        int type = row + 1;
+        int type = row;
         int port = column - 1;
         DefaultTableModel model = (DefaultTableModel)_jTableSkip.getModel();
         
-        if (type >= 1 && type <= _process._data.TYPE_COUNT) {
-            if (port >= 0 && port < MXAppConfig.TOTAL_PORT_COUNT) {
-                if (_process._data.isSkip(port, type)) {
-                    _process._data.setSkip(port, type, false);
-                    model.setValueAt("", row, column);
-                }else {
-                    _process._data.setSkip(port, type, true);
-                    model.setValueAt("Skip", row, column);
-                }
+        if (port >= 0 && port < MXAppConfig.TOTAL_PORT_COUNT) {
+            if (_process._data.isSkip(port, type)) {
+                _process._data.setSkip(port, type, false);
+                model.setValueAt("", row, column);
+            }else {
+                _process._data.setSkip(port, type, true);
+                model.setValueAt("Skip", row, column);
             }
         }
     }                                    
@@ -166,12 +164,12 @@ public class MX10View extends javax.swing.JPanel {
             model.addColumn(MXMidi.nameOfPortShort(i));
         }
         
-        for (int row = 0; row < _process._data.TYPE_COUNT; ++ row) {
+        for (int row = 0; row  <_process._data.TYPE_COUNT; ++ row) {
             Vector line = new Vector();
             line.add(data.typeNames[row]);
             
             for (int delivery = 0; delivery < MXAppConfig.TOTAL_PORT_COUNT; ++ delivery) {
-                int type = row + 1; /* 1 ... 9 */
+                int type = row ;
                 if (data.isSkip(delivery, type)) {
                     line.add("Skip");
                 }else {
@@ -206,7 +204,7 @@ public class MX10View extends javax.swing.JPanel {
         new MXAttachTableResize(_jTableSkip);
     }
     
-    public void refreshList() {
+    public void tabActivated() {
         _inPanel.refreshList();
     }
 }

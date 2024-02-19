@@ -17,20 +17,19 @@
 package jp.synthtarou.midimixer.mx00playlist;
 
 import java.awt.Dimension;
-import jp.synthtarou.midimixer.libs.swing.MXSwingPiano;
+import jp.synthtarou.midimixer.libs.swing.MXPianoKeys;
 import javax.swing.BorderFactory;
-import jp.synthtarou.midimixer.ccxml.CXGeneralMidiFile;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.ccxml.xml.CXGeneralMidiFile;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MX00PianoPanel extends javax.swing.JPanel {
-    MXSwingPiano _keys;
+    MXPianoKeys _keys;
     int _channel;
 
-    public MX00PianoPanel(MXSwingPiano keys) {
+    public MX00PianoPanel(MXPianoKeys keys) {
         initComponents();
         _keys = keys;
         add(_keys);
@@ -43,7 +42,7 @@ public class MX00PianoPanel extends javax.swing.JPanel {
         setPreferredSize(d);
     }
     
-    public MXSwingPiano getKeys() {
+    public MXPianoKeys getKeys() {
         return _keys;
     }
     

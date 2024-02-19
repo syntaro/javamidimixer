@@ -22,8 +22,9 @@ import java.awt.event.MouseWheelListener;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
+import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
@@ -34,7 +35,7 @@ import jp.synthtarou.midimixer.libs.swing.themes.ThemeManager;
  * @author Syntarou YOSHIDA
  */
 public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
-    MX32Mixer _mixer;
+    MX32MixerProcess _mixer;
     int _row, _column;
     boolean _underInit;
 
@@ -47,7 +48,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
         _mixer.setStatus(MGStatus.TYPE_SLIDER, _row, _column, status);
     }
 
-    public MGSlider(MX32Mixer process, int row, int column) {
+    public MGSlider(MX32MixerProcess process, int row, int column) {
         _row = row;
         _column = column;
         _mixer = process;
@@ -70,7 +71,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
             if (ThemeManager.getInstance().isColorfulMetalTheme()) {        
                 col = MXUtil.mixtureColor(Color.red, 30, Color.yellow, 70);
             }
-            RangedValue value = status._base.getValue();
+            MXRangedValue value = status._base.getValue();
             jLabelValue.setForeground(col);
             //jLabelValue.setMinimumSize(new Dimension(50, 50));
             jLabelMin.setText(String.valueOf(value._min));
@@ -78,8 +79,8 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
             jSliderValue.setMinimum(value._min);
             jSliderValue.setMaximum(value._max);
             jSliderValue.setPaintLabels(true);
-            jSliderValue.setValue(value._var);
-            jLabelValue.setText(String.valueOf(value._var));
+            jSliderValue.setValue(value._value);
+            jLabelValue.setText(String.valueOf(value._value));
             if (status._name == null || status._name.length() == 0) {
                 MXMessage message = status._base;
                 jLabelName.setText(message.toStringForUI());
@@ -158,14 +159,14 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
             return;
         }
         int newValue = jSliderValue.getValue();
-        if (getStatus()._base.getValue()._var == newValue) {
+        if (getStatus()._base.getValue()._value == newValue) {
             return;
         }
         jLabelValue.setText(String.valueOf(newValue));
         if (_ignoreEvent) {
             return;
         }
-        _mixer.updateStatusAndSend(getStatus(), newValue, null);        
+        _mixer.updateStatusAndSend(getStatus(), newValue);        
     }//GEN-LAST:event_jSliderValueStateChanged
 
     public void publishUI() {
@@ -179,13 +180,13 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
             });
             return;
         }
-        RangedValue newValue = status._base.getValue();
-        if (jSliderValue.getValue() == newValue._var) {
+        MXRangedValue newValue = status._base.getValue();
+        if (jSliderValue.getValue() == newValue._value) {
             return;
         }
         _ignoreEvent = true;
-        jLabelValue.setText(String.valueOf(newValue._var));
-        jSliderValue.setValue(newValue._var);
+        jLabelValue.setText(String.valueOf(newValue._value));
+        jSliderValue.setValue(newValue._value);
         _ignoreEvent = false;
     }
 
@@ -212,19 +213,21 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
     private javax.swing.JSlider jSliderValue;
     // End of variables declaration//GEN-END:variables
 
-    public void increment() {
+    public void increment(MXMessageBag bag) {
         MGStatus status = getStatus();
-        RangedValue var = status._base.getValue().increment();
+        MXRangedValue var = status.getValue().increment();
         if (var != null) {
-            _mixer.updateStatusAndSend(status, var._var, null);
+            _mixer.updateStatusAndGetResult(status, var._value, null, bag);
+            _mixer.flushSendQueue(bag);
         }
     }
-    
-    public void decriment() {
+
+    public void decriment(MXMessageBag bag) {
         MGStatus status = getStatus();
-        RangedValue var = status._base.getValue().decrement();
+        MXRangedValue var = status.getValue().decrement();
         if (var != null) {
-            _mixer.updateStatusAndSend(status, var._var, null);
+            _mixer.updateStatusAndGetResult(status, var._value, null, bag);
+            _mixer.flushSendQueue(bag);
         }
     }
 
@@ -245,9 +248,9 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
     public void mouseWheelMoved(MouseWheelEvent e) {
         int d = e.getUnitsToScroll();
         if (d > 0) {
-            this.decriment();
+            this.decriment(null);
         }else {
-            this.increment();
+            this.increment(null);
         }
     }
 

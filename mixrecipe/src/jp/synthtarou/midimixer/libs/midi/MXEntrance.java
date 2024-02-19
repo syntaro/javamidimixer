@@ -22,7 +22,7 @@ import java.util.TreeSet;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 
 /**
- *
+ * エントランス番号ごとに、あるメッセージは、1度づつしか通れないという制御を行う
  * @author Syntarou YOSHIDA
  */
 public class MXEntrance {
@@ -30,8 +30,8 @@ public class MXEntrance {
 
         @Override
         public int compare(MXMessage o1, MXMessage o2) {
-            if (o1.isDataentry()) {
-                if (o2.isDataentry() == false) {
+            if (o1.isDataentryBy2()) {
+                if (o2.isDataentryBy2() == false) {
                     return -1;
                 }
                 MXVisitant v1 = o1.getVisitant();
@@ -44,12 +44,20 @@ public class MXEntrance {
                 if (x == 0) { x = v1.getDataentryLSB() - v2.getDataentryLSB(); }
                 if (x == 0) { x = v1.getDataentryValue14() - v2.getDataentryValue14(); }
                 return x;
-            }else if (o2.isDataentry()) {
+            }else if (o2.isDataentryBy2()) {
                 return 1;
             }
             
-            byte[] t1 = o1.getDataBytes();
-            byte[] t2 = o2.getDataBytes();
+            int r = o1.getDwordCount() - o2.getDwordCount();
+            
+            if (r == 0 && o1.getDwordCount() == 1) {
+                r = o1.getAsDword(0) - o2.getAsDword(0);
+            }
+            if (r < 0) return -1;
+            if (r > 0) return 1;
+                
+            byte[] t1 = o1.getBinary();
+            byte[] t2 = o2.getBinary();
             
             if (t1 == null) {
                 if (t2 == null) {
@@ -75,19 +83,6 @@ public class MXEntrance {
             if (x < 0) return -1;
             if (x > 0) return 1;
 
-            /*
-            x = o1.getStatus()- o2.getStatus();
-            if (x < 0) return -1;
-            if (x > 0) return 1;
-
-            x = o1.getGate()- o2.getGate();
-            if (x < 0) return -1;
-            if (x > 0) return 1;
-
-            x = o1.getValue()- o2.getValue();
-            if (x < 0) return -1;
-            if (x > 0) return 1;
-            */
             return 0;
         }
     }

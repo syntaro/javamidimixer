@@ -18,14 +18,15 @@ package jp.synthtarou.midimixer.libs.midi.port;
 
 import java.util.ArrayList;
 import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver;
-import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Empty;
+import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_NotFound;
 
 /**
  *
@@ -98,8 +99,17 @@ public class MXMIDIInManager implements MXSettingTarget {
 
         MXWrapList<MXMIDIIn> temp = new MXWrapList<MXMIDIIn>();
 
+        MXMIDIIn tester = MXMIDIIn.INTERNAL_TESTER;
+        temp.addNameAndValue(tester.getName(), tester);
+        if (tester.getPortAssignCount() == 0) {
+            tester.setPortAssigned(0, true);
+        }
+        
         MXMIDIIn sequencer = MXMIDIIn.INTERNAL_PLAYER;
         temp.addNameAndValue(sequencer.getName(), sequencer);
+        if (sequencer.getPortAssignCount() == 0) {
+            sequencer.setPortAssigned(0, true);
+        }
 
         MXDriver java = MXDriver_Java._instance;
         
@@ -119,7 +129,7 @@ public class MXMIDIInManager implements MXSettingTarget {
         for (int i = 0; i < uwp.InputDevicesRoomSize(); i++) {
             MXMIDIIn device = new MXMIDIIn(uwp, i);
             try {
-                System.out.println("UWP : "+ device.getName());
+                MXMain.printDebug("UWP : "+ device.getName());
                 if (device.getName().equals("Real Time Sequencer")) {
                     continue;
                 }
@@ -159,7 +169,6 @@ public class MXMIDIInManager implements MXSettingTarget {
     public synchronized void closeAll() {
         for(MXMIDIIn input : listAllInput().valueList()) {
             if (input.isOpen()) {
-                System.out.println("closing input " + input);
                 input.close();
             }
         }
@@ -175,7 +184,7 @@ public class MXMIDIInManager implements MXSettingTarget {
 
     @Override
     public void afterReadSettingFile(MXSetting setting) {
-        MXDriver_Empty dummy = MXDriver_Empty.getInstance();
+        MXDriver_NotFound dummy = MXDriver_NotFound.getInstance();
         
         for (int seek = 0; seek < 1000; ++ seek) {
             String deviceName = setting.getSetting("device[" + seek + "].name");

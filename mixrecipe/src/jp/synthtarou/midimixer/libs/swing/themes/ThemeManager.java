@@ -33,13 +33,17 @@ import javax.swing.plaf.SliderUI;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.plaf.metal.MetalTheme;
-import jp.synthtarou.midimixer.libs.common.MXWrap;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 
+/**
+ *
+ * @author Syntarou YOSHIDA
+ */
 public class ThemeManager implements MXSettingTarget {
     MXSetting _setting;
     static ThemeManager _manager = new ThemeManager();
@@ -195,11 +199,25 @@ public class ThemeManager implements MXSettingTarget {
         colorfulMetalTheme = setting.getSettingAsBoolean("themeLabelColorful", false);
         themeName = setting.getSetting("themeName");
         if (themeName == null || themeName.isEmpty()) {
+            for (UIManager.LookAndFeelInfo info: UIManager.getInstalledLookAndFeels()) {
+                if (info.getName().equals("Windows")) {
+                    themeName = "Windows";
+                }
+            }
+        }
+        if (themeName == null || themeName.isEmpty()) {
+            for (UIManager.LookAndFeelInfo info: UIManager.getInstalledLookAndFeels()) {
+                if (info.getName().equals("Nimbus")) {
+                    themeName = "Nimbus";
+                }
+            }
+        }
+        if (themeName == null || themeName.isEmpty()) {
             themeName = "Metal";
         }
         fontName = setting.getSetting("fontName");
         if (fontName == null || fontName.isEmpty()) {
-            fontName = "メイリオ";
+            fontName = "Monospaced";
         }
         fontSize = setting.getSettingAsInt("fontSize", 12);
         fontStyle = setting.getSettingAsInt("fontStyle", Font.PLAIN);

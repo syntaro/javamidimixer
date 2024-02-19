@@ -22,7 +22,7 @@ import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXQueue1;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -39,6 +39,7 @@ import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
 public class MXMIDIIn {
 
     public static final MXMIDIInForPlayer INTERNAL_PLAYER = new MXMIDIInForPlayer();
+    public static final MXMIDIInForTest INTERNAL_TESTER = new MXMIDIInForTest();
 
     private String _name;
     private MXDriver _driver;
@@ -326,7 +327,7 @@ public class MXMIDIIn {
 
     private void startMainPath(MXTiming timing, int dword, byte[] data) {
         synchronized (MXTiming.mutex) {
-            if (timing == null) {                
+            if (timing == null) {
                 timing = new MXTiming();
             }
             int status = (dword >> 16) & 0xff;
@@ -336,10 +337,6 @@ public class MXMIDIIn {
             int command = status & 0xf0;
             int channel = status & 0x0f;
 
-            /*
-        if (status == 0xf8 || status == 0xfe) {
-            return;
-        }*/
             if (command == MXMidi.COMMAND_CH_NOTEON) {
                 if (data2 == 0) {
                     command = MXMidi.COMMAND_CH_NOTEOFF;
@@ -349,10 +346,8 @@ public class MXMIDIIn {
             }
             if (this == INTERNAL_PLAYER) {
                 MXMain.getMain().getPlayListProcess().updatePianoKeys(dword);
-            } else if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-                if (this == INTERNAL_PLAYER) {
-                    MXMain.getMain().getPlayListProcess().updatePianoKeys(dword);
-                }
+            }
+            if (command == MXMidi.COMMAND_CH_NOTEOFF) {
                 if (_myNoteOff.raiseHandler(0, timing, status & 0xf, data1)) {
                     return;
                 }
@@ -367,7 +362,9 @@ public class MXMIDIIn {
                     continue;
                 }
                 MXMessage message = null;
-                if (data == null) {
+                if (data != null) {
+                    message = MXMessageFactory.fromBinary(port, data);
+                }else {
                     message = MXMessageFactory.fromShortMessage(port, status, data1, data2);
                     if ((status & 0xf0) == MXMidi.COMMAND_CH_NOTEON) {
                         MXMessage noteon = MXMessageFactory.fromShortMessage(0, status, data1, data2);
@@ -375,15 +372,13 @@ public class MXMIDIIn {
                         MXMessage noteoff = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + message.getChannel(), data1, 0);
                         _myNoteOff.setHandler(noteon, noteoff, new MXNoteOffWatcher.Handler() {
                             @Override
-                            public void onNoteOffEvent(MXTiming timing,MXMessage target) {
+                            public void onNoteOffEvent(MXTiming timing, MXMessage target) {
                                 target._timing = timing;
                                 MXMain.addOutsideInput(target);
                                 dispatchToPort(target);
                             }
                         });
                     }
-                } else {
-                    message = MXMessageFactory.fromBinary(port, data);
                 }
                 if (message != null) {
                     message._timing = timing;
@@ -398,103 +393,142 @@ public class MXMIDIIn {
     static Thread _threadQueue = null;
 
     private void dispatchToPort(MXMessage message) {
-        if (_threadQueue == null || _threadQueue.isAlive() == false) {
-            _threadQueue = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    while (true) {
-                        try {
-                            MXMessage messsage = _messageQueue.pop();
-                            if (message != null) {
-                                dispatchToPortMain(messsage);
+        if (true) {
+            if (_threadQueue == null || _threadQueue.isAlive() == false) {
+                _threadQueue = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        while (true) {
+                            try {
+                                MXMessage msg2 = _messageQueue.pop();
+                                if (message != null) {
+                                    dispatchToPortMain(msg2);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
-                        } catch (Exception e) {
-                            e.printStackTrace();
                         }
                     }
-                }
-            });
-            _threadQueue.setDaemon(true);
-            _threadQueue.setPriority(Thread.MAX_PRIORITY);
-            _threadQueue.start();
+                });
+                _threadQueue.setDaemon(true);
+                _threadQueue.setPriority(Thread.MAX_PRIORITY);
+                _threadQueue.start();
+            }
+            _messageQueue.push(message);
+        } else {
+            dispatchToPortMain(message);
         }
-        _messageQueue.push(message);
     }
 
-    private void dispatchToPortMain(MXMessage message) {
+    protected void dispatchToPortMain(MXMessage message) {
         int port = message.getPort();
         synchronized (MXTiming.mutex) {
-            if (message.isMessageTypeChannel()) {
-                boolean worked = false;
-                int ch = message.getChannel();
-                int status = message.getStatus();
-                int gate = message.getGate()._var;
+            switch (message.getTemplate().get(0) & 0xff00) {
+                case MXMidi.COMMAND2_CH_RPN:
+                case MXMidi.COMMAND2_CH_NRPN:
+                case MXMidi.COMMAND2_CH_PROGRAM_INC:
+                case MXMidi.COMMAND2_CH_PROGRAM_DEC: {
+                    int ch = message.getChannel();
+                    MXVisitant visit = _visitant16.get(ch);
 
-                int command = status;
-                if (command >= 0x80 && command <= 0xef) {
-                    command = command & 0xf0;
+                    visit.updateVisitantChannel(message);
+                    message.setVisitant(visit.getSnapShot());
+                    break;
                 }
+                default:
+                    if (message.isMessageTypeChannel()) {
+                        boolean worked = false;
+                        int ch = message.getChannel();
+                        int status = message.getStatus();
+                        int gate = message.getGate()._value;
 
-                MXVisitant visit = _visitant16.get(ch);
-
-                visit.updateVisitantChannel(message);
-                message.setVisitant(visit.getSnapShot());
-
-                if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
-                    if (gate == MXMidi.DATA1_CC_BANKSELECT || gate == (MXMidi.DATA1_CC_BANKSELECT + 0x20)) {
-                        if (visit.isHavingBank()) {
-                            MXMessage message2 = MXMessageFactory.fromShortMessage(port, command + ch, MXMidi.DATA1_CC_BANKSELECT, 0);
-                            message2._timing = message._timing;
-                            message2.setVisitant(visit.getSnapShot());
-                            dispatchMainPath(message2);
+                        int command = status;
+                        if (command >= 0x80 && command <= 0xef) {
+                            command = command & 0xf0;
                         }
-                        return;
-                    }
-                    if (gate == MXMidi.DATA1_CC_DATAENTRY || gate == MXMidi.DATA1_CC_DATAENTRY + 0x20) {
-                        if (visit.isHaveDataentryRPN()) {
-                            message = MXMessageFactory.fromCCXMLText(port, "@RPN #GH #GL #VH #VL", ch);
-                            message.setVisitant(visit.getSnapShot());
-                            dispatchMainPath(message);
-                        } else if (visit.isHaveDataentryNRPN()) {
-                            message = MXMessageFactory.fromCCXMLText(port, "@NRPN #GH #GL #VH #VL", ch);
-                            message.setVisitant(visit.getSnapShot());
-                            dispatchMainPath(message);
-                        } else {
+
+                        MXVisitant visit = _visitant16.get(ch);
+
+                        visit.updateVisitantChannel(message);
+                        message.setVisitant(visit.getSnapShot());
+
+                        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                            if (gate == MXMidi.DATA1_CC_BANKSELECT || gate == (MXMidi.DATA1_CC_BANKSELECT + 0x20)) {
+                                if (visit.isHavingBank()) {
+                                    MXMessage message2 = MXMessageFactory.fromShortMessage(port, command + ch, MXMidi.DATA1_CC_BANKSELECT, 0);
+                                    message2._timing = message._timing;
+                                    message2.setVisitant(visit.getSnapShot());
+                                    dispatchMainPath(message2);
+                                }
+                                return;
+                            }
+                            if (gate == MXMidi.DATA1_CC_DATAENTRY || gate == MXMidi.DATA1_CC_DATAENTRY + 0x20) {
+                                if (visit.isHavingDataentryRPN()) {
+                                    MXMessage message2 = MXMessageFactory.fromCCXMLText(port, "@RPN #GH #GL #VH #VL", ch);
+                                    message2.setVisitant(visit.getSnapShot());
+                                    visit.resetDataEntryValue();
+                                    dispatchMainPath(message2);
+                                } else if (visit.isHavingDataentryNRPN()) {
+                                    MXMessage message2 = MXMessageFactory.fromCCXMLText(port, "@NRPN #GH #GL #VH #VL", ch);
+                                    message2.setVisitant(visit.getSnapShot());
+                                    visit.resetDataEntryValue();
+                                    dispatchMainPath(message2);
+                                } else {
+                                }
+                                return;
+                            }
+                            if (gate == MXMidi.DATA1_CC_RPN_LSB || gate == MXMidi.DATA1_CC_RPN_MSB
+                                    || gate == MXMidi.DATA1_CC_NRPN_LSB || gate == MXMidi.DATA1_CC_NRPN_MSB) {
+                                //already by updateVisitantChannel
+                                return;
+                            }
                         }
-                        return;
-                    }
-                    if (gate == MXMidi.DATA1_CC_RPN_LSB || gate == MXMidi.DATA1_CC_RPN_MSB
-                            || gate == MXMidi.DATA1_CC_NRPN_LSB || gate == MXMidi.DATA1_CC_NRPN_MSB) {
-                        //already by updateVisitantChannel
-                        return;
-                    }
-                }
 
-                if (visit.isIncompleteBankInfo()) {
-                    if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && (gate == MXMidi.DATA1_CC_BANKSELECT || gate == (MXMidi.DATA1_CC_BANKSELECT + 0x20))) {
-                        ;
-                    } else {
-                        visit.forceCompleteBankInfo();
-                    }
-                }
+                        if (visit.isIncompleteBankInfo()) {
+                            if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && (gate == MXMidi.DATA1_CC_BANKSELECT || gate == (MXMidi.DATA1_CC_BANKSELECT + 0x20))) {
+                                ;
+                            } else {
+                                visit.forceCompleteBankInfo();
+                            }
+                        }
 
-                if (visit.isIncomplemteDataentry()) {
-                    if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && (gate == MXMidi.DATA1_CC_DATAENTRY || (gate == MXMidi.DATA1_CC_DATAENTRY + 0x20))) {
-                        ;
-                    } else {
-                        visit.forceCompleteBankDataentry();
-                    }
-                }
+                        if (visit.isIncomplemteDataentry()) {
+                            if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && (gate == MXMidi.DATA1_CC_DATAENTRY || (gate == MXMidi.DATA1_CC_DATAENTRY + 0x20))) {
+                                ;
+                            } else {
+                                if (visit.forceCompleteDataentry()) {
+                                    if (visit.isHavingDataentryRPN()) {
+                                        MXMessage message2 = MXMessageFactory.fromCCXMLText(port, "@RPN #GH #GL #VH #VL", ch);
+                                        message2.setVisitant(visit.getSnapShot());
+                                        dispatchMainPath(message2);
+                                        visit.resetDataEntryValue();
+                                    } else if (visit.isHavingDataentryNRPN()) {
+                                        MXMessage message2 = MXMessageFactory.fromCCXMLText(port, "@NRPN #GH #GL #VH #VL", ch);
+                                        message2.setVisitant(visit.getSnapShot());
+                                        dispatchMainPath(message2);
+                                        visit.resetDataEntryValue();
+                                    } else {
+                                    }
+                                    //cotinue;
+                                }
+                            }
+                        }
 
-                if (visit.isIncomplemteDataroom()) {
-                    if (command == MXMidi.COMMAND_CH_CONTROLCHANGE
-                            && (gate == MXMidi.DATA1_CC_RPN_LSB || gate == MXMidi.DATA1_CC_RPN_MSB
-                            || gate == MXMidi.DATA1_CC_NRPN_LSB || gate == MXMidi.DATA1_CC_NRPN_MSB)) {
-                        ;
-                    } else {
-                        visit.forceCompleteBankDataroom();
+                        if (visit.isIncomplemteDataroom()) {
+                            if (command == MXMidi.COMMAND_CH_CONTROLCHANGE
+                                    && (gate == MXMidi.DATA1_CC_RPN_LSB || gate == MXMidi.DATA1_CC_RPN_MSB
+                                    || gate == MXMidi.DATA1_CC_NRPN_LSB || gate == MXMidi.DATA1_CC_NRPN_MSB)) {
+                                ;
+                            } else {
+                                visit.forceCompleteDataroom();
+                                MXMessage message2 = MXMessageFactory.fromCCXMLText(port, "@NRPN #GH #GL #VH #VL", ch);
+                                message2.setVisitant(visit.getSnapShot());
+                                visit.resetDataEntryValue();
+                                dispatchMainPath(message2);
+                            }
+                        }
                     }
-                }
+                    break;
             }
 
             dispatchMainPath(message);

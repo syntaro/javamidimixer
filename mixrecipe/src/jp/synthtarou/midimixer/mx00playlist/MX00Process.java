@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.mx00playlist;
 
-import jp.synthtarou.midimixer.libs.common.FileWithId;
 import java.io.File;
 import java.util.List;
 import javax.swing.DefaultListModel;
@@ -125,7 +124,7 @@ public class MX00Process extends MXReceiver implements MXSettingTarget {
         _view.updatePianoKeys(dword);
     }
 
-    public void createPianoControls(int lowNote, int octaveRange, boolean[] activeChannels, int[] listPrograms, int[] drumProgs)  {
+    public void createPianoControls(int lowNote, int octaveRange, boolean[] activeChannels, int[] listPrograms, List<Integer> drumProgs)  {
         _view.createPianoControls(lowNote, octaveRange, activeChannels, listPrograms, drumProgs);
     }
 }

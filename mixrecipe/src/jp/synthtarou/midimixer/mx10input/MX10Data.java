@@ -25,6 +25,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
  * @author Syntarou YOSHIDA
  */
 public class MX10Data {
+    public static final int TYPE_ALL = 0;
     public static final int TYPE_NOTE = 1;
     public static final int TYPE_DAMPER_PEDAL = 2;
     public static final int TYPE_PITCH_BEND = 3; 
@@ -33,18 +34,18 @@ public class MX10Data {
     public static final int TYPE_PROGRAM_CHANGE  = 6;
     public static final int TYPE_DATA_ENTRY = 7;
     public static final int TYPE_ANOTHER_CC = 8;
-    public static final int TYPE_SYSEX = 9;
-    public static final int TYPE_ACTIVE_SENSING = 10;
-
-    public static final int TYPE_COUNT = 10;
-    
-    public static final int TYPE_ZERO = 0;
+    public static final int TYPE_RESET_GENERAL = 9;
+    public static final int TYPE_SYSEX = 10;
+    public static final int TYPE_ACTIVE_SENSING = 11;
 
     public static final String[] typeNames = {
-        "Note", "DamperPedal", "PitchBend", "ModWheel", "BankChange",
-        "ProgramChange", "DataEntry", "AnotherCC", "SysEX",
-        "Active&Clock"
+        "All", "Note", "DamperPedal", "PitchBend", "ModWheel", "BankChange",
+        "ProgramChange", "DataEntry", "AnotherCC", "GM&GS&XGReset", "SysEX", 
+        "Active&Clock", 
+        
     };
+
+    public static final int TYPE_COUNT = typeNames.length;
     
     long[] _whichToSkip;
     int _portCount;
@@ -52,12 +53,12 @@ public class MX10Data {
     public MX10Data() {
         _portCount = MXAppConfig.TOTAL_PORT_COUNT;
         _whichToSkip = new long[MXAppConfig.TOTAL_PORT_COUNT];
-        for (int i = 0; i < _whichToSkip.length; ++ i) {
-            _whichToSkip[i] = 1L << TYPE_ACTIVE_SENSING;
+        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
+            setSkip(port, TYPE_ACTIVE_SENSING, true);
         }
     }
     
-    public boolean isMarkedToSkip(MXMessage message) {
+    public boolean isMarkedAsSkip(MXMessage message) {
         if (message == null) {
             return true;
         }
@@ -67,14 +68,17 @@ public class MX10Data {
             command &= 0xf0;
         }
 
-        int type = TYPE_ZERO;
+        if (isSkip(port, TYPE_ALL)) {
+            return true;
+        }
 
-        int data1 = message.getGate()._var;
+        int type = TYPE_ALL;
+        int data1 = message.getGate()._value;
     
         if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF) {
             type = TYPE_NOTE;
         }else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_DAMPERPEDAL) {
-                type = TYPE_DAMPER_PEDAL;
+            type = TYPE_DAMPER_PEDAL;
         }else if (command == MXMidi.COMMAND_CH_PITCHWHEEL) {
             type = TYPE_PITCH_BEND;
         }else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_MODULATION) {
@@ -89,16 +93,23 @@ public class MX10Data {
             type = TYPE_DATA_ENTRY;
         }else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
             type = TYPE_ANOTHER_CC;
-        } else if (command == 0xf0 || command == 0xf7) {
-            type = TYPE_SYSEX;
+        } else if (command == MXMidi.COMMAND_SYSEX || command == MXMidi.COMMAND_SYSEX_END) {
+            byte[] data = message.getBinary();
+            if (MXMidi.isReset(data)) {
+                type = TYPE_RESET_GENERAL;
+            }
+            else {                
+                type = TYPE_SYSEX;
+            }
         } else  if (command == MXMidi.COMMAND_ACTIVESENSING || command == MXMidi.COMMAND_MIDICLOCK) {
             type = TYPE_ACTIVE_SENSING;
         }
         return isSkip(port, type);
     }
+
     
     public void setSkip(int port, int type, boolean skipFlag) {
-        long bit = 1L << type;
+        long bit = 1L << (type + 1);
         if ((_whichToSkip[port] & bit) != 0) {
             if (skipFlag) {
                 return;
@@ -115,7 +126,7 @@ public class MX10Data {
     }
     
     public boolean isSkip(int port, int type) {
-        long bit = 1L << type;
+        long bit = 1L << (type + 1);
         if ((_whichToSkip[port] & bit) != 0) {
             return true;
         }

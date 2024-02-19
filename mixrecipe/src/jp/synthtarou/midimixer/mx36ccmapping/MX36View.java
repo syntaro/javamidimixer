@@ -17,9 +17,11 @@
 package jp.synthtarou.midimixer.mx36ccmapping;
 
 import javax.swing.BorderFactory;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.navigator.MXPopupForList;
+import jp.synthtarou.midimixer.libs.navigator.MXPopupForText;
 
 /**
  *
@@ -28,26 +30,47 @@ import javax.swing.tree.TreePath;
 public class MX36View extends javax.swing.JPanel {
 
     MX36Process _process;
-    MX36DetailPanel _detailPanel;
+    MX36StatusDetailPanel _detailPanel;
+    MX36StatusListPanel _listPanel;
 
     /**
      * Creates new form MX36View
      */
-    public MX36View(MX36Process process) {
+    public MX36View(MX36Process process, MX36FolderList list) {
         initComponents();
         _process = process;
-        _detailPanel = new MX36DetailPanel(process);
-        jPanel2.add(_detailPanel);        
+        _detailPanel = new MX36StatusDetailPanel(process);
+        jPanel2.add(_detailPanel);
         jPanel2.setBorder(BorderFactory.createEmptyBorder());
-        DefaultTreeModel treeModel = _process._list.getTreeModel();
-        jTree1.setModel(treeModel);
-        for (int i = jTree1.getRowCount() - 1; i >= 0; -- i) {
-            jTree1.expandRow(i);
-        }
+        _listPanel = new MX36StatusListPanel(list);
+        jPanel3.add(_listPanel);
     }
 
-    public void refreshTree() {
-        //jSplitPane1.setDividerLocation(jSplitPane1.getWidth() / 2);
+    boolean _firstActive = true;
+    
+    public void tabActivated() {
+        if (_firstActive) {
+            if (_process.haveTrashedItem()) {
+                if (JOptionPane.showConfirmDialog(this, "Delete Trashed Past?", "Question", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                    _process.cleanupTrash();
+                }
+            }
+            if (_process.haveEmptyFolder()) {
+                if (JOptionPane.showConfirmDialog(this, "Delete Empty Folders?", "Question", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                    _process.cleanupEmptyFolder();
+                }
+            }
+            _firstActive = false;
+        }
+        jPanel3.remove(_listPanel);
+        _listPanel = new MX36StatusListPanel(_process._folders);
+        jPanel3.add(_listPanel);
+        _listPanel.revalidate();
+        jPanel3.revalidate();
+    }
+
+    public void focusStatus(MX36Status status) {
+        _detailPanel.updateViewByStatus(status);
     }
 
     /**
@@ -60,115 +83,33 @@ public class MX36View extends javax.swing.JPanel {
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        jPanel1 = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTree1 = new javax.swing.JTree();
-        jButtonAddFolder = new javax.swing.JButton();
-        jButtonAddCC = new javax.swing.JButton();
-        jButtonMoveUp = new javax.swing.JButton();
-        jButtonMoveDown = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
+        jPanel3 = new javax.swing.JPanel();
 
         setLayout(new java.awt.GridBagLayout());
-
-        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("CC Tree"));
-        jPanel1.setLayout(new java.awt.GridBagLayout());
-
-        jTree1.setRootVisible(false);
-        jTree1.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
-            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
-                jTree1ValueChanged(evt);
-            }
-        });
-        jScrollPane1.setViewportView(jTree1);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 2.0;
-        gridBagConstraints.weighty = 1.0;
-        jPanel1.add(jScrollPane1, gridBagConstraints);
-
-        jButtonAddFolder.setText("Add Folder");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        jPanel1.add(jButtonAddFolder, gridBagConstraints);
-
-        jButtonAddCC.setText("Add CC");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
-        jPanel1.add(jButtonAddCC, gridBagConstraints);
-
-        jButtonMoveUp.setText("move Up");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 10, 0);
-        jPanel1.add(jButtonMoveUp, gridBagConstraints);
-
-        jButtonMoveDown.setText("move Down");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 10, 10, 0);
-        jPanel1.add(jButtonMoveDown, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        add(jPanel1, gridBagConstraints);
 
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Pickuped"));
         jPanel2.setLayout(new javax.swing.BoxLayout(jPanel2, javax.swing.BoxLayout.LINE_AXIS));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         add(jPanel2, gridBagConstraints);
+
+        jPanel3.setLayout(new javax.swing.BoxLayout(jPanel3, javax.swing.BoxLayout.LINE_AXIS));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        add(jPanel3, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jTree1ValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_jTree1ValueChanged
-        TreePath path = jTree1.getSelectionPath();
-        if (path == null) {
-            return;
-        }
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-        Object obj = node.getUserObject();
-        if (obj instanceof MX36StatusList.Folder) {
-            MX36StatusList.Folder folder = (MX36StatusList.Folder)obj;
-            System.out.println("Folder:" + folder);
-        }
-        else if (obj instanceof MX36Status) {
-            MX36Status status = (MX36Status)obj;
-            _detailPanel.updateViewByStatus(status);
-        }
-        
-    }//GEN-LAST:event_jTree1ValueChanged
-    
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButtonAddCC;
-    private javax.swing.JButton jButtonAddFolder;
-    private javax.swing.JButton jButtonMoveDown;
-    private javax.swing.JButton jButtonMoveUp;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTree jTree1;
+    private javax.swing.JPanel jPanel3;
     // End of variables declaration//GEN-END:variables
 }

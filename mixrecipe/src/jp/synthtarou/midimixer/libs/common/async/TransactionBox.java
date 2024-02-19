@@ -18,6 +18,7 @@ package jp.synthtarou.midimixer.libs.common.async;
 
 import java.util.Comparator;
 import java.util.TreeMap;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
@@ -50,7 +51,7 @@ public class TransactionBox {
             tr.notifyFinished(result);
             closeTicket(tr);
             if (result < 0) {
-                System.err.println("Error in " + tr._taskName + " result = " + result);
+                MXMain.printDebug("Error in " + tr._taskName + " result = " + result);
             }
         }
     }
@@ -64,7 +65,7 @@ public class TransactionBox {
             notifyAll();
         }
         closeTicket(tr);
-        System.out.println("callmeWhenCanceled " + tr.getTransactionTicket() + " : " + tr._taskName);
+        MXMain.printDebug("Task Canceled " + tr.getTransactionTicket() + " : " + tr._taskName);
     }
 
     protected synchronized void closeTicket(Transaction tr) {

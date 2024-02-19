@@ -29,7 +29,7 @@ import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
  */
 public class MGDrumPad extends javax.swing.JPanel {
 
-    final MX32Mixer _mixer;
+    final MX32MixerProcess _mixer;
     int _row, _column;
 
     boolean _focusSelected = false;
@@ -42,7 +42,7 @@ public class MGDrumPad extends javax.swing.JPanel {
         _mixer.setStatus(MGStatus.TYPE_DRUMPAD, _row, _column, status);
     }
 
-    public MGDrumPad(MX32Mixer process, int row, int column) {
+    public MGDrumPad(MX32MixerProcess process, int row, int column) {
         _mixer = process;
         _row = row;
         _column = column;
@@ -53,7 +53,7 @@ public class MGDrumPad extends javax.swing.JPanel {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     return;
                 }
-                increment();
+                increment(null);
             }
 
             @Override
@@ -61,7 +61,7 @@ public class MGDrumPad extends javax.swing.JPanel {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     return;
                 }
-                decriment();
+                decriment(null);
             }
         });
         updateUI();
@@ -118,28 +118,20 @@ public class MGDrumPad extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
 
-    public void increment() {
-        MXMessageBag bag = new MXMessageBag();
-        getStatus()._drum.mouseDetected(true, bag);
-        while (true) {
-            MXMessage message = bag.popTranslated();
-            if (message == null) {
-                break;
-            }
-            _mixer.startProcess(message);
+    public void increment(MXMessageBag bag) {
+        if (bag == null) {
+            bag = new MXMessageBag();
         }
+        getStatus()._drum.mouseDetected(true, bag);
+        _mixer.flushSendQueue(bag);
     }
 
-    public void decriment() {
-        MXMessageBag bag = new MXMessageBag();
-        getStatus()._drum.mouseDetected(false, bag);
-        while (true) {
-            MXMessage message = bag.popTranslated();
-            if (message == null) {
-                break;
-            }
-            _mixer.startProcess(message);
+    public void decriment(MXMessageBag bag) {
+        if (bag == null) {
+            bag = new MXMessageBag();
         }
+        getStatus()._drum.mouseDetected(false, bag);
+        _mixer.flushSendQueue(bag);
     }
 
     public void editContoller() {

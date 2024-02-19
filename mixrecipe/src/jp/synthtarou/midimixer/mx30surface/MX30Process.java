@@ -32,7 +32,7 @@ import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 public class MX30Process extends MXReceiver implements MXSettingTarget {
 
     private MX30View _rootView;
-    private MX32Mixer[] _pageProcess;
+    MX32MixerProcess[] _pageProcess;
     MXSetting _setting;
     boolean _underConstruction;
     
@@ -42,15 +42,16 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
         _setting.setTarget(this);
         prepareActiveSlider();
         _rootView = new MX30View(this);
-        _pageProcess = new MX32Mixer[MXAppConfig.TOTAL_PORT_COUNT];
+        _pageProcess = new MX32MixerProcess[MXAppConfig.TOTAL_PORT_COUNT];
         for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
-            _pageProcess[i] = new MX32Mixer(this, i);
+            _pageProcess[i] = new MX32MixerProcess(this, i);
         }
         _underConstruction = false;
     }
 
     @Override    
     public void setNextReceiver(MXReceiver next) {
+        super.setNextReceiver(next);
         for (int i = 0; i < _pageProcess.length; ++ i) {
             _pageProcess[i].setNextReceiver(next);
         }
@@ -60,7 +61,7 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
         _setting.readSettingFile();
         for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
             _pageProcess[port].readSettings();
-            MX32Mixer mixer = _pageProcess[port];
+            MX32MixerProcess mixer = _pageProcess[port];
             _rootView.addPage(port, mixer);
         }
         globalContollerHidden();
@@ -140,7 +141,7 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
         setting.setSetting("ActivePad", pad.toString());
     }
        
-    public MX32Mixer getPage(int i) {
+    public MX32MixerProcess getPage(int i) {
         return _pageProcess[i];
     }
 

@@ -20,8 +20,9 @@ import java.awt.Dimension;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 
 /**
@@ -68,7 +69,7 @@ public class MXPresetPanel extends javax.swing.JPanel {
 
             @Override
             public boolean presetActionLoad(File file) {
-                System.out.println("Loading " + file);
+                MXMain.printDebug("Loading " + file);
                 return true;
             }
         };
@@ -188,7 +189,7 @@ public class MXPresetPanel extends javax.swing.JPanel {
         if (index >= 0) {
             Integer x = _listModel.valueOfIndex(index);
             if (x != index) {
-                System.err.println("Something Wrong , List Index != Data Index");
+                MXMain.printAlert("Something Wrong , List Index != Data Index");
                 return;
             }
             if (_action.presetActionLoad(_file.getPath(x))) {
@@ -202,7 +203,7 @@ public class MXPresetPanel extends javax.swing.JPanel {
         if (index >= 0) {
             Integer x = _listModel.valueOfIndex(index);
             if (x != index) {
-                System.err.println("Something Wrong , List Index != Data Index");
+                MXMain.printAlert("Something Wrong , List Index != Data Index");
                 return;
             }
             String title = _file.getTitle(x);

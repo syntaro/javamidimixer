@@ -25,9 +25,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.MXMain;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Empty;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
@@ -131,9 +131,10 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
 
         for (MXMIDIIn input : allInput.valueList()) {
             String prefix = "";
+            /*
             if (input.getDriver() instanceof MXDriver_Empty) {
                 prefix = "*";
-            }
+            }*/
             tableModel.addRow(new Object[] { 
                 prefix + input.getName(),
                 input.getPortAssignedAsText(),
@@ -160,7 +161,7 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
             //String newMaster = (String)newModel.getValueAt(i, 3);
             
             if (name.equals(newName) == false) {
-                System.out.println("any troubole?");
+                MXMain.printDebug("any troubole?");
                 break;
             }
             
@@ -203,12 +204,11 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
                     String text = (String)model.getValueAt(row, 0);
                     MXMIDIIn input = manager.listAllInput().valueOfName(text);
                     
-                    if (input == null) {
-                        System.err.println("Wrong way");
-                        return;
-                    }
-
                     if (newAssign >= 0) {
+                        if (input == null) {
+                            MXMain.printDebug("Can't create / Wrong way");
+                            return;
+                        }
                         if (input.isPortAssigned(newAssign)) {
                             input.allNoteOffToPort(null, newAssign);
                         }

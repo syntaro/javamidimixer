@@ -19,14 +19,14 @@ package jp.synthtarou.midimixer.libs.midi.port;
 import java.util.ArrayList;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver;
-import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Empty;
+import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_NotFound;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_VSTi;
 
 /**
@@ -192,9 +192,7 @@ public class MXMIDIOutManager implements MXSettingTarget {
         synchronized (MXTiming.mutex) {
             for (MXMIDIOut output : listAllOutput().valueList()) {
                 if (output.isOpen()) {
-                    System.out.println("closing output " + output);
                     output.close();
-                    System.out.println("closing done " + output);
                 }
             }
         }
@@ -209,7 +207,7 @@ public class MXMIDIOutManager implements MXSettingTarget {
 
     @Override
     public void afterReadSettingFile(MXSetting setting) {
-        MXDriver_Empty dummy = MXDriver_Empty.getInstance();
+        MXDriver_NotFound dummy = MXDriver_NotFound.getInstance();
 
         for (int seek = 0; seek < 1000; ++seek) {
             String deviceName = setting.getSetting("device[" + seek + "].name");

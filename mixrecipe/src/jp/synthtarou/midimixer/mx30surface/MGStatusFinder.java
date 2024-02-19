@@ -17,7 +17,6 @@
 package jp.synthtarou.midimixer.mx30surface;
 
 import java.util.ArrayList;
-import java.util.TreeSet;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -34,9 +33,9 @@ public class MGStatusFinder {
     ArrayList<MGStatus> _cachedAnotherMessage;
     ArrayList<MGStatus> _cachedDataentry;
 
-    MX32Mixer _mixer;
+    MX32MixerProcess _mixer;
 
-    public MGStatusFinder(MX32Mixer data) {
+    public MGStatusFinder(MX32MixerProcess data) {
         _mixer = data;
         _cachedControlChange = new ArrayList[16][256];
         _cachedChannelMessage = new ArrayList[16][256];
@@ -45,25 +44,25 @@ public class MGStatusFinder {
         _cachedDataentry = new ArrayList();
         for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++row) {
             for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
-                makeCacheInternal1(_mixer.getStatus(MGStatus.TYPE_SLIDER,  row, column));
+                makeCacheImpl(_mixer.getStatus(MGStatus.TYPE_SLIDER,  row, column));
             }
         }
 
         for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++row) {
             for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
-                makeCacheInternal1(_mixer.getStatus(MGStatus.TYPE_CIRCLE, row, column));
+                makeCacheImpl(_mixer.getStatus(MGStatus.TYPE_CIRCLE, row, column));
             }
         }
 
         for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++row) {
             for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
                 MGStatus status = _mixer.getStatus(MGStatus.TYPE_DRUMPAD, row, column);
-                makeCacheInternal1(status);
+                makeCacheImpl(status);
             }
         }
     }
 
-    public void makeCacheInternal1(MGStatus status) {
+    public void makeCacheImpl(MGStatus status) {
         if (status == null) {
             return;
         }
@@ -117,10 +116,10 @@ public class MGStatusFinder {
                 if (data1 == MXMidi.DATA1_CC_DATAENTRY || data1 == MXMidi.DATA1_CC_DATAINC || data1 == MXMidi.DATA1_CC_DATADEC) {
                     return _cachedDataentry;
                 }
-                return _cachedControlChange[request.getChannel()][request.getGate()._var];
+                return _cachedControlChange[request.getChannel()][request.getGate()._value];
             } else if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF
                     || command == MXMidi.COMMAND_CH_POLYPRESSURE) {
-                return _cachedNoteMessage[request.getChannel()][request.getGate()._var];
+                return _cachedNoteMessage[request.getChannel()][request.getGate()._value];
             }
 
             return _cachedChannelMessage[request.getChannel()][command];

@@ -18,7 +18,7 @@ package jp.synthtarou.midimixer.mx30surface;
 
 import java.util.ArrayList;
 import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -28,9 +28,9 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
  * @author Syntarou YOSHIDA
  */
 public class MX32MixerInitializer {
-    MX32Mixer _mixer;
+    MX32MixerProcess _mixer;
     
-    public MX32MixerInitializer(MX32Mixer mixer) {
+    public MX32MixerInitializer(MX32MixerProcess mixer) {
         _mixer = mixer;
     }
 
@@ -91,7 +91,7 @@ public class MX32MixerInitializer {
                     MXMessage base = MXMessageFactory.fromCCXMLText(port, text, 0);
                     status = new MGStatus(_mixer,  MGStatus.TYPE_SLIDER, row, slider.size());
                     status._base = base;
-                    status.setMessageValue(RangedValue.new14bit(128 * 128 - 1));
+                    status.setMessageValue(MXRangedValue.new14bit(128 * 128 - 1));
                 } else {
                     MXMessage base = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_CONTROLCHANGE + slider.size(), MXMidi.DATA1_CC_CHANNEL_VOLUME, 128 - 1);
                     status = new MGStatus(_mixer,  MGStatus.TYPE_SLIDER, row, slider.size());
@@ -291,7 +291,7 @@ public class MX32MixerInitializer {
                 status = _mixer.getStatus(MGStatus.TYPE_CIRCLE, row, col);
                 if (col >= 16) {
                     String text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
-                    message = MXMessageFactory.fromCCXMLText(_port, text, 0, RangedValue.ZERO7, RangedValue.new14bit(0));
+                    message = MXMessageFactory.fromCCXMLText(_port, text, 0, MXRangedValue.ZERO7, MXRangedValue.new14bit(0));
                 } else {
                     message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_CONTROLCHANGE + col, ccCode[row], 64);
                 }
@@ -341,7 +341,7 @@ public class MX32MixerInitializer {
         MXMessage base = (MXMessage)sliderStatus._base.clone();
 
         int x = sliderStatus.getValue()._max;
-        RangedValue hit = new RangedValue(x, x, x);
+        MXRangedValue hit = new MXRangedValue(x, x, x);
         status._base = base;
         status._drum._outStyle = MGStatusForDrum.STYLE_LINK_SLIDER;
         status._drum._linkKontrolType = MGStatus.TYPE_SLIDER;
@@ -359,7 +359,7 @@ public class MX32MixerInitializer {
         MXMessage base = (MXMessage)sliderStatus._base.clone();
 
         int x = (int)Math.round((sliderStatus.getValue()._max + sliderStatus.getValue()._min) /2.0);
-        RangedValue hit = new RangedValue(x, x, x);
+        MXRangedValue hit = new MXRangedValue(x, x, x);
         status._base = base;
         status._drum._outStyle = MGStatusForDrum.STYLE_LINK_SLIDER;
         status._drum._linkKontrolType = MGStatus.TYPE_SLIDER;
@@ -377,7 +377,7 @@ public class MX32MixerInitializer {
         MXMessage base = (MXMessage)sliderStatus._base.clone();
 
         int x = sliderStatus.getValue()._min;
-        RangedValue hit = new RangedValue(x, x, x);
+        MXRangedValue hit = new MXRangedValue(x, x, x);
         status._base = base;
         status._drum._outStyle = MGStatusForDrum.STYLE_LINK_SLIDER;
         status._drum._linkKontrolType = MGStatus.TYPE_SLIDER;

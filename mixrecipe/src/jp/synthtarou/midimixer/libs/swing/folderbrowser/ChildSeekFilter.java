@@ -31,6 +31,10 @@ public class ChildSeekFilter implements FileFilter {
     MXSwingFolderBrowser _owner;
     int _step;
 
+    /**
+     *
+     * @param ownwer
+     */
     public ChildSeekFilter(MXSwingFolderBrowser ownwer) {
         _owner = ownwer;
         _cancelFlag = false;

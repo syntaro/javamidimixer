@@ -53,7 +53,6 @@ public class MXVisitantRecorder implements TableModel {
     public boolean updateVisitant16WithMessage(MXMessage message) {
         MXVisitant visitant = _element.get(message.getPort()).get(message.getChannel());
         if (visitant.updateVisitantChannel(message)) {
-            //System.out.println("updated " + visitant);
             invokeListener();
             return true;
         }
@@ -63,7 +62,6 @@ public class MXVisitantRecorder implements TableModel {
     public boolean mergeVisitant16WithVisitant(MXMessage message) {
         MXVisitant visitant = _element.get(message.getPort()).get(message.getChannel());
         if (visitant.mergeNew(message.getVisitant())) {
-            //System.out.println("merged " + visitant);
             invokeListener();
             return true;
         }
@@ -160,9 +158,9 @@ public class MXVisitantRecorder implements TableModel {
                 }
                 break;
             case 6:
-                if (info.isHaveDataentryRPN()) {
+                if (info.isHavingDataentryRPN()) {
                     return "R(" + MXUtil.toHexFF(info.getDataentryMSB()) + ":" + MXUtil.toHexFF(info.getDataentryLSB()) + ")=" + info.getDataentryValue14();
-                }else if (info.isHaveDataentryNRPN()) {
+                }else if (info.isHavingDataentryNRPN()) {
                     return "N(" + MXUtil.toHexFF(info.getDataentryMSB()) + ":" + MXUtil.toHexFF(info.getDataentryLSB()) + ")=" + info.getDataentryValue14();
                 }
                 break;

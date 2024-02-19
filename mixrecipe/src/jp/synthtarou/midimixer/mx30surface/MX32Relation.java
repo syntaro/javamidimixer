@@ -16,16 +16,12 @@
  */
 package jp.synthtarou.midimixer.mx30surface;
 
-import java.util.Comparator;
-import java.util.TreeSet;
-import jp.synthtarou.midimixer.libs.midi.MXMessage;
-
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MX32Relation {
-
+/*
     static Comparator<MGStatus> _comp = new Comparator<>() {
         @Override
         public int compare(MGStatus o1, MGStatus o2) {
@@ -48,12 +44,12 @@ public class MX32Relation {
         }
     };
     
-    MX32Mixer _mixer;
+    MX32MixerProcess _mixer;
     public MXMessage _base;
     public MX32Relation _chanMessage;
     public TreeSet<MGStatus> _listStatus = new TreeSet(_comp);
 
-    public MX32Relation(MX32Mixer mixer, MXMessage message, MGStatus status) {
+    public MX32Relation(MX32MixerProcess mixer, MXMessage message, MGStatus status) {
         _mixer = mixer;
         _base = message;
         if (status != null) {
@@ -76,4 +72,5 @@ public class MX32Relation {
         }
         last._chanMessage = new MX32Relation(_mixer, message, status);
     }
+*/
 }

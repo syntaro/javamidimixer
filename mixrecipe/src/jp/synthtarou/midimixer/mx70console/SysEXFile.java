@@ -33,7 +33,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.driver.SysexSplitter;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
-import jp.synthtarou.midimixer.libs.midi.smf.MidiByteReader;
+import jp.synthtarou.midimixer.libs.midi.smf.SMFInputStream;
 import jp.synthtarou.midimixer.libs.common.MXLineReader;
 
 /**
@@ -124,7 +124,6 @@ public class SysEXFile {
                 }
             }
             setContentsFromSingleFile(out.toByteArray());
-            System.out.println("Read bininary size=" + out.size());
             fin.close();
             fin = null;
             return true;
@@ -138,7 +137,7 @@ public class SysEXFile {
     
     public void setContentsFromSingleFile(byte[] data) {
         ByteArrayInputStream in = new ByteArrayInputStream(data);
-        MidiByteReader reader = new MidiByteReader(in);
+        SMFInputStream reader = new SMFInputStream(in);
         ArrayList<byte[]> temp = new ArrayList();
 
         int error = 0;
@@ -148,7 +147,7 @@ public class SysEXFile {
                 break;
             }
             if (sig != 0xf0) {
-                System.err.println("Error " + MXUtil.toHexFF(sig));
+                MXMain.printDebug("Error " + MXUtil.toHexFF(sig));
                 reader.read8();
                 continue;
             }
@@ -312,115 +311,5 @@ public class SysEXFile {
                 progress.progress(x, count);
             }
         }).start();;
-    }
-    
-    public static final int ID_NOTHING = 0;
-    public static final int ID_AMERICAN_1 = 1;
-    public static final int ID_EUROPEAN_1 = 2;
-    public static final int ID_JAPANESE_1 = 3;
-    public static final int ID_OTHER_1 = 4;
-
-    public static final int ID_SPECIAL_1 = 5;
-    public static final int ID_AMERICAN_3 = 6;
-    public static final int ID_EUROPEAN_3 = 7;
-    public static final int ID_JAPANESE_3 = 8;
-    public static final int ID_OTHER_3 = 9;
-
-    public static final int ID_UNKNOWN_3 = 10;
-    
-    public static final String HANDSHAKE_ACK_TEXT = "F0 7E @Device 7F @Packet F7";
-    public static final String HANDSHAKE_NAK_TEXT = "F0 7E @Device 7F @Packet F7";
-    public static final String HANDSHAKE_CANCEL_TEXT = "F0 7E @Device 7D @Packet F7";
-    public static final String HANDSHAKE_WAIT_TEXT = "F0 7E @Device 7C @Packet F7";
-    public static final String HANDSHAKE_EOF_TEXT = "F0 7E @Device 7B @Packet F7";
-
-    public int handShakeDevice;
-    public int handShakeMessage;
-    public int handShakePacket;
-
-    public static final int HANDSHAKE_ACK = 0x7f;
-    public static final int HANDSHAKE_NAK = 0x7F;
-    public static final int HANDSHAKE_CANCEL = 0x7D;
-    public static final int HANDSHAKE_WAIT = 0x7C;
-    public static final int HANDSHAKE_EOF = 0x7B;
-
-    public int isHandShakeMesage(byte[] data) {
-        if (data.length == 6) {
-            if (data[0] == 0xf0 && data[1] == 0x7e) {
-                int device = data[2];
-                int message = data[3];
-                int packet = data[4];
-                if (data[5] == 0xf7) {
-                    handShakeDevice = device;
-                    handShakeMessage = message;
-                    handShakePacket = packet;
-                    return handShakeMessage;
-                }
-            }
-        }
-        return -1;
-    }
-    
-    public boolean isMaybeFinish(byte[] data) {
-        if (data[data.length - 1] == 0xf7) {
-            return true;
-        }
-        return false;
-    }
-
-    public void parseTest1(byte[] data) {
-        /* F0H , ID (1-3), Device, Sub1, Sub2, ... F7H  */
-        int x = 0;
-        try {
-            int start = data[x++];
-            if (start == 0xf0 || start == 0xf7) {
-                int maker1 = data[x++];
-                int maker2 = 0;
-                int maker3 = 0;
-                int id = ID_NOTHING;
-                if (maker1 >= 01 && maker1 <= 0x1f) {
-                    id = ID_AMERICAN_1;
-                }
-                else if (maker1 >= 0x20 && maker1 <= 0x3f) {
-                    id = ID_EUROPEAN_1;
-                }
-                else if (maker1 >= 0x40 && maker1 <= 0x5f) {
-                    id = ID_JAPANESE_1;
-                }
-                else if (maker1 >= 0x60 && maker1 <= 0x7c) {
-                    id = ID_OTHER_1;
-                }
-                else if (maker1 >= 0x7d && maker1 <= 0x7f) {
-                    id = ID_SPECIAL_1;
-                }
-                else if (maker1 == 0x00) {
-                    maker2 = data[x++];
-                    maker3 = data[x++];
-                    if (maker2 >= 01 && maker2 <= 0x1f) {
-                        id = ID_AMERICAN_3;
-                    }
-                    else if (maker2 >= 0x20 && maker2 <= 0x3f) {
-                        id = ID_EUROPEAN_3;
-                    }
-                    else if (maker2 >= 0x40 && maker2 <= 0x5f) {
-                        id = ID_JAPANESE_3;
-                    }
-                    else if (maker2 >= 0x60 && maker2 <= 0x7f) {
-                        id = ID_OTHER_3;
-                    }
-                }
-                else {
-                    maker2 = data[x++];
-                    maker3 = data[x++];
-                    id = ID_UNKNOWN_3;
-                }
-            }
-            int device = data[x++];
-            if (device == 0x7f) {
-                // ALL CALL
-            }
-        }catch(IndexOutOfBoundsException ex) {
-            return ;
-        }
     }
 }

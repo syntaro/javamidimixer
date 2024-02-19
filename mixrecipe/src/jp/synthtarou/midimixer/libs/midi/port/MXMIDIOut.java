@@ -35,9 +35,6 @@ import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_VSTi;
  * @author Syntarou YOSHIDA
  */
 public class MXMIDIOut {
-
-    public static final MXMIDIOut OUTPUT_NONE = new MXMIDIOut(/* TODO*/null, 0);
-
     private MXDriver _driver;
     private int _driverOrder;
     private String _name;
@@ -164,6 +161,7 @@ public class MXMIDIOut {
         }
     }
 
+        
     private void processMidiOutInternal(MXMessage message) {
         synchronized (MXTiming.mutex) {
             if (!_driver.OutputDeviceIsOpen(_driverOrder)) {
@@ -185,7 +183,7 @@ public class MXMIDIOut {
                     MXVisitant visitant = _visitant16.get(message.getChannel());
                     int status = message.getStatus();
                     int channel = message.getChannel();
-                    int gate = message.getGate()._var;
+                    int gate = message.getGate()._value;
                     int command = status;
                     if (status >= 0x80 && status <= 0xef) {
                         command = status & 0xf0;
@@ -283,29 +281,21 @@ public class MXMIDIOut {
 
                 int col = message.getDwordCount();
                 if (col == 0) {
-                    byte[] data = message.getDataBytes();
+                    byte[] data = message.getBinary();
                     _driver.OutputLongMessage(_driverOrder, data);
                     MXMain.addOutsideOutput(new MXMidiConsoleElement(message._timing, message.getPort(), data));
-                } else if (col > 0) {
+                } else {
                     for (int i = 0; i < col; ++i) {
                         int dword = message.getAsDword(i);
-                        _driver.OutputShortMessage(_driverOrder, dword);
+                        if (dword == 0) {
+                            //MidiINでまとめるのに失敗して次のデータによりフラッシュされたケース
+                            MXMain.printDebug("input dataentry was solo(not pair) " +  message);
+                        }
+                        else {
+                            _driver.OutputShortMessage(_driverOrder, dword);
+                        }
                         MXMain.addOutsideOutput(new MXMidiConsoleElement(message._timing, message.getPort(), dword));
                     }
-                } else {
-                    if (message.isDataentry()) {
-                        if (message.getVisitant() == null) {
-                            System.out.println("DATAENTRY no set VISITANT");
-                            return;
-                        }
-                        if (message.getVisitant().isHaveDataentryRPN() == false
-                                && message.getVisitant().isHaveDataentryNRPN() == false) {
-                            System.out.println("DATAENTRY no set RPN / NRPN");
-                            return;
-                        }
-                    }
-                    //Nothing
-                    System.out.println("nothing to send : " + message);
                 }
             } catch (Throwable e) {
                 e.printStackTrace();

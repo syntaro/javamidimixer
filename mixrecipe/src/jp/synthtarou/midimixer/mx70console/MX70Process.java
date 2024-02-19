@@ -63,7 +63,7 @@ public class MX70Process implements MXSettingTarget {
         MXMidiConsoleElement e = new MXMidiConsoleElement(msg);
         _insideInput.add(e);
         e.getTiming().recordWrap(1);
-        if (msg.isBinMessage()) {
+        if (msg.isBinaryMessage()) {
             _listBinary.add(e);
         }
     }

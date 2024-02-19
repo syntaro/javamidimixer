@@ -28,6 +28,9 @@ public class SingleThreadGroup {
     LinkedList<Thread> _registedList = new LinkedList();
     boolean _priorityLast = true;
 
+    /**
+     *
+     */
     public SingleThreadGroup() {
 
     }

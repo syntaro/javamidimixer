@@ -27,16 +27,17 @@ import javax.sound.midi.ShortMessage;
 import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 
 /**
+ * Java標準MIDI用のドライバ
  *
  * @author Syntarou YOSHIDA
  */
 public class MXDriver_Java implements MXDriver {
+
     public static final MXDriver_Java _instance = new MXDriver_Java();
-   
+
     public boolean isUsable() {
         return true;
     }
@@ -61,7 +62,7 @@ public class MXDriver_Java implements MXDriver {
             MidiDevice device = null;
             try {
                 device = MidiSystem.getMidiDevice(infoList[i]);
-            }catch(MidiUnavailableException e) {
+            } catch (MidiUnavailableException e) {
                 e.printStackTrace();
                 continue;
             }
@@ -76,7 +77,7 @@ public class MXDriver_Java implements MXDriver {
                         String name3 = new String(name.getBytes(charset3), charset3);
                         if (!name.equals(name2) || !name.equals(name3)) {
                             StringBuffer out = new StringBuffer();
-                            for (int x = 0; x < name.length(); ++ x) {
+                            for (int x = 0; x < name.length(); ++x) {
                                 int ch = name.charAt(x);
                                 out.append(Integer.toHexString(ch));
                                 out.append(",");
@@ -84,10 +85,8 @@ public class MXDriver_Java implements MXDriver {
 
                             System.out.println(name + " = " + name2 + " = " + name3);
                             continue;
-                        }else {
-                            System.out.println(name + " = safe for " + charset2 +" ," + charset3);
                         }
-                    }catch(Exception e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                     if (name.equals("Real Time Sequencer")) {
@@ -101,12 +100,12 @@ public class MXDriver_Java implements MXDriver {
 
         _listInput = newList;
     }
-    
+
     public synchronized void listAllOutput() {
         if (_listOutput != null) {
             return;
         }
-        
+
         ArrayList<MidiDevice> newList = new ArrayList<MidiDevice>();
         MidiDevice.Info[] infoList = MidiSystem.getMidiDeviceInfo();
 
@@ -114,7 +113,7 @@ public class MXDriver_Java implements MXDriver {
             MidiDevice device = null;
             try {
                 device = MidiSystem.getMidiDevice(infoList[i]);
-            }catch(MidiUnavailableException e) {
+            } catch (MidiUnavailableException e) {
                 e.printStackTrace();
                 continue;
             }
@@ -131,18 +130,17 @@ public class MXDriver_Java implements MXDriver {
         _listOutput = newList;
     }
 
-
     public int InputDevicesRoomSize() {
         listAllInput();
         return _listInput.size();
     }
-    
+
     public String InputDeviceName(int x) {
         listAllInput();
         MidiDevice device = _listInput.get(x);
         return device.getDeviceInfo().getName();
     }
-    
+
     public String InputDeviceId(int x) {
         listAllInput();
         return InputDeviceName(x);
@@ -154,13 +152,14 @@ public class MXDriver_Java implements MXDriver {
     }
 
     class JavaInputReceiver implements Receiver {
+
         MXMIDIIn _input;
         Thread _last;
-        
+
         public JavaInputReceiver(MXMIDIIn input) {
             _input = input;
         }
-        
+
         @Override
         public void send(MidiMessage msg, long timestamp) {
             if (_last != Thread.currentThread()) {
@@ -168,17 +167,17 @@ public class MXDriver_Java implements MXDriver {
                 MXThreadList.attachIfNeed("MXDriver_java", _last);
             }
             if (msg instanceof ShortMessage) {
-                ShortMessage shortMsg = (ShortMessage)msg;
+                ShortMessage shortMsg = (ShortMessage) msg;
                 int status = shortMsg.getStatus() & 0xff;
                 int data1 = shortMsg.getData1() & 0xff;
                 int data2 = shortMsg.getData2() & 0xff;
                 if (status == MXMidi.COMMAND_META_OR_RESET || status == MXMidi.COMMAND_ACTIVESENSING) {
                     return;
                 }
-                
+
                 int dword = (((status << 8) | data1) << 8) | data2;
                 _input.receiveShortMessage(null, dword);
-            }else {
+            } else {
                 byte[] data = msg.getMessage();
                 _input.receiveLongMessage(null, data);
             }
@@ -199,12 +198,12 @@ public class MXDriver_Java implements MXDriver {
                     _listInput.get(device).getTransmitter().setReceiver(new JavaInputReceiver(input));
                     return true;
                 }
-            }catch(MidiUnavailableException e) {
+            } catch (MidiUnavailableException e) {
             }
         }
         return false;
     }
-    
+
     public void InputDeviceClose(int x) {
         listAllInput();
         if (!_listInput.get(x).isOpen()) {
@@ -217,12 +216,12 @@ public class MXDriver_Java implements MXDriver {
         listAllOutput();
         return _listOutput.size();
     }
-    
+
     public String OutputDeviceName(int x) {
         listAllOutput();
         return _listOutput.get(x).getDeviceInfo().getName();
     }
-    
+
     public String OutputDeviceId(int x) {
         listAllOutput();
         return OutputDeviceName(x);
@@ -241,14 +240,14 @@ public class MXDriver_Java implements MXDriver {
                 if (_listOutput.get(device).isOpen()) {
                     return true;
                 }
-            }catch(MidiUnavailableException e) {
-               e.printStackTrace();
+            } catch (MidiUnavailableException e) {
+                e.printStackTrace();
             }
             return false;
         }
         return true;
-    }    
-    
+    }
+
     public void OutputDeviceClose(int x) {
         listAllOutput();
         if (!_listOutput.get(x).isOpen()) {
@@ -258,12 +257,12 @@ public class MXDriver_Java implements MXDriver {
             if (_listOutput.get(x).getDeviceInfo().getName().equals("Gervill")) {
                 return;
             }
-        }catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         _listOutput.get(x).close();
     }
-    
+
     public boolean OutputShortMessage(int x, int message) {
         listAllOutput();
 
@@ -278,17 +277,13 @@ public class MXDriver_Java implements MXDriver {
                 ShortMessage msg = new ShortMessage(status, data1, data2);
                 _listOutput.get(x).getReceiver().send(msg, 0);
                 return true;
-            }catch(Throwable e) {
-                System.out.println("Unknown Message: " + MXUtil.toHexFF(status)  + "  " + MXUtil.toHexFF(data1) + " " + MXUtil.toHexFF(data2) );
+            } catch (Throwable e) {
+                System.out.println("Unknown Message: " + MXUtil.toHexFF(status) + "  " + MXUtil.toHexFF(data1) + " " + MXUtil.toHexFF(data2));
                 e.printStackTrace();
             }
         }
         return false;
     }
-
-    static MidiDevice gervill = null;
-    static boolean _seekedGervill = false;
-    static final byte[] gmsystem = { (byte)0xf0, (byte)0x7e, (byte)0x7f, (byte)0x09, (byte)0x01, (byte)0xf7 };
 
     public boolean OutputLongMessage(int x, byte[] data) {
         listAllOutput();
@@ -296,44 +291,22 @@ public class MXDriver_Java implements MXDriver {
         if (data == null || data.length == 0) {
             return true;
         }
-        
+
         try {
             int status = data[0] & 0xff;
-            switch(status) {
+            switch (status) {
                 case 0xf0:
                 case 0xf7:
                     try {
-                        if (_seekedGervill == false) {
-                            _seekedGervill = true;
-                            for (MidiDevice device : _listOutput) {
-                                if (device.getDeviceInfo().getName().equalsIgnoreCase("Gervill")) {
-                                    gervill = device;
-                                }
-                            }
-                        }
-                        if (_seekedGervill && _listOutput.get(x) == gervill) {
-                            int count = gmsystem.length;
-                            if (gmsystem.length == data.length) {
-                                for (int i = 0; i < gmsystem.length; ++ i) {
-                                    if (data[i] == gmsystem[i]) {
-                                        count --;
-                                    }
-                                }
-                            }
-                            if (count == 0) {
-                                return false;
-                            }
-                            
-                            //JavaSynth には、GM Resetを送らない
-                        }
                         SplittableSysexMessage msg = new SplittableSysexMessage(data);
                         _listOutput.get(x).getReceiver().send(msg, 0);
 
                         return true;
-                    }catch(Throwable e) {
+                    } catch (Throwable e) {
                         e.printStackTrace();
                     }
                     break;
+
                 case 0xff:
                     break;
                 default:
@@ -351,17 +324,18 @@ public class MXDriver_Java implements MXDriver {
                                 ShortMessage msg3 = new ShortMessage(status, data1, data2);
                                 _listOutput.get(x).getReceiver().send(msg3, 0);
                                 return true;
-                            }catch(InvalidMidiDataException e) {
-                            }catch(Throwable e) {
+                            } catch (InvalidMidiDataException e) {
+                            } catch (Throwable e) {
                                 e.printStackTrace();
                             }
                         }
                     }
                     break;
             }
-        }catch(Throwable e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
+
         return false;
     }
 }

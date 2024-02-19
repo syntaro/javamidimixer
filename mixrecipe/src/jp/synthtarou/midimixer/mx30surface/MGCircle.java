@@ -21,8 +21,9 @@ import java.awt.Color;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
+import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 
@@ -32,7 +33,7 @@ import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
  */
 public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
 
-    MX32Mixer _mixer;
+    MX32MixerProcess _mixer;
     int _row, _column;
     Color foreground = null;
     boolean _disconnectMoment = false;
@@ -48,7 +49,7 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
         _mixer.setStatus(MGStatus.TYPE_CIRCLE, _row, _column, status);
     }
 
-    public MGCircle(MX32Mixer process, int row, int column) {
+    public MGCircle(MX32MixerProcess process, int row, int column) {
         _row = row;
         _column = column;
         _mixer = process;
@@ -125,13 +126,13 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
 
     private void jCircleValueStateChanged(javax.swing.event.ChangeEvent evt) {
         int newValue = jCircleValue.getValue();
-        if (getStatus().getValue()._var == newValue) {
+        if (getStatus().getValue()._value == newValue) {
             return;
         }
         if (_ignoreEvent) {
             return;
         }
-        _mixer.updateStatusAndSend(getStatus(), newValue, null);
+        _mixer.updateStatusAndSend(getStatus(), newValue);
     }
 
     MXTiming _trackNumer;
@@ -147,8 +148,8 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
             });
             return;
         }
-        RangedValue newValue = status._base.getValue();
-        if (jCircleValue.getValue() == newValue._var) {
+        MXRangedValue newValue = status._base.getValue();
+        if (jCircleValue.getValue() == newValue._value) {
             return;
         }
         _ignoreEvent = true;
@@ -161,19 +162,21 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
     private CurvedSlider jCircleValue;
     // End of variables declaration                   
 
-    public void increment() {
+    public void increment(MXMessageBag bag) {
         MGStatus status = getStatus();
-        RangedValue var = status.getValue().increment();
+        MXRangedValue var = status.getValue().increment();
         if (var != null) {
-            _mixer.updateStatusAndSend(status, var._var, null);
+            _mixer.updateStatusAndGetResult(status, var._value, null, bag);
+            _mixer.flushSendQueue(bag);
         }
     }
 
-    public void decriment() {
+    public void decriment(MXMessageBag bag) {
         MGStatus status = getStatus();
-        RangedValue var = status.getValue().decrement();
+        MXRangedValue var = status.getValue().decrement();
         if (var != null) {
-            _mixer.updateStatusAndSend(status, var._var, null);
+            _mixer.updateStatusAndGetResult(status, var._value, null, bag);
+            _mixer.flushSendQueue(bag);
         }
     }
 
@@ -194,9 +197,9 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
     public void mouseWheelMoved(MouseWheelEvent e) {
         int d = e.getUnitsToScroll();
         if (d > 0) {
-            this.decriment();
+            this.decriment(null);
         } else {
-            this.increment();
+            this.increment(null);
         }
     }
 }

@@ -36,12 +36,17 @@ import javax.swing.JTextField;
  * @author Syntarou YOSHIDA
  */
 public class MXAttachCopyAndPaste {
+
     ArrayList<JMenuItem> _menusBeforeThis = new ArrayList<>();
     ArrayList<JMenuItem> _menusAfterThis = new ArrayList<>();
     JPopupMenu _popup = null;
 
     JComponent _component = null;
 
+    /**
+     *
+     * @param component
+     */
     public MXAttachCopyAndPaste(JComponent component) {
         _component = component;
         component.addMouseListener(new MouseAdapter() {
@@ -94,7 +99,7 @@ public class MXAttachCopyAndPaste {
                 area.copy();
             }
             if (_component instanceof JLabel) {
-                JLabel label = (JLabel)_component;
+                JLabel label = (JLabel) _component;
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                 StringSelection selection = new StringSelection(label.getText());
                 clipboard.setContents(selection, null);
@@ -158,23 +163,25 @@ public class MXAttachCopyAndPaste {
 
         if (_component instanceof JTextField) {
             JTextField field = (JTextField) _component;
-            menuPopup.add(menuCut);
+            if (field.isEditable()) {
+                menuPopup.add(menuCut);
+            }
             menuPopup.add(menuCopy);
             if (field.isEditable()) {
                 menuPopup.add(menuPaste);
-                menuPopup.add(menuSelectAll);
             }
-        }
-        else if (_component instanceof JTextArea) {
+            menuPopup.add(menuSelectAll);
+        } else if (_component instanceof JTextArea) {
             JTextArea area = (JTextArea) _component;
-            menuPopup.add(menuCut);
+            if (area.isEditable()) {
+                menuPopup.add(menuCut);
+            }
             menuPopup.add(menuCopy);
             if (area.isEditable()) {
                 menuPopup.add(menuPaste);
-                menuPopup.add(menuSelectAll);
             }
-        }
-        else {
+            menuPopup.add(menuSelectAll);
+        } else {
             menuPopup.add(menuCopy);
         }
 

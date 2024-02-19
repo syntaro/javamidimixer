@@ -31,6 +31,9 @@ public class MXListCellRendererLikeCheckBox extends JCheckBox implements ListCel
 
     JList _list;
 
+    /**
+     *
+     */
     public MXListCellRendererLikeCheckBox() {
     }
 

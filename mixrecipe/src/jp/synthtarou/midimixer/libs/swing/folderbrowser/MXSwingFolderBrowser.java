@@ -39,7 +39,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
-import jp.synthtarou.midimixer.libs.navigator.INavigator;
+import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
 
 /**
  *
@@ -196,6 +196,11 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
         System.exit(0);
     }
 
+    /**
+     *
+     * @param initialDir
+     * @param filterOpenable
+     */
     public MXSwingFolderBrowser(File initialDir, FileFilter filterOpenable) {
         this(initialDir, filterOpenable, null);
     }
@@ -203,6 +208,12 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
     boolean _init = true;
     File _initialDir = null;
 
+    /**
+     *
+     * @param initialDir
+     * @param filterOpenable
+     * @param filterVisible
+     */
     public MXSwingFolderBrowser(File initialDir, FileFilter filterOpenable, FileFilter filterVisible) {
         initComponents();
 
@@ -431,13 +442,11 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
                     w.addWindowListener(new WindowAdapter() {
                         @Override
                         public void windowClosing(WindowEvent e) {
-                            System.out.println(".windowClosing()");
                             _deepScan.noticeCancelScan();
                         }
 
                         @Override
                         public void windowClosed(WindowEvent e) {
-                            System.out.println(".windowClosed()");
                             _deepScan.noticeCancelScan();
                         }
                     });
@@ -651,11 +660,6 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
         gridBagConstraints.weightx = 1.0;
         add(jLabelSelection, gridBagConstraints);
 
-        jTree1.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jTree1MouseClicked(evt);
-            }
-        });
         jTree1.addTreeWillExpandListener(new javax.swing.event.TreeWillExpandListener() {
             public void treeWillCollapse(javax.swing.event.TreeExpansionEvent evt)throws javax.swing.tree.ExpandVetoException {
             }
@@ -737,10 +741,6 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
         setResultAndClose(false);
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
-    private void jTree1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTree1MouseClicked
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTree1MouseClicked
-
     private void jTree1KeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTree1KeyPressed
         switch (evt.getExtendedKeyCode()) {
             case KeyEvent.VK_ENTER:
@@ -764,7 +764,6 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
     }//GEN-LAST:event_formKeyPressed
 
     private void jCheckBoxNetworkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxNetworkActionPerformed
-        // TODO add your handling code here:
         if (_networkNode != null) {
             new StepRun().launchProcess((FileSystemCache.Element) _networkNode.getUserObject());
         }

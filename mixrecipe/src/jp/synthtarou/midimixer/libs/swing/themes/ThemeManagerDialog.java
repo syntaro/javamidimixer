@@ -17,19 +17,20 @@
 package jp.synthtarou.midimixer.libs.swing.themes;
 
 import java.awt.Dimension;
-import java.awt.Font;
-import static java.awt.SystemColor.menu;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import jp.synthtarou.midimixer.libs.common.MXWrap;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
 
+/**
+ *
+ * @author Syntarou YOSHIDA
+ */
 public class ThemeManagerDialog extends javax.swing.JDialog {
     JFrame parentFrame;
     ThemeManager config;
@@ -37,6 +38,11 @@ public class ThemeManagerDialog extends javax.swing.JDialog {
     MXWrapList<Integer> _listModelFontSyle;
     MXWrapList<Integer> _listModelFontSize;
 
+    /**
+     *
+     * @param parent
+     * @param modal
+     */
     public ThemeManagerDialog(JFrame parent, boolean modal) {
         super(parent, modal);
         parentFrame = parent;
@@ -64,7 +70,7 @@ public class ThemeManagerDialog extends javax.swing.JDialog {
         
         setPreferredSize(new Dimension(400, 400));
         CurvedSlider curve = new CurvedSlider(35);
-        curve.setValue(RangedValue.new7bit(0));
+        curve.setValue(MXRangedValue.new7bit(0));
 
         jLabelFill.setText("");
         jCheckBox1.setSelected(CurvedSlider.isMouseCircleIsCircle());

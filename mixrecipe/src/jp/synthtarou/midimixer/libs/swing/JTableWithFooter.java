@@ -33,6 +33,10 @@ public class JTableWithFooter extends JTableWithColumnHeader {
 
     JTableWithColumnHeader _footerTable;
 
+    /**
+     *
+     * @param gridBagPanel
+     */
     public JTableWithFooter(JPanel gridBagPanel) {
         super();
         

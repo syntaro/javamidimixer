@@ -20,7 +20,7 @@ import java.awt.Dimension;
 import java.util.ArrayList;
 import javax.swing.JToggleButton;
 import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
-import jp.synthtarou.midimixer.ccxml.CXGeneralMidiFile;
+import jp.synthtarou.midimixer.ccxml.xml.CXGeneralMidiFile;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 
 /**

@@ -19,6 +19,7 @@ package jp.synthtarou.midimixer.libs.midi.driver;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 
 /**
+ *　MIDIドライバーの（基底）ンターフェース
  *
  * @author Syntarou YOSHIDA
  */

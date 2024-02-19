@@ -16,8 +16,9 @@
  */
 package jp.synthtarou.midimixer.libs.midi.port;
 
+import java.util.LinkedList;
 import javax.swing.JPanel;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 
@@ -33,9 +34,29 @@ public class FinalMIDIOut extends MXReceiver {
     public static FinalMIDIOut getInstance() {
         return _instance;
     }
+    
+    LinkedList<MXMessage> _listTestResult = null;
+    int _testPort = -1;
+    
+    public void startTestSignal(int port) {
+        _listTestResult = new LinkedList();
+        _testPort = port;
+    }
+    
+    public LinkedList<MXMessage> getTestResult() {
+        return _listTestResult;
+    }
 
     @Override
     public void processMXMessage(MXMessage message) {
+        if (_listTestResult != null) {
+            if (_testPort < 0) {
+                _listTestResult.add(message);
+            }
+            else if (_testPort == message.getPort()) {
+                _listTestResult.add(message);
+            }
+        }
         MXWrapList<MXMIDIOut> listOut = MXMIDIOutManager.getManager().listAllOutput();
         for (int i = 0; i < listOut.getSize(); ++ i) {
             MXMIDIOut out = listOut.valueOfIndex(i);

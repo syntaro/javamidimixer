@@ -42,7 +42,7 @@ public abstract class MXReceiver {
     
     public abstract void processMXMessage(MXMessage message);
 
-    protected void sendToNext(MXMessage message) {
+    public void sendToNext(MXMessage message) {
         if (_nextReceiver != null) {
             MXMain.getMain().messageDispatch(message, _nextReceiver);
         }else {

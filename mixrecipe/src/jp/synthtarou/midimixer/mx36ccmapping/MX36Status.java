@@ -17,11 +17,12 @@
 package jp.synthtarou.midimixer.mx36ccmapping;
 
 import java.util.Collections;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXWrapListFactory;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
 
 /**
@@ -33,61 +34,146 @@ public class MX36Status {
     int _surfaceUIType;
     int _surfaceRow;
     int _surfaceColumn;
-    RangedValue _surfaceValueRange = new RangedValue(0, 0, 127);
-    
-    MGStatus _surfaceStatusCache;
+    MXRangedValue _surfaceValueRange = new MXRangedValue(0, 0, 127);
+   
+    MGStatus _surface;
     
     String _outName;
     String _outMemo;
-    String _outData;
+    private String _outDataText;
     int _outPort;
     MXMessage _outCachedMessage;
     int _outChannel;
 
-    RangedValue _outValueRange;
-    
+    MXRangedValue _outValueRange;
     int _outValueOffset = 0;
     MXWrapList<Integer> _outValueTable;
     
-    RangedValue _outGateRange;
+    MXRangedValue _outGateRange;
     int _outGateOffset = 0;
     MXWrapList<Integer> _outGateTable;
+    
     boolean _outGateTypeKey;
     
-    String _bind1RCH, _bind2RCH, _bind4RCH;
-    String _bindRSCTRT1, _bindRSCTRT2, _bindRSCTRT3;
-    String _bindRSCTPT1, _bindRSCTPT2, _bindRSCTPT3;
+    static int findRowTypeFromValue(int value) {
+        return (value >> 8) & 0xff;
+    }
+    
+    static int findRowNumberFromValue(int value) {
+        return value & 0xff;
+    }
+    
+    static int makeRowValue(int rowType, int rowNumber) {
+        return (rowType << 8) | rowNumber;
+    }
+    
+    static MXWrapList<Integer> _listRowType;
+
+    static {
+        _listRowType = new MXWrapList<>();
+        _listRowType.addNameAndValue("-", -1);
+        for (int i = 0; i < MXAppConfig.CIRCLE_ROW_COUNT; ++ i) {
+            String caption = "Knob";
+            if (i != 0) {
+                caption += Integer.toString(i + 1);
+            }
+            _listRowType.addNameAndValue(caption, makeRowValue(MGStatus.TYPE_CIRCLE, i));
+        }
+        for (int i = 0; i < MXAppConfig.SLIDER_ROW_COUNT; ++ i) {
+            String caption = "Slider";
+            if (i != 0) {
+                caption += Integer.toString(i + 1);
+            }
+            _listRowType.addNameAndValue(caption, makeRowValue(MGStatus.TYPE_SLIDER, i));
+        }
+        for (int i = 0; i < MXAppConfig.DRUM_ROW_COUNT; ++ i) {
+            String caption = "Drum";
+            if (i != 0) {
+                caption += Integer.toString(i + 1);
+            }
+            _listRowType.addNameAndValue(caption, makeRowValue(MGStatus.TYPE_DRUMPAD, i));
+        }
+    }
+    
+    public String getOutValueLabel() {
+        String text = null;
+        if (_outValueTable != null) {
+            text = _outValueTable.nameOfValue(_outValueRange._value);
+        }
+        if (text == null) {
+            text =  Integer.toString(_outValueRange._value);
+        }
+        return text;
+    }
+
+    public String getOutGateLabel() {
+        String text = null;
+        if (_outGateTable != null) {
+            text = _outGateTable.nameOfValue(_outGateRange._value);
+        }
+        if (text == null) {
+            text =  Integer.toString(_outGateRange._value);
+        }
+        return text;
+    }
+    
+    int _bind1RCH, _bind2RCH, _bind4RCH;
+    int _bindRSCTRT1, _bindRSCTRT2, _bindRSCTRT3;
+    int _bindRSCTPT1, _bindRSCTPT2, _bindRSCTPT3;
+    
+    MX36Folder _folder;
+    
+    MX36StatusPanel _panel;
+    
+    public String getOutDataText() {
+        return _outDataText;
+    }
+
+    public void setOutDataText(String text) {
+        _outDataText = text;
+        _outCachedMessage = null;
+        createOutMessage();
+    }
     
     public MX36Status() {
         _outPort = -1;
-        _outData = null;
+        _folder = null;
+        _outDataText = null;
         _outChannel = -1;
 
-        _outGateRange = new RangedValue(64, 0, 127);
+        _outGateRange = new MXRangedValue(64, 0, 127);
         _outGateOffset = 0;
-        _outGateTable = MXWrapListFactory.listupRange(_outGateRange._min, _outGateRange._max);
-        _outValueRange = new RangedValue(32, 0, 127);
+        _outGateTable = null;
+        _outValueRange = new MXRangedValue(32, 0, 127);
         _outValueOffset = 0;
-        _outValueTable = MXWrapListFactory.listupRange(_outValueRange._min, _outValueRange._max);
+        _outValueTable = null;
+    }
+    
+    public String toSurfaceText() {
+        int x = MX36Status.makeRowValue(_surfaceUIType, _surfaceRow);
+        String row = _listRowType.nameOfValue(x);
+        return "#" + Character.toString('A'+_surfacePort) + "-" + row + "-" + (_surfaceColumn+1);
+    }
+    
+    public String toOutputPortText() {
+        String portText = "OutPort = as input";
+        if (_outPort >= 0) {
+            portText = "OutPort =" + Character.toString('A'+_outPort);
+        }
+        String channelText = "Ch = as input";
+        if (_outChannel >= 0) {
+            return "Ch= " + (_outChannel + 1);
+        }
+        return portText +", " + channelText;
+    }
 
-        _bind1RCH = "1r";
-        _bind2RCH = "2r";
-        _bind4RCH = "4r";
-        _bindRSCTRT1 = "rt1";
-        _bindRSCTRT2 = "rt2";
-        _bindRSCTRT3 = "rt3";
-        _bindRSCTPT1 = "pt1";
-        _bindRSCTPT2 = "pt2";
-        _bindRSCTPT3 = "pt3";
-    }
-    
     public String toString() {
-        return "#" + Character.toString('A'+_surfacePort) + "-" + MGStatus.getRowAsText(_surfaceUIType, _surfaceRow) + (_surfaceColumn+1) + "=" + _outValueRange._var;
+        return toSurfaceText() + "=" + _outValueRange._value;
     }
     
-    public static MX36Status fromMGStatus(MGStatus status) {
+    public static MX36Status fromMGStatus(MX36Folder folder, MGStatus status) {
         MX36Status it = new MX36Status();
-        
+                
         it._outName = status.getAsName();
         
         it._surfacePort = status._port;
@@ -95,7 +181,11 @@ public class MX36Status {
         it._surfaceRow = status._row;
         it._surfaceColumn = status._column;
         it._surfaceValueRange = status.getValue();
-        it._surfaceStatusCache = status;
+        it._surface = status;
+
+        it._outChannel = status.getChannel();
+        it._outValueRange = status.getValue();
+        it._outValueTable = null;
         
         return it;
     }
@@ -104,7 +194,7 @@ public class MX36Status {
         return "";
     }
     
-    public MXWrapList<Integer> createTable(RangedValue range) {
+    public MXWrapList<Integer> createTable(MXRangedValue range) {
         MXWrapList<Integer> list = new MXWrapList<>();
         for (int i = range._min; i <= range._max; ++ i) {
             list.addNameAndValue(String.valueOf(i), i);
@@ -113,15 +203,11 @@ public class MX36Status {
         return list;
     }
     
-    public int compareSurfacePosition(MX36Status status) {
-        return compareSurfacePosition(status._surfacePort, status._surfaceUIType, status._surfaceRow, status._surfaceColumn);
+    int compareSurfacePositionColumn(MX36Status status) {
+        return MX36Status.this.compareSurfacePositionColumn(status._surfacePort, status._surfaceUIType, status._surfaceRow, status._surfaceColumn);
     }
 
-    public int compareSurfacePosition(MGStatus status) {
-        return compareSurfacePosition(status._port, status._uiType, status._row, status._column);
-    }
-
-    public int compareSurfacePosition(int port, int uiType, int row, int column) {
+    int compareSurfacePositionColumn(int port, int uiType, int row, int column) {
         if (_surfacePort < port) return -1;
         if (_surfacePort > port) return 1;
         if (_surfaceColumn < column) return -1;
@@ -133,25 +219,90 @@ public class MX36Status {
         return 0;
     }
     
+    int compareSurfacePositionRow(MX36Status status) {
+        return MX36Status.this.compareSurfacePositionColumn(status._surfacePort, status._surfaceUIType, status._surfaceRow, status._surfaceColumn);
+    }
+
+    int compareSurfacePositionRow(int port, int uiType, int row, int column) {
+        if (_surfacePort < port) return -1;
+        if (_surfacePort > port) return 1;
+        if (_surfaceUIType < uiType) return -1;
+        if (_surfaceUIType > uiType) return 1;
+        if (_surfaceRow < row) return -1;
+        if (_surfaceRow > row) return 1;
+        if (_surfaceColumn < column) return -1;
+        if (_surfaceColumn > column) return 1;
+        return 0;
+    }
+
     public MXMessage createOutMessage() {
-        if (_outData == null || _outData.length() == 0) {
+        if (_outDataText == null || _outDataText.length() == 0) {
             return null;
         }
         if (_outCachedMessage == null) {
             try {
-                _outCachedMessage = MXMessageFactory.fromCCXMLText(_outValueOffset, _outData, _outChannel);
+                _outCachedMessage = MXMessageFactory.fromCCXMLText(_outValueOffset, _outDataText, _outChannel);
             }catch(Exception e) {
                 e.printStackTrace();;
             }
             if (_outCachedMessage == null) {
+                _outDataText = null;
                 return null;
             }
         }
         if (_outCachedMessage.getStatus() == 0) {
+            _outDataText = null;
             return null;
         }
+        int port = _surfacePort;
+        int channel = _outChannel;
+        if (_outPort >= 0) {
+            port = _outPort;
+        }
+
+        _outCachedMessage.setPort(port);
+        _outCachedMessage.setChannel(channel);
         _outCachedMessage.setValue(_outValueRange.changeRange(_outCachedMessage.getValue()._min, _outCachedMessage.getValue()._max));
         _outCachedMessage.setGate(_outGateRange);
-        return _outCachedMessage;
+        _outCachedMessage._timing = null;
+
+        return (MXMessage)_outCachedMessage.clone();
     }
+    
+    public boolean isValidForWork() {
+        if (_surfacePort < 0) return false;
+        if (_surfaceUIType < 0) return false;
+        if (_surfaceRow < 0) return false;
+        if (_surfaceColumn < 0) return false;
+        if (_outDataText == null) return false;
+        if (_outDataText.isBlank()) return false;
+        return true;
+    }
+    
+    static MXWrapList<Integer> listForDefault = MXWrapListFactory.listupRange(0, 127);
+
+    public MXWrapList<Integer> safeGateTable() {
+        if (_outGateTable != null) {
+            return _outGateTable;
+        }
+        MXRangedValue range = _outGateRange;
+        if (range._min == 0 && range._max == 127) {
+            return listForDefault;
+        }
+        MXWrapList<Integer> listForGate = MXWrapListFactory.listupRange(range._min, range._max);
+        return listForGate;
+    }
+
+    public MXWrapList<Integer> safeValueTable() {
+        if (_outValueTable != null) {
+            return _outValueTable;
+        }
+        MXRangedValue range = _outValueRange;
+        if (range._min == 0 && range._max == 127) {
+            return listForDefault;
+        }
+        MXWrapList<Integer> listForValue = MXWrapListFactory.listupRange(range._min, range._max);
+        return listForValue;
+    }
+    
 }

@@ -18,7 +18,7 @@ package jp.synthtarou.midimixer.mx40layer;
 
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -277,9 +277,9 @@ public class MX40Layer {
            if (data2_trans > getAcceptVelocityHighest()) return true;
         }
 
-        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && message.getGate()._var == MXMidi.DATA1_CC_EXPRESSION) {
+        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && message.getGate()._value == MXMidi.DATA1_CC_EXPRESSION) {
             if (_adjustExpression != 100) {
-                double exp = message.getValue()._var;
+                double exp = message.getValue()._value;
                 exp = exp * _adjustExpression;
                 exp = exp / 100;
                 int iexp = (int)exp;
@@ -289,7 +289,7 @@ public class MX40Layer {
                 changed = true;
             }
         }
-        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && message.getGate()._var == MXMidi.DATA1_CC_PANPOT) {
+        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && message.getGate()._value == MXMidi.DATA1_CC_PANPOT) {
             if (_modPan == MOD_FIXED) {
                 //int x = message.getValue();
                 int y = _fixedPan;

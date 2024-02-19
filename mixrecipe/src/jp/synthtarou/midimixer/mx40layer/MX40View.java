@@ -32,13 +32,13 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
-import jp.synthtarou.midimixer.libs.common.MXWrap;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.ccxml.EditorForInstrument;
-import jp.synthtarou.midimixer.libs.midi.MXWrapListFactory;
+import jp.synthtarou.midimixer.ccxml.ui.PickerForinstrument;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
-import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
+import jp.synthtarou.midimixer.libs.swing.MXFileChooser;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 
@@ -54,7 +54,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
 
     //MXWrapList<Integer> _watchPort = MXMidi.createPortShort();
     MXWrapList<Integer> _watchChannel = MXWrapListFactory.listupChannel(null);
-    MXWrapList<Integer> _watchProgram = MXWrapListFactory.listupProgramNumber(true);
+    MXWrapList<Integer> _watchProgram = MXWrapListFactory.listupGeneralMidi(true);
 
     MXWrapList<Integer> _modPort = MX40Layer.createSendOption(false);
     MXWrapList<Integer> _modChannel = MX40Layer.createSendOption(false);
@@ -63,7 +63,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
 
     //MXWrapList<Integer> _changePort = MXMidi.createPortShort();
     MXWrapList<Integer> _changeChannel = MXWrapListFactory.listupChannel(null);
-    MXWrapList<Integer> _changeProgram = MXWrapListFactory.listupProgramNumber(true);
+    MXWrapList<Integer> _changeProgram = MXWrapListFactory.listupGeneralMidi(true);
     MXWrapList<Integer> _changeVolume = MXWrapListFactory.listupPercent();
     MXWrapList<Integer> _changeExpression = MXWrapListFactory.listupPercent();
 
@@ -1150,7 +1150,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         }
         MX40Group group = new MX40Group(null);
         readGroupFromPanel(group);
-        EditorForInstrument picker = new EditorForInstrument();
+        PickerForinstrument picker = new PickerForinstrument();
         picker.scan(0, group._watchingProgram, group._watchingBankMSB, group._watchingBankLSB);
         MXModalFrame.showAsDialog(this, picker, "Select Program");
         if (picker._resultProgram != null && picker._resultBank != null) {
@@ -1167,7 +1167,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         }
         MX40Layer layer = new MX40Layer(null, null);
         readLayerFromPanel(layer);
-        EditorForInstrument picker = new EditorForInstrument();
+        PickerForinstrument picker = new PickerForinstrument();
         picker.scan(0, layer._fixedProgram, layer._fixedBankMSB, layer._fixedBankLSB);
         MXModalFrame.showAsDialog(this, picker, "Select Program");
         if (picker._resultProgram != null) {
@@ -1423,7 +1423,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
     }//GEN-LAST:event_jButtonSendPortMousePressed
 
     public void doImportLayer() {
-        MXSwingFileChooser chooser = new MXSwingFileChooser();
+        MXFileChooser chooser = new MXFileChooser();
         chooser.addExtension(".xml", "XML File");
         chooser.setAcceptAllFileFilterUsed(false);
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -1774,7 +1774,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
             }
 
             if (askGroupChanged) {
-                _editingGroup.caneChageTo(panelGroup);
+                _editingGroup.debugPrintChanging(panelGroup);
                 int ret = JOptionPane.showConfirmDialog(this, "Will discard Changes", "Group Changed", JOptionPane.OK_CANCEL_OPTION);
                 if (ret == JOptionPane.CANCEL_OPTION) {
                     jListGroupList.setSelectedIndex(_groupsModel.indexOfValue(_editingGroup));

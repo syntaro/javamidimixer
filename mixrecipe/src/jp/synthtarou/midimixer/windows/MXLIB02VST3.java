@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.windows;
 
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.async.TransactionBox;
 import jp.synthtarou.midimixer.mx80vst.MX80Process;
 
@@ -86,7 +87,7 @@ public class MXLIB02VST3 {
     public native void stopEngine(int task);
 
     static private void cbCallText(String text) {
-        System.out.println("VST-[" + text.toString() + "]");
+        MXMain.printDebug("VST-[" + text.toString() + "]");
     }
     
     static private void cbBlackListed(boolean effect, int port) {
@@ -157,7 +158,6 @@ public class MXLIB02VST3 {
             int synth0 = 0;
 
             postLaunchVST(false, synth0, uniPath, 0);
-            System.out.println("postLaunchVST " + synth0);
             postOpenEditor(false, synth0, 1, 0);
             waitQueued(2);
 

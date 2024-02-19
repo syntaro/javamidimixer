@@ -19,6 +19,7 @@ package jp.synthtarou.midimixer.mx40layer;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitantRecorder;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import java.util.ArrayList;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
@@ -138,13 +139,13 @@ public class MX40Group {
         int channel = message.getChannel();
         
         if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-            if (_noteOff.raiseHandler(port, message._timing, channel, message.getGate()._var)) {
+            if (_noteOff.raiseHandler(port, message._timing, channel, message.getGate()._value)) {
                 return true;
             }
         }
 
         if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
-            int cc = message.getGate()._var;
+            int cc = message.getGate()._value;
             if (cc == MXMidi.DATA1_CC_BANKSELECT) {
                 return true;
             }
@@ -200,14 +201,14 @@ public class MX40Group {
             MX40Layer layer = _listLayer.get(found);
             proced = layer.processByLayer(message);
 
-            MXMessage msg2 = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + channel, message.getGate()._var, 0);
+            MXMessage msg2 = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + channel, message.getGate()._value, 0);
             msg2._timing = message._timing;
             _noteOff.setHandler(message, msg2,  new NoteOffWatcher2(layer, found));
         }else {
             for (MX40Layer layer: _listLayer) {
                 layer.processByLayer(message);
                 if (command == MXMidi.COMMAND_CH_NOTEON) {
-                    MXMessage msg2 = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + channel, message.getGate()._var, 0);
+                    MXMessage msg2 = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + channel, message.getGate()._value, 0);
                     msg2._timing = message._timing;
                     _noteOff.setHandler(message, msg2,  new NoteOffWatcher2(layer, -1));
                 }
@@ -260,11 +261,11 @@ public class MX40Group {
 
     public void checkEquals(String name, Object v1, Object v2) {
         if (v1.equals(v2) == false) {
-            System.out.println(name +" is changing " + v1 + " > " + v2);
+            MXMain.printDebug(name +" is changing " + v1 + " > " + v2);
         }
     }
     
-    public void caneChageTo(MX40Group target) {
+    public void debugPrintChanging(MX40Group target) {
         checkEquals("titile", _title, target._title);
         checkEquals("isWatchPort", _isWatchPort, target._isWatchPort);
         checkEquals("watchingPort", _watchingPort, target._watchingPort);

@@ -23,11 +23,11 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
-import jp.synthtarou.midimixer.libs.midi.MXWrapListFactory;
-import jp.synthtarou.midimixer.libs.swing.MXSwingFileChooser;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
+import jp.synthtarou.midimixer.libs.swing.MXFileChooser;
 
 /**
  *
@@ -253,7 +253,7 @@ public class MX70SysexPanel extends javax.swing.JPanel {
 
     private void jButtonLoadSysexActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonLoadSysexActionPerformed
         _file.clear(jTextArea1);
-        MXSwingFileChooser chooser = new MXSwingFileChooser();
+        MXFileChooser chooser = new MXFileChooser();
         chooser.addExtension(".txt", "TEXT");
         chooser.addExtension(".sysex", "SysEX");
         chooser.addExtension(".syx", "SysEX");
@@ -275,12 +275,10 @@ public class MX70SysexPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonLoadSysexActionPerformed
 
     private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton1ActionPerformed
-        // TODO add your handling code here:
         _list.switchPause(jToggleButton1.isSelected());
     }//GEN-LAST:event_jToggleButton1ActionPerformed
 
     private void jButtonToFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonToFileActionPerformed
-        // TODO add your handling code here:
         int[] index = jListScan.getSelectedIndices();
         if (index != null & index.length >= 1) {
             for (int i = 0; i < index.length; ++ i) {
@@ -291,7 +289,7 @@ public class MX70SysexPanel extends javax.swing.JPanel {
                         _file.add(data, jTextArea1);
                         break;
                     case MXMidiConsoleElement.CONSOLE_MESSAGE:
-                        byte[] data2 =  e.getMessage().getDataBytes();
+                        byte[] data2 =  e.getMessage().getBinary();
                         _file.add(data2, jTextArea1);
                         break;
                 }
@@ -339,7 +337,6 @@ public class MX70SysexPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonSaveSysexActionPerformed
 
     private void jButtonDumpSysexActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDumpSysexActionPerformed
-        // TODO add your handling code here:
         Integer port  = _listPort.readComboBox(jComboBoxPort);
         if (port != null) {
             _file.sendSysexTo(port, new SysexProgress() {
@@ -353,7 +350,6 @@ public class MX70SysexPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonDumpSysexActionPerformed
 
     private void jButtonClearLogActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonClearLogActionPerformed
-        // TODO add your handling code here:
         _list.clear();
         jListScan.repaint();
     }//GEN-LAST:event_jButtonClearLogActionPerformed

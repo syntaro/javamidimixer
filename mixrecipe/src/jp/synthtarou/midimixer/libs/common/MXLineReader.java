@@ -34,6 +34,9 @@ public class MXLineReader {
         this(in, "utf-8");
     }
     public MXLineReader(InputStream in, String charset) {
+        if (in == null) {
+            throw new NullPointerException("MXLineRead args Null");
+        }
         _in = in;
         _charset = charset;
         _buffer = new byte[4096];

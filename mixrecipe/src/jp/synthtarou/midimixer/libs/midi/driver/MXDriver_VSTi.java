@@ -22,7 +22,7 @@ import jp.synthtarou.midimixer.libs.vst.VSTStream;
 import jp.synthtarou.midimixer.windows.MXLIB02VST3;
 
 /**
- *
+ * VSTiに出力するドライバー
  * @author Syntarou YOSHIDA
  */
 public class MXDriver_VSTi implements MXDriver {

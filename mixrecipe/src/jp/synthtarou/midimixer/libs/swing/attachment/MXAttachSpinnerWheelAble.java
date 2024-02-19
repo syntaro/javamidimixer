@@ -40,6 +40,10 @@ public class MXAttachSpinnerWheelAble {
     JComponent _parent;
     Point _basePoint;
 
+    /**
+     *
+     * @param spinner
+     */
     public MXAttachSpinnerWheelAble(JSpinner spinner) {
          JComponent parent = (JComponent)spinner.getParent();
         _spinner = spinner;

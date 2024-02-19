@@ -86,7 +86,7 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
         _inputInfo.mergeVisitant16WithVisitant(message);
         MXTiming timing = message._timing;
         
-        if (message.isBinMessage()) {
+        if (message.isBinaryMessage()) {
             sendToNext(message);
             return;
         }
@@ -104,7 +104,7 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
             command &= 0xf0;
         }
         
-        int first = message.getTemplateAsPlain(0);
+        int first = message.getTemplate().get(0);
 
         if (first == MXMidi.COMMAND2_CH_PROGRAM_INC) {
             int x = message.getVisitant().getProgram() + 1;
@@ -126,7 +126,7 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
         }
 
         if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-            if (_noteOff.raiseHandler(port, message._timing, channel, message.getGate()._var)) {
+            if (_noteOff.raiseHandler(port, message._timing, channel, message.getGate()._value)) {
                 return;
             }
         }
@@ -142,7 +142,7 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
                             public void onNoteOffEvent(MXTiming timing, MXMessage target) {
                                 MXMessage msg = MXMessageFactory.fromShortMessage(target.getPort(), 
                                         MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(), 
-                                        target.getGate()._var, 0);
+                                        target.getGate()._value, 0);
                                 msg._timing = timing;
                                 col.processByGroup(msg);
                             }
@@ -159,13 +159,13 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
                     public void onNoteOffEvent(MXTiming timing, MXMessage target) {
                         MXMessage msg = MXMessageFactory.fromShortMessage(target.getPort(), 
                                 MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(), 
-                                target.getGate()._var, 0);
+                                target.getGate()._value, 0);
                         msg._timing = timing;
                         sendToNext(msg);
                     }
                 });
             }
-            if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_PROGRAMCHANGE && message.getGate()._var < 0) {
+            if (message.isCommand(MXMidi.COMMAND_CH_PROGRAMCHANGE) && message.getGate()._value < 0) {
                 return;
             }
             sendToNext(message);
@@ -269,11 +269,9 @@ public class MX40Process extends MXReceiver implements MXSettingTarget {
             newGroupList.add(group);
 
             MXSettingNode layerNode = node.findNode("Layer");
-            //_debug.println("layerNode = " + layerNode);
             if (layerNode != null) {
                 List<MXSettingNode> numbers = layerNode.findNumbers();
                 for (MXSettingNode node2 : numbers) {
-                    //_debug.println("node2 = " + node2);
                     MX40Layer layer = new MX40Layer(this, group);
                     layer._title = node2.getSetting("title");
                     layer._disabled  = node2.getSettingAsBoolean("disabled", false);

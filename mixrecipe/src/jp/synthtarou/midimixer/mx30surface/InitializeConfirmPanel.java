@@ -25,12 +25,12 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
  */
 public class InitializeConfirmPanel extends javax.swing.JPanel {
 
-    MX32Mixer _mixer;
+    MX32MixerProcess _mixer;
 
     /**
      * Creates new form InitializeConfirmPanel
      */
-    public InitializeConfirmPanel(MX32Mixer process) {
+    public InitializeConfirmPanel(MX32MixerProcess process) {
         _mixer = process;
         initComponents();
         buttonGroup1.add(jRadioButtonMixer);

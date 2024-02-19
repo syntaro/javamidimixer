@@ -40,6 +40,10 @@ public class MXAttachSliderLikeEclipse extends BasicSliderUI {
 
     boolean _itsSwitch = false;
 
+    /**
+     *
+     * @param slider
+     */
     public MXAttachSliderLikeEclipse(final JSlider slider) {
         super(slider);
 
@@ -118,7 +122,7 @@ public class MXAttachSliderLikeEclipse extends BasicSliderUI {
     @Override
     public void paintThumb(Graphics g) {
         int bold = _thumbWeight - 2;
-
+        
         //TODO enabled or disabled
         calculateTrackRect();
         int trackHeight = slider.getHeight();

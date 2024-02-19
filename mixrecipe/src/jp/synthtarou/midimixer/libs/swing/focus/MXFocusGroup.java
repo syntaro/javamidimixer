@@ -30,6 +30,10 @@ import javax.swing.JComponent;
  */
 public class MXFocusGroup{
     
+    /**
+     *
+     * @param handler
+     */
     public MXFocusGroup(MXFocusHandler handler) {
         _handler = handler;
     }

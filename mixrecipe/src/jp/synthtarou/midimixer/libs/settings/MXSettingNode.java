@@ -21,6 +21,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
@@ -157,7 +158,6 @@ public class MXSettingNode {
             try {
                 return Integer.parseInt(text);
             }catch(NumberFormatException e) {
-                e.printStackTrace();
                 return defval;
             }
         }
@@ -300,7 +300,7 @@ public class MXSettingNode {
                 writer.write(text + "=" + _value + "\n");
             }
         }else if (_value != null) {
-            System.out.println("not registered " + text + "=" + _value);
+            MXMain.printDebug("not registered " + text + "=" + _value);
         }
 
         for (MXSettingNode e : _children) {

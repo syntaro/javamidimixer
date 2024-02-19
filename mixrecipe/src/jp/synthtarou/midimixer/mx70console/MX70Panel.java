@@ -32,6 +32,7 @@ import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachCopyAndPaste;
 
 /**
  *
@@ -56,6 +57,8 @@ public class MX70Panel extends javax.swing.JPanel {
         jScrollPane3.setPreferredSize(size);
         jScrollPane4.setPreferredSize(size);
         jScrollPane5.setPreferredSize(size);
+        
+        new MXAttachCopyAndPaste(jTextFieldDump);
 
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -79,52 +82,41 @@ public class MX70Panel extends javax.swing.JPanel {
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        jSplitPane1 = new javax.swing.JSplitPane();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jPanel1 = new javax.swing.JPanel();
         jPanelOutsideInput = new javax.swing.JPanel();
+        jLabelOutsideInput = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
         jListOutsideInput = new javax.swing.JList<>();
         jPanelInsideInput = new javax.swing.JPanel();
+        jLabelInsideInput = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
         jListInsideInput = new javax.swing.JList<>();
         jPanelInsideOutput = new javax.swing.JPanel();
         jScrollPane4 = new javax.swing.JScrollPane();
         jListInsideOutput = new javax.swing.JList<>();
+        jLabelInsideOutput = new javax.swing.JLabel();
         jPanelOutsideOutput = new javax.swing.JPanel();
         jScrollPane5 = new javax.swing.JScrollPane();
         jListOutsideOutput = new javax.swing.JList<>();
-        jLabelOutsideInput = new javax.swing.JLabel();
-        jLabelInsideInput = new javax.swing.JLabel();
-        jLabelInsideOutput = new javax.swing.JLabel();
         jLabelOutsideOutput = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
-        jScrollPane8 = new javax.swing.JScrollPane();
-        jTableTestCase = new javax.swing.JTable();
-        jPanel3 = new javax.swing.JPanel();
-        jPanel5 = new javax.swing.JPanel();
-        jButtonAddTest = new javax.swing.JButton();
-        jButtonRemoveTest = new javax.swing.JButton();
-        jTextFieldTestName = new javax.swing.JTextField();
-        jLabelTestInput = new javax.swing.JLabel();
-        jLabelTestOuput = new javax.swing.JLabel();
-        jTextFieldTestInput = new javax.swing.JTextField();
-        jTextFieldTestOutput = new javax.swing.JTextField();
-        jLabelTestText = new javax.swing.JLabel();
+        jPanel4 = new javax.swing.JPanel();
         jButtonSysEXMenu = new javax.swing.JButton();
         jCheckBoxLogging = new javax.swing.JCheckBox();
         jCheckBoxRecordClock = new javax.swing.JCheckBox();
         jLabelMemory = new javax.swing.JLabel();
+        jTextFieldDump = new javax.swing.JTextField();
+        jButtonClearLog = new javax.swing.JButton();
 
         setLayout(new java.awt.GridBagLayout());
 
-        jSplitPane1.setDividerLocation(300);
-        jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-
-        jPanel1.setLayout(new java.awt.GridBagLayout());
-
         jPanelOutsideInput.setBorder(javax.swing.BorderFactory.createTitledBorder("Outside Input"));
-        jPanelOutsideInput.setLayout(new javax.swing.BoxLayout(jPanelOutsideInput, javax.swing.BoxLayout.LINE_AXIS));
+        jPanelOutsideInput.setLayout(new java.awt.GridBagLayout());
+
+        jLabelOutsideInput.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.weightx = 1.0;
+        jPanelOutsideInput.add(jLabelOutsideInput, gridBagConstraints);
 
         jScrollPane2.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
@@ -140,18 +132,32 @@ public class MX70Panel extends javax.swing.JPanel {
         });
         jScrollPane2.setViewportView(jListOutsideInput);
 
-        jPanelOutsideInput.add(jScrollPane2);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 2.0;
+        gridBagConstraints.weighty = 2.0;
+        jPanelOutsideInput.add(jScrollPane2, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        jPanel1.add(jPanelOutsideInput, gridBagConstraints);
+        add(jPanelOutsideInput, gridBagConstraints);
 
         jPanelInsideInput.setBorder(javax.swing.BorderFactory.createTitledBorder("Inide Input"));
-        jPanelInsideInput.setLayout(new javax.swing.BoxLayout(jPanelInsideInput, javax.swing.BoxLayout.LINE_AXIS));
+        jPanelInsideInput.setLayout(new java.awt.GridBagLayout());
+
+        jLabelInsideInput.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.weightx = 1.0;
+        jPanelInsideInput.add(jLabelInsideInput, gridBagConstraints);
 
         jScrollPane3.setToolTipText("");
         jScrollPane3.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -168,18 +174,25 @@ public class MX70Panel extends javax.swing.JPanel {
         });
         jScrollPane3.setViewportView(jListInsideInput);
 
-        jPanelInsideInput.add(jScrollPane3);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 2.0;
+        gridBagConstraints.weighty = 2.0;
+        jPanelInsideInput.add(jScrollPane3, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        jPanel1.add(jPanelInsideInput, gridBagConstraints);
+        add(jPanelInsideInput, gridBagConstraints);
 
         jPanelInsideOutput.setBorder(javax.swing.BorderFactory.createTitledBorder("Inside Output"));
-        jPanelInsideOutput.setLayout(new javax.swing.BoxLayout(jPanelInsideOutput, javax.swing.BoxLayout.LINE_AXIS));
+        jPanelInsideOutput.setLayout(new java.awt.GridBagLayout());
 
         jScrollPane4.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
@@ -195,18 +208,30 @@ public class MX70Panel extends javax.swing.JPanel {
         });
         jScrollPane4.setViewportView(jListInsideOutput);
 
-        jPanelInsideOutput.add(jScrollPane4);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 2.0;
+        gridBagConstraints.weighty = 2.0;
+        jPanelInsideOutput.add(jScrollPane4, gridBagConstraints);
+
+        jLabelInsideOutput.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.weightx = 1.0;
+        jPanelInsideOutput.add(jLabelInsideOutput, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        jPanel1.add(jPanelInsideOutput, gridBagConstraints);
+        add(jPanelInsideOutput, gridBagConstraints);
 
         jPanelOutsideOutput.setBorder(javax.swing.BorderFactory.createTitledBorder("Outsde Output"));
-        jPanelOutsideOutput.setLayout(new javax.swing.BoxLayout(jPanelOutsideOutput, javax.swing.BoxLayout.LINE_AXIS));
+        jPanelOutsideOutput.setLayout(new java.awt.GridBagLayout());
 
         jScrollPane5.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
@@ -222,171 +247,41 @@ public class MX70Panel extends javax.swing.JPanel {
         });
         jScrollPane5.setViewportView(jListOutsideOutput);
 
-        jPanelOutsideOutput.add(jScrollPane5);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        jPanel1.add(jPanelOutsideOutput, gridBagConstraints);
-
-        jLabelOutsideInput.setText("-");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        jPanel1.add(jLabelOutsideInput, gridBagConstraints);
-
-        jLabelInsideInput.setText("-");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        jPanel1.add(jLabelInsideInput, gridBagConstraints);
-
-        jLabelInsideOutput.setText("-");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        jPanel1.add(jLabelInsideOutput, gridBagConstraints);
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 2.0;
+        gridBagConstraints.weighty = 2.0;
+        jPanelOutsideOutput.add(jScrollPane5, gridBagConstraints);
 
         jLabelOutsideOutput.setText("-");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
-        jPanel1.add(jLabelOutsideOutput, gridBagConstraints);
-
-        jScrollPane1.setViewportView(jPanel1);
-
-        jSplitPane1.setLeftComponent(jScrollPane1);
-
-        jPanel2.setLayout(new java.awt.GridBagLayout());
-
-        jTableTestCase.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null}
-            },
-            new String [] {
-                "Text", "Input", "OutWish", "OutNow", "OK?"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
-            };
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false, false
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
-        jScrollPane8.setViewportView(jTableTestCase);
+        gridBagConstraints.weightx = 1.0;
+        jPanelOutsideOutput.add(jLabelOutsideOutput, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        jPanel2.add(jScrollPane8, gridBagConstraints);
+        add(jPanelOutsideOutput, gridBagConstraints);
 
-        jPanel3.setLayout(new java.awt.GridBagLayout());
+        jPanel4.setLayout(new java.awt.GridBagLayout());
 
-        jPanel5.setLayout(new java.awt.GridBagLayout());
-
-        jButtonAddTest.setText("+ Add As Test");
-        jButtonAddTest.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonAddTestActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        jPanel5.add(jButtonAddTest, gridBagConstraints);
-
-        jButtonRemoveTest.setText("- Remove");
-        jButtonRemoveTest.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonRemoveTestActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        jPanel5.add(jButtonRemoveTest, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        jPanel5.add(jTextFieldTestName, gridBagConstraints);
-
-        jLabelTestInput.setText("Input");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        jPanel5.add(jLabelTestInput, gridBagConstraints);
-
-        jLabelTestOuput.setText("Output");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        jPanel5.add(jLabelTestOuput, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        jPanel5.add(jTextFieldTestInput, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel5.add(jTextFieldTestOutput, gridBagConstraints);
-
-        jLabelTestText.setText("Text");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        jPanel5.add(jLabelTestText, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.gridheight = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        jPanel3.add(jPanel5, gridBagConstraints);
-
-        jButtonSysEXMenu.setText("SysEX");
+        jButtonSysEXMenu.setText("*Launch SysEx Tool*");
         jButtonSysEXMenu.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonSysEXMenuActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        jPanel3.add(jButtonSysEXMenu, gridBagConstraints);
+        jPanel4.add(jButtonSysEXMenu, gridBagConstraints);
 
         jCheckBoxLogging.setSelected(true);
         jCheckBoxLogging.setText("Logging / Pause");
@@ -397,8 +292,8 @@ public class MX70Panel extends javax.swing.JPanel {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        jPanel3.add(jCheckBoxLogging, gridBagConstraints);
+        gridBagConstraints.gridy = 2;
+        jPanel4.add(jCheckBoxLogging, gridBagConstraints);
 
         jCheckBoxRecordClock.setText("Clock Record/Skip");
         jCheckBoxRecordClock.addActionListener(new java.awt.event.ActionListener() {
@@ -408,33 +303,42 @@ public class MX70Panel extends javax.swing.JPanel {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        jPanel3.add(jCheckBoxRecordClock, gridBagConstraints);
+        gridBagConstraints.gridy = 2;
+        jPanel4.add(jCheckBoxRecordClock, gridBagConstraints);
 
         jLabelMemory.setText("Memory");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        jPanel3.add(jLabelMemory, gridBagConstraints);
+        jPanel4.add(jLabelMemory, gridBagConstraints);
 
+        jTextFieldDump.setEditable(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        jPanel2.add(jPanel3, gridBagConstraints);
+        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanel4.add(jTextFieldDump, gridBagConstraints);
 
-        jSplitPane1.setRightComponent(jPanel2);
+        jButtonClearLog.setText("Clear");
+        jButtonClearLog.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonClearLogActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
+        jPanel4.add(jButtonClearLog, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        add(jSplitPane1, gridBagConstraints);
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        add(jPanel4, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     public void selectByTimingCall(JList list, MXTiming trace) {
@@ -459,12 +363,7 @@ public class MX70Panel extends javax.swing.JPanel {
             MXMidiConsoleElement e = _process._outsideInput.getConsoleElement(index);
             if (e != null) {
                 selectByTimingCall(jListOutsideInput, e.getTiming());
-                jTextFieldTestName.setText("" + e.getTiming() + " => "
-                        + "0 = " + e.getTiming().thisWrap(0) + ", "
-                        + "1 = " + e.getTiming().thisWrap(1) + ", "
-                        + "2 = " + e.getTiming().thisWrap(2) + ", "
-                        + "3 = =" + e.getTiming().thisWrap(3)
-                );
+                jTextFieldDump.setText("OutsideInput " + e.getTiming().thisWrap(0) + ": " + e.formatMessageLong());
             } else {
                 selectByTimingCall(jListOutsideInput, null);
             }
@@ -477,12 +376,7 @@ public class MX70Panel extends javax.swing.JPanel {
             MXMidiConsoleElement e = _process._insideInput.getConsoleElement(index);
             if (e != null) {
                 selectByTimingCall(jListInsideInput, e.getTiming());
-                jTextFieldTestName.setText("" + e.getTiming() + " => "
-                        + "0 = " + e.getTiming().thisWrap(0) + ", "
-                        + "1 = " + e.getTiming().thisWrap(1) + ", "
-                        + "2 = " + e.getTiming().thisWrap(2) + ", "
-                        + "3 = =" + e.getTiming().thisWrap(3)
-                );
+                jTextFieldDump.setText("InsideInput " + e.getTiming().thisWrap(1) + ": " + e.formatMessageLong());
             } else {
                 selectByTimingCall(jListInsideInput, null);
             }
@@ -495,12 +389,7 @@ public class MX70Panel extends javax.swing.JPanel {
             MXMidiConsoleElement e = _process._insideOutput.getConsoleElement(index);
             if (e != null) {
                 selectByTimingCall(jListInsideOutput, e.getTiming());
-                jTextFieldTestName.setText("" + e.getTiming() + " => "
-                        + "0 = " + e.getTiming().thisWrap(0) + ", "
-                        + "1 = " + e.getTiming().thisWrap(1) + ", "
-                        + "2 = " + e.getTiming().thisWrap(2) + ", "
-                        + "3 = =" + e.getTiming().thisWrap(3)
-                );
+                jTextFieldDump.setText("InsideOutput " + e.getTiming().thisWrap(2) + ": " + e.formatMessageLong());
             } else {
                 selectByTimingCall(jListInsideOutput, null);
             }
@@ -513,12 +402,7 @@ public class MX70Panel extends javax.swing.JPanel {
             MXMidiConsoleElement e = _process._outsideOutput.getConsoleElement(index);
             if (e != null) {
                 selectByTimingCall(jListOutsideOutput, e.getTiming());
-                jTextFieldTestName.setText("" + e.getTiming() + " => "
-                        + "0 = " + e.getTiming().thisWrap(0) + ", "
-                        + "1 = " + e.getTiming().thisWrap(1) + ", "
-                        + "2 = " + e.getTiming().thisWrap(2) + ", "
-                        + "3 = =" + e.getTiming().thisWrap(3)
-                );
+                jTextFieldDump.setText("OutsideOutput " + e.getTiming().thisWrap(3) + ": " + e.formatMessageLong());
             } else {
                 selectByTimingCall(jListOutsideOutput, null);
             }
@@ -578,14 +462,6 @@ public class MX70Panel extends javax.swing.JPanel {
         MXModalFrame.showAsDialog(this, panel, "System Exclusive");
     }//GEN-LAST:event_jButtonSysEXMenuActionPerformed
 
-    private void jButtonRemoveTestActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRemoveTestActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButtonRemoveTestActionPerformed
-
-    private void jButtonAddTestActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddTestActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButtonAddTestActionPerformed
-
     private void jCheckBoxLoggingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxLoggingActionPerformed
         boolean pause = jCheckBoxLogging.isSelected() == false;
         _process._outsideInput.switchPause(pause);
@@ -602,9 +478,15 @@ public class MX70Panel extends javax.swing.JPanel {
         _process._outsideOutput.setRecordClock(showclock);
     }//GEN-LAST:event_jCheckBoxRecordClockActionPerformed
 
+    private void jButtonClearLogActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonClearLogActionPerformed
+        _process._outsideInput.clear();
+        _process._insideInput.clear();
+        _process._insideOutput.clear();
+        _process._outsideOutput.clear();
+    }//GEN-LAST:event_jButtonClearLogActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButtonAddTest;
-    private javax.swing.JButton jButtonRemoveTest;
+    private javax.swing.JButton jButtonClearLog;
     private javax.swing.JButton jButtonSysEXMenu;
     private javax.swing.JCheckBox jCheckBoxLogging;
     private javax.swing.JCheckBox jCheckBoxRecordClock;
@@ -613,32 +495,20 @@ public class MX70Panel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabelMemory;
     private javax.swing.JLabel jLabelOutsideInput;
     private javax.swing.JLabel jLabelOutsideOutput;
-    private javax.swing.JLabel jLabelTestInput;
-    private javax.swing.JLabel jLabelTestOuput;
-    private javax.swing.JLabel jLabelTestText;
     private javax.swing.JList<String> jListInsideInput;
     private javax.swing.JList<String> jListInsideOutput;
     private javax.swing.JList<String> jListOutsideInput;
     private javax.swing.JList<String> jListOutsideOutput;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanelInsideInput;
     private javax.swing.JPanel jPanelInsideOutput;
     private javax.swing.JPanel jPanelOutsideInput;
     private javax.swing.JPanel jPanelOutsideOutput;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
-    private javax.swing.JScrollPane jScrollPane8;
-    private javax.swing.JSplitPane jSplitPane1;
-    private javax.swing.JTable jTableTestCase;
-    private javax.swing.JTextField jTextFieldTestInput;
-    private javax.swing.JTextField jTextFieldTestName;
-    private javax.swing.JTextField jTextFieldTestOutput;
+    private javax.swing.JTextField jTextFieldDump;
     // End of variables declaration//GEN-END:variables
 
     DecimalFormat format_mem = new DecimalFormat("#,###MB");
@@ -740,11 +610,18 @@ public class MX70Panel extends javax.swing.JPanel {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                int count = MXMidiConsole.getGlobalCapacity() - 1;
-                jListOutsideInput.ensureIndexIsVisible(count);
-                jListInsideInput.ensureIndexIsVisible(count);
-                jListInsideOutput.ensureIndexIsVisible(count);
-                jListOutsideOutput.ensureIndexIsVisible(count);
+                if (_process._outsideInput.getSize() >= 1) {
+                    jListOutsideInput.ensureIndexIsVisible(_process._outsideInput.getSize() - 1);
+                }
+                if (_process._insideInput.getSize() >= 1) {
+                    jListInsideInput.ensureIndexIsVisible(_process._insideInput.getSize()- 1);
+                }
+                if (_process._insideOutput.getSize() >= 1) {
+                    jListInsideOutput.ensureIndexIsVisible(_process._insideOutput.getSize() - 1);
+                }
+                if (_process._outsideOutput.getSize() >= 1) {
+                    jListOutsideOutput.ensureIndexIsVisible(_process._outsideOutput.getSize()-1);
+                }
             }
         });
     }

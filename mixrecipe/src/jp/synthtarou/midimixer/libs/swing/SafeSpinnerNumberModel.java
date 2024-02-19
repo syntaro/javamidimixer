@@ -23,6 +23,14 @@ import javax.swing.SpinnerNumberModel;
  * @author Syntarou YOSHIDA
  */
 public class SafeSpinnerNumberModel extends SpinnerNumberModel {
+
+    /**
+     *
+     * @param val
+     * @param min
+     * @param max
+     * @param step
+     */
     public SafeSpinnerNumberModel(int val, int min, int max, int step) {
         super(adjust(val, min, max), min, max, step);
     }

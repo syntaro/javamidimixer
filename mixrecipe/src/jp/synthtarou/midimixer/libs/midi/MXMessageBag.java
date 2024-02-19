@@ -40,6 +40,10 @@ public class MXMessageBag {
     public MXMessageBag() {
     }
     
+    public void dumpQueue() {
+        System.out.println("dumpqueue "  +_listTranslated.toString());
+    }
+    
     public synchronized void addQueue(MXMessage message) {
         if (_alreadyQueue.contains(message)) {
             return;
@@ -82,7 +86,7 @@ public class MXMessageBag {
         return _listTranslatedTask.removeFirst();
     }
     
-    public synchronized void addTouochedStatus(MGStatus status) {
+    public synchronized void addTouchedStatus(MGStatus status) {
         _touchedStatus.add(status);
     }
 
@@ -90,5 +94,17 @@ public class MXMessageBag {
         MGStatus[] result = new MGStatus[_touchedStatus.size()];
         _touchedStatus.toArray(result);
         return result;
+    }
+    
+    public synchronized boolean isTranslatedEmpty() {
+        return _listTranslated.isEmpty() && _listTranslatedTask.isEmpty();
+    }
+    
+    public synchronized boolean isTouchedStatus(MGStatus status) {
+        return _touchedStatus.contains(status);
+    }
+    
+    public void clearTouchedStatus() {
+        _touchedStatus.clear();
     }
 }

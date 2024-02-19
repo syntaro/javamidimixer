@@ -18,6 +18,7 @@ package jp.synthtarou.midimixer.libs.midi;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
@@ -50,7 +51,7 @@ public class MXNoteOffWatcher {
     public boolean setHandler(MXMessage noteOn, MXMessage noteOff, Handler listener) {
         synchronized(MXTiming.mutex) {
             if (noteOn.isCommand(MXMidi.COMMAND_CH_NOTEON) == false) {
-                System.out.println("Its not note on " + noteOn);
+                MXMain.printTrace("Its not note on " + noteOn);
                 return false;
             }
             _lastHandler = listener;
@@ -70,7 +71,7 @@ public class MXNoteOffWatcher {
             }
             for (Element e : _list) {
                 MXMessage base = e.sendSide;
-                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_CH_NOTEOFF + base.getChannel(), base.getGate()._var, 0);
+                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_CH_NOTEOFF + base.getChannel(), base.getGate()._value, 0);
                 e.listener.onNoteOffEvent(timing, msg);
             }
             _list.clear();
@@ -88,9 +89,9 @@ public class MXNoteOffWatcher {
                 if (e.sendSide.getPort() != to) {
                     continue;
                 }
-                //it.remove();
+                it.remove();
                 MXMessage base = e.sendSide;
-                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_CH_NOTEOFF + base.getChannel(), base.getGate()._var, 0);
+                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_CH_NOTEOFF + base.getChannel(), base.getGate()._value, 0);
                 e.listener.onNoteOffEvent(timing, msg);
             }
             //_list.clear();
@@ -105,9 +106,9 @@ public class MXNoteOffWatcher {
                 if (e.catchSide.getPort() != from) {
                     continue;
                 }
-                //it.remove();
+                it.remove();
                 MXMessage base = e.sendSide;
-                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_CH_NOTEOFF + base.getChannel(), base.getGate()._var, 0);
+                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_CH_NOTEOFF + base.getChannel(), base.getGate()._value, 0);
                 e.listener.onNoteOffEvent(timing, msg);
             }
             //_list.clear();

@@ -19,14 +19,17 @@ package jp.synthtarou.midimixer.mx60output;
 import java.util.Vector;
 import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.MXWrapList;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
 import jp.synthtarou.midimixer.libs.swing.JTableWithColumnHeader;
 import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
@@ -105,7 +108,6 @@ public class MX60View extends javax.swing.JPanel {
         jPanel1 = new javax.swing.JPanel();
         jCheckBoxUseSkip = new javax.swing.JCheckBox();
         jPanel4 = new javax.swing.JPanel();
-        jLabelRecorderText = new javax.swing.JLabel();
         jRadioButtonSong1 = new javax.swing.JRadioButton();
         jRadioButtonSong2 = new javax.swing.JRadioButton();
         jRadioButtonSong3 = new javax.swing.JRadioButton();
@@ -157,12 +159,6 @@ public class MX60View extends javax.swing.JPanel {
         jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("2. Recorder"));
         jPanel4.setLayout(new java.awt.GridBagLayout());
 
-        jLabelRecorderText.setText("Tempo");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        jPanel4.add(jLabelRecorderText, gridBagConstraints);
-
         jRadioButtonSong1.setText("Song1");
         jRadioButtonSong1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -203,7 +199,12 @@ public class MX60View extends javax.swing.JPanel {
         });
         jPanel4.add(jRadioButtonSong5, new java.awt.GridBagConstraints());
 
-        jButtonSongExport.setText("MXIRecipe Wont Save Recorder");
+        jButtonSongExport.setText("SaveNow");
+        jButtonSongExport.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonSongExportActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 9;
         gridBagConstraints.gridy = 0;
@@ -261,9 +262,11 @@ public class MX60View extends javax.swing.JPanel {
             return;
         }
         if (jToggleButtonRec.isSelected()) {
+            jProgressBar1.setIndeterminate(true);
             _process.startRecording(x);   
         }
         else {
+            jProgressBar1.setIndeterminate(false);
             _process.stopRecording();
         }
         enableRecordingButton();
@@ -303,6 +306,12 @@ public class MX60View extends javax.swing.JPanel {
         enableRecordingButton();
     }//GEN-LAST:event_jRadioButtonSong1ActionPerformed
 
+    private void jButtonSongExportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSongExportActionPerformed
+        if (_process.saveSequenceData() == false) {
+            JOptionPane.showMessageDialog(this, "Error while saving MIDI", "Information", JOptionPane.OK_OPTION);
+        }
+    }//GEN-LAST:event_jButtonSongExportActionPerformed
+
     public synchronized TableModel createSkipTableModel() {
         DefaultTableModel model = new DefaultTableModel() {
             public boolean isCellEditable(int row, int column) {
@@ -316,12 +325,11 @@ public class MX60View extends javax.swing.JPanel {
             model.addColumn(MXMidi.nameOfPortShort(i));
         }
         
-        for (int row = 0; row < _process._data.TYPE_COUNT; ++ row) {
+        for (int type = 0; type < _process._data.TYPE_COUNT; ++ type) {
             Vector line = new Vector();
-            line.add(_process._data.typeNames[row]);
+            line.add(_process._data.typeNames[type]);
             
             for (int delivery = 0; delivery < MXAppConfig.TOTAL_PORT_COUNT; ++ delivery) {
-                int type = row + 1;
                 if (_process._data.isSkip(delivery, type)) {
                     line.add("Skip");
                 }else {
@@ -338,19 +346,17 @@ public class MX60View extends javax.swing.JPanel {
         int row = _jTableSkip.rowAtPoint(evt.getPoint());
         int column = _jTableSkip.columnAtPoint(evt.getPoint());
         
-        int type = row + 1;
+        int type = row;
         int port = column - 1;
         DefaultTableModel model = (DefaultTableModel)_jTableSkip.getModel();
         
-        if (type >= 1 && type <= _process._data.TYPE_COUNT) {
-            if (port >= 0 && port < MXAppConfig.TOTAL_PORT_COUNT) {
-                if (_process._data.isSkip(port, type)) {
-                    _process._data.setSkip(port, type, false);
-                    model.setValueAt("", row, column);
-                }else {
-                    _process._data.setSkip(port, type, true);
-                    model.setValueAt("Skip", row, column);
-                }
+        if (port >= 0 && port < MXAppConfig.TOTAL_PORT_COUNT) {
+            if (_process._data.isSkip(port, type)) {
+                _process._data.setSkip(port, type, false);
+                model.setValueAt("", row, column);
+            }else {
+                _process._data.setSkip(port, type, true);
+                model.setValueAt("Skip", row, column);
             }
         }
     }                                    
@@ -359,7 +365,6 @@ public class MX60View extends javax.swing.JPanel {
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton jButtonSongExport;
     private javax.swing.JCheckBox jCheckBoxUseSkip;
-    private javax.swing.JLabel jLabelRecorderText;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
@@ -381,16 +386,11 @@ public class MX60View extends javax.swing.JPanel {
         _jTableSkip.getColumnModel().getColumn(0).setMinWidth(150);
     }
     
-    public void refreshList() {
+    public void tabActivated() {
         _midiPanel.refreshList();
     }
     
-    public void setRecorderText(String text) {
-        //String.valueOf("Tempo " + (60000000 / mpq) + " BPM"
-        jLabelRecorderText.setText(text);
-    }
-    
-    public void setNoteCount(int recorder, int count) {
+    public void setSongLength(int recorder, long count) {
         JRadioButton button = null;
         switch(recorder) {
             case 0:
@@ -409,7 +409,7 @@ public class MX60View extends javax.swing.JPanel {
                 button = jRadioButtonSong5;
                 break;
         }
-        button.setText("Song" + (recorder+1) + ":" + count);
+        button.setText("Song" + (recorder+1) + ")" + MXUtil.digitalClock(count));
     }   
 
     public int countSongButton() {
@@ -463,7 +463,7 @@ public class MX60View extends javax.swing.JPanel {
         }
     }
     
-    public void progress(int pos, int max) {
+    public void progress(long pos, long max) {
         double x = pos * 10000;
         if (max == 0) {
             x = 10000;

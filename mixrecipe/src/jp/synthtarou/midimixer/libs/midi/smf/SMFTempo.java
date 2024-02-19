@@ -22,18 +22,26 @@ package jp.synthtarou.midimixer.libs.midi.smf;
  *
  * @author Syntarou YOSHIDA
  */
-public class SMFTempo {
-    // ファイル内にテンポ指定がない場合は 120 bpm = 500 000 mpq とする.
-    /*
-        BPM = 60,000,000 / MPQ
-        MPQ = 60,000,000 / BPM
-        BPM * MPQ = 60,000,000
-    */
-    public static int DEFAULT_MPQ = 500000;
-    // mpqStack = Set Tempo イベントが持つ MPQ
-    public long mpqStack;
-    // cumulativeTicks = Set Tempo イベントが発生するまでの時間 (Ticks)
-    public long cumulativeTicks;
-    // cumulativeMicroseconds = Set Tempo イベントが発生するまでの時間 (us)
-    public long cumulativeMicroseconds;
+public class SMFTempo implements Comparable<SMFTempo>{
+    // Set Tempo イベントが持つ 
+    public long _mpq;
+    // Set Tempo イベントが発生するまでの時間 (Ticks)
+    public long _tick;
+    // Set Tempo イベントが発生するまでの時間 (us)
+    public long _microsecond;
+
+    @Override
+    public int compareTo(SMFTempo o) {
+        long x = _tick - o._tick;
+        if (x == 0) {
+            x = _microsecond - o._microsecond;
+        }
+        if (x < 0) return -1;
+        if (x > 0) return 1;
+        return 0;
+    }
+    
+    public String toString() {
+        return "MPQ = " + _mpq +" when tick = " + _tick +", ms = " + _microsecond;
+    }
 }

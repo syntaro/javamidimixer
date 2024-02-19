@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.TreeMap;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
@@ -83,14 +84,13 @@ public class VSTFolder {
     public void scan(ArrayList<String> listSkip) {
         _cancelOperation = false;
         if (_rootDirectory == null) {
-            System.err.println("FileExtensionFilter::startScan rootDirectory is null");
+            MXMain.printDebug("FileExtensionFilter::startScan rootDirectory is null");
             return;
         }
         if (_rootDirectory.isDirectory() == false) {
-            System.err.println("FileExtensionFilter::startScan rootDirectory[" + _rootDirectory + "] is not directory");
+            MXMain.printDebug("FileExtensionFilter::startScan rootDirectory[" + _rootDirectory + "] is not directory");
             return;
         }
-        System.err.println("FileExtensionFilter::startScan " + _targetExtension + " in [" + _rootDirectory + "] ");
 
         LinkedList<File> listDirctory = new LinkedList();
         listDirctory.add(_rootDirectory);
@@ -176,7 +176,6 @@ public class VSTFolder {
         if (listSkip != null) {
             for (String skip : listSkip) {
                 if (path.equalsIgnoreCase(skip)) {
-                    System.out.println("check skip " + skip + " for " + path);
                     return true;
                 }
             }

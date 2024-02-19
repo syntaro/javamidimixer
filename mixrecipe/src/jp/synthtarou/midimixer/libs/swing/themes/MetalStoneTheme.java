@@ -19,6 +19,10 @@ package jp.synthtarou.midimixer.libs.swing.themes;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 
+/**
+ *
+ * @author Syntarou YOSHIDA
+ */
 public class MetalStoneTheme extends DefaultMetalTheme {
 
     public String getName() { return "Forest"; }

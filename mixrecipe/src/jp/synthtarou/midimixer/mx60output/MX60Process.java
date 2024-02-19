@@ -16,8 +16,10 @@
  */
 package jp.synthtarou.midimixer.mx60output;
 
+import java.io.File;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -26,8 +28,7 @@ import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFCallback;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFPlayer;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFRecorder;
+import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 import jp.synthtarou.midimixer.mx10input.MX10Data;
@@ -39,9 +40,9 @@ import jp.synthtarou.midimixer.mx10input.MX10Data;
 public class MX60Process extends MXReceiver implements MXSettingTarget {
     public MX60Data _data;
     private MX60View _view;
-    private SMFRecorder[] _listRecorder;
+    private SMFSequencer[] _listRecorder;
     private int _recordingTrack = -1;
-    private SMFPlayer _playingTrack;
+    private SMFSequencer _playingTrack;
 
     MXSetting _setting;
 
@@ -50,10 +51,16 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
         _view = new MX60View(this);
         _setting = new MXSetting("OutputSkip");
         _setting.setTarget(this);
-        _listRecorder = new SMFRecorder[5];
+        _listRecorder = new SMFSequencer[5];
         for (int i = 0; i < _listRecorder.length; ++ i) {
-            _listRecorder[i] = new SMFRecorder();
+            _listRecorder[i] = new SMFSequencer();
+            File seq = getSequenceDirectory(i);
+            if (seq != null) {
+                _listRecorder[i].readFromDirectory(seq);
+                _view.setSongLength(i, _listRecorder[i].getSongLength());
+            }
         }
+        _view.enableRecordingButton();
         _playingTrack = null;
     }
     
@@ -63,17 +70,15 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
     
     @Override
     public void processMXMessage(MXMessage message) {
-        if (isUsingThisRecipe()) {
-            if (_data.isMarkedToSkip(message)) {
-                return;
-            }
+        if (isUsingThisRecipe() && _data.isMarkedAsSkip(message)) {
+            return;
         }
 
         if (isRecording()) {
             synchronized (this) {
-                SMFRecorder recorder = _listRecorder[_recordingTrack];
-                recorder.addNote(message);
-                _view.setNoteCount(_recordingTrack, recorder.getPlayer().listMessage().size());
+                SMFSequencer recorder = _listRecorder[_recordingTrack];
+                recorder.record(message);
+                _view.setSongLength(_recordingTrack, recorder.getSongLength());
             }
         }
 
@@ -97,7 +102,6 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
             StringBuffer str = new StringBuffer();
             for (int j = 0; j <_data.countOfTypes(); ++ j) {
                 String name = _data.typeNames[j];
-                //System.out.println(name + " = " + setting.getSetting(prefix + name));
                 boolean set = setting.getSettingAsBoolean(prefix + name, false);
                 _data.setSkip(port, j, set);
             }
@@ -107,6 +111,7 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
 
     @Override
     public void beforeWriteSettingFile(MXSetting setting) {
+        saveSequenceData();
         for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
             String prefix = "Setting[" + port + "].";
             StringBuffer str = new StringBuffer();
@@ -128,6 +133,7 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
     
     public synchronized void startRecording(int x) {
         _recordingTrack = x;
+        _listRecorder[x] = new SMFSequencer();
         _listRecorder[x].startRecording();
     }
 
@@ -136,18 +142,20 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
     }
 
     public synchronized void stopRecording() {
-        _recordingTrack = -1;
+        if (_recordingTrack >= 0) {
+            _listRecorder[_recordingTrack].stopRecording();
+            _recordingTrack = -1;
+        }
     }
 
     public synchronized void startPlaying(int x) {
-        _playingTrack = _listRecorder[x].getPlayer();
-        _playingTrack.setCurrentPosition(_playingTrack.getPositionOfFirstNote());
-        _playingTrack.startPlayer(new SMFCallback() {
+        _playingTrack = _listRecorder[x];
+        _playingTrack.startPlayer(0, new SMFCallback() {
             MXNoteOffWatcher _noteOff = new MXNoteOffWatcher();
 
             @Override
             public void smfPlayNote(MXTiming timing, SMFMessage e) {
-                MXMessage message = e.fromSMFtoMX(e._port);
+                MXMessage message = e.fromSMFtoMX();
                 if (message == null) {
                     return;
                 }
@@ -175,7 +183,11 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
                             }
                         });
                     }
-                    sendToNext(message);
+                    if (isUsingThisRecipe() && _data.isMarkedAsSkip(message)) {
+                    }
+                    else {
+                        sendToNext(message);
+                    }
                 }
             }
 
@@ -191,7 +203,7 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
             }
 
             @Override
-            public void smfProgress(int pos, int finish) {
+            public void smfProgress(long pos, long finish) {
                 _view.progress(pos, finish);
             }
         });
@@ -216,6 +228,38 @@ public class MX60Process extends MXReceiver implements MXSettingTarget {
             //startup
             return false;
         }
-        return _listRecorder[x].getPlayer().listMessage().size() > 0;
+        return _listRecorder[x].countMessage() > 0;
+    }
+
+    public boolean saveSequenceData() {
+        boolean error = false;
+        for (int i = 0; i < _listRecorder.length; ++ i) {
+            File seq = getSequenceDirectory(i);
+            if (seq != null) {
+                if (_listRecorder[i]._updateFlag) {
+                    if (_listRecorder[i].writeToDirectory(seq) == false) {
+                        error = true;
+                    }
+                    _listRecorder[i]._updateFlag = false;
+                }
+            }
+            else {
+                error = true;
+            }
+        }
+        return !error;
+    }
+    
+    public File getSequenceDirectory(int song) {
+        File base = MXUtil.getAppBaseDirectory();
+        File seq = new File(base, "songs");
+        File folder = new File(seq, "Song" + Character.toString('A' + song));
+        if (folder.exists() == false) {
+            folder.mkdirs();
+            if (folder.exists() == false) {
+                return null;
+            }
+        }
+        return folder;
     }
 }

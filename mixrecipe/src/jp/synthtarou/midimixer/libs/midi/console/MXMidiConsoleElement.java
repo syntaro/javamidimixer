@@ -103,14 +103,21 @@ public class MXMidiConsoleElement implements Comparable<MXMidiConsoleElement>{
             }
             case CONSOLE_MESSAGE: {
                 String exString = "";
-                if (_message.isBinMessage()) {
-                    byte[] data = _message.getDataBytes();
-                    return MXUtil.dumpHex(data);
+                if (_message.getDwordCount() >= 1) {
+                    StringBuffer str = new StringBuffer();
+                    for (int i = 0; i < _message.getDwordCount(); ++ i) {
+                        int dword = _message.getAsDword(i);
+                        int status = (dword >> 14) & 0x7f;
+                        int data1 = (dword >> 7) & 0x7f;
+                        int data2 = (dword) & 0x7f;
+                        str.append("[");
+                        str.append(MXUtil.toHexFF(status) +" " + MXUtil.toHexFF(data1) + " " + MXUtil.toHexFF(data2));
+                        str.append("]");
+                    }
+                    return str.toString();
                 }else {
-                    int status = _message.getStatus();
-                    int data1 = _message.getData1();
-                    int data2 = _message.getData2();
-                    return "" + MXUtil.toHexFF(status) +" " + MXUtil.toHexFF(data1) + " " + MXUtil.toHexFF(data2);
+                    byte[] data = _message.getBinary();
+                    return MXUtil.dumpHex(data);
                 }
             }
         }
@@ -130,7 +137,7 @@ public class MXMidiConsoleElement implements Comparable<MXMidiConsoleElement>{
             }
             case CONSOLE_MESSAGE: {
                 String exString = "";
-                if(_message.isBinMessage() == false || _message.isDataentry()) {
+                if(_message.getDwordCount() > 0) {
                     int col = _message.getDwordCount();
                     StringBuffer ret = new StringBuffer();
                     for (int i = 0 ; i < col; ++ i) {
@@ -163,6 +170,7 @@ public class MXMidiConsoleElement implements Comparable<MXMidiConsoleElement>{
         int data1 = (dword >> 8) & 0xff;
         int data2 = dword & 0xff;
         String channel;
+        
         int command;
 
         if (status >= 0x80 && status <= 0xf0) {
@@ -189,7 +197,7 @@ public class MXMidiConsoleElement implements Comparable<MXMidiConsoleElement>{
             return  "[ChannelPress " + channel + ":" + data1 + "]";
         }
         if (command == MXMidi.COMMAND_CH_PITCHWHEEL) {
-            return  "[Pitch " + channel + ":" + MXUtil.toHexFF(data1) + MXUtil.toHexFF(data2) +"=" + (data2 << 7 + data1) + "]";
+            return  "[Pitch " + channel + ":" + MXUtil.toHexFF(data1) + MXUtil.toHexFF(data2) +"=" + ((data1 << 7) + data2) + "]";
         }
         if (command == MXMidi.COMMAND_SONGPOSITION) {
             return  "[SongPos " + data1 + "]";
@@ -201,7 +209,7 @@ public class MXMidiConsoleElement implements Comparable<MXMidiConsoleElement>{
             String ccname = MXMidi.nameOfControlChange(data1);
             return  "[CC-" + ccname + " " + channel + ":" + MXUtil.toHexFF(data2) + "]";
         }
-
+        
         return "****" + MXUtil.toHexFF(status) + MXUtil.toHexFF(data1) + MXUtil.toHexFF(data2);
         //return  "[" + MXMidi.nameOfMessage(status, data1, data2) + " " + channel + "]";
     }

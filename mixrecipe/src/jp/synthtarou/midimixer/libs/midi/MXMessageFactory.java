@@ -16,10 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.RangedValue;
+import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 
 /**
  *
@@ -86,7 +83,7 @@ public class MXMessageFactory {
     
     static final MXTemplate ZERO = new MXTemplate(new int[]{ MXMidi.COMMAND2_NONE, 0, 0 });
     
-    public static MXMessage fromTemplate(int port, MXTemplate template, int channel, RangedValue gate, RangedValue value) {
+    public static MXMessage fromTemplate(int port, MXTemplate template, int channel, MXRangedValue gate, MXRangedValue value) {
         MXMessage message = new MXMessage(port, template, channel, gate, value);
         return message;
     }
@@ -95,19 +92,12 @@ public class MXMessageFactory {
         return fromCCXMLText(port, text, channel, null, null);
     }
 
-    public static MXMessage fromCCXMLText(int port, String text, int channel, RangedValue gate, RangedValue value) {
-        while (text.startsWith(" ")) {
-            text = text.substring(1);
-        }
-        while (text.endsWith(" ")) {
-            text = text.substring(0, text.length() - 1);
-        }
-        
+    public static MXMessage fromCCXMLText(int port, String text, int channel, MXRangedValue gate, MXRangedValue value) {
         try {
             MXTemplate template = new MXTemplate(text);
             MXMessage msg = MXMessageFactory.fromTemplate(port, template, channel, gate, value);
             return msg;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             e.printStackTrace();
             return null;
         }
@@ -133,15 +123,6 @@ public class MXMessageFactory {
 
         int c = data[0] & 0xff;
         
-        boolean seekCache = true;
-        
-        if (c == 0xff && data.length >= 100) {
-            seekCache = false;
-        }
-        if (c == 0xf0 && data.length >= 100) {
-            seekCache = false;
-        }
-
         int[] template= new int[data.length];
         for (int i = 0; i < data.length; ++ i) {
             template[i] = data[i] & 0xff;

@@ -39,6 +39,9 @@ public class FileSystemCache {
         return _view.getRoots();
     }
     
+    /**
+     *
+     */
     public static class Element implements Comparable<Element> {
 
         public final String _path;
@@ -47,6 +50,10 @@ public class FileSystemCache {
         public String _displayName;
         public Icon _icon;
 
+        /**
+         *
+         * @param file
+         */
         public Element(File file) {
             _path = file == null ? null : file.toString();
             _fileObject = file;

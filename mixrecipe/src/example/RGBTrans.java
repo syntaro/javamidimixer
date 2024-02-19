@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 yaman
+ * Copyright (C) 2023 Syntarou YOSHIDA
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 
 /**
  *
- * @author yaman
+ * @author Syntarou YOSHIDA
  */
 public class RGBTrans extends javax.swing.JPanel {
 

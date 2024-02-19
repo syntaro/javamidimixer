@@ -30,10 +30,18 @@ import javax.swing.table.TableModel;
 public class JTableWithColumnHeader extends JTable {
     boolean _isColumn1AsHeader = true;
     
+    /**
+     *
+     */
     public JTableWithColumnHeader() {
         super();
     }
     
+    /**
+     *
+     * @param model
+     * @param column
+     */
     public JTableWithColumnHeader(TableModel model, TableColumnModel column) {
         super(model, column);
     }
