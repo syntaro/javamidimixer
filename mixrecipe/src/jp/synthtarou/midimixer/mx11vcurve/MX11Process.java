@@ -42,7 +42,7 @@ public class MX11Process extends MXReceiver<MX11View> {
 
     @Override
     public void processMXMessage(MXMessage message) {
-        if (isUsingThisRecipe() == false) { sendToNext(message); return; }
+        if (isUsingThisRecipeDX() == false) { sendToNext(message); return; }
 
         if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
             int port = message.getPort();

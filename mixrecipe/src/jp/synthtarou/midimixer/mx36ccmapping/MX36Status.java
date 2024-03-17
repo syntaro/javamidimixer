@@ -17,13 +17,16 @@
 package jp.synthtarou.midimixer.mx36ccmapping;
 
 import java.util.Collections;
+import java.util.logging.Level;
 import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
+import jp.synthtarou.midimixer.mx30surface.MX32MixerProcess;
 
 /**
  *
@@ -248,8 +251,8 @@ public class MX36Status {
         if (_outCachedMessage == null) {
             try {
                 _outCachedMessage = MXMessageFactory.fromCCXMLText(_outValueOffset, _outDataText, _outChannel);
-            }catch(Exception e) {
-                e.printStackTrace();;
+            }catch(Exception ex) {
+                MXLogger2.getLogger(MX36Status.class).log(Level.WARNING, ex.getMessage(), ex);
             }
             if (_outCachedMessage == null) {
                 _outDataText = null;

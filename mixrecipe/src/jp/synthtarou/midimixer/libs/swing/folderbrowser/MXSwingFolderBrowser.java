@@ -23,12 +23,13 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.TreeSet;
+import java.util.logging.Level;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -37,6 +38,7 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
 
@@ -105,8 +107,8 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
         public final void launchStay(FileSystemCache.Element file) {
             try {
                 process(file);
-            } catch (Throwable e) {
-                e.printStackTrace();;
+            } catch (Throwable ex) {
+                MXLogger2.getLogger(MXSwingFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
             } finally {
             }
         }
@@ -156,8 +158,10 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
                             process(file);
                         }
                     });
-                } catch (Throwable e) {
-                    e.printStackTrace();
+                } catch (InterruptedException ex) {
+                    MXLogger2.getLogger(MXSwingFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
+                } catch (InvocationTargetException ex) {
+                    MXLogger2.getLogger(MXSwingFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
         }
@@ -322,13 +326,13 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
             File[] nest = null;
             try {
                 if (itsPC._fileObject.isDirectory()) {
-                    if (isCancelReasonNetwork(itsPC._fileObject)) {
+                    if (isSkipBecauseNetwork(itsPC._fileObject)) {
                         return false;
                     }
                     nest = itsPC._fileObject.listFiles();
                 }
             } catch (Throwable ex) {
-                new IOException("**************************", ex).printStackTrace();
+                MXLogger2.getLogger(MXSwingFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
             }
             if (nest == null) {
                 return false;
@@ -359,7 +363,7 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
             if (parentFile._fileObject == null) {
                 files = FileSystemCache.getRoots();
             } else {
-                if (isCancelReasonNetwork(parentFile._fileObject)) {
+                if (isSkipBecauseNetwork(parentFile._fileObject)) {
                     return;
                 }
 
@@ -378,7 +382,7 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
                         continue;
                     }
                 }
-                if (isCancelReasonNetwork(file)) {
+                if (isSkipBecauseNetwork(file)) {
                     continue;
                 }
 
@@ -424,7 +428,7 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
         if (f == null) {
             listFiles = FileSystemCache.getRoots();
         } else {
-            if (isCancelReasonNetwork(f)) {
+            if (isSkipBecauseNetwork(f)) {
                 return;
             }
             listFiles = f.listFiles();
@@ -542,7 +546,7 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
         jTree1.paintImmediately(jTree1.getVisibleRect());
     }
 
-    public boolean isCancelReasonNetwork(File f) {
+    public boolean isSkipBecauseNetwork(File f) {
         if (f == null) {
             return false;
         }

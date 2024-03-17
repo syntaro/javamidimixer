@@ -16,6 +16,10 @@
  */
 package jp.synthtarou.midimixer.libs.common.async;
 
+import java.util.logging.Level;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
+
 
 /**
  *
@@ -64,8 +68,8 @@ public class Transaction implements Runnable {
 
         try {
             run();
-        }catch(Throwable e) {
-            e.printStackTrace();
+        }catch(RuntimeException ex) {
+            MXLogger2.getLogger(Transaction.class).log(Level.WARNING, ex.getMessage(), ex);
         }
         
         boolean needThen = false;
@@ -80,8 +84,8 @@ public class Transaction implements Runnable {
             try {
                 _doneThen = true;
                 _then.run();
-            }catch(Throwable e) {
-                e.printStackTrace();
+            }catch(RuntimeException ex) {
+                MXLogger2.getLogger(Transaction.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
     }
@@ -95,8 +99,8 @@ public class Transaction implements Runnable {
             while(_running) {
                 try {
                     this.wait(1000);
-                }catch(InterruptedException e) {
-                    e.printStackTrace();
+                }catch(InterruptedException ex) {
+                    MXLogger2.getLogger(Transaction.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
         }
@@ -118,8 +122,8 @@ public class Transaction implements Runnable {
         if (needThen) {
             try {
                _then.run();
-            }catch(Throwable e) {
-                e.printStackTrace();
+            }catch(RuntimeException ex) {
+                MXLogger2.getLogger(Transaction.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
     }

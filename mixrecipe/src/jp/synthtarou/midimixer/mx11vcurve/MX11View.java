@@ -20,15 +20,18 @@ import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Vector;
+import java.util.logging.Level;
 import javax.swing.JLabel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
+import jp.synthtarou.midimixer.mx30surface.MX32MixerProcess;
 
 /**
  *
@@ -59,8 +62,8 @@ public class MX11View extends javax.swing.JPanel {
             col.setCellRenderer(tableCellRenderer);
         }
 
-        jCheckBoxUseRoute.setSelected(_process.isUsingThisRecipe());
-        jTableVelocity.setEnabled(_process.isUsingThisRecipe());
+        jCheckBoxUseRoute.setSelected(_process.isUsingThisRecipeDX());
+        jTableVelocity.setEnabled(_process.isUsingThisRecipeDX());
 
         jLabelVelocityPort.setText("-");
         jLabelVelocityOriginal.setText("-");
@@ -268,8 +271,8 @@ public class MX11View extends javax.swing.JPanel {
                 jLabelVelocityPort.setText(MXMidi.nameOfPortInput(port));
                 jLabelVelocityOriginal.setText(String.valueOf(base));
                 jSpinnerVelocityCurve.setModel(new SafeSpinnerNumberModel(set, 0, 127, 1));
-            }catch(Throwable e) {
-                e.printStackTrace();
+            }catch(RuntimeException ex) {
+                MXLogger2.getLogger(MX11View.class).log(Level.WARNING, ex.getMessage(), ex);
             }   
         }
     }

@@ -16,7 +16,9 @@
  */
 package jp.synthtarou.midimixer.libs.midi.driver;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.logging.Level;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiMessage;
@@ -25,6 +27,7 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 import jp.synthtarou.midimixer.MXThreadList;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
@@ -62,39 +65,40 @@ public class MXDriver_Java implements MXDriver {
             MidiDevice device = null;
             try {
                 device = MidiSystem.getMidiDevice(infoList[i]);
-            } catch (MidiUnavailableException e) {
-                e.printStackTrace();
+            } catch (MidiUnavailableException ex) {
+                MXLogger2.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
                 continue;
             }
 
             if (device.getMaxTransmitters() != 0) {
+                if (device.getDeviceInfo() == null) {
+                    //maybe everything hannpens
+                    continue;
+                }
+                String name = device.getDeviceInfo().getName();
                 try {
-                    String name = device.getDeviceInfo().getName();
-                    try {
-                        String charset2 = System.getProperty("file.encoding");
-                        String name2 = new String(name.getBytes(charset2), charset2);
-                        String charset3 = System.getProperty("sun.jnu.encoding");
-                        String name3 = new String(name.getBytes(charset3), charset3);
-                        if (!name.equals(name2) || !name.equals(name3)) {
-                            StringBuffer out = new StringBuffer();
-                            for (int x = 0; x < name.length(); ++x) {
-                                int ch = name.charAt(x);
-                                out.append(Integer.toHexString(ch));
-                                out.append(",");
-                            }
-
-                            System.out.println(name + " = " + name2 + " = " + name3);
-                            continue;
+                    String charset2 = System.getProperty("file.encoding");
+                    String name2 = new String(name.getBytes(charset2), charset2);
+                    String charset3 = System.getProperty("sun.jnu.encoding");
+                    String name3 = new String(name.getBytes(charset3), charset3);
+                    if (!name.equals(name2) || !name.equals(name3)) {
+                        StringBuffer out = new StringBuffer();
+                        for (int x = 0; x < name.length(); ++x) {
+                            int ch = name.charAt(x);
+                            out.append(Integer.toHexString(ch));
+                            out.append(",");
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    if (name.equals("Real Time Sequencer")) {
+
+                        System.out.println(name + " = " + name2 + " = " + name3);
                         continue;
                     }
-                    newList.add(device);
-                } catch (Exception e) {
+                } catch (UnsupportedEncodingException ex) {
+                    MXLogger2.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
+                if (name.equals("Real Time Sequencer")) {
+                    continue;
+                }
+                newList.add(device);
             }
         }
 
@@ -113,8 +117,8 @@ public class MXDriver_Java implements MXDriver {
             MidiDevice device = null;
             try {
                 device = MidiSystem.getMidiDevice(infoList[i]);
-            } catch (MidiUnavailableException e) {
-                e.printStackTrace();
+            } catch (MidiUnavailableException ex) {
+                MXLogger2.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
                 continue;
             }
 
@@ -240,8 +244,8 @@ public class MXDriver_Java implements MXDriver {
                 if (_listOutput.get(device).isOpen()) {
                     return true;
                 }
-            } catch (MidiUnavailableException e) {
-                e.printStackTrace();
+            } catch (MidiUnavailableException ex) {
+                MXLogger2.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
             }
             return false;
         }
@@ -257,8 +261,8 @@ public class MXDriver_Java implements MXDriver {
             if (_listOutput.get(x).getDeviceInfo().getName().equals("Gervill")) {
                 return;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (RuntimeException ex) {
+            MXLogger2.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
         }
         _listOutput.get(x).close();
     }
@@ -277,9 +281,11 @@ public class MXDriver_Java implements MXDriver {
                 ShortMessage msg = new ShortMessage(status, data1, data2);
                 _listOutput.get(x).getReceiver().send(msg, 0);
                 return true;
-            } catch (Throwable e) {
-                System.out.println("Unknown Message: " + MXUtil.toHexFF(status) + "  " + MXUtil.toHexFF(data1) + " " + MXUtil.toHexFF(data2));
-                e.printStackTrace();
+            } catch (InvalidMidiDataException ex) {
+                String text = "Unknown Message: " + MXUtil.toHexFF(status) + "  " + MXUtil.toHexFF(data1) + " " + MXUtil.toHexFF(data2);
+                MXLogger2.getLogger(MXDriver_Java.class).log(Level.WARNING, text, ex);
+            } catch (MidiUnavailableException ex) {
+                MXLogger2.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
         return false;
@@ -302,8 +308,12 @@ public class MXDriver_Java implements MXDriver {
                         _listOutput.get(x).getReceiver().send(msg, 0);
 
                         return true;
-                    } catch (Throwable e) {
-                        e.printStackTrace();
+                    } catch (MidiUnavailableException ex) {
+                        MXLogger2.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
+                    } catch (InvalidMidiDataException ex) {
+                        MXLogger2.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
+                    } catch (RuntimeException ex) {
+                        MXLogger2.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
                     }
                     break;
 
@@ -324,16 +334,19 @@ public class MXDriver_Java implements MXDriver {
                                 ShortMessage msg3 = new ShortMessage(status, data1, data2);
                                 _listOutput.get(x).getReceiver().send(msg3, 0);
                                 return true;
-                            } catch (InvalidMidiDataException e) {
-                            } catch (Throwable e) {
-                                e.printStackTrace();
+                            } catch (MidiUnavailableException ex) {
+                                MXLogger2.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
+                            } catch (InvalidMidiDataException ex) {
+                                MXLogger2.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
+                            } catch (RuntimeException ex) {
+                                MXLogger2.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
                             }
                         }
                     }
                     break;
             }
-        } catch (Throwable e) {
-            e.printStackTrace();
+        } catch (RuntimeException ex) {
+            MXLogger2.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
         }
 
         return false;

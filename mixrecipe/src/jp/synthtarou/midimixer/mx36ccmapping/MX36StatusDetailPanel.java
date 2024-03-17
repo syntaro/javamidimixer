@@ -23,6 +23,7 @@ import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.IllegalFormatException;
 import java.util.List;
+import java.util.logging.Level;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
@@ -30,6 +31,7 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
 import jp.synthtarou.midimixer.ccxml.ui.PickerForControlChange;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -44,6 +46,7 @@ import jp.synthtarou.midimixer.libs.navigator.MXPopupForList;
 import jp.synthtarou.midimixer.libs.navigator.MXPopupForNumber;
 import jp.synthtarou.midimixer.libs.navigator.MXPopupForText;
 import jp.synthtarou.midimixer.libs.navigator.legacy.NavigatorForNote;
+import jp.synthtarou.midimixer.mx30surface.MX32MixerProcess;
 
 /**
  *
@@ -257,7 +260,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                 try {
                     template = new MXTemplate(data);
                 } catch (IllegalFormatException ex) {
-                    ex.printStackTrace();
+                    MXLogger2.getLogger(MX36StatusDetailPanel.class).log(Level.WARNING, ex.getMessage(), ex);
                     return;
                 }
 

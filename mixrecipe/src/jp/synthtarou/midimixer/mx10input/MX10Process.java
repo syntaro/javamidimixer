@@ -39,18 +39,18 @@ public class MX10Process extends MXReceiver<MX10View> implements MXSettingTarget
     }
     
     @Override
-    public boolean isUsingThisRecipe() {
-        return _view.isDXUsingThisRecipe();
+    public boolean isUsingThisRecipeDX() {
+        return _view.isUsingThisRecipeDX();
     }
 
     @Override
     public void setUsingThisRecipe(boolean flag) {
-        _view.setDXUsingThisRecipe(flag);
+        _view.setUsingThisRecipeDX(flag);
     }
     
     @Override
     public void processMXMessage(MXMessage message) {
-        if (isUsingThisRecipe()) {
+        if (isUsingThisRecipeDX()) {
             if (_structure.isMessageForSkip(message)) {
                 return;
             }
@@ -91,8 +91,8 @@ public class MX10Process extends MXReceiver<MX10View> implements MXSettingTarget
                 _structure.setSkip(port, j, set);
             }
         }
-        _view.setDXUsingThisRecipe(isUsingThisRecipe());
-        _view.setDXStructure(_structure);
+        _view.setUsingThisRecipeDX(isUsingThisRecipeDX());
+        _view.setStructureDX(_structure);
     }
 
     @Override
@@ -101,7 +101,7 @@ public class MX10Process extends MXReceiver<MX10View> implements MXSettingTarget
             String prefix = "Setting[" + port + "].";
             StringBuffer str = new StringBuffer();
             for (int j = 0; j < _structure.countOfTypes(); ++ j) {
-                boolean set = _structure.isSkip(port, j);
+                boolean set = _structure.isSkipDX(port, j);
                 if (set) {                   
                     String name = _structure.typeNames[j];
                     _setting.setSetting(prefix + name, set);

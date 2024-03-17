@@ -31,6 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
@@ -165,7 +166,7 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXSet
             out = null;
             return true;
         } catch (IOException ex) {
-            Logger.getLogger(CXXMLManager.class.getName()).log(Level.WARNING, null, ex);
+            MXLogger2.getLogger(CXXMLManager.class.getName()).log(Level.WARNING, null, ex);
             return false;
         } finally {
             if (out != null) {
@@ -173,7 +174,7 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXSet
                     out.close();
                     out = null;
                 } catch (IOException ex) {
-                    Logger.getLogger(CXXMLManager.class.getName()).log(Level.INFO, null, ex);
+                    MXLogger2.getLogger(CXXMLManager.class.getName()).log(Level.INFO, null, ex);
                 }
             }
             if (in != null) {
@@ -181,7 +182,7 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXSet
                     in.close();
                     in = null;
                 } catch (IOException ex) {
-                    Logger.getLogger(CXXMLManager.class.getName()).log(Level.INFO, null, ex);
+                    MXLogger2.getLogger(CXXMLManager.class.getName()).log(Level.INFO, null, ex);
                 }
             }
         }
@@ -319,7 +320,7 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXSet
                 _listLoaded.add(xmlFile);
             }
             else {
-                Logger.getLogger(CXXMLManager.class.getName()).log(Level.SEVERE, xmlFile.getAdviceForXML());
+                MXLogger2.getLogger(CXXMLManager.class.getName()).log(Level.SEVERE, xmlFile.getAdviceForXML());
             }
         }
     }

@@ -21,6 +21,7 @@ import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.logging.Level;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -36,11 +37,13 @@ import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.ccxml.ui.PickerForinstrument;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 import jp.synthtarou.midimixer.libs.swing.MXFileChooser;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
+import jp.synthtarou.midimixer.mx36ccmapping.MX36StatusDetailPanel;
 
 /**
  *
@@ -117,7 +120,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         jComboBoxSendVelocityLow.setModel(_changeLowVelocity);
         jComboBoxSendVelocityHi.setModel(_changeHighVelocity);
 
-        jCheckBoxUseLayer.setSelected(process.isUsingThisRecipe());
+        jCheckBoxUseLayer.setSelected(process.isUsingThisRecipeDX());
 
         _editingGroup = null;
         _editingLayer = null;
@@ -1244,14 +1247,14 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
             try {
                 _editingGroup = null;
                 listUpGroups();
-            }catch(Exception e) {
-                e.printStackTrace();;
+            }catch(Exception ex) {
+                MXLogger2.getLogger(MX40View.class).log(Level.WARNING, ex.getMessage(), ex);
             }
             try {
                 _editingLayer = null;
                 listupLayers();
-            }catch(Exception e) {
-                e.printStackTrace();;
+            }catch(Exception ex) {
+                MXLogger2.getLogger(MX40View.class).log(Level.WARNING, ex.getMessage(), ex);
             }
             _process.resendProgramChange();
             disableUnusedOnPanel();

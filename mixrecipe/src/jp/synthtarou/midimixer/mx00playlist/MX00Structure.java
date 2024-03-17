@@ -22,12 +22,12 @@ package jp.synthtarou.midimixer.mx00playlist;
  */
 public class MX00Structure {
     public MX00Structure() {
-        _playListModel = new DXPlayList();
+        _playListModel = new PlayListDX();
         _playAsChained = false;
         _playAsRepeated = false;
     }
 
     boolean _playAsChained;
     boolean _playAsRepeated;
-    DXPlayList _playListModel;
+    PlayListDX _playListModel;
 }

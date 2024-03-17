@@ -147,7 +147,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXSettingTarget
 
     @Override
     public void processMXMessage(MXMessage message) {
-        if (isUsingThisRecipe() == false) { 
+        if (isUsingThisRecipeDX() == false) { 
             sendToNext(message);
             return; 
         }

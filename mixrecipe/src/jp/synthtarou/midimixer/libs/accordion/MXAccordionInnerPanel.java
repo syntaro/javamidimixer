@@ -18,7 +18,10 @@ package jp.synthtarou.midimixer.libs.accordion;
 
 import java.awt.Component;
 import java.util.ArrayList;
+import java.util.logging.Level;
 import javax.swing.SwingUtilities;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
+import jp.synthtarou.midimixer.libs.common.MXQueue1;
 
 /**
  *
@@ -82,16 +85,16 @@ public class MXAccordionInnerPanel {
                         _animationPanel.setVisible(true);
                         _animationPanel.setBackground(null);
                         revalidateASAP();
-                    }catch(Throwable e) {
-                        e.printStackTrace();;
+                    }catch(RuntimeException ex) {
+                        MXLogger2.getLogger(MXAccordionInnerPanel.class).log(Level.WARNING, ex.getMessage(), ex);
                     }
                     if (invert) {
                         for (int p = 200; p > 100; p -= 5) {
                             _animationPanel.setScrollPercent(p);
                             try {
                                 Thread.sleep(10);
-                            } catch (Exception e) {
-                                e.printStackTrace();;
+                            } catch (InterruptedException ex) {
+                                MXLogger2.getLogger(MXAccordionInnerPanel.class).log(Level.WARNING, ex.getMessage(), ex);
                             }
                         }
                     }
@@ -100,8 +103,8 @@ public class MXAccordionInnerPanel {
                             _animationPanel.setScrollPercent(p);
                             try {
                                 Thread.sleep(10);
-                            } catch (Exception e) {
-                                e.printStackTrace();;
+                            } catch (InterruptedException ex) {
+                                MXLogger2.getLogger(MXAccordionInnerPanel.class).log(Level.WARNING, ex.getMessage(), ex);
                             }
                         }
                     }
@@ -121,8 +124,8 @@ public class MXAccordionInnerPanel {
                                 if (p != 0) {
                                     Thread.sleep(10);
                                 }
-                            } catch (Exception e) {
-                                e.printStackTrace();;
+                            } catch (InterruptedException ex) {
+                                MXLogger2.getLogger(MXAccordionInnerPanel.class).log(Level.WARNING, ex.getMessage(), ex);
                             }
                         }
                     }
@@ -133,8 +136,8 @@ public class MXAccordionInnerPanel {
                                 if (p != 0) {
                                     Thread.sleep(10);
                                 }
-                            } catch (Exception e) {
-                                e.printStackTrace();;
+                            } catch (InterruptedException ex) {
+                                MXLogger2.getLogger(MXAccordionInnerPanel.class).log(Level.WARNING, ex.getMessage(), ex);
                             }
                         }
                     }

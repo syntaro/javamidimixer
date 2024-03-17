@@ -84,17 +84,13 @@ public class MX90View extends javax.swing.JPanel {
             return;
         }
         _testing = true;
-        try {
-            jList1.setModel(debugMessages);            
-            new Thread() {
-                public void run() {
-                    _process.doAllTest(debugMessages);
-                   _testing = false;
-                }
-            }.start();
-        }catch(Throwable e)  {
-            _testing = false;
-        }
+        jList1.setModel(debugMessages);            
+        new Thread() {
+            public void run() {
+                _process.doAllTest(debugMessages);
+               _testing = false;
+            }
+        }.start();
     }//GEN-LAST:event_jButton1ActionPerformed
 
 

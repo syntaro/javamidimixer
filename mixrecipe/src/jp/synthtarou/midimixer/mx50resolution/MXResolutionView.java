@@ -22,10 +22,12 @@ import java.awt.Container;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.logging.Level;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
 import jp.synthtarou.midimixer.ccxml.ui.PickerForControlChange;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
@@ -359,8 +361,8 @@ public class MXResolutionView extends javax.swing.JPanel {
                     }
                 }
                 displayResolutionToPanel();
-            } catch (Throwable e) {
-                e.printStackTrace();
+            } catch (RuntimeException ex) {
+                MXLogger2.getLogger(MXResolutionView.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
     }

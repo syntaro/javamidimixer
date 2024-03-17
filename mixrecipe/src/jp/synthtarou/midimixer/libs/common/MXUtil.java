@@ -42,6 +42,7 @@ import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.logging.Level;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -457,21 +458,21 @@ public class MXUtil {
                 }
             }
         } catch (IOException ex) {
-            ex.printStackTrace();
+            MXLogger2.getLogger(MXUtil.class).log(Level.WARNING, ex.getMessage(), ex);
             return -1;
         } finally {
             if (i1 != null) {
                 try {
                     i1.close();
                 } catch (IOException ex) {
-                    ex.printStackTrace();
+                    MXLogger2.getLogger(MXUtil.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
             if (i2 != null) {
                 try {
                     i2.close();
                 } catch (IOException ex) {
-                    ex.printStackTrace();
+                    MXLogger2.getLogger(MXUtil.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
         }
@@ -526,17 +527,14 @@ public class MXUtil {
                     in1.close();
 
                 } catch (IOException ex) {
-                    ex.printStackTrace();
+                    MXLogger2.getLogger(MXUtil.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
-                ;
-
             }
             if (in2 != null) {
                 try {
                     in2.close();
-
                 } catch (IOException ex) {
-                    ex.printStackTrace();
+                    MXLogger2.getLogger(MXUtil.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
         }
@@ -564,14 +562,18 @@ public class MXUtil {
                 System.out.println("*METHOD*Charset.defaultCharset() = " + Charset.defaultCharset());
                 System.out.println("*METHOD*System.out.charset() = " + System.out.charset());
 
-                System.setOut(new PrintStream(System.out, true, targetCharset));
-                System.setErr(new PrintStream(System.err, true, targetCharset));
-                System.out.println("Console Encoding fixed.");
-                System.out.println("after overwrite System.out.charset() = " + System.out.charset());
-                System.out.println("after overwrite System.err.charset() = " + System.err.charset());
+                try {
+                    System.setOut(new PrintStream(System.out, true, targetCharset));
+                    System.setErr(new PrintStream(System.err, true, targetCharset));
+                    System.out.println("Console Encoding fixed.");
+                    System.out.println("after overwrite System.out.charset() = " + System.out.charset());
+                    System.out.println("after overwrite System.err.charset() = " + System.err.charset());
+                } catch (IOException ex) {
+                    MXLogger2.getLogger(MXUtil.class).log(Level.WARNING, ex.getMessage(), ex);
+                }
             }
-        } catch (Throwable e) {
-            e.printStackTrace();
+        } catch (RuntimeException ex) {
+            MXLogger2.getLogger(MXUtil.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 

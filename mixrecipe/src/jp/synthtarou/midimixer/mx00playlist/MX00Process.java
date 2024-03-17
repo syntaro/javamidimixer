@@ -18,11 +18,14 @@ package jp.synthtarou.midimixer.mx00playlist;
 
 import java.io.File;
 import java.util.List;
+import java.util.logging.Level;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.settings.MXSettingNode;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
+import jp.synthtarou.midimixer.libs.vst.IndexedFile;
 
 /**
  *
@@ -79,8 +82,8 @@ public class MX00Process extends MXReceiver<MX00View> implements MXSettingTarget
                 int x = Integer.parseInt(name);
                 if (x < min) min = x;
                 if (x > max) max = x;
-            }catch(NumberFormatException e) {
-                e.printStackTrace();
+            }catch(NumberFormatException ex) {
+                MXLogger2.getLogger(MX00Process.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
         for (int x = min; x <= max; ++ x) {
@@ -95,13 +98,13 @@ public class MX00Process extends MXReceiver<MX00View> implements MXSettingTarget
             _structure._playListModel.addFile("SynthTAROU002.mid");
         }
 
-        _view.setDXStructure(_structure);
+        _view.setStructureDX(_structure);
     }
 
     @Override
     public void beforeWriteSettingFile() {
         _setting.clearValue();
-        _structure = _view.getDXStructure();
+        _structure = _view.getStructureDX();
 
         _setting.setSetting("playAsLooped", _structure._playAsRepeated);
         _setting.setSetting("playAsChained", _structure._playAsChained);
@@ -116,8 +119,8 @@ public class MX00Process extends MXReceiver<MX00View> implements MXSettingTarget
     public void processMXMessage(MXMessage message) {
     }
     
-    public void updateDXPianoKeys(int dword) {
-        _view.updateDXPianoKeys(dword);
+    public void updatePianoDX(int dword) {
+        _view.updatePianoDX(dword);
     }
 
     public void createPianoControls(int lowNote, int octaveRange, boolean[] activeChannels, int[] listPrograms, List<Integer> drumProgs)  {

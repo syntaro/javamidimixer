@@ -32,7 +32,6 @@ import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -45,9 +44,11 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
 import jp.synthtarou.midimixer.ccxml.InformationForModule;
+import jp.synthtarou.midimixer.ccxml.rules.CCValueRule;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 import jp.synthtarou.midimixer.libs.common.MXLineReader;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import org.w3c.dom.Document;
@@ -153,7 +154,7 @@ public class CXFile {
             }
 
             return true;
-        } catch (Throwable e) {
+        } catch (Throwable ex) {
             return false;
         }
     }
@@ -196,7 +197,7 @@ public class CXFile {
             try {
                 check.close();
             } catch (IOException ex) {
-                Logger.getLogger(CXFile.class.getName()).log(Level.SEVERE, null, ex);
+                MXLogger2.getLogger(CXFile.class.getName()).log(Level.SEVERE, null, ex);
             }
 
         } catch (IOException ex) {
@@ -221,16 +222,19 @@ public class CXFile {
             rebuildCache();
         } catch (ParserConfigurationException ex) {
             _loadError = ex;
+            MXLogger2.getLogger(CXFile.class).log(Level.WARNING, ex.getMessage(), ex);
             return;
         } catch (SAXException ex) {
             _loadError = ex;
+            MXLogger2.getLogger(CXFile.class).log(Level.WARNING, ex.getMessage(), ex);
             return;
         } catch (IOException ex) {
             _loadError = ex;
+            MXLogger2.getLogger(CXFile.class).log(Level.WARNING, ex.getMessage(), ex);
             return;
-        } catch (Throwable ex) {
+        } catch (RuntimeException ex) {
             _loadError = ex;
-            ex.printStackTrace();
+            MXLogger2.getLogger(CXFile.class).log(Level.WARNING, ex.getMessage(), ex);
             return;
         }
         _loadError = null;
@@ -285,10 +289,10 @@ public class CXFile {
                             recordCCMDebug(err, target);
                         }
                     } catch (IllegalFormatException ex) {
-                        ex.printStackTrace();
+                        MXLogger2.getLogger(CXFile.class).log(Level.WARNING, ex.getMessage(), ex);
                     }
-                }catch(Exception e) {
-                    e.printStackTrace();
+                }catch(Exception ex) {
+                    MXLogger2.getLogger(CXFile.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
                 if (!templateOK) {
                     err = module._file +" have Wrong SysEx [" + ccm._data+ "]";
@@ -423,8 +427,8 @@ public class CXFile {
             }
             return doc;
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            MXLogger2.getLogger(CXFile.class).log(Level.WARNING, ex.getMessage(), ex);
         }
         return null;
     }
@@ -509,8 +513,8 @@ public class CXFile {
                 countRunDiffectent++;
                 System.err.println(ccm._data + " != " + data2 + "  != " + data3);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            MXLogger2.getLogger(CXFile.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 }

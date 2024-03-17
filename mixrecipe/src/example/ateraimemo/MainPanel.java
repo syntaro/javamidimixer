@@ -5,8 +5,10 @@ package example.ateraimemo;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.tree.TreeSelectionModel;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 
 public final class MainPanel extends JPanel {
 
@@ -56,7 +58,7 @@ public final class MainPanel extends JPanel {
         } catch (UnsupportedLookAndFeelException ignored) {
             Toolkit.getDefaultToolkit().beep();
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
-            ex.printStackTrace();
+            MXLogger2.getLogger(MainPanel.class).log(Level.WARNING, ex.getMessage(), ex);
             return;
         }
         JFrame frame = new JFrame("DnDBetweenTrees");

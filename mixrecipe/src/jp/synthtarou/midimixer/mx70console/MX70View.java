@@ -23,14 +23,17 @@ import java.awt.Dimension;
 import java.awt.Window;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.logging.Level;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachCopyAndPaste;
+import jp.synthtarou.midimixer.mx50resolution.MX50Process;
 
 /**
  *
@@ -523,16 +526,11 @@ public class MX70View extends javax.swing.JPanel {
     }
     
     public boolean isOwnerWindowVisible() {
-        try {
-            Container cont = MXUtil.getOwnerWindow(this);
-            if (cont.isVisible()) {
-                return true;
-            }
+        Container cont = MXUtil.getOwnerWindow(this);
+        if (cont == null) {
             return false;
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        return false;
+        return cont.isVisible();
     }
 
     NumberFormat formatter3 = new DecimalFormat("0.000");
@@ -566,8 +564,8 @@ public class MX70View extends javax.swing.JPanel {
                         }
                     }
                     jLabelMemory.setText(getMemoryInfo());
-                } catch (Throwable e) {
-                    e.printStackTrace();
+                } catch (RuntimeException ex) {
+                    MXLogger2.getLogger(MX70View.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
                 Container parent = getParent();
                 while (parent != null) {

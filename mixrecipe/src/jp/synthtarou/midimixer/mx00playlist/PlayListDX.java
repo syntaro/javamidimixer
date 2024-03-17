@@ -17,26 +17,36 @@
 package jp.synthtarou.midimixer.mx00playlist;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.SwingUtilities;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXQueue1;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class DXPlayList extends DefaultListModel<PlayListElement> {
+public class PlayListDX extends DefaultListModel<PlayListElement> {
 
     MXQueue1<PlayListElement> _queueForAdd = new MXQueue1<>();
 
     private void orderCommit() {
         if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    orderCommit();
-                }
-            });
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    @Override
+                    public void run() {
+                        orderCommit();
+                    }
+                });
+            } catch (InterruptedException ex) {
+                MXLogger2.getLogger(PlayListDX.class).log(Level.WARNING, ex.getMessage(), ex);
+            } catch (InvocationTargetException ex) {
+                MXLogger2.getLogger(PlayListDX.class).log(Level.WARNING, ex.getMessage(), ex);
+            }
             return;
         }
         while (true) {
@@ -45,7 +55,7 @@ public class DXPlayList extends DefaultListModel<PlayListElement> {
             }
             PlayListElement e = _queueForAdd.pop();
             if (e != null) {
-                DXPlayList.this.addElement(e);
+                PlayListDX.this.addElement(e);
             }
         }
     }

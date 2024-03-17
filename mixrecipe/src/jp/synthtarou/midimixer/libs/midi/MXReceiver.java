@@ -18,6 +18,7 @@ package jp.synthtarou.midimixer.libs.midi;
 
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXMain;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 
 /**
  *
@@ -46,13 +47,13 @@ public abstract class MXReceiver<T extends JPanel> {
         if (_nextReceiver != null) {
             MXMain.getMain().messageDispatch(message, _nextReceiver);
         }else {
-            new Exception("receiver not set " + message).printStackTrace();
+            MXLogger2.getLogger(MXReceiver.class).warning("receiver not set " + message);
         }
     }
 
     private boolean _usingThis = true;
     
-    public boolean isUsingThisRecipe() {
+    public boolean isUsingThisRecipeDX() {
         return _usingThis;
     }
 

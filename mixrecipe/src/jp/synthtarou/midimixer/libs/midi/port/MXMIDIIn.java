@@ -17,9 +17,11 @@
 package jp.synthtarou.midimixer.libs.midi.port;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXQueue1;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
@@ -30,6 +32,7 @@ import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver;
+import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
 
 /**
@@ -345,7 +348,7 @@ public class MXMIDIIn {
                 }
             }
             if (this == INTERNAL_PLAYER) {
-                MXMain.getMain().getPlayListProcess().updateDXPianoKeys(dword);
+                MXMain.getMain().getPlayListProcess().updatePianoDX(dword);
             }
             if (command == MXMidi.COMMAND_CH_NOTEOFF) {
                 if (_myNoteOff.raiseHandler(0, timing, status & 0xf, data1)) {
@@ -404,8 +407,8 @@ public class MXMIDIIn {
                                 if (message != null) {
                                     dispatchToPortMain(msg2);
                                 }
-                            } catch (Exception e) {
-                                e.printStackTrace();
+                            } catch (RuntimeException ex) {
+                                MXLogger2.getLogger(MXMIDIIn.class).log(Level.WARNING, ex.getMessage(), ex);
                             }
                         }
                     }

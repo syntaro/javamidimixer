@@ -133,7 +133,7 @@ public class MXLIB02VST3 {
         return directx;
     }
   
-    public void main2(String[] args) {
+    public void main(String[] args) {
         try {
             if (isUsable()) {
                 cbCallText("Dll Okay");

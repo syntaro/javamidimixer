@@ -19,6 +19,9 @@ package jp.synthtarou.midimixer.libs.swing.folderbrowser;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.HashSet;
+import java.util.logging.Level;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
+import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
 
 /**
  *
@@ -85,8 +88,8 @@ public class ChildSeekFilter implements FileFilter {
                     if (acceptImpl(child)) {
                         hit = true;
                     }
-                } catch (Throwable e) {
-                    e.printStackTrace();
+                } catch (RuntimeException ex) {
+                    MXLogger2.getLogger(ChildSeekFilter.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
 
@@ -96,12 +99,11 @@ public class ChildSeekFilter implements FileFilter {
                 _listFailed.add(file.toString());
             }
             return hit;
-        } catch (Throwable e) {
-            e.printStackTrace();
+        } catch (Throwable ex) {
+            MXLogger2.getLogger(ChildSeekFilter.class).log(Level.WARNING, ex.getMessage(), ex);
+            _listFailed.add(file.toString());
+            return false;
         }
-        _listFailed.add(file.toString());
-
-        return false;
     }
 
     public boolean accept(File file) {

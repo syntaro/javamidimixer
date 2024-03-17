@@ -21,13 +21,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
 import jp.synthtarou.midimixer.ccxml.xml.CXGeneralMidiFile;
 import jp.synthtarou.midimixer.ccxml.xml.CXNode;
 import jp.synthtarou.midimixer.ccxml.InformationForModule;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 
 /**
@@ -74,8 +77,8 @@ public class CounterTable {
                     MXTemplate template = null;
                     try {
                         template = new MXTemplate(ccm._data);
-                    }catch(Exception e) {
-                        e.printStackTrace();
+                    }catch(Exception ex) {
+                        MXLogger2.getLogger(CounterTable.class).log(Level.WARNING, ex.getMessage(), ex);
                     }
                     MXMessage message = MXMessageFactory.fromTemplate(0, template, 0, MXRangedValue.ZERO7, MXRangedValue.ZERO7);
                     

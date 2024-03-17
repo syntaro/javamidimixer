@@ -30,6 +30,8 @@ import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.logging.Level;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 
 /**
  *
@@ -60,7 +62,7 @@ public class MXSettingUtil {
             Path path = Paths.get(uri);
             fileName = path.toString();
         } catch (URISyntaxException ex) {
-            ex.printStackTrace();;
+            MXLogger2.getLogger(MXSettingUtil.class).log(Level.WARNING, ex.getMessage(), ex);
         }
 
         File base = new File(fileName);
@@ -80,8 +82,8 @@ public class MXSettingUtil {
         try {
             Path p = Paths.get(dir.toURI());
             Files.createDirectory(p);
-        }catch(IOException e) {
-            e.printStackTrace();
+        }catch(IOException ex) {
+            MXLogger2.getLogger(MXSettingUtil.class).log(Level.WARNING, ex.getMessage(), ex);
         }
         
         if (dir.isDirectory()) {
@@ -187,8 +189,8 @@ public class MXSettingUtil {
             }
 
             return true;
-        }catch(IOException e) {
-            e.printStackTrace();
+        }catch(IOException ex) {
+            MXLogger2.getLogger(MXSettingUtil.class).log(Level.WARNING, ex.getMessage(), ex);
         }finally {
             if (in1 != null) {
                 try { in1.close(); } catch(IOException e) {}

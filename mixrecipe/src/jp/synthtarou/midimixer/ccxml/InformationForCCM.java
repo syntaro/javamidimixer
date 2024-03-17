@@ -19,6 +19,9 @@ package jp.synthtarou.midimixer.ccxml;
 import jp.synthtarou.midimixer.ccxml.xml.CXNode;
 import jp.synthtarou.midimixer.ccxml.xml.CXFile;
 import java.util.IllegalFormatException;
+import java.util.logging.Level;
+import jp.synthtarou.midimixer.MXMain;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
@@ -105,7 +108,7 @@ public class InformationForCCM {
                 template = new MXTemplate(_data);
             }
         } catch (IllegalFormatException ex) {
-            ex.printStackTrace();
+            MXLogger2.getLogger(InformationForCCM.class).log(Level.WARNING, ex.getMessage(), ex);
         }
 
         boolean hasValueHi = false;

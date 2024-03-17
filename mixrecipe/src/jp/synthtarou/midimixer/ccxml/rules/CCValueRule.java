@@ -19,10 +19,13 @@ package jp.synthtarou.midimixer.ccxml.rules;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.logging.Level;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.ccxml.xml.CXNode;
 import jp.synthtarou.midimixer.ccxml.rules.CCRuleForAttribute;
 import jp.synthtarou.midimixer.ccxml.rules.CCRuleForTag;
 import jp.synthtarou.midimixer.ccxml.xml.CXNode;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 
 /**
@@ -68,8 +71,8 @@ public class CCValueRule {
                 }
 
                 return true;
-            }catch(ArrayIndexOutOfBoundsException e) {
-                e.printStackTrace();
+            }catch(ArrayIndexOutOfBoundsException ex) {
+                MXLogger2.getLogger(CCValueRule.class).log(Level.WARNING, ex.getMessage(), ex);
             }
             return false;
         }
@@ -82,8 +85,8 @@ public class CCValueRule {
             try {
                 //4/4 etc
                 return true;
-            }catch(ArrayIndexOutOfBoundsException e) {
-                e.printStackTrace();
+            }catch(ArrayIndexOutOfBoundsException ex) {
+                MXLogger2.getLogger(CCValueRule.class).log(Level.WARNING, ex.getMessage(), ex);
             }
             return false;
         }

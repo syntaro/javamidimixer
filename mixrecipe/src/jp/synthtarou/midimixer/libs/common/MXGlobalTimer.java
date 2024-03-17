@@ -17,6 +17,8 @@
 package jp.synthtarou.midimixer.libs.common;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
+import javax.management.RuntimeErrorException;
 import jp.synthtarou.midimixer.MXThreadList;
 
 /**
@@ -85,8 +87,8 @@ public class MXGlobalTimer {
             if (pop != null) {
                 try {
                     pop.action.run();
-                }catch(Throwable e) {
-                    e.printStackTrace();
+                }catch(RuntimeException ex) {
+                    MXLogger2.getLogger(MXGlobalTimer.class).log(Level.WARNING, ex.getMessage(), ex);
                 }            
             }
         }

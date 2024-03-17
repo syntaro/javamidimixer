@@ -85,10 +85,6 @@ public class MX40Layer {
      */
     public void setAcceptKeyHighest(int acceptKeyHighest) {
         this._acceptKeyHighest = acceptKeyHighest;
-        /*
-        if (acceptKeyHighest == 0) {
-            new Throwable("setAcceptKeyHighest 0").printStackTrace();
-        }*/
     }
     
     public static final int MOD_NONE = 0;

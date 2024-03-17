@@ -135,17 +135,16 @@ public class MXMainWindow extends javax.swing.JFrame {
                         jfx.setScene(scene);
                         jfx.getScene().addEventFilter(TouchEvent.ANY, e -> System.out.println("ANY " + e));
                     }catch(Exception e) {
-                        e.printStackTrace();
+                        MXLogger2.getLogger(MXMainWindow.class).log(Level.WARNING, ex.getMessage(), ex);
                     }
                 }
             });
-        } else */{
-            jPanelForTab.remove(jButtonDummyTab);;
-            jPanelForTab.add(jTabbedPane1);
-            jPanelForPiano.remove(jButtonDummyPiano);
-            jPanelForPiano.add(_main.getPianoProcess().getReceiverView());
         }
-
+        */
+        jPanelForTab.remove(jButtonDummyTab);;
+        jPanelForTab.add(jTabbedPane1);
+        jPanelForPiano.remove(jButtonDummyPiano);
+        jPanelForPiano.add(_main.getPianoProcess().getReceiverView());
     }
     
     List<MXReceiver> _viewList = null;

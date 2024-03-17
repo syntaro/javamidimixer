@@ -21,7 +21,9 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.logging.Level;
 import jp.synthtarou.midimixer.MXMain;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 
 /**
  *
@@ -206,7 +208,8 @@ public class MXSettingNode {
 
     public boolean setSetting(String name, String value) {
         if (isRegistered(name) == false) {
-            new Throwable("setSetting Not registered " + name + " = " + value).printStackTrace();
+            Exception ex = new Exception("Not registered " + name + " = " + value);
+            MXLogger2.getLogger(MXSettingNode.class).log(Level.WARNING, ex.getMessage(), ex);
             return false;
         }
 

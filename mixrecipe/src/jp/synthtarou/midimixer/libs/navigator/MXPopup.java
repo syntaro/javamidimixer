@@ -23,8 +23,11 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.logging.Level;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
+import jp.synthtarou.midimixer.mx30surface.MX32MixerProcess;
 
 /**
  *
@@ -56,8 +59,8 @@ public abstract class MXPopup {
                     }
                     setupColor(true);
                     showPopup(_target);
-                }catch(Throwable ex) {
-                    ex.printStackTrace();
+                }catch(RuntimeException ex) {
+                    MXLogger2.getLogger(MXPopup.class).log(Level.WARNING, ex.getMessage(), ex);
                 }finally {
                     setupColor(false);
                 }
@@ -73,8 +76,8 @@ public abstract class MXPopup {
                     try {
                         setupColor(true);
                         showPopup(_target);
-                    }catch(Throwable ex) {
-                        ex.printStackTrace();
+                    }catch(RuntimeException ex) {
+                        MXLogger2.getLogger(MXPopup.class).log(Level.WARNING, ex.getMessage(), ex);
                     }finally {
                         setupColor(false);
                     }

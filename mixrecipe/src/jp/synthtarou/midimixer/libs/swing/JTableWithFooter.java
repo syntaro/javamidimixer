@@ -18,10 +18,13 @@ package jp.synthtarou.midimixer.libs.swing;
 
 import java.awt.Component;
 import java.awt.GridBagLayout;
+import java.util.logging.Level;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
+import jp.synthtarou.midimixer.libs.settings.StringPath;
 
 /**
  *
@@ -43,7 +46,8 @@ public class JTableWithFooter extends JTableWithColumnHeader {
         java.awt.GridBagConstraints gridBagConstraints;
         
         if (gridBagPanel.getComponentCount() > 0) {
-            new IllegalArgumentException("Need plaing JPanel for MJTable (but cleanup and continue)").printStackTrace();
+            Exception ex = new IllegalArgumentException("Need plaing JPanel for MJTable (but cleanup and continue)");
+            MXLogger2.getLogger(JTableWithFooter.class).log(Level.WARNING, ex.getMessage(), ex);
             
             for(Component c : gridBagPanel.getComponents()) {
                 gridBagPanel.remove(c);

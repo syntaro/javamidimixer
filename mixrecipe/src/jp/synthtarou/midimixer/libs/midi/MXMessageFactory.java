@@ -16,7 +16,10 @@
  */
 package jp.synthtarou.midimixer.libs.midi;
 
+import java.util.logging.Level;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
+import jp.synthtarou.midimixer.libs.common.async.Transaction;
 
 /**
  *
@@ -97,8 +100,8 @@ public class MXMessageFactory {
             MXTemplate template = new MXTemplate(text);
             MXMessage msg = MXMessageFactory.fromTemplate(port, template, channel, gate, value);
             return msg;
-        } catch (Throwable e) {
-            e.printStackTrace();
+        } catch (RuntimeException ex) {
+            MXLogger2.getLogger(MXMessageFactory.class).log(Level.WARNING, ex.getMessage(), ex);
             return null;
         }
     }

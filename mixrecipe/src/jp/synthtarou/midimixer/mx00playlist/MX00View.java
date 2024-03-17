@@ -24,6 +24,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
@@ -32,6 +34,7 @@ import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXMain;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.MXFileChooser;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -77,29 +80,29 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         jSplitPane2.setDividerLocation(300);
     }
 
-    public void setDXStructure(MX00Structure structure) {
+    public void setStructureDX(MX00Structure structure) {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    setDXStructure(structure);
+                    setStructureDX(structure);
                 }
             });
             return;
         }
-        setDXQueueFileList(structure._playListModel);
-        setDXChain(structure._playAsChained);
-        setDXRepeat(structure._playAsRepeated);
+        setQueueFileListDX(structure._playListModel);
+        setChainedDX(structure._playAsChained);
+        setRepeatedDX(structure._playAsRepeated);
     }
 
-    DXPlayList _dxPlayList;
+    PlayListDX _dxPlayList;
 
-    public void setDXQueueFileList(DXPlayList listFiles) {
+    public void setQueueFileListDX(PlayListDX listFiles) {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    setDXQueueFileList(listFiles);
+                    setQueueFileListDX(listFiles);
                 }
             });
             return;
@@ -108,12 +111,12 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         jListPlayList.setModel(_dxPlayList);
     }
 
-    public void setDXChain(boolean chain) {
+    public void setChainedDX(boolean chain) {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    setDXChain(chain);
+                    setChainedDX(chain);
                 }
             });
             return;
@@ -121,12 +124,12 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         jCheckBoxChain.setSelected(chain);
     }
 
-    public void setDXRepeat(boolean repeat) {
+    public void setRepeatedDX(boolean repeat) {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    setDXRepeat(repeat);
+                    setRepeatedDX(repeat);
                 }
             });
             return;
@@ -134,12 +137,12 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         jCheckBoxRepeat.setSelected(repeat);
     }
 
-    public void setDXCurrentSongName(String songName) {
+    public void setCurrentSongNameDX(String songName) {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    setDXCurrentSongName(songName);
+                    setCurrentSongNameDX(songName);
                 }
             });
             return;
@@ -147,7 +150,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         jTextFieldCurrentSongName.setText(songName);
     }
 
-    public MX00Structure getDXStructure() {
+    public MX00Structure getStructureDX() {
         MX00Structure structure = new MX00Structure();
         structure._playListModel = _dxPlayList;
         structure._playAsRepeated = jCheckBoxRepeat.isSelected();
@@ -155,15 +158,15 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         return structure;
     }
 
-    public boolean getDXChained() {
+    public boolean isChanedDX() {
         return jCheckBoxChain.isSelected();
     }
 
-    public boolean getDXRepeat() {
+    public boolean isRepeatedDX() {
         return jCheckBoxRepeat.isSelected();
     }
 
-    public String getDXCurrentSongName() {
+    public String getCurrentSongNameDX() {
         return jTextFieldCurrentSongName.getText();
     }
 
@@ -566,46 +569,44 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     MXPianoKeys _pianoRollKeys;
 
     public void autoResizePiano() {
-        try {
-            if (_drumPanel != null) {
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        _drumPanel.setPreferredSize(new Dimension(jPanelRight.getWidth() - 70, 350));
-                        _drumPanel.updateUI();
-                        /*SwingUtilities.invokeLater(new Runnable(){
-                            public void run() {*/
-                        int maxHeight = 0;
-                        for (JToggleButton c : _drumPanel.listDrums) {
-                            if (c != null) {
-                                Rectangle r = c.getBounds();
-                                int height = r.y + r.height;
-                                if (maxHeight < height) {
-                                    maxHeight = height;
-                                }
-                            }
-                        }
-                        _drumPanel.setPreferredSize(new Dimension(jPanelRight.getWidth() - 70, maxHeight));
-                        _drumPanel.setSize(new Dimension(jPanelRight.getWidth() - 70, maxHeight));
-                        /*    }
-                        });*/
-                    }
-                });
+        if (SwingUtilities.isEventDispatchThread() == false) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    autoResizePiano();
+                }
+            });
+            return;
+        }
+        for (int ch = 0; ch < 16; ++ch) {
+            if (_listKeyboard[ch] != null) {
+                _listKeyboard[ch].autoAdjustHeight(jPanelRight.getWidth() - 70);
+                _listKeyboard[ch]._keys.invalidate();
             }
-            for (int ch = 0; ch < 16; ++ch) {
-                if (_listKeyboard[ch] != null) {
-                    _listKeyboard[ch].autoAdjustHeight(jPanelRight.getWidth() - 70);
-                    _listKeyboard[ch]._keys.invalidate();
+        }
+        if (_pianoRollKeys != null && _pianoRollRoll != null) {
+            //_pianoRollRoll.resetTiming(4000,  20);
+            _pianoRollRoll.clearCache(_pianoRollRoll.getSongPos());
+            int width = _pianoRollRoll.getWidth();
+            _pianoRollKeys.setPreferredSize(new Dimension(width, 100));
+        }
+        revalidate();
+        if (_drumPanel != null) {
+            _drumPanel.setPreferredSize(new Dimension(jPanelRight.getWidth() - 70, 350));
+            _drumPanel.updateUI();
+            /*SwingUtilities.invokeLater(new Runnable(){
+                public void run() {*/
+            int maxHeight = 0;
+            for (JToggleButton c : _drumPanel.listDrums) {
+                if (c != null) {
+                    Rectangle r = c.getBounds();
+                    int height = r.y + r.height;
+                    if (maxHeight < height) {
+                        maxHeight = height;
+                    }
                 }
             }
-            if (_pianoRollKeys != null && _pianoRollRoll != null) {
-                //_pianoRollRoll.resetTiming(4000,  20);
-                _pianoRollRoll.clearCache(_pianoRollRoll.getSongPos());
-                int width = _pianoRollRoll.getWidth();
-                _pianoRollKeys.setPreferredSize(new Dimension(width, 100));
-            }
-            revalidate();
-        } catch (Exception e) {
-            e.printStackTrace();
+            _drumPanel.setPreferredSize(new Dimension(jPanelRight.getWidth() - 70, maxHeight));
+            _drumPanel.setSize(new Dimension(jPanelRight.getWidth() - 70, maxHeight));
         }
     }
 
@@ -663,8 +664,8 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                 for (int i = 0; i < str.length; ++i) {
                     model.addElement(str[i]);
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (RuntimeException ex) {
+                MXLogger2.getLogger(MX00View.class).log(Level.WARNING, ex.getMessage(), ex);
             }
             jListFileInfo.setModel(model);
         }
@@ -754,11 +755,11 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         // TODO add your handling code here:
     }//GEN-LAST:event_jTabbedPanePianoPropertyChange
 
-    public void updateDXPianoKeys(int dword) {
+    public void updatePianoDX(int dword) {
         if (SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    updateDXPianoKeys(dword);
+                    updatePianoDX(dword);
                 }
             });
             return;
@@ -882,11 +883,11 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
             });
             return;
         }
-        
+
         PlayListElement file = _lastPlayed;
         PlayListElement next = null;
 
-        if (getDXChained()) {
+        if (isChanedDX()) {
             for (int i = 0; i < _dxPlayList.size(); ++i) {
                 PlayListElement seek = _dxPlayList.get(i);
                 if (seek == file) {
@@ -894,7 +895,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                     if (i < _dxPlayList.getSize()) {
                         next = _dxPlayList.elementAt(i);
                         break;
-                    } else if (getDXRepeat()) {
+                    } else if (isRepeatedDX()) {
                         i = 0;
                         if (i < _dxPlayList.getSize()) {
                             next = _dxPlayList.elementAt(0);
@@ -906,7 +907,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                     }
                 }
             }
-        } else if (getDXRepeat()) {
+        } else if (isRepeatedDX()) {
             next = file;
         } else {
             next = null;
@@ -957,7 +958,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                 JOptionPane.showMessageDialog(this, file + " is not in PlayList", "Error", JOptionPane.OK_OPTION);
                 return;
             }
-            setDXCurrentSongName(file.toString());
+            setCurrentSongNameDX(file.toString());
             _player.openFile(file._file);
 
             ArrayList<Integer> drums = _player.getSequencer()._parser._drums;
@@ -1013,9 +1014,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                 }
             });
         } catch (IOException ex) {
-            JOptionPane.showMessageDialog(this, "Can't open File [" + file._file +" ]\n" + ex.toString(), "Error", JOptionPane.OK_OPTION);
-            return;
-        } catch (Throwable ex) {
+            JOptionPane.showMessageDialog(this, "Can't open File [" + file._file + " ]\n" + ex.toString(), "Error", JOptionPane.OK_OPTION);
             return;
         }
     }

@@ -18,11 +18,14 @@ package jp.synthtarou.midimixer.mx90debug;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInForTest;
+import jp.synthtarou.midimixer.mx70console.MX70Process;
 
 /**
  *
@@ -47,8 +50,8 @@ public abstract class MXDebug {
         if (_interval >= 1) {
             try {
                 Thread.sleep(_interval);
-            }catch(InterruptedException e) {
-                e.printStackTrace();
+            }catch(InterruptedException ex) {
+                MXLogger2.getLogger(MXDebug.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
     }
@@ -65,8 +68,8 @@ public abstract class MXDebug {
         if (_interval >= 1) {
             try {
                 Thread.sleep(_interval);
-            }catch(InterruptedException e) {
-                e.printStackTrace();
+            }catch(InterruptedException ex) {
+                MXLogger2.getLogger(MXDebug.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
     }

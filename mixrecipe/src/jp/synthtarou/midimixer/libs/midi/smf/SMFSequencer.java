@@ -21,13 +21,17 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Level;
 import javax.sound.midi.InvalidMidiDataException;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXThreadList;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
+import jp.synthtarou.midimixer.libs.midi.driver.SplittableSysexMessage;
+import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
 
 /**
@@ -91,9 +95,9 @@ public class SMFSequencer {
                 try {
                     playWithMilliSeconds(position);
                     _isRunning = false;
-                } catch (Throwable e) {
+                } catch (RuntimeException ex) {
                     _isRunning = false;
-                    e.printStackTrace();
+                    MXLogger2.getLogger(SMFSequencer.class).log(Level.WARNING, ex.getMessage(), ex);
                 } finally {
                     synchronized (this) {
                         notifyAll();
@@ -222,7 +226,7 @@ public class SMFSequencer {
         }
     }
 
-    protected void playWithMilliSeconds(long position) throws InvalidMidiDataException {
+    protected void playWithMilliSeconds(long position) {
         _stopPlayer = false;
         if (_pianoRoll != null) {
             _pianoRoll.clearCache(position);
@@ -449,8 +453,8 @@ public class SMFSequencer {
                     }
                 }
             }
-        } catch (Throwable e) {
-            e.printStackTrace();
+        } catch (RuntimeException ex) {
+            MXLogger2.getLogger(SMFSequencer.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 
@@ -538,8 +542,8 @@ public class SMFSequencer {
             File f = new File(directory, directory.getName() + "-" + MXMidi.nameOfPortInput(port) + ".mid");
             try {
                 _parser.writeFile(f, port);
-            } catch (IOException e) {
-                e.printStackTrace();;
+            } catch (IOException ex) {
+                MXLogger2.getLogger(SMFSequencer.class).log(Level.WARNING, ex.getMessage(), ex);
                 return false;
             }
         }
@@ -560,8 +564,8 @@ public class SMFSequencer {
                         seek._port = port;
                         merge.add(seek);
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();;
+                } catch (IOException ex) {
+                    MXLogger2.getLogger(SMFSequencer.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
         }

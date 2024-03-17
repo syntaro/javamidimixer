@@ -17,13 +17,18 @@
 package jp.synthtarou.midimixer.libs.midi;
 
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.util.logging.Level;
 import jp.synthtarou.midimixer.MXMain;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
+import jp.synthtarou.midimixer.libs.common.async.Transaction;
 import static jp.synthtarou.midimixer.libs.midi.MXTemplate.parseDAlias;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
+import jp.synthtarou.midimixer.mx70console.MX70View;
 
 /**
  *
@@ -263,8 +268,10 @@ public final class MXMessage implements Comparable<MXMessage> {
                 text = new String(data, 2, data.length - 2, "ASCII");
                 text = new String(data, 2, data.length - 2, "utf8");
                 text = new String(data, 2, data.length - 2, "SJIS");
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (UnsupportedEncodingException ex) {
+                MXLogger2.getLogger(MXMessage.class).log(Level.WARNING, ex.getMessage(), ex);
+            } catch (RuntimeException ex) {
+                MXLogger2.getLogger(MXMessage.class).log(Level.WARNING, ex.getMessage(), ex);
             }
             return text;
         }
@@ -306,7 +313,8 @@ public final class MXMessage implements Comparable<MXMessage> {
 
     public byte[] getBinary() {
         if (getDwordCount() >= 2) {
-            new IllegalStateException("dword count == "+  getDwordCount()).printStackTrace();
+            Exception ex = new IllegalStateException("dword count == "+  getDwordCount());
+            MXLogger2.getLogger(MXMessage.class).log(Level.WARNING, ex.getMessage(), ex);
         }
         createBytes();
         return _dataBytes;        //SYSEXの場合１バイト目は、STATUSに入る

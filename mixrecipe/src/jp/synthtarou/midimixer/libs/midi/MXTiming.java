@@ -53,7 +53,6 @@ public class MXTiming implements Comparable<MXTiming>{
             }
             _order = _lastOrder;
             _lastOrder ++;
-            //new Throwable("" + _clock + "(" + _order + ")").printStackTrace();
         }
     }
 

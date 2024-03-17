@@ -31,10 +31,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.TreeSet;
+import java.util.logging.Level;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
 
 /**
  *
@@ -358,8 +361,8 @@ public class MXPianoKeys extends JComponent {
             g.drawImage(_bufferedImage,
                     rect.x, rect.y, rect.x + rect.width, rect.y + rect.height,
                     rect.x, rect.y, rect.x + rect.width, rect.y + rect.height, this);
-        } catch (Throwable e) {
-            e.printStackTrace();
+        } catch (RuntimeException ex) {
+            MXLogger2.getLogger(MXPianoKeys.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 
@@ -408,8 +411,8 @@ public class MXPianoKeys extends JComponent {
                 }
                 _bufferedRect = a;
             }
-        } catch (Throwable e) {
-            e.printStackTrace();
+        } catch (RuntimeException ex) {
+            MXLogger2.getLogger(MXPianoKeys.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 

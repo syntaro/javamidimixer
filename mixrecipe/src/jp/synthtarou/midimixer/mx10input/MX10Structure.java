@@ -68,7 +68,7 @@ public class MX10Structure {
             command &= 0xf0;
         }
 
-        if (isSkip(port, TYPE_ALL)) {
+        if (isSkipDX(port, TYPE_ALL)) {
             return true;
         }
 
@@ -104,7 +104,7 @@ public class MX10Structure {
         } else  if (command == MXMidi.COMMAND_ACTIVESENSING || command == MXMidi.COMMAND_MIDICLOCK) {
             type = TYPE_ACTIVE_SENSING;
         }
-        return isSkip(port, type);
+        return isSkipDX(port, type);
     }
 
     public void setSkip(int port, int type, boolean skipFlag) {
@@ -124,7 +124,7 @@ public class MX10Structure {
         }
     }
     
-    public boolean isSkip(int port, int type) {
+    public boolean isSkipDX(int port, int type) {
         long bit = 1L << (type + 1);
         if ((_whichToSkip[port] & bit) != 0) {
             return true;

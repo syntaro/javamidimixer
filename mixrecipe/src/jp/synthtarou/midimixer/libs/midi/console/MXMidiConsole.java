@@ -20,6 +20,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.logging.Level;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
@@ -28,7 +29,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import jp.synthtarou.midimixer.MXMain;
+import jp.synthtarou.midimixer.ccxml.xml.CXGeneralMidiFile;
 import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
@@ -145,7 +148,8 @@ public class MXMidiConsole implements ListModel<String> {
             addImpl(e);
         } else if (true) {
             if (e.getTiming() == null) {
-                new Exception("null timing" + e.formatMessageLong()).printStackTrace();
+                Exception ex = new Exception("null timing" + e.formatMessageLong());
+                MXLogger2.getLogger(MXMidiConsole.class).log(Level.WARNING, ex.getMessage(), ex);
             }
             synchronized (_queue) {
                 _queue.add(e);
@@ -273,13 +277,15 @@ public class MXMidiConsole implements ListModel<String> {
                 addImpl(e);
             }
             final ListDataEvent e = new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 0, _list.size());
-            try {
-                for (ListDataListener listener : _listener) {
+            for (ListDataListener listener : _listener) {
+                try {
                     listener.contentsChanged(e);
+                } catch (RuntimeException ex) {
+                    MXLogger2.getLogger(MXMidiConsole.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
+            }
+            if (_refList != null) {                
                 _refList.ensureIndexIsVisible(_list.size()- 1);
-            } catch (Throwable ex) {
-
             }
         }
     }

@@ -45,6 +45,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.async.Transaction;
@@ -584,33 +585,25 @@ public class MX80View extends javax.swing.JPanel {
         if (file == null) {
             return;
         }
-        try {
-            TreePath path = jTreeMain.getSelectionPath();
-            if (path != null) {
-                if (path.getPathCount() <= 2) {
-                    int opt = JOptionPane.showConfirmDialog(this, "Remove " + file + " from List", "Confirm", JOptionPane.YES_NO_OPTION);
-                    if (opt == JOptionPane.YES_OPTION) {
-                        removeFolder(file);
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(this, file + " is not Root Folder", "Error", JOptionPane.OK_OPTION);
+        TreePath path = jTreeMain.getSelectionPath();
+        if (path != null) {
+            if (path.getPathCount() <= 2) {
+                int opt = JOptionPane.showConfirmDialog(this, "Remove " + file + " from List", "Confirm", JOptionPane.YES_NO_OPTION);
+                if (opt == JOptionPane.YES_OPTION) {
+                    removeFolder(file);
                 }
+            } else {
+                JOptionPane.showMessageDialog(this, file + " is not Root Folder", "Error", JOptionPane.OK_OPTION);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }//GEN-LAST:event_jButtonRemoveRootActionPerformed
 
     private void jButtonAddSkipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddSkipActionPerformed
         File file = getSelectedFile();
         if (file != null) {
-            try {
-                String path = file.getPath();
-                if (MX80Process.getInstance()._listSkip.contains(path) == false) {
-                    addSkip(path);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+            String path = file.getPath();
+            if (path != null && MX80Process.getInstance()._listSkip.contains(path) == false) {
+                addSkip(path);
             }
         }
     }//GEN-LAST:event_jButtonAddSkipActionPerformed
@@ -634,16 +627,12 @@ public class MX80View extends javax.swing.JPanel {
         if (browse.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {            
             FileList selected = browse.getReturnValue();
             if (selected != null) {
-                try {
-                    for (File path : selected) {
-                        String textPath = path.toString();
-                        if (MX80Process.getInstance()._listSkip.contains(textPath) == false) {
-                            addSkip(textPath);
-                        }
+                for (File path : selected) {
+                    String textPath = path.toString();
+                    if (MX80Process.getInstance()._listSkip.contains(textPath) == false) {
+                        addSkip(textPath);
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }        
+                }
             }
         }
     }//GEN-LAST:event_jButtonAddSkipBrowseActionPerformed
@@ -716,13 +705,13 @@ public class MX80View extends javax.swing.JPanel {
             if (user instanceof File) {
                 return new File((File) user, (String) obj);
             }
-            new Throwable(user.getClass() + "(" + user + ") is not file").printStackTrace();
+            MXLogger2.getLogger(MX80View.class).warning(user.getClass() + "(" + user + ") is not file");
             return null;
         }
         if (obj instanceof File) {
             return (File) obj;
         }
-        new Throwable(obj.getClass() + " unknown type").printStackTrace();
+        MXLogger2.getLogger(MX80View.class).warning("unknown object " + obj);
         return null;
     }
 

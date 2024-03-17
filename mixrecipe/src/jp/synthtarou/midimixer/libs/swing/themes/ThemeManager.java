@@ -20,6 +20,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Font;
 import java.awt.Window;
+import java.util.logging.Level;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -28,11 +29,13 @@ import javax.swing.JPopupMenu;
 import javax.swing.JSlider;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.SliderUI;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.plaf.metal.MetalTheme;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
@@ -71,7 +74,6 @@ public class ThemeManager implements MXSettingTarget {
         };
         _setting = new MXSetting("ThemeManager");
         _setting.setTarget(this);
-        _setting.readSettingFile();
     }
 
     public void setUITheme(String themeName) {
@@ -115,9 +117,16 @@ public class ThemeManager implements MXSettingTarget {
                     }
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            // If Nimbus is not available, you can set the GUI to another look and feel.
+        } catch (UnsupportedLookAndFeelException ex) {
+            MXLogger2.getLogger(ThemeManager.class).log(Level.WARNING, ex.getMessage(), ex);
+        } catch (ClassNotFoundException ex) {
+            MXLogger2.getLogger(ThemeManager.class).log(Level.WARNING, ex.getMessage(), ex);
+        } catch (IllegalAccessException ex) {
+            MXLogger2.getLogger(ThemeManager.class).log(Level.WARNING, ex.getMessage(), ex);
+        } catch (InstantiationException ex) {
+            MXLogger2.getLogger(ThemeManager.class).log(Level.WARNING, ex.getMessage(), ex);
+        } catch (RuntimeException ex) {
+            MXLogger2.getLogger(ThemeManager.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 

@@ -121,7 +121,7 @@ public class MX60Structure extends MX10Structure {
                             }
                         });
                     }
-                    if (_process.isUsingThisRecipe() && isMessageForSkip(message)) {
+                    if (_process.isUsingThisRecipeDX() && isMessageForSkip(message)) {
                     }
                     else {
                         _process.sendToNext(message);
@@ -178,7 +178,7 @@ public class MX60Structure extends MX10Structure {
             File seq = getSequenceDirectory(i);
             if (seq != null) {
                 _listRecorder[i].readFromDirectory(seq);
-                _process.getReceiverView().setDXSongLength(i, _listRecorder[i].getSongLength());
+                _process.getReceiverView().setSongLengthDX(i, _listRecorder[i].getSongLength());
             }
         }
     }

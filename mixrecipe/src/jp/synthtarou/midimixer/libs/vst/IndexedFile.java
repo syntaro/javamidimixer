@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Comparator;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 
 /**
  *
@@ -191,8 +193,8 @@ public class IndexedFile {
             _indexFile.delete();
             _indexTempFile.renameTo(_indexFile);
             return true;
-        }catch(IOException e) {
-            e.printStackTrace();
+        }catch(IOException ex) {
+            MXLogger2.getLogger(IndexedFile.class).log(Level.WARNING, ex.getMessage(), ex);
         }finally {
             if (bwrite != null) {
                 try {

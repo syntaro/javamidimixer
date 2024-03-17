@@ -26,9 +26,11 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.TreeSet;
+import java.util.logging.Level;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXLineReader;
 import jp.synthtarou.midimixer.libs.common.MXLineWriter;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 
 /**
  *
@@ -56,8 +58,8 @@ public class MXSetting {
 
         try {
             root.dump(new OutputStreamWriter(System.out));
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            MXLogger2.getLogger(MXSetting.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 
@@ -91,12 +93,7 @@ public class MXSetting {
 
     public static void saveEverySettingToFile() {
         for (MXSetting setting : everySetting) {
-            try {
-
-                setting.writeSettingFile();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            setting.writeSettingFile();
         }
     }
 
@@ -180,8 +177,8 @@ public class MXSetting {
             if (fin != null) {
                 try {
                     fin.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } catch (IOException ex) {
+                    MXLogger2.getLogger(MXSetting.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
         }
@@ -230,21 +227,23 @@ public class MXSetting {
                     }
                 }
             }
-
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            if (writer != null) {
-                try {
-                    writer.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                temporary.delete();
-            }
-            return false;
+            writer = null;
+            return true;
+        } catch (IOException ex) {
+            MXLogger2.getLogger(MXSetting.class).log(Level.WARNING, ex.getMessage(), ex);
+        } catch (RuntimeException ex) {
+            MXLogger2.getLogger(MXSetting.class).log(Level.WARNING, ex.getMessage(), ex);
         }
 
-        return true;
+        if (writer != null) {
+            try {
+                writer.close();
+            } catch (IOException ex2) {
+                MXLogger2.getLogger(MXSetting.class).log(Level.WARNING, ex2.getMessage(), ex2);
+            }
+            temporary.delete();
+        }
+        return false;
     }
 
     public void clearValue() {

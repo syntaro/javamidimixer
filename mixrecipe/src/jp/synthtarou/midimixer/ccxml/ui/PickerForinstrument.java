@@ -23,14 +23,17 @@ import jp.synthtarou.midimixer.ccxml.rules.CCRuleManager;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import javax.swing.ButtonGroup;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import jp.synthtarou.midimixer.MXMain;
+import jp.synthtarou.midimixer.ccxml.rules.CCValueRule;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
@@ -869,8 +872,8 @@ public class PickerForinstrument extends javax.swing.JPanel {
             sendMessageToReceiver(MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_BANKSELECT + 32, lsb);
             try {
                 Thread.sleep(500);
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (Exception ex) {
+                MXLogger2.getLogger(PickerForinstrument.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
 

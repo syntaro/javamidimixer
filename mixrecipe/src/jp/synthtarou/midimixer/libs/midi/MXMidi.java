@@ -20,11 +20,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.logging.Level;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXLineReader;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 
 /**
  *
@@ -91,13 +94,13 @@ public class MXMidi {
                 String s = it.next();
                 System.out.println(s);
             }
-        }catch(IOException e) {
-                e.printStackTrace();
+        }catch(IOException ex) {
+            MXLogger2.getLogger(MXMidi.class).log(Level.WARNING, ex.getMessage(), ex);
         }finally {
             try {
                 in.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException ex) {
+                MXLogger2.getLogger(MXMidi.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
     }

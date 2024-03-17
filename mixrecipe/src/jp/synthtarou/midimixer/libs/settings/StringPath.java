@@ -17,6 +17,8 @@
 package jp.synthtarou.midimixer.libs.settings;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 
 /**
  *
@@ -49,8 +51,8 @@ public class StringPath extends ArrayList<String> implements Cloneable {
                     if (part.charAt(0) >= '0' && part.charAt(0) <= '9') {
                         try {
                             Integer.parseInt(part);
-                        }catch(NumberFormatException e) {
-                            e.printStackTrace();
+                        }catch(NumberFormatException ex) {
+                            MXLogger2.getLogger(StringPath.class).log(Level.WARNING, ex.getMessage(), ex);
                             return null;
                         }
                     }
@@ -66,8 +68,8 @@ public class StringPath extends ArrayList<String> implements Cloneable {
                         if (part.charAt(0) >= '0' && part.charAt(0) <= '9') {
                             try {
                                 Integer.parseInt(part);
-                            }catch(NumberFormatException e) {
-                                e.printStackTrace();
+                            }catch(NumberFormatException ex) {
+                                MXLogger2.getLogger(StringPath.class).log(Level.WARNING, ex.getMessage(), ex);
                                 return null;
                             }
                         }
@@ -89,8 +91,8 @@ public class StringPath extends ArrayList<String> implements Cloneable {
                     try {
                         Integer.parseInt(number);
                         path.add(number);
-                    }catch(NumberFormatException e) {
-                        e.printStackTrace();
+                    }catch(NumberFormatException ex) {
+                        MXLogger2.getLogger(StringPath.class).log(Level.WARNING, ex.getMessage(), ex);
                         return null;
                     }
                 }else {

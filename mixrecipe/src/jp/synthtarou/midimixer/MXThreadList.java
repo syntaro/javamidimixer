@@ -17,6 +17,8 @@
 package jp.synthtarou.midimixer;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 
 /**
  *
@@ -39,8 +41,8 @@ public class MXThreadList {
             public void run() {
                 try {
                     _r.run();
-                }catch(Throwable e) {
-                    e.printStackTrace();
+                }catch(RuntimeException ex) {
+                    MXLogger2.getLogger(MXThreadList.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
                 _listThread.remove(ManagedThread.this);
             }

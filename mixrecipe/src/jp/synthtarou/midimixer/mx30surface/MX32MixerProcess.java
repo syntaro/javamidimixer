@@ -18,7 +18,10 @@ package jp.synthtarou.midimixer.mx30surface;
 
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import java.util.ArrayList;
+import java.util.logging.Level;
 import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.MXMain;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
@@ -76,7 +79,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXSet
 
     @Override
     public void processMXMessage(MXMessage message) {
-        if (isUsingThisRecipe() == false) {
+        if (isUsingThisRecipeDX() == false) {
             sendToNext(message);
             return;
         }
@@ -215,8 +218,8 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXSet
                 MXRangedValue value = new MXRangedValue(valueN, valueMin, valueMax);
                 status.setBaseMessage(MXMessageFactory.fromTemplate(_port, template, channel, gate, value));
 
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (RuntimeException ex) {
+                MXLogger2.getLogger(MX32MixerProcess.class).log(Level.WARNING, ex.getMessage(), ex);
             }
             setStatus(MGStatus.TYPE_CIRCLE, row, column, status);
         }
@@ -249,8 +252,8 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXSet
                 status.setBaseMessage(MXMessageFactory.fromTemplate(_port, template, channel, gate, value));
 
                 setStatus(MGStatus.TYPE_SLIDER, row, column, status);
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (RuntimeException ex) {
+                MXLogger2.getLogger(MX32MixerProcess.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
         children = _setting.findByPath("Pad[]");
@@ -358,8 +361,8 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXSet
                 drum._linkMode = switchLinkMode;
 
                 setStatus(MGStatus.TYPE_DRUMPAD, row, column, status);
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (RuntimeException ex) {
+                MXLogger2.getLogger(MX32MixerProcess.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
         _view.updateUI();
@@ -744,28 +747,27 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXSet
         }
     }
 
-
     void flushSendQueue(MXMessageBag bag) {
         while (true) {
             MXMessage message = bag.popResult();
             if (message == null) {
                 break;
             }
-            
+
             int port = message.getPort();
             sendToNext(message);
             _parent._pageProcess[port].startProcess(message, bag);
         }
-        while(true) {
+        while (true) {
             Runnable run = bag.popResultTask();
             if (run == null) {
                 break;
             }
             try {
                 run.run();
-            }catch(Throwable e) {
-                e.printStackTrace();;
+            } catch (RuntimeException ex) {
+                MXLogger2.getLogger(MX32MixerProcess.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
-    }        
+    }
 }

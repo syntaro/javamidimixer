@@ -16,11 +16,14 @@
  */
 package jp.synthtarou.midimixer.libs.midi.smf;
 
+import java.util.logging.Level;
+import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.driver.SplittableSysexMessage;
 
@@ -53,8 +56,8 @@ public class SMFTestSynthesizer implements SMFCallback {
             if (_standardOutput == null) {
                 _standardOutput = standardOutput2;
             }
-        } catch (MidiUnavailableException e) {
-            e.printStackTrace();
+        } catch (MidiUnavailableException ex) {
+            MXLogger2.getLogger(SMFTestSynthesizer.class).log(Level.WARNING, ex.getMessage(), ex);
         }
 
     }
@@ -82,9 +85,11 @@ public class SMFTestSynthesizer implements SMFCallback {
                 }
             }
         } catch (MidiUnavailableException ex) {
-            ex.printStackTrace();
-        } catch (Throwable e) {
-            e.printStackTrace();
+            MXLogger2.getLogger(SMFTestSynthesizer.class).log(Level.WARNING, ex.getMessage(), ex);
+        } catch (InvalidMidiDataException ex) {
+            MXLogger2.getLogger(SMFTestSynthesizer.class).log(Level.WARNING, ex.getMessage(), ex);
+        } catch (RuntimeException ex) {
+            MXLogger2.getLogger(SMFTestSynthesizer.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 

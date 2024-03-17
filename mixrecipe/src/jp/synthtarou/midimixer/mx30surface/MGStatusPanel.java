@@ -26,6 +26,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.IllegalFormatException;
 import java.util.List;
+import java.util.logging.Level;
 import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
@@ -39,6 +40,7 @@ import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
 import jp.synthtarou.midimixer.ccxml.ui.PickerForControlChange;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
@@ -813,8 +815,8 @@ public class MGStatusPanel extends javax.swing.JPanel {
         /* Template*/
         try {
             _status._drum._customTemplate = new MXTemplate(jTextFieldTemplateForOut.getText());
-        } catch (IllegalFormatException e) {
-            e.printStackTrace();
+        } catch (IllegalFormatException ex) {
+            MXLogger2.getLogger(MGStatusPanel.class).log(Level.WARNING, ex.getMessage(), ex);
             _status._drum._customTemplate = null;
         }
         _status._drum._teplateTextGate = MXUtil.numberFromText(jLabelTemplateTextGate.getText(), -1);
@@ -2112,7 +2114,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
             try {
                 template = new MXTemplate(data);
             } catch (IllegalFormatException ex) {
-                ex.printStackTrace();
+                MXLogger2.getLogger(MGStatusPanel.class).log(Level.WARNING, ex.getMessage(), ex);
                 return;
             }
 

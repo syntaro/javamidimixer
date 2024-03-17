@@ -18,7 +18,6 @@ package jp.synthtarou.midimixer.libs.midi.port;
 
 import java.util.ArrayList;
 import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
@@ -115,28 +114,25 @@ public class MXMIDIInManager implements MXSettingTarget {
         
         for (int i = 0; i < java.InputDevicesRoomSize(); i++) {
             MXMIDIIn device = new MXMIDIIn(java, i);
-            try {
-                if (device.getName().equals("Real Time Sequencer")) {
-                    continue;
-                }
-                temp.addNameAndValue(device.getName(), device);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (device == null) {
+                continue;
             }
+            if (device.getName().equals("Real Time Sequencer")) {
+                continue;
+            }
+            temp.addNameAndValue(device.getName(), device);
         }
         
         MXDriver uwp = MXDriver_UWP._instance;
         for (int i = 0; i < uwp.InputDevicesRoomSize(); i++) {
             MXMIDIIn device = new MXMIDIIn(uwp, i);
-            try {
-                MXMain.printDebug("UWP : "+ device.getName());
-                if (device.getName().equals("Real Time Sequencer")) {
-                    continue;
-                }
-                temp.addNameAndValue(device.getName(), device);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (device == null) {
+                continue;
             }
+            if (device.getName().equals("Real Time Sequencer")) {
+                continue;
+            }
+            temp.addNameAndValue(device.getName(), device);
         }
 
         _listAllInput = temp;
@@ -204,46 +200,42 @@ public class MXMIDIInManager implements MXSettingTarget {
                 devicePort = String.valueOf(seek);
             }
             
-            try {
-                if (deviceName == null) {
-                    continue;
-                }
-                if (deviceOpen == null) {
-                    deviceOpen = "0";
-                }
-
-                if (deviceOpen.equals("1")) {
-                    if (devicePort == null) {
-                        devicePort = String.valueOf(seek);
-                    }
-                }
-
-                MXWrapList<MXMIDIIn> detected = listAllInput();
-                MXMIDIIn in = detected.valueOfName(deviceName);
-                if (in != null) {
-                    if (deviceOpen.equals("1")) {
-                        in.openInput(5000);
-                    }
-                }else {
-                    in  = new MXMIDIIn(dummy, dummy.InputAddDevice(deviceName));
-                    in.setPortAssigned(seek, true);
-                    detected.addNameAndValue(deviceName, in);
-                }
-
-                ArrayList<String> split = new ArrayList();
-                MXUtil.split(devicePort, split, ',');
-                for (String t1 : split) {
-                    try {
-                        int x = Integer.parseInt(t1);
-                        in.setPortAssigned(x, true);
-                    }catch(NumberFormatException e) {
-
-                    }
-                }
-                in.setMasterList(deviceMaster);
-            }catch(Exception e) {
-                e.printStackTrace();
+            if (deviceName == null) {
+                continue;
             }
+            if (deviceOpen == null) {
+                deviceOpen = "0";
+            }
+
+            if (deviceOpen.equals("1")) {
+                if (devicePort == null) {
+                    devicePort = String.valueOf(seek);
+                }
+            }
+
+            MXWrapList<MXMIDIIn> detected = listAllInput();
+            MXMIDIIn in = detected.valueOfName(deviceName);
+            if (in != null) {
+                if (deviceOpen.equals("1")) {
+                    in.openInput(5000);
+                }
+            }else {
+                in  = new MXMIDIIn(dummy, dummy.InputAddDevice(deviceName));
+                in.setPortAssigned(seek, true);
+                detected.addNameAndValue(deviceName, in);
+            }
+
+            ArrayList<String> split = new ArrayList();
+            MXUtil.split(devicePort, split, ',');
+            for (String t1 : split) {
+                try {
+                    int x = Integer.parseInt(t1);
+                    in.setPortAssigned(x, true);
+                }catch(NumberFormatException e) {
+
+                }
+            }
+            in.setMasterList(deviceMaster);
         }
 
         clearMIDIInCache();

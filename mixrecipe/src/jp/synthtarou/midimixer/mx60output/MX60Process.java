@@ -40,24 +40,24 @@ public class MX60Process extends MXReceiver<MX60View> implements MXSettingTarget
     }
     
     @Override
-    public boolean isUsingThisRecipe() {
-        return _view.isDXUsingThisRecipe();
+    public boolean isUsingThisRecipeDX() {
+        return _view.isUsingThisRecipeDX();
     }
 
     @Override
     public void setUsingThisRecipe(boolean flag) {
-        _view.setDXUsingThisRecipe(flag);
+        _view.setUsingThisRecipeDX(flag);
     }
 
     @Override
     public void processMXMessage(MXMessage message) {
-        if (isUsingThisRecipe() && _structure.isMessageForSkip(message)) {
+        if (isUsingThisRecipeDX() && _structure.isMessageForSkip(message)) {
             return;
         }
 
         if (_structure.isRecording()) {
             _structure.record(message);
-            _view.setDXSongLength(_structure._recordingTrack, _structure.getSongLength(_structure._recordingTrack));
+            _view.setSongLengthDX(_structure._recordingTrack, _structure.getSongLength(_structure._recordingTrack));
         }
 
         sendToNext(message);
@@ -90,7 +90,7 @@ public class MX60Process extends MXReceiver<MX60View> implements MXSettingTarget
             }
         }
         _structure.loadSequenceData();
-        _view.setDXStructure(_structure);
+        _view.setStructureDX(_structure);
     }
 
     @Override
@@ -100,7 +100,7 @@ public class MX60Process extends MXReceiver<MX60View> implements MXSettingTarget
             String prefix = "Setting[" + port + "].";
             StringBuffer str = new StringBuffer();
             for (int j = 0; j <_structure.countOfTypes(); ++ j) {
-                boolean set = _structure.isSkip(port, j);
+                boolean set = _structure.isSkipDX(port, j);
                 String name = _structure.typeNames[j];
                 _setting.setSetting(prefix + name, set);
             }

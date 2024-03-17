@@ -17,7 +17,9 @@
 package jp.synthtarou.midimixer.mx30surface;
 
 import java.util.IllegalFormatException;
+import java.util.logging.Level;
 import javax.swing.JComponent;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
@@ -26,6 +28,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.mx00playlist.MX00View;
 
 /**
  *
@@ -122,8 +125,8 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
                 MXTemplate template = new MXTemplate(text);
                 MXMessage message = MXMessageFactory.fromTemplate(_port, template, 0, null, null);
                 _base = message;
-            } catch (IllegalFormatException e) {
-                e.printStackTrace();;
+            } catch (IllegalFormatException ex) {
+                MXLogger2.getLogger(MGStatus.class).log(Level.WARNING, ex.getMessage(), ex);
             }  
         }
     }

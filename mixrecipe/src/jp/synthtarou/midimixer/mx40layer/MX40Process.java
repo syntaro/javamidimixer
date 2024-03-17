@@ -86,7 +86,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXSettingTarget
             return;
         }
 
-        if (isUsingThisRecipe() == false) { 
+        if (isUsingThisRecipeDX() == false) { 
             sendToNext(message); 
             return; 
         }

@@ -17,6 +17,7 @@
 package jp.synthtarou.midimixer.libs.common;
 
 import java.util.LinkedList;
+import java.util.logging.Level;
 import jp.synthtarou.midimixer.MXThreadList;
 
 /**
@@ -47,8 +48,8 @@ public class MXQueue1<T> {
             while (_queue.isEmpty() && !_quit) {
                 try {
                     wait(1000);
-                }catch(InterruptedException e) {
-                    e.printStackTrace();
+                }catch(InterruptedException ex) {
+                    MXLogger2.getLogger(MXQueue1.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
             if (!_queue.isEmpty()) {
@@ -62,12 +63,8 @@ public class MXQueue1<T> {
     }
     
     public synchronized void quit() {
-        try {
-            _quit = true;
-            notifyAll();
-        }catch(Throwable e) {
-            e.printStackTrace();
-        }
+        _quit = true;
+        notifyAll();
     }
     
     public static void main(String[] args) {
@@ -91,10 +88,10 @@ public class MXQueue1<T> {
                         try {
                             Thread.sleep(70);
                         } catch (InterruptedException ex) {
-                            ex.printStackTrace();
+                            MXLogger2.getLogger(MXQueue1.class).log(Level.WARNING, ex.getMessage(), ex);
                         }
-                    }catch(Throwable ex) {
-                        ex.printStackTrace();
+                    }catch(RuntimeException ex) {
+                        MXLogger2.getLogger(MXQueue1.class).log(Level.WARNING, ex.getMessage(), ex);
                     }
                 }
             }
@@ -106,7 +103,7 @@ public class MXQueue1<T> {
                     try {
                         Thread.sleep(60);
                     } catch (InterruptedException ex) {
-                        ex.printStackTrace();
+                        MXLogger2.getLogger(MXQueue1.class).log(Level.WARNING, ex.getMessage(), ex);
                     }
                 }
             }
@@ -128,7 +125,7 @@ public class MXQueue1<T> {
             try {
                 Thread.sleep(70);
             } catch (InterruptedException ex) {
-                ex.printStackTrace();;
+                MXLogger2.getLogger(MXQueue1.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
     }

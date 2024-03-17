@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import javax.xml.transform.TransformerException;
 import jp.synthtarou.midimixer.ccxml.InformationForModule;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
@@ -29,6 +31,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.common.MXLineReader;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 
@@ -73,8 +76,8 @@ public class CXGeneralMidiFile extends CXFile {
             InputStream stream = CXGeneralMidiFile.class.getResourceAsStream("GMLevel1.csv");
             readCSVProgram(instrumentList, stream, "Shift_JIS");
             stream.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            MXLogger2.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
         }
 
         CXNode drumSetList = moduleData.newTag(CCRuleManager.getInstance().getDrumSetListTag().getName(), true);
@@ -83,7 +86,8 @@ public class CXGeneralMidiFile extends CXFile {
             InputStream stream = CXGeneralMidiFile.class.getResourceAsStream("GMLevel1Drum.csv");
             readCSVDrum(drumSetList, stream, "Shift_JIS");
             stream.close();
-        } catch (Exception e) {
+        } catch (IOException ex) {
+            MXLogger2.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
         }
 
         CXNode controlChangeMacroList = moduleData.newTag(CCRuleManager.getInstance().getControlChangeMacroListTag().getName(), true);
@@ -102,8 +106,10 @@ public class CXGeneralMidiFile extends CXFile {
         try {
             writeToTeporary();
             moveTemporaryToThis();
-        } catch (Exception e) {
-            e.printStackTrace();;
+        } catch (TransformerException ex) {
+            MXLogger2.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
+        } catch (IOException ex) {
+            MXLogger2.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 
@@ -142,13 +148,13 @@ public class CXGeneralMidiFile extends CXFile {
                         bankTag._listAttributes.addNameAndValue("Name", nameEnglish);
                         bankTag._listAttributes.addNameAndValue("MSB", "0");
                         bankTag._listAttributes.addNameAndValue("LSB", "0");
-                    } catch (Throwable e) {
-                        e.printStackTrace();
+                    } catch (RuntimeException ex) {
+                        MXLogger2.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
                     }
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();;
+        } catch (IOException ex) {
+            MXLogger2.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 
@@ -190,8 +196,8 @@ public class CXGeneralMidiFile extends CXFile {
                     toneTag._listAttributes.addNameAndValue("Key", noteNumber);
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();;
+        } catch (IOException ex) {
+            MXLogger2.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 

@@ -17,6 +17,8 @@
 package jp.synthtarou.midimixer.mx50resolution;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
@@ -24,6 +26,7 @@ import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
+import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
 
 /**
  *
@@ -132,8 +135,8 @@ public class MX50Process extends MXReceiver<MX50View> implements MXSettingTarget
                 _listResolution.add(reso);
                 _listResolutionView.add(new MXResolutionView(reso));
                 
-            } catch (Throwable e) {
-                e.printStackTrace();
+            } catch (RuntimeException ex) {
+                MXLogger2.getLogger(MX50Process.class).log(Level.WARNING, ex.getMessage(), ex);
                 continue;
             }
         }

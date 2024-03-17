@@ -17,9 +17,12 @@
 package jp.synthtarou.midimixer.libs.midi.driver;
 
 import java.io.ByteArrayOutputStream;
+import java.util.logging.Level;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiMessage;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
 
 /**
  *　Java20以上で、MME(Java標準）のSysEXを処理するMidiMessageラッパー
@@ -68,9 +71,8 @@ public class SplittableSysexMessage extends MidiMessage {
             inst.setMessagePlain(plain, plain.length);
             return inst;
         }
-        catch(InvalidMidiDataException midiEx) {
-            midiEx.printStackTrace();
-            //can't happens
+        catch(InvalidMidiDataException ex) {
+            MXLogger2.getLogger(SplittableSysexMessage.class).log(Level.WARNING, ex.getMessage(), ex);
             return null;
         }
     }
@@ -91,10 +93,10 @@ public class SplittableSysexMessage extends MidiMessage {
         if (raw.length != getLength()) {
             throw new IllegalArgumentException("raw.length " + raw.length + " != data.length " + getLength());
         }
-        /*
         if (raw.length > 0 && (raw[0] & 0xff) == 0xf7) {
-            new Throwable("Something Wrong").printStackTrace();
-        }*/
+            Exception ex = new Exception("Something Wrong");
+            MXLogger2.getLogger(SplittableSysexMessage.class).log(Level.WARNING, ex.getMessage(), ex);
+        }
         return raw;
     }
 

@@ -18,7 +18,9 @@ package jp.synthtarou.midimixer.mx36ccmapping;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import javax.swing.JPanel;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
@@ -29,6 +31,7 @@ import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingNode;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
+import jp.synthtarou.midimixer.mx30surface.MX32MixerProcess;
 
 /**
  *
@@ -163,8 +166,8 @@ public class MX36Process extends MXReceiver<MX36View> implements MXSettingTarget
                     }
                     return new MXRangedValue(var, min, max);
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (Exception ex) {
+                MXLogger2.getLogger(MX36Process.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
         return null;

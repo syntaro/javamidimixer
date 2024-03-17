@@ -48,7 +48,7 @@ public class SMFParser {
             File file = new File("C:\\midi\\johnwilliams\\et_advtg.mid");
             try {
                 SMFParser parse = new SMFParser(file);
-                    System.out.println(file);
+                System.out.println(file);
             } catch (Exception e) {
                 e.printStackTrace();
             }

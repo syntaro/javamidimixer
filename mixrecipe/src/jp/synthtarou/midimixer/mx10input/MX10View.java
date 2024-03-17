@@ -78,20 +78,20 @@ public class MX10View extends javax.swing.JPanel {
         if (port >= 0 && port < MXAppConfig.TOTAL_PORT_COUNT) {
             String var = (String)model.getValueAt(row, column);
             if (var == null || var.length() == 0) {
-                setDXSkip(row, column, true);
+                setSkipDX(row, column, true);
             }
             else {
-                setDXSkip(row, column, false);
+                setSkipDX(row, column, false);
             }
         }
     }                                    
     
-    public void setDXSkip(int row, int column, boolean skip) {
+    public void setSkipDX(int row, int column, boolean skip) {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    setDXSkip(row, column, skip);
+                    setSkipDX(row, column, skip);
                 }
             });
             return;
@@ -165,7 +165,7 @@ public class MX10View extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jCheckBoxUseSkipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxUseSkipActionPerformed
-        setDXUsingThisRecipe(jCheckBoxUseSkip.isSelected());
+        setUsingThisRecipeDX(jCheckBoxUseSkip.isSelected());
     }//GEN-LAST:event_jCheckBoxUseSkipActionPerformed
 
     public synchronized TableModel createSkipTableModel(MX10Structure structure) {
@@ -187,7 +187,7 @@ public class MX10View extends javax.swing.JPanel {
             
             for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
                 int type = row ;
-                if (structure.isSkip(port, type)) {
+                if (structure.isSkipDX(port, type)) {
                     line.add("Skip");
                 }else {
                     line.add("");
@@ -217,16 +217,16 @@ public class MX10View extends javax.swing.JPanel {
 
     boolean _isUsingThieRecipe = true;
     
-    public boolean isDXUsingThisRecipe() {
+    public boolean isUsingThisRecipeDX() {
         return _isUsingThieRecipe;
     }
 
-    public void setDXUsingThisRecipe(boolean usingThisRecipe) {
+    public void setUsingThisRecipeDX(boolean usingThisRecipe) {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    setDXUsingThisRecipe(usingThisRecipe);
+                    setUsingThisRecipeDX(usingThisRecipe);
                 }
             });
             return;
@@ -240,12 +240,12 @@ public class MX10View extends javax.swing.JPanel {
         _jTableSkip.setEnabled(usingThisRecipe);
     }
     
-    public void setDXStructure(MX10Structure structure) {
+    public void setStructureDX(MX10Structure structure) {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    setDXStructure(structure);
+                    setStructureDX(structure);
                 }
             });
             return;

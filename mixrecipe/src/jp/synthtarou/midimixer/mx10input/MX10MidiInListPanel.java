@@ -18,6 +18,7 @@ package jp.synthtarou.midimixer.mx10input;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.logging.Level;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -26,11 +27,13 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXMain;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
+import jp.synthtarou.midimixer.mx00playlist.PlayListDX;
 
 /**
  *
@@ -274,15 +277,11 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
         String text = (String)model.getValueAt(row, 0);
         MXMIDIIn input = MXMIDIInManager.getManager().listAllInput().valueOfName(text);
 
-        try {
-            if (input.isOpen()) {
-                input.allNoteOff(null);
-                input.close();
-            }else {
-                input.openInput(5);
-            }
-        }catch(Exception e) {
-            e.printStackTrace();;
+        if (input.isOpen()) {
+            input.allNoteOff(null);
+            input.close();
+        }else {
+            input.openInput(5);
         }
         updateDeviceTable();
     }
@@ -318,8 +317,8 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
             }
 
             jpopup.show(jTableDevice, width, jTableDevice.getRowHeight(0) * (row + 1));
-        }catch(Throwable e) {
-            e.printStackTrace();
+        }catch(runtimeException e) {
+            MXLogger2.getLogger(MX10MidiInListPanel.class).log(Level.WARNING, ex.getMessage(), ex);
         }   
     }
   */  

@@ -18,6 +18,8 @@ package jp.synthtarou.midimixer.libs.common;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.logging.Level;
+import jp.synthtarou.midimixer.libs.accordion.MXAccordionInnerPanel;
 
 /**
  *
@@ -84,8 +86,8 @@ public class MXLineReader {
         String text = new String(line, 0, x, "ASCII");
         try {
             text = new String(line, 0, x, _charset);
-        }catch(Exception e) {
-            e.printStackTrace();
+        }catch(Exception ex) {
+            MXLogger2.getLogger(MXLineReader.class).log(Level.WARNING, ex.getMessage(), ex);
         }
         return text;
     }

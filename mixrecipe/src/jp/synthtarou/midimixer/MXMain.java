@@ -20,11 +20,12 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.logging.Level;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.ccxml.xml.CXXMLManager;
-import jp.synthtarou.midimixer.libs.common.MXLog;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -129,25 +130,25 @@ public class MXMain  {
     public static void main(String[] args) throws Exception {
         try {
             MXUtil.fixConsoleEncoding();
-
+        }catch(Throwable ex) {
+            MXLogger2.getLogger(MXMain.class).log(Level.SEVERE, ex.getMessage(), ex);
+        }
+        try {
             //フォント描写でアンチエイリアスを有効にする
             System.setProperty("awt.useSystemAAFontSettings", "on");
-            
-            try {
-                ThemeManager inst = ThemeManager.getInstance();
-            }catch( Throwable e ) {
-            }
-        
-        } catch (Throwable e) {
-        }
+            ThemeManager.getInstance().getSettings().readSettingFile();
 
-        getMain().startUI();
+        }catch(Throwable ex) {
+            MXLogger2.getLogger(MXMain.class).log(Level.SEVERE, ex.getMessage(), ex);
+        }
+        try {
+            getMain().startUI();
+        }catch(Throwable ex) {
+            MXLogger2.getLogger(MXMain.class).log(Level.SEVERE, ex.getMessage(), ex);
+        }
     }
     
     public void startUI()  {
-        
-        MXLog._logger.info("starting program");
-        
         _progress = new MXProgressDialog(null, false);        
         _progress.setMessageAsStartUP();
         _progress.setVisible(true);
@@ -213,8 +214,8 @@ public class MXMain  {
                             MXSetting.saveEverySettingToFile();
                             VSTStream.getInstance().postCloseStream(null);
                         }
-                        catch(Throwable ex) {
-                            ex.printStackTrace();
+                        catch(RuntimeException ex) {
+                            MXLogger2.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
                         }
 
                         try {
@@ -222,8 +223,8 @@ public class MXMain  {
                             MXMIDIInManager.getManager().closeAll();
                             MXMIDIOutManager.getManager().closeAll();
                             MXThreadList.onExit();
-                        }catch(Throwable ex) {
-                            ex.printStackTrace();
+                        }catch(RuntimeException ex) {
+                            MXLogger2.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
                         }
                         VSTInstance.stopEngine(null);
                         System.exit(0);
@@ -251,7 +252,7 @@ public class MXMain  {
             @Override
             public void run() {
                 _mainWindow.initLatebind(reList);
-                
+
                 if (_progress != null) {
                     _progress.setVisible(false);
                     _progress = null;
@@ -324,8 +325,8 @@ public class MXMain  {
                 if (receiver != null) {
                     receiver.processMXMessage(message);
                 }
-            }catch(Throwable e) {
-                e.printStackTrace();
+            }catch(RuntimeException ex) {
+                MXLogger2.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
     }

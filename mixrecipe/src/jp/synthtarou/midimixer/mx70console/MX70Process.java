@@ -16,11 +16,14 @@
  */
 package jp.synthtarou.midimixer.mx70console;
 
+import java.util.logging.Level;
+import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
+import jp.synthtarou.midimixer.mx40layer.MX40View;
 
 /**
  *
@@ -73,8 +76,8 @@ public class MX70Process implements MXSettingTarget {
         _insideOutput.add(e);
         try {
             e.getTiming().recordWrap(2);
-        }catch(NullPointerException ex) {
-            ex.printStackTrace();
+        }catch(RuntimeException ex) {
+            MXLogger2.getLogger(MX70Process.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 
