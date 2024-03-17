@@ -80,7 +80,7 @@ public class ChildSeekFilter implements FileFilter {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
-
+                    break;
                 }
             }
             for (File child : children) {

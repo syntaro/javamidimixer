@@ -101,6 +101,8 @@ public class Transaction implements Runnable {
                     this.wait(1000);
                 }catch(InterruptedException ex) {
                     MXLogger2.getLogger(Transaction.class).log(Level.WARNING, ex.getMessage(), ex);
+                    _result = -1;
+                    break;
                 }
             }
         }

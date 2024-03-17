@@ -22,19 +22,13 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Level;
-import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MidiUnavailableException;
-import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_PlayList;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFCallback;
-import jp.synthtarou.midimixer.libs.navigator.MXPopup;
 import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
  
 /**
@@ -129,14 +123,9 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
         
         _gotBreak = false;
         _sequencer.startPlayer(position, new SMFCallback() {
-            Thread _last;
             @Override
             public void smfPlayNote(MXTiming timing, SMFMessage smf) {
                  try {
-                    if (_last != Thread.currentThread()) {
-                        _last = Thread.currentThread();
-                        MXThreadList.attachIfNeed("smfPlayNote", _last);
-                    }
                     if (smf.isBinaryMessage()) {
                         receiveLongMessage(timing, smf.getBinary());
                     }else {

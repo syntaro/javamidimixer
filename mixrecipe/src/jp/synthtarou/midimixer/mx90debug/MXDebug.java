@@ -51,7 +51,6 @@ public abstract class MXDebug {
             try {
                 Thread.sleep(_interval);
             }catch(InterruptedException ex) {
-                MXLogger2.getLogger(MXDebug.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
     }
@@ -69,7 +68,6 @@ public abstract class MXDebug {
             try {
                 Thread.sleep(_interval);
             }catch(InterruptedException ex) {
-                MXLogger2.getLogger(MXDebug.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
     }

@@ -38,6 +38,7 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import jp.synthtarou.midimixer.MXThread;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
@@ -138,7 +139,7 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
                 if (_disableThreading) {
                     run.run();
                 } else {
-                    Thread th = new Thread(run);
+                    Thread th = new MXThread("FolderBrowser1", run);
                     th.setPriority(Thread.MIN_PRIORITY);
                     synchronized (_test) {
                         _test.put(th, new Alive());
@@ -148,7 +149,7 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
             }
         }
 
-        public final void launchUIThread(FileSystemCache.Element file) {
+        public final void doInUIThread(FileSystemCache.Element file) {
             if (SwingUtilities.isEventDispatchThread()) {
                 process(file);
             } else {
@@ -247,7 +248,7 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
         _initialDir = initialDir;
         InitialRun init = new InitialRun();
 
-        init.launchUIThread(_cache.addCache(null));
+        init.doInUIThread(_cache.addCache(null));
 
         setPreferredSize(new Dimension(600, 400));
     }

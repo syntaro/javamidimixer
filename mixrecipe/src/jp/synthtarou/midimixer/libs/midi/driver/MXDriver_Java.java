@@ -26,7 +26,6 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
-import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -158,7 +157,6 @@ public class MXDriver_Java implements MXDriver {
     class JavaInputReceiver implements Receiver {
 
         MXMIDIIn _input;
-        Thread _last;
 
         public JavaInputReceiver(MXMIDIIn input) {
             _input = input;
@@ -166,10 +164,6 @@ public class MXDriver_Java implements MXDriver {
 
         @Override
         public void send(MidiMessage msg, long timestamp) {
-            if (_last != Thread.currentThread()) {
-                _last = Thread.currentThread();
-                MXThreadList.attachIfNeed("MXDriver_java", _last);
-            }
             if (msg instanceof ShortMessage) {
                 ShortMessage shortMsg = (ShortMessage) msg;
                 int status = shortMsg.getStatus() & 0xff;

@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.logging.Level;
-import jp.synthtarou.midimixer.MXThreadList;
+import jp.synthtarou.midimixer.MXThread;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.async.Transaction;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -31,7 +31,6 @@ import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 import jp.synthtarou.midimixer.libs.vst.VSTStream;
-import jp.synthtarou.midimixer.mx90debug.MXDebug;
 import jp.synthtarou.midimixer.windows.MXLIB02VST3;
 
 /**
@@ -155,7 +154,6 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
                 try {
                     _thread.join();
                 } catch (InterruptedException ex) {
-                    MXLogger2.getLogger(MX80Process.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
         }
@@ -513,7 +511,7 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
     
     public void startScan(boolean quick) {
         cleanCancelFlag();
-        _thread = MXThreadList.newThread("MX80Process", new Runnable() {
+        _thread = new MXThread("MX80Process", new Runnable() {
             public void run() {
                 _scanRealTotal = 0;
                 ArrayList<VSTFolder> copy = new ArrayList<>(_listFolder);

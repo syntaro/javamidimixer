@@ -21,6 +21,7 @@ import java.util.logging.Level;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.MXThread;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXQueue1;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
@@ -32,7 +33,6 @@ import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver;
-import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
 
 /**
@@ -398,14 +398,17 @@ public class MXMIDIIn {
     private void dispatchToPort(MXMessage message) {
         if (true) {
             if (_threadQueue == null || _threadQueue.isAlive() == false) {
-                _threadQueue = new Thread(new Runnable() {
+                _threadQueue = new MXThread("MXMidiIn", new Runnable() {
                     @Override
                     public void run() {
                         while (true) {
                             try {
                                 MXMessage msg2 = _messageQueue.pop();
-                                if (message != null) {
+                                if (msg2 != null) {
                                     dispatchToPortMain(msg2);
+                                }
+                                else {
+                                    return;
                                 }
                             } catch (RuntimeException ex) {
                                 MXLogger2.getLogger(MXMIDIIn.class).log(Level.WARNING, ex.getMessage(), ex);

@@ -20,8 +20,8 @@ import java.awt.Component;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import javax.swing.SwingUtilities;
+import jp.synthtarou.midimixer.MXThread;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.MXQueue1;
 
 /**
  *
@@ -78,7 +78,7 @@ public class MXAccordionInnerPanel {
     public void openWithAnimation(boolean open, boolean invert) {
         _doingAnimation = true;
         if (open) {
-            new Thread(new Runnable() {
+            new MXThread("Accordion1", new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -94,7 +94,7 @@ public class MXAccordionInnerPanel {
                             try {
                                 Thread.sleep(10);
                             } catch (InterruptedException ex) {
-                                MXLogger2.getLogger(MXAccordionInnerPanel.class).log(Level.WARNING, ex.getMessage(), ex);
+                                break;
                             }
                         }
                     }
@@ -104,7 +104,7 @@ public class MXAccordionInnerPanel {
                             try {
                                 Thread.sleep(10);
                             } catch (InterruptedException ex) {
-                                MXLogger2.getLogger(MXAccordionInnerPanel.class).log(Level.WARNING, ex.getMessage(), ex);
+                                break;
                             }
                         }
                     }
@@ -114,7 +114,7 @@ public class MXAccordionInnerPanel {
                 }
             }).start();
         } else {
-            new Thread(new Runnable() {
+            new MXThread("Accordion2", new Runnable() {
                 @Override
                 public void run() {
                     if (invert) {
@@ -125,7 +125,7 @@ public class MXAccordionInnerPanel {
                                     Thread.sleep(10);
                                 }
                             } catch (InterruptedException ex) {
-                                MXLogger2.getLogger(MXAccordionInnerPanel.class).log(Level.WARNING, ex.getMessage(), ex);
+                                break;
                             }
                         }
                     }
@@ -137,7 +137,7 @@ public class MXAccordionInnerPanel {
                                     Thread.sleep(10);
                                 }
                             } catch (InterruptedException ex) {
-                                MXLogger2.getLogger(MXAccordionInnerPanel.class).log(Level.WARNING, ex.getMessage(), ex);
+                                break;
                             }
                         }
                     }

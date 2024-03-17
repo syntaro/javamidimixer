@@ -141,7 +141,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
         _piano.setPreferredSize(new Dimension(480, 120));
         jPanelPiano.add(_piano);
 
-        Thread pianoColor = new Thread() {
+        Thread pianoColor = new MXThread("PianoColor", new Runnable() {
             public void run() {
                 int x = 0;
                 int last = -1;
@@ -149,7 +149,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
                     try {
                         Thread.sleep(8);
                     } catch (InterruptedException e) {
-
+                        return;
                     }
                     x += 1;
                     if (x >= 0 && x <= 36) {
@@ -187,7 +187,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
                     }
                 }
             }
-        };
+        });
         pianoColor.start();
 
         addWindowListener(new WindowAdapter() {

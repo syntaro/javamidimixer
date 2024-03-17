@@ -22,16 +22,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
-import javax.sound.midi.InvalidMidiDataException;
+import java.util.logging.Logger;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.MXThreadList;
+import jp.synthtarou.midimixer.MXThread;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.midi.driver.SplittableSysexMessage;
-import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
 
 /**
@@ -82,13 +80,15 @@ public class SMFSequencer {
     }
 
     boolean _stopPlayer;
+    Thread _playerThread;
 
     public void startPlayer(long position, SMFCallback callback) {
         if (isRunning()) {
             stopPlayer();
         }
         _callback = callback;
-        Thread t = MXThreadList.newThread("SMFPlayer", new Runnable() {
+        _playerThread = null;
+        _playerThread = new MXThread("SMFPlayer", new Runnable() {
             @Override
             public void run() {
                 _callback.smfStarted();
@@ -113,8 +113,8 @@ public class SMFSequencer {
                 }
             }
         });
-        t.setDaemon(true);
-        t.start();
+        _playerThread.setDaemon(true);
+        _playerThread.start();
         _isRunning = true;
     }
 
@@ -124,15 +124,17 @@ public class SMFSequencer {
             notifyAll();
         }
         if (_isRunning) {
-            while (_isRunning) {
+            if (_playerThread != null) {
                 try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
+                    _playerThread.join();
+                } catch (InterruptedException ex) {
+                    //
                 }
             }
             try {
                 Thread.sleep(200);
-            } catch (InterruptedException e) {
+            } catch (InterruptedException ex) {
+                //
             }
         }
     }
@@ -288,6 +290,7 @@ public class SMFSequencer {
                         Thread.sleep(waiting);
                     }
                 } catch (InterruptedException ex) {
+                    return;
                 }
                 elapsed = (System.currentTimeMillis() - launched);
                 nextNote = list.get(pos)._millisecond;

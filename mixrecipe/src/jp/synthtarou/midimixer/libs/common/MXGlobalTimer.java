@@ -18,8 +18,7 @@ package jp.synthtarou.midimixer.libs.common;
 
 import java.util.ArrayList;
 import java.util.logging.Level;
-import javax.management.RuntimeErrorException;
-import jp.synthtarou.midimixer.MXThreadList;
+import jp.synthtarou.midimixer.MXThread;
 
 /**
  *
@@ -37,7 +36,7 @@ public class MXGlobalTimer {
     
     static {
         _timer = new MXGlobalTimer();
-        Thread t = MXThreadList.newDaemon("MXGlobalTimer", new Runnable() {
+        Thread t = new MXThread("MXGlobalTimer", new Runnable() {
             public void run() {
                 _timer.mysticLoop();
             }
@@ -81,6 +80,7 @@ public class MXGlobalTimer {
                     try {
                         _pending.wait(nextTick - current);
                     }catch(InterruptedException e) {
+                        break;
                     }
                 }
             }

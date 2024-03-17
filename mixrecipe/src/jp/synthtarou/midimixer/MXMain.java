@@ -222,11 +222,14 @@ public class MXMain  {
                             SMFSequencer.stopAll();
                             MXMIDIInManager.getManager().closeAll();
                             MXMIDIOutManager.getManager().closeAll();
-                            MXThreadList.onExit();
+                            MXThread.listThread();
+                            MXThread.exitAll();
                         }catch(RuntimeException ex) {
                             MXLogger2.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
                         }
+                        MXLogger2.getLogger(MXMain.class).info("stopping vst");
                         VSTInstance.stopEngine(null);
+                        MXLogger2.getLogger(MXMain.class).info("stopped vst");
                         System.exit(0);
                     }
                 });

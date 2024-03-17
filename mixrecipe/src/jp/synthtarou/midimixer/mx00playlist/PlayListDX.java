@@ -43,7 +43,6 @@ public class PlayListDX extends DefaultListModel<PlayListElement> {
                     }
                 });
             } catch (InterruptedException ex) {
-                MXLogger2.getLogger(PlayListDX.class).log(Level.WARNING, ex.getMessage(), ex);
             } catch (InvocationTargetException ex) {
                 MXLogger2.getLogger(PlayListDX.class).log(Level.WARNING, ex.getMessage(), ex);
             }

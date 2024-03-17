@@ -17,7 +17,6 @@
 package jp.synthtarou.midimixer.libs.midi.driver;
 
 import java.util.ArrayList;
-import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.windows.MXLIB01UWPMidi;
@@ -179,14 +178,8 @@ public class MXDriver_UWP implements MXDriver {
         }
     }
 
-    Thread _last;
-
     public MXMIDIIn findInputCatalog(int order) {
         Thread t = Thread.currentThread();
-        if (_last != t) {
-            _last = t;
-            MXThreadList.attachIfNeed("MXDriver_UWP", t);
-        }
         while (_listInputCatalog.size() <= order) {
             _listInputCatalog.add(null);
         }
