@@ -73,21 +73,21 @@ public class MX36Folder implements Comparable<MX36Folder> {
         status._folder = this;
         MX36StatusPanel element = new MX36StatusPanel(_process, _accordion, status);
         _accordion.insertElement(_accordion.getElementCount(), element);
-        refill(status);
+        repaintStatus(status);
         setupMouse();
     }
 
-    public void refill(MX36Status status) {
+    public void repaintStatus(MX36Status status) {
         int count = 0;
         for (int i = 0; i < _accordion.getElementCount(); ++ i){
             MX36StatusPanel panel  =(MX36StatusPanel)_accordion.getElementAt(i);
             if (panel._status == status) {
-                _accordion.refill(count);
+                _accordion.repaintAccordionElement(count);
             }
             count++;
         }
         if (count == 0) {
-            _accordion.refill(-1);
+            _accordion.repaintAccordionElement(-1);
         }
     }
 

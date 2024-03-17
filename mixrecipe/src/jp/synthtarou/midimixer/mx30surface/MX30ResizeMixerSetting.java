@@ -28,7 +28,7 @@ public class MX30ResizeMixerSetting extends javax.swing.JPanel {
     boolean[] activeKnob = new boolean[MXAppConfig.CIRCLE_ROW_COUNT];
     boolean[] activePad = new boolean[MXAppConfig.DRUM_ROW_COUNT];
     int activeLines = MXAppConfig.SLIDER_COLUMN_COUNT;
-    MX30Process _process;
+    final MX30Process _process;
 
     /**
      * Creates new form MX30ResizeMixerSetting

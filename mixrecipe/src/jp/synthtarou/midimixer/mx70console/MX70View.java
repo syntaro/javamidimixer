@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.mx70console;
 
-import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import java.awt.Container;
 import java.awt.Dialog;
@@ -31,21 +30,20 @@ import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachCopyAndPaste;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX70Panel extends javax.swing.JPanel {
+public class MX70View extends javax.swing.JPanel {
 
-    MX70Process _process;
+    final MX70Process _process;
 
     /**
      * Creates new form MX70Panel
      */
-    public MX70Panel(MX70Process process) {
+    public MX70View(MX70Process process) {
         _process = process;
         initComponents();
         Dimension size = getSize();
@@ -459,7 +457,7 @@ public class MX70Panel extends javax.swing.JPanel {
 
     private void jButtonSysEXMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSysEXMenuActionPerformed
         MX70SysexPanel panel = _process.createSysexPanel();
-        MXModalFrame.showAsDialog(this, panel, "System Exclusive");
+        MXUtil.showAsDialog(this, panel, "System Exclusive");
     }//GEN-LAST:event_jButtonSysEXMenuActionPerformed
 
     private void jCheckBoxLoggingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxLoggingActionPerformed

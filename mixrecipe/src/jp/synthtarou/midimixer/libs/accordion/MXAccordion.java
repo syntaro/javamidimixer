@@ -201,7 +201,7 @@ public class MXAccordion extends javax.swing.JPanel {
         _contentsList.add(element, pos);
     }
 
-    public void refill(int pos) {
+    public void repaintAccordionElement(int pos) {
         if (pos >= 0) {
             _contentsList._listElement.get(pos).repaintAccordion();
         }

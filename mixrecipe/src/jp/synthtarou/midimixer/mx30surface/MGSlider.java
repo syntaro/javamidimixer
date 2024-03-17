@@ -25,7 +25,6 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
-import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 import jp.synthtarou.midimixer.libs.swing.themes.ThemeManager;
@@ -73,7 +72,6 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
             }
             MXRangedValue value = status._base.getValue();
             jLabelValue.setForeground(col);
-            //jLabelValue.setMinimumSize(new Dimension(50, 50));
             jLabelMin.setText(String.valueOf(value._min));
             jLabelMax.setText(String.valueOf(value._max));
             jSliderValue.setMinimum(value._min);
@@ -152,7 +150,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
         add(jLabelMin, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
-    boolean _ignoreEvent = false;
+    boolean _selfControl = false;
     
     private void jSliderValueStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderValueStateChanged
         if (_underInit) {
@@ -163,7 +161,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
             return;
         }
         jLabelValue.setText(String.valueOf(newValue));
-        if (_ignoreEvent) {
+        if (_selfControl) {
             return;
         }
         _mixer.updateStatusAndSend(getStatus(), newValue);        
@@ -184,10 +182,10 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
         if (jSliderValue.getValue() == newValue._value) {
             return;
         }
-        _ignoreEvent = true;
+        _selfControl = true;
         jLabelValue.setText(String.valueOf(newValue._value));
         jSliderValue.setValue(newValue._value);
-        _ignoreEvent = false;
+        _selfControl = false;
     }
 
     public JLabel labelFor(int num, int max) {
@@ -215,19 +213,30 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
 
     public void increment(MXMessageBag bag) {
         MGStatus status = getStatus();
-        MXRangedValue var = status.getValue().increment();
-        if (var != null) {
-            _mixer.updateStatusAndGetResult(status, var._value, null, bag);
-            _mixer.flushSendQueue(bag);
+        if (status.getValue().incrementable()) {
+            MXRangedValue var = status.getValue().increment();
+            if (bag == null) {
+                bag = new MXMessageBag();
+                _mixer.updateStatusAndGetResult(status, var._value, null, bag);
+                _mixer.flushSendQueue(bag);
+            }
+            else {
+                _mixer.updateStatusAndGetResult(status, var._value, null, bag);
+            }
         }
     }
 
     public void decriment(MXMessageBag bag) {
         MGStatus status = getStatus();
-        MXRangedValue var = status.getValue().decrement();
-        if (var != null) {
-            _mixer.updateStatusAndGetResult(status, var._value, null, bag);
-            _mixer.flushSendQueue(bag);
+        if (status.getValue().decrementable()) {
+            MXRangedValue var = status.getValue().decrement();
+            if (bag == null) {
+                bag = new MXMessageBag();
+                _mixer.updateStatusAndGetResult(status, var._value, null, bag);
+                _mixer.flushSendQueue(bag);
+            }else {
+                _mixer.updateStatusAndGetResult(status, var._value, null, bag);
+            }
         }
     }
 
@@ -235,7 +244,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
         _mixer._view.stopEditing();
         MGStatus status = (MGStatus)getStatus().clone();
         MGStatusPanel panel = new MGStatusPanel(_mixer, status);
-        MXModalFrame.showAsDialog(this, panel, "Enter Edit Slider {row:" + _row + ", column:" + _column + "}");
+        MXUtil.showAsDialog(this, panel, "Enter Edit Slider {row:" + _row + ", column:" + _column + "}");
         if (panel._okOption) {
             setStatus(panel._status);
             jLabelName.setText(panel._status._name);

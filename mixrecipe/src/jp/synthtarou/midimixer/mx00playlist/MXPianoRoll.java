@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.swing;
+package jp.synthtarou.midimixer.mx00playlist;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -36,7 +36,7 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.swing.MXPianoKeys.KeyRect;
+import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys.KeyRect;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFTestSynthesizer;
@@ -47,11 +47,11 @@ import jp.synthtarou.midimixer.libs.midi.smf.SMFTestSynthesizer;
  */
 public class MXPianoRoll extends JComponent {
 
-    boolean _doPaint = true;
+    boolean _doingPaint = true;
 
-    public void setSelectedPaint(boolean flag) {
-        _doPaint = flag;
-        if (flag) {
+    public void setDoingPaint(boolean flag) {
+        _doingPaint = flag;
+        if (_doingPaint != flag && flag) {
             clearCache(_songPos);
         }
     }
@@ -123,7 +123,7 @@ public class MXPianoRoll extends JComponent {
 
     @Override
     public synchronized void paintComponent(Graphics g) {
-        if (!_doPaint) {
+        if (!_doingPaint) {
             return;
         }
         int widthAll = getWidth();
@@ -150,7 +150,7 @@ public class MXPianoRoll extends JComponent {
     }
 
     public synchronized void paintOnBuffer() {
-        if (!_doPaint) {
+        if (!_doingPaint) {
             return;
         }
         int widthAll = getWidth();
@@ -255,27 +255,6 @@ public class MXPianoRoll extends JComponent {
             return 0;
         }
     };
-
-    public NoteRect findRectByNote(ArrayList<NoteRect> list, int note) {
-        int from = 0;
-        int to = list.size() - 1;
-        while (from <= to) {
-            int x = (to - from) / 2 + from;
-            NoteRect o = list.get(x);
-            if (o._note < note) {
-                from = x + 1;
-                to = to;
-                continue;
-            }
-            if (note < o._note) {
-                from = from;
-                to = x - 1;
-                continue;
-            }
-            return o;
-        }
-        return null;
-    }
 
     int _lastPickupForPaint = 0;
     int[] _pickedNoteForPaint = new int[256];
@@ -511,19 +490,22 @@ public class MXPianoRoll extends JComponent {
         clearCache(_songPos);
     }
 
-    public void setTiming(long pos) {
-        _songPos = pos;
-        
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                synchronized (MXPianoRoll.this) {
-                    noteForKick(_songPos);
-                    _keys.repaint();
-                    paintOnBuffer();
-                    repaint();
+    public void setTiming(long elapsed) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    setTiming(elapsed);
                 }
-            }
-        });
+            });
+            return;
+        }
+        _songPos = elapsed;
+        synchronized (MXPianoRoll.this) {
+            noteForKick(_songPos);
+            _keys.repaint();
+            paintOnBuffer();
+            repaint();
+        }
     }
 
     private int _keyboardRoot = 36;

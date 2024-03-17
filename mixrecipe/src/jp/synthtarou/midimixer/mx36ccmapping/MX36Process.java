@@ -34,7 +34,7 @@ import jp.synthtarou.midimixer.mx30surface.MGStatus;
  *
  * @author Syntarou YOSHIDA
  */
-public class MX36Process extends MXReceiver implements MXSettingTarget {
+public class MX36Process extends MXReceiver<MX36View> implements MXSettingTarget {
 
     MX36View _view;
     MXSetting _setting;
@@ -47,17 +47,13 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
         _view = new MX36View(this, _folders);
     }
 
-    public void readSettings() {
-        _setting.readSettingFile();
-    }
-
     @Override
     public String getReceiverName() {
         return "CCMapping";
     }
 
     @Override
-    public JPanel getReceiverView() {
+    public MX36View getReceiverView() {
         return _view;
     }
 
@@ -71,29 +67,35 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                 if (status._uiType == MGStatus.TYPE_DRUMPAD) {
                     continue;
                 }
+                boolean hit = false;
                 for (MX36Folder folder : _folders._listFolder) {
                     for (int i = 0; i < folder._accordion.getElementCount(); ++ i) {
                         MX36StatusPanel panel = (MX36StatusPanel)folder._accordion.getElementAt(i);
-                        if (panel._status._outCachedMessage != null
-                         && panel._status._surfacePort == status._port
+                        if (panel._status._surfacePort == status._port
                          && panel._status._surfaceUIType == status._uiType
                          && panel._status._surfaceRow == status._row
                          && panel._status._surfaceColumn == status._column) {
+                            hit = true;
                             MX36Status status2 = panel._status;
                             MX36Folder folder2 = status2._folder;
                             if (folder2 == _folders._trashedFolder) {
                                 continue;
                             }
                             if (folder2.isSelected()) {
-                                MXMessage msg = updateSurfaceValue(status2, status.getValue());
-                                if (msg != null) {
-                                    sendToNext(msg);
-                                    folder2.refill(status2);
+                                if (status2.getOutDataText() != null) {
+                                    MXMessage msg = updateSurfaceValue(status2, status.getValue());
+                                    if (msg != null) {
+                                        sendToNext(msg);
+                                        folder2.repaintStatus(status2);
+                                    }
+                                    done = true;
                                 }
-                                done = true;
                             }
                         }
                     }
+                }
+                if (!hit) {
+                    _folders._nosaveFolder.addCCItem(MX36Status.fromMGStatus(status));
                 }
             }
         }
@@ -103,39 +105,44 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
     }
 
     @Override
-    public void prepareSettingFields(MXSetting setting) {
-        setting.register("Folder[].Name");
-        setting.register("Folder[].Selected");
-        setting.register("Folder[].Status[].Name");
+    public MXSetting getSettings() {
+        return _setting;
+    }
 
-        setting.register("Folder[].Status[].Memo");
-        setting.register("Folder[].Status[].DataText");
-        setting.register("Folder[].Status[].Port");
-        setting.register("Folder[].Status[].Channel");
-        setting.register("Folder[].Status[].ValueRange");
-        setting.register("Folder[].Status[].ValueOffset");
-        setting.register("Folder[].Status[].ValueTable[]");
-        setting.register("Folder[].Status[].GateRange");
-        setting.register("Folder[].Status[].GateOffset");
-        setting.register("Folder[].Status[].GateTable[]");
-        setting.register("Folder[].Status[].GateTypeIsKey");
+    @Override
+    public void prepareSettingFields() {
+        _setting.register("Folder[].Name");
+        _setting.register("Folder[].Selected");
+        _setting.register("Folder[].Status[].Name");
 
-        setting.register("Folder[].Status[].SurfacePort");
-        setting.register("Folder[].Status[].SurfaceUIType");
-        setting.register("Folder[].Status[].SurfaceRow");
-        setting.register("Folder[].Status[].SurfaceColumn");
+        _setting.register("Folder[].Status[].Memo");
+        _setting.register("Folder[].Status[].DataText");
+        _setting.register("Folder[].Status[].Port");
+        _setting.register("Folder[].Status[].Channel");
+        _setting.register("Folder[].Status[].ValueRange");
+        _setting.register("Folder[].Status[].ValueOffset");
+        _setting.register("Folder[].Status[].ValueTable[]");
+        _setting.register("Folder[].Status[].GateRange");
+        _setting.register("Folder[].Status[].GateOffset");
+        _setting.register("Folder[].Status[].GateTable[]");
+        _setting.register("Folder[].Status[].GateTypeIsKey");
 
-        setting.register("Folder[].Status[].Bind1RCH1");
-        setting.register("Folder[].Status[].Bind1RCH2");
-        setting.register("Folder[].Status[].Bind1RCH4");
+        _setting.register("Folder[].Status[].SurfacePort");
+        _setting.register("Folder[].Status[].SurfaceUIType");
+        _setting.register("Folder[].Status[].SurfaceRow");
+        _setting.register("Folder[].Status[].SurfaceColumn");
 
-        setting.register("Folder[].Status[].BindRSCTRT1");
-        setting.register("Folder[].Status[].BindRSCTRT2");
-        setting.register("Folder[].Status[].BindRSCTRT3");
+        _setting.register("Folder[].Status[].Bind1RCH1");
+        _setting.register("Folder[].Status[].Bind1RCH2");
+        _setting.register("Folder[].Status[].Bind1RCH4");
 
-        setting.register("Folder[].Status[].BindRSCTPT1");
-        setting.register("Folder[].Status[].BindRSCTPT2");
-        setting.register("Folder[].Status[].BindRSCTPT3");
+        _setting.register("Folder[].Status[].BindRSCTRT1");
+        _setting.register("Folder[].Status[].BindRSCTRT2");
+        _setting.register("Folder[].Status[].BindRSCTRT3");
+
+        _setting.register("Folder[].Status[].BindRSCTPT1");
+        _setting.register("Folder[].Status[].BindRSCTPT2");
+        _setting.register("Folder[].Status[].BindRSCTPT3");
     }
 
     static String rangeToString(MXRangedValue value) {
@@ -164,8 +171,8 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
     }
 
     @Override
-    public void afterReadSettingFile(MXSetting setting) {
-        List<MXSettingNode> listFolder = setting.findByPath("Folder[]");
+    public void afterReadSettingFile() {
+        List<MXSettingNode> listFolder = _setting.findByPath("Folder[]");
         for (MXSettingNode folderNode : listFolder) {
             String folderName = folderNode.getSetting("Name");
             MX36Folder folder = _folders.newFolder(folderName);
@@ -257,16 +264,16 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
     }
 
     @Override
-    public void beforeWriteSettingFile(MXSetting setting) {
+    public void beforeWriteSettingFile() {
         int folderN = 0;
 
-        setting.clearValue();
+        _setting.clearValue();
         for (MX36Folder folder : _folders._listFolder) {
             String prefix = "Folder[" + folderN + "].";
             folderN++;
 
-            setting.setSetting(prefix + "Name", folder._folderName);
-            setting.setSetting(prefix + "Selected", folder.isSelected());
+            _setting.setSetting(prefix + "Name", folder._folderName);
+            _setting.setSetting(prefix + "Selected", folder.isSelected());
 
             if (folder == this._folders._nosaveFolder) {
                 continue;
@@ -277,47 +284,47 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
                 MX36Status status = panel._status;
                 String prefix2 = prefix + "Status[" + statusN + "].";
                 
-                setting.setSetting(prefix2 + "Name", status._outName);
-                setting.setSetting(prefix2 + "Memo", status._outMemo);
-                setting.setSetting(prefix2 + "DataText", status.getOutDataText());
-                setting.setSetting(prefix2 + "Port", status._outPort);
-                setting.setSetting(prefix2 + "Channel", status._outChannel);
-                setting.setSetting(prefix2 + "ValueRange", rangeToString(status._outValueRange));
-                setting.setSetting(prefix2 + "ValueOffset", status._outValueOffset);
+                _setting.setSetting(prefix2 + "Name", status._outName);
+                _setting.setSetting(prefix2 + "Memo", status._outMemo);
+                _setting.setSetting(prefix2 + "DataText", status.getOutDataText());
+                _setting.setSetting(prefix2 + "Port", status._outPort);
+                _setting.setSetting(prefix2 + "Channel", status._outChannel);
+                _setting.setSetting(prefix2 + "ValueRange", rangeToString(status._outValueRange));
+                _setting.setSetting(prefix2 + "ValueOffset", status._outValueOffset);
                 if (status._outValueTable != null) {
                     if (!isSameRangeAndTable(status._outValueRange, status._outValueTable)) {
                         for (MXWrap<Integer> value : status._outValueTable) {
-                            setting.setSetting(prefix2 + "ValueTable[" + value._value + "]", value._value);
+                            _setting.setSetting(prefix2 + "ValueTable[" + value._value + "]", value._value);
                         }
                     }
                 }
-                setting.setSetting(prefix2 + "GateRange", rangeToString(status._outGateRange));
-                setting.setSetting(prefix2 + "GateOffset", status._outGateOffset);
+                _setting.setSetting(prefix2 + "GateRange", rangeToString(status._outGateRange));
+                _setting.setSetting(prefix2 + "GateOffset", status._outGateOffset);
                 if (status._outGateTable != null) {
                     if (!isSameRangeAndTable(status._outGateRange, status._outGateTable)) {
                         for (MXWrap<Integer> gate : status._outGateTable) {
-                            setting.setSetting(prefix2 + "GateTable[" + gate._value + "]", gate._value);
+                            _setting.setSetting(prefix2 + "GateTable[" + gate._value + "]", gate._value);
                         }
                     }
                 }
-                setting.setSetting(prefix2 + "GateTypeIsKey", status._outGateTypeKey);
+                _setting.setSetting(prefix2 + "GateTypeIsKey", status._outGateTypeKey);
 
-                setting.setSetting(prefix2 + "SurfacePort", status._surfacePort);
-                setting.setSetting(prefix2 + "SurfaceUIType", status._surfaceUIType);
-                setting.setSetting(prefix2 + "SurfaceRow", status._surfaceRow);
-                setting.setSetting(prefix2 + "SurfaceColumn", status._surfaceColumn);
+                _setting.setSetting(prefix2 + "SurfacePort", status._surfacePort);
+                _setting.setSetting(prefix2 + "SurfaceUIType", status._surfaceUIType);
+                _setting.setSetting(prefix2 + "SurfaceRow", status._surfaceRow);
+                _setting.setSetting(prefix2 + "SurfaceColumn", status._surfaceColumn);
 
-                setting.setSetting(prefix2 + "Bind1RCH1", status._bind1RCH);
-                setting.setSetting(prefix2 + "Bind1RCH2", status._bind2RCH);
-                setting.setSetting(prefix2 + "Bind1RCH4", status._bind4RCH);
+                _setting.setSetting(prefix2 + "Bind1RCH1", status._bind1RCH);
+                _setting.setSetting(prefix2 + "Bind1RCH2", status._bind2RCH);
+                _setting.setSetting(prefix2 + "Bind1RCH4", status._bind4RCH);
 
-                setting.setSetting(prefix2 + "BindRSCTRT1", status._bindRSCTRT1);
-                setting.setSetting(prefix2 + "BindRSCTRT2", status._bindRSCTRT2);
-                setting.setSetting(prefix2 + "BindRSCTRT3", status._bindRSCTRT3);
+                _setting.setSetting(prefix2 + "BindRSCTRT1", status._bindRSCTRT1);
+                _setting.setSetting(prefix2 + "BindRSCTRT2", status._bindRSCTRT2);
+                _setting.setSetting(prefix2 + "BindRSCTRT3", status._bindRSCTRT3);
 
-                setting.setSetting(prefix2 + "BindRSCTPT1", status._bindRSCTPT1);
-                setting.setSetting(prefix2 + "BindRSCTPT2", status._bindRSCTPT2);
-                setting.setSetting(prefix2 + "BindRSCTPT3", status._bindRSCTPT3);
+                _setting.setSetting(prefix2 + "BindRSCTPT1", status._bindRSCTPT1);
+                _setting.setSetting(prefix2 + "BindRSCTPT2", status._bindRSCTPT2);
+                _setting.setSetting(prefix2 + "BindRSCTPT3", status._bindRSCTPT3);
             }
 
         }
@@ -348,7 +355,7 @@ public class MX36Process extends MXReceiver implements MXSettingTarget {
             _view._detailPanel.updateSliderByStatus();
         }
         if (status._folder != null) {
-            status._folder.refill(status);
+            status._folder.repaintStatus(status);
         }
         _view.tabActivated();
         return status.createOutMessage();

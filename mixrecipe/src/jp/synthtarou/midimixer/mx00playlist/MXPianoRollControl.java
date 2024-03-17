@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.swing;
+package jp.synthtarou.midimixer.mx00playlist;
 
 import java.awt.Dimension;
 import javax.swing.JFrame;

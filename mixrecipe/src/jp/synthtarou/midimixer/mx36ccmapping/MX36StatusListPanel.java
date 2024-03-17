@@ -23,8 +23,8 @@ import java.awt.Insets;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.accordion.MXAccordion;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 /**
  *
  * @author Syntarou YOSHIDA
@@ -47,7 +47,7 @@ public class MX36StatusListPanel extends javax.swing.JPanel {
 
         list.selectFirstAtm();
 
-        MXModalFrame.showAsDialog(null, new MX36StatusListPanel(list), "test");
+        MXUtil.showAsDialog(null, new MX36StatusListPanel(list), "test");
     }
 
     MX36FolderList _list;

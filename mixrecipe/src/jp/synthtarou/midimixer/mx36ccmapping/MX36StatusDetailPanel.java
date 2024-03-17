@@ -51,7 +51,7 @@ import jp.synthtarou.midimixer.libs.navigator.legacy.NavigatorForNote;
  */
 public class MX36StatusDetailPanel extends javax.swing.JPanel {
 
-    MX36Process _process;
+    final MX36Process _process;
     MX36Status _status;
     JTextField[] _listBindMouse = null;
 
@@ -356,7 +356,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                 jSliderValueValue.setValue(status._outValueRange._value);
                 if (status._folder != null) {
                     //最初のダミーだけnull
-                    status._folder.refill(status);
+                    status._folder.repaintStatus(status);
                 }
                 status._folder.sortElements();
             } finally {

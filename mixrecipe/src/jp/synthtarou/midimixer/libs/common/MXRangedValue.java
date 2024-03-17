@@ -244,8 +244,36 @@ public class MXRangedValue implements Comparable<MXRangedValue>{
 
     }
 
+    public boolean incrementable() {
+        if (_min < _max) {
+            if (_value + 1 > _max) {
+                return false;
+            }
+        }
+        else {
+            if (_value - 1 < _max) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public MXRangedValue increment() {
         return changeValue(_value + (_min < _max ? 1 : -1));
+    }
+
+    public boolean decrementable() {
+        if (_min < _max) {
+            if (_value - 1 < _min) {
+                return false;
+            }
+        }
+        else {
+            if (_value + 1 > _min) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public MXRangedValue decrement() {

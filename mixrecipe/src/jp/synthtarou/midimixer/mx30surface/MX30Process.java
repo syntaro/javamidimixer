@@ -17,7 +17,6 @@
 package jp.synthtarou.midimixer.mx30surface;
 
 import java.util.ArrayList;
-import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
@@ -29,7 +28,7 @@ import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
  *
  * @author Syntarou YOSHIDA
  */
-public class MX30Process extends MXReceiver implements MXSettingTarget {
+public class MX30Process extends MXReceiver<MX30View> implements MXSettingTarget {
 
     private MX30View _rootView;
     MX32MixerProcess[] _pageProcess;
@@ -57,26 +56,21 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
         }
     }
     
-    public void readSettings() {
-        _setting.readSettingFile();
-        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
-            _pageProcess[port].readSettings();
-            MX32MixerProcess mixer = _pageProcess[port];
-            _rootView.addPage(port, mixer);
-        }
-        globalContollerHidden();
-    }
-    
     @Override
-    public void prepareSettingFields(MXSetting setting) {
-        setting.register("ActiveCircle");
-        setting.register("ActiveLine");
-        setting.register("ActivePad");
+    public MXSetting getSettings() {
+        return _setting;
     }
 
     @Override
-    public void afterReadSettingFile(MXSetting setting) {
-        String circle = setting.getSetting("ActiveCircle");
+    public void prepareSettingFields() {
+        _setting.register("ActiveCircle");
+        _setting.register("ActiveLine");
+        _setting.register("ActivePad");
+    }
+
+    @Override
+    public void afterReadSettingFile() {
+        String circle = _setting.getSetting("ActiveCircle");
         if  (circle == null) {
             circle = "1, 2, 3, 4";
         }
@@ -92,7 +86,7 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
             }
         }
 
-        String line = setting.getSetting("ActiveLine");
+        String line = _setting.getSetting("ActiveLine");
         int lineNum = 17;
         try {
             if (line != null) {
@@ -101,7 +95,7 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
         }catch(Exception e) {
         }
         this._visibleLineCount = lineNum;
-        String pad = setting.getSetting("ActivePad");
+        String pad = _setting.getSetting("ActivePad");
         if (pad == null) {
             pad = "1, 2, 3";
         }
@@ -117,11 +111,17 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
 
             }
         }
+        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
+            _pageProcess[port].readSettingFile();
+            MX32MixerProcess mixer = _pageProcess[port];
+            _rootView.addPage(port, mixer);
+        }
+        globalContollerHidden();
     }
 
     @Override
-    public void beforeWriteSettingFile(MXSetting setting) {
-        setting.clearValue();
+    public void beforeWriteSettingFile() {
+        _setting.clearValue();
         StringBuffer circle = new StringBuffer();
         for (int i = 0; i < _visibleKnob.length; ++ i) {
             if (_visibleKnob[i]) {
@@ -136,9 +136,9 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
                 pad.append(i+1);
             }
         }
-        setting.setSetting("ActiveCircle", circle.toString());
-        setting.setSetting("ActiveLine", _visibleLineCount);
-        setting.setSetting("ActivePad", pad.toString());
+        _setting.setSetting("ActiveCircle", circle.toString());
+        _setting.setSetting("ActiveLine", _visibleLineCount);
+        _setting.setSetting("ActivePad", pad.toString());
     }
        
     public MX32MixerProcess getPage(int i) {
@@ -162,7 +162,7 @@ public class MX30Process extends MXReceiver implements MXSettingTarget {
     }
 
     @Override
-    public JPanel getReceiverView() {
+    public MX30View getReceiverView() {
         return _rootView;
     }
     

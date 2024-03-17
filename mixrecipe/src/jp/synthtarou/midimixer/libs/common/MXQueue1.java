@@ -32,10 +32,14 @@ public class MXQueue1<T> {
         _queue = new LinkedList<T>();
         _quit = false;
     }
-    
+
     public synchronized void push(T obj) {
         _queue.add(obj);
         notifyAll();
+    }
+    
+    public synchronized boolean isEmpty() {
+        return _queue.isEmpty();
     }
     
     public synchronized T pop() {

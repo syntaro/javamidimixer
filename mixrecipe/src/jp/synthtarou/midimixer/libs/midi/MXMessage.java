@@ -20,9 +20,9 @@ import java.io.PrintStream;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
+import static jp.synthtarou.midimixer.libs.midi.MXTemplate.parseDAlias;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
-import static jp.synthtarou.midimixer.libs.midi.port.MXVisitant.HAVE_VAL_BOTH;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
 
 /**
@@ -59,30 +59,24 @@ public final class MXMessage implements Comparable<MXMessage> {
     }
 
     public boolean isBinaryMessage() {
-        if (createBytes() == null) {
-            return false;
-        }
-        if (_dataBytes.length <= 3) {
-            int b = _dataBytes[0] & 0xff;
-            if (b >= 0x80 && b <= 0xff) {
-                switch (b) {
-                    case MXMidi.COMMAND_SYSEX:
-                    case MXMidi.COMMAND_SYSEX_END:
-                    case MXMidi.COMMAND_META_OR_RESET:
-                        return true;
-                }
+        int first = _template.get(0);
+        switch (first) {
+            case MXMidi.COMMAND_SYSEX:
+            case MXMidi.COMMAND_SYSEX_END:
+            case MXMidi.COMMAND_META_OR_RESET:
+                return true;
+
+            case MXMidi.COMMAND2_META:
+            case MXMidi.COMMAND2_SYSTEM:
+                return true;
+                
+            case MXMidi.COMMAND2_CH_RPN:
+            case MXMidi.COMMAND2_CH_NRPN:
+            case MXMidi.COMMAND2_CH_PROGRAM_INC:
+            case MXMidi.COMMAND2_CH_PROGRAM_DEC:
                 return false;
-            }
-            int command2 = _template.get(0) & 0xff00;
-            if (command2 != 0) {
-                switch (command2) {
-                    case MXMidi.COMMAND2_META:
-                        return true;
-                }
-            }
-            return false;
         }
-        return true;
+        return false;
     }
 
     //Utilitie
@@ -121,16 +115,23 @@ public final class MXMessage implements Comparable<MXMessage> {
         _dataBytes = null;
     }
 
-    public byte[] createBytes() {
-        /*
-        if (_dataBytes != null) {
-            return _dataBytes;
-        }
-        if (_template == null) {
-            return null;
-        }*/
+    private byte[] createBytes() {
         _dataBytes = _template.makeBytes(_dataBytes, this);
         return _dataBytes;
+    }
+    
+    public int sizeOfTemplate() {
+        return _template.size();
+    }
+    
+    public int parseTemplate(int pos) {
+        int x = _template.get(pos);
+        try {
+            return parseDAlias(x, this);
+        } catch (IllegalArgumentException e) {
+            //throw e;
+        }
+        return x;
     }
 
     public int getPort() {

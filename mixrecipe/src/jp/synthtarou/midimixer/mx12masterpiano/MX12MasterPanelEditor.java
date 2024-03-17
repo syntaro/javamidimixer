@@ -61,6 +61,8 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
     MXWrapList<Integer> _channelModel;
     MXWrapList<MXReceiver> _receiverModel;
 
+    final MX12Process _process;
+    
     /**
      * Creates new form MX12MasterPanelEditor
      */
@@ -105,8 +107,6 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
         _process._view._piano.allNoteOff();
     }
 
-    MX12Process _process;
-    
     public String getTitle() {
         return MXAppConfig.MX_APPNAME;
     }

@@ -50,7 +50,6 @@ import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.async.Transaction;
 import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
-import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXSwingFolderBrowser;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
@@ -61,23 +60,23 @@ import jp.synthtarou.midimixer.windows.MXLIB02VST3;
  *
  * @author Syntarou YOSHIDA
  */
-public class MX80Panel extends javax.swing.JPanel {
+public class MX80View extends javax.swing.JPanel {
 
-    static MX80Panel _instance = new MX80Panel();
+    static MX80View _instance = new MX80View();
 
-    public static synchronized MX80Panel getInstance() {
+    public static synchronized MX80View getInstance() {
         return _instance;
     }
 
     boolean _initDone = false;
 
     public static void main(String[] args) {
-        MX80Panel panel = MX80Panel.getInstance();
+        MX80View panel = MX80View.getInstance();
 
         panel.addFolder(new File("C:/Program Files/Common Files/VST3"));
         panel.addFolder(new File("C:/Program Files/Steinberg"));
 
-        MXModalFrame.showAsDialog(null, panel, "VST Picker");
+        MXUtil.showAsDialog(null, panel, "VST Picker");
     }
 
     MXWrapList<Integer> _streamModel;
@@ -87,7 +86,7 @@ public class MX80Panel extends javax.swing.JPanel {
     /**
      * Creates new form MX80Panel
      */
-    MX80Panel() {
+    MX80View() {
         initComponents();
         updateMainTree();
         jListSkip.setModel(createSkipListModel());
@@ -127,7 +126,7 @@ public class MX80Panel extends javax.swing.JPanel {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                Container cont = MXUtil.getOwnerWindow(MX80Panel.this);
+                Container cont = MXUtil.getOwnerWindow(MX80View.this);
                 if (cont != null && cont instanceof JDialog) {
                     JDialog frame = (JDialog) cont;
                     frame.addWindowListener(new WindowAdapter() {
@@ -161,7 +160,7 @@ public class MX80Panel extends javax.swing.JPanel {
 
     MXWrapList<Integer> createLatencyModel() {
         MXWrapList<Integer> list = new MXWrapList();
-        int[] entry = {128, 256, 512, 1024, 2048, 4096};
+        int[] entry = {32, 64, 128, 256, 512, 1024, 2048, 4096};
         for (int i = 0; i < entry.length; ++i) {
             int x = entry[i];
             list.addNameAndValue(Integer.toString(x) + " samples", x);
@@ -568,7 +567,7 @@ public class MX80Panel extends javax.swing.JPanel {
         filter.addExtension("VST3");
         filter._stopAllFile = true;
         MXSwingFolderBrowser browse = new MXSwingFolderBrowser(new File("C:\\Program Files"), filter, null);
-        MXModalFrame.showAsDialog(this, browse, "Select and Enter");
+        MXUtil.showAsDialog(this, browse, "Select and Enter");
         FileList selected = browse.getReturnValue();
         if (selected != null) {
             for (File f : selected) {
@@ -631,7 +630,7 @@ public class MX80Panel extends javax.swing.JPanel {
         FileFilterListExt filter = new FileFilterListExt();
         filter.addExtension("VST3");
         MXSwingFolderBrowser browse = new MXSwingFolderBrowser(new File("C:\\Program Files"), filter, null);
-        MXModalFrame.showAsDialog(this, browse, "Select and Enter");
+        MXUtil.showAsDialog(this, browse, "Select and Enter");
         if (browse.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {            
             FileList selected = browse.getReturnValue();
             if (selected != null) {
@@ -882,7 +881,7 @@ public class MX80Panel extends javax.swing.JPanel {
     public void updateMainTree() {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                TreeModel newModel = MX80Panel.this.createFolderTreeModel();
+                TreeModel newModel = MX80View.this.createFolderTreeModel();
                 jTreeMain.setModel(newModel);
                 jTreeMain.setRootVisible(false);
                 jTreeMain.setCellRenderer(new SystemFilRenderer());
@@ -900,7 +899,7 @@ public class MX80Panel extends javax.swing.JPanel {
     public void updateSkipList() {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                ListModel list = MX80Panel.this.createSkipListModel();
+                ListModel list = MX80View.this.createSkipListModel();
                 jListSkip.setModel(list);
             }
         });

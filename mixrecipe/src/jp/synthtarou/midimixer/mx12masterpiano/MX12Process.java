@@ -30,7 +30,7 @@ import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
  *
  * @author Syntarou YOSHIDA
  */
-public class MX12Process extends MXReceiver implements MXSettingTarget {
+public class MX12Process extends MXReceiver<MXAccordion> implements MXSettingTarget {
 
     private MXSetting _setting;
     MX12MasterkeysPanel _view;
@@ -61,52 +61,53 @@ public class MX12Process extends MXReceiver implements MXSettingTarget {
         _accordion.setLabelAfterName(_view.getComponentAfterName());
     }
 
-    public void readSettings() {
-        _setting.readSettingFile();
-        _view.updateViewForSettingChange();
-    }
-   
     @Override
-    public void prepareSettingFields(MXSetting setting) {
-        setting.register("outputReceiver");
-        setting.register("outputPort");
-        setting.register("outputChannel");
-        setting.register("overwriteControllerChannel");
-        setting.register("outputVelocity");
-        setting.register("acceptThisPanelSignal");
-        setting.register("acceptInputPanelSignal");
+    public MXSetting getSettings() {
+        return _setting;
     }
 
     @Override
-    public void afterReadSettingFile(MXSetting setting) {
-        String receiverName = setting.getSetting("outputReceiver");
+    public void prepareSettingFields() {
+        _setting.register("outputReceiver");
+        _setting.register("outputPort");
+        _setting.register("outputChannel");
+        _setting.register("overwriteControllerChannel");
+        _setting.register("outputVelocity");
+        _setting.register("acceptThisPanelSignal");
+        _setting.register("acceptInputPanelSignal");
+    }
+
+    @Override
+    public void afterReadSettingFile() {
+        String receiverName = _setting.getSetting("outputReceiver");
         if (receiverName != null) {
             int x = MXMain.getMain().getReceiverList().indexOfName(receiverName);
             if (x >= 0) {
                 setNextReceiver(MXMain.getMain().getReceiverList().get(x)._value);
             }
         }
-        setOverwriteInputChannel(setting.getSettingAsInt("overwriteControllerChannel", 0) != 0);        
-        setMousePort(setting.getSettingAsInt("outputPort", 0));
-        setMouseChannel(setting.getSettingAsInt("outputChannel", 0));
-        setMouseVelocity(setting.getSettingAsInt("outputVelocity", 100));
-        _acceptThisPageSignal = setting.getSettingAsBoolean("acceptThisPanelSignal", true);
-        _acceptInputPanelSignal = setting.getSettingAsBoolean("acceptInputPanelSignal", true);
+        setOverwriteInputChannel(_setting.getSettingAsInt("overwriteControllerChannel", 0) != 0);        
+        setMousePort(_setting.getSettingAsInt("outputPort", 0));
+        setMouseChannel(_setting.getSettingAsInt("outputChannel", 0));
+        setMouseVelocity(_setting.getSettingAsInt("outputVelocity", 100));
+        _acceptThisPageSignal = _setting.getSettingAsBoolean("acceptThisPanelSignal", true);
+        _acceptInputPanelSignal = _setting.getSettingAsBoolean("acceptInputPanelSignal", true);
+        _view.updateViewForSettingChange();
     }
 
     @Override
-    public void beforeWriteSettingFile(MXSetting setting) {
+    public void beforeWriteSettingFile() {
         if (getNextReceiver() == null) {
-            setting.setSetting("outputReceiver", "");
+            _setting.setSetting("outputReceiver", "");
         }else {
-            setting.setSetting("outputReceiver", getNextReceiver().getReceiverName());
+            _setting.setSetting("outputReceiver", getNextReceiver().getReceiverName());
         }
-        setting.setSetting("outputPort", getMousePort());
-        setting.setSetting("outputChannel", getMouseChannel());
-        setting.setSetting("overwriteControllerChannel", isOverwriteInputChannel());
-        setting.setSetting("outputVelocity", getMouseVelocity());
-        setting.setSetting("acceptThisPanelSignal", _acceptThisPageSignal);
-        setting.setSetting("acceptInputPanelSignal", _acceptInputPanelSignal);
+        _setting.setSetting("outputPort", getMousePort());
+        _setting.setSetting("outputChannel", getMouseChannel());
+        _setting.setSetting("overwriteControllerChannel", isOverwriteInputChannel());
+        _setting.setSetting("outputVelocity", getMouseVelocity());
+        _setting.setSetting("acceptThisPanelSignal", _acceptThisPageSignal);
+        _setting.setSetting("acceptInputPanelSignal", _acceptInputPanelSignal);
     }
 
     @Override
@@ -115,7 +116,7 @@ public class MX12Process extends MXReceiver implements MXSettingTarget {
     }
 
     @Override
-    public JPanel getReceiverView() {
+    public MXAccordion getReceiverView() {
         return _accordion;
     }
    

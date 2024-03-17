@@ -173,24 +173,29 @@ public class MXMIDIInManager implements MXSettingTarget {
             }
         }
     }
-    
+
     @Override
-    public void prepareSettingFields(MXSetting setting) {
-        setting.register("device[].name");
-        setting.register("device[].open");
-        setting.register("device[].port");
-        setting.register("device[].toMaster");
+    public MXSetting getSettings() {
+        return _setting;
     }
 
     @Override
-    public void afterReadSettingFile(MXSetting setting) {
+    public void prepareSettingFields() {
+        _setting.register("device[].name");
+        _setting.register("device[].open");
+        _setting.register("device[].port");
+        _setting.register("device[].toMaster");
+    }
+
+    @Override
+    public void afterReadSettingFile() {
         MXDriver_NotFound dummy = MXDriver_NotFound.getInstance();
         
         for (int seek = 0; seek < 1000; ++ seek) {
-            String deviceName = setting.getSetting("device[" + seek + "].name");
-            String deviceOpen = setting.getSetting("device[" + seek + "].open");
-            String deviceMaster = setting.getSetting("device[" + seek + "].toMaster");
-            String devicePort = setting.getSetting("device[" + seek + "].port");
+            String deviceName = _setting.getSetting("device[" + seek + "].name");
+            String deviceOpen = _setting.getSetting("device[" + seek + "].open");
+            String deviceMaster = _setting.getSetting("device[" + seek + "].toMaster");
+            String devicePort = _setting.getSetting("device[" + seek + "].port");
             if (deviceName == null || deviceName.length() == 0) {
                 break;
             }
@@ -245,7 +250,7 @@ public class MXMIDIInManager implements MXSettingTarget {
     }
 
     @Override
-    public void beforeWriteSettingFile(MXSetting setting) {
+    public void beforeWriteSettingFile() {
         MXWrapList<MXMIDIIn> all = listAllInput();
         int x = 0;
         for (MXMIDIIn e : all.valueList()) {
@@ -262,10 +267,10 @@ public class MXMIDIInManager implements MXSettingTarget {
                 }
             }
             if (assigned.length() > 0) {
-                setting.setSetting("device[" + x + "].name", e.getName());
-                setting.setSetting("device[" + x + "].open", e.isOpen() ? "1" : "0");
-                setting.setSetting("device[" + x + "].port", assigned.toString());
-                setting.setSetting("device[" + x + "].toMaster", e.getMasterList());
+                _setting.setSetting("device[" + x + "].name", e.getName());
+                _setting.setSetting("device[" + x + "].open", e.isOpen() ? "1" : "0");
+                _setting.setSetting("device[" + x + "].port", assigned.toString());
+                _setting.setSetting("device[" + x + "].toMaster", e.getMasterList());
                 x ++;
             }
         }

@@ -39,8 +39,7 @@ import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
-import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
-import jp.synthtarou.midimixer.libs.swing.MXPianoKeys;
+import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
 
 /**
  *
@@ -50,7 +49,7 @@ public class PickerForinstrument extends javax.swing.JPanel {
 
     public static void main(String[] args) {
         PickerForinstrument editor = new PickerForinstrument();
-        MXModalFrame.showAsDialog(null, editor, "Test");
+        MXUtil.showAsDialog(null, editor, "Test");
         MXMIDIInManager.getManager().initWithSetting();
         MXMIDIOutManager.getManager().initWithSetting();
         System.exit(0);

@@ -95,9 +95,9 @@ public class MXAttachTableResize {
                     width = Math.max(comp.getPreferredSize().width + 30, width);
                 }
             }
-            if (column == table.getColumnCount() - 1) {
+            /*if (column == table.getColumnCount() - 1) {
                 columnModel.getColumn(column).setPreferredWidth(totalWidth);
-            } else {
+            } else */{
                 totalWidth -= width;
                 columnModel.getColumn(column).setPreferredWidth(width);
             }

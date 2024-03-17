@@ -44,7 +44,6 @@ import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
-import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.MXFileChooser;
 import jp.synthtarou.midimixer.libs.swing.focus.MXFocusHandler;
 import jp.synthtarou.midimixer.libs.swing.focus.MXFocusTargetInfo;
@@ -308,7 +307,7 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
 
     public void doInitializeMixer() {
         InitializeConfirmPanel panel = new InitializeConfirmPanel(_mixer);
-        MXModalFrame.showAsDialog(this, panel, "Initialize Mixer");
+        MXUtil.showAsDialog(this, panel, "Initialize Mixer");
         updateUI();
         _mixer._parent.globalContollerHidden();
     }
@@ -364,7 +363,7 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
 
     public void doResizeMixer() {
         MX30ResizeMixerSetting config = new MX30ResizeMixerSetting(_mixer._parent);
-        MXModalFrame.showAsDialog(this, config, "Resize Mixer");
+        MXUtil.showAsDialog(this, config, "Resize Mixer");
         if (config._okOption) {
             _mixer._parent.globalContollerHidden();
         }

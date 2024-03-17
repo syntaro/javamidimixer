@@ -17,7 +17,6 @@
 package jp.synthtarou.midimixer.mx30surface;
 
 import java.util.IllegalFormatException;
-import javax.imageio.metadata.IIOMetadataFormat;
 import javax.swing.JComponent;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;

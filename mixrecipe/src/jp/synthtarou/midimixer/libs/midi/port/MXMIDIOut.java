@@ -18,7 +18,6 @@ package jp.synthtarou.midimixer.libs.midi.port;
 
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.MXQueue1;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -41,8 +40,6 @@ public class MXMIDIOut {
     boolean[] _assigned;
     int _assignCount;
     private MXVisitant16 _visitant16 = new MXVisitant16();
-
-    MXQueue1<MXMessage> _queue;
 
     private MXNoteOffWatcher _myNoteOff = new MXNoteOffWatcher();
 

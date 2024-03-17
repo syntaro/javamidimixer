@@ -51,7 +51,7 @@ public class MX40Group {
 
     private int _lastLayerPos = -1;
     
-    private final MX40Process _process;
+    final MX40Process _process;
     
     MXNoteOffWatcher _noteOff = new MXNoteOffWatcher();
     

@@ -27,6 +27,7 @@ import java.awt.font.TextLayout;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 
 /**
  *
@@ -110,7 +111,7 @@ public class MXLabelWithShrink extends JLabel {
             JLabel label = new MXLabelWithShrink(alpha + alpha + alpha, i);
             panel.add(label);
         }
-        MXModalFrame.showAsDialog(null, panel, "Shrink?");
+        MXUtil.showAsDialog(null, panel, "Shrink?");
         
     }
 }

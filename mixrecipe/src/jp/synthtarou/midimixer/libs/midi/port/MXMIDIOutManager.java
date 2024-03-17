@@ -199,20 +199,25 @@ public class MXMIDIOutManager implements MXSettingTarget {
     }
 
     @Override
-    public void prepareSettingFields(MXSetting setting) {
-        setting.register("device[].name");
-        setting.register("device[].open");
-        setting.register("device[].port");
+    public MXSetting getSettings() {
+        return _setting;
+    }
+    
+    @Override
+    public void prepareSettingFields() {
+        _setting.register("device[].name");
+        _setting.register("device[].open");
+        _setting.register("device[].port");
     }
 
     @Override
-    public void afterReadSettingFile(MXSetting setting) {
+    public void afterReadSettingFile() {
         MXDriver_NotFound dummy = MXDriver_NotFound.getInstance();
 
         for (int seek = 0; seek < 1000; ++seek) {
-            String deviceName = setting.getSetting("device[" + seek + "].name");
-            String deviceOpen = setting.getSetting("device[" + seek + "].open");
-            String devicePort = setting.getSetting("device[" + seek + "].port");
+            String deviceName = _setting.getSetting("device[" + seek + "].name");
+            String deviceOpen = _setting.getSetting("device[" + seek + "].open");
+            String devicePort = _setting.getSetting("device[" + seek + "].port");
 
             if (deviceName == null || deviceName.length() == 0) {
                 break;
@@ -251,7 +256,7 @@ public class MXMIDIOutManager implements MXSettingTarget {
     }
 
     @Override
-    public void beforeWriteSettingFile(MXSetting setting) {
+    public void beforeWriteSettingFile() {
         MXWrapList<MXMIDIOut> all = listAllOutput();
         int x = 0;
         for (MXMIDIOut e : all.valueList()) {
@@ -265,9 +270,9 @@ public class MXMIDIOutManager implements MXSettingTarget {
                 }
             }
             if (assigned.length() > 0) {
-                setting.setSetting("device[" + x + "].name", e.getName());
-                setting.setSetting("device[" + x + "].open", e.isOpen() ? "1" : "0");
-                setting.setSetting("device[" + x + "].port", assigned.toString());
+                _setting.setSetting("device[" + x + "].name", e.getName());
+                _setting.setSetting("device[" + x + "].open", e.isOpen() ? "1" : "0");
+                _setting.setSetting("device[" + x + "].port", assigned.toString());
                 x++;
             }
         }

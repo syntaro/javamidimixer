@@ -23,7 +23,6 @@ import java.io.IOException;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
-import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 
 /**
  *
@@ -75,7 +74,7 @@ public class MXPresetPanel extends javax.swing.JPanel {
         };
         root.getLock();
         MXPresetPanel panel = new MXPresetPanel(root, action);
-        MXModalFrame.showAsDialog(null, panel, "total recall");
+        MXUtil.showAsDialog(null, panel, "total recall");
         root.releaseLock();
         System.exit(0);
     }

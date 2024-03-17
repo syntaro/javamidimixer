@@ -185,19 +185,24 @@ public class ThemeManager implements MXSettingTarget {
     }
 
     @Override
-    public void prepareSettingFields(MXSetting setting) {
-        setting.register("themeLabelColorful");
-        setting.register("themeName");
-        setting.register("fontName");
-        setting.register("fontSize");
-        setting.register("fontStyle");
-        setting.register("circleIsCircle");
+    public void prepareSettingFields() {
+        _setting.register("themeLabelColorful");
+        _setting.register("themeName");
+        _setting.register("fontName");
+        _setting.register("fontSize");
+        _setting.register("fontStyle");
+        _setting.register("circleIsCircle");
     }
 
     @Override
-    public void afterReadSettingFile(MXSetting setting) {
-        colorfulMetalTheme = setting.getSettingAsBoolean("themeLabelColorful", false);
-        themeName = setting.getSetting("themeName");
+    public MXSetting getSettings() {
+        return _setting;
+    }
+    
+    @Override
+    public void afterReadSettingFile() {
+        colorfulMetalTheme = _setting.getSettingAsBoolean("themeLabelColorful", false);
+        themeName = _setting.getSetting("themeName");
         if (themeName == null || themeName.isEmpty()) {
             for (UIManager.LookAndFeelInfo info: UIManager.getInstalledLookAndFeels()) {
                 if (info.getName().equals("Windows")) {
@@ -215,26 +220,26 @@ public class ThemeManager implements MXSettingTarget {
         if (themeName == null || themeName.isEmpty()) {
             themeName = "Metal";
         }
-        fontName = setting.getSetting("fontName");
+        fontName = _setting.getSetting("fontName");
         if (fontName == null || fontName.isEmpty()) {
             fontName = "Monospaced";
         }
-        fontSize = setting.getSettingAsInt("fontSize", 12);
-        fontStyle = setting.getSettingAsInt("fontStyle", Font.PLAIN);
+        fontSize = _setting.getSettingAsInt("fontSize", 12);
+        fontStyle = _setting.getSettingAsInt("fontStyle", Font.PLAIN);
         setFont(fontName, fontStyle, fontSize);
         setUITheme(themeName);
-        CurvedSlider.setMouseCircleIsCircle(setting.getSettingAsBoolean("circleIsCircle", true));
+        CurvedSlider.setMouseCircleIsCircle(_setting.getSettingAsBoolean("circleIsCircle", true));
         updateUITree();
     }
 
     @Override
-    public void beforeWriteSettingFile(MXSetting setting) {
-        setting.setSetting("themeLabelColorful", colorfulMetalTheme);
-        setting.setSetting("themeName", themeName);
-        setting.setSetting("fontName", fontName);
-        setting.setSetting("fontSize", fontSize);
-        setting.setSetting("fontStyle", fontStyle);
-        setting.setSetting("circleIsCircle", CurvedSlider.isMouseCircleIsCircle());
+    public void beforeWriteSettingFile() {
+        _setting.setSetting("themeLabelColorful", colorfulMetalTheme);
+        _setting.setSetting("themeName", themeName);
+        _setting.setSetting("fontName", fontName);
+        _setting.setSetting("fontSize", fontSize);
+        _setting.setSetting("fontStyle", fontStyle);
+        _setting.setSetting("circleIsCircle", CurvedSlider.isMouseCircleIsCircle());
     }
     
 

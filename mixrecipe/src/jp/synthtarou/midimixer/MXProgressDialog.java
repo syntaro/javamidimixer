@@ -22,7 +22,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.swing.MXPianoKeys;
+import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
 
 /**
  *
@@ -34,10 +34,10 @@ public class MXProgressDialog extends javax.swing.JDialog {
 
     public void setMessageAsStartUP() {
         StringBuffer text = new StringBuffer();
-        text.append("Compiled with OpenJDK 21 + NetBeans IDE19\n");
+        text.append("Compiled with OpenJDK 22 + NetBeans IDE19\n");
         text.append(("Copyright(C) SynthTAROU. GNU GPLv3\n"));
         text.append("\n");
-        text.append(("Thank you for Trial.\n"));
+        text.append(("Thank you for Install.\n"));
         text.append(("I wish  You have Fun.\n"));
         text.append("\n\n<Java Information>");
         text.append("java.vendor=" + System.getProperty("java.vendor") + "\n");
@@ -51,6 +51,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
         StringBuffer text = new StringBuffer();
         text.append("It is beta release, please send me issue,\n");
         text.append("Im waiting for public relesae timing.\n\n");
+        text.append("V0.70 Test Driven Development");
         text.append("V0.64 BugFix to not Skip note when Inperfect DataEntry\n");
         text.append("V0.63.2 CPU Optimized for Console\n");
         text.append("V0.63 sysex bug fixed 2\n");
@@ -104,7 +105,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
     }
 
     public void setMessageAsExit() {
-        jLabelVersion.setText("Thank you. Closing MixRecipe");
+        jLabelVersion.setText("Closing MixRecipe");
         StringBuffer text = new StringBuffer();
         text.append("Writing Settings.\n");
         text.append("Closing Devices.\n");

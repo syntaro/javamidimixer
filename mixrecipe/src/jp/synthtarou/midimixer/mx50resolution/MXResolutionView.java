@@ -26,12 +26,12 @@ import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
 import jp.synthtarou.midimixer.ccxml.ui.PickerForControlChange;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.navigator.MXPopup;
 import jp.synthtarou.midimixer.libs.navigator.MXPopupForList;
 import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
-import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 
@@ -334,7 +334,7 @@ public class MXResolutionView extends javax.swing.JPanel {
 
     public void startEditCommand() {
         PickerForControlChange picker = new PickerForControlChange();
-        MXModalFrame.showAsDialog(this, picker, "Picker");
+        MXUtil.showAsDialog(this, picker, "Picker");
         if (picker.getReturnStatus() != INavigator.RETURN_STATUS_APPROVED) {
             return;
         }

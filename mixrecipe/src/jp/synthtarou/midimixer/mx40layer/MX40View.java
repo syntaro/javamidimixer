@@ -36,8 +36,8 @@ import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.ccxml.ui.PickerForinstrument;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
-import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.MXFileChooser;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
@@ -47,7 +47,7 @@ import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
  * @author Syntarou YOSHIDA
  */
 public class MX40View extends javax.swing.JPanel implements TableModelListener {
-    public MX40Process _process;
+    final MX40Process _process;
     
     MX40Group _editingGroup;
     MX40Layer _editingLayer;
@@ -1152,7 +1152,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         readGroupFromPanel(group);
         PickerForinstrument picker = new PickerForinstrument();
         picker.scan(0, group._watchingProgram, group._watchingBankMSB, group._watchingBankLSB);
-        MXModalFrame.showAsDialog(this, picker, "Select Program");
+        MXUtil.showAsDialog(this, picker, "Select Program");
         if (picker._resultProgram != null && picker._resultBank != null) {
             jSpinnerWatchProgram.setValue(picker._resultProgram._listAttributes.numberOfName("PC", -1));
             jSpinnerWatchBankMSB.setValue(picker._resultBank._listAttributes.numberOfName("MSB", -1));
@@ -1169,7 +1169,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         readLayerFromPanel(layer);
         PickerForinstrument picker = new PickerForinstrument();
         picker.scan(0, layer._fixedProgram, layer._fixedBankMSB, layer._fixedBankLSB);
-        MXModalFrame.showAsDialog(this, picker, "Select Program");
+        MXUtil.showAsDialog(this, picker, "Select Program");
         if (picker._resultProgram != null) {
             jSpinnerSendProgram.setValue(picker._resultProgram._listAttributes.numberOfName("PC", -1));
             jSpinnerSendBankMSB.setValue(picker._resultBank._listAttributes.numberOfName("MSB", -1));

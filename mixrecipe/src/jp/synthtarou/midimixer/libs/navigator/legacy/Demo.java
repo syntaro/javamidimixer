@@ -16,11 +16,6 @@
  */
 package jp.synthtarou.midimixer.libs.navigator.legacy;
 
-import jp.synthtarou.midimixer.libs.navigator.legacy.NavigatorForNodeAttribute;
-import jp.synthtarou.midimixer.libs.navigator.legacy.NavigatorForText;
-import jp.synthtarou.midimixer.libs.navigator.legacy.NavigatorForNumber;
-import jp.synthtarou.midimixer.libs.navigator.legacy.NavigatorFor1ColumnList;
-import jp.synthtarou.midimixer.libs.navigator.legacy.NavigatorFor2ColumnList;
 import jp.synthtarou.midimixer.ccxml.xml.CXGeneralMidiFile;
 import jp.synthtarou.midimixer.ccxml.xml.CXNode;
 import jp.synthtarou.midimixer.libs.common.MXUtil;

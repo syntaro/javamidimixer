@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.mx90debug;
 
-import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
@@ -31,7 +30,7 @@ import jp.synthtarou.midimixer.libs.midi.MXTemplate;
  *
  * @author Syntarou YOSHIDA
  */
-public class MX90Process extends MXReceiver {
+public class MX90Process extends MXReceiver<MX90View> {
 
     MX90View _view;
 
@@ -45,7 +44,7 @@ public class MX90Process extends MXReceiver {
     }
 
     @Override
-    public JPanel getReceiverView() {
+    public MX90View getReceiverView() {
         return _view;
     }
 
@@ -65,8 +64,8 @@ public class MX90Process extends MXReceiver {
         result.println("Testing Volume");
         for (int ch = 0; ch < 16; ++ch) {
             int vol = random(128);
-            MXMessage program = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + ch, MXMidi.DATA1_CC_CHANNEL_VOLUME, vol);
-            new MXDebugSame(result, program);
+            MXMessage volume = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + ch, MXMidi.DATA1_CC_CHANNEL_VOLUME, vol);
+            new MXDebugSame(result, volume);
         }
         result.println("Testing Note 2");
         for (int i = 0; i < 127; ++i) {

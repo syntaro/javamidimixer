@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.swing;
+package jp.synthtarou.midimixer.mx00playlist;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -41,6 +41,15 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
  * @author Syntarou YOSHIDA
  */
 public class MXPianoKeys extends JComponent {
+    boolean _doingPaint = true;
+
+    public void setDoingPaint(boolean flag) {
+        _doingPaint = flag;
+        if (_doingPaint != flag && flag) {
+            paintOnBuffer(null);
+            repaint();
+        }
+    }
 
     public static class KeyRect {
 
@@ -569,6 +578,9 @@ public class MXPianoKeys extends JComponent {
     }
 
     public void orderRedrawNote(final int note) {
+        if (!_doingPaint) {
+            return;
+        }
         if (SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {

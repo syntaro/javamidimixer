@@ -22,10 +22,10 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 
 /**
  *
@@ -122,14 +122,14 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
         gridBagConstraints.weightx = 1.0;
     }// </editor-fold>                        
 
-    boolean _ignoreEvent = false;
+    boolean _selfControl = false;
 
     private void jCircleValueStateChanged(javax.swing.event.ChangeEvent evt) {
         int newValue = jCircleValue.getValue();
         if (getStatus().getValue()._value == newValue) {
             return;
         }
-        if (_ignoreEvent) {
+        if (_selfControl) {
             return;
         }
         _mixer.updateStatusAndSend(getStatus(), newValue);
@@ -152,9 +152,9 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
         if (jCircleValue.getValue() == newValue._value) {
             return;
         }
-        _ignoreEvent = true;
+        _selfControl = true;
         jCircleValue.setValue(newValue);
-        _ignoreEvent = false;
+        _selfControl = false;
     }
 
     // Variables declaration - do not modify                     
@@ -164,19 +164,30 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
 
     public void increment(MXMessageBag bag) {
         MGStatus status = getStatus();
-        MXRangedValue var = status.getValue().increment();
-        if (var != null) {
-            _mixer.updateStatusAndGetResult(status, var._value, null, bag);
-            _mixer.flushSendQueue(bag);
+        if (status.getValue().incrementable()) {            
+            MXRangedValue var = status.getValue().increment();
+            if (bag == null) {
+                bag = new MXMessageBag();
+                _mixer.updateStatusAndGetResult(status, var._value, null, bag);
+                _mixer.flushSendQueue(bag);
+            }
+            else {
+                _mixer.updateStatusAndGetResult(status, var._value, null, bag);
+            }
         }
     }
 
     public void decriment(MXMessageBag bag) {
         MGStatus status = getStatus();
-        MXRangedValue var = status.getValue().decrement();
-        if (var != null) {
-            _mixer.updateStatusAndGetResult(status, var._value, null, bag);
-            _mixer.flushSendQueue(bag);
+        if (status.getValue().decrementable()) {            
+            MXRangedValue var = status.getValue().decrement();
+            if (bag == null) {
+                bag = new MXMessageBag();
+                _mixer.updateStatusAndGetResult(status, var._value, null, bag);
+                _mixer.flushSendQueue(bag);
+            }else {
+                _mixer.updateStatusAndGetResult(status, var._value, null, bag);
+            }
         }
     }
 
@@ -184,7 +195,7 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
         _mixer._view.stopEditing();
         MGStatus status = (MGStatus) getStatus().clone();
         MGStatusPanel panel = new MGStatusPanel(_mixer, status);
-        MXModalFrame.showAsDialog(this, panel, "Enter Edit Circle {row:" + _row + ", column:" + _column + "}");
+        MXUtil.showAsDialog(this, panel, "Enter Edit Circle {row:" + _row + ", column:" + _column + "}");
         if (panel._okOption) {
             setStatus(panel._status);
             jLabel1.setText(panel._status._name);

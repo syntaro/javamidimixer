@@ -38,7 +38,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
 
 /**
@@ -179,19 +178,19 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
     public static void main(String[] args) {
 
         MXSwingFolderBrowser c0 = new MXSwingFolderBrowser(new File("C:/Program Files/Common Files"), null);
-        MXModalFrame.showAsDialog(null, c0, "Standard");
+        MXUtil.showAsDialog(null, c0, "Standard");
 
         FileFilter filterxml = new FileFilterListExt(new String[]{".xml"});
         MXSwingFolderBrowser c1 = new MXSwingFolderBrowser(new File("C:/Domino144/Module"), filterxml);
-        MXModalFrame.showAsDialog(null, c1, "Domino XML");
+        MXUtil.showAsDialog(null, c1, "Domino XML");
 
         FileFilter filtervst = new FileFilterListExt(new String[]{".vst3"});
         MXSwingFolderBrowser c2 = new MXSwingFolderBrowser(null, filtervst);
-        MXModalFrame.showAsDialog(null, c2, "VST3");
+        MXUtil.showAsDialog(null, c2, "VST3");
 
         FileFilter filtermid = new FileFilterListExt(new String[]{".mid"});
         MXSwingFolderBrowser c3 = new MXSwingFolderBrowser(new File("C:/"), filtermid);
-        MXModalFrame.showAsDialog(null, c3, "MID File");
+        MXUtil.showAsDialog(null, c3, "MID File");
 
         System.exit(0);
     }

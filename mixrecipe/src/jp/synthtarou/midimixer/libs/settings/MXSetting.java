@@ -19,7 +19,6 @@ package jp.synthtarou.midimixer.libs.settings;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -120,7 +119,7 @@ public class MXSetting {
             throw new NullPointerException();
         }
         _target = target;
-        _target.prepareSettingFields(this);
+        _target.prepareSettingFields();
         _targetName = getClassName(_target.getClass());
         //System.out.println("MXSetting " + _targetName +" : setTarget");
     }
@@ -187,7 +186,7 @@ public class MXSetting {
             }
         }
         if (_target != null) {
-            _target.afterReadSettingFile(this);
+            _target.afterReadSettingFile();
         }
         return true;
     }
@@ -196,7 +195,7 @@ public class MXSetting {
         //System.out.println("MXSetting " + _targetName +" : writeSettingFile " + _settingFile);
         if (_target != null) {
             _root.clearValues();
-            _target.beforeWriteSettingFile(this);
+            _target.beforeWriteSettingFile();
         }
         File temporary = MXSettingUtil.createTemporaryFile(_settingFile);
         MXLineWriter writer = null;

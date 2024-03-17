@@ -23,7 +23,6 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Hashtable;
-import javax.sound.midi.Receiver;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -41,7 +40,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.swing.MXPianoKeys;
+import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 
@@ -63,7 +62,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     }
     
     JButton _jButtonEdit = new JButton("Edit");
-    MX12Process _process;
+    final MX12Process _process;
     MXPianoKeys _piano;
     MXWrapList<Integer> _watchPort = MXWrapListFactory.listupPort(null);
     MXWrapList<Integer> _watchChannel = MXWrapListFactory.listupChannel(null);
@@ -89,10 +88,10 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         
         jSliderPitch.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseReleased(java.awt.event.MouseEvent evt) {
-                setPitchBend(8192);
+                setDXPitchBend(8192);
             }
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                setPitchBend(8192);
+                setDXPitchBend(8192);
             }
         });
         
@@ -189,32 +188,15 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             info.append("To " + name + ", ");
             info.append("Port " + MXMidi.nameOfPortInput(_process.getMousePort()) + ", ");
             info.append("Channel " + (_process.getMouseChannel() + 1));
-            /*
-            if (_process.isAcceptThisPageSignal()) {
-                info.append("Process This page's Signal ");
-                if (_process.isAcceptInputPanelSignal()) {
-                    info.append(", And ");
-                }
-            }else {
-                if (_process.isAcceptInputPanelSignal()) {
-                    info.append("And Process ");
-                }
-            }
-            if (_process.isAcceptInputPanelSignal()) {
-                info.append("Input Panel's Signal ");
-                if (_process.isOverwriteInputChannel()) {
-                    info.append("( With Re-Adjust Ch/Port ) ");
-                }
-            }*/
             _jButtonEdit.setText(info.toString());
         }
     }
     
-    public void setPitchBend(int value) {
+    public void setDXPitchBend(int value) {
         if (SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    setPitchBend(value);
+                    setDXPitchBend(value);
                 }
             });
             return;
@@ -235,11 +217,11 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         }
     }
     
-    public void setModulatoinWheel(int value) {
+    public void setDXModulatoinWheel(int value) {
         if (SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    setModulatoinWheel(value);
+                    setDXModulatoinWheel(value);
                 }
             });
             return;
@@ -319,7 +301,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             return;
         }
         int value = jSliderModwheel.getValue();
-        setModulatoinWheel(value);
+        setDXModulatoinWheel(value);
     }//GEN-LAST:event_jSliderModwheelStateChanged
 
     private void jSliderPitchStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderPitchStateChanged
@@ -327,7 +309,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             return;
         }
         int value = jSliderPitch.getValue();
-        setPitchBend(value);
+        setDXPitchBend(value);
     }//GEN-LAST:event_jSliderPitchStateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

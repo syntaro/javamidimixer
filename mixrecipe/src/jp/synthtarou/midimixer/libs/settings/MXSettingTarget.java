@@ -21,7 +21,8 @@ package jp.synthtarou.midimixer.libs.settings;
  * @author Syntarou YOSHIDA
  */
 public interface MXSettingTarget {
-    public void prepareSettingFields(MXSetting setting);
-    public void afterReadSettingFile(MXSetting setting);
-    public void beforeWriteSettingFile(MXSetting setting);
+    public MXSetting getSettings();
+    public void prepareSettingFields();
+    public void afterReadSettingFile();
+    public void beforeWriteSettingFile();
 }

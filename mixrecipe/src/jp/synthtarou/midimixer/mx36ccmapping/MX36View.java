@@ -29,7 +29,7 @@ import jp.synthtarou.midimixer.libs.navigator.MXPopupForText;
  */
 public class MX36View extends javax.swing.JPanel {
 
-    MX36Process _process;
+    final MX36Process _process;
     MX36StatusDetailPanel _detailPanel;
     MX36StatusListPanel _listPanel;
 

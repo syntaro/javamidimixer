@@ -27,7 +27,7 @@ import javax.swing.JPanel;
  */
 public class MX50View extends javax.swing.JPanel {
 
-    MX50Process _process;
+    final MX50Process _process;
 
     /**
      * Creates new form MX50View

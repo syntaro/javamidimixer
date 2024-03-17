@@ -23,11 +23,11 @@ import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.async.Transaction;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
-import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 import jp.synthtarou.midimixer.libs.vst.IndexedFile;
@@ -43,10 +43,10 @@ import jp.synthtarou.midimixer.libs.vst.VSTStream;
 public class VSTInstancePanel extends javax.swing.JPanel {
 
     VSTInstance _instance;
-    MX80Panel _parent;
+    MX80View _parent;
     boolean _initDone = false;
 
-    public void setParent(MX80Panel parent) {
+    public void setParent(MX80View parent) {
         _parent = parent;
     }
     
@@ -424,7 +424,7 @@ public class VSTInstancePanel extends javax.swing.JPanel {
                     return false;
                 }
             });
-            MXModalFrame.showAsDialog(this, panel, "Preset for Slot " + _instance.getSlot());
+            MXUtil.showAsDialog(this, panel, "Preset for Slot " + _instance.getSlot());
         }finally {
             root.releaseLock();
         }

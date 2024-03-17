@@ -21,6 +21,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
@@ -29,28 +30,27 @@ import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
 import jp.synthtarou.midimixer.libs.swing.JTableWithColumnHeader;
 import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
+import jp.synthtarou.midimixer.mx10input.MX10Structure;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MX60View extends javax.swing.JPanel {
-    MX60Process _process;
     JTableWithColumnHeader _jTableSkip;
     boolean _useSkipCC = true;
     MXWrapList<Integer> _recPortList;
     MX60MidiOutListPanel _midiPanel;
     ButtonGroup _recorderGroup;
+    MX60Structure _structure;
     
     /**
      * Creates new form MX60View
      */
-    public MX60View(MX60Process process) {
-        _process = process; 
+    public MX60View() {
         initComponents();
 
         _midiPanel = new MX60MidiOutListPanel();
@@ -60,8 +60,6 @@ public class MX60View extends javax.swing.JPanel {
         //jComboBoxRecSong.setModel(_recPortList);
          
         _jTableSkip = new JTableWithFooter(jPanel1);
-        new MXAttachTableResize(_jTableSkip);
-        resetTableModel();
         _jTableSkip.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mousePressed(java.awt.event.MouseEvent evt) {
@@ -77,8 +75,6 @@ public class MX60View extends javax.swing.JPanel {
             TableColumn col = _jTableSkip.getColumnModel().getColumn(i);
             col.setCellRenderer(tableCellRenderer);
         }
-        jCheckBoxUseSkip.setSelected(_process.isUsingThisRecipe());
-        _jTableSkip.setEnabled(_process.isUsingThisRecipe());
         _recorderGroup = new ButtonGroup();
         _recorderGroup.add(jRadioButtonSong1);
         _recorderGroup.add(jRadioButtonSong2);
@@ -86,7 +82,6 @@ public class MX60View extends javax.swing.JPanel {
         _recorderGroup.add(jRadioButtonSong4);
         _recorderGroup.add(jRadioButtonSong5);
         jRadioButtonSong1.setSelected(true);
-        enableRecordingButton();
         jProgressBar1.setMinimum(0);
         jProgressBar1.setMaximum(10000);
     }
@@ -252,8 +247,7 @@ public class MX60View extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jCheckBoxUseSkipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxUseSkipActionPerformed
-         _process.setUsingThisRecipe(jCheckBoxUseSkip.isSelected());
-        _jTableSkip.setEnabled(jCheckBoxUseSkip.isSelected());
+         setDXUsingThisRecipe(jCheckBoxUseSkip.isSelected());
     }//GEN-LAST:event_jCheckBoxUseSkipActionPerformed
 
     private void jToggleButtonRecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButtonRecActionPerformed
@@ -263,11 +257,11 @@ public class MX60View extends javax.swing.JPanel {
         }
         if (jToggleButtonRec.isSelected()) {
             jProgressBar1.setIndeterminate(true);
-            _process.startRecording(x);   
+            _structure.startRecording(x);   
         }
         else {
             jProgressBar1.setIndeterminate(false);
-            _process.stopRecording();
+            _structure.stopRecording();
         }
         enableRecordingButton();
     }//GEN-LAST:event_jToggleButtonRecActionPerformed
@@ -278,10 +272,10 @@ public class MX60View extends javax.swing.JPanel {
             return;
         }
         if (jToggleButtonPlay.isSelected()) {
-            _process.startPlaying(x);   
+            _structure.startPlaying(x);   
         }
         else {
-            _process.stopPlaying();
+            _structure.stopPlaying();
         }
         enableRecordingButton();
     }//GEN-LAST:event_jToggleButtonPlayActionPerformed
@@ -307,12 +301,12 @@ public class MX60View extends javax.swing.JPanel {
     }//GEN-LAST:event_jRadioButtonSong1ActionPerformed
 
     private void jButtonSongExportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSongExportActionPerformed
-        if (_process.saveSequenceData() == false) {
+        if (_structure.saveSequenceData() == false) {
             JOptionPane.showMessageDialog(this, "Error while saving MIDI", "Information", JOptionPane.OK_OPTION);
         }
     }//GEN-LAST:event_jButtonSongExportActionPerformed
 
-    public synchronized TableModel createSkipTableModel() {
+    public synchronized TableModel createSkipTableModel(MX10Structure structure) {
         DefaultTableModel model = new DefaultTableModel() {
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -325,12 +319,12 @@ public class MX60View extends javax.swing.JPanel {
             model.addColumn(MXMidi.nameOfPortShort(i));
         }
         
-        for (int type = 0; type < _process._data.TYPE_COUNT; ++ type) {
+        for (int type = 0; type < _structure.TYPE_COUNT; ++ type) {
             Vector line = new Vector();
-            line.add(_process._data.typeNames[type]);
+            line.add(_structure.typeNames[type]);
             
             for (int delivery = 0; delivery < MXAppConfig.TOTAL_PORT_COUNT; ++ delivery) {
-                if (_process._data.isSkip(delivery, type)) {
+                if (_structure.isSkip(delivery, type)) {
                     line.add("Skip");
                 }else {
                     line.add("");
@@ -351,11 +345,11 @@ public class MX60View extends javax.swing.JPanel {
         DefaultTableModel model = (DefaultTableModel)_jTableSkip.getModel();
         
         if (port >= 0 && port < MXAppConfig.TOTAL_PORT_COUNT) {
-            if (_process._data.isSkip(port, type)) {
-                _process._data.setSkip(port, type, false);
+            if (_structure.isSkip(port, type)) {
+                _structure.setSkip(port, type, false);
                 model.setValueAt("", row, column);
             }else {
-                _process._data.setSkip(port, type, true);
+                _structure.setSkip(port, type, true);
                 model.setValueAt("Skip", row, column);
             }
         }
@@ -381,16 +375,20 @@ public class MX60View extends javax.swing.JPanel {
     private javax.swing.JToggleButton jToggleButtonRec;
     // End of variables declaration//GEN-END:variables
 
-    public void resetTableModel() {
-        _jTableSkip.setModel(createSkipTableModel());
-        _jTableSkip.getColumnModel().getColumn(0).setMinWidth(150);
-    }
-    
     public void tabActivated() {
         _midiPanel.refreshList();
     }
     
-    public void setSongLength(int recorder, long count) {
+    public void setDXSongLength(int recorder, long count) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    setDXSongLength(recorder, count);
+                }
+            });
+            return;
+        }
         JRadioButton button = null;
         switch(recorder) {
             case 0:
@@ -412,11 +410,11 @@ public class MX60View extends javax.swing.JPanel {
         button.setText("Song" + (recorder+1) + ")" + MXUtil.digitalClock(count));
     }   
 
-    public int countSongButton() {
+    private int countSongButton() {
         return 5;
     }
     
-    public JRadioButton getSongButton(int x) {
+    private JRadioButton getSongButton(int x) {
         switch(x) {
             case 0:
                 return jRadioButtonSong1;
@@ -432,7 +430,7 @@ public class MX60View extends javax.swing.JPanel {
         return null;
     }
 
-    public int getSelectedTrack() {
+    private int getSelectedTrack() {
         for (int i = 0; i < countSongButton(); ++ i) {
             if (getSongButton(i).isSelected()) {
                 return i;
@@ -441,13 +439,12 @@ public class MX60View extends javax.swing.JPanel {
         return -1;
     }
     
-    public void enableRecordingButton() {
-        int x = getSelectedTrack();
-        if (_process.isRecording()) {
+    private void enableRecordingButton() {
+        if (_structure.isRecording()) {
             jToggleButtonPlay.setEnabled(false);
             jToggleButtonRec.setEnabled(true);
         }
-        else if (_process.isPlaying()) {
+        else if (_structure.isPlaying()) {
             jToggleButtonPlay.setEnabled(true);
             jToggleButtonRec.setEnabled(false);
         }
@@ -455,7 +452,8 @@ public class MX60View extends javax.swing.JPanel {
             jToggleButtonPlay.setSelected(false);
             jToggleButtonRec.setSelected(false);
             jToggleButtonRec.setEnabled(true);
-            if (_process.hasRecorning(x)) {
+            int x = getSelectedTrack();
+            if (_structure.hasRecorning(x)) {
                 jToggleButtonPlay.setEnabled(true);
             }else {
                 jToggleButtonPlay.setEnabled(false);
@@ -479,6 +477,48 @@ public class MX60View extends javax.swing.JPanel {
     }
 
     public void progressFinish(boolean fine) {
+        enableRecordingButton();
+    }
+
+    boolean _isUsingThieRecipe = true;
+    
+    public boolean isDXUsingThisRecipe() {
+        return _isUsingThieRecipe;
+    }
+
+    public void setDXUsingThisRecipe(boolean usingThisRecipe) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    setDXUsingThisRecipe(usingThisRecipe);
+                }
+            });
+            return;
+        }
+        if (usingThisRecipe == _isUsingThieRecipe) {
+            //double enter
+            return;
+        }
+        _isUsingThieRecipe = usingThisRecipe;
+        jCheckBoxUseSkip.setSelected(usingThisRecipe);
+        _jTableSkip.setEnabled(usingThisRecipe);
+    }
+
+    public void setDXStructure(MX60Structure structure) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    setDXStructure(structure);
+                }
+            });
+            return;
+        }
+        _structure = structure;
+        _jTableSkip.setModel(createSkipTableModel(structure));
+        _jTableSkip.getColumnModel().getColumn(0).setMinWidth(150);
+        new MXAttachTableResize(_jTableSkip);
         enableRecordingButton();
     }
 }

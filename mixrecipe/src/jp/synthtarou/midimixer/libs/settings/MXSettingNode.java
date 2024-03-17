@@ -204,26 +204,6 @@ public class MXSettingNode {
         }
     }
 
-    /*
-    public Boolean getSettingAsBoolean(String name) {
-        Integer x = getSettingAsInt(name);
-        if (x != null) {
-            return x == 0 ? Boolean.FALSE : Boolean.TRUE;
-        }
-        return null;
-    }
-    */
-    
-/*
-    public boolean setSetting(String name, MXWrapList<Integer> table, int value) {
-        String valueText = table.nameOfValue(value);
-        if (valueText == null) {
-            throw new MXSettingException("setSetting Not Found Name Of Value " + value);
-        }
-        return setSetting(name, valueText);
-    }
-*/
-    
     public boolean setSetting(String name, String value) {
         if (isRegistered(name) == false) {
             new Throwable("setSetting Not registered " + name + " = " + value).printStackTrace();

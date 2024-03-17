@@ -18,8 +18,6 @@ package jp.synthtarou.midimixer.mx00playlist;
 
 import java.io.File;
 import java.util.List;
-import javax.swing.DefaultListModel;
-import javax.swing.JPanel;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -30,34 +28,19 @@ import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
  *
  * @author Syntarou YOSHIDA
  */
-public class MX00Process extends MXReceiver implements MXSettingTarget {
+public class MX00Process extends MXReceiver<MX00View> implements MXSettingTarget {
 
     public MX00Process() {
-        _playListModel = new DefaultListModel();
         _setting = new MXSetting("PlayList");
         _setting.setTarget(this);
 
-        _view = new MX00View(this);
+        _structure = new MX00Structure();
+        _view = new MX00View();
     }
 
-    public void readSettings() {
-        _setting.readSettingFile();
-
-        if (_playListModel.size() == 0) {
-            _playListModel.addElement(new FileWithId(new File("SynthTAROU000.mid")));
-            _playListModel.addElement(new FileWithId(new File("SynthTAROU001.mid")));
-            _playListModel.addElement(new FileWithId(new File("SynthTAROU002.mid")));
-        }
-
-        _view.settingUpdated();
-    }
-    
     MX00View _view;
-    FileWithId _file;
-    DefaultListModel _playListModel;
+    MX00Structure _structure;
     MXSetting _setting;
-    boolean _playAsChained;
-    boolean _playAsRepeated;
     
     @Override
     public String getReceiverName() {
@@ -65,22 +48,27 @@ public class MX00Process extends MXReceiver implements MXSettingTarget {
     }
 
     @Override
-    public JPanel getReceiverView() {
+    public MX00View getReceiverView() {
         return _view;
     }
+
     @Override
-    public void prepareSettingFields(MXSetting setting) {
-        setting.register("playAsLooped");
-        setting.register("playAsChained");
-        setting.register("song[]");
+    public MXSetting getSettings() {
+        return _setting;
     }
 
     @Override
-    public void afterReadSettingFile(jp.synthtarou.midimixer.libs.settings.MXSetting config) {
-        _playListModel.clear();
+    public void prepareSettingFields() {
+        _setting.register("playAsLooped");
+        _setting.register("playAsChained");
+        _setting.register("song[]");
+    }
 
-        _playAsRepeated = config.getSettingAsBoolean("playAsLooped", false);
-        _playAsChained = config.getSettingAsBoolean("playAsChained", false);
+    @Override
+    public void afterReadSettingFile() {
+        _structure._playListModel.clear();
+        _structure._playAsRepeated = _setting.getSettingAsBoolean("playAsLooped", false);
+        _structure._playAsChained = _setting.getSettingAsBoolean("playAsChained", false);
         
         List<MXSettingNode> nodeList  = _setting.findByPath("song[]");
         int min = 100000;
@@ -96,32 +84,40 @@ public class MX00Process extends MXReceiver implements MXSettingTarget {
             }
         }
         for (int x = min; x <= max; ++ x) {
-            String value = config.getSetting("song[" + x + "]");
+            String value = _setting.getSetting("song[" + x + "]");
             if (value != null && value.length() > 0) {
-                FileWithId file = new FileWithId(new File(value));
-                _playListModel.addElement(file);
+                _structure._playListModel.addFile(value);
             }
         }
+        if (_structure._playListModel.isEmpty()) {
+            _structure._playListModel.addFile("SynthTAROU000.mid");
+            _structure._playListModel.addFile("SynthTAROU001.mid");
+            _structure._playListModel.addFile("SynthTAROU002.mid");
+        }
+
+        _view.setDXStructure(_structure);
     }
 
     @Override
-    public void beforeWriteSettingFile(MXSetting config) {
-        config.clearValue();
-        config.setSetting("playAsLooped", _playAsRepeated);
-        config.setSetting("playAsChained", _playAsChained);
+    public void beforeWriteSettingFile() {
+        _setting.clearValue();
+        _structure = _view.getDXStructure();
 
-        for (int i = 0; i < _playListModel.getSize(); ++ i) {
-            FileWithId f = (FileWithId)_playListModel.get(i);
-            config.setSetting("song[" + (i + 1) + "]", f._file.getPath());
+        _setting.setSetting("playAsLooped", _structure._playAsRepeated);
+        _setting.setSetting("playAsChained", _structure._playAsChained);
+
+        for (int i = 0; i < _structure._playListModel.size(); ++ i) {
+            File f = _structure._playListModel.getElementAt(i)._file;
+            _setting.setSetting("song[" + (i + 1) + "]", f.getPath());
         }
     }
 
     @Override
-    public   void processMXMessage(MXMessage message) {
+    public void processMXMessage(MXMessage message) {
     }
     
-    public void updatePianoKeys(int dword) {
-        _view.updatePianoKeys(dword);
+    public void updateDXPianoKeys(int dword) {
+        _view.updateDXPianoKeys(dword);
     }
 
     public void createPianoControls(int lowNote, int octaveRange, boolean[] activeChannels, int[] listPrograms, List<Integer> drumProgs)  {

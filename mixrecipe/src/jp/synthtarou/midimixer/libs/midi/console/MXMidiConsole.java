@@ -201,16 +201,11 @@ public class MXMidiConsole implements ListModel<String> {
                     break;
                 }
                 case MXMidiConsoleElement.CONSOLE_MESSAGE: {
-                    byte[] data = e.getMessage().createBytes();
-                    if (data == null) {
-                        break;
-                    }else if (data.length > 0) {
-                        int status2 = data[0] & 0xff;
-                        if (status2 == MXMidi.COMMAND_ACTIVESENSING
-                                || status2 == MXMidi.COMMAND_MIDICLOCK
-                                || status2 == MXMidi.COMMAND_MIDITIMECODE) {
-                            return;
-                        }
+                    int status = e.getMessage().getStatus();
+                    if (status == MXMidi.COMMAND_ACTIVESENSING
+                            || status == MXMidi.COMMAND_MIDICLOCK
+                            || status == MXMidi.COMMAND_MIDITIMECODE) {
+                        return;
                     }
                     break;
                 }

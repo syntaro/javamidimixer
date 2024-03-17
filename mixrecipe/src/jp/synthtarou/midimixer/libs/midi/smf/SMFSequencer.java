@@ -16,7 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi.smf;
 
-import jp.synthtarou.midimixer.libs.swing.MXPianoRoll;
+import jp.synthtarou.midimixer.mx00playlist.MXPianoRoll;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
@@ -228,7 +228,6 @@ public class SMFSequencer {
             _pianoRoll.clearCache(position);
         }
         _startMilliSeconds = position;
-        System.out.println(" start  = " + position);
         paintPiano(position);
 
         boolean[] reset = new boolean[MXAppConfig.TOTAL_PORT_COUNT];
@@ -551,7 +550,7 @@ public class SMFSequencer {
         if (directory.isDirectory() == false) {
             return false;
         }
-        SortedArray<SMFMessage> marge = new SortedArray<>();
+        SortedArray<SMFMessage> merge = new SortedArray<>();
         for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++port) {
             File f = new File(directory, directory.getName() + "-" + MXMidi.nameOfPortInput(port) + ".mid");
             if (f.isFile()) {
@@ -559,7 +558,7 @@ public class SMFSequencer {
                     SMFParser parser = new SMFParser(f);
                     for (SMFMessage seek : parser._listMessage) {
                         seek._port = port;
-                        marge.add(seek);
+                        merge.add(seek);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();;
@@ -567,7 +566,7 @@ public class SMFSequencer {
             }
         }
         _parser._listMessage.clear();
-        for (SMFMessage seek : marge) {
+        for (SMFMessage seek : merge) {
             _parser._listMessage.insertSorted(seek);
         }
         return true;

@@ -31,7 +31,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
@@ -48,7 +47,7 @@ import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXSwingFolderBrowser;
  *
  * @author Syntarou YOSHIDA
  */
-public class CXXMLManager extends MXReceiver implements MXSettingTarget {
+public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXSettingTarget {
 
     private static final CXXMLManager _instance = new CXXMLManager();
     private MXSetting _setting;
@@ -296,15 +295,20 @@ public class CXXMLManager extends MXReceiver implements MXSettingTarget {
         _listLoaded.add(xmlFile);
         return true;
     }
-
+    
     @Override
-    public void prepareSettingFields(MXSetting setting) {
-        setting.register("file[]");
+    public MXSetting getSettings() {
+        return _setting;
     }
 
     @Override
-    public void afterReadSettingFile(MXSetting setting) {
-        ArrayList<MXSettingNode> list = setting.findByPath("file[]");
+    public void prepareSettingFields() {
+        _setting.register("file[]");
+    }
+
+    @Override
+    public void afterReadSettingFile() {
+        ArrayList<MXSettingNode> list = _setting.findByPath("file[]");
 
         _listLoaded.clear();
 
@@ -321,10 +325,10 @@ public class CXXMLManager extends MXReceiver implements MXSettingTarget {
     }
 
     @Override
-    public void beforeWriteSettingFile(MXSetting setting) {
-        setting.clearValue();
+    public void beforeWriteSettingFile() {
+        _setting.clearValue();
         for (int i = 0; i < _listLoaded.size(); ++ i) {
-            setting.setSetting("file[" + i + "]", _listLoaded.get(i)._file.getPath());
+            _setting.setSetting("file[" + i + "]", _listLoaded.get(i)._file.getPath());
         }
     }
 
@@ -336,7 +340,7 @@ public class CXXMLManager extends MXReceiver implements MXSettingTarget {
     CXXMLManagerPanel _view = null;
 
     @Override
-    public synchronized  JPanel getReceiverView() {
+    public synchronized  CXXMLManagerPanel getReceiverView() {
         if (_view == null) {
             _view = new CXXMLManagerPanel();
         }

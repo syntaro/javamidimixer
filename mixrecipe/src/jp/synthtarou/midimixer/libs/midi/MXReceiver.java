@@ -23,12 +23,12 @@ import jp.synthtarou.midimixer.MXMain;
  *
  * @author Syntarou YOSHIDA
  */
-public abstract class MXReceiver {
+public abstract class MXReceiver<T extends JPanel> {
     private static MXMain _lock = MXMain.getMain();
     
     public abstract String getReceiverName();
 
-    public abstract JPanel getReceiverView();
+    public abstract T getReceiverView();
     
     private MXReceiver _nextReceiver;
 
@@ -50,13 +50,13 @@ public abstract class MXReceiver {
         }
     }
 
-    boolean _usingThis = true;
+    private boolean _usingThis = true;
     
-    public final boolean isUsingThisRecipe() {
+    public boolean isUsingThisRecipe() {
         return _usingThis;
     }
 
-    public final void setUsingThisRecipe(boolean usingThis) {
+    public void setUsingThisRecipe(boolean usingThis) {
         _usingThis = usingThis;
     }
 }

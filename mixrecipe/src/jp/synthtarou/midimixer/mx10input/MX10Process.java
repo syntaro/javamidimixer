@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.mx10input;
 
-import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
@@ -27,36 +26,32 @@ import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
  *
  * @author Syntarou YOSHIDA
  */
-public class MX10Process extends MXReceiver implements MXSettingTarget {
-    MX10Data _data;
+public class MX10Process extends MXReceiver<MX10View> implements MXSettingTarget {
     MX10View _view;
-
     MXSetting _setting;
+    MX10Structure _structure;
 
     public MX10Process() {
-        _data = new MX10Data();
-        _view = new MX10View(this);
+        _view = new MX10View();
+        _structure = new MX10Structure();
         _setting = new MXSetting("InputSkip");
         _setting.setTarget(this);
     }
     
-    public void readSettings() {
-        _setting.readSettingFile();
+    @Override
+    public boolean isUsingThisRecipe() {
+        return _view.isDXUsingThisRecipe();
     }
-    
 
-    public void setUseMesssageFilter(boolean log) {
-        setUsingThisRecipe(log);
-    }
-    
-    public boolean isUseMessageFilter() {
-        return isUsingThisRecipe();
+    @Override
+    public void setUsingThisRecipe(boolean flag) {
+        _view.setDXUsingThisRecipe(flag);
     }
     
     @Override
     public void processMXMessage(MXMessage message) {
         if (isUsingThisRecipe()) {
-            if (_data.isMarkedAsSkip(message)) {
+            if (_structure.isMessageForSkip(message)) {
                 return;
             }
         }
@@ -69,41 +64,47 @@ public class MX10Process extends MXReceiver implements MXSettingTarget {
     }
 
     @Override
-    public JPanel getReceiverView() {
+    public MX10View getReceiverView() {
         return _view;
     }
 
     @Override
-    public void prepareSettingFields(MXSetting setting) {
+    public MXSetting getSettings() {
+        return _setting;
+    }
+    
+    @Override
+    public void prepareSettingFields() {
         String prefix = "Setting[].";
-        for (String text : MX10Data.typeNames) {
-            setting.register(prefix + text);
+        for (String text : _structure.typeNames) {
+            _setting.register(prefix + text);
         }
     }
 
     @Override
-    public void afterReadSettingFile(MXSetting setting) {
+    public void afterReadSettingFile() {
         for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
             String prefix = "Setting[" + port + "].";
-            for (int j = 0; j < _data.countOfTypes(); ++ j) {
-                String name = _data.typeNames[j];
-                boolean set = setting.getSettingAsBoolean(prefix + name, false);
-                _data.setSkip(port, j, set);
+            for (int j = 0; j < _structure.countOfTypes(); ++ j) {
+                String name = _structure.typeNames[j];
+                boolean set = _setting.getSettingAsBoolean(prefix + name, false);
+                _structure.setSkip(port, j, set);
             }
         }
-        _view.resetTableModel();
+        _view.setDXUsingThisRecipe(isUsingThisRecipe());
+        _view.setDXStructure(_structure);
     }
 
     @Override
-    public void beforeWriteSettingFile(MXSetting setting) {
+    public void beforeWriteSettingFile() {
         for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
             String prefix = "Setting[" + port + "].";
             StringBuffer str = new StringBuffer();
-            for (int j = 0; j < _data.countOfTypes(); ++ j) {
-                boolean set = _data.isSkip(port, j);
+            for (int j = 0; j < _structure.countOfTypes(); ++ j) {
+                boolean set = _structure.isSkip(port, j);
                 if (set) {                   
-                    String name = _data.typeNames[j];
-                    setting.setSetting(prefix + name, set);
+                    String name = _structure.typeNames[j];
+                    _setting.setSetting(prefix + name, set);
                 }
             }
         }

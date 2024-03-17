@@ -24,7 +24,7 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
-import jp.synthtarou.midimixer.libs.swing.MXPianoKeys;
+import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
 
 /**
  *

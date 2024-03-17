@@ -18,7 +18,6 @@ package jp.synthtarou.midimixer.libs.midi;
 
 import java.util.LinkedList;
 import java.util.TreeSet;
-import java.util.stream.Collector;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
 
 /**
@@ -27,11 +26,11 @@ import jp.synthtarou.midimixer.mx30surface.MGStatus;
  */
 public class MXMessageBag {
     LinkedList<MXMessage> _listQuque = new LinkedList<>();
-    LinkedList<MXMessage> _listTranslated = new LinkedList<>();
-    LinkedList<Runnable> _listTranslatedTask = new LinkedList<>();
+    LinkedList<MXMessage> _listResult = new LinkedList<>();
+    LinkedList<Runnable> _listResultTask = new LinkedList<>();
 
     TreeSet<MXMessage> _alreadyQueue = new TreeSet<>();
-    TreeSet<MXMessage> _alreadyTranslated = new TreeSet<>();
+    TreeSet<MXMessage> _alreadyResult = new TreeSet<>();
     
     TreeSet<MGStatus> _touchedStatus = new TreeSet<>();
 
@@ -41,7 +40,7 @@ public class MXMessageBag {
     }
     
     public void dumpQueue() {
-        System.out.println("dumpqueue "  +_listTranslated.toString());
+        System.out.println("dumpqueue "  +_listResult.toString());
     }
     
     public synchronized void addQueue(MXMessage message) {
@@ -59,31 +58,31 @@ public class MXMessageBag {
         return _listQuque.removeFirst();
     }
     
-    public synchronized void addTranslated(MXMessage message) {
+    public synchronized void addResult(MXMessage message) {
         message = (MXMessage)message.clone();
-        if (_alreadyTranslated.contains(message)) {
+        if (_alreadyResult.contains(message)) {
             return ;
         }
-        _alreadyTranslated.add(message);
-        _listTranslated.add(message);
+        _alreadyResult.add(message);
+        _listResult.add(message);
     }
 
-    public synchronized void addTranslatedTask(Runnable task) {
-        _listTranslatedTask.add(task);
+    public synchronized void addResultTask(Runnable task) {
+        _listResultTask.add(task);
     }
 
-    public synchronized MXMessage popTranslated() {
-        if (_listTranslated.isEmpty()) {
+    public synchronized MXMessage popResult() {
+        if (_listResult.isEmpty()) {
             return null;
         }
-        return _listTranslated.removeFirst();
+        return _listResult.removeFirst();
     }
 
-    public synchronized Runnable popTranslatedTask() {
-        if (_listTranslatedTask.isEmpty()) {
+    public synchronized Runnable popResultTask() {
+        if (_listResultTask.isEmpty()) {
             return null;
         }
-        return _listTranslatedTask.removeFirst();
+        return _listResultTask.removeFirst();
     }
     
     public synchronized void addTouchedStatus(MGStatus status) {
@@ -94,10 +93,6 @@ public class MXMessageBag {
         MGStatus[] result = new MGStatus[_touchedStatus.size()];
         _touchedStatus.toArray(result);
         return result;
-    }
-    
-    public synchronized boolean isTranslatedEmpty() {
-        return _listTranslated.isEmpty() && _listTranslatedTask.isEmpty();
     }
     
     public synchronized boolean isTouchedStatus(MGStatus status) {

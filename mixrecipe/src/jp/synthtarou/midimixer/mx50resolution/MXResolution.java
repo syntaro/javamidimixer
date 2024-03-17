@@ -37,7 +37,7 @@ public class MXResolution implements Cloneable {
     MXWrapList<Integer> _gateTable;
     MXWrapList<Integer> _valueTable;
     
-    MX50Process _process;
+    final MX50Process _process;
     MXResolutionView _bindedView;   
     
     public MXResolution(MX50Process process) {
@@ -84,7 +84,7 @@ public class MXResolution implements Cloneable {
             MXMessage translated = updateWithNewResolution(message);
             if (translated != null) {
                _bindedView.updateMonitor(message.getValue()._value, translated.getValue()._value);
-                result.addTranslated(translated);
+                result.addResult(translated);
             }
         }
 

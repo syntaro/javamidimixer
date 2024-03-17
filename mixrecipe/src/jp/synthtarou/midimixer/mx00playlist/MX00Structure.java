@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Syntarou YOSHIDA.
+ * Copyright (C) 2024 Syntarou YOSHIDA
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,16 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.mx60output;
-
-import jp.synthtarou.midimixer.mx10input.MX10Data;
+package jp.synthtarou.midimixer.mx00playlist;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX60Data extends MX10Data {    
-    public MX60Data() {
-        super();
+public class MX00Structure {
+    public MX00Structure() {
+        _playListModel = new DXPlayList();
+        _playAsChained = false;
+        _playAsRepeated = false;
     }
+
+    boolean _playAsChained;
+    boolean _playAsRepeated;
+    DXPlayList _playListModel;
 }

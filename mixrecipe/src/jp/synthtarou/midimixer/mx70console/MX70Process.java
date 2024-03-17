@@ -28,7 +28,7 @@ import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
  */
 public class MX70Process implements MXSettingTarget {
     MXSetting _setting;
-    MX70Panel _view;
+    MX70View _view;
     MXMidiConsole _outsideInput = new MXMidiConsole();
     MXMidiConsole _insideInput = new MXMidiConsole();
     MXMidiConsole _insideOutput = new MXMidiConsole();
@@ -40,7 +40,7 @@ public class MX70Process implements MXSettingTarget {
         _setting.setTarget(this);
     }
 
-    public void readSettings() {
+    public void readSettingAndSetup() {
         _setting.readSettingFile();
     }
 
@@ -50,7 +50,7 @@ public class MX70Process implements MXSettingTarget {
                 return;
             }
         }
-        _view = new MX70Panel(this);
+        _view = new MX70View(this);
         _view.showAsWindow();
     }
 
@@ -84,15 +84,20 @@ public class MX70Process implements MXSettingTarget {
     }
 
     @Override
-    public void prepareSettingFields(MXSetting setting) {
+    public MXSetting getSettings() {
+        return _setting;
     }
 
     @Override
-    public void afterReadSettingFile(MXSetting setting) {
+    public void prepareSettingFields() {
     }
 
     @Override
-    public void beforeWriteSettingFile(MXSetting setting) {
+    public void afterReadSettingFile() {
+    }
+
+    @Override
+    public void beforeWriteSettingFile() {
     }
     
     MX70SysexPanel _sysex;

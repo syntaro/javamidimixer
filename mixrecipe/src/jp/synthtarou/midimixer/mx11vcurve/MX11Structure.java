@@ -22,14 +22,14 @@ import jp.synthtarou.midimixer.MXAppConfig;
  *
  * @author Syntarou YOSHIDA
  */
-public class MX11Data {
+public class MX11Structure {
     int _portCount;
     static int[] DEFAULT_CURVE =  new int[] {
             1, 25, 50, 75, 100, 127
     };
     int[][] _vc;
 
-    public MX11Data() {
+    public MX11Structure() {
         _portCount = MXAppConfig.TOTAL_PORT_COUNT;
         _vc = new int[_portCount][];
         for (int i = 0; i < _portCount; ++ i) {

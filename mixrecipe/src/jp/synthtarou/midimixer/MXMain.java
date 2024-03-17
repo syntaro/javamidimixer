@@ -187,17 +187,16 @@ public class MXMain  {
         _mx50resolutionProcess.setNextReceiver(_mx60outputProcess);
         _mx60outputProcess.setNextReceiver(FinalMIDIOut.getInstance());
 
-        _mx30kontrolProcess.readSettings();
-        _mx00playlistProcess.readSettings();
+        _mx30kontrolProcess.getSettings().readSettingFile();
+        _mx00playlistProcess.getSettings().readSettingFile();
         
-        _mx10inputProcess.readSettings();
-        _mx12pianoProcess.readSettings();
-        _mx36ccmappingProcess.readSettings();
-        _mx60outputProcess.readSettings();
-        _mx40layerProcess.readSettings();
-        _mx50resolutionProcess.readSettings();
-
-        _mx70CosoleProcess.readSettings();                
+        _mx10inputProcess.getSettings().readSettingFile();
+        _mx12pianoProcess.getSettings().readSettingFile();
+        _mx36ccmappingProcess.getSettings().readSettingFile();
+        _mx60outputProcess.getSettings().readSettingFile();
+        _mx40layerProcess.getSettings().readSettingFile();
+        _mx50resolutionProcess.getSettings().readSettingFile();
+        _mx70CosoleProcess.getSettings().readSettingFile();                
 
         _mainWindow = new MXMainWindow(this);
         _mainWindow.setEnabled(false);
@@ -380,7 +379,7 @@ public class MXMain  {
         {
             MXMain.getMain()._mx90Debugger.println(text);
         }
-        System.err.println(text);
+        System.out.println(text);
     }
     
     public static void printTrace(String text) {

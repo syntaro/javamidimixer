@@ -18,7 +18,6 @@ package jp.synthtarou.midimixer.mx30surface;
 
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import java.util.ArrayList;
-import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -38,7 +37,7 @@ import jp.synthtarou.midimixer.libs.midi.port.MXVisitant16;
  *
  * @author Syntarou YOSHIDA
  */
-public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
+public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXSettingTarget {
 
     final int _port;
     final MX30Process _parent;
@@ -61,9 +60,8 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
         new MX32MixerInitializer(this).initVolumeMixer();
     }
 
-    public void readSettings() {
+    public void readSettingFile() {
         _setting.readSettingFile();
-        _view.updateUI();
     }
 
     @Override
@@ -72,7 +70,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
     }
 
     @Override
-    public JPanel getReceiverView() {
+    public MX32MixerView getReceiverView() {
         return _view;
     }
 
@@ -87,103 +85,108 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
     }
 
     @Override
-    public void prepareSettingFields(MXSetting setting) {
-        setting.register("PatchToMixer");
-
-        /* general for circle */
-        setting.register("Circle[].name");
-        setting.register("Circle[].note");
-        setting.register("Circle[].type");
-        setting.register("Circle[].row");
-        setting.register("Circle[].column");
-        setting.register("Circle[].message");
-        setting.register("Circle[].channel");
-        setting.register("Circle[].gate");
-        setting.register("Circle[].value");
-        setting.register("Circle[].valuemin");
-        setting.register("Circle[].valuemax");
-        setting.register("Circle[].isCCPair");
-        setting.register("Circle[].valueinvert");
-        setting.register("Circle[].attributes");
-
-        /* general for slider */
-        setting.register("Slider[].name");
-        setting.register("Slider[].note");
-        setting.register("Slider[].type");
-        setting.register("Slider[].row");
-        setting.register("Slider[].column");
-        setting.register("Slider[].message");
-        setting.register("Slider[].channel");
-        setting.register("Slider[].gate");
-        setting.register("Slider[].value");
-        setting.register("Slider[].valuemin");
-        setting.register("Slider[].valuemax");
-        setting.register("Slider[].isCCPair");
-        setting.register("Slider[].valueinvert");
-        setting.register("Slider[].attributes");
-
-        /* general for pad */
-        setting.register("Pad[].name");
-        setting.register("Pad[].note");
-        setting.register("Pad[].type");
-        setting.register("Pad[].row");
-        setting.register("Pad[].column");
-        setting.register("Pad[].message");
-        setting.register("Pad[].channel");
-        setting.register("Pad[].gate");
-        setting.register("Pad[].value");
-        setting.register("Pad[].valuemin");
-        setting.register("Pad[].valuemax");
-        setting.register("Pad[].isCCPair");
-        setting.register("Pad[].valueinvert");
-        setting.register("Pad[].attributes");
-
-        /* drum */
-        setting.register("Pad[].switchInputOnMin");
-        setting.register("Pad[].switchInputOnMax");
-        setting.register("Pad[].switchMouseOnValue");
-        setting.register("Pad[].switchMouseOffValue");
-        setting.register("Pad[].switchWithToggle");
-        setting.register("Pad[].switchOnlySwitched");
-
-        /* drum out */
-        setting.register("Pad[].switchOutPort");
-        setting.register("Pad[].switchOutChannel");
-        setting.register("Pad[].switchOutStyle");
-        setting.register("Pad[].switchOutValueTypeOn");
-        setting.register("Pad[].switchOutValueTypeOff");
-
-        /* template */
-        setting.register("Pad[].switchTemplateText");
-        setting.register("Pad[].switchTemplateTextGate");
-
-        /* program */
-        setting.register("Pad[].switchProgramType");
-        setting.register("Pad[].switchProgramNumber");
-        setting.register("Pad[].switchProgramMSB");
-        setting.register("Pad[].switchProgramLSB");
-
-        /* note */
-        setting.register("Pad[].switchHarmonyNotes");
-
-        /* sequencer */
-        setting.register("Pad[].switchSequencerFile");
-        setting.register("Pad[].switchSequencerSingleTrack");
-        setting.register("Pad[].switchSequencerSeekStart");
-        setting.register("Pad[].switchSequencerFilterNote");
-
-        /* linkslider TOOD */
-        setting.register("Pad[].switchLinkRow");
-        setting.register("Pad[].switchLinkColumn");
-        setting.register("Pad[].switchLinkMode");
-        setting.register("Pad[].switchLinkKontrolType");
+    public MXSetting getSettings() {
+        return _setting;
     }
 
     @Override
-    public void afterReadSettingFile(MXSetting setting) {
+    public void prepareSettingFields() {
+        _setting.register("PatchToMixer");
+
+        /* general for circle */
+        _setting.register("Circle[].name");
+        _setting.register("Circle[].note");
+        _setting.register("Circle[].type");
+        _setting.register("Circle[].row");
+        _setting.register("Circle[].column");
+        _setting.register("Circle[].message");
+        _setting.register("Circle[].channel");
+        _setting.register("Circle[].gate");
+        _setting.register("Circle[].value");
+        _setting.register("Circle[].valuemin");
+        _setting.register("Circle[].valuemax");
+        _setting.register("Circle[].isCCPair");
+        _setting.register("Circle[].valueinvert");
+        _setting.register("Circle[].attributes");
+
+        /* general for slider */
+        _setting.register("Slider[].name");
+        _setting.register("Slider[].note");
+        _setting.register("Slider[].type");
+        _setting.register("Slider[].row");
+        _setting.register("Slider[].column");
+        _setting.register("Slider[].message");
+        _setting.register("Slider[].channel");
+        _setting.register("Slider[].gate");
+        _setting.register("Slider[].value");
+        _setting.register("Slider[].valuemin");
+        _setting.register("Slider[].valuemax");
+        _setting.register("Slider[].isCCPair");
+        _setting.register("Slider[].valueinvert");
+        _setting.register("Slider[].attributes");
+
+        /* general for pad */
+        _setting.register("Pad[].name");
+        _setting.register("Pad[].note");
+        _setting.register("Pad[].type");
+        _setting.register("Pad[].row");
+        _setting.register("Pad[].column");
+        _setting.register("Pad[].message");
+        _setting.register("Pad[].channel");
+        _setting.register("Pad[].gate");
+        _setting.register("Pad[].value");
+        _setting.register("Pad[].valuemin");
+        _setting.register("Pad[].valuemax");
+        _setting.register("Pad[].isCCPair");
+        _setting.register("Pad[].valueinvert");
+        _setting.register("Pad[].attributes");
+
+        /* drum */
+        _setting.register("Pad[].switchInputOnMin");
+        _setting.register("Pad[].switchInputOnMax");
+        _setting.register("Pad[].switchMouseOnValue");
+        _setting.register("Pad[].switchMouseOffValue");
+        _setting.register("Pad[].switchWithToggle");
+        _setting.register("Pad[].switchOnlySwitched");
+
+        /* drum out */
+        _setting.register("Pad[].switchOutPort");
+        _setting.register("Pad[].switchOutChannel");
+        _setting.register("Pad[].switchOutStyle");
+        _setting.register("Pad[].switchOutValueTypeOn");
+        _setting.register("Pad[].switchOutValueTypeOff");
+
+        /* template */
+        _setting.register("Pad[].switchTemplateText");
+        _setting.register("Pad[].switchTemplateTextGate");
+
+        /* program */
+        _setting.register("Pad[].switchProgramType");
+        _setting.register("Pad[].switchProgramNumber");
+        _setting.register("Pad[].switchProgramMSB");
+        _setting.register("Pad[].switchProgramLSB");
+
+        /* note */
+        _setting.register("Pad[].switchHarmonyNotes");
+
+        /* sequencer */
+        _setting.register("Pad[].switchSequencerFile");
+        _setting.register("Pad[].switchSequencerSingleTrack");
+        _setting.register("Pad[].switchSequencerSeekStart");
+        _setting.register("Pad[].switchSequencerFilterNote");
+
+        /* linkslider TOOD */
+        _setting.register("Pad[].switchLinkRow");
+        _setting.register("Pad[].switchLinkColumn");
+        _setting.register("Pad[].switchLinkMode");
+        _setting.register("Pad[].switchLinkKontrolType");
+    }
+
+    @Override
+    public void afterReadSettingFile() {
         ArrayList<MXSettingNode> children;
-        children = setting.findByPath("Circle[]");
-        _patchToMixer = setting.getSettingAsInt("PatchToMixer", -1);
+        children = _setting.findByPath("Circle[]");
+        _patchToMixer = _setting.getSettingAsInt("PatchToMixer", -1);
         int x = 0;
         for (MXSettingNode node : children) {
             ++x;
@@ -218,7 +221,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             setStatus(MGStatus.TYPE_CIRCLE, row, column, status);
         }
 
-        children = setting.findByPath("Slider[]");
+        children = _setting.findByPath("Slider[]");
         for (MXSettingNode node : children) {
             int type = node.getSettingAsInt("type", -1);
             int row = node.getSettingAsInt("row", -1);
@@ -250,7 +253,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 e.printStackTrace();
             }
         }
-        children = setting.findByPath("Pad[]");
+        children = _setting.findByPath("Pad[]");
         int count = 0;
         for (MXSettingNode node : children) {
             int type = node.getSettingAsInt("type", -1);
@@ -334,9 +337,9 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
 
                 /* sequencer */
                 String switchSequencerFile = node.getSetting("switchSequencerFile");
-                boolean switchSequencerSingleTrack = setting.getSettingAsBoolean("switchSequencerSingleTrack", false);
-                boolean switchSequencerSeekStart = setting.getSettingAsBoolean("switchSequencerSeekStart", false);
-                boolean switchSequencerFilterNote = setting.getSettingAsBoolean("switchSequencerFilterNote", false);
+                boolean switchSequencerSingleTrack = _setting.getSettingAsBoolean("switchSequencerSingleTrack", false);
+                boolean switchSequencerSeekStart = _setting.getSettingAsBoolean("switchSequencerSeekStart", false);
+                boolean switchSequencerFilterNote = _setting.getSettingAsBoolean("switchSequencerFilterNote", false);
 
                 drum._sequencerFile = switchSequencerFile;
                 drum._sequencerSeekStart = switchSequencerSeekStart;
@@ -359,30 +362,31 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 e.printStackTrace();
             }
         }
+        _view.updateUI();
     }
 
     @Override
-    public void beforeWriteSettingFile(MXSetting node) {
+    public void beforeWriteSettingFile() {
         int counter;
         counter = 1;
-        node.setSetting("PatchToMixer", _patchToMixer);
+        _setting.setSetting("PatchToMixer", _patchToMixer);
         for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
             for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++row) {
                 String prefix = "Circle[" + counter + "].";
                 MGStatus status = getStatus(MGStatus.TYPE_CIRCLE, row, column);
                 MXMessage base = status._base;
-                node.setSetting(prefix + "name", status._name);
-                node.setSetting(prefix + "note", status._memo);
-                node.setSetting(prefix + "type", status._uiType);
-                node.setSetting(prefix + "row", row);
-                node.setSetting(prefix + "column", column);
-                node.setSetting(prefix + "message", base.getTemplateAsText());
-                node.setSetting(prefix + "channel", base.getChannel());
-                node.setSetting(prefix + "gate", base.getGate()._value);
-                node.setSetting(prefix + "value", base.getValue()._value);
-                node.setSetting(prefix + "valuemin", base.getValue()._min);
-                node.setSetting(prefix + "valuemax", base.getValue()._max);
-                node.setSetting(prefix + "isCCPair", status._ccPair14);
+                _setting.setSetting(prefix + "name", status._name);
+                _setting.setSetting(prefix + "note", status._memo);
+                _setting.setSetting(prefix + "type", status._uiType);
+                _setting.setSetting(prefix + "row", row);
+                _setting.setSetting(prefix + "column", column);
+                _setting.setSetting(prefix + "message", base.getTemplateAsText());
+                _setting.setSetting(prefix + "channel", base.getChannel());
+                _setting.setSetting(prefix + "gate", base.getGate()._value);
+                _setting.setSetting(prefix + "value", base.getValue()._value);
+                _setting.setSetting(prefix + "valuemin", base.getValue()._min);
+                _setting.setSetting(prefix + "valuemax", base.getValue()._max);
+                _setting.setSetting(prefix + "isCCPair", status._ccPair14);
                 counter++;
             }
         }
@@ -392,18 +396,18 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 String prefix = "Slider[" + counter + "].";
                 MGStatus status = getStatus(MGStatus.TYPE_SLIDER, row, column);
                 MXMessage base = status._base;
-                node.setSetting(prefix + "name", status._name);
-                node.setSetting(prefix + "note", status._memo);
-                node.setSetting(prefix + "type", status._uiType);
-                node.setSetting(prefix + "row", row);
-                node.setSetting(prefix + "column", column);
-                node.setSetting(prefix + "message", base.getTemplateAsText());
-                node.setSetting(prefix + "channel", base.getChannel());
-                node.setSetting(prefix + "gate", base.getGate()._value);
-                node.setSetting(prefix + "value", base.getValue()._value);
-                node.setSetting(prefix + "valuemin", base.getValue()._min);
-                node.setSetting(prefix + "valuemax", base.getValue()._max);
-                node.setSetting(prefix + "isCCPair", status._ccPair14);
+                _setting.setSetting(prefix + "name", status._name);
+                _setting.setSetting(prefix + "note", status._memo);
+                _setting.setSetting(prefix + "type", status._uiType);
+                _setting.setSetting(prefix + "row", row);
+                _setting.setSetting(prefix + "column", column);
+                _setting.setSetting(prefix + "message", base.getTemplateAsText());
+                _setting.setSetting(prefix + "channel", base.getChannel());
+                _setting.setSetting(prefix + "gate", base.getGate()._value);
+                _setting.setSetting(prefix + "value", base.getValue()._value);
+                _setting.setSetting(prefix + "valuemin", base.getValue()._min);
+                _setting.setSetting(prefix + "valuemax", base.getValue()._max);
+                _setting.setSetting(prefix + "isCCPair", status._ccPair14);
 
                 counter++;
             }
@@ -414,63 +418,63 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                 String prefix = "Pad[" + counter + "].";
                 MGStatus status = getStatus(MGStatus.TYPE_DRUMPAD, row, column);
                 MXMessage base = status._base;
-                node.setSetting(prefix + "name", status._name);
-                node.setSetting(prefix + "note", status._memo);
-                node.setSetting(prefix + "type", status._uiType);
-                node.setSetting(prefix + "row", row);
-                node.setSetting(prefix + "column", column);
-                node.setSetting(prefix + "message", base.getTemplateAsText());
-                node.setSetting(prefix + "channel", base.getChannel());
-                node.setSetting(prefix + "gate", base.getGate()._value);
-                node.setSetting(prefix + "value", base.getValue()._value);
-                node.setSetting(prefix + "valuemin", base.getValue()._min);
-                node.setSetting(prefix + "valuemax", base.getValue()._max);
-                node.setSetting(prefix + "isCCPair", status._ccPair14);
+                _setting.setSetting(prefix + "name", status._name);
+                _setting.setSetting(prefix + "note", status._memo);
+                _setting.setSetting(prefix + "type", status._uiType);
+                _setting.setSetting(prefix + "row", row);
+                _setting.setSetting(prefix + "column", column);
+                _setting.setSetting(prefix + "message", base.getTemplateAsText());
+                _setting.setSetting(prefix + "channel", base.getChannel());
+                _setting.setSetting(prefix + "gate", base.getGate()._value);
+                _setting.setSetting(prefix + "value", base.getValue()._value);
+                _setting.setSetting(prefix + "valuemin", base.getValue()._min);
+                _setting.setSetting(prefix + "valuemax", base.getValue()._max);
+                _setting.setSetting(prefix + "isCCPair", status._ccPair14);
 
                 /* Drum */
                 MGStatusForDrum drum = status._drum;
-                node.setSetting(prefix + "switchInputOnMin", drum._strikeZone._min);
-                node.setSetting(prefix + "switchInputOnMax", drum._strikeZone._max);
+                _setting.setSetting(prefix + "switchInputOnMin", drum._strikeZone._min);
+                _setting.setSetting(prefix + "switchInputOnMax", drum._strikeZone._max);
 
-                node.setSetting(prefix + "switchMouseOnValue", drum._mouseOnValue);
-                node.setSetting(prefix + "switchMouseOffValue", drum._mouseOffValue);
+                _setting.setSetting(prefix + "switchMouseOnValue", drum._mouseOnValue);
+                _setting.setSetting(prefix + "switchMouseOffValue", drum._mouseOffValue);
 
-                node.setSetting(prefix + "switchWithToggle", drum._modeToggle);
+                _setting.setSetting(prefix + "switchWithToggle", drum._modeToggle);
 
-                node.setSetting(prefix + "switchOnlySwitched", drum._onlySwitched);
+                _setting.setSetting(prefix + "switchOnlySwitched", drum._onlySwitched);
 
                 /* drum out */
-                node.setSetting(prefix + "switchOutPort", drum._outPort);
-                node.setSetting(prefix + "switchOutChannel", drum._outChannel);
+                _setting.setSetting(prefix + "switchOutPort", drum._outPort);
+                _setting.setSetting(prefix + "switchOutChannel", drum._outChannel);
 
-                node.setSetting(prefix + "switchOutStyle", drum._outStyle);
-                node.setSetting(prefix + "switchOutValueTypeOn", drum._outValueTypeOn);
-                node.setSetting(prefix + "switchOutValueTypeOff", drum._outValueTypeOff);
+                _setting.setSetting(prefix + "switchOutStyle", drum._outStyle);
+                _setting.setSetting(prefix + "switchOutValueTypeOn", drum._outValueTypeOn);
+                _setting.setSetting(prefix + "switchOutValueTypeOff", drum._outValueTypeOff);
 
                 /* template */
-                node.setSetting(prefix + "switchTemplateText", drum._templateText);
-                node.setSetting(prefix + "switchTemplateTextGate", drum._teplateTextGate);
+                _setting.setSetting(prefix + "switchTemplateText", drum._templateText);
+                _setting.setSetting(prefix + "switchTemplateTextGate", drum._teplateTextGate);
 
                 /* program */
-                node.setSetting(prefix + "switchProgramType", drum._programType);
-                node.setSetting(prefix + "switchProgramNumber", drum._programNumber);
-                node.getSettingAsInt(prefix + "switchProgramMSB", drum._programMSB);
-                node.getSettingAsInt(prefix + "switchProgramLSB", drum._programLSB);
+                _setting.setSetting(prefix + "switchProgramType", drum._programType);
+                _setting.setSetting(prefix + "switchProgramNumber", drum._programNumber);
+                _setting.setSetting(prefix + "switchProgramMSB", drum._programMSB);
+                _setting.setSetting(prefix + "switchProgramLSB", drum._programLSB);
 
                 /* note */
-                node.setSetting(prefix + "switchHarmonyNotes", drum._harmonyNotes);
+                _setting.setSetting(prefix + "switchHarmonyNotes", drum._harmonyNotes);
 
                 /* sequencer */
-                node.setSetting(prefix + "switchSequencerFile", drum._sequencerFile);
-                node.setSetting(prefix + "switchSequencerSingleTrack", drum._sequencerSeekStart);
-                node.setSetting(prefix + "switchSequencerSeekStart", drum._sequencerFilterNote);
-                node.setSetting(prefix + "switchSequencerFilterNote", drum._sequencerSingleTrack);
+                _setting.setSetting(prefix + "switchSequencerFile", drum._sequencerFile);
+                _setting.setSetting(prefix + "switchSequencerSingleTrack", drum._sequencerSeekStart);
+                _setting.setSetting(prefix + "switchSequencerSeekStart", drum._sequencerFilterNote);
+                _setting.setSetting(prefix + "switchSequencerFilterNote", drum._sequencerSingleTrack);
 
                 /* linkslider TOOD */
-                node.setSetting(prefix + "switchLinkRow", drum._linkRow);
-                node.setSetting(prefix + "switchLinkColumn", drum._linkColumn);
-                node.setSetting(prefix + "switchLinkMode", drum._linkMode);
-                node.setSetting(prefix + "switchLinkKontrolType", drum._linkKontrolType);
+                _setting.setSetting(prefix + "switchLinkRow", drum._linkRow);
+                _setting.setSetting(prefix + "switchLinkColumn", drum._linkColumn);
+                _setting.setSetting(prefix + "switchLinkMode", drum._linkMode);
+                _setting.setSetting(prefix + "switchLinkKontrolType", drum._linkKontrolType);
 
                 setStatus(MGStatus.TYPE_DRUMPAD, row, column, status);
 
@@ -483,7 +487,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
         MXMessageBag bag = new MXMessageBag();
         updateStatusAndGetResult(status, newValue, null, bag);
         while (true) {
-            MXMessage message = bag.popTranslated();
+            MXMessage message = bag.popResult();
             if (message == null) {
                 break;
             }
@@ -535,7 +539,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                     message._timing = timing;
                     message._mx30record = new MGStatus[]{status};
                     startProcess(message, bag);
-                    bag.addTranslated(message);
+                    bag.addResult(message);
                 }
             }
         }
@@ -688,7 +692,9 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
         if (message == null) {
             return;
         }
+        boolean createdNow = false;
         if (bag == null) {
+            createdNow = true;
             bag = new MXMessageBag();
         }
         if (message.isEmpty()) {
@@ -725,33 +731,23 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
                     if (seek.controlByMessage(message, bag)) {
                         updateStatusAndGetResult(seek, seek.getValue()._value, message._timing, bag);
                         proc = true;
-                        /*
-                        bag.addTouchedStatus(seek);
-                        if (seek._uiType == MGStatus.TYPE_SLIDER) {
-                            MGSlider slider = (MGSlider) seek.getComponent();
-                            slider.publishUI();
-                        }
-                        if (seek._uiType == MGStatus.TYPE_CIRCLE) {
-                            MGCircle circle = (MGCircle) seek.getComponent();
-                            circle.publishUI();
-                        }
-                        if (seek._uiType == MGStatus.TYPE_DRUMPAD) {
-                        }*/
                     }
                 }
                 message._mx30record = bag.listTouchedStatus();
             }
             if (!proc) {
-                bag.addTranslated(message);
+                bag.addResult(message);
             }
         }
-        flushSendQueue(bag);
+        if (createdNow) {
+            flushSendQueue(bag);
+        }
     }
 
 
     void flushSendQueue(MXMessageBag bag) {
         while (true) {
-            MXMessage message = bag.popTranslated();
+            MXMessage message = bag.popResult();
             if (message == null) {
                 break;
             }
@@ -761,7 +757,7 @@ public class MX32MixerProcess extends MXReceiver implements MXSettingTarget {
             _parent._pageProcess[port].startProcess(message, bag);
         }
         while(true) {
-            Runnable run = bag.popTranslatedTask();
+            Runnable run = bag.popResultTask();
             if (run == null) {
                 break;
             }

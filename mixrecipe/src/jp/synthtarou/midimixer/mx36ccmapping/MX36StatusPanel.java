@@ -22,7 +22,6 @@ import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.accordion.MXAccordion;
 import jp.synthtarou.midimixer.libs.accordion.MXAccordionElement;
-import jp.synthtarou.midimixer.mx30surface.MGStatus;
 
 /**
  *
@@ -31,7 +30,7 @@ import jp.synthtarou.midimixer.mx30surface.MGStatus;
 public class MX36StatusPanel extends javax.swing.JPanel implements MXAccordionElement {
     MXAccordion _accordion;
     MX36Status _status;
-    MX36Process _process;
+    final MX36Process _process;
     
     public static Comparator<MXAccordionElement> _sortOrder =  new Comparator<MXAccordionElement>() {
         @Override

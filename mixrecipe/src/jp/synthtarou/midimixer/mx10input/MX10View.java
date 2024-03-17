@@ -18,6 +18,7 @@ package jp.synthtarou.midimixer.mx10input;
 
 import java.util.Vector;
 import javax.swing.JLabel;
+import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
 import jp.synthtarou.midimixer.libs.swing.JTableWithColumnHeader;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -33,15 +34,14 @@ import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
  * @author Syntarou YOSHIDA
  */
 public class MX10View extends javax.swing.JPanel {
-    MX10Process _process;
     MX10MidiInListPanel _inPanel;
     JTableWithColumnHeader _jTableSkip;
+    MX10Structure _bindedStructure;
     
     /**
      * Creates new form MX10View
      */
-    public MX10View(MX10Process process) {
-        _process = process; 
+    public MX10View() {
         initComponents();
 
         _inPanel = new MX10MidiInListPanel();
@@ -50,7 +50,6 @@ public class MX10View extends javax.swing.JPanel {
         _jTableSkip = new JTableWithFooter(jPanel1);
         new MXAttachTableResize(_jTableSkip);
 
-        resetTableModel();
         _jTableSkip.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent evt) {
                 if (_jTableSkip.isEnabled()) {
@@ -66,11 +65,6 @@ public class MX10View extends javax.swing.JPanel {
             TableColumn col = _jTableSkip.getColumnModel().getColumn(i);
             col.setCellRenderer(tableCellRenderer);
         }
-        
-        jCheckBoxUseSkip.setSelected(_process.isUseMessageFilter());
-
-        _jTableSkip.setEnabled(_process.isUseMessageFilter());
-        //jPanel4.add(_process._patchBay.getReceiverView());
     }
     
     private void jTableSkip_MouseClicked(java.awt.event.MouseEvent evt) {                                     
@@ -82,15 +76,39 @@ public class MX10View extends javax.swing.JPanel {
         DefaultTableModel model = (DefaultTableModel)_jTableSkip.getModel();
         
         if (port >= 0 && port < MXAppConfig.TOTAL_PORT_COUNT) {
-            if (_process._data.isSkip(port, type)) {
-                _process._data.setSkip(port, type, false);
-                model.setValueAt("", row, column);
-            }else {
-                _process._data.setSkip(port, type, true);
-                model.setValueAt("Skip", row, column);
+            String var = (String)model.getValueAt(row, column);
+            if (var == null || var.length() == 0) {
+                setDXSkip(row, column, true);
+            }
+            else {
+                setDXSkip(row, column, false);
             }
         }
     }                                    
+    
+    public void setDXSkip(int row, int column, boolean skip) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    setDXSkip(row, column, skip);
+                }
+            });
+            return;
+        }
+        if (_bindedStructure != null) {
+            int type = row;
+            int port = column - 1;
+            _bindedStructure.setSkip(port, type, skip);
+        }
+        DefaultTableModel model = (DefaultTableModel)_jTableSkip.getModel();
+        if (skip) {
+            model.setValueAt("Skip", row, column);
+        }
+        else {
+            model.setValueAt("", row, column);
+        }
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -147,11 +165,10 @@ public class MX10View extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jCheckBoxUseSkipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxUseSkipActionPerformed
-        _process.setUseMesssageFilter(jCheckBoxUseSkip.isSelected());
-        _jTableSkip.setEnabled(jCheckBoxUseSkip.isSelected());
+        setDXUsingThisRecipe(jCheckBoxUseSkip.isSelected());
     }//GEN-LAST:event_jCheckBoxUseSkipActionPerformed
 
-    public synchronized TableModel createSkipTableModel(MX10Data data) {
+    public synchronized TableModel createSkipTableModel(MX10Structure structure) {
         DefaultTableModel model = new DefaultTableModel() {
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -164,13 +181,13 @@ public class MX10View extends javax.swing.JPanel {
             model.addColumn(MXMidi.nameOfPortShort(i));
         }
         
-        for (int row = 0; row  <_process._data.TYPE_COUNT; ++ row) {
+        for (int row = 0; row  < MX10Structure.TYPE_COUNT; ++ row) {
             Vector line = new Vector();
-            line.add(data.typeNames[row]);
+            line.add(MX10Structure.typeNames[row]);
             
-            for (int delivery = 0; delivery < MXAppConfig.TOTAL_PORT_COUNT; ++ delivery) {
+            for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
                 int type = row ;
-                if (data.isSkip(delivery, type)) {
+                if (structure.isSkip(port, type)) {
                     line.add("Skip");
                 }else {
                     line.add("");
@@ -198,8 +215,43 @@ public class MX10View extends javax.swing.JPanel {
     private javax.swing.JSplitPane jSplitPane2;
     // End of variables declaration//GEN-END:variables
 
-    public void resetTableModel() {
-        _jTableSkip.setModel(createSkipTableModel(_process._data));
+    boolean _isUsingThieRecipe = true;
+    
+    public boolean isDXUsingThisRecipe() {
+        return _isUsingThieRecipe;
+    }
+
+    public void setDXUsingThisRecipe(boolean usingThisRecipe) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    setDXUsingThisRecipe(usingThisRecipe);
+                }
+            });
+            return;
+        }
+        if (usingThisRecipe == _isUsingThieRecipe) {
+            //double enter
+            return;
+        }
+        _isUsingThieRecipe = usingThisRecipe;
+        jCheckBoxUseSkip.setSelected(usingThisRecipe);
+        _jTableSkip.setEnabled(usingThisRecipe);
+    }
+    
+    public void setDXStructure(MX10Structure structure) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    setDXStructure(structure);
+                }
+            });
+            return;
+        }
+        _bindedStructure = structure;
+        _jTableSkip.setModel(createSkipTableModel(structure));
         //_jTableSkip.getColumnModel().getColumn(0).setMinWidth(150);
         new MXAttachTableResize(_jTableSkip);
     }
@@ -207,4 +259,25 @@ public class MX10View extends javax.swing.JPanel {
     public void tabActivated() {
         _inPanel.refreshList();
     }
+
+    public static final int TYPE_ALL = 0;
+    public static final int TYPE_NOTE = 1;
+    public static final int TYPE_DAMPER_PEDAL = 2;
+    public static final int TYPE_PITCH_BEND = 3; 
+    public static final int TYPE_MOD_WHEEL = 4;
+    public static final int TYPE_BANK_SELECT = 5;
+    public static final int TYPE_PROGRAM_CHANGE  = 6;
+    public static final int TYPE_DATA_ENTRY = 7;
+    public static final int TYPE_ANOTHER_CC = 8;
+    public static final int TYPE_RESET_GENERAL = 9;
+    public static final int TYPE_SYSEX = 10;
+    public static final int TYPE_ACTIVE_SENSING = 11;
+
+    public static final String[] typeNames = {
+        "All", "Note", "DamperPedal", "PitchBend", "ModWheel", "BankChange",
+        "ProgramChange", "DataEntry", "AnotherCC", "GM&GS&XGReset", "SysEX", 
+        "Active&Clock", 
+        
+    };
+
 }

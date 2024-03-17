@@ -208,7 +208,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
                             }
                         }
                         output.setPortAssigned(newAssign, !output.isPortAssigned(newAssign));
-                    }else {
+                    }else if (output != null) {
                         output.resetPortAssigned();
                     }
                     if (newAssign >= 0 && output.openOutput(0) == false) {

@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.mx90debug;
 
-import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 
 /**
@@ -24,7 +23,7 @@ import javax.swing.JOptionPane;
  * @author Syntarou YOSHIDA
  */
 public class MX90View extends javax.swing.JPanel {
-    MX90Process _process;
+    final MX90Process _process;
     
     /**
      * Creates new form MX90View

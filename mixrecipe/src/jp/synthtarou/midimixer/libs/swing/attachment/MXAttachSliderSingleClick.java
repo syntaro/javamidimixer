@@ -50,6 +50,10 @@ public class MXAttachSliderSingleClick {
             // this is where we jump to absolute value of click
             @Override
             public void mouseClicked(MouseEvent e) {
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     return;
                 }
@@ -68,11 +72,6 @@ public class MXAttachSliderSingleClick {
                     }
                     slider.repaint();
                 }
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-                 mouseClicked(e);
             }
 
             @Override

@@ -126,6 +126,12 @@ public class MX36Status {
     MX36StatusPanel _panel;
     
     public String getOutDataText() {
+        if (_outDataText == null) {
+            return null;
+        }
+        if (_outDataText.isEmpty()) {
+            return null;
+        }
         return _outDataText;
     }
 
@@ -171,7 +177,7 @@ public class MX36Status {
         return toSurfaceText() + "=" + _outValueRange._value;
     }
     
-    public static MX36Status fromMGStatus(MX36Folder folder, MGStatus status) {
+    public static MX36Status fromMGStatus(MGStatus status) {
         MX36Status it = new MX36Status();
                 
         it._outName = status.getAsName();

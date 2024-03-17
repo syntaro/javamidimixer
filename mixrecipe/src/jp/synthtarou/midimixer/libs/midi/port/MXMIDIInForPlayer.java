@@ -26,7 +26,6 @@ import javax.sound.midi.MidiUnavailableException;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXThreadList;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_PlayList;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
@@ -52,9 +51,9 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
 
     public void openFile(File file) throws IOException, MidiUnavailableException, InvalidMidiDataException {
         String fileName = file.toString();
- 
+        
         if (_sequencer != null) {
-           _sequencer.allNoteOff(null, 0); //not important number (will be overwrited
+            stopSequencer(0);
            
            if (_sequencer.getLastFile().equals(file)) {
                return;
@@ -63,50 +62,6 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
         }
  
         _sequencer = new SMFSequencer(file);
-        ArrayList<Integer> drums = _sequencer._parser._drums;
-        int noteLowest = _sequencer._parser._noteLowest;
-        int noteHighest = _sequencer._parser._noteHighest;
-        int []program = _sequencer._parser._programList;
-        boolean []exist = _sequencer._parser._existNoteChannel;
-        
-        int lo2 = noteLowest;
-        lo2 = lo2 / 12;
-        lo2 = lo2 * 12;
- 
-        int hi2 = lo2;
- 
-        while(hi2 < noteHighest) {
-            hi2 += 12;
-        }
- 
-        int x = lo2 / 12;
-        int octaveRange = hi2 / 12;
- 
-        octaveRange -= x;
-        x *= 12;
- 
-        if (octaveRange <= 2) {
-            if (x >= 12) {
-                x -= 12;
-                octaveRange += 1;
-            }
-            if (octaveRange <= 2) {
-                octaveRange += 1;
-            }
-        }
-
-        noteLowest = x;
-        noteHighest = octaveRange * 12 + x;
-
-        while (octaveRange <= 4) {
-            octaveRange += 2;
-            noteLowest -= 12;
-        }
-        while (octaveRange < 5) {
-            octaveRange++;
-        }
-        
-        MXMain.getMain().getPlayListProcess().createPianoControls(noteLowest, octaveRange,exist, program, drums);
     }
  
     public static String[] readFileInfo(File file) {
@@ -165,7 +120,7 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
         return _sequencer;
     }
 
-    public synchronized void startSequencer(SMFCallback parent, long position) throws IOException {
+    public synchronized void startSequencer(SMFCallback parent, long position) {
         if (_sequencer != null) {
             _sequencer.stopPlayer();
         }
@@ -215,10 +170,10 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
         return false;
     }
     
-    public synchronized void stopSequencer() {
+    public synchronized void stopSequencer(int port) {
         if (_sequencer != null) {
             _sequencer.stopPlayer();
-            allNoteOff(null);
+            allNoteOffToPort(null, port);
         }
     }
 }

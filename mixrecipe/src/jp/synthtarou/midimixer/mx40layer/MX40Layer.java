@@ -145,7 +145,7 @@ public class MX40Layer {
     public boolean _disabled = false;
     
     public MX40Group _parentGroup;
-    public MX40Process _process;
+    final MX40Process _process;
    
     private MXNoteOffWatcher _noteOff = new MXNoteOffWatcher();
     

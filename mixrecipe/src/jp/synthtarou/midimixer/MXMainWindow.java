@@ -36,7 +36,7 @@ import jp.synthtarou.midimixer.mx10input.MX10View;
 import jp.synthtarou.midimixer.mx12masterpiano.MX12Process;
 import jp.synthtarou.midimixer.mx36ccmapping.MX36View;
 import jp.synthtarou.midimixer.mx60output.MX60View;
-import jp.synthtarou.midimixer.mx80vst.MX80Panel;
+import jp.synthtarou.midimixer.mx80vst.MX80View;
 
 /**
  *
@@ -297,8 +297,21 @@ public class MXMainWindow extends javax.swing.JFrame {
         return null;
     }
 
+    int _prevTab = -1;
+
     private void tabPanelStateChanged(javax.swing.event.ChangeEvent evt) {
         int x = jTabbedPane1.getSelectedIndex();
+
+        if (_prevTab >= 0 && _prevTab != x) {
+            Component view = jTabbedPane1.getComponentAt(_prevTab);
+            if (view != null) {
+                if (view instanceof MX00View) {
+                    MX00View v00 = (MX00View) view;
+                    v00.tabDeactivated();
+                }
+            }
+        }
+        _prevTab = x;
         if (x >= 0) {
             Component view = jTabbedPane1.getComponentAt(x);
             if (view != null) {
@@ -309,14 +322,14 @@ public class MXMainWindow extends javax.swing.JFrame {
                 }
                 if (view instanceof MX00View) {
                     MX00View v00 = (MX00View) view;
-                    v00.tabActivatedTwoCases();
+                    v00.tabActivated();
                 }
                 if (view instanceof MX10View) {
                     MX10View v10 = (MX10View) view;
                     v10.tabActivated();
                 }
-                if (view instanceof MX80Panel) {
-                    MX80Panel v80 = (MX80Panel) view;
+                if (view instanceof MX80View) {
+                    MX80View v80 = (MX80View) view;
                     v80.tabActivated();
                 }
                 if (view instanceof MX36View) {

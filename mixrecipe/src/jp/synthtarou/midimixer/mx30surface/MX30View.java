@@ -25,7 +25,7 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
  * @author Syntarou YOSHIDA
  */
 public class MX30View extends javax.swing.JPanel {
-    MX30Process _process;
+    final MX30Process _process;
 
     /**
      * Creates new form MX30View

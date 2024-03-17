@@ -37,7 +37,7 @@ import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 public class MX11View extends javax.swing.JPanel {
     JTableWithFooter jTableVelocity;
     
-    MX11Process _process;
+    final MX11Process _process;
     
     /**
      * Creates new form MX11View
@@ -204,7 +204,7 @@ public class MX11View extends javax.swing.JPanel {
     }//GEN-LAST:event_jCheckBoxUseRouteActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        MX11Data data = _process.getData();
+        MX11Structure data = _process.getData();
         DefaultTableModel model = (DefaultTableModel)jTableVelocity.getModel();
         int port = jLabelVelocityPort.getText().charAt(0) - 'A';
         int velocityOrg = Integer.parseInt(jLabelVelocityOriginal.getText());
@@ -230,7 +230,7 @@ public class MX11View extends javax.swing.JPanel {
 
         String inName = "";
         String outName = "";
-        MX11Data data = _process.getData();
+        MX11Structure data = _process.getData();
 
         model.addColumn("");
         
@@ -258,7 +258,7 @@ public class MX11View extends javax.swing.JPanel {
 
         if (column >= 0) {         
             try {
-                MX11Data data = _process.getData();
+                MX11Structure data = _process.getData();
                 int curveId = data.curveCount() - 1 - row;
                 int port = column;
                 

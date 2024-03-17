@@ -345,7 +345,7 @@ public class MXMIDIIn {
                 }
             }
             if (this == INTERNAL_PLAYER) {
-                MXMain.getMain().getPlayListProcess().updatePianoKeys(dword);
+                MXMain.getMain().getPlayListProcess().updateDXPianoKeys(dword);
             }
             if (command == MXMidi.COMMAND_CH_NOTEOFF) {
                 if (_myNoteOff.raiseHandler(0, timing, status & 0xf, data1)) {

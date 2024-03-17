@@ -18,7 +18,6 @@ package jp.synthtarou.midimixer.mx90debug;
 
 import java.util.LinkedList;
 import java.util.List;
-import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
@@ -111,8 +110,8 @@ public abstract class MXDebug {
                 int d1 = message1.getAsDword(i);
                 int d2 = message2.getAsDword(i);
                 if (d1 != d2)  {
-                    addDebugMessage("Error output dword[" + i + "] = " + d2
-                         + ", input dword[" +  i +  "] = " + d1);
+                    addDebugMessage("Error output dword[" + i + "] = " + MXUtil.dumpDword(d2)
+                         + ", input dword[" +  i +  "] = " + MXUtil.dumpDword(d1));
                 }
             }
         }else {

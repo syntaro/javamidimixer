@@ -19,9 +19,9 @@ package jp.synthtarou.midimixer.mx30surface;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.SwingUtilities;
+import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
-import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 
 /**
  *
@@ -119,26 +119,35 @@ public class MGDrumPad extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     public void increment(MXMessageBag bag) {
-        if (bag == null) {
-            bag = new MXMessageBag();
+        if (getStatus().getValue().incrementable()) {
+            if (bag == null) {
+                bag = new MXMessageBag();
+                getStatus()._drum.mouseDetected(true, bag);
+                _mixer.flushSendQueue(bag);
+            }
+            else {
+                getStatus()._drum.mouseDetected(true, bag);
+            }
         }
-        getStatus()._drum.mouseDetected(true, bag);
-        _mixer.flushSendQueue(bag);
     }
 
     public void decriment(MXMessageBag bag) {
-        if (bag == null) {
-            bag = new MXMessageBag();
+        if (getStatus().getValue().decrementable()) {
+            if (bag == null) {
+                bag = new MXMessageBag();
+                getStatus()._drum.mouseDetected(false, bag);
+                _mixer.flushSendQueue(bag);
+            }else {
+                getStatus()._drum.mouseDetected(false, bag);
+            }
         }
-        getStatus()._drum.mouseDetected(false, bag);
-        _mixer.flushSendQueue(bag);
     }
 
     public void editContoller() {
         _mixer._view.stopEditing();
         MGStatus status = (MGStatus) getStatus().clone();
         MGStatusPanel panel = new MGStatusPanel(_mixer, status);
-        MXModalFrame.showAsDialog(this, panel, "Enter Edit Pad {row:" + _row + ", column:" + _column + "}");
+        MXUtil.showAsDialog(this, panel, "Enter Edit Pad {row:" + _row + ", column:" + _column + "}");
 
         if (panel._okOption) {
             setStatus(panel._status);

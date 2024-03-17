@@ -36,7 +36,7 @@ public class MX36FolderList {
     MX36Folder _nosaveFolder;
     MX36Folder _primalFolder;
     MX36Folder _trashedFolder;
-    MX36Process _process;
+    final MX36Process _process;
 
     public MX36FolderList(MX36Process process) {
         _focus = new MXAccordionFocus();

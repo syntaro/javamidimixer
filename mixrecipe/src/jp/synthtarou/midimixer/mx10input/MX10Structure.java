@@ -24,7 +24,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
  *
  * @author Syntarou YOSHIDA
  */
-public class MX10Data {
+public class MX10Structure {
     public static final int TYPE_ALL = 0;
     public static final int TYPE_NOTE = 1;
     public static final int TYPE_DAMPER_PEDAL = 2;
@@ -50,7 +50,7 @@ public class MX10Data {
     long[] _whichToSkip;
     int _portCount;
 
-    public MX10Data() {
+    public MX10Structure() {
         _portCount = MXAppConfig.TOTAL_PORT_COUNT;
         _whichToSkip = new long[MXAppConfig.TOTAL_PORT_COUNT];
         for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
@@ -58,7 +58,7 @@ public class MX10Data {
         }
     }
     
-    public boolean isMarkedAsSkip(MXMessage message) {
+    public boolean isMessageForSkip(MXMessage message) {
         if (message == null) {
             return true;
         }
@@ -107,7 +107,6 @@ public class MX10Data {
         return isSkip(port, type);
     }
 
-    
     public void setSkip(int port, int type, boolean skipFlag) {
         long bit = 1L << (type + 1);
         if ((_whichToSkip[port] & bit) != 0) {

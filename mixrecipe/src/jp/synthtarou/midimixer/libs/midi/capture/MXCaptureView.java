@@ -22,12 +22,9 @@ import java.awt.event.WindowEvent;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.midi.MXMessage;
 
 /**
  *.
@@ -35,7 +32,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
  */
 public class MXCaptureView extends javax.swing.JPanel {
     
-    MXCaptureProcess _process = null;
+    final MXCaptureProcess _process;
     public Counter _selected = null;
 
     public MXCaptureView(MXCaptureProcess process) {

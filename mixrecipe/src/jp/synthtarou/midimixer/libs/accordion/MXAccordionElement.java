@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.libs.accordion;
 
-import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 /**

@@ -52,7 +52,6 @@ import jp.synthtarou.midimixer.libs.midi.capture.Counter;
 import jp.synthtarou.midimixer.libs.midi.capture.MXCaptureProcess;
 import jp.synthtarou.midimixer.libs.midi.capture.MXCaptureView;
 import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
-import jp.synthtarou.midimixer.libs.swing.MXModalFrame;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
@@ -65,7 +64,7 @@ import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXSwingFolderBrowser;
 public class MGStatusPanel extends javax.swing.JPanel {
 
     boolean _okOption = false;
-    MX32MixerProcess _process;
+    final MX32MixerProcess _process;
 
     MXWrapList<Integer> _channelModel;
 
@@ -2145,7 +2144,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
         MXMain.setCapture(_capture);
         MXCaptureProcess capture = new MXCaptureProcess();
         MXCaptureView panel = new MXCaptureView(capture);
-        MXModalFrame.showAsDialog(this, panel, "Capture ...");
+        MXUtil.showAsDialog(this, panel, "Capture ...");
 
         Counter retval = panel._selected;
         if (retval != null) {

@@ -76,6 +76,15 @@ public class MXUtil {
         return str.toString();
     }
 
+    public static String dumpDword(int dword) {
+        byte[] data = new byte[4];
+        data[0] = (byte)((dword >> 24) & 0xff);
+        data[1] = (byte)((dword >> 16) & 0xff);
+        data[2] = (byte)((dword >> 8) & 0xff);
+        data[3] = (byte)((dword) & 0xff);
+        return dumpHex(data);
+    }
+
     public static String dumpHex(int[] data) {
         StringBuffer str = new StringBuffer();
         for (int i = 0; i < data.length; ++i) {
