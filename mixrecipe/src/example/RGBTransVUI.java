@@ -33,9 +33,9 @@ import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
  */
 public class RGBTransVUI extends javax.swing.JPanel {
 
-    VUIAccessor spinnerRed, spinnerGreen, spinnerBlue;
-    VUIAccessor sliderRed, sliderGreen, sliderBlue;
-    VUIAccessor textHex, textDec;
+    private VUIAccessor _spinnerRed, _spinnerGreen, _spinnerBlue;
+    private VUIAccessor _sliderRed, _sliderGreen, _sliderBlue;
+    private VUIAccessor _textHex, _textDec;
 
     int _red, _green, _blue;
 
@@ -54,9 +54,9 @@ public class RGBTransVUI extends javax.swing.JPanel {
         _green = 200;
         _blue = 0;
 
-        spinnerRed = new VUIAccessor(jSpinnerRed);
-        spinnerGreen = new VUIAccessor(jSpinnerGreen);
-        spinnerBlue = new VUIAccessor(jSpinnerBlue);
+        _spinnerRed = new VUIAccessor(jSpinnerRed);
+        _spinnerGreen = new VUIAccessor(jSpinnerGreen);
+        _spinnerBlue = new VUIAccessor(jSpinnerBlue);
 
         VUIAccessorListener spinnerListener = new VUIAccessorListener() {
             @Override
@@ -64,20 +64,20 @@ public class RGBTransVUI extends javax.swing.JPanel {
                 if (sharedLock) {
                     return;
                 }
-                _red = (int) jSpinnerRed.getValue();
-                _green = (int) jSpinnerGreen.getValue();
-                _blue = (int) jSpinnerBlue.getValue();
+                _red = _spinnerRed.getAsInt();
+                _green = _spinnerGreen.getAsInt();
+                _blue = _spinnerBlue.getAsInt();
                 flushColorToAll();
             }
         };
 
-        spinnerRed.addChangeListener(spinnerListener);
-        spinnerGreen.addChangeListener(spinnerListener);
-        spinnerBlue.addChangeListener(spinnerListener);
+        _spinnerRed.addChangeListener(spinnerListener);
+        _spinnerGreen.addChangeListener(spinnerListener);
+        _spinnerBlue.addChangeListener(spinnerListener);
 
-        sliderRed = new VUIAccessor(jSliderRed);
-        sliderGreen = new VUIAccessor(jSliderGreen);
-        sliderBlue = new VUIAccessor(jSliderBlue);
+        _sliderRed = new VUIAccessor(jSliderRed);
+        _sliderGreen = new VUIAccessor(jSliderGreen);
+        _sliderBlue = new VUIAccessor(jSliderBlue);
 
         VUIAccessorListener sliderListener = new VUIAccessorListener() {
             @Override
@@ -85,19 +85,19 @@ public class RGBTransVUI extends javax.swing.JPanel {
                 if (sharedLock) {
                     return;
                 }
-                _red = jSliderRed.getValue();
-                _green = jSliderGreen.getValue();
-                _blue = jSliderBlue.getValue();
+                _red = _sliderRed.getAsInt();
+                _green = _sliderGreen.getAsInt();
+                _blue = _sliderBlue.getAsInt();
                 flushColorToAll();
             }
         };
 
-        sliderRed.addChangeListener(sliderListener);
-        sliderGreen.addChangeListener(sliderListener);
-        sliderBlue.addChangeListener(sliderListener);
+        _sliderRed.addChangeListener(sliderListener);
+        _sliderGreen.addChangeListener(sliderListener);
+        _sliderBlue.addChangeListener(sliderListener);
 
-        textHex = new VUIAccessor(jTextField16);
-        textHex.addChangeListener(new VUIAccessorListener() {
+        _textHex = new VUIAccessor(jTextField16);
+        _textHex.addChangeListener(new VUIAccessorListener() {
             @Override
             public void accessorUIValueChanged(VUIAccessorEvent evt) {
                 if (sharedLock) {
@@ -107,8 +107,8 @@ public class RGBTransVUI extends javax.swing.JPanel {
             }
         });
 
-        textDec = new VUIAccessor(jTextField10);
-        textDec.addChangeListener(new VUIAccessorListener() {
+        _textDec = new VUIAccessor(jTextField10);
+        _textDec.addChangeListener(new VUIAccessorListener() {
             @Override
             public void accessorUIValueChanged(VUIAccessorEvent evt) {
                 if (sharedLock) {
@@ -161,13 +161,13 @@ public class RGBTransVUI extends javax.swing.JPanel {
             if (_blue > 255) {
                 _blue = 255;
             }
-            spinnerRed.set(_red);
-            spinnerGreen.set(_green);
-            spinnerBlue.set(_blue);
+            _spinnerRed.set(_red);
+            _spinnerGreen.set(_green);
+            _spinnerBlue.set(_blue);
 
-            sliderRed.set(_red);
-            sliderGreen.set(_green);
-            sliderBlue.set(_blue);
+            _sliderRed.set(_red);
+            _sliderGreen.set(_green);
+            _sliderBlue.set(_blue);
 
             String red16 = Integer.toHexString(_red);
             String green16 = Integer.toHexString(_green);
@@ -186,8 +186,8 @@ public class RGBTransVUI extends javax.swing.JPanel {
             String text10 = _red + ", " + _green + "," + _blue;
             String text16 = "#" + red16 + green16 + blue16;
 
-            textDec.set(text10);
-            textHex.set(text16);
+            _textDec.set(text10);
+            _textHex.set(text16);
 
             Color col = new Color(_red, _green, _blue);
             jTextPane1.setBackground(col);
@@ -391,7 +391,7 @@ public class RGBTransVUI extends javax.swing.JPanel {
     }
 
     public void readText16() {
-        String text = jTextField16.getText();
+        String text = _textHex.getAsText();
         while (text.startsWith("#")) {
             text = text.substring(1);
         }
@@ -407,7 +407,7 @@ public class RGBTransVUI extends javax.swing.JPanel {
     }
 
     public void readText10() {
-        String text = jTextField10.getText();
+        String text = _textDec.getAsText();
         String[] list = text.split(",");
         if (list != null && list.length >= 3) {
             _red = parse10(list[0]);
