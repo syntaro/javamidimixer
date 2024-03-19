@@ -16,17 +16,30 @@
  */
 package jp.synthtarou.midimixer.libs.swing.variableui;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -45,7 +58,7 @@ public class VUIAccessor {
     public static void main(String[] args) {
         VUIAccessorDemo.main(args);
     }
-    
+
     protected static final int TYPE_UNKNOWN = 0;
     protected static final int TYPE_LABEL = 1;
     protected static final int TYPE_TEXTAREA = 2;
@@ -54,65 +67,30 @@ public class VUIAccessor {
     protected static final int TYPE_SLIDER = 5;
     protected static final int TYPE_SPINNER = 6;
     protected static final int TYPE_TOGGLEBUTTON = 7;
-    
+    protected static final int TYPE_BUTTON = 8;
+
     protected final int _supportedType;
     protected final JComponent _component;
-    
+
     protected Object _varAsObject;
     protected String _varAsText;
     protected boolean _varAsBoolean;
     protected int _varAsNumeric;
     protected int _selfLock = 0;
     protected ArrayList<VUIAccessorListener> _listListener = new ArrayList();
-    
-    public synchronized void addChangeListener(VUIAccessorListener listener) {        
-        _listListener.add(listener);
-    }
-    
-    public synchronized void removeChangeListener(VUIAccessorListener listener) {        
-        _listListener.remove(listener);
-    }
-    
-    public static int parseNumeric(String text) {
-        try {
-            return Integer.parseInt(text);
-        } catch (Throwable ex) {
-            return 0;
-        }
-    }
-    
-    public static boolean parseBoolean(String text) {
-        if (text == null) {
-            return false;
-        }
-        if (text.equalsIgnoreCase("true")
-                || text.equalsIgnoreCase("yes")
-                || text.equals("1")) {
-            return true;
-        }
-        if (text.equalsIgnoreCase("false")
-                || text.equalsIgnoreCase("no")
-                || text.equals("0")) {
-            return false;
-        }
-        return false;
-    }
-    
-    public JComponent getComponent() {
-        return _component;
-    }
-    
-    public VUIAccessor(JComponent component, int type) {
+
+    protected VUIAccessor(JComponent component, int type) {
         _component = component;
         _supportedType = type;
         uiToInternal();
+        installClipboard();
     }
 
     public VUIAccessor(JComponent component, VUIAccessorListener listener) {
         this(component);
         addChangeListener(listener);
     }
-    
+
     public VUIAccessor(JComponent component) {
         _component = component;
         if (component instanceof JLabel) {
@@ -132,7 +110,7 @@ public class VUIAccessor {
                         });
                     }
                 }
-                
+
                 @Override
                 public void removeUpdate(DocumentEvent e) {
                     if (0 == _selfLock) {
@@ -144,7 +122,7 @@ public class VUIAccessor {
                         });
                     }
                 }
-                
+
                 @Override
                 public void changedUpdate(DocumentEvent e) {
                     if (0 == _selfLock) {
@@ -172,7 +150,7 @@ public class VUIAccessor {
                         });
                     }
                 }
-                
+
                 @Override
                 public void removeUpdate(DocumentEvent e) {
                     if (0 == _selfLock) {
@@ -184,7 +162,7 @@ public class VUIAccessor {
                         });
                     }
                 }
-                
+
                 @Override
                 public void changedUpdate(DocumentEvent e) {
                     if (0 == _selfLock) {
@@ -241,28 +219,34 @@ public class VUIAccessor {
                     }
                 }
             });
+        } else if (component instanceof JButton) {
+            _supportedType = TYPE_BUTTON;
+            JButton button = (JButton) component;
         } else {
             MXLogger2.getLogger(VUIAccessor.class).severe("Component " + component + " class = " + component.getClass() + " is not supported.");
             _supportedType = TYPE_UNKNOWN;
         }
         //init var fields
         uiToInternal();
+        installClipboard();
     }
-    
-    public synchronized void copyVarFrom(VUIAccessor from) {
-        _varAsObject = from._varAsObject;
-        _varAsNumeric = from._varAsNumeric;
-        _varAsBoolean = from._varAsBoolean;
-        _varAsText = from._varAsText;
-        internalToUI();
+
+    public void copyVarFrom(VUIAccessor from) {
+        synchronized (this) {
+            _varAsObject = from._varAsObject;
+            _varAsNumeric = from._varAsNumeric;
+            _varAsBoolean = from._varAsBoolean;
+            _varAsText = from._varAsText;
+            internalToUI();
+        }
     }
-    
-    public synchronized void uiToInternal() {
+
+    public void uiToInternal() {
         Object parsedObject;
         String parsedText;
         boolean parsedBoolean;
         int parsedNumeric;
-        
+
         switch (_supportedType) {
             case TYPE_LABEL:
                 JLabel label = (JLabel) _component;
@@ -318,146 +302,163 @@ public class VUIAccessor {
                 parsedNumeric = 0;
                 parsedText = "";
                 parsedObject = null;
-            
+
         }
         fireUpdate(parsedObject, parsedText, parsedNumeric, parsedBoolean);
     }
-    
-    public void fireUpdate(Object parsedObject, String parsedText, int parsedNumeric, boolean parsedBoolean) {
-        String needFire = null;
-        if (parsedText == null) {
-            parsedText = "";
-        }
-        if (parsedObject == null && _varAsObject != null) {
-            needFire = "object null balanec";
-        } else if (parsedObject != null && _varAsObject == null) {
-            needFire = "object null balanec";
-        } else if (parsedObject != null && _varAsObject != null) {
-            try {
-                if (parsedObject.equals(_varAsObject) == false) {
-                    needFire = "object not equals";
-                }
-            } catch (Throwable ex) {
-                needFire = "object equals thrown exception";
-            }
-        }
-        
-        if (needFire == null) {
-            if (parsedText == null && _varAsText != null) {
-                needFire = "text null balance";
-            } else if (parsedText != null && _varAsText == null) {
-                needFire = "text null balance";
-            } else if (parsedText != null && _varAsText != null) {
-                try {
-                    if (parsedText.equals(_varAsText) == false) {
-                        needFire = "text null equals";
-                    }
-                } catch (Throwable ex) {
-                    needFire = "text equals thrown exception";
-                }
-            }
-        }
-        
-        if (needFire == null) {
-            if (parsedBoolean != _varAsBoolean) {
-                needFire = "boolean not equals";
-            }
-            if (parsedNumeric != _varAsNumeric) {
-                needFire = "numeric not equals";
-            }
-        }
-        
-        if (needFire != null) {
-            _varAsBoolean = parsedBoolean;
-            _varAsNumeric = parsedNumeric;
-            _varAsObject = parsedObject;
-            _varAsText = parsedText;
-            internalToUI();
-            VUIAccessorEvent evt = new VUIAccessorEvent(_component, this);
-            for (VUIAccessorListener l : _listListener) {
-                l.accessorUIValueChanged(evt);
-            }
-        }
-    }
-    
-    public void internalToUI() {
+
+    public synchronized void fireUpdate(Object parsedObject, String parsedText, int parsedNumeric, boolean parsedBoolean) {
         new VUITask() {
             @Override
             public Object run() {
-                synchronized (VUIAccessor.this) {
-                    _selfLock ++;
-                    try {                        
-                        switch (_supportedType) {
-                            case TYPE_LABEL:
-                                JLabel label = (JLabel) _component;
-                                if (label.getText().equals(_varAsText) == false) {
-                                    label.setText(_varAsText);
-                                }
-                                break;
-                            case TYPE_TEXTAREA:
-                                JTextArea textArea = (JTextArea) _component;
-                                if (textArea.getText().equals(_varAsText) == false) {
-                                    textArea.setText(_varAsText);
-                                }
-                                break;
-                            case TYPE_TEXTFIELD:
-                                JTextField textField = (JTextField) _component;
-                                if (textField.getText().equals(_varAsText) == false) {
-                                    textField.setText(_varAsText);
-                                }
-                                break;
-                            case TYPE_CHECKBOX:
-                                JCheckBox checkBox = (JCheckBox) _component;
-                                if (checkBox.isSelected() != _varAsBoolean) {
-                                    checkBox.setSelected(_varAsBoolean);
-                                }
-                                break;
-                            case TYPE_SLIDER:
-                                JSlider slider = (JSlider) _component;
-                                if (slider.getValue() != _varAsNumeric) {
-                                    slider.setValue(_varAsNumeric);
-                                }
-                                break;
-                            case TYPE_SPINNER:
-                                JSpinner spinner = (JSpinner) _component;
-                                if (((Integer) spinner.getValue()) != _varAsNumeric) {
-                                    spinner.setValue(_varAsNumeric);
-                                }
-                                break;
-                            case TYPE_TOGGLEBUTTON:
-                                JToggleButton toggleButton = (JToggleButton) _component;
-                                if (toggleButton.isSelected() != _varAsBoolean) {
-                                    toggleButton.setSelected(_varAsBoolean);
-                                }
-                                break;
-                            case TYPE_UNKNOWN:
-                                break;
+                String needFire = null;
+                if (_supportedType == TYPE_SPINNER) {
+                    JSpinner spinner = (JSpinner)_component;
+                    SpinnerNumberModel model = (SpinnerNumberModel)spinner.getModel();
+                    int min = (Integer)model.getMinimum();
+                    int max = (Integer)model.getMaximum();
+                    if (min <= parsedNumeric && parsedNumeric <= max) {
+                    }
+                    else {
+                        return NOTHING;
+                    }
+                }
+                if (parsedObject == null && _varAsObject != null) {
+                    needFire = "object null balanec";
+                } else if (parsedObject != null && _varAsObject == null) {
+                    needFire = "object null balanec";
+                } else if (parsedObject != null && _varAsObject != null) {
+                    try {
+                        if (parsedObject.equals(_varAsObject) == false) {
+                            needFire = "object not equals";
                         }
-                    } catch (IllegalStateException ex) {
-                        ex.printStackTrace();
-                    } finally {
-                        _selfLock --;
+                    } catch (Throwable ex) {
+                        needFire = "object equals thrown exception";
+                    }
+                }
+
+                if (needFire == null) {
+                    if (parsedText == null && _varAsText != null) {
+                        needFire = "text null balance";
+                    } else if (parsedText != null && _varAsText == null) {
+                        needFire = "text null balance";
+                    } else if (parsedText != null && _varAsText != null) {
+                        try {
+                            if (parsedText.equals(_varAsText) == false) {
+                                needFire = "text null equals";
+                            }
+                        } catch (Throwable ex) {
+                            needFire = "text equals thrown exception";
+                        }
+                    }
+                }
+
+                if (needFire == null) {
+                    if (parsedBoolean != _varAsBoolean) {
+                        needFire = "boolean not equals";
+                    }
+                    if (parsedNumeric != _varAsNumeric) {
+                        needFire = "numeric not equals";
+                    }
+                }
+
+                if (needFire != null) {
+                    _varAsBoolean = parsedBoolean;
+                    _varAsNumeric = parsedNumeric;
+                    _varAsObject = parsedObject;
+                    _varAsText = parsedText;
+                    internalToUI();
+                    VUIAccessorEvent evt = new VUIAccessorEvent(_component, VUIAccessor.this);
+                    for (VUIAccessorListener l : _listListener) {
+                        l.accessorUIValueChanged(evt);
                     }
                 }
                 return NOTHING;
             }
         };
     }
-    
-    public synchronized void set(boolean var) {
+
+    public void internalToUI() {
+        new VUITask() {
+            @Override
+            public Object run() {
+                _selfLock++;
+                try {
+                    switch (_supportedType) {
+                        case TYPE_LABEL:
+                            JLabel label = (JLabel) _component;
+                            if (label.getText().equals(_varAsText) == false) {
+                                label.setText(_varAsText);
+                            }
+                            break;
+                        case TYPE_TEXTAREA:
+                            JTextArea textArea = (JTextArea) _component;
+                            if (textArea.getText().equals(_varAsText) == false) {
+                                textArea.setText(_varAsText);
+                            }
+                            break;
+                        case TYPE_TEXTFIELD:
+                            JTextField textField = (JTextField) _component;
+                            if (textField.getText().equals(_varAsText) == false) {
+                                textField.setText(_varAsText);
+                            }
+                            break;
+                        case TYPE_CHECKBOX:
+                            JCheckBox checkBox = (JCheckBox) _component;
+                            if (checkBox.isSelected() != _varAsBoolean) {
+                                checkBox.setSelected(_varAsBoolean);
+                            }
+                            break;
+                        case TYPE_SLIDER:
+                            JSlider slider = (JSlider) _component;
+                            if (slider.getValue() != _varAsNumeric) {
+                                slider.setValue(_varAsNumeric);
+                            }
+                            break;
+                        case TYPE_SPINNER:
+                            JSpinner spinner = (JSpinner) _component;
+                            int x1 = (Integer) spinner.getValue();
+                            if (x1 != _varAsNumeric) {
+                                spinner.setValue(_varAsNumeric);
+                            }
+                            break;
+                        case TYPE_TOGGLEBUTTON:
+                            JToggleButton toggleButton = (JToggleButton) _component;
+                            if (toggleButton.isSelected() != _varAsBoolean) {
+                                toggleButton.setSelected(_varAsBoolean);
+                            }
+                            break;
+                        case TYPE_UNKNOWN:
+                            break;
+                    }
+                } catch (Throwable ex) {
+                    ex.printStackTrace();
+                } finally {
+                    _selfLock--;
+                }
+                return NOTHING;
+            }
+        }.waitResult();
+    }
+
+    public void set(boolean var) {
         if (_varAsBoolean == var) {
             return;
         }
-        fireUpdate(var, var ? "yes" : "no", var ? 1 : 0, var);
+        synchronized (this) {
+            fireUpdate(var, var ? "yes" : "no", var ? 1 : 0, var);
+        }
     }
-    
-    public synchronized void set(int var) {
+
+    public void set(int var) {
         if (_varAsNumeric == var) {
             return;
         }
-        fireUpdate(var, Integer.toString(var), var, var > 0 ? true : false);
+        synchronized (this) {
+            fireUpdate(var, Integer.toString(var), var, var > 0 ? true : false);
+        }
     }
-    
+
     public synchronized void set(String text) {
         if (text == null) {
             fireUpdate(null, "", 0, false);
@@ -465,10 +466,12 @@ public class VUIAccessor {
             if (text.equals(_varAsText)) {
                 return;
             }
-            fireUpdate(text, text, parseNumeric(text), parseBoolean(text));
+            synchronized (this) {
+                fireUpdate(text, text, parseNumeric(text), parseBoolean(text));
+            }
         }
     }
-    
+
     public synchronized void set(Object var) {
         if (var == null) {
             fireUpdate(null, "", 0, false);
@@ -483,21 +486,329 @@ public class VUIAccessor {
                 MXRangedValue rv = (MXRangedValue) var;
                 set(rv._value);
             } else {
-                String text = String.valueOf(var);
-                fireUpdate(var, text, parseNumeric(text), parseBoolean(text));
+                synchronized (this) {
+                    String text = String.valueOf(var);
+                    fireUpdate(var, text, parseNumeric(text), parseBoolean(text));
+                }
             }
         }
     }
-    
-    public synchronized Object get() {
-        return _varAsObject;
+
+    public Object get() {
+        synchronized (this) {
+            return _varAsObject;
+        }
     }
-    
+
     public synchronized String getAsText() {
-        return _varAsText;
+        synchronized (this) {
+            return _varAsText;
+        }
     }
-    
+
     public synchronized int getAsInt() {
-        return _varAsNumeric;
+        synchronized (this) {
+            return _varAsNumeric;
+        }
+    }
+
+    long _lastUnique = 0;
+
+    public void setClipboardText(String text) {
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        StringSelection selection = new StringSelection(text);
+        clipboard.setContents(selection, null);
+    }
+
+    public String getCLipboardText() {
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        DataFlavor[] listFlavor = clipboard.getAvailableDataFlavors();
+        if (listFlavor == null) {
+            return null;
+        }
+        DataFlavor text = DataFlavor.selectBestTextFlavor(listFlavor);
+        if (text == null) {
+            return null;
+        }
+        Object data;
+        try {
+            data = clipboard.getData(text);
+            if (data == null) {
+                return null;
+            }
+            return data.toString();
+
+        } catch (UnsupportedFlavorException ex) {
+            MXLogger2.getLogger(VUIAccessor.class
+            ).log(Level.INFO, ex.getMessage(), ex);
+            return null;
+
+        } catch (IOException ex) {
+            MXLogger2.getLogger(VUIAccessor.class
+            ).log(Level.INFO, ex.getMessage(), ex);
+            return null;
+        }
+    }
+
+    public void installClipboard() {
+        _component.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (e.getButton() != 1) {
+                    createPopupMenu().show(e.getComponent(), e.getX(), e.getY());
+                }
+            }
+        });
+    }
+
+    JPopupMenu _popup = null;
+
+    public JPopupMenu createPopupMenu() {
+        if (_popup != null) {
+            return _popup;
+        }
+
+        JPopupMenu menuPopup = new JPopupMenu();
+
+        JMenuItem menuCut = new JMenuItem("Cut");
+        JMenuItem menuCopy = new JMenuItem("Copy");
+        JMenuItem menuPaste = new JMenuItem("Paste");
+        JMenuItem menuSelectAll = new JMenuItem("Select All");
+
+        menuCut.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cutText();
+            }
+        });
+        menuCopy.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                copyText();
+            }
+        });
+        menuPaste.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pasteText();
+            }
+        });
+        menuSelectAll.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                selectAlltext();
+            }
+        });
+        if (_component instanceof JTextField) {
+            JTextField field = (JTextField) _component;
+            if (field.isEditable()) {
+                menuPopup.add(menuCut);
+            }
+            menuPopup.add(menuCopy);
+            if (field.isEditable()) {
+                menuPopup.add(menuPaste);
+            }
+            menuPopup.add(menuSelectAll);
+        } else if (_component instanceof JTextArea) {
+            JTextArea area = (JTextArea) _component;
+            if (area.isEditable()) {
+                menuPopup.add(menuCut);
+            }
+            menuPopup.add(menuCopy);
+            if (area.isEditable()) {
+                menuPopup.add(menuPaste);
+            }
+            menuPopup.add(menuSelectAll);
+        } else {
+            menuPopup.add(menuCopy);
+            menuPopup.add(menuPaste);
+        }
+
+        _popup = menuPopup;
+        return _popup;
+    }
+
+    public void cutText() {
+        switch (_supportedType) {
+            case TYPE_TEXTAREA:
+                JTextArea textArea = (JTextArea) _component;
+                textArea.cut();
+                break;
+            case TYPE_TEXTFIELD:
+                JTextField textField = (JTextField) _component;
+                textField.cut();
+                break;
+        }
+    }
+
+    public void selectAlltext() {
+        switch (_supportedType) {
+            case TYPE_TEXTAREA:
+                JTextArea textArea = (JTextArea) _component;
+                textArea.selectAll();
+                break;
+            case TYPE_TEXTFIELD:
+                JTextField textField = (JTextField) _component;
+                textField.selectAll();
+                break;
+        }
+    }
+
+    public void copyText() {
+        switch (_supportedType) {
+            case TYPE_LABEL:
+                JLabel label = (JLabel) _component;
+                setClipboardText(label.getText());
+                break;
+            case TYPE_TEXTAREA:
+                JTextArea textArea = (JTextArea) _component;
+                textArea.copy();
+                break;
+            case TYPE_TEXTFIELD:
+                JTextField textField = (JTextField) _component;
+                textField.copy();
+                break;
+            case TYPE_CHECKBOX:
+                JCheckBox checkBox = (JCheckBox) _component;
+                setClipboardText(checkBox.isSelected() ? "1" : "0");
+                break;
+            case TYPE_SLIDER:
+                JSlider slider = (JSlider) _component;
+                setClipboardText(Integer.toString(slider.getValue()));
+                break;
+            case TYPE_SPINNER:
+                JSpinner spinner = (JSpinner) _component;
+                int var = (int) spinner.getValue();
+                setClipboardText(Integer.toString(var));
+                break;
+            case TYPE_TOGGLEBUTTON:
+                JToggleButton toggleButton = (JToggleButton) _component;
+                setClipboardText(toggleButton.isSelected() ? "1" : "0");
+                break;
+            case TYPE_BUTTON:
+                JButton button = (JButton) _component;
+                setClipboardText(button.getText());
+                break;
+        }
+    }
+
+    public void pasteText() {
+        switch (_supportedType) {
+            case TYPE_LABEL:
+                java.awt.Toolkit.getDefaultToolkit().beep();
+                break;
+            case TYPE_TEXTAREA:
+                JTextArea textArea = (JTextArea) _component;
+                textArea.paste();
+                break;
+            case TYPE_TEXTFIELD:
+                JTextField textField = (JTextField) _component;
+                textField.paste();
+                break;
+            case TYPE_CHECKBOX:
+                JCheckBox checkBox = (JCheckBox) _component;
+                String boolText = getCLipboardText();
+                checkBox.setSelected(parseBoolean(boolText));
+                break;
+            case TYPE_SLIDER:
+                JSlider slider = (JSlider) _component;
+                String numText = getCLipboardText();
+                slider.setValue(parseNumeric(numText));
+                break;
+            case TYPE_SPINNER:
+                JSpinner spinner = (JSpinner) _component;
+                String numText2 = getCLipboardText();
+                spinner.setValue((Integer) parseNumeric(numText2));
+                break;
+            case TYPE_TOGGLEBUTTON:
+                JToggleButton toggleButton = (JToggleButton) _component;
+                String boolText2 = getCLipboardText();
+                toggleButton.setSelected(parseBoolean(boolText2));
+                break;
+            case TYPE_BUTTON:
+                java.awt.Toolkit.getDefaultToolkit().beep();
+                break;
+        }
+    }
+
+    public void raiseClickEvent() {
+        String command = null;
+        ActionListener[] listListener;
+        try {
+
+            if (_supportedType == TYPE_BUTTON) {
+                JButton button = (JButton) _component;
+                command = button.getActionCommand();
+                listListener = button.getActionListeners();
+            } else {
+                return;
+            }
+
+            if (listListener != null) {
+                long tick = System.currentTimeMillis();
+                while (tick <= _lastUnique) {
+                    tick++;
+                }
+                _lastUnique = tick;
+
+                ActionEvent evt = new ActionEvent(_component, (int) tick, command);
+
+                for (ActionListener l : listListener) {
+                    try {
+                        l.actionPerformed(evt);
+
+                    } catch (Throwable ex) {
+                        MXLogger2.getLogger(VUIAccessor.class
+                        ).log(Level.SEVERE, ex.getMessage(), ex);
+
+                    }
+                }
+            }
+
+        } catch (RuntimeException ex) {
+            MXLogger2.getLogger(VUIAccessor.class
+            ).log(Level.SEVERE, ex.getMessage(), ex);
+
+        } catch (Error er) {
+            MXLogger2.getLogger(VUIAccessor.class
+            ).log(Level.SEVERE, er.getMessage(), er);
+        }
+    }
+
+    public synchronized void addChangeListener(VUIAccessorListener listener) {
+        _listListener.add(listener);
+    }
+
+    public synchronized void removeChangeListener(VUIAccessorListener listener) {
+        _listListener.remove(listener);
+    }
+
+    public static int parseNumeric(String text) {
+        try {
+            return Integer.parseInt(text);
+        } catch (Throwable ex) {
+            return 0;
+        }
+    }
+
+    public static boolean parseBoolean(String text) {
+        if (text == null) {
+            return false;
+        }
+        if (text.equalsIgnoreCase("true")
+                || text.equalsIgnoreCase("yes")
+                || text.equals("1")) {
+            return true;
+        }
+        if (text.equalsIgnoreCase("false")
+                || text.equalsIgnoreCase("no")
+                || text.equals("0")) {
+            return false;
+        }
+        return false;
+    }
+
+    public JComponent getComponent() {
+        return _component;
     }
 }

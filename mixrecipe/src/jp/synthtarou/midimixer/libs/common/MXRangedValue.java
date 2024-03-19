@@ -74,8 +74,12 @@ public class MXRangedValue implements Comparable<MXRangedValue>{
         _max = max;
         if (min <= max) {
             _count = max - min + 1;
+            if (value < min) value = min;
+            if (value > max) value = max;
         } else {
             _count = min - max + 1;
+            if (value > min) value = min;
+            if (value < max) value = max;
         }
 
         _value = value;

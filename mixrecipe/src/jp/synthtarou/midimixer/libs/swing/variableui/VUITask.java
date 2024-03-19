@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.libs.swing.variableui;
 
-import com.sun.jdi.InvocationException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 import javax.swing.SwingUtilities;
@@ -65,23 +64,29 @@ public abstract class VUITask<T> {
         return _errorHappens; //right ?
     }
 
-    public synchronized T waitResult() {
-        while (_doing) {
-            try {
-                wait(1000);
-            }catch(InterruptedException ex) {
-                _errorHappens = ex;
+    public T waitResult() {
+        synchronized (this) {
+            while (_doing) {
+                try {
+                    wait(1000);
+                }catch(InterruptedException ex) {
+                    _errorHappens = ex;
+                }
             }
+            if (_invocationTargetException != null) {
+                _errorHappens = new InvocationTargetException(_invocationTargetException);
+            }
+            return _result;
         }
-        if (_invocationTargetException != null) {
-            _errorHappens = new InvocationTargetException(_invocationTargetException);
-        }
-        return _result;
     }
 
+    static Object single = new Object();
+    
     private void callerForTask() {
         try {
-            _result = run();
+            synchronized (single) {
+                _result = run();
+            }
         }catch(Throwable ex) {
             MXLogger2.getLogger(VUITask.class).log(Level.SEVERE, ex.getMessage(), ex);
             _invocationTargetException = ex;

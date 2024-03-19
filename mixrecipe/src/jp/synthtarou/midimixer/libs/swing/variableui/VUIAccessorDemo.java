@@ -16,8 +16,11 @@
  */
 package jp.synthtarou.midimixer.libs.swing.variableui;
 
+import javax.swing.SpinnerNumberModel;
 import jp.synthtarou.midimixer.MXThread;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
+import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 
 /**
  *
@@ -28,37 +31,76 @@ public class VUIAccessorDemo extends javax.swing.JPanel {
     public static void main(String[] args) {
         VUIAccessorDemo demo = new VUIAccessorDemo();
         MXUtil.showAsDialog(null, demo, "demo");
+        System.exit(0);
     }
-    
-    VUIAccessor bindSpinner;
-    VUIAccessor bindTextArea;
-    VUIAccessor bindTextField;
-    VUIAccessor bindLabel;
-    VUIAccessor bindSlider;
+
+    class ViewModel implements VUIAccessorListener {
+
+        VUIAccessor bindSpinner;
+        VUIAccessor bindTextArea;
+        VUIAccessor bindTextField;
+        VUIAccessor bindLabel;
+        VUIAccessor bindSlider;
+
+        VUIAccessor[] bindTenkey;
+        
+        boolean inConstruction = true;
+
+        public ViewModel() {
+            bindSpinner = new VUIAccessor(jSpinner1, this);
+            bindTextArea = new VUIAccessor(jTextArea1, this);
+            bindTextField = new VUIAccessor(jTextField1, this);
+            bindSlider = new VUIAccessor(jSlider1, this);
+            bindLabel = new VUIAccessor(jLabel1);
+
+            bindTenkey = new VUIAccessor[]{
+                new VUIAccessor(jButton0),
+                new VUIAccessor(jButton1),
+                new VUIAccessor(jButton2),
+                new VUIAccessor(jButton3),
+                new VUIAccessor(jButton4),
+                new VUIAccessor(jButton5),
+                new VUIAccessor(jButton6),
+                new VUIAccessor(jButton7),
+                new VUIAccessor(jButton8),
+                new VUIAccessor(jButton9)
+            };
+
+            inConstruction = false;
+        }
+
+        public void accessorUIValueChanged(VUIAccessorEvent evt) {
+            if (inConstruction) {
+                return;
+            }
+            if (evt.getUIAccessor() == bindSlider || evt.getUIAccessor() == bindSpinner) {
+                if (evt.getUIAccessor() != bindSlider) {
+                    bindSlider.set(evt.getUIAccessor().getAsInt());
+                    bindLabel.set(evt.getUIAccessor().getAsText());
+                }if (evt.getUIAccessor() != bindSpinner) {
+                    bindSpinner.set(evt.getUIAccessor().getAsInt());
+                    bindLabel.set(evt.getUIAccessor().getAsText());
+                }
+            }
+            else {
+                bindLabel.set(evt.getUIAccessor().getAsText());
+            }
+        }
+    }
+
+    ViewModel _vm;
 
     /**
      * Creates new form UIAccessorDemo
      */
     public VUIAccessorDemo() {
         initComponents();
-        bindSpinner = new VUIAccessor(jSpinner1);
-        bindTextArea = new VUIAccessor(jTextArea1);
-        bindTextField = new VUIAccessor(jTextField1);
-        bindLabel = new VUIAccessor(jLabel1);
-        bindSlider = new VUIAccessor(jSlider1);
-        
-        VUIAccessorListener listener = new VUIAccessorListener() {
-            @Override
-            public void accessorUIValueChanged(VUIAccessorEvent evt) {
-                bindLabel.set(evt.getUIAccessor().getAsText());
-            }
-        };
-        bindSpinner.addChangeListener(listener);
-        bindTextArea.addChangeListener(listener);
-        bindTextField.addChangeListener(listener);
-        bindLabel.addChangeListener(listener);
-        bindSpinner.addChangeListener(listener);
-        bindSlider.addChangeListener(listener);
+        new MXAttachSliderSingleClick(jSlider1);
+        new MXAttachSliderLikeEclipse(jSlider1);
+        jSpinner1.setModel(new SpinnerNumberModel(150, 0, 1000, 1));
+        jSlider1.setMinimum(0);
+        jSlider1.setMaximum(1000);
+        _vm = new ViewModel();
     }
 
     /**
@@ -88,6 +130,8 @@ public class VUIAccessorDemo extends javax.swing.JPanel {
         jTextField1 = new javax.swing.JTextField();
         jSlider1 = new javax.swing.JSlider();
         jLabel1 = new javax.swing.JLabel();
+        jButtonClear = new javax.swing.JButton();
+        jButtonBack = new javax.swing.JButton();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -100,7 +144,6 @@ public class VUIAccessorDemo extends javax.swing.JPanel {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         add(jButton0, gridBagConstraints);
@@ -274,69 +317,111 @@ public class VUIAccessorDemo extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weighty = 1.0;
         add(jLabel1, gridBagConstraints);
+
+        jButtonClear.setText("C");
+        jButtonClear.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonClearActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        add(jButtonClear, gridBagConstraints);
+
+        jButtonBack.setText("<");
+        jButtonBack.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonBackActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        add(jButtonBack, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton0ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton0ActionPerformed
-        bindSpinner.set(bindSpinner.getAsInt() * 10);
+        _vm.bindSpinner.set(_vm.bindSpinner.getAsInt() * 10);
+        _vm.bindSlider.set(_vm.bindSpinner.getAsInt());
     }//GEN-LAST:event_jButton0ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        bindSpinner.set(bindSpinner.getAsInt() * 10 + 1);
+        _vm.bindSpinner.set(_vm.bindSpinner.getAsInt() * 10 + 1);
+        _vm.bindSlider.set(_vm.bindSpinner.getAsInt());
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        bindSpinner.set(bindSpinner.getAsInt() * 10 + 2);
+        _vm.bindSpinner.set(_vm.bindSpinner.getAsInt() * 10 + 2);
+        _vm.bindSlider.set(_vm.bindSpinner.getAsInt());
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        bindSpinner.set(bindSpinner.getAsInt() * 10 + 3);
+        _vm.bindSpinner.set(_vm.bindSpinner.getAsInt() * 10 + 3);
+        _vm.bindSlider.set(_vm.bindSpinner.getAsInt());
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        bindSpinner.set(bindSpinner.getAsInt() * 10 + 4);
+        _vm.bindSpinner.set(_vm.bindSpinner.getAsInt() * 10 + 4);
+        _vm.bindSlider.set(_vm.bindSpinner.getAsInt());
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
-        bindSpinner.set(bindSpinner.getAsInt() * 10 + 5);
+        _vm.bindSpinner.set(_vm.bindSpinner.getAsInt() * 10 + 5);
+        _vm.bindSlider.set(_vm.bindSpinner.getAsInt());
+
     }//GEN-LAST:event_jButton5ActionPerformed
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-        bindSpinner.set(bindSpinner.getAsInt() * 10 + 6);
+        _vm.bindSpinner.set(_vm.bindSpinner.getAsInt() * 10 + 6);
+        _vm.bindSlider.set(_vm.bindSpinner.getAsInt());
     }//GEN-LAST:event_jButton6ActionPerformed
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
-        bindSpinner.set(bindSpinner.getAsInt() * 10 + 7);
+        _vm.bindSpinner.set(_vm.bindSpinner.getAsInt() * 10 + 7);
+        _vm.bindSlider.set(_vm.bindSpinner.getAsInt());
 
     }//GEN-LAST:event_jButton7ActionPerformed
 
     private void jButton8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton8ActionPerformed
-        bindSpinner.set(bindSpinner.getAsInt() * 10 + 8);
-
+        _vm.bindSpinner.set(_vm.bindSpinner.getAsInt() * 10 + 8);
+        _vm.bindSlider.set(_vm.bindSpinner.getAsInt());
     }//GEN-LAST:event_jButton8ActionPerformed
 
     private void jButton9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton9ActionPerformed
-        bindSpinner.set(bindSpinner.getAsInt() * 10 + 9);
+        _vm.bindSpinner.set(_vm.bindSpinner.getAsInt() * 10 + 9);
+        _vm.bindSlider.set(_vm.bindSpinner.getAsInt());
     }//GEN-LAST:event_jButton9ActionPerformed
 
     private void jButtonto100ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonto100ActionPerformed
-        for (int i = 0; i < 100; ++ i){
-            bindSpinner.set(i);
-        }        
+        for (int i = 0; i <= 100; ++i) {
+            _vm.bindSpinner.set(i);
+        }
         new MXThread("Button", new Runnable() {
             @Override
             public void run() {
-                for (int i = 0; i < 100; ++ i){
-                    bindSpinner.set(i);
+                for (int i = 0; i <= 100; ++i) {
+                    _vm.bindSpinner.set(i);
                     try {
                         Thread.sleep(10);
-                    }catch(Exception e) {
-                        
+                    } catch (Exception e) {
+
                     }
-                }        
+                }
             }
         }).start();;
     }//GEN-LAST:event_jButtonto100ActionPerformed
 
+    private void jButtonClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonClearActionPerformed
+        _vm.bindSpinner.set(0);
+    }//GEN-LAST:event_jButtonClearActionPerformed
+
+    private void jButtonBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonBackActionPerformed
+        // TODO add your handling code here:
+        _vm.bindSpinner.set(_vm.bindSpinner.getAsInt() / 10);
+    }//GEN-LAST:event_jButtonBackActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton0;
@@ -349,6 +434,8 @@ public class VUIAccessorDemo extends javax.swing.JPanel {
     private javax.swing.JButton jButton7;
     private javax.swing.JButton jButton8;
     private javax.swing.JButton jButton9;
+    private javax.swing.JButton jButtonBack;
+    private javax.swing.JButton jButtonClear;
     private javax.swing.JButton jButtonto100;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
