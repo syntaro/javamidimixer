@@ -45,7 +45,7 @@ public class MX60Process extends MXReceiver<MX60View> implements MXSettingTarget
     }
 
     @Override
-    public void setUsingThisRecipe(boolean flag) {
+    public void setUsingThisRecipeDX(boolean flag) {
         _view.setUsingThisRecipeDX(flag);
     }
 

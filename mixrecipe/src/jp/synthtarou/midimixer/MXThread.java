@@ -30,22 +30,10 @@ public class MXThread extends Thread {
     public MXThread(String name, Runnable run) {
         super(_group, run, name);
     }
-    
+
     public static void listThread() {
         _group.list();
-        /*
-        int count = _group.activeCount();
-        Thread[] list = new Thread[count + 5];
-        _group.enumerate(list);
-        for (int i = 0; i < list.length; ++ i) {
-            Thread t = list[i];
-            if (t == null) {
-                continue;
-            }
-            System.out.println("Available thread [" + i + "] " + t.getName());
-        }*/
     }
-            
 
     public static void exitAll() {
         int count = _group.activeCount();
@@ -56,9 +44,18 @@ public class MXThread extends Thread {
             if (t == null) {
                 continue;
             }
-            MXLogger2.getLogger(MXThread.class).info("Exit thread [" + i + "] " + t.getName());
-            t.interrupt();
+            if (t.isAlive()) {
+                MXLogger2.getLogger(MXThread.class).info("Checked as Alive [" + i + "] " + t.getName());
+            }
+        }
+        for (int i = 0; i < list.length; ++ i) {
+            Thread t = list[i];
+            if (t == null) {
+                continue;
+            }
             if(t.isAlive()) {
+                MXLogger2.getLogger(MXThread.class).info("Exit thread [" + i + "] " + t.getName());
+                t.interrupt();
                 try {
                     t.join();
                 } catch (InterruptedException ex) {

@@ -38,12 +38,14 @@ import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
+import jp.synthtarou.midimixer.libs.swing.UITask;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MXPianoKeys extends JComponent {
+
     boolean _doingPaint = true;
 
     public void setDoingPaint(boolean flag) {
@@ -584,24 +586,22 @@ public class MXPianoKeys extends JComponent {
         if (!_doingPaint) {
             return;
         }
-        if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    orderRedrawNote(note);
+        new UITask() {
+            @Override
+            public Object run() {
+                if (note >= 0) {
+                    MXPianoKeys.KeyRect key = findRectByNote(note);
+                    if (key != null && key.isValid()) {
+                        paintOnBuffer(key._rect);
+                        repaint(key._rect);
+                    }
+                } else {
+                    paintOnBuffer(null);
+                    repaint();
                 }
-            });
-            return;
-        }
-        if (note >= 0) {
-            MXPianoKeys.KeyRect key = findRectByNote(note);
-            if (key != null && key.isValid()) {
-                paintOnBuffer(key._rect);
-                repaint(key._rect);
+                return NOTHING;
             }
-        } else {
-            paintOnBuffer(null);
-            repaint();
-        }
+        };
     }
 
     public static void main(String[] args) {

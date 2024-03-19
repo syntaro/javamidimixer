@@ -23,8 +23,8 @@ import java.awt.GridBagConstraints;
 import java.util.ArrayList;
 import java.util.Comparator;
 import javax.swing.JComponent;
-import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
+import jp.synthtarou.midimixer.libs.swing.UITask;
 
 /**
  *
@@ -160,29 +160,24 @@ public class MXAccordion extends javax.swing.JPanel {
     }
 
     public void openAccordion(boolean opened) {
-        if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    openAccordion(opened);
+        new UITask<Object>() {
+            @Override
+            public Object run() {
+                if (_selected == opened) {
+                    return null;
                 }
-            });
-            return;
-        }
 
-        if (_selected == opened) {
-            return;
-        }
+                _selected = opened;
 
-        _selected = opened;
-
-        Integer v = jSlider1.getValue();
-        boolean sel = v.intValue() != 0;
-        if (sel != opened) {
-            jSlider1.setValue(opened ? 1 : 0);
-        }
-        _contentsList.openWithAnimation(opened, _invert);
-
+                Integer v = jSlider1.getValue();
+                boolean sel = v.intValue() != 0;
+                if (sel != opened) {
+                    jSlider1.setValue(opened ? 1 : 0);
+                }
+                _contentsList.openWithAnimation(opened, _invert);
+                return null;
+            }
+        };
     }
 
     public boolean isAccordionOpened() {

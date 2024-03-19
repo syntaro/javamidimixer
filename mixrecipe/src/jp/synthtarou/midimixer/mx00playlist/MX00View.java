@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.mx00playlist;
 
+import jp.synthtarou.midimixer.libs.swing.UITask;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -81,15 +82,6 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     }
 
     public void setStructureDX(MX00Structure structure) {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    setStructureDX(structure);
-                }
-            });
-            return;
-        }
         setQueueFileListDX(structure._playListModel);
         setChainedDX(structure._playAsChained);
         setRepeatedDX(structure._playAsRepeated);
@@ -98,56 +90,44 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     PlayListDX _dxPlayList;
 
     public void setQueueFileListDX(PlayListDX listFiles) {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    setQueueFileListDX(listFiles);
-                }
-            });
-            return;
-        }
-        _dxPlayList = listFiles;
-        jListPlayList.setModel(_dxPlayList);
+        new UITask() {
+            @Override
+            public Object run() {
+                _dxPlayList = listFiles;
+                jListPlayList.setModel(_dxPlayList);
+                return null;
+            }
+        };
     }
 
     public void setChainedDX(boolean chain) {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    setChainedDX(chain);
-                }
-            });
-            return;
-        }
-        jCheckBoxChain.setSelected(chain);
+        new UITask() {
+            @Override
+            public Object run() {
+                jCheckBoxChain.setSelected(chain);
+                return null;
+            }
+        };
     }
 
     public void setRepeatedDX(boolean repeat) {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    setRepeatedDX(repeat);
-                }
-            });
-            return;
-        }
-        jCheckBoxRepeat.setSelected(repeat);
+        new UITask() {
+            @Override
+            public Object run() {
+                jCheckBoxRepeat.setSelected(repeat);
+                return null;
+            }
+        };
     }
 
     public void setCurrentSongNameDX(String songName) {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    setCurrentSongNameDX(songName);
-                }
-            });
-            return;
-        }
-        jTextFieldCurrentSongName.setText(songName);
+        new UITask() {
+            @Override
+            public Object run() {
+                jTextFieldCurrentSongName.setText(songName);
+                return null;
+            }
+        };
     }
 
     public MX00Structure getStructureDX() {
@@ -921,32 +901,35 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
 
     @Override
     public void smfProgress(long pos, long finish) {
-        if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    smfProgress(pos, finish);
+        new UITask() {
+            @Override
+            public Object run() {
+                if (pos == 0) {
+                    MXMain.getMain().getLayerProcess().resendProgramChange();
                 }
-            });
-            return;
-        }
-        if (pos == 0) {
-            MXMain.getMain().getLayerProcess().resendProgramChange();
-        }
-        jLabelSongPosition.setText(MXUtil.digitalClock(pos) + "/" + MXUtil.digitalClock(finish));
+                jLabelSongPosition.setText(MXUtil.digitalClock(pos) + "/" + MXUtil.digitalClock(finish));
 
-        jSliderSongPosition.setMaximum((int) finish);
-        jSliderSongPosition.setValue((int) pos);
+                jSliderSongPosition.setMaximum((int) finish);
+                jSliderSongPosition.setValue((int) pos);
+                return NOTHING;
+            }
+        };
     }
 
     public void turnOnMusic(PlayListElement file, final int pos) {
         if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
+            new UITask(true) {
                 @Override
-                public void run() {
-                    turnOnMusic(file, pos);
+                public Object run() {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            turnOnMusic(file, pos);
+                        }
+                    });
+                    return NOTHING;
                 }
-            });
+            };
             return;
         }
         try {
@@ -1007,12 +990,9 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
             MXMain.getMain().getPlayListProcess().createPianoControls(noteLowest, octaveRange, exist, program, drums);
             _lastPlayed = file;
             _playingFile = file;
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    jListPlayList.setSelectedValue(file, true);
-                    _player.startSequencer(MX00View.this, pos);
-                }
-            });
+            //??
+            jListPlayList.setSelectedValue(file, true);
+            _player.startSequencer(MX00View.this, pos);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "Can't open File [" + file._file + " ]\n" + ex.toString(), "Error", JOptionPane.OK_OPTION);
             return;

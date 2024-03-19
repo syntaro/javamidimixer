@@ -77,19 +77,24 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
             ret.add("Size: " + file.length());
             ret.add("Date: " + textDate);
             
-            SMFSequencer player = new SMFSequencer(file);
-            SortedArray<SMFMessage> listMessage = player.listMessage();
-            
-            ret.add("SongLength: " + MXUtil.digitalClock(player.getMaxMilliSecond()));
-            ret.add("SMPTE: " + player.getSMPTEFormat());
-            ret.add("Resolution : " + player.getResolution());
+            if (file.isFile() == false || file.exists() == false) {
+                ret.add("* not found");
+            }
+            else {
+                SMFSequencer player = new SMFSequencer(file);
+                SortedArray<SMFMessage> listMessage = player.listMessage();
 
-            for (SMFMessage message : listMessage) {
-                if (message.getStatus() != 0xff) {
-                    continue;
+                ret.add("SongLength: " + MXUtil.digitalClock(player.getMaxMilliSecond()));
+                ret.add("SMPTE: " + player.getSMPTEFormat());
+                ret.add("Resolution : " + player.getResolution());
+
+                for (SMFMessage message : listMessage) {
+                    if (message.getStatus() != 0xff) {
+                        continue;
+                    }
+
+                    ret.add(MXUtil.digitalClock(message._millisecond) + " : "+  message.getMetaText());
                 }
-                
-                ret.add(MXUtil.digitalClock(message._millisecond) + " : "+  message.getMetaText());
             }
         } catch (IOException ex) {
             MXLogger2.getLogger(MXMIDIInForPlayer.class).log(Level.WARNING, ex.getMessage(), ex);

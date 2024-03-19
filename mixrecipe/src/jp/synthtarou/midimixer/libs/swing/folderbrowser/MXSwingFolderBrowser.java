@@ -42,6 +42,7 @@ import jp.synthtarou.midimixer.MXThread;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
+import jp.synthtarou.midimixer.libs.swing.UITask;
 
 /**
  *
@@ -527,24 +528,20 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
     }
 
     public void ensureNodeToVisible(FileSystemCache.Element node) {
-        if (node == null) {
-            throw new NullPointerException("NULLPO");
-        }
-        if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
+        if (node != null) {
+            new UITask() {
                 @Override
-                public void run() {
-                    ensureNodeToVisible(node);
-                }
-            });
-            return;
-        }
-        TreePath path = new TreePath(node._pairNode.getPath());
-        jTree1.expandPath(path);
-        jTree1.setSelectionPath(path);
+                public Object run() {
+                    TreePath path = new TreePath(node._pairNode.getPath());
+                    jTree1.expandPath(path);
+                    jTree1.setSelectionPath(path);
 
-        jTree1.scrollPathToVisible(path);
-        jTree1.paintImmediately(jTree1.getVisibleRect());
+                    jTree1.scrollPathToVisible(path);
+                    jTree1.paintImmediately(jTree1.getVisibleRect());
+                    return NOTHING;
+                }
+            };
+        }
     }
 
     public boolean isSkipBecauseNetwork(File f) {
@@ -591,16 +588,14 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
     }
 
     public void progress(String text) {
-        if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    progress(text);
-                }
-            });
-            return;
-        }
-        jLabelScan.setText(text);
-        jLabelScan.paintImmediately(jLabelScan.getVisibleRect());
+        new UITask() {
+            @Override
+            public Object run() {
+                jLabelScan.setText(text);
+                jLabelScan.paintImmediately(jLabelScan.getVisibleRect());
+                return NOTHING;
+            }
+        };
     }
 
     /**
@@ -825,7 +820,7 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
             return;
         }
 
-        _returnStatus = INavigator.RETURN_STATUS_APPROVED; 
+        _returnStatus = INavigator.RETURN_STATUS_APPROVED;
         _returnValue = new FileList(safe);
         MXUtil.getOwnerWindow(this).setVisible(false);
     }

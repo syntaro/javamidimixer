@@ -652,7 +652,7 @@ public final class MXMessage implements Comparable<MXMessage> {
             return (((status << 8) | data1) << 8) | data2;
         }
         if (getVisitant() == null) {
-            MXMain.printTrace("Visitant was NULL");
+            MXLogger2.getLogger(MXMessage.class).log(Level.WARNING, "Visitant was NULL");
             return 0;
         }
         else {
@@ -667,8 +667,8 @@ public final class MXMessage implements Comparable<MXMessage> {
                 data2 = getVisitant().getDataroomMSB();
                 return (((status << 8) | data1) << 8) | data2;
             }
-            MXMain.printDebug("Incomplete  ?" + getVisitant().isIncomplemteDataentry());
-            MXMain.printTrace("Visitant has nodata  "+ getVisitant());
+            MXLogger2.getLogger(MXMessage.class).warning("Incomplete  ?" + getVisitant().isIncomplemteDataentry());
+            MXLogger2.getLogger(MXMessage.class).warning("Visitant has nodata  "+ getVisitant());
         }
         return 0;
     }
@@ -691,7 +691,7 @@ public final class MXMessage implements Comparable<MXMessage> {
             return (((status << 8) | data1) << 8) | data2;
         }
         if (getVisitant() == null) {
-            MXMain.printTrace("Visitant was NULL");
+            MXLogger2.getLogger(MXMessage.class).log(Level.WARNING, "Visitant was NULL");
             return 0;
         }
         else {
@@ -722,7 +722,7 @@ public final class MXMessage implements Comparable<MXMessage> {
             return (((status << 8) | data1) << 8) | data2;
         }
         if (getVisitant() == null) {
-            MXMain.printTrace("Visitant was NULL");
+            MXLogger2.getLogger(MXMessage.class).log(Level.WARNING, "Visitant was NULL");
             return 0;
         }
         else {
@@ -748,7 +748,7 @@ public final class MXMessage implements Comparable<MXMessage> {
             return (((status << 8) | data1) << 8) | data2;
         }
         if (getVisitant() == null) {
-            MXMain.printTrace("Visitant was NULL");
+            MXLogger2.getLogger(MXMessage.class).log(Level.WARNING, "Visitant was NULL");
             return 0;
         }
         else {

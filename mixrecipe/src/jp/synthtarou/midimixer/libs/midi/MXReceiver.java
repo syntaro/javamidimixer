@@ -57,7 +57,7 @@ public abstract class MXReceiver<T extends JPanel> {
         return _usingThis;
     }
 
-    public void setUsingThisRecipe(boolean usingThis) {
+    public void setUsingThisRecipeDX(boolean usingThis) {
         _usingThis = usingThis;
     }
 }

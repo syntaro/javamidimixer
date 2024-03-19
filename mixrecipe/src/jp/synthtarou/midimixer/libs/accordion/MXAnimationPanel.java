@@ -23,7 +23,7 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
+import jp.synthtarou.midimixer.libs.swing.UITask;
 
 /**
  *
@@ -57,18 +57,14 @@ public class MXAnimationPanel extends JPanel {
     }
     
     public void setScrollPercent(int x) {
-        _percent = x;
-        if (SwingUtilities.isEventDispatchThread()) {
-            repaint();
-        }
-        else {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    repaint();
-                }
-            });
-        }
+        new UITask<Object>() {
+            @Override
+            public Object run() {
+                _percent = x;
+                repaint();
+                return null;
+            }
+        };
     }
 
     @Override

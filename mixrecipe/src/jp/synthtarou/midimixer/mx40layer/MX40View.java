@@ -1058,7 +1058,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         if (underConstruction) {
             return;
         }
-        _process.setUsingThisRecipe(jCheckBoxUseLayer.isSelected());
+        _process.setUsingThisRecipeDX(jCheckBoxUseLayer.isSelected());
         
         recursibleEnable(this, jCheckBoxUseLayer.isSelected());
         jCheckBoxUseLayer.setEnabled(true); // This controller must be enabled always

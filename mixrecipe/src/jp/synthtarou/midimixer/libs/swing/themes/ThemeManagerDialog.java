@@ -26,6 +26,7 @@ import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
+import jp.synthtarou.midimixer.libs.swing.UITask;
 
 /**
  *
@@ -296,14 +297,14 @@ public class ThemeManagerDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_jCheckBox1ActionPerformed
 
     public void updateLookAndFeel() {
-        SwingUtilities.invokeLater(new Runnable() {
-
-            public void run() {
+        new UITask() {
+            public Object run() {
                 config.setUITheme(config.themeName);
                 config.setFont(config.fontName, config.fontStyle, config.fontSize);
                 config.updateUITree();
+                return NOTHING;
             }
-        });
+        };
     }
     
     class LookAndFeelThemeAction implements ActionListener {

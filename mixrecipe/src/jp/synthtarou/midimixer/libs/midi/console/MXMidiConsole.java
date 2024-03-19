@@ -28,22 +28,24 @@ import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
-import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.ccxml.xml.CXGeneralMidiFile;
 import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
+import jp.synthtarou.midimixer.libs.swing.UITask;
+import static jp.synthtarou.midimixer.libs.swing.UITask.NOTHING;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MXMidiConsole implements ListModel<String> {
+
     static final int _capacity = 500;
     static final int _timer = 500;
- 
+
     public final ShiftableList<MXMidiConsoleElement> _list = new ShiftableList(_capacity);
     ArrayList<ListDataListener> _listener = new ArrayList();
     LinkedList<MXMidiConsoleElement> _queue = new LinkedList();
@@ -133,7 +135,7 @@ public class MXMidiConsole implements ListModel<String> {
     public MXMidiConsoleElement getConsoleElement(int index) {
         return _list.get(index);
     }
-    
+
     @Override
     public String getElementAt(int index) {
         MXMidiConsoleElement e = _list.get(index);
@@ -162,11 +164,11 @@ public class MXMidiConsole implements ListModel<String> {
 
     public void switchPause(boolean pause) {
         if (pause) {
-            fireImpl();
+            invokeFire();
             _switchPause = pause;
         } else {
             _switchPause = pause;
-            fireImpl();
+            invokeFire();
         }
     }
 
@@ -222,7 +224,7 @@ public class MXMidiConsole implements ListModel<String> {
                 MXTiming prevNumber = prevE.getTiming();
                 int comp = prevNumber.compareTo(e.getTiming());
                 if (comp > 0) {
-                    MXMain.printTrace("This " + e.formatMessageLong() + "\n" + "Before " + prevE.formatMessageLong());
+                    MXLogger2.getLogger(MXMessage.class).warning("This " + e.formatMessageLong() + "\n" + "Before " + prevE.formatMessageLong());
                 }
             }
         }
@@ -241,27 +243,29 @@ public class MXMidiConsole implements ListModel<String> {
             return;
         }
         if (tickNow - _repaintLastTick >= _timer) {
-            fireImpl();
+            invokeFire();
         } else {
             _repainReserved = true;
             MXGlobalTimer.letsCountdown(_timer - (tickNow - _repaintLastTick), new Runnable() {
                 @Override
                 public void run() {
-                    fireImpl();
+                    invokeFire();
                 }
             });
         }
     }
 
-    private void fireImpl() {
-        if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    fireImpl();
-                }
-            });
-            return;
-        }
+    private void invokeFire() {
+        new UITask() {
+            @Override
+            public Object run() {
+                implFire();
+                return NOTHING;
+            }
+        };
+    }
+
+    private void implFire() {
         if (_switchPause) {
             return;
         }
@@ -284,8 +288,8 @@ public class MXMidiConsole implements ListModel<String> {
                     MXLogger2.getLogger(MXMidiConsole.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
-            if (_refList != null) {                
-                _refList.ensureIndexIsVisible(_list.size()- 1);
+            if (_refList != null) {
+                _refList.ensureIndexIsVisible(_list.size() - 1);
             }
         }
     }
@@ -301,33 +305,31 @@ public class MXMidiConsole implements ListModel<String> {
     }
 
     public void setSelectedTiming(MXTiming selection) {
-        if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    setSelectedTiming(selection);
-                }
-            });
-            return;
-        }
-        synchronized (_list) {
-            _selectedTiming = selection;
-            for (int i = 0; i < getSize(); ++ i) {
-                MXMidiConsoleElement elem = _list.get(i);
-                if (elem == null) {
-                    continue;
-                }
-                if (elem.getTiming() == selection) {
-                    int start = _refList.getFirstVisibleIndex();
-                    int fin = start + _refList.getVisibleRowCount() - 1;
-                    if (start <= i && i <= fin) {
-                        return;
-                    }else {                           
-                        _refList.ensureIndexIsVisible(i);
+        new UITask() {
+            @Override
+            public Object run() {
+                synchronized (_list) {
+                    _selectedTiming = selection;
+                    for (int i = 0; i < getSize(); ++i) {
+                        MXMidiConsoleElement elem = _list.get(i);
+                        if (elem == null) {
+                            continue;
+                        }
+                        if (elem.getTiming() == selection) {
+                            int start = _refList.getFirstVisibleIndex();
+                            int fin = start + _refList.getVisibleRowCount() - 1;
+                            if (start <= i && i <= fin) {
+                                return NOTHING;
+                            } else {
+                                _refList.ensureIndexIsVisible(i);
+                            }
+                            return NOTHING;
+                        }
                     }
-                    return;
+                    _refList.invalidate();
                 }
+                return NOTHING;
             }
-            _refList.invalidate();
         };
     }
 
@@ -340,4 +342,3 @@ public class MXMidiConsole implements ListModel<String> {
         }
     }
 }
-

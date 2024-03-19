@@ -22,6 +22,7 @@ import java.util.logging.Level;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXThread;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
+import jp.synthtarou.midimixer.libs.swing.UITask;
 
 /**
  *
@@ -141,13 +142,14 @@ public class MXAccordionInnerPanel {
                             }
                         }
                     }
-                    SwingUtilities.invokeLater(new Runnable() {
-                        public void run() {
+                    new UITask() {
+                        public Object run() {
                             _animationPanel.setVisible(false);
                             _doingAnimation = false;
                             revalidateASAP();
+                            return null;
                         }
-                    });
+                    };
                 }
             }).start();
         }

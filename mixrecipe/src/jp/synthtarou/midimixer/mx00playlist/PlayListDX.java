@@ -19,7 +19,6 @@ package jp.synthtarou.midimixer.mx00playlist;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;

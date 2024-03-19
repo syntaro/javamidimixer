@@ -202,7 +202,7 @@ public class MX11View extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jCheckBoxUseRouteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxUseRouteActionPerformed
-        _process.setUsingThisRecipe(jCheckBoxUseRoute.isSelected());
+        _process.setUsingThisRecipeDX(jCheckBoxUseRoute.isSelected());
         jTableVelocity.setEnabled(jCheckBoxUseRoute.isSelected());
     }//GEN-LAST:event_jCheckBoxUseRouteActionPerformed
 

@@ -20,8 +20,9 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import javax.swing.SwingUtilities;
+import java.awt.event.WindowListener;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.libs.swing.UITask;
 import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
 
 /**
@@ -116,12 +117,13 @@ public class MXProgressDialog extends javax.swing.JDialog {
     }
     
     public void writeLine(String line) {
-        SwingUtilities.invokeLater(new Runnable() {
+        new UITask() {
             @Override
-            public void run() {                
+            public Object run() {                
                 jTextArea1.setText(jTextArea1.getText() + line + "\n");
+                return null;
             }
-        });
+        };
     }
 
     public MXProgressDialog(java.awt.Frame parent, boolean modal) {
@@ -175,13 +177,14 @@ public class MXProgressDialog extends javax.swing.JDialog {
                         last = 40;
                         _piano.noteOn(40);
                     }
-                    SwingUtilities.invokeLater(new Runnable() {
+                    new UITask() {
                         @Override
-                        public void run() {
+                        public Object run() {
                             _piano.invalidate();
                             _piano.repaint();
+                            return null;
                         }
-                    });
+                    };
                     if (_pianoStop) {
                         break;
                     }
@@ -192,11 +195,12 @@ public class MXProgressDialog extends javax.swing.JDialog {
 
         addWindowListener(new WindowAdapter() {
             @Override
-            public void windowOpened(WindowEvent e) {
+            public void windowClosed(WindowEvent e) {
+                _pianoStop = true;
             }
 
             @Override
-            public void windowClosed(WindowEvent e) {
+            public void windowDeactivated(WindowEvent e) {
                 _pianoStop = true;
             }
         });

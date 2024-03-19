@@ -45,6 +45,7 @@ import jp.synthtarou.midimixer.mx60output.MX60Process;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
+import jp.synthtarou.midimixer.libs.swing.UITask;
 import jp.synthtarou.midimixer.libs.vst.VSTInstance;
 import jp.synthtarou.midimixer.mx36ccmapping.MX36Process;
 import jp.synthtarou.midimixer.mx12masterpiano.MX12Process;
@@ -222,7 +223,6 @@ public class MXMain  {
                             SMFSequencer.stopAll();
                             MXMIDIInManager.getManager().closeAll();
                             MXMIDIOutManager.getManager().closeAll();
-                            MXThread.listThread();
                             MXThread.exitAll();
                         }catch(RuntimeException ex) {
                             MXLogger2.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
@@ -251,9 +251,9 @@ public class MXMain  {
         reList.add(_mxXMLManager);
         reList.add(_mx90Debugger);
 
-        SwingUtilities.invokeLater(new Runnable() {
+        new UITask() {
             @Override
-            public void run() {
+            public Object run() {
                 _mainWindow.initLatebind(reList);
 
                 if (_progress != null) {
@@ -269,8 +269,9 @@ public class MXMain  {
 
                 _mainWindow.setEnabled(true);
                 Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+                return null;
             }
-        });
+        };
     }
     
     LinkedList<Runnable> _startQueue = new LinkedList();
@@ -386,22 +387,13 @@ public class MXMain  {
         System.out.println(text);
     }
     
-    public static void printTrace(String text) {
-        Exception e = new Exception(text);
-        e.printStackTrace();
-        StackTraceElement[] list = e.getStackTrace();
-        printDebug("Warning: " + text);
-        for (StackTraceElement seek : list) {
-            printDebug(seek.toString());
-        }
-    }
-    
     public static void printAlert(String text) {
-        SwingUtilities.invokeLater(new Runnable() {
+        new UITask(true) {
             @Override
-            public void run() {
+            public Object run() {
                 JOptionPane.showMessageDialog(MXMain.getMain()._mainWindow, text, MXAppConfig.MX_APPNAME, JOptionPane.OK_OPTION);
+                return NOTHING;
             }
-        });
+        };
     }
 }

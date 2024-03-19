@@ -22,6 +22,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.tree.TreeCellRenderer;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
+import jp.synthtarou.midimixer.libs.swing.UITask;
 
 /**
  *
@@ -55,23 +56,25 @@ public class MXCaptureProcess extends MXReceiver{
     
     public void setRederer(JTree tree) {
         _jTree = tree;
-        SwingUtilities.invokeLater(new Runnable() {
+        new UITask() {
             @Override
-            public void run() {
+            public Object run() {
                 TreeCellRenderer render = new CounterTreeModel.CounterRender(tree);
                 _jTree.setCellRenderer(render);
                 _jTree.setModel(_table._model);
+                return NOTHING;
             }
-        });
+        };
     }
     
     public void clearTree() {
-        SwingUtilities.invokeLater(new Runnable() {
+        new UITask() {
             @Override
-            public void run() {
+            public Object run() {
                 _table = new CounterTable();
                _jTree.setModel(_table._model);
+               return NOTHING;
             }
-        });
+        };
     }
 }

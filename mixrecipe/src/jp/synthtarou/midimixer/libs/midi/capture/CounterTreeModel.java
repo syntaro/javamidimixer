@@ -20,13 +20,11 @@ import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JTree;
-import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeNode;
-import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.swing.UITask;
 
 /**
  *
@@ -85,23 +83,19 @@ public class CounterTreeModel extends DefaultTreeModel {
         return false;
     }
     
-    
     public void reload0(TreeNode node) {
-        if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    reload0(node);
+        new UITask() {
+            @Override
+            public Object run() {
+                if (node == null) {
+                    reload();
                 }
-            });
-            return;
-        }
-        if (node == null) {
-            reload();
-        }
-        else {
-            reload(node);
-        }
+                else {
+                    reload(node);
+                }
+                return null;
+            }
+        };
     }
 
     public void addFolder(CounterFolder folder) {

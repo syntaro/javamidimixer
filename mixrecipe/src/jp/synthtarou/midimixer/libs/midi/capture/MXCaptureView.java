@@ -41,18 +41,12 @@ public class MXCaptureView extends javax.swing.JPanel {
         _process.setRederer(jTree1);
         setPreferredSize(new Dimension(600, 400));
         startCapture();
-        SwingUtilities.invokeLater(new Runnable() {
+        MXUtil.getOwnerWindow(MXCaptureView.this).addWindowListener(new WindowAdapter() {
             @Override
-            public void run() {
-                MXUtil.getOwnerWindow(MXCaptureView.this).addWindowListener(new WindowAdapter() {
-                    @Override
-                    public void windowClosing(WindowEvent e) {
-                        stopCapture();
-                    }
-                });
+            public void windowClosing(WindowEvent e) {
+                stopCapture();
             }
         });
-        startCapture();
     }
     
     public void stopCapture() {

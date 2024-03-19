@@ -33,6 +33,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.libs.swing.UITask;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
 import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
@@ -160,13 +161,14 @@ public class NavigatorFor2ColumnList<T> extends javax.swing.JPanel implements IN
             jTable1.setRowSelectionInterval(selectedIndex, selectedIndex);
             jTable1.scrollRectToVisible(jTable1.getCellRect(selectedIndex, 0, true));
         }
-        SwingUtilities.invokeLater(new Runnable() {
+        new UITask(true) {
             @Override
-            public void run() {
+            public Object run() {
                 jTable1.requestFocus();
                 new MXAttachTableResize(jTable1);
+                return true;
             }
-        });
+        };
     }
     /**
      * This method is called from within the constructor to initialize the form.

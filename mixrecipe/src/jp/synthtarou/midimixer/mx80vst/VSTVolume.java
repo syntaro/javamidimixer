@@ -24,6 +24,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
+import jp.synthtarou.midimixer.libs.swing.UITask;
 import jp.synthtarou.midimixer.libs.vst.VSTInstance;
 
 /**
@@ -91,12 +92,13 @@ public class VSTVolume extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     public void reload() {
-        SwingUtilities.invokeLater(new Runnable() {
+        new UITask() {
             @Override
-            public void run() {
+            public Object run() {
                 _slider.setValue(MXRangedValue.new7bit(_instance.getBusVolume(_bus)));
+                return NOTHING;
             }
-        });
+        };
     }
     
 
