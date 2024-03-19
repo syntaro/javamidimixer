@@ -18,22 +18,29 @@ package example;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.event.KeyEvent;
 import javax.swing.SpinnerNumberModel;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
+import jp.synthtarou.midimixer.libs.swing.variableui.VUIAccessor;
+import jp.synthtarou.midimixer.libs.swing.variableui.VUIAccessorEvent;
+import jp.synthtarou.midimixer.libs.swing.variableui.VUIAccessorListener;
+import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class RGBTrans extends javax.swing.JPanel {
+public class RGBTransVUI extends javax.swing.JPanel {
+
+    VUIAccessor spinnerRed, spinnerGreen, spinnerBlue;
+    VUIAccessor sliderRed, sliderGreen, sliderBlue;
+    VUIAccessor textHex, textDec;
 
     int _red, _green, _blue;
 
     public static void main(String[] args) {
-        RGBTrans panel = new RGBTrans();
+        RGBTransVUI panel = new RGBTransVUI();
         MXUtil.showAsDialog(null, panel, "RGBTrans");
         System.exit(0);
     }
@@ -41,12 +48,87 @@ public class RGBTrans extends javax.swing.JPanel {
     /**
      * Creates new form RGBTrans
      */
-    public RGBTrans() {
+    public RGBTransVUI() {
         initComponents();
-        _red = 255;
-        _green = 255;
-        _blue = 255;
+        _red = 100;
+        _green = 200;
+        _blue = 0;
+
+        spinnerRed = new VUIAccessor(jSpinnerRed);
+        spinnerGreen = new VUIAccessor(jSpinnerGreen);
+        spinnerBlue = new VUIAccessor(jSpinnerBlue);
+
+        VUIAccessorListener spinnerListener = new VUIAccessorListener() {
+            @Override
+            public void accessorUIValueChanged(VUIAccessorEvent evt) {
+                if (sharedLock) {
+                    return;
+                }
+                _red = (int) jSpinnerRed.getValue();
+                _green = (int) jSpinnerGreen.getValue();
+                _blue = (int) jSpinnerBlue.getValue();
+                flushColorToAll();
+            }
+        };
+
+        spinnerRed.addChangeListener(spinnerListener);
+        spinnerGreen.addChangeListener(spinnerListener);
+        spinnerBlue.addChangeListener(spinnerListener);
+
+        sliderRed = new VUIAccessor(jSliderRed);
+        sliderGreen = new VUIAccessor(jSliderGreen);
+        sliderBlue = new VUIAccessor(jSliderBlue);
+
+        VUIAccessorListener sliderListener = new VUIAccessorListener() {
+            @Override
+            public void accessorUIValueChanged(VUIAccessorEvent evt) {
+                if (sharedLock) {
+                    return;
+                }
+                _red = jSliderRed.getValue();
+                _green = jSliderGreen.getValue();
+                _blue = jSliderBlue.getValue();
+                flushColorToAll();
+            }
+        };
+
+        sliderRed.addChangeListener(sliderListener);
+        sliderGreen.addChangeListener(sliderListener);
+        sliderBlue.addChangeListener(sliderListener);
+
+        textHex = new VUIAccessor(jTextField16);
+        textHex.addChangeListener(new VUIAccessorListener() {
+            @Override
+            public void accessorUIValueChanged(VUIAccessorEvent evt) {
+                if (sharedLock) {
+                    return;
+                }
+                readText16();
+            }
+        });
+
+        textDec = new VUIAccessor(jTextField10);
+        textDec.addChangeListener(new VUIAccessorListener() {
+            @Override
+            public void accessorUIValueChanged(VUIAccessorEvent evt) {
+                if (sharedLock) {
+                    return;
+                }
+                readText10();
+            }
+        });
+
+        jSpinnerRed.setModel(new SpinnerNumberModel(_red, 0, 255, 1));
+        jSpinnerGreen.setModel(new SpinnerNumberModel(_green, 0, 255, 1));
+        jSpinnerBlue.setModel(new SpinnerNumberModel(_blue, 0, 255, 1));
+        jSliderRed.setMinimum(0);
+        jSliderRed.setMaximum(255);
+        jSliderGreen.setMinimum(0);
+        jSliderGreen.setMaximum(255);
+        jSliderBlue.setMinimum(0);
+        jSliderBlue.setMaximum(255);
         flushColorToAll();
+
         new MXAttachSliderSingleClick(jSliderRed);
         new MXAttachSliderSingleClick(jSliderGreen);
         new MXAttachSliderSingleClick(jSliderBlue);
@@ -56,10 +138,10 @@ public class RGBTrans extends javax.swing.JPanel {
         setPreferredSize(new Dimension(500, 500));
     }
 
-    public boolean _flushing = false;
+    boolean sharedLock = false;
 
     public void flushColorToAll() {
-        _flushing = true;
+        sharedLock = true;
         try {
             if (_red < 0) {
                 _red = 0;
@@ -79,29 +161,13 @@ public class RGBTrans extends javax.swing.JPanel {
             if (_blue > 255) {
                 _blue = 255;
             }
-            jSpinnerRed.setModel(new SpinnerNumberModel(_red, 0, 255, 1));
-            jSpinnerGreen.setModel(new SpinnerNumberModel(_green, 0, 255, 1));
-            jSpinnerBlue.setModel(new SpinnerNumberModel(_blue, 0, 255, 1));
+            spinnerRed.set(_red);
+            spinnerGreen.set(_green);
+            spinnerBlue.set(_blue);
 
-            if (_red != jSliderRed.getValue()) {
-                jSliderRed.setMinimum(0);
-                jSliderRed.setMaximum(255);
-                jSliderRed.setValue(_red);
-            }
-
-            if (_green != jSliderGreen.getValue()) {
-                jSliderGreen.setMinimum(0);
-                jSliderGreen.setMaximum(255);
-                jSliderGreen.setValue(_green);
-            }
-
-            if (_blue != jSliderBlue.getValue()) {
-                jSliderBlue.setMinimum(0);
-                jSliderBlue.setMaximum(255);
-                jSliderBlue.setValue(_blue);
-            }
-
-            String text10 = "" + _red + "," + _green + "," + _blue;
+            sliderRed.set(_red);
+            sliderGreen.set(_green);
+            sliderBlue.set(_blue);
 
             String red16 = Integer.toHexString(_red);
             String green16 = Integer.toHexString(_green);
@@ -117,19 +183,16 @@ public class RGBTrans extends javax.swing.JPanel {
                 blue16 = "0" + blue16;
             }
 
-            String text16 = red16 + green16 + blue16;
+            String text10 = _red + ", " + _green + "," + _blue;
+            String text16 = "#" + red16 + green16 + blue16;
 
-            if (jTextField10.equals(text10) == false) {
-                jTextField10.setText(text10);
-            }
-            if (jTextField16.equals(text16) == false) {
-                jTextField16.setText(red16 + green16 + blue16);
-            }
+            textDec.set(text10);
+            textHex.set(text16);
 
             Color col = new Color(_red, _green, _blue);
             jTextPane1.setBackground(col);
         } finally {
-            _flushing = false;
+            sharedLock = false;
         }
     }
 
@@ -164,68 +227,32 @@ public class RGBTrans extends javax.swing.JPanel {
         jButtonColor4 = new javax.swing.JButton();
 
         setLayout(new java.awt.GridBagLayout());
-
-        jSliderRed.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                jSliderRedStateChanged(evt);
-            }
-        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         add(jSliderRed, gridBagConstraints);
-
-        jSliderGreen.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                jSliderGreenStateChanged(evt);
-            }
-        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         add(jSliderGreen, gridBagConstraints);
-
-        jSliderBlue.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                jSliderBlueStateChanged(evt);
-            }
-        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         add(jSliderBlue, gridBagConstraints);
-
-        jSpinnerRed.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                jSpinnerRedStateChanged(evt);
-            }
-        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
         add(jSpinnerRed, gridBagConstraints);
-
-        jSpinnerGreen.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                jSpinnerGreenStateChanged(evt);
-            }
-        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
         add(jSpinnerGreen, gridBagConstraints);
-
-        jSpinnerBlue.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                jSpinnerBlueStateChanged(evt);
-            }
-        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 6;
@@ -263,19 +290,6 @@ public class RGBTrans extends javax.swing.JPanel {
         add(jScrollPane1, gridBagConstraints);
 
         jTextField16.setText("jTextField1");
-        jTextField16.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField16ActionPerformed(evt);
-            }
-        });
-        jTextField16.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                jTextField16KeyPressed(evt);
-            }
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                jTextField16KeyTyped(evt);
-            }
-        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 7;
@@ -284,19 +298,6 @@ public class RGBTrans extends javax.swing.JPanel {
         add(jTextField16, gridBagConstraints);
 
         jTextField10.setText("jTextField2");
-        jTextField10.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField10ActionPerformed(evt);
-            }
-        });
-        jTextField10.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                jTextField10KeyPressed(evt);
-            }
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                jTextField10KeyTyped(evt);
-            }
-        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 8;
@@ -373,6 +374,8 @@ public class RGBTrans extends javax.swing.JPanel {
 
     public int parse10(String number) {
         try {
+            number = number.stripLeading();
+            number = number.stripTrailing();
             return Integer.parseInt(number);
         } catch (Exception e) {
         }
@@ -387,104 +390,32 @@ public class RGBTrans extends javax.swing.JPanel {
         return 0;
     }
 
-    private void jTextField16ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField16ActionPerformed
-
-    }//GEN-LAST:event_jTextField16ActionPerformed
-
-    private void jTextField10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField10ActionPerformed
-
-    }//GEN-LAST:event_jTextField10ActionPerformed
-
-    private void jSliderRedStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderRedStateChanged
-        if (_flushing) {
-            return;
+    public void readText16() {
+        String text = jTextField16.getText();
+        while (text.startsWith("#")) {
+            text = text.substring(1);
         }
-        _red = jSliderRed.getValue();
-        flushColorToAll();
-    }//GEN-LAST:event_jSliderRedStateChanged
-
-    private void jSliderGreenStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderGreenStateChanged
-        if (_flushing) {
-            return;
+        if (text.length() >= 6) {
+            String red = text.substring(0, 2);
+            String green = text.substring(2, 4);
+            String blue = text.substring(4, 6);
+            _red = parse16(red);
+            _green = parse16(green);
+            _blue = parse16(blue);
+            flushColorToAll();
         }
-        _green = jSliderGreen.getValue();
-        flushColorToAll();
-    }//GEN-LAST:event_jSliderGreenStateChanged
+    }
 
-    private void jSliderBlueStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderBlueStateChanged
-        if (_flushing) {
-            return;
+    public void readText10() {
+        String text = jTextField10.getText();
+        String[] list = text.split(",");
+        if (list != null && list.length >= 3) {
+            _red = parse10(list[0]);
+            _green = parse10(list[1]);
+            _blue = parse10(list[2]);
+            flushColorToAll();
         }
-        _blue = jSliderBlue.getValue();
-        flushColorToAll();
-    }//GEN-LAST:event_jSliderBlueStateChanged
-
-    private void jTextField16KeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField16KeyPressed
-
-    }//GEN-LAST:event_jTextField16KeyPressed
-
-    private void jTextField10KeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField10KeyPressed
-
-    }//GEN-LAST:event_jTextField10KeyPressed
-
-    private void jTextField16KeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField16KeyTyped
-        // TODO add your handling code here:
-        if (evt.getKeyChar() == KeyEvent.VK_ENTER) {
-            String text = jTextField16.getText();
-            if (text.length() >= 6) {
-                if (text.charAt(0) == '#') {
-                    text = text.substring(1);
-                }
-                String red = text.substring(0, 2);
-                String green = text.substring(2, 4);
-                String blue = text.substring(4, 6);
-                _red = parse16(red);
-                _green = parse16(green);
-                _blue = parse16(blue);
-                flushColorToAll();
-            }
-        }
-
-    }//GEN-LAST:event_jTextField16KeyTyped
-
-    private void jTextField10KeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField10KeyTyped
-        // TODO add your handling code here:
-        if (evt.getKeyChar() == KeyEvent.VK_ENTER) {
-            String text = jTextField10.getText();
-            String[] list = text.split(",");
-            if (list != null && list.length >= 3) {
-                _red = parse10(list[0]);
-                _green = parse10(list[1]);
-                _blue = parse10(list[2]);
-                flushColorToAll();
-            }
-        }
-
-    }//GEN-LAST:event_jTextField10KeyTyped
-
-    private void jSpinnerRedStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinnerRedStateChanged
-        if (_flushing) {
-            return;
-        }
-        _red = (Integer) jSpinnerRed.getValue();
-        flushColorToAll();
-    }//GEN-LAST:event_jSpinnerRedStateChanged
-
-    private void jSpinnerGreenStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinnerGreenStateChanged
-        if (_flushing) {
-            return;
-        }
-        _green = (Integer) jSpinnerGreen.getValue();
-        flushColorToAll();
-    }//GEN-LAST:event_jSpinnerGreenStateChanged
-
-    private void jSpinnerBlueStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinnerBlueStateChanged
-        if (_flushing) {
-            return;
-        }
-        _blue = (Integer) jSpinnerBlue.getValue();
-        flushColorToAll();
-    }//GEN-LAST:event_jSpinnerBlueStateChanged
+    }
 
     private void jButtonColor1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonColor1ActionPerformed
         Color col = jButtonColor1.getBackground();

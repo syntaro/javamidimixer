@@ -22,7 +22,7 @@ import java.util.logging.Level;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXThread;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.swing.UITask;
+import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
 
 /**
  *
@@ -142,7 +142,7 @@ public class MXAccordionInnerPanel {
                             }
                         }
                     }
-                    new UITask() {
+                    new VUITask() {
                         public Object run() {
                             _animationPanel.setVisible(false);
                             _doingAnimation = false;

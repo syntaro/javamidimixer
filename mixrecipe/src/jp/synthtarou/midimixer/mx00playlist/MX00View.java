@@ -16,7 +16,7 @@
  */
 package jp.synthtarou.midimixer.mx00playlist;
 
-import jp.synthtarou.midimixer.libs.swing.UITask;
+import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -90,7 +90,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     PlayListDX _dxPlayList;
 
     public void setQueueFileListDX(PlayListDX listFiles) {
-        new UITask() {
+        new VUITask() {
             @Override
             public Object run() {
                 _dxPlayList = listFiles;
@@ -101,7 +101,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     }
 
     public void setChainedDX(boolean chain) {
-        new UITask() {
+        new VUITask() {
             @Override
             public Object run() {
                 jCheckBoxChain.setSelected(chain);
@@ -111,7 +111,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     }
 
     public void setRepeatedDX(boolean repeat) {
-        new UITask() {
+        new VUITask() {
             @Override
             public Object run() {
                 jCheckBoxRepeat.setSelected(repeat);
@@ -121,7 +121,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     }
 
     public void setCurrentSongNameDX(String songName) {
-        new UITask() {
+        new VUITask() {
             @Override
             public Object run() {
                 jTextFieldCurrentSongName.setText(songName);
@@ -901,7 +901,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
 
     @Override
     public void smfProgress(long pos, long finish) {
-        new UITask() {
+        new VUITask() {
             @Override
             public Object run() {
                 if (pos == 0) {
@@ -918,7 +918,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
 
     public void turnOnMusic(PlayListElement file, final int pos) {
         if (SwingUtilities.isEventDispatchThread() == false) {
-            new UITask(true) {
+            new VUITask(true) {
                 @Override
                 public Object run() {
                     SwingUtilities.invokeLater(new Runnable() {

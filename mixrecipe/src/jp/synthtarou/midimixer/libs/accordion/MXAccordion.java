@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import javax.swing.JComponent;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
-import jp.synthtarou.midimixer.libs.swing.UITask;
+import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
 
 /**
  *
@@ -160,7 +160,7 @@ public class MXAccordion extends javax.swing.JPanel {
     }
 
     public void openAccordion(boolean opened) {
-        new UITask<Object>() {
+        new VUITask<Object>() {
             @Override
             public Object run() {
                 if (_selected == opened) {

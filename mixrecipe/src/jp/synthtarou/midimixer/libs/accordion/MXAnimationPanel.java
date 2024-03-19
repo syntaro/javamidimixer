@@ -23,7 +23,7 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
-import jp.synthtarou.midimixer.libs.swing.UITask;
+import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
 
 /**
  *
@@ -57,7 +57,7 @@ public class MXAnimationPanel extends JPanel {
     }
     
     public void setScrollPercent(int x) {
-        new UITask<Object>() {
+        new VUITask<Object>() {
             @Override
             public Object run() {
                 _percent = x;

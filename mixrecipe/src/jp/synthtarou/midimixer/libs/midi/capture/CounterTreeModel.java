@@ -24,7 +24,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeNode;
-import jp.synthtarou.midimixer.libs.swing.UITask;
+import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
 
 /**
  *
@@ -84,7 +84,7 @@ public class CounterTreeModel extends DefaultTreeModel {
     }
     
     public void reload0(TreeNode node) {
-        new UITask() {
+        new VUITask() {
             @Override
             public Object run() {
                 if (node == null) {

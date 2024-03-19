@@ -54,6 +54,9 @@ public class MXThread extends Thread {
                 continue;
             }
             if(t.isAlive()) {
+                if (t.getName().startsWith("*")) {
+                    continue;
+                }
                 MXLogger2.getLogger(MXThread.class).info("Exit thread [" + i + "] " + t.getName());
                 t.interrupt();
                 try {

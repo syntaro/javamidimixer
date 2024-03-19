@@ -14,8 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.swing;
+package jp.synthtarou.midimixer.libs.swing.variableui;
 
+import com.sun.jdi.InvocationException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
@@ -24,19 +26,19 @@ import jp.synthtarou.midimixer.libs.common.MXLogger2;
  *
  * @author Syntarou YOSHIDA
  */
-public abstract class UITask<T> {
+public abstract class VUITask<T> {
     public T _result = null;
     boolean _doing = true;
-    public Throwable _targetException = null;
-    public Throwable _interruped = null;
+    public Throwable _invocationTargetException = null;
+    public Throwable _errorHappens = null;
     
     public static final Object NOTHING = null;
 
-    public UITask() {
+    public VUITask() {
         this(false);
     }
     
-    public UITask(boolean forceLater) {
+    public VUITask(boolean forceLater) {
         if (forceLater || SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
@@ -56,11 +58,11 @@ public abstract class UITask<T> {
     
     public boolean isSucseed() {
         waitResult();
-        return _targetException == null;
+        return _errorHappens == null;
     }
     
-    public Throwable getTargetException() {
-        return _targetException != null ? _targetException : _interruped; //right ?
+    public Throwable getError() {
+        return _errorHappens; //right ?
     }
 
     public synchronized T waitResult() {
@@ -68,9 +70,11 @@ public abstract class UITask<T> {
             try {
                 wait(1000);
             }catch(InterruptedException ex) {
-                _interruped = ex;
-                break;
+                _errorHappens = ex;
             }
+        }
+        if (_invocationTargetException != null) {
+            _errorHappens = new InvocationTargetException(_invocationTargetException);
         }
         return _result;
     }
@@ -79,8 +83,8 @@ public abstract class UITask<T> {
         try {
             _result = run();
         }catch(Throwable ex) {
-            MXLogger2.getLogger(UITask.class).log(Level.SEVERE, ex.getMessage(), ex);
-            _targetException = ex;
+            MXLogger2.getLogger(VUITask.class).log(Level.SEVERE, ex.getMessage(), ex);
+            _invocationTargetException = ex;
         }finally {
             _doing = false;
             synchronized (this) {

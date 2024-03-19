@@ -45,7 +45,7 @@ import jp.synthtarou.midimixer.mx60output.MX60Process;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
-import jp.synthtarou.midimixer.libs.swing.UITask;
+import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
 import jp.synthtarou.midimixer.libs.vst.VSTInstance;
 import jp.synthtarou.midimixer.mx36ccmapping.MX36Process;
 import jp.synthtarou.midimixer.mx12masterpiano.MX12Process;
@@ -251,7 +251,7 @@ public class MXMain  {
         reList.add(_mxXMLManager);
         reList.add(_mx90Debugger);
 
-        new UITask() {
+        new VUITask() {
             @Override
             public Object run() {
                 _mainWindow.initLatebind(reList);
@@ -388,7 +388,7 @@ public class MXMain  {
     }
     
     public static void printAlert(String text) {
-        new UITask(true) {
+        new VUITask(true) {
             @Override
             public Object run() {
                 JOptionPane.showMessageDialog(MXMain.getMain()._mainWindow, text, MXAppConfig.MX_APPNAME, JOptionPane.OK_OPTION);

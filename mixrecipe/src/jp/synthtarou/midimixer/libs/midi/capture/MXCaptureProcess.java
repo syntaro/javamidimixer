@@ -22,7 +22,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.tree.TreeCellRenderer;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
-import jp.synthtarou.midimixer.libs.swing.UITask;
+import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
 
 /**
  *
@@ -56,7 +56,7 @@ public class MXCaptureProcess extends MXReceiver{
     
     public void setRederer(JTree tree) {
         _jTree = tree;
-        new UITask() {
+        new VUITask() {
             @Override
             public Object run() {
                 TreeCellRenderer render = new CounterTreeModel.CounterRender(tree);
@@ -68,7 +68,7 @@ public class MXCaptureProcess extends MXReceiver{
     }
     
     public void clearTree() {
-        new UITask() {
+        new VUITask() {
             @Override
             public Object run() {
                 _table = new CounterTable();

@@ -22,7 +22,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.swing.UITask;
+import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
 import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
 
 /**
@@ -117,7 +117,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
     }
     
     public void writeLine(String line) {
-        new UITask() {
+        new VUITask() {
             @Override
             public Object run() {                
                 jTextArea1.setText(jTextArea1.getText() + line + "\n");
@@ -143,7 +143,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
         _piano.setPreferredSize(new Dimension(480, 120));
         jPanelPiano.add(_piano);
 
-        Thread pianoColor = new MXThread("PianoColor", new Runnable() {
+        Thread pianoColor = new MXThread("*PianoColor", new Runnable() {
             public void run() {
                 int x = 0;
                 int last = -1;
@@ -177,7 +177,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
                         last = 40;
                         _piano.noteOn(40);
                     }
-                    new UITask() {
+                    new VUITask() {
                         @Override
                         public Object run() {
                             _piano.invalidate();
