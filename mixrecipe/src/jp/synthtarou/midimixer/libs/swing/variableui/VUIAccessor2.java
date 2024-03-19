@@ -72,7 +72,7 @@ public class VUIAccessor2 extends  VUIAccessor {
                 MGSlider slider = (MGSlider)_component;
                 var = slider.getStatus().getValue()._value;
                 _varAsObject = var;
-                _varAsBoolean = var > 0 ? true : false;
+                _varAsBoolean = (var > 0) ? true : false;
                 _varAsNumeric = var;
                 _varAsText = Integer.toString(_varAsNumeric);
                 break;
@@ -80,7 +80,7 @@ public class VUIAccessor2 extends  VUIAccessor {
                 MGCircle circle = (MGCircle)_component;
                 var = circle.getStatus().getValue()._value;
                 _varAsObject = var;
-                _varAsBoolean = var > 0 ? true : false;
+                _varAsBoolean = (var > 0) ? true : false;
                 _varAsNumeric = var;
                 _varAsText = Integer.toString(_varAsNumeric);
                 break;

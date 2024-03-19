@@ -98,10 +98,19 @@ public class VUIAccessor {
         return false;
     }
     
+    public JComponent getComponent() {
+        return _component;
+    }
+    
     public VUIAccessor(JComponent component, int type) {
         _component = component;
         _supportedType = type;
         uiToInternal();
+    }
+
+    public VUIAccessor(JComponent component, VUIAccessorListener listener) {
+        this(component);
+        addChangeListener(listener);
     }
     
     public VUIAccessor(JComponent component) {
@@ -238,6 +247,14 @@ public class VUIAccessor {
         }
         //init var fields
         uiToInternal();
+    }
+    
+    public synchronized void copyVarFrom(VUIAccessor from) {
+        _varAsObject = from._varAsObject;
+        _varAsNumeric = from._varAsNumeric;
+        _varAsBoolean = from._varAsBoolean;
+        _varAsText = from._varAsText;
+        internalToUI();
     }
     
     public synchronized void uiToInternal() {
