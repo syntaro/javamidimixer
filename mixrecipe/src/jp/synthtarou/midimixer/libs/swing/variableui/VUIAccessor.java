@@ -26,6 +26,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import javax.swing.JButton;
@@ -313,13 +314,12 @@ public class VUIAccessor {
             public Object run() {
                 String needFire = null;
                 if (_supportedType == TYPE_SPINNER) {
-                    JSpinner spinner = (JSpinner)_component;
-                    SpinnerNumberModel model = (SpinnerNumberModel)spinner.getModel();
-                    int min = (Integer)model.getMinimum();
-                    int max = (Integer)model.getMaximum();
+                    JSpinner spinner = (JSpinner) _component;
+                    SpinnerNumberModel model = (SpinnerNumberModel) spinner.getModel();
+                    int min = (Integer) model.getMinimum();
+                    int max = (Integer) model.getMaximum();
                     if (min <= parsedNumeric && parsedNumeric <= max) {
-                    }
-                    else {
+                    } else {
                         return NOTHING;
                     }
                 }
@@ -731,47 +731,58 @@ public class VUIAccessor {
         }
     }
 
-    public void raiseClickEvent() {
-        String command = null;
-        ActionListener[] listListener;
+    public void doClickAction() {
         try {
-
-            if (_supportedType == TYPE_BUTTON) {
-                JButton button = (JButton) _component;
-                command = button.getActionCommand();
-                listListener = button.getActionListeners();
-            } else {
-                return;
-            }
-
-            if (listListener != null) {
-                long tick = System.currentTimeMillis();
-                while (tick <= _lastUnique) {
-                    tick++;
-                }
-                _lastUnique = tick;
-
-                ActionEvent evt = new ActionEvent(_component, (int) tick, command);
-
-                for (ActionListener l : listListener) {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
+                public void run() {
                     try {
-                        l.actionPerformed(evt);
+                        String command = null;
+                        ActionListener[] listListener;
 
-                    } catch (Throwable ex) {
+                        if (_supportedType == TYPE_BUTTON) {
+                            JButton button = (JButton) _component;
+                            command = button.getActionCommand();
+                            listListener = button.getActionListeners();
+                        } else {
+                            return;
+                        }
+
+                        if (listListener != null) {
+                            long tick = System.currentTimeMillis();
+                            while (tick <= _lastUnique) {
+                                tick++;
+                            }
+                            _lastUnique = tick;
+
+                            ActionEvent evt = new ActionEvent(_component, (int) tick, command);
+
+                            for (ActionListener l : listListener) {
+                                try {
+                                    l.actionPerformed(evt);
+
+                                } catch (Throwable ex) {
+                                    MXLogger2.getLogger(VUIAccessor.class
+                                    ).log(Level.SEVERE, ex.getMessage(), ex);
+
+                                }
+                            }
+                        }
+
+                    } catch (RuntimeException ex) {
                         MXLogger2.getLogger(VUIAccessor.class
                         ).log(Level.SEVERE, ex.getMessage(), ex);
 
+                    } catch (Error er) {
+                        MXLogger2.getLogger(VUIAccessor.class
+                        ).log(Level.SEVERE, er.getMessage(), er);
                     }
                 }
-            }
-
-        } catch (RuntimeException ex) {
-            MXLogger2.getLogger(VUIAccessor.class
-            ).log(Level.SEVERE, ex.getMessage(), ex);
-
-        } catch (Error er) {
-            MXLogger2.getLogger(VUIAccessor.class
-            ).log(Level.SEVERE, er.getMessage(), er);
+            });
+        } catch (InvocationTargetException ex) {
+            ex.printStackTrace();;
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();;
         }
     }
 

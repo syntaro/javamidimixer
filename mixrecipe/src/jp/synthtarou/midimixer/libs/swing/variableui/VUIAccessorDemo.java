@@ -43,7 +43,10 @@ public class VUIAccessorDemo extends javax.swing.JPanel {
         VUIAccessor bindSlider;
 
         VUIAccessor[] bindTenkey;
-        
+        VUIAccessor bindBack;
+        VUIAccessor bindCler;
+        VUIAccessor bindTo100;
+
         boolean inConstruction = true;
 
         public ViewModel() {
@@ -63,8 +66,11 @@ public class VUIAccessorDemo extends javax.swing.JPanel {
                 new VUIAccessor(jButton6),
                 new VUIAccessor(jButton7),
                 new VUIAccessor(jButton8),
-                new VUIAccessor(jButton9)
-            };
+                new VUIAccessor(jButton9)};
+
+            bindBack = new VUIAccessor(jButtonBack);
+            bindCler = new VUIAccessor(jButtonClear);
+            bindTo100 = new VUIAccessor(jButtonto100);
 
             inConstruction = false;
         }
@@ -77,12 +83,12 @@ public class VUIAccessorDemo extends javax.swing.JPanel {
                 if (evt.getUIAccessor() != bindSlider) {
                     bindSlider.set(evt.getUIAccessor().getAsInt());
                     bindLabel.set(evt.getUIAccessor().getAsText());
-                }if (evt.getUIAccessor() != bindSpinner) {
+                }
+                if (evt.getUIAccessor() != bindSpinner) {
                     bindSpinner.set(evt.getUIAccessor().getAsInt());
                     bindLabel.set(evt.getUIAccessor().getAsText());
                 }
-            }
-            else {
+            } else {
                 bindLabel.set(evt.getUIAccessor().getAsText());
             }
         }
@@ -101,6 +107,47 @@ public class VUIAccessorDemo extends javax.swing.JPanel {
         jSlider1.setMinimum(0);
         jSlider1.setMaximum(1000);
         _vm = new ViewModel();
+
+        _vm.bindTenkey[1].doClickAction();
+        _vm.bindBack.doClickAction();
+        _vm.bindBack.doClickAction();
+        _vm.bindBack.doClickAction();
+        _vm.bindTenkey[6].doClickAction();
+        _vm.bindTenkey[3].doClickAction();
+        _vm.bindTenkey[9].doClickAction();
+        new Thread() {
+            public void run() {
+                try {
+                    Thread.sleep(1000);
+                    for (int i = 0; i < 5; ++i) {
+                        _vm.bindBack.doClickAction();
+                        Thread.sleep(500);
+                        _vm.bindBack.doClickAction();
+                        Thread.sleep(500);
+                        _vm.bindBack.doClickAction();
+                        Thread.sleep(500);
+                        _vm.bindTenkey[(int) (Math.random() * 9) + 1].doClickAction();
+                        Thread.sleep(500);
+                        _vm.bindTenkey[(int) (Math.random() * 9) + 1].doClickAction();
+                        Thread.sleep(500);
+                        _vm.bindTenkey[(int) (Math.random() * 9) + 1].doClickAction();
+                        Thread.sleep(500);
+                    }
+                    Thread.sleep(500);
+                    _vm.bindBack.doClickAction();
+                    _vm.bindBack.doClickAction();
+                    _vm.bindBack.doClickAction();
+                    Thread.sleep(1000);
+                    _vm.bindTenkey[7].doClickAction();
+                    Thread.sleep(1000);
+                    _vm.bindTenkey[7].doClickAction();
+                    Thread.sleep(1000);
+                    _vm.bindTenkey[7].doClickAction();
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }.start();
     }
 
     /**
