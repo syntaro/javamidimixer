@@ -90,7 +90,7 @@ public class SameFileChecker extends javax.swing.JPanel {
             ,"mov, avi, mp4, heic"
             ,"aac, mp3, wav"
             ,"zip, cab, gz, exe, jar"
-            ,"txt, doc, pdf, ppt"
+            ,"txt, doc, pdf, ppt, pptx"
             ,"xls, xlsx, csv"
             ,CUSTOM_FIELD
         };
