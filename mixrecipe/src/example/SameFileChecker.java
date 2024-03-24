@@ -99,6 +99,7 @@ public class SameFileChecker extends javax.swing.JPanel {
             ,"zip, cab, gz, exe, jar"
             ,"txt, doc, pdf, ppt, pptx"
             ,"xls, xlsx, csv"
+            ,"mid, midi, syx, sysex"
             ,CUSTOM_FIELD
         };
         DefaultComboBoxModel model = new DefaultComboBoxModel();
