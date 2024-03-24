@@ -82,7 +82,7 @@ public class SameFileChecker extends javax.swing.JPanel {
     static String CUSTOM_FIELD = "[Custom]";
     
     String[] _defaultSkip = {
-        "C:\\Program Data",
+        "C:\\ProgramData",
         "C:\\Windows\\servicing",
         "C:\\Windows\\WinSxS",
         "C:\\Windows\\Installer"
