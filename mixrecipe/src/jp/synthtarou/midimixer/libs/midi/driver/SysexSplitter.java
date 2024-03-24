@@ -22,18 +22,29 @@ import jp.synthtarou.midimixer.libs.midi.smf.SMFInputStream;
 
 /**
  *　SysEXメッセージを分割、結合するため
+ * @see jp.synthtarou.midimixer.libs.midi.driver.SplittableSysexMessage
  * @author Syntarou YOSHIDA
  */
 public class SysexSplitter {
+
+    /**
+     * コンストラクタ
+     */
     public SysexSplitter() {
         
     }
 
-    ByteArrayOutputStream sysexBody = new ByteArrayOutputStream();
+    /**
+     * バイト配列を格納する
+     */
+    ByteArrayOutputStream _dataBody = new ByteArrayOutputStream();
     
-    public void clean() {
-    }
-    
+    /**
+     * SysEXデータを連結する
+     * @param sysexData 連結するバイト配列
+     *  F0かF7で始まる必要がある、終端文字F7の”手前"までを格納する
+     *  F0でもF7でもない始まりの場合、そこまでスキップされる、エラーにはしない
+     */
     public void append(byte[] sysexData) {
         SMFInputStream reader = new SMFInputStream(sysexData);
 
@@ -45,7 +56,7 @@ public class SysexSplitter {
         
         _endingCode = false;
         if (status == 0xf0 || status == 0xf7) {            
-            _beginningCode = status;
+            _beginningStatusCode = status;
             while (status >= 0) {
                 status = reader.read8();
                 if (status < 0) {
@@ -56,11 +67,24 @@ public class SysexSplitter {
                     _endingCode = true;
                     break;
                 }
-                sysexBody.write(status);
+                _dataBody.write(status);
             }
         }
     }
     
+    /**
+     * SyeEXデータが格納されていないかテスト
+     * @return 格納されていなければture
+     */
+    public boolean ieEmpty() {
+        return _beginningStatusCode != 0xf0 && _beginningStatusCode != 0xf7;
+    }
+    
+    /**
+     * byte配列に分割する
+     * @param maxLength パケットの最大長さ、極端に短い(10未満)場合、分割しない
+     * @return 分割されてbyte配列。SplittableSysexMessgeを作ると送信可能
+     */
     public ArrayList<byte[]> splitOrJoin(int maxLength) {
         if (maxLength < 10) {
             maxLength = 10000000;
@@ -68,7 +92,7 @@ public class SysexSplitter {
 
         ArrayList<byte[]> listResult = new ArrayList<>();
 
-        byte[] data = sysexBody.toByteArray();
+        byte[] data = _dataBody.toByteArray();
         ByteArrayOutputStream segment = new ByteArrayOutputStream();
 
         for (int i = 0; i < data.length; ++ i) {
@@ -87,7 +111,7 @@ public class SysexSplitter {
                 if (segment.size() == 0) {
                     if (listResult.isEmpty()) {
                         /* 最初はF0はじまり */
-                        segment.write(_beginningCode);
+                        segment.write(_beginningStatusCode);
                     }
                     else {                        
                         segment.write(0xf7);
@@ -109,6 +133,12 @@ public class SysexSplitter {
         return listResult;
     }
 
-    int _beginningCode;
+    /**
+     * スタータスコード
+     */
+    int _beginningStatusCode;
+    /**
+     * 終端F7に出会っているかどうか。その場合splitOrJoinはにF7を追加して出力する
+     */
     boolean _endingCode;
 }

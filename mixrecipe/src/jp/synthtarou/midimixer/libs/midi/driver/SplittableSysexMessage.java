@@ -21,32 +21,49 @@ import java.util.logging.Level;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiMessage;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
 
 /**
- *　Java20以上で、MME(Java標準）のSysEXを処理するMidiMessageラッパー
+ *　Java20以上で、SysEXを処理するJava標準MidiMessageのラッパー
+ * F0で始まる場合、getStatus()をF0として、バイト配列はすべてを返します
+ * F7で始まる場合、getStauts()をF7として、バイト配列は先頭のF7を含みません
+ * このようにすると、JavaAPIは正しく処理します。
+ * ただし、Java20以上が必要ですJDK20未満ではアプリがクラッシュしていました。
+ * Windows10のみ動作確認すみ。
  * @author Syntarou YOSHIDA
+ * @see jp.synthtarou.midimixer.libs.midi.driver.SysexSplitter
  */
 public class SplittableSysexMessage extends MidiMessage {
+
+    /**
+     * @param data
+     * @throws InvalidMidiDataException
+     */
     public SplittableSysexMessage(byte[] data) throws InvalidMidiDataException {
         super(new byte[2]);
         setMessage(data, data.length);
     }
     
+    /**
+     * メッセージをこのクラスとして加工して設定します。
+     * @param data F0またはF7ではじまるバイト配列、最終バイトはF7である必要はない
+     * @param dataLength バイト長 (先頭バイトをふくむ)
+     * @throws InvalidMidiDataException
+     */
+    @Override
     protected void setMessage(byte[] data, int dataLength) throws InvalidMidiDataException {
         _status = data[0] & 0xff;
         int last = data[data.length - 1] & 0xff;
                 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        if (_status == MXMidi.COMMAND_SYSEX && last == MXMidi.COMMAND_SYSEX_END) {
+        if (_status == 0xf0 && last == 0xf7) {
             _status = 0xf0;
             _offset = 0;
         }else if (_status == 0xf0) {
             _status = 0xf0;
             _offset = 0;
-        }else if (_status == 0xf7) {
+        }else if (_status == 0xf7) { 
+            //終端文字は問わない
             _status = 0xf7;
             _offset = 1;
         } else {
@@ -58,10 +75,20 @@ public class SplittableSysexMessage extends MidiMessage {
         setMessagePlain(trans, trans.length);
     }
     
+    /**
+     * メッセージをこのクラスなりの加工をせず、スーパークラス形式で設定します。
+     * @param data バイト配列
+     * @param dataLength バイト長
+     * @throws InvalidMidiDataException
+     */
     protected void setMessagePlain(byte[] data, int dataLength) throws InvalidMidiDataException {
         super.setMessage(data, dataLength);
     }
     
+    /**
+     *　SplittableSysexMessageを複製します
+     * @return 複製されたObject
+     */
     public Object clone() {
         try {
             byte[] plain = getMessage();
@@ -77,16 +104,29 @@ public class SplittableSysexMessage extends MidiMessage {
         }
     }
     
+    /**
+     * Receiverが受け付けるスタータスコード
+     * @return F0またはF7
+     * setMessageおよびコンストラクタで設定したステータス
+     */
     @Override
     public int getStatus() {
         return _status;
     }
     
+    /**
+     * Receiverが受け付けるデータ長さ
+     * @return getMessageで返されるバイト配列の長さ
+     */
     @Override
     public int getLength() {
         return _length /* + _offset */;
     }
     
+    /**
+     * Receiverが受け付けるデータ
+     * @return 送信するバイト配列、F0やF7で始まるかは問わない
+     */
     @Override
     public byte[] getMessage() {
         byte[] raw = super.getMessage();

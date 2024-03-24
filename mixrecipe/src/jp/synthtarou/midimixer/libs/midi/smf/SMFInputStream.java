@@ -17,11 +17,12 @@
 package jp.synthtarou.midimixer.libs.midi.smf;
 
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
- *
+ * SMFファイルの数値を読み取るヘルパー
  * @author Syntarou YOSHIDA
  */
 public class SMFInputStream extends InputStream {
@@ -33,20 +34,38 @@ public class SMFInputStream extends InputStream {
     boolean _eof = false;
     boolean _error = false;
     
+    /**
+     * バイト配列からコンストラクトする
+     * @param data バイト配列
+     */
     public SMFInputStream(byte[] data) {
         this(new ByteArrayInputStream(data));
     }
     
+    /**
+     * バイト配列からコンストラクトする
+     * @param data　バイト配列
+     * @param offset　開始オフセット位置
+     * @param length 処理するデータ長
+     */
     public SMFInputStream(byte[] data, int offset, int length) {
         this(new ByteArrayInputStream(data, offset, length));
     }
     
+    /**
+     * InputStreamからコンストラクトする
+     * @param input
+     */
     public SMFInputStream(InputStream input) {
         _base = input;
         _length = -1;
         _pos = 0;
     }
     
+    /**
+     * 8ビット表現の数を読む
+     * @return 数 終端を超えていたら-1
+     */
     public int read8() {
         if (_pos >= _length) {
             try {
@@ -68,6 +87,10 @@ public class SMFInputStream extends InputStream {
         return -1;
     }
     
+    /**
+     * 8ビット表現の数値が、まだ読める場合、現在位置を更新せずに読み取る
+     * @return 数 終端を超えていたら-1
+     */
     public int peek8() {
         if (_pos >= _length) {
             try {
@@ -89,6 +112,10 @@ public class SMFInputStream extends InputStream {
         return -1;
     }
 
+    /**
+     * 16ビット表現の数を読む
+     * @return 数 終端を超えていたら-1
+     */
     public int read16() {
         int x = read8();
         int y = read8();
@@ -98,6 +125,10 @@ public class SMFInputStream extends InputStream {
         return x << 8 | y;
     }
 
+    /**
+     * 32ビット表現の数を読む
+     * @return 数 終端を超えていたら-1
+     */
     public int read32() {
         int x = read8();
         int y = read8();
@@ -112,6 +143,12 @@ public class SMFInputStream extends InputStream {
         return x + y + z + a;
     }
     
+    /**
+     * 連続するバイト配列を読む
+     * @param data 受け取る配列
+     * @param length 最大長
+     * @return 読み取った長さ
+     */
     public int readBuffer(byte[] data, int length) {
         for (int i = 0; i < length; ++ i) {
             int x = read8();
@@ -123,6 +160,10 @@ public class SMFInputStream extends InputStream {
         return length;
     }
 
+    /**
+     * Variableとして数値を読みとる
+     * @return 数 終端を超えていたら-1
+     */
     public long readVariable() {
         long value = 0;
         int currentByte = 0;
@@ -137,16 +178,33 @@ public class SMFInputStream extends InputStream {
         return value;
     }
     
-    
+    /**
+     * 指定されたバイト数スキップする
+     * @param length スキップする長さ
+     */
     public void skip(int length) {
         _pos += length;
     }
 
+    /**
+     * read8に同じ
+     * 8ビット表現の数値が、まだ読める場合、現在位置を更新せずに読み取る
+     * @return 数
+     * @throws IOException 終端を超えていたらEOFExceptionをthrowする
+     */
     @Override
     public int read() throws IOException {
-        return read8();
+        int x = read8();
+        if (x < 0) {
+            throw new EOFException();
+        }
+        return x;
     }
     
+    /**
+     * ストリームを閉じる（内包するInputStreamも閉じる）
+     * @throws IOException
+     */
     @Override
     public void close() throws IOException {
         _base.close();
