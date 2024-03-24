@@ -497,6 +497,7 @@ public class SameFileChecker extends javax.swing.JPanel {
                 if (children == null) {
                     continue;
                 }
+                jList1.setValueIsAdjusting(true);
                 for (File seek : children) {
                     if (seek.isDirectory()) {
                         queue.add(seek);
@@ -504,6 +505,7 @@ public class SameFileChecker extends javax.swing.JPanel {
                         addIfPicture(seek);
                     }
                 }
+                jList1.setValueIsAdjusting(false);
             }
         }
 
