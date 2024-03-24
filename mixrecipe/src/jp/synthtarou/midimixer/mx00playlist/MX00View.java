@@ -49,7 +49,7 @@ import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
-import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXSwingFolderBrowser;
+import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXFolderBrowser;
 
 /**
  *
@@ -601,7 +601,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                 root = null;
             }
 
-            MXSwingFolderBrowser folders = new MXSwingFolderBrowser(root, filter, null);
+            MXFolderBrowser folders = new MXFolderBrowser(root, filter, null);
             MXUtil.showAsDialog(this, folders, "Select MIDI File");
             if (folders.getReturnStatus() != INavigator.RETURN_STATUS_APPROVED) {
                 return;

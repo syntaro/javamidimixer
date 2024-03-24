@@ -51,7 +51,7 @@ import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 import jp.synthtarou.midimixer.libs.common.async.Transaction;
 import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
-import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXSwingFolderBrowser;
+import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXFolderBrowser;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
@@ -567,7 +567,7 @@ public class MX80View extends javax.swing.JPanel {
         };
         filter.addExtension("VST3");
         filter._stopAllFile = true;
-        MXSwingFolderBrowser browse = new MXSwingFolderBrowser(new File("C:\\Program Files"), filter, null);
+        MXFolderBrowser browse = new MXFolderBrowser(new File("C:\\Program Files"), filter, null);
         MXUtil.showAsDialog(this, browse, "Select and Enter");
         FileList selected = browse.getReturnValue();
         if (selected != null) {
@@ -622,7 +622,7 @@ public class MX80View extends javax.swing.JPanel {
     private void jButtonAddSkipBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddSkipBrowseActionPerformed
         FileFilterListExt filter = new FileFilterListExt();
         filter.addExtension("VST3");
-        MXSwingFolderBrowser browse = new MXSwingFolderBrowser(new File("C:\\Program Files"), filter, null);
+        MXFolderBrowser browse = new MXFolderBrowser(new File("C:\\Program Files"), filter, null);
         MXUtil.showAsDialog(this, browse, "Select and Enter");
         if (browse.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {            
             FileList selected = browse.getReturnValue();

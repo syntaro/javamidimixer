@@ -33,7 +33,6 @@ import java.util.TreeSet;
 import javax.sound.midi.ShortMessage;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
 
@@ -44,40 +43,36 @@ import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
 public class SMFParser {
 
     public static void main(String[] args) {
-        if (true) {
-            File file = new File("C:\\midi\\johnwilliams\\et_advtg.mid");
-            try {
-                SMFParser parse = new SMFParser(file);
-                System.out.println(file);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        File file = new File("C:\\midi\\SynthTAROU000.mid");
+        try {
+            SMFParser parse = new SMFParser(file);
+            System.out.println(file);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        else {
-            ArrayList<String> skip = new ArrayList();
-            skip.add("C:/Windows");
-            String[] paths = {"C:/MIDI", "C:/Program Files", "C:/Users"};
+        ArrayList<String> skip = new ArrayList();
+        skip.add("C:/Windows");
+        String[] paths = {"C:/MIDI", "C:/Program Files", "C:/Users"};
 
-            for (String loop : paths) {
-                int countSmpte = 0, countTempo = 0;
-                ArrayList<File> fileList = SMFParser.scanSMF(loop, skip);
-                skip.add(loop);
-                for (File seek : fileList) {
-                    try {
-                        SMFParser parse = new SMFParser(seek);
-                        //System.out.println(parse._file + " = " + parse._messageList.size());
-                        if (parse._smpteFormat >= 0) {
-                            System.out.println(seek);
-                            countSmpte++;
-                        } else {
-                            countTempo++;
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+        for (String loop : paths) {
+            int countSmpte = 0, countTempo = 0;
+            ArrayList<File> fileList = SMFParser.scanSMF(loop, skip);
+            skip.add(loop);
+            for (File seek : fileList) {
+                try {
+                    SMFParser parse = new SMFParser(seek);
+                    //System.out.println(parse._file + " = " + parse._messageList.size());
+                    if (parse._smpteFormat >= 0) {
+                        System.out.println(seek);
+                        countSmpte++;
+                    } else {
+                        countTempo++;
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                System.out.println("SMPTE " + countSmpte + " / TEMPO " + countTempo);
             }
+            System.out.println("SMPTE " + countSmpte + " / TEMPO " + countTempo);
         }
     }
 
@@ -153,7 +148,7 @@ public class SMFParser {
         _listMessage = new SortedArray<>();
     }
 
-    public SMFParser(File file) throws IOException{
+    public SMFParser(File file) throws IOException {
         try {
             if (!readFile(file)) {
                 throw new IOException("Invalid MIDI File. " + file);
@@ -189,29 +184,29 @@ public class SMFParser {
         _file = file;
         InputStream input = new BufferedInputStream(new FileInputStream(file));
         try {
-            SMFInputStream reader = new SMFInputStream(input);
+            SMFInputStream smfStream = new SMFInputStream(input);
 
-            if (seekMagicNumber(reader, "MThd") == false) {
+            if (seekMagicNumber(smfStream, "MThd") == false) {
                 MXMain.printDebug("Magic Number MThd not found. @" + file);
                 return false;
             }
 
-            if (reader._eof) {
+            if (smfStream._eof) {
                 MXMain.printDebug("Illegual EOF. @" + file);
                 return false;
             }
 
-            int headerLength = reader.read32();
+            int headerLength = smfStream.read32();
             if (headerLength < 6) {
                 MXMain.printDebug("Header Length != 6.@" + file);
                 return false;
             }
 
-            int type = reader.read16();
-            int trackCount = reader.read16();
+            int type = smfStream.read16();
+            int trackCount = smfStream.read16();
             _infoType = type;
             _infoTrackCount = trackCount;
-            int res = reader.read16();
+            int res = smfStream.read16();
 
             if (res >= 0x8000) {
                 res = 0xffff0000 + res;
@@ -228,7 +223,7 @@ public class SMFParser {
             }
 
             if (headerLength >= 7) {
-                reader.skip(headerLength - 6);
+                smfStream.skip(headerLength - 6);
             }
 
             if (type != 0 && type != 1) {
@@ -238,30 +233,30 @@ public class SMFParser {
             SortedArray<SMFMessage> list = new SortedArray();
 
             for (int tr = 0; tr < trackCount; tr++) {
-                if (seekMagicNumber(reader, "MTrk") == false) {
+                if (seekMagicNumber(smfStream, "MTrk") == false) {
                     MXMain.printDebug("Magic Number MTrk not Found. @" + file);
                     break;
                 }
-                if (reader._eof) {
+                if (smfStream._eof) {
                     MXMain.printDebug("EOF Before count " + trackCount + "@" + file);
                     break;
                 }
 
-                int trackLength = reader.read32();
+                int trackLength = smfStream.read32();
 
                 if (trackLength <= 0) {
                     continue;
                 }
 
-                SMFStreamForTrack child = new SMFStreamForTrack(reader, trackLength);
+                SMFStreamForTrack trackStream = new SMFStreamForTrack(smfStream, trackLength);
                 long tick = 0;
                 int fileOrder = 0;
 
-                while (!child._eof) {
-                    long step = child.readVariable();
+                while (!trackStream._eof) {
+                    long step = trackStream.readVariable();
                     tick += step;
 
-                    SMFMessage message = fromStream(child);
+                    SMFMessage message = fromStream(trackStream);
                     if (step == 0) {
                         fileOrder++;
                     } else {
@@ -316,8 +311,7 @@ public class SMFParser {
         int status = child.peek();
         if (status < 0x80) {
             status = _runningStatus;
-        }
-        else {
+        } else {
             status = child.read8();
             _runningStatus = status;
         }
@@ -441,15 +435,14 @@ public class SMFParser {
 
         SortedArray<SMFMessage> list = new SortedArray<>();
         canonicalizeWithMillisecond();
-        
+
         int count = 0;
         for (SMFMessage seek : _listMessage) {
             if (seek.isTempoMessage()) {
                 list.insertSorted(seek);
-            }
-            else if (seek._port == port) {
+            } else if (seek._port == port) {
                 list.insertSorted(seek);
-                count ++;
+                count++;
             }
         }
         if (count == 0) {
@@ -466,7 +459,7 @@ public class SMFParser {
             output.write16(_infoTrackCount);
             _smpteFormat = -1;
             output.write16(_fileResolution);
-            
+
             writeMagicNumber(output, "MTrk");
             long lastTick = 0;
 
@@ -492,8 +485,8 @@ public class SMFParser {
             output.close();
         }
     }
-    
-    public void  canonicalizeWithMillisecond() {
+
+    public void canonicalizeWithMillisecond() {
         _tempoArray = new SMFTempoArray(this);
         for (SMFMessage seek : _listMessage) {
             long millisecond = seek._millisecond;
@@ -503,7 +496,7 @@ public class SMFParser {
             }
         }
     }
-    
+
     public boolean[] _existNoteChannel;
     public int _firstNotePos;
     public int _noteLowest;
@@ -518,17 +511,17 @@ public class SMFParser {
         _noteHighest = -1;
         _drums = new ArrayList<Integer>();
         _programList = new int[16];
-        for (int i = 0; i < _programList.length; ++ i) {
+        for (int i = 0; i < _programList.length; ++i) {
             _programList[i] = -1;
         }
-        
-        for (int i = 0; i < _listMessage.size(); ++ i) {
+
+        for (int i = 0; i < _listMessage.size(); ++i) {
             SMFMessage smf = _listMessage.get(i);
             if (smf.isBinaryMessage()) {
                 continue;
             }
             int msg = smf.toDwordMessage();
-            
+
             int status = (msg >> 16) & 0xff;
             int ch = status & 0x0f;
             int data1 = (msg >> 8) & 0xff;
@@ -543,13 +536,16 @@ public class SMFParser {
                 _existNoteChannel[ch] = true;
                 if (ch == MXAppConfig.DRUM_CH && data2 >= 1) {
                     _drums.add(data1);
-                }else {
-                    if (data1 < _noteLowest) _noteLowest = data1;
-                    if (data1 > _noteHighest) _noteHighest = data1;
+                } else {
+                    if (data1 < _noteLowest) {
+                        _noteLowest = data1;
+                    }
+                    if (data1 > _noteHighest) {
+                        _noteHighest = data1;
+                    }
                 }
-            }
-            else if (command == ShortMessage.PROGRAM_CHANGE) {
-                if (_programList[ch]  < 0) {
+            } else if (command == ShortMessage.PROGRAM_CHANGE) {
+                if (_programList[ch] < 0) {
                     _programList[ch] = data1;
                 }
             }

@@ -57,7 +57,7 @@ import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
-import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXSwingFolderBrowser;
+import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXFolderBrowser;
 
 /**
  *
@@ -2285,7 +2285,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jCheckBoxDrumModeToggleActionPerformed
 
     private void jButtonSequenceFileBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSequenceFileBrowseActionPerformed
-        MXSwingFolderBrowser browser = new MXSwingFolderBrowser(null, new FileFilterListExt(".Mid"));
+        MXFolderBrowser browser = new MXFolderBrowser(null, new FileFilterListExt(".Mid"));
         MXUtil.showAsDialog(this, browser, "Choose Standard MIDI File");
         if (browser.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
             FileList list = browser.getReturnValue();

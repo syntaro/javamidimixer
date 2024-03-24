@@ -25,7 +25,7 @@ import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.midi.driver.SplittableSysexMessage;
+import jp.synthtarou.midimixer.libs.midi.sysex.SplittableSysexMessage;
 
 /**
  *

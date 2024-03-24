@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi.driver;
 
+import jp.synthtarou.midimixer.libs.midi.sysex.SplittableSysexMessage;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.logging.Level;

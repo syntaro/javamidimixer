@@ -48,7 +48,7 @@ import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
  *
  * @author Syntarou YOSHIDA
  */
-public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigator<FileList> {
+public class MXFolderBrowser extends javax.swing.JPanel implements INavigator<FileList> {
 
     static final int DISKDRIVE_DEPTH = 20;
     /*
@@ -110,7 +110,7 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
             try {
                 process(file);
             } catch (Throwable ex) {
-                MXLogger2.getLogger(MXSwingFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXLogger2.getLogger(MXFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
             } finally {
             }
         }
@@ -161,9 +161,9 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
                         }
                     });
                 } catch (InterruptedException ex) {
-                    MXLogger2.getLogger(MXSwingFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
+                    MXLogger2.getLogger(MXFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
                 } catch (InvocationTargetException ex) {
-                    MXLogger2.getLogger(MXSwingFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
+                    MXLogger2.getLogger(MXFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
         }
@@ -183,19 +183,19 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
 
     public static void main(String[] args) {
 
-        MXSwingFolderBrowser c0 = new MXSwingFolderBrowser(new File("C:/Program Files/Common Files"), null);
+        MXFolderBrowser c0 = new MXFolderBrowser(new File("C:/Program Files/Common Files"), null);
         MXUtil.showAsDialog(null, c0, "Standard");
 
         FileFilter filterxml = new FileFilterListExt(new String[]{".xml"});
-        MXSwingFolderBrowser c1 = new MXSwingFolderBrowser(new File("C:/Domino144/Module"), filterxml);
+        MXFolderBrowser c1 = new MXFolderBrowser(new File("C:/Domino144/Module"), filterxml);
         MXUtil.showAsDialog(null, c1, "Domino XML");
 
         FileFilter filtervst = new FileFilterListExt(new String[]{".vst3"});
-        MXSwingFolderBrowser c2 = new MXSwingFolderBrowser(null, filtervst);
+        MXFolderBrowser c2 = new MXFolderBrowser(null, filtervst);
         MXUtil.showAsDialog(null, c2, "VST3");
 
         FileFilter filtermid = new FileFilterListExt(new String[]{".mid"});
-        MXSwingFolderBrowser c3 = new MXSwingFolderBrowser(new File("C:/"), filtermid);
+        MXFolderBrowser c3 = new MXFolderBrowser(new File("C:/"), filtermid);
         MXUtil.showAsDialog(null, c3, "MID File");
 
         System.exit(0);
@@ -206,7 +206,7 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
      * @param initialDir
      * @param filterOpenable
      */
-    public MXSwingFolderBrowser(File initialDir, FileFilter filterOpenable) {
+    public MXFolderBrowser(File initialDir, FileFilter filterOpenable) {
         this(initialDir, filterOpenable, null);
     }
 
@@ -219,7 +219,7 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
      * @param filterOpenable
      * @param filterVisible
      */
-    public MXSwingFolderBrowser(File initialDir, FileFilter filterOpenable, FileFilter filterVisible) {
+    public MXFolderBrowser(File initialDir, FileFilter filterOpenable, FileFilter filterVisible) {
         initComponents();
 
         _filterOpenable = filterOpenable;
@@ -334,7 +334,7 @@ public class MXSwingFolderBrowser extends javax.swing.JPanel implements INavigat
                     nest = itsPC._fileObject.listFiles();
                 }
             } catch (Throwable ex) {
-                MXLogger2.getLogger(MXSwingFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXLogger2.getLogger(MXFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
             }
             if (nest == null) {
                 return false;

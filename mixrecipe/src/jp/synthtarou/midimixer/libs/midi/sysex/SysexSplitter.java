@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.midi.driver;
+package jp.synthtarou.midimixer.libs.midi.sysex;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ import jp.synthtarou.midimixer.libs.midi.smf.SMFInputStream;
 
 /**
  *　SysEXメッセージを分割、結合するため
- * @see jp.synthtarou.midimixer.libs.midi.driver.SplittableSysexMessage
+ * @see jp.synthtarou.midimixer.libs.midi.sysex.SplittableSysexMessage
  * @author Syntarou YOSHIDA
  */
 public class SysexSplitter {
@@ -55,8 +55,10 @@ public class SysexSplitter {
         }
         
         _endingCode = false;
-        if (status == 0xf0 || status == 0xf7) {            
-            _beginningStatusCode = status;
+        if (status == 0xf0 || status == 0xf7) {    
+            if (_beginningStatusCode == 0) {
+                _beginningStatusCode = status;
+            }
             while (status >= 0) {
                 status = reader.read8();
                 if (status < 0) {
@@ -102,6 +104,7 @@ public class SysexSplitter {
                 byte[] result = segment.toByteArray();
                 if (result.length > 1) {
                     segment.write(ch);
+                    result = segment.toByteArray();
                     listResult.add(result);
                 }
                 segment = new ByteArrayOutputStream();

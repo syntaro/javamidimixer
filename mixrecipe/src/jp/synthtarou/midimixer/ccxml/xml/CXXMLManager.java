@@ -42,7 +42,7 @@ import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 import jp.synthtarou.midimixer.libs.settings.MXSettingUtil;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
-import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXSwingFolderBrowser;
+import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXFolderBrowser;
 
 /**
  *
@@ -120,7 +120,7 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXSet
 
     public boolean browseAndImport(JComponent parent) {
         FileFilter filter = new FileFilterListExt(new String[]{".xml"});
-        MXSwingFolderBrowser chooser = new MXSwingFolderBrowser(getSaveDirectory(), filter, null);
+        MXFolderBrowser chooser = new MXFolderBrowser(getSaveDirectory(), filter, null);
         MXUtil.showAsDialog(parent, chooser, "Choise XML");
         if (chooser.getReturnStatus() != INavigator.RETURN_STATUS_APPROVED) {
             return false;

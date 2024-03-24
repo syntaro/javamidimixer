@@ -31,14 +31,14 @@ public class ChildSeekFilter implements FileFilter {
 
     HashSet<String> _listSuceed = new HashSet();
     HashSet<String> _listFailed = new HashSet();
-    MXSwingFolderBrowser _owner;
+    MXFolderBrowser _owner;
     int _step;
 
     /**
      *
      * @param ownwer
      */
-    public ChildSeekFilter(MXSwingFolderBrowser ownwer) {
+    public ChildSeekFilter(MXFolderBrowser ownwer) {
         _owner = ownwer;
         _cancelFlag = false;
     }

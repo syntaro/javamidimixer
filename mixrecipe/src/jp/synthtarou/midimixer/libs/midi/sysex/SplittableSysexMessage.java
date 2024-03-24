@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.midi.driver;
+package jp.synthtarou.midimixer.libs.midi.sysex;
 
 import java.io.ByteArrayOutputStream;
 import java.util.logging.Level;
@@ -27,10 +27,12 @@ import jp.synthtarou.midimixer.libs.common.MXLogger2;
  * F0で始まる場合、getStatus()をF0として、バイト配列はすべてを返します
  * F7で始まる場合、getStauts()をF7として、バイト配列は先頭のF7を含みません
  * このようにすると、JavaAPIは正しく処理します。
+ * F0で始まるメッセージのあと、F7で始まるメッセージをおくると、
+ * F7をひとつ前のメッセージの終端とうけとめられるので、F7を送らないという事です。
  * ただし、Java20以上が必要ですJDK20未満ではアプリがクラッシュしていました。
  * Windows10のみ動作確認すみ。
  * @author Syntarou YOSHIDA
- * @see jp.synthtarou.midimixer.libs.midi.driver.SysexSplitter
+ * @see jp.synthtarou.midimixer.libs.midi.sysex.SysexSplitter
  */
 public class SplittableSysexMessage extends MidiMessage {
 
