@@ -365,26 +365,35 @@ public class SameFileChecker extends javax.swing.JPanel {
          * @param size
          */
         public void addIfPicture(File file) {
-            String name = file.getName().toLowerCase();
-            for (String x : _suffix) {
-                if (name.endsWith(x)) {
-                    Entry e = new Entry(file);
-                    long length = file.length();
-                    ArrayList<Entry> list = _all.get(length);
-                    if (list == null) {
-                        list = new ArrayList();
-                        _all.put(length, list);
+            boolean ok = false;
+            if (_suffix == null) {
+                ok = true;
+            }else {
+                String name = file.getName().toLowerCase();
+                
+                for (String x : _suffix) {
+                    if (name.endsWith(x)) {
+                        ok = true;
+                        break;
                     }
-                    for (int i = 0; i < list.size(); ++i) {
-                        Entry e2 = list.get(i);
-                        if (e.contentsSame(e2)) {
-                            makePair(e, e2);
-                            _added++;
-                        }
-                    }
-                    list.add(e);
-                    return;
                 }
+            }
+            if (ok) {
+                Entry e = new Entry(file);
+                long length = file.length();
+                ArrayList<Entry> list = _all.get(length);
+                if (list == null) {
+                    list = new ArrayList();
+                    _all.put(length, list);
+                }
+                for (int i = 0; i < list.size(); ++i) {
+                    Entry e2 = list.get(i);
+                    if (e.contentsSame(e2)) {
+                        makePair(e, e2);
+                        _added++;
+                    }
+                }
+                list.add(e);
             }
         }
 
