@@ -19,6 +19,8 @@ package example;
 import example.SameFileChecker.Scanner.UserObject;
 import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.BufferedInputStream;
@@ -42,7 +44,6 @@ import javax.swing.WindowConstants;
 import jp.synthtarou.midimixer.MXThread;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.navigator.MXPopupForText;
 import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
 import jp.synthtarou.midimixer.libs.navigator.legacy.NavigatorForText;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
@@ -80,6 +81,12 @@ public class SameFileChecker extends javax.swing.JPanel {
 
     static String CUSTOM_FIELD = "[Custom]";
     
+    String[] _defaultSkip = {
+        "C:\\Program Data",
+        "C:\\Windows\\servicing",
+        "C:\\Windows\\WinSxS",
+        "C:\\Windows\\Installer"
+    };
     /**
      * Creates new form SameFileChecker
      */
@@ -100,6 +107,27 @@ public class SameFileChecker extends javax.swing.JPanel {
         }
         jComboBoxFileType.setModel(model);
         jComboBoxFileType.setSelectedIndex(0);
+            
+        jTextAreaSkip.setText(String.join("\n", _defaultSkip));
+        autoAdjust();
+    }
+    
+    protected void autoAdjust() {
+        if (SwingUtilities.isEventDispatchThread() == false) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    autoAdjust();;
+                }
+            });
+            return;
+        }
+        try {
+            jSplitPane1.setResizeWeight(1);
+            jSplitPane1.setDividerLocation(jSplitPane1.getHeight() - 150);
+        }catch(Exception ex){
+            ex.printStackTrace();;
+        }
     }
 
     /**
@@ -112,6 +140,11 @@ public class SameFileChecker extends javax.swing.JPanel {
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
+        jSplitPane1 = new javax.swing.JSplitPane();
+        jPanel1 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextAreaSkip = new javax.swing.JTextArea();
+        jPanel2 = new javax.swing.JPanel();
         jTextFieldRootFolder = new javax.swing.JTextField();
         jButtonBrowse = new javax.swing.JButton();
         jButtonScan = new javax.swing.JButton();
@@ -123,12 +156,27 @@ public class SameFileChecker extends javax.swing.JPanel {
         jComboBoxFileType = new javax.swing.JComboBox<>();
         jLabelFileType = new javax.swing.JLabel();
 
-        setLayout(new java.awt.GridBagLayout());
+        setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
+
+        jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Folder to Skip"));
+        jPanel1.setLayout(new javax.swing.BoxLayout(jPanel1, javax.swing.BoxLayout.LINE_AXIS));
+
+        jTextAreaSkip.setColumns(20);
+        jTextAreaSkip.setRows(5);
+        jScrollPane1.setViewportView(jTextAreaSkip);
+
+        jPanel1.add(jScrollPane1);
+
+        jSplitPane1.setRightComponent(jPanel1);
+
+        jPanel2.setLayout(new java.awt.GridBagLayout());
 
         jTextFieldRootFolder.setText("C:\\");
             gridBagConstraints = new java.awt.GridBagConstraints();
             gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-            add(jTextFieldRootFolder, gridBagConstraints);
+            jPanel2.add(jTextFieldRootFolder, gridBagConstraints);
 
             jButtonBrowse.setText("Browse");
             jButtonBrowse.addActionListener(new java.awt.event.ActionListener() {
@@ -138,7 +186,7 @@ public class SameFileChecker extends javax.swing.JPanel {
             });
             gridBagConstraints = new java.awt.GridBagConstraints();
             gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-            add(jButtonBrowse, gridBagConstraints);
+            jPanel2.add(jButtonBrowse, gridBagConstraints);
 
             jButtonScan.setText("StartScan");
             jButtonScan.addActionListener(new java.awt.event.ActionListener() {
@@ -150,21 +198,21 @@ public class SameFileChecker extends javax.swing.JPanel {
             gridBagConstraints.gridx = 1;
             gridBagConstraints.gridy = 1;
             gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-            add(jButtonScan, gridBagConstraints);
+            jPanel2.add(jButtonScan, gridBagConstraints);
             gridBagConstraints = new java.awt.GridBagConstraints();
             gridBagConstraints.gridx = 0;
-            gridBagConstraints.gridy = 5;
+            gridBagConstraints.gridy = 9;
             gridBagConstraints.gridwidth = 2;
             gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-            add(jProgressBar1, gridBagConstraints);
+            jPanel2.add(jProgressBar1, gridBagConstraints);
 
             jLabel1.setText("100/100");
             gridBagConstraints = new java.awt.GridBagConstraints();
             gridBagConstraints.gridx = 0;
-            gridBagConstraints.gridy = 6;
+            gridBagConstraints.gridy = 10;
             gridBagConstraints.gridwidth = 2;
             gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-            add(jLabel1, gridBagConstraints);
+            jPanel2.add(jLabel1, gridBagConstraints);
 
             jScrollPane2.setViewportView(jList1);
 
@@ -175,7 +223,7 @@ public class SameFileChecker extends javax.swing.JPanel {
             gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
             gridBagConstraints.weightx = 1.0;
             gridBagConstraints.weighty = 1.0;
-            add(jScrollPane2, gridBagConstraints);
+            jPanel2.add(jScrollPane2, gridBagConstraints);
 
             jButtonShow.setText("Show");
             jButtonShow.addActionListener(new java.awt.event.ActionListener() {
@@ -188,7 +236,7 @@ public class SameFileChecker extends javax.swing.JPanel {
             gridBagConstraints.gridy = 2;
             gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
             gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-            add(jButtonShow, gridBagConstraints);
+            jPanel2.add(jButtonShow, gridBagConstraints);
 
             jComboBoxFileType.addActionListener(new java.awt.event.ActionListener() {
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -201,13 +249,17 @@ public class SameFileChecker extends javax.swing.JPanel {
             gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
             gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
             gridBagConstraints.weighty = 1.0;
-            add(jComboBoxFileType, gridBagConstraints);
+            jPanel2.add(jComboBoxFileType, gridBagConstraints);
 
             jLabelFileType.setText("File Type");
             gridBagConstraints = new java.awt.GridBagConstraints();
             gridBagConstraints.gridx = 1;
             gridBagConstraints.gridy = 3;
-            add(jLabelFileType, gridBagConstraints);
+            jPanel2.add(jLabelFileType, gridBagConstraints);
+
+            jSplitPane1.setLeftComponent(jPanel2);
+
+            add(jSplitPane1);
         }// </editor-fold>//GEN-END:initComponents
 
     /**
@@ -255,6 +307,7 @@ public class SameFileChecker extends javax.swing.JPanel {
     MXThread _thread = null;
     boolean _cancel = false;
     String[] _suffix = null;
+    String[] _skipFolder = null;
 
     private void jButtonScanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonScanActionPerformed
         if (_thread != null) {
@@ -273,6 +326,18 @@ public class SameFileChecker extends javax.swing.JPanel {
             }
             _suffix = new String[temp.size()];
             temp.toArray(_suffix);
+        }
+        _skipFolder = null;
+        String skip = jTextAreaSkip.getText();
+        if (skip.length() > 0) {
+            ArrayList<String> temp = new ArrayList<>();
+            String[] sp = skip.split("\n");
+            for (String seek : sp) {
+                seek = seek.trim();
+                temp.add(seek);
+            }
+            _skipFolder = new String[temp.size()];
+            temp.toArray(_skipFolder);
         }
         
         File file = new File(jTextFieldRootFolder.getText());
@@ -554,13 +619,14 @@ public class SameFileChecker extends javax.swing.JPanel {
             while (!queue.isEmpty()) {
                 File f = queue.removeLast();
                 String path = f.getPath();
-                if (path.equalsIgnoreCase("C:\\Windows\\servicing")) {
-                    continue;
+                boolean skip = false;
+                for (String seek : _skipFolder) {
+                    if (seek.equalsIgnoreCase(path)) {
+                        skip = true;
+                        break;
+                    }
                 }
-                if (path.equalsIgnoreCase("C:\\Windows\\WinSxS")) {
-                    continue;
-                }
-                if (path.equalsIgnoreCase("C:\\Windows\\Installer")) {
+                if (skip) {
                     continue;
                 }
                 _seeked ++;
@@ -692,8 +758,13 @@ public class SameFileChecker extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabelFileType;
     private javax.swing.JList<UserObject> jList1;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JProgressBar jProgressBar1;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JSplitPane jSplitPane1;
+    private javax.swing.JTextArea jTextAreaSkip;
     private javax.swing.JTextField jTextFieldRootFolder;
     // End of variables declaration//GEN-END:variables
 }
