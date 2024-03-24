@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
