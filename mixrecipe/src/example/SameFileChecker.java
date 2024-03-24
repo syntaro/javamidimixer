@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -41,7 +42,9 @@ import javax.swing.WindowConstants;
 import jp.synthtarou.midimixer.MXThread;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.libs.navigator.MXPopupForText;
 import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
+import jp.synthtarou.midimixer.libs.navigator.legacy.NavigatorForText;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXFolderBrowser;
 
@@ -75,11 +78,28 @@ public class SameFileChecker extends javax.swing.JPanel {
         frame.setVisible(true);
     }
 
+    static String CUSTOM_FIELD = "[Custom]";
+    
     /**
      * Creates new form SameFileChecker
      */
     public SameFileChecker() {
         initComponents();
+        String[] suffix = {
+            "jpg, jpeg, bmp, png, gif"
+            ,"mov, avi, mp4, heic"
+            ,"aac, mp3, wav"
+            ,"zip, cab, gz, exe, jar"
+            ,"txt, doc, pdf, ppt"
+            ,"xls, xlsx, csv"
+            ,CUSTOM_FIELD
+        };
+        DefaultComboBoxModel model = new DefaultComboBoxModel();
+        for (String seek  : suffix) {
+            model.addElement(seek);
+        }
+        jComboBoxFileType.setModel(model);
+        jComboBoxFileType.setSelectedIndex(0);
     }
 
     /**
@@ -100,6 +120,8 @@ public class SameFileChecker extends javax.swing.JPanel {
         jScrollPane2 = new javax.swing.JScrollPane();
         jList1 = new javax.swing.JList<>();
         jButtonShow = new javax.swing.JButton();
+        jComboBoxFileType = new javax.swing.JComboBox<>();
+        jLabelFileType = new javax.swing.JLabel();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -131,7 +153,7 @@ public class SameFileChecker extends javax.swing.JPanel {
             add(jButtonScan, gridBagConstraints);
             gridBagConstraints = new java.awt.GridBagConstraints();
             gridBagConstraints.gridx = 0;
-            gridBagConstraints.gridy = 3;
+            gridBagConstraints.gridy = 5;
             gridBagConstraints.gridwidth = 2;
             gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
             add(jProgressBar1, gridBagConstraints);
@@ -139,7 +161,7 @@ public class SameFileChecker extends javax.swing.JPanel {
             jLabel1.setText("100/100");
             gridBagConstraints = new java.awt.GridBagConstraints();
             gridBagConstraints.gridx = 0;
-            gridBagConstraints.gridy = 4;
+            gridBagConstraints.gridy = 6;
             gridBagConstraints.gridwidth = 2;
             gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
             add(jLabel1, gridBagConstraints);
@@ -149,7 +171,7 @@ public class SameFileChecker extends javax.swing.JPanel {
             gridBagConstraints = new java.awt.GridBagConstraints();
             gridBagConstraints.gridx = 0;
             gridBagConstraints.gridy = 1;
-            gridBagConstraints.gridheight = 2;
+            gridBagConstraints.gridheight = 4;
             gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
             gridBagConstraints.weightx = 1.0;
             gridBagConstraints.weighty = 1.0;
@@ -166,8 +188,26 @@ public class SameFileChecker extends javax.swing.JPanel {
             gridBagConstraints.gridy = 2;
             gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
             gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-            gridBagConstraints.weighty = 1.0;
             add(jButtonShow, gridBagConstraints);
+
+            jComboBoxFileType.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    jComboBoxFileTypeActionPerformed(evt);
+                }
+            });
+            gridBagConstraints = new java.awt.GridBagConstraints();
+            gridBagConstraints.gridx = 1;
+            gridBagConstraints.gridy = 4;
+            gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+            gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+            gridBagConstraints.weighty = 1.0;
+            add(jComboBoxFileType, gridBagConstraints);
+
+            jLabelFileType.setText("File Type");
+            gridBagConstraints = new java.awt.GridBagConstraints();
+            gridBagConstraints.gridx = 1;
+            gridBagConstraints.gridy = 3;
+            add(jLabelFileType, gridBagConstraints);
         }// </editor-fold>//GEN-END:initComponents
 
     /**
@@ -214,6 +254,7 @@ public class SameFileChecker extends javax.swing.JPanel {
 
     MXThread _thread = null;
     boolean _cancel = false;
+    String[] _suffix = null;
 
     private void jButtonScanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonScanActionPerformed
         if (_thread != null) {
@@ -221,6 +262,19 @@ public class SameFileChecker extends javax.swing.JPanel {
             _thread = null;
             return;
         }
+        _suffix = null;
+        String suffix = (String)jComboBoxFileType.getSelectedItem();
+        if (suffix != null && suffix.length() > 0) {
+            ArrayList<String> temp = new ArrayList<>();
+            String[] sp = suffix.split(",");
+            for (String seek : sp) {
+                seek = seek.trim();
+                temp.add("." + seek);
+            }
+            _suffix = new String[temp.size()];
+            temp.toArray(_suffix);
+        }
+        
         File file = new File(jTextFieldRootFolder.getText());
         if (file.isDirectory()) {
             _thread = new MXThread("FolderScanner", new Runnable() {
@@ -238,13 +292,13 @@ public class SameFileChecker extends javax.swing.JPanel {
                     try {
                         Scanner scanner = new Scanner(new Scanner.Callback() {
                             @Override
-                            public boolean progress(long x, String message) {
+                            public boolean progress(long seeked, long queue, long hit, String message) {
                                 long tick = System.currentTimeMillis();
                                 if (tick - dispCounter >= 500) {
                                     dispCounter = tick;
                                     SwingUtilities.invokeLater(new Runnable() {
                                         public void run() {
-                                            jLabel1.setText(x + ": " + message);
+                                            jLabel1.setText("seeked: " + seeked + ", hit: " + hit + ", remain: " + queue  + ", seeking: "+ message);
                                         }
                                     });
                                 }
@@ -288,6 +342,19 @@ public class SameFileChecker extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jButtonShowActionPerformed
 
+    private void jComboBoxFileTypeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxFileTypeActionPerformed
+        DefaultComboBoxModel<String> model = (DefaultComboBoxModel)jComboBoxFileType.getModel();
+        String selected = (String)model.getSelectedItem();
+        if (selected.equals(CUSTOM_FIELD)) {
+            NavigatorForText text = new NavigatorForText("Input New Type (, seprated)");
+            MXUtil.showAsDialog(jComboBoxFileType, text, "Input New Type");
+            if (text.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+                model.addElement(text.getReturnValue());
+                jComboBoxFileType.setSelectedIndex(model.getSize() - 1);
+            }
+        }
+    }//GEN-LAST:event_jComboBoxFileTypeActionPerformed
+
     /**
      * フォルダースキャナ
      */
@@ -297,10 +364,6 @@ public class SameFileChecker extends javax.swing.JPanel {
          * @param file
          * @param size
          */
-        String[] _suffix = {
-            ".jpg", ".bmp", ".png", ".mov", ".avi", ".aac", ".txt", ".exe", ".zip", ".cab"
-        };
-
         public void addIfPicture(File file) {
             String name = file.getName().toLowerCase();
             for (String x : _suffix) {
@@ -316,10 +379,10 @@ public class SameFileChecker extends javax.swing.JPanel {
                         Entry e2 = list.get(i);
                         if (e.contentsSame(e2)) {
                             makePair(e, e2);
+                            _added++;
                         }
                     }
                     list.add(e);
-                    _added++;
                     return;
                 }
             }
@@ -452,7 +515,7 @@ public class SameFileChecker extends javax.swing.JPanel {
          */
         public interface Callback {
 
-            public boolean progress(long added, String message);
+            public boolean progress(long seeked, long queue, long added, String message);
         }
 
         /**
@@ -465,6 +528,7 @@ public class SameFileChecker extends javax.swing.JPanel {
         }
 
         Callback _callback;
+        long _seeked;
 
         /**
          * スキャン開始メソッド
@@ -473,13 +537,13 @@ public class SameFileChecker extends javax.swing.JPanel {
          * @throws InterruptedException 中断された場合の例外
          */
         public void scan(File file) throws InterruptedException {
-            if (_callback.progress(_added, file.toString()) == false) {
-                throw new InterruptedException();
-            }
             ArrayList<File> queue = new ArrayList<>();
             queue.add(file);
+            if (_callback.progress(_seeked, queue.size(), _added, file.toString()) == false) {
+                throw new InterruptedException();
+            }
             while (!queue.isEmpty()) {
-                File f = queue.removeFirst();
+                File f = queue.removeLast();
                 String path = f.getPath();
                 if (path.equalsIgnoreCase("C:\\Windows\\servicing")) {
                     continue;
@@ -490,7 +554,8 @@ public class SameFileChecker extends javax.swing.JPanel {
                 if (path.equalsIgnoreCase("C:\\Windows\\Installer")) {
                     continue;
                 }
-                if (_callback.progress(_added, f.toString()) == false) {
+                _seeked ++;
+                if (_callback.progress(_seeked, queue.size(), _added, f.toString()) == false) {
                     throw new InterruptedException();
                 }
                 File[] children = f.listFiles();
@@ -614,7 +679,9 @@ public class SameFileChecker extends javax.swing.JPanel {
     private javax.swing.JButton jButtonBrowse;
     private javax.swing.JButton jButtonScan;
     private javax.swing.JButton jButtonShow;
+    private javax.swing.JComboBox<String> jComboBoxFileType;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabelFileType;
     private javax.swing.JList<UserObject> jList1;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane2;
