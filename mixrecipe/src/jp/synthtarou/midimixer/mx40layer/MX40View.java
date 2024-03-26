@@ -33,13 +33,13 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.ccxml.ui.PickerForinstrument;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueLsitFactory;
 import jp.synthtarou.midimixer.libs.swing.MXFileChooser;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
@@ -55,29 +55,28 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
     MX40Group _editingGroup;
     MX40Layer _editingLayer;
 
-    //MXWrapList<Integer> _watchPort = MXMidi.createPortShort();
-    MXWrapList<Integer> _watchChannel = MXWrapListFactory.listupChannel(null);
-    MXWrapList<Integer> _watchProgram = MXWrapListFactory.listupGeneralMidi(true);
+    MNamedValueList<Integer> _watchChannel = MNamedValueLsitFactory.listupChannel(null);
+    MNamedValueList<Integer> _watchProgram = MNamedValueLsitFactory.listupGeneralMidi(true);
 
-    MXWrapList<Integer> _modPort = MX40Layer.createSendOption(false);
-    MXWrapList<Integer> _modChannel = MX40Layer.createSendOption(false);
-    MXWrapList<Integer> _modBank = MX40Layer.createSendOption(true);
-    MXWrapList<Integer> _modProgram = MX40Layer.createSendOption(true);
+    MNamedValueList<Integer> _modPort = MX40Layer.createSendOption(false);
+    MNamedValueList<Integer> _modChannel = MX40Layer.createSendOption(false);
+    MNamedValueList<Integer> _modBank = MX40Layer.createSendOption(true);
+    MNamedValueList<Integer> _modProgram = MX40Layer.createSendOption(true);
 
     //MXWrapList<Integer> _changePort = MXMidi.createPortShort();
-    MXWrapList<Integer> _changeChannel = MXWrapListFactory.listupChannel(null);
-    MXWrapList<Integer> _changeProgram = MXWrapListFactory.listupGeneralMidi(true);
-    MXWrapList<Integer> _changeVolume = MXWrapListFactory.listupPercent();
-    MXWrapList<Integer> _changeExpression = MXWrapListFactory.listupPercent();
+    MNamedValueList<Integer> _changeChannel = MNamedValueLsitFactory.listupChannel(null);
+    MNamedValueList<Integer> _changeProgram = MNamedValueLsitFactory.listupGeneralMidi(true);
+    MNamedValueList<Integer> _changeVolume = MNamedValueLsitFactory.listupPercent();
+    MNamedValueList<Integer> _changeExpression = MNamedValueLsitFactory.listupPercent();
 
-    MXWrapList<Integer> _changeLowNote = MXWrapListFactory.listupNoteNo(false);
-    MXWrapList<Integer> _changeHighNote = MXWrapListFactory.listupNoteNo(false);
+    MNamedValueList<Integer> _changeLowNote = MNamedValueLsitFactory.listupNoteNo(false);
+    MNamedValueList<Integer> _changeHighNote = MNamedValueLsitFactory.listupNoteNo(false);
 
-    MXWrapList<Integer> _changeLowVelocity = MXWrapListFactory.listupVelocity();
-    MXWrapList<Integer> _changeHighVelocity = MXWrapListFactory.listupVelocity();
+    MNamedValueList<Integer> _changeLowVelocity = MNamedValueLsitFactory.listupVelocity();
+    MNamedValueList<Integer> _changeHighVelocity = MNamedValueLsitFactory.listupVelocity();
 
-    MXWrapList<MX40Group> _groupsModel = null;
-    MXWrapList<MX40Layer> _layersModel = null;
+    MNamedValueList<MX40Group> _groupsModel = null;
+    MNamedValueList<MX40Layer> _layersModel = null;
     
     boolean underConstruction = true;
 
@@ -1565,7 +1564,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         String text=  jButtonWatchPort.getText();
         int watchPort = text.length() >= 1 ? text.charAt(0) - 'A' : -1;
         group._watchingPort = watchPort;
-        group._watchingChannel = (int)((MXWrap)jComboBoxWatchChannel.getSelectedItem())._value;
+        group._watchingChannel = (int)((MNamedValue)jComboBoxWatchChannel.getSelectedItem())._value;
         group._watchingProgram = (int)jSpinnerWatchProgram.getValue();
         group._watchingBankMSB = (int)jSpinnerWatchBankMSB.getValue();
         group._watchingBankLSB = (int)jSpinnerWatchBankLSB.getValue();
@@ -1817,7 +1816,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
     }
 
     public void listUpGroups() {
-        MXWrapList<MX40Group> listModel = new MXWrapList();
+        MNamedValueList<MX40Group> listModel = new MNamedValueList();
         for (int i = 0; i < _process._groupList.size(); ++ i) {
             MX40Group g = _process._groupList.get(i);
             listModel.addNameAndValue(g._title, g);
@@ -1832,7 +1831,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
     
     public void listupLayers() {
         MX40Group parent = _editingGroup;
-        MXWrapList<MX40Layer> listModel = new MXWrapList();
+        MNamedValueList<MX40Layer> listModel = new MNamedValueList();
         if (parent != null) {
             for (int i = 0; i < parent._listLayer.size(); ++ i) {
                 MX40Layer l = parent._listLayer.get(i);
@@ -1879,13 +1878,13 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
     public void justRefreshViewListAndPanel(int indexGroup, int indexLayer) {
         //Refresh List
         
-        MXWrapList<MX40Group> groupModel = new MXWrapList();
+        MNamedValueList<MX40Group> groupModel = new MNamedValueList();
         for (int i = 0; i < _process._groupList.size(); ++ i ){
             MX40Group group = _process._groupList.get(i);
             groupModel.addNameAndValue(group._title, group);
         }
 
-        MXWrapList<MX40Layer> layerModel = new MXWrapList();
+        MNamedValueList<MX40Layer> layerModel = new MNamedValueList();
         if (_editingGroup != null) {
             for (int i = 0; i < _editingGroup._listLayer.size(); ++ i ){
                 MX40Layer layer = _editingGroup._listLayer.get(i);

@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.libs.midi.port;
 import java.util.ArrayList;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
@@ -70,7 +70,7 @@ public class MXMIDIInManager implements MXSettingTarget {
             _setting = new MXSetting("MIDIInput");
             _setting.setTarget(this);
 
-            MXWrapList<MXMIDIIn> list = listAllInput();
+            MNamedValueList<MXMIDIIn> list = listAllInput();
             
             _setting.readSettingFile();
 
@@ -88,15 +88,15 @@ public class MXMIDIInManager implements MXSettingTarget {
         }
     }
 
-    protected MXWrapList<MXMIDIIn> _listAllInput;
-    protected MXWrapList<MXMIDIIn> _listUsingInput;
+    protected MNamedValueList<MXMIDIIn> _listAllInput;
+    protected MNamedValueList<MXMIDIIn> _listUsingInput;
 
-    public synchronized MXWrapList<MXMIDIIn> listAllInput() {
+    public synchronized MNamedValueList<MXMIDIIn> listAllInput() {
         if (_listAllInput != null) {
             return _listAllInput;
         }
 
-        MXWrapList<MXMIDIIn> temp = new MXWrapList<MXMIDIIn>();
+        MNamedValueList<MXMIDIIn> temp = new MNamedValueList<MXMIDIIn>();
 
         MXMIDIIn tester = MXMIDIIn.INTERNAL_TESTER;
         temp.addNameAndValue(tester.getName(), tester);
@@ -148,11 +148,11 @@ public class MXMIDIInManager implements MXSettingTarget {
         //_cache = null;        
     }
 
-    public synchronized MXWrapList<MXMIDIIn>listSelectedInput() {
+    public synchronized MNamedValueList<MXMIDIIn>listSelectedInput() {
         if (_listUsingInput != null) {
             return _listUsingInput;
         }
-        MXWrapList<MXMIDIIn> newInput = new MXWrapList();
+        MNamedValueList<MXMIDIIn> newInput = new MNamedValueList();
         for (MXMIDIIn midi : listAllInput().valueList()) {
             if (midi.getPortAssignCount() > 0) {
                 newInput.addNameAndValue(midi.toString(), midi);
@@ -213,7 +213,7 @@ public class MXMIDIInManager implements MXSettingTarget {
                 }
             }
 
-            MXWrapList<MXMIDIIn> detected = listAllInput();
+            MNamedValueList<MXMIDIIn> detected = listAllInput();
             MXMIDIIn in = detected.valueOfName(deviceName);
             if (in != null) {
                 if (deviceOpen.equals("1")) {
@@ -243,7 +243,7 @@ public class MXMIDIInManager implements MXSettingTarget {
 
     @Override
     public void beforeWriteSettingFile() {
-        MXWrapList<MXMIDIIn> all = listAllInput();
+        MNamedValueList<MXMIDIIn> all = listAllInput();
         int x = 0;
         for (MXMIDIIn e : all.valueList()) {
             if (e.getPortAssignCount() <= 0) {

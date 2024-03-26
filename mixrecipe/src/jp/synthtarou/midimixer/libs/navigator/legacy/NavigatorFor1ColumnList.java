@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.libs.navigator.legacy;
 import java.awt.Dimension;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 
 /**
  *
@@ -28,7 +28,7 @@ import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
 public class NavigatorFor1ColumnList<T> extends javax.swing.JPanel implements INavigator<T>{
     
     public static void main(String[] args) {
-        MXWrapList<String> model = new MXWrapList<>();
+        MNamedValueList<String> model = new MNamedValueList<>();
         model.addNameAndValue("ABC", "abcdefg");
         model.addNameAndValue("HIJ", "hijklmn");
         model.addNameAndValue("OPQ", "opqrstu");
@@ -40,13 +40,13 @@ public class NavigatorFor1ColumnList<T> extends javax.swing.JPanel implements IN
     }
 
     
-    MXWrapList<T> _listChoise;
+    MNamedValueList<T> _listChoise;
     boolean _initDone = false;
 
     /**
      * Creates new form NavigatorForList
      */
-    public NavigatorFor1ColumnList(MXWrapList<T> choise, int selectedIndex) {
+    public NavigatorFor1ColumnList(MNamedValueList<T> choise, int selectedIndex) {
         initComponents();
         _listChoise = choise;
         int sel = selectedIndex;

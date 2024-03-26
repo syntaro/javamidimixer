@@ -24,14 +24,14 @@ import jp.synthtarou.midimixer.ccxml.xml.CXNode;
 import jp.synthtarou.midimixer.ccxml.rules.CCRuleForAttribute;
 import jp.synthtarou.midimixer.ccxml.rules.CCRuleForTag;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class NavigatorForNodeAttribute extends javax.swing.JPanel implements INavigator <MXWrap<String>> {
+public class NavigatorForNodeAttribute extends javax.swing.JPanel implements INavigator <MNamedValue<String>> {
 
     CXNode _node;
     String _editingName;
@@ -63,10 +63,10 @@ public class NavigatorForNodeAttribute extends javax.swing.JPanel implements INa
         jTextFieldValue.setEnabled(jRadioButtonValueCustom.isSelected());
     }
 
-    MXWrapList<String> _attrNameModel;
+    MNamedValueList<String> _attrNameModel;
 
     protected void setAttrNameModel() {
-        _attrNameModel = new MXWrapList<>();
+        _attrNameModel = new MNamedValueList<>();
 
         CCRuleForTag tag = _node.getTagRule();
         if (tag != null) {
@@ -106,10 +106,10 @@ public class NavigatorForNodeAttribute extends javax.swing.JPanel implements INa
         return jTextFieldName.getText();
     }
 
-    MXWrapList<String> _attrValueModel;
+    MNamedValueList<String> _attrValueModel;
 
     protected void setAttrValueModel(String attrName) {
-        _attrValueModel = new MXWrapList<>();
+        _attrValueModel = new MNamedValueList<>();
 
         CCRuleForTag tag = _node.getTagRule();
         if (tag != null) {
@@ -312,7 +312,7 @@ public class NavigatorForNodeAttribute extends javax.swing.JPanel implements INa
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOKActionPerformed
-        MXWrap<String> obj = new MXWrap<>(getAttrName(), getAttrValue());
+        MNamedValue<String> obj = new MNamedValue<>(getAttrName(), getAttrValue());
         _returnStatus = INavigator.RETURN_STATUS_APPROVED;
         _returnValue = obj;
         MXUtil.getOwnerWindow(this).setVisible(false);
@@ -380,7 +380,7 @@ public class NavigatorForNodeAttribute extends javax.swing.JPanel implements INa
     }
 
     @Override
-    public boolean validateWithNavigator(MXWrap<String> result) {
+    public boolean validateWithNavigator(MNamedValue<String> result) {
         return true;
     }
 
@@ -390,10 +390,10 @@ public class NavigatorForNodeAttribute extends javax.swing.JPanel implements INa
     }
 
     @Override
-    public MXWrap<String> getReturnValue() {
+    public MNamedValue<String> getReturnValue() {
         return _returnValue;
     }
     
-    MXWrap<String> _returnValue;
+    MNamedValue<String> _returnValue;
     int _returnStatus = INavigator.RETURN_STATUS_NOTSET;
 }

@@ -28,7 +28,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.swing.JTableWithColumnHeader;
 import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
@@ -42,7 +42,7 @@ import jp.synthtarou.midimixer.mx10input.MX10Structure;
 public class MX60View extends javax.swing.JPanel {
     JTableWithColumnHeader _jTableSkip;
     boolean _useSkipCC = true;
-    MXWrapList<Integer> _recPortList;
+    MNamedValueList<Integer> _recPortList;
     MX60MidiOutListPanel _midiPanel;
     ButtonGroup _recorderGroup;
     MX60Structure _structure;

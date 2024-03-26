@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.mx36ccmapping;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.navigator.MXPopupForList;
 import jp.synthtarou.midimixer.libs.navigator.MXPopupForText;
 

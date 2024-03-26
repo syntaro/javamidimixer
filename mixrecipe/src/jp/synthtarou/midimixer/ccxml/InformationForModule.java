@@ -22,7 +22,7 @@ import jp.synthtarou.midimixer.ccxml.xml.CXFile;
 import jp.synthtarou.midimixer.ccxml.rules.CCRuleManager;
 import java.util.List;
 import java.util.TreeMap;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 
 /**
  *
@@ -40,7 +40,7 @@ public class InformationForModule {
         }
     }        
     
-    MXWrapList<MXWrapList<Integer>> _listTable = null;
+    MNamedValueList<MNamedValueList<Integer>> _listTable = null;
     TreeMap<Integer, CXNode> _cacheCCM = null;
     
     public CXNode getCCMById(int id) {
@@ -91,7 +91,7 @@ public class InformationForModule {
         }
     }
 
-    public MXWrapList<Integer> getTable(int id) {
+    public MNamedValueList<Integer> getTable(int id) {
         prepareTable();
         if (_listTable == null) {
             return null;
@@ -108,7 +108,7 @@ public class InformationForModule {
         if (ccm == null) {
             return;
         }
-        _listTable = new MXWrapList<>();
+        _listTable = new MNamedValueList<>();
 
         List<CXNode> listTable = ccm.listChildren(rules.controlChangeMacroList_table);
         if (listTable == null) {
@@ -124,7 +124,7 @@ public class InformationForModule {
             if (listEntry == null) {
                 continue;
             }
-            MXWrapList<Integer> contents = new MXWrapList<>();
+            MNamedValueList<Integer> contents = new MNamedValueList<>();
 
             for (CXNode seekEntry : listEntry) {
                 String label = seekEntry._listAttributes.valueOfName("Label");

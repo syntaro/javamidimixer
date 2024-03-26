@@ -32,13 +32,13 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.accordion.MXAccordionElement;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueLsitFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
@@ -64,8 +64,8 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     JButton _jButtonEdit = new JButton("Edit");
     final MX12Process _process;
     MXPianoKeys _piano;
-    MXWrapList<Integer> _watchPort = MXWrapListFactory.listupPort(null);
-    MXWrapList<Integer> _watchChannel = MXWrapListFactory.listupChannel(null);
+    MNamedValueList<Integer> _watchPort = MNamedValueLsitFactory.listupPort(null);
+    MNamedValueList<Integer> _watchChannel = MNamedValueLsitFactory.listupChannel(null);
     
     int _sentPitch = 8192;
     int _sentModulation = 0;

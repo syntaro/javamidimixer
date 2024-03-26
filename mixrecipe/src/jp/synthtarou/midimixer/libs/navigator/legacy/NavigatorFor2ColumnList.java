@@ -33,10 +33,10 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
+import jp.synthtarou.midimixer.libs.accessor.MainThreadTask;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 
 /**
  *
@@ -44,12 +44,12 @@ import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
  */
 public class NavigatorFor2ColumnList<T> extends javax.swing.JPanel implements INavigator<T> {
 
-    MXWrapList<T> _list;
+    MNamedValueList<T> _list;
 
     /**
-     * Creates new form NavigatorForWrapList
+     * Creates new form NavigatorFor2ColumnList
      */
-    public NavigatorFor2ColumnList(MXWrapList<T> list, int selectedIndex) {
+    public NavigatorFor2ColumnList(MNamedValueList<T> list, int selectedIndex) {
         initComponents();
         _list = list;
 
@@ -82,26 +82,25 @@ public class NavigatorFor2ColumnList<T> extends javax.swing.JPanel implements IN
         });
 
         boolean haveUnmatch = false;
-        for (Object row : list) {
-            MXWrap wrap = (MXWrap<Object>) row;
-            if (wrap._value == null) {
+        for (MNamedValue seek : list) {
+            if (seek._value == null) {
                 haveUnmatch = true;
                 break;
             }
-            if (wrap._value instanceof Integer) {
-                String vs = String.valueOf((Integer) wrap._value);
-                if (vs.equals(wrap._name)) {
+            if (seek._value instanceof Integer) {
+                String vs = String.valueOf((Integer) seek._value);
+                if (vs.equals(seek._name)) {
                     continue;
                 } else {
                     haveUnmatch = true;
                     break;
                 }
             }
-            if (wrap._value instanceof String == false) {
+            if (seek._value instanceof String == false) {
                 haveUnmatch = true;
                 break;
             }
-            if (wrap._name.equals((String) wrap._value) == false) {
+            if (seek._name.equals((String) seek._value) == false) {
                 haveUnmatch = true;
                 break;
             }
@@ -117,17 +116,15 @@ public class NavigatorFor2ColumnList<T> extends javax.swing.JPanel implements IN
             model.addColumn("Value");
             model.addColumn("Name");
 
-            for (Object row : list) {
-                MXWrap wrap = (MXWrap<Object>) row;
-                model.addRow(new Object[]{String.valueOf(wrap._value), wrap._name});
+            for (MNamedValue seek : list) {
+                model.addRow(new Object[]{String.valueOf(seek._value), seek._name});
             }
             jTable1.setModel(model);
         } else {
             model.addColumn("Value");
 
-            for (Object row : list) {
-                MXWrap wrap = (MXWrap<Object>) row;
-                model.addRow(new Object[]{wrap._name});
+            for (MNamedValue seek : list) {
+                model.addRow(new Object[]{seek._name});
             }
             jTable1.setModel(model);
         }
@@ -161,9 +158,9 @@ public class NavigatorFor2ColumnList<T> extends javax.swing.JPanel implements IN
             jTable1.setRowSelectionInterval(selectedIndex, selectedIndex);
             jTable1.scrollRectToVisible(jTable1.getCellRect(selectedIndex, 0, true));
         }
-        new VUITask(true) {
+        new MainThreadTask(true) {
             @Override
-            public Object run() {
+            public Object runTask() {
                 jTable1.requestFocus();
                 new MXAttachTableResize(jTable1);
                 return true;

@@ -26,14 +26,14 @@ import java.util.logging.Level;
 import javax.xml.transform.TransformerException;
 import jp.synthtarou.midimixer.ccxml.InformationForModule;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.common.MXLineReader;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueLsitFactory;
 
 /**
  *
@@ -204,15 +204,15 @@ public class CXGeneralMidiFile extends CXFile {
     public void createControlChange(CXNode controlChangeMacroList) {
         CXNode folderTag0 = controlChangeMacroList.newTag("Folder", true);
         folderTag0._listAttributes.addNameAndValue("Name", "Note");
-        for (MXWrap<Integer> wrap : MXWrapListFactory.listupCommand(false)) {
-            int command = wrap._value;
+        for (MNamedValue<Integer> seek : MNamedValueLsitFactory.listupCommand(false)) {
+            int command = seek._value;
             if (command != MXMidi.COMMAND_CH_NOTEON && command != MXMidi.COMMAND_CH_NOTEOFF) {
                 continue;
             }
             if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
                 continue;
             }
-            String name = wrap._name;
+            String name = seek._name;
             MXMessage message = MXMessageFactory.fromShortMessage(0, command, 0, 0);
 
             CXNode ccmTag = folderTag0.newTag("CCM", true);
@@ -241,15 +241,15 @@ public class CXGeneralMidiFile extends CXFile {
         CXNode folderTag1 = controlChangeMacroList.newTag("Folder", true);
         folderTag1._listAttributes.addNameAndValue("Name", "Command");
 
-        for (MXWrap<Integer> wrap : MXWrapListFactory.listupCommand(false)) {
-            int command = wrap._value;
+        for (MNamedValue<Integer> seek : MNamedValueLsitFactory.listupCommand(false)) {
+            int command = seek._value;
             if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF) {
                 continue;
             }
             if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
                 continue;
             }
-            String name = wrap._name;
+            String name = seek._name;
             MXMessage message = MXMessageFactory.fromShortMessage(0, command, 0, 0);
 
             CXNode ccmTag = folderTag1.newTag("CCM", true);
@@ -295,7 +295,7 @@ public class CXGeneralMidiFile extends CXFile {
         }
 
         /* https://www.dtmstation.com/wp-content/uploads/2022/05/AMS_MIDI_Impre.pdf ? */
-        MXWrapList<String> listDataentry = new MXWrapList<>();
+        MNamedValueList<String> listDataentry = new MNamedValueList<>();
         listDataentry.addNameAndValue("Vibrate Rate", "@NRPN 1 1 #VL 0");
         listDataentry.addNameAndValue("Vibrate Depth", "@NRPN 1 9 #VL 0");
         listDataentry.addNameAndValue("Vibrate Delay", "@NRPN 1 10 #VL 0");

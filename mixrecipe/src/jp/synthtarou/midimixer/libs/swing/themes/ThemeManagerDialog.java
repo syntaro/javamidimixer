@@ -22,11 +22,11 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
-import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
+import jp.synthtarou.midimixer.libs.accessor.MainThreadTask;
 
 /**
  *
@@ -35,9 +35,9 @@ import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
 public class ThemeManagerDialog extends javax.swing.JDialog {
     JFrame parentFrame;
     ThemeManager config;
-    MXWrapList<String> _listModelFontName;
-    MXWrapList<Integer> _listModelFontSyle;
-    MXWrapList<Integer> _listModelFontSize;
+    MNamedValueList<String> _listModelFontName;
+    MNamedValueList<Integer> _listModelFontSyle;
+    MNamedValueList<Integer> _listModelFontSize;
 
     /**
      *
@@ -59,8 +59,8 @@ public class ThemeManagerDialog extends javax.swing.JDialog {
         jComboBoxFontSize.setModel(_listModelFontSize);
         jComboBoxFontStyle.setModel(_listModelFontSyle);
         
-        MXWrapList<String> listLaf = config.getLookAndFeelModel();
-        for (MXWrap<String> elem : listLaf) {
+        MNamedValueList<String> listLaf = config.getLookAndFeelModel();
+        for (MNamedValue<String> elem : listLaf) {
             String name = elem._name;
             JButton button = new JButton(name);
             button.addActionListener(new LookAndFeelThemeAction(name));
@@ -297,8 +297,8 @@ public class ThemeManagerDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_jCheckBox1ActionPerformed
 
     public void updateLookAndFeel() {
-        new VUITask() {
-            public Object run() {
+        new MainThreadTask() {
+            public Object runTask() {
                 config.setUITheme(config.themeName);
                 config.setFont(config.fontName, config.fontStyle, config.fontSize);
                 config.updateUITree();

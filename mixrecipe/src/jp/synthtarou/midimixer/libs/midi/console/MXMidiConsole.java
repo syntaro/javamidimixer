@@ -34,8 +34,8 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
-import static jp.synthtarou.midimixer.libs.swing.variableui.VUITask.NOTHING;
+import jp.synthtarou.midimixer.libs.accessor.MainThreadTask;
+import static jp.synthtarou.midimixer.libs.accessor.MainThreadTask.NOTHING;
 
 /**
  *
@@ -256,9 +256,9 @@ public class MXMidiConsole implements ListModel<String> {
     }
 
     private void invokeFire() {
-        new VUITask() {
+        new MainThreadTask() {
             @Override
-            public Object run() {
+            public Object runTask() {
                 implFire();
                 return NOTHING;
             }
@@ -305,9 +305,9 @@ public class MXMidiConsole implements ListModel<String> {
     }
 
     public void setSelectedTiming(MXTiming selection) {
-        new VUITask() {
+        new MainThreadTask() {
             @Override
-            public Object run() {
+            public Object runTask() {
                 synchronized (_list) {
                     _selectedTiming = selection;
                     for (int i = 0; i < getSize(); ++i) {

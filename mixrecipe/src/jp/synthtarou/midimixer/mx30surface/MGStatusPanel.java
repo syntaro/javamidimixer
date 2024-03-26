@@ -42,13 +42,13 @@ import jp.synthtarou.midimixer.ccxml.InformationForCCM;
 import jp.synthtarou.midimixer.ccxml.ui.PickerForControlChange;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.navigator.legacy.NavigatorForText;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueLsitFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.capture.Counter;
 import jp.synthtarou.midimixer.libs.midi.capture.MXCaptureProcess;
@@ -68,17 +68,17 @@ public class MGStatusPanel extends javax.swing.JPanel {
     boolean _okOption = false;
     final MX32MixerProcess _process;
 
-    MXWrapList<Integer> _channelModel;
+    MNamedValueList<Integer> _channelModel;
 
-    MXWrapList<Integer> _ccGateModel;
-    MXWrapList<Integer> _keyGateModel;
-    MXWrapList<Integer> _normalGateModel;
-    MXWrapList<Integer> _currentGateModel;
+    MNamedValueList<Integer> _ccGateModel;
+    MNamedValueList<Integer> _keyGateModel;
+    MNamedValueList<Integer> _normalGateModel;
+    MNamedValueList<Integer> _currentGateModel;
 
-    MXWrapList<Integer> _switchOutTypeOn;
-    MXWrapList<Integer> _switchOutTypeOff;
-    MXWrapList<Integer> _switchOutProgramType;
-    MXWrapList<Integer> _switchLinkColumn;
+    MNamedValueList<Integer> _switchOutTypeOn;
+    MNamedValueList<Integer> _switchOutTypeOff;
+    MNamedValueList<Integer> _switchOutProgramType;
+    MNamedValueList<Integer> _switchLinkColumn;
 
     String _templateStartWith;
 
@@ -152,8 +152,8 @@ public class MGStatusPanel extends javax.swing.JPanel {
         jSpinnerDrumMouseOnValue.setPreferredSize(size);
         jSpinnerDrumMouseOffValue.setPreferredSize(size);
 
-        _drumOutPort = MXWrapListFactory.listupPort("as Input");
-        _drumOutChannel = MXWrapListFactory.listupChannel("as Input");
+        _drumOutPort = MNamedValueLsitFactory.listupPort("as Input");
+        _drumOutChannel = MNamedValueLsitFactory.listupChannel("as Input");
 
         jComboBoxOutPort.setModel(_drumOutPort);
         jComboBoxOutChannel.setModel(_drumOutChannel);
@@ -211,7 +211,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
             }
             
             @Override
-            public MXWrapList<Integer> getList() {
+            public MNamedValueList<Integer> getList() {
                 if (_status._outGateTable != null) {
                     return _status._outGateTable;
                 }
@@ -347,9 +347,9 @@ public class MGStatusPanel extends javax.swing.JPanel {
         validateStatus();
     }
 
-    MXWrapList<Integer> _listPort = MXWrapListFactory.listupPort("-");
-    MXWrapList<Integer> _listColumn = MXWrapListFactory.listupColumn("-");
-    MXWrapList<Integer> _listChannel = MXWrapListFactory.listupChannel(null);
+    MNamedValueList<Integer> _listPort = MNamedValueLsitFactory.listupPort("-");
+    MNamedValueList<Integer> _listColumn = MNamedValueLsitFactory.listupColumn("-");
+    MNamedValueList<Integer> _listChannel = MNamedValueLsitFactory.listupChannel(null);
 
     public boolean catchPopupResult(JTextField target, int value) {
         if (target == jTextFieldChannel) {
@@ -368,22 +368,22 @@ public class MGStatusPanel extends javax.swing.JPanel {
         skipDataExchange = true;
         try {
             if (_channelModel == null) {
-                _channelModel = MXWrapListFactory.listupChannel(null);
-                _ccGateModel = MXWrapListFactory.listupControlChange(true);
-                _keyGateModel = MXWrapListFactory.listupNoteNo(true);
-                _normalGateModel = MXWrapListFactory.listupGate7Bit();
-                _switchOutTypeOn = new MXWrapList<>();
+                _channelModel = MNamedValueLsitFactory.listupChannel(null);
+                _ccGateModel = MNamedValueLsitFactory.listupControlChange(true);
+                _keyGateModel = MNamedValueLsitFactory.listupNoteNo(true);
+                _normalGateModel = MNamedValueLsitFactory.listupGate7Bit();
+                _switchOutTypeOn = new MNamedValueList<>();
                 _switchOutTypeOn.addNameAndValue("On value as Input", MGStatusForDrum.VALUETYPE_AS_INPUT);
                 _switchOutTypeOn.addNameAndValue("On value as Mouse", MGStatusForDrum.VALUETYPE_AS_MOUSE);
-                _switchOutTypeOff = new MXWrapList<>();
+                _switchOutTypeOff = new MNamedValueList<>();
                 _switchOutTypeOff.addNameAndValue("Off value as Input", MGStatusForDrum.VALUETYPE_AS_INPUT);
                 _switchOutTypeOff.addNameAndValue("Off value as Mouse", MGStatusForDrum.VALUETYPE_AS_MOUSE);
                 _switchOutTypeOff.addNameAndValue("Off value is Nothing to send", MGStatusForDrum.VALUETYPE_NOTHING);
-                _switchOutProgramType = new MXWrapList<>();
+                _switchOutProgramType = new MNamedValueList<>();
                 _switchOutProgramType.addNameAndValue("Program Set", MGStatusForDrum.PROGRAM_SET);
                 _switchOutProgramType.addNameAndValue("Program +1", MGStatusForDrum.PROGRAM_INC);
                 _switchOutProgramType.addNameAndValue("Program -1", MGStatusForDrum.PROGRAM_DEC);
-                _switchLinkColumn = new MXWrapList<>();
+                _switchLinkColumn = new MNamedValueList<>();
                 _switchLinkColumn.addNameAndValue("Same Column", -1);
                 for (int i = 0; i < MXAppConfig.SLIDER_COLUMN_COUNT; ++i) {
                     String text = Integer.toHexString(i);
@@ -529,8 +529,8 @@ public class MGStatusPanel extends javax.swing.JPanel {
         jSpinnerMax.setEnabled(sel);
     }
 
-    MXWrapList<Integer> _drumOutChannel;
-    MXWrapList<Integer> _drumOutPort;
+    MNamedValueList<Integer> _drumOutChannel;
+    MNamedValueList<Integer> _drumOutPort;
 
     public void displayStatusToPanelDrum() {
         if (skipDataExchange) {
@@ -2107,9 +2107,9 @@ public class MGStatusPanel extends javax.swing.JPanel {
             String name = ccm._name;
             String memo = ccm._memo;
             MXRangedValue gate = ccm.getParsedGate();
-            MXWrapList<Integer> gateTable = ccm.getParsedGateTable();
+            MNamedValueList<Integer> gateTable = ccm.getParsedGateTable();
             MXRangedValue value = ccm.getParsedValue();
-            MXWrapList<Integer> valueTable = ccm.getParsedValueTable();
+            MNamedValueList<Integer> valueTable = ccm.getParsedValueTable();
             MXTemplate template = null;
             try {
                 template = new MXTemplate(data);

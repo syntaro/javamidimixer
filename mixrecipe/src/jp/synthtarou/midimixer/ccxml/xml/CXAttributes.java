@@ -18,14 +18,14 @@ package jp.synthtarou.midimixer.ccxml.xml;
 
 import jp.synthtarou.midimixer.ccxml.rules.CCRuleForAttribute;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class CXAttributes extends MXWrapList<String> {
+public class CXAttributes extends MNamedValueList<String> {
     final CXNode _tag;
     
     public CXAttributes(CXNode tag) {
@@ -55,8 +55,8 @@ public class CXAttributes extends MXWrapList<String> {
             super.addNameAndValue(attrName, value);
         }
         else {
-            MXWrap<String> data = super.get(x);
-            MXWrap<String> newData = new MXWrap(attrName, value);
+            MNamedValue<String> data = super.get(x);
+            MNamedValue<String> newData = new MNamedValue(attrName, value);
             super.set(x, newData);
         }
     }

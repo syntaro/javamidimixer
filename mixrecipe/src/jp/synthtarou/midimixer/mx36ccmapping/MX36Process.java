@@ -22,8 +22,8 @@ import java.util.logging.Level;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
@@ -198,7 +198,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXSettingTarget
                     status._outValueOffset = props.getSettingAsInt("ValueOffset", 0);
 
                     MXSettingNode valueTable = props.findNode("ValueTable");
-                    MXWrapList<Integer> parsedValueTable = new MXWrapList<>();
+                    MNamedValueList<Integer> parsedValueTable = new MNamedValueList<>();
                     if (valueTable != null) {
                         List<MXSettingNode> listValue = valueTable.findNumbers();
                         if (listValue != null) {
@@ -221,7 +221,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXSettingTarget
                     status._outGateRange = stringToRange(props.getSetting("GateRange"));
                     status._outGateOffset = props.getSettingAsInt("GateOffset", 0);
                     MXSettingNode gateTable = props.findNode("GateTable");
-                    MXWrapList<Integer> parsedGateTable = new MXWrapList<>();
+                    MNamedValueList<Integer> parsedGateTable = new MNamedValueList<>();
                     if (gateTable != null) {
                         List<MXSettingNode> listGate = gateTable.findNumbers();
                         if (listGate != null) {
@@ -296,7 +296,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXSettingTarget
                 _setting.setSetting(prefix2 + "ValueOffset", status._outValueOffset);
                 if (status._outValueTable != null) {
                     if (!isSameRangeAndTable(status._outValueRange, status._outValueTable)) {
-                        for (MXWrap<Integer> value : status._outValueTable) {
+                        for (MNamedValue<Integer> value : status._outValueTable) {
                             _setting.setSetting(prefix2 + "ValueTable[" + value._value + "]", value._value);
                         }
                     }
@@ -305,7 +305,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXSettingTarget
                 _setting.setSetting(prefix2 + "GateOffset", status._outGateOffset);
                 if (status._outGateTable != null) {
                     if (!isSameRangeAndTable(status._outGateRange, status._outGateTable)) {
-                        for (MXWrap<Integer> gate : status._outGateTable) {
+                        for (MNamedValue<Integer> gate : status._outGateTable) {
                             _setting.setSetting(prefix2 + "GateTable[" + gate._value + "]", gate._value);
                         }
                     }
@@ -381,7 +381,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXSettingTarget
         folder.addCCItem(status);
     }
 
-    public boolean isSameRangeAndTable(MXRangedValue range, MXWrapList<Integer> table) {
+    public boolean isSameRangeAndTable(MXRangedValue range, MNamedValueList<Integer> table) {
         int rangeCount = range._max - range._min + 1;
         int tableCount = table.size();
         if (rangeCount == tableCount) {

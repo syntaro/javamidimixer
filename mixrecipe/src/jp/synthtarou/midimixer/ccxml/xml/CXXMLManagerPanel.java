@@ -20,7 +20,7 @@ import jp.synthtarou.midimixer.ccxml.ui.EditorForXMLTag;
 import java.awt.Dimension;
 import javax.swing.JOptionPane;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
@@ -43,7 +43,7 @@ public class CXXMLManagerPanel extends javax.swing.JPanel {
         System.exit(0);
     }
 
-    public MXWrapList<CXFile> _listModel;
+    public MNamedValueList<CXFile> _listModel;
 
     /**
      * Creates new form CXFileListPanel
@@ -58,7 +58,7 @@ public class CXXMLManagerPanel extends javax.swing.JPanel {
     public void reloadListModel() {
         CXXMLManager manager = CXXMLManager.getInstance();
 
-        _listModel = new MXWrapList<>();
+        _listModel = new MNamedValueList<>();
 
         for (CXFile file : manager._listLoaded) {
             _listModel.addNameAndValue(file._file.getName(), file);

@@ -16,7 +16,7 @@
  */
 package jp.synthtarou.midimixer.mx00playlist;
 
-import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
+import jp.synthtarou.midimixer.libs.accessor.MainThreadTask;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -90,9 +90,9 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     PlayListDX _dxPlayList;
 
     public void setQueueFileListDX(PlayListDX listFiles) {
-        new VUITask() {
+        new MainThreadTask() {
             @Override
-            public Object run() {
+            public Object runTask() {
                 _dxPlayList = listFiles;
                 jListPlayList.setModel(_dxPlayList);
                 return null;
@@ -101,9 +101,9 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     }
 
     public void setChainedDX(boolean chain) {
-        new VUITask() {
+        new MainThreadTask() {
             @Override
-            public Object run() {
+            public Object runTask() {
                 jCheckBoxChain.setSelected(chain);
                 return null;
             }
@@ -111,9 +111,9 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     }
 
     public void setRepeatedDX(boolean repeat) {
-        new VUITask() {
+        new MainThreadTask() {
             @Override
-            public Object run() {
+            public Object runTask() {
                 jCheckBoxRepeat.setSelected(repeat);
                 return null;
             }
@@ -121,9 +121,9 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     }
 
     public void setCurrentSongNameDX(String songName) {
-        new VUITask() {
+        new MainThreadTask() {
             @Override
-            public Object run() {
+            public Object runTask() {
                 jTextFieldCurrentSongName.setText(songName);
                 return null;
             }
@@ -189,6 +189,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         jPanelPianoRollParent = new javax.swing.JPanel();
         jPanelPianoRoll = new javax.swing.JPanel();
         jPanelPianoRollKeys = new javax.swing.JPanel();
+        jPanelPianoRollSettings = new javax.swing.JPanel();
         jPanelPianoParent = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         jPanelPiano = new javax.swing.JPanel();
@@ -338,6 +339,12 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         jSplitPane1.setLeftComponent(jSplitPane2);
 
         jPanelRight.setLayout(new java.awt.GridBagLayout());
+
+        jSliderSongPosition.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                jSliderSongPositionStateChanged(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -389,6 +396,8 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
 
         jPanelPianoRoll.setLayout(new javax.swing.BoxLayout(jPanelPianoRoll, javax.swing.BoxLayout.LINE_AXIS));
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         gridBagConstraints.weightx = 1.0;
@@ -399,11 +408,18 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         jPanelPianoRollKeys.setLayout(new javax.swing.BoxLayout(jPanelPianoRollKeys, javax.swing.BoxLayout.LINE_AXIS));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTH;
         gridBagConstraints.weightx = 1.0;
         jPanelPianoRollParent.add(jPanelPianoRollKeys, gridBagConstraints);
+
+        jPanelPianoRollSettings.setLayout(new javax.swing.BoxLayout(jPanelPianoRollSettings, javax.swing.BoxLayout.LINE_AXIS));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        jPanelPianoRollParent.add(jPanelPianoRollSettings, gridBagConstraints);
 
         jTabbedPanePiano.addTab("Piano Roll", jPanelPianoRollParent);
 
@@ -537,14 +553,21 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         _pianoRollKeys.setNoteRange(noteLowest, octaveRange);
         _pianoRollRoll = new MXPianoRoll(_player.getSequencer(), _pianoRollKeys);
         _pianoRollRoll.setNoteRange(noteLowest, octaveRange);
+        _pianoRollSettnigs = new MXPianoRollSettings(_pianoRollRoll);
+
         jPanelPianoRollKeys.removeAll();
         jPanelPianoRollKeys.add(_pianoRollKeys);
-        jPanelPianoRoll.removeAll();;
+
+        jPanelPianoRollSettings.removeAll();
+        jPanelPianoRollSettings.add(_pianoRollSettnigs);
+
+        jPanelPianoRoll.removeAll();
         jPanelPianoRoll.add(_pianoRollRoll);
         jPanelPianoRollKeys.setMinimumSize(new Dimension(100, 150));
         autoResizePiano();
     }
 
+    MXPianoRollSettings _pianoRollSettnigs;
     MXPianoRoll _pianoRollRoll;
     MXPianoKeys _pianoRollKeys;
 
@@ -564,7 +587,6 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
             }
         }
         if (_pianoRollKeys != null && _pianoRollRoll != null) {
-            //_pianoRollRoll.resetTiming(4000,  20);
             _pianoRollRoll.clearCache(_pianoRollRoll.getSongPos());
             int width = _pianoRollRoll.getWidth();
             _pianoRollKeys.setPreferredSize(new Dimension(width, 100));
@@ -735,6 +757,21 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         // TODO add your handling code here:
     }//GEN-LAST:event_jTabbedPanePianoPropertyChange
 
+    private void jSliderSongPositionStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderSongPositionStateChanged
+        if (jSliderStopCallback) {
+            return;
+        }
+        if (_pianoRollRoll != null && _pianoRollRoll._sequencer != null) {
+            if (_pianoRollRoll._sequencer.isRunning()) {
+                jSliderStopCallback = true;
+                jSliderSongPosition.setValue((int)_pianoRollRoll._sequencer.getCurrentMilliSeconds());
+                jSliderStopCallback = false;
+            }else if (_pianoRollRoll._sequencer.getSongLength() != 0) {
+                _pianoRollRoll.clearCache(jSliderSongPosition.getValue());
+            }
+        }
+    }//GEN-LAST:event_jSliderSongPositionStateChanged
+
     public void updatePianoDX(int dword) {
         if (SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(new Runnable() {
@@ -825,6 +862,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     private javax.swing.JPanel jPanelPianoRoll;
     private javax.swing.JPanel jPanelPianoRollKeys;
     private javax.swing.JPanel jPanelPianoRollParent;
+    private javax.swing.JPanel jPanelPianoRollSettings;
     private javax.swing.JPanel jPanelRight;
     private javax.swing.JPanel jPanelSelInfo1;
     private javax.swing.JScrollPane jScrollPane3;
@@ -899,18 +937,22 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         }
     }
 
+    boolean jSliderStopCallback = false;
     @Override
     public void smfProgress(long pos, long finish) {
-        new VUITask() {
+        new MainThreadTask() {
             @Override
-            public Object run() {
+            public Object runTask() {
                 if (pos == 0) {
                     MXMain.getMain().getLayerProcess().resendProgramChange();
                 }
+                jSliderStopCallback = true;
                 jLabelSongPosition.setText(MXUtil.digitalClock(pos) + "/" + MXUtil.digitalClock(finish));
-
-                jSliderSongPosition.setMaximum((int) finish);
+                if (jSliderSongPosition.getMaximum() != finish) {
+                    jSliderSongPosition.setMaximum((int) finish);
+                }
                 jSliderSongPosition.setValue((int) pos);
+                jSliderStopCallback = false;
                 return NOTHING;
             }
         };
@@ -918,9 +960,9 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
 
     public void turnOnMusic(PlayListElement file, final int pos) {
         if (SwingUtilities.isEventDispatchThread() == false) {
-            new VUITask(true) {
+            new MainThreadTask(true) {
                 @Override
-                public Object run() {
+                public Object runTask() {
                     SwingUtilities.invokeLater(new Runnable() {
                         @Override
                         public void run() {
@@ -943,7 +985,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
             }
             setCurrentSongNameDX(file.toString());
             _player.openFile(file._file);
-
+    
             ArrayList<Integer> drums = _player.getSequencer()._parser._drums;
             int noteLowest = _player.getSequencer()._parser._noteLowest;
             int noteHighest = _player.getSequencer()._parser._noteHighest;
@@ -987,7 +1029,9 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                 octaveRange++;
             }
 
-            MXMain.getMain().getPlayListProcess().createPianoControls(noteLowest, octaveRange, exist, program, drums);
+            if (_lastPlayed != file) {
+                MXMain.getMain().getPlayListProcess()._view.createPianoControls(noteLowest, octaveRange, exist, program, drums);
+            }
             _lastPlayed = file;
             _playingFile = file;
             //??

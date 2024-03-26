@@ -28,8 +28,8 @@ import javax.swing.JTextField;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 
 /**
  *
@@ -37,16 +37,16 @@ import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
  */
 public abstract class MXPopupForList<T> extends MXPopup {
 
-    MXWrapList<T> _list;
+    MNamedValueList<T> _list;
 
-    public MXPopupForList(JTextField target, MXWrapList<T> list) {
+    public MXPopupForList(JTextField target, MNamedValueList<T> list) {
         super(target);
         _list = list;
         install();
     }
 
     public void showPopup(JComponent mouseBase) {
-        MXWrapList<T> list = getList();
+        MNamedValueList<T> list = getList();
 
         if (_target != null) {
             String text = _target.getText();
@@ -57,7 +57,7 @@ public abstract class MXPopupForList<T> extends MXPopup {
         }
         if (list.size() >= 20) {
             boolean found = false;
-            for (MXWrap<T> seek : list) {
+            for (MNamedValue<T> seek : list) {
                 String str = String.valueOf(seek._value);
                 if (str.equals(seek._name) == false) {
                     found = true;
@@ -83,7 +83,7 @@ public abstract class MXPopupForList<T> extends MXPopup {
         } else {
             _menu = new JPopupMenu();
             for (int i = 0; i < list.size(); ++i) {
-                MXWrap<T> wrap = list.get(i);
+                MNamedValue<T> seek = list.get(i);
                 JRadioButtonMenuItem item = new JRadioButtonMenuItem(new WrapAction(i));
                 if (i == _selectedIndex) {
                     item.setSelected(true);
@@ -119,7 +119,7 @@ public abstract class MXPopupForList<T> extends MXPopup {
         }
     }
     
-    public MXWrapList<T> getList() {
+    public MNamedValueList<T> getList() {
         return _list;
     }
 

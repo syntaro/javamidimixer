@@ -110,10 +110,16 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
     private boolean _gotBreak = false;
     
     public long getLength() {
+        if (_sequencer == null) {
+            return 0;
+        }
         return _sequencer.getMaxMilliSecond();
     }
     
     public int getFirstNotePos() {
+        if (_sequencer == null) {
+            return 0;
+        }
         return _sequencer._parser._firstNotePos;
     }
     
@@ -127,7 +133,7 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
         }
         
         _gotBreak = false;
-        _sequencer.startPlayer(position, new SMFCallback() {
+        _sequencer.startPlayerThread(position, new SMFCallback() {
             @Override
             public void smfPlayNote(MXTiming timing, SMFMessage smf) {
                  try {

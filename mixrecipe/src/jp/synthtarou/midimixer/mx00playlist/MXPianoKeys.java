@@ -38,7 +38,7 @@ import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
-import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
+import jp.synthtarou.midimixer.libs.accessor.MainThreadTask;
 
 /**
  *
@@ -586,9 +586,9 @@ public class MXPianoKeys extends JComponent {
         if (!_doingPaint) {
             return;
         }
-        new VUITask() {
+        new MainThreadTask() {
             @Override
-            public Object run() {
+            public Object runTask() {
                 if (note >= 0) {
                     MXPianoKeys.KeyRect key = findRectByNote(note);
                     if (key != null && key.isValid()) {

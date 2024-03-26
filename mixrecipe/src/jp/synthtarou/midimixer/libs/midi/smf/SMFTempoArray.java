@@ -131,4 +131,16 @@ public class SMFTempoArray extends SortedArray<SMFTempo> {
 
         add(newTempo);
     }
+    
+    public long[] listMeasure(long lastMilliseconds) {
+        long lastTick = calcTicksByMicrosecond(lastMilliseconds);
+        double countD = (double)lastTick *4;
+        int count = (int)(countD);
+        long[] result = new long[count + 1];
+        long step = _parent._fileResolution;
+        for (int i = 0; i < count + 1; i ++) {
+            result[i] = calcMicrosecondByTick((i * step))/1000;
+        }
+        return result;
+    }
 }

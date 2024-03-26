@@ -122,8 +122,4 @@ public class MX00Process extends MXReceiver<MX00View> implements MXSettingTarget
     public void updatePianoDX(int dword) {
         _view.updatePianoDX(dword);
     }
-
-    public void createPianoControls(int lowNote, int octaveRange, boolean[] activeChannels, int[] listPrograms, List<Integer> drumProgs)  {
-        _view.createPianoControls(lowNote, octaveRange, activeChannels, listPrograms, drumProgs);
-    }
 }

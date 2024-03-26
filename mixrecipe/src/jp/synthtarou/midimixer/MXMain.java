@@ -23,11 +23,10 @@ import java.util.LinkedList;
 import java.util.logging.Level;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.ccxml.xml.CXXMLManager;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
@@ -45,7 +44,7 @@ import jp.synthtarou.midimixer.mx60output.MX60Process;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
-import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
+import jp.synthtarou.midimixer.libs.accessor.MainThreadTask;
 import jp.synthtarou.midimixer.libs.vst.VSTInstance;
 import jp.synthtarou.midimixer.mx36ccmapping.MX36Process;
 import jp.synthtarou.midimixer.mx12masterpiano.MX12Process;
@@ -251,9 +250,9 @@ public class MXMain  {
         reList.add(_mxXMLManager);
         reList.add(_mx90Debugger);
 
-        new VUITask() {
+        new MainThreadTask() {
             @Override
-            public Object run() {
+            public Object runTask() {
                 _mainWindow.initLatebind(reList);
 
                 if (_progress != null) {
@@ -295,10 +294,10 @@ public class MXMain  {
         _mx70CosoleProcess.createWindow();
     }
 
-    private MXWrapList<MXReceiver> _masterToList = new MXWrapList();
+    private MNamedValueList<MXReceiver> _masterToList = new MNamedValueList();
     
-    public MXWrapList<MXReceiver> getReceiverList() {
-        MXWrapList<MXReceiver> list = new MXWrapList();
+    public MNamedValueList<MXReceiver> getReceiverList() {
+        MNamedValueList<MXReceiver> list = new MNamedValueList();
         if (_masterToList.size() == 0) {
             _masterToList.addNameAndValue("Direct Output", FinalMIDIOut.getInstance());
         }
@@ -388,9 +387,9 @@ public class MXMain  {
     }
     
     public static void printAlert(String text) {
-        new VUITask(true) {
+        new MainThreadTask(true) {
             @Override
-            public Object run() {
+            public Object runTask() {
                 JOptionPane.showMessageDialog(MXMain.getMain()._mainWindow, text, MXAppConfig.MX_APPNAME, JOptionPane.OK_OPTION);
                 return NOTHING;
             }

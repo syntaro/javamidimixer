@@ -40,8 +40,8 @@ import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.swing.MXFileChooser;
@@ -56,7 +56,7 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
 
     MX32MixerProcess _mixer;
     MXFocusGroup _focusGroup;
-    MXWrapList<Integer> chainModel;
+    MNamedValueList<Integer> chainModel;
 
     public MX32MixerView(MX32MixerProcess process) {
         int port = process._port;
@@ -65,7 +65,7 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
         initComponents();
 
         // following must here (late bind not work)
-        chainModel = new MXWrapList<Integer>();
+        chainModel = new MNamedValueList<Integer>();
         chainModel.addNameAndValue(MXMidi.nameOfPortShort(-1), -1);
         for (int p2 = 0; p2 < MXAppConfig.TOTAL_PORT_COUNT; ++p2) {
             if (p2 == port) {
@@ -214,7 +214,7 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
     }// </editor-fold>//GEN-END:initComponents
 
     private void jComboBoxChainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxChainActionPerformed
-        Integer sel = (Integer) ((MXWrap) jComboBoxChain.getSelectedItem())._value;
+        Integer sel = (Integer) ((MNamedValue) jComboBoxChain.getSelectedItem())._value;
         int x = -1;
         if (sel != null) {
             x = sel;

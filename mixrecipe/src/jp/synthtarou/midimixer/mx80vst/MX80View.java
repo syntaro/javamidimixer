@@ -47,7 +47,7 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.common.async.Transaction;
 import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
@@ -80,9 +80,9 @@ public class MX80View extends javax.swing.JPanel {
         MXUtil.showAsDialog(null, panel, "VST Picker");
     }
 
-    MXWrapList<Integer> _streamModel;
-    MXWrapList<Integer> _sampleRateModel;
-    MXWrapList<Integer> _latencyModel;
+    MNamedValueList<Integer> _streamModel;
+    MNamedValueList<Integer> _sampleRateModel;
+    MNamedValueList<Integer> _latencyModel;
 
     /**
      * Creates new form MX80Panel
@@ -147,8 +147,8 @@ public class MX80View extends javax.swing.JPanel {
         });
     }
 
-    MXWrapList<Integer> createStreamModel() {
-        MXWrapList<Integer> model = new MXWrapList();
+    MNamedValueList<Integer> createStreamModel() {
+        MNamedValueList<Integer> model = new MNamedValueList();
         VSTStream stream = VSTStream.getInstance();
         for (int i = 0; i < stream.count(); ++i) {
             if (stream.getTypeName(i).equals(("ASIO"))) {
@@ -159,8 +159,8 @@ public class MX80View extends javax.swing.JPanel {
         return model;
     }
 
-    MXWrapList<Integer> createLatencyModel() {
-        MXWrapList<Integer> list = new MXWrapList();
+    MNamedValueList<Integer> createLatencyModel() {
+        MNamedValueList<Integer> list = new MNamedValueList();
         int[] entry = {32, 64, 128, 256, 512, 1024, 2048, 4096};
         for (int i = 0; i < entry.length; ++i) {
             int x = entry[i];
@@ -169,8 +169,8 @@ public class MX80View extends javax.swing.JPanel {
         return list;
     }
 
-    MXWrapList<Integer> createSampleRateModel() {
-        MXWrapList<Integer> list = new MXWrapList();
+    MNamedValueList<Integer> createSampleRateModel() {
+        MNamedValueList<Integer> list = new MNamedValueList();
         list.addNameAndValue("22.05khz", (Integer) 22050);
         list.addNameAndValue("44.1khz", (Integer) 44100);
         list.addNameAndValue("48khz", (Integer) 48000);

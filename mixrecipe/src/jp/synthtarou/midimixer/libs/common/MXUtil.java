@@ -275,7 +275,7 @@ public class MXUtil {
         int rr = (int) (right.getRed() * rightPercent / totalPercent);
         int rg = (int) (right.getGreen() * rightPercent / totalPercent);
         int rb = (int) (right.getBlue() * rightPercent / totalPercent);
-        return new Color(lr + rr, lg + rg, lb + rb);
+        return new Color(lr + rr, lg + rg, lb + rb, 255);
     }
     
     public static Color mixtureColor(Color left, int leftPercent, Color center, int centerPercent, Color right, int rightPercent) {
@@ -289,7 +289,7 @@ public class MXUtil {
         int rr = (int) (right.getRed() * rightPercent / totalPercent);
         int rg = (int) (right.getGreen() * rightPercent / totalPercent);
         int rb = (int) (right.getBlue() * rightPercent / totalPercent);
-        return new Color(lr + cr + rr, lg + cg + rg, lb + cb + rb);
+        return new Color(lr + cr + rr, lg + cg + rg, lb + cb + rb, 255);
     }
 
     public static boolean isShrinkTarget(char c) {
@@ -654,7 +654,7 @@ public class MXUtil {
             int red = (int)(result[0] * 0xff);
             int green  = (int)(result[1] * 0xff);
             int blue  = (int)(result[2] * 0xff);
-            return new Color(red, green, blue);
+            return new Color(red, green, blue, 255);
         }
         return null;
     }

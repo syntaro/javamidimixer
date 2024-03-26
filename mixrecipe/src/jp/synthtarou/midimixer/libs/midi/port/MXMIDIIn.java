@@ -25,7 +25,7 @@ import jp.synthtarou.midimixer.MXThread;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXQueue1;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -305,7 +305,7 @@ public class MXMIDIIn {
         @Override
         public void processMXMessage(MXMessage message) {
             MXTiming timing = new MXTiming();
-            MXWrapList<MXMIDIIn> list = MXMIDIInManager.getManager().listAllInput();
+            MNamedValueList<MXMIDIIn> list = MXMIDIInManager.getManager().listAllInput();
             for (int x = 0; x < list.size(); ++x) {
                 MXMIDIIn input = list.valueOfIndex(x);
                 for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++port) {

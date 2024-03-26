@@ -21,8 +21,8 @@ import javax.swing.JFrame;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueLsitFactory;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 
@@ -57,9 +57,9 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
         return dialog;
     }
 
-    MXWrapList<Integer> _portModel;
-    MXWrapList<Integer> _channelModel;
-    MXWrapList<MXReceiver> _receiverModel;
+    MNamedValueList<Integer> _portModel;
+    MNamedValueList<Integer> _channelModel;
+    MNamedValueList<MXReceiver> _receiverModel;
 
     final MX12Process _process;
     
@@ -78,10 +78,10 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
         _receiverModel = MXMain.getMain().getReceiverList();
         _receiverModel.writeComboBox(jComboBoxReciever, _process.getNextReceiver());
 
-        _portModel = MXWrapListFactory.listupPort(null);
+        _portModel = MNamedValueLsitFactory.listupPort(null);
         _portModel.writeComboBox(jComboBoxPort, _process.getMousePort());
         
-        _channelModel = MXWrapListFactory.listupChannel(null);
+        _channelModel = MNamedValueLsitFactory.listupChannel(null);
         _channelModel.writeComboBox(jComboBoxChannel, _process.getMouseChannel());
         
         jSpinnerMouseVelocity.setModel(new SafeSpinnerNumberModel(_process.getMouseVelocity(), 1, 127, 1));

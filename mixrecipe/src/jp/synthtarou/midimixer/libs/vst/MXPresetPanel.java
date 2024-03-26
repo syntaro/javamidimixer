@@ -22,7 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 
 /**
  *
@@ -80,12 +80,12 @@ public class MXPresetPanel extends javax.swing.JPanel {
     }
     
     IndexedFile _file;
-    MXWrapList<Integer> _listModel;
+    MNamedValueList<Integer> _listModel;
     MXPresetAction _action;
 
-    public MXWrapList<Integer> createListModel() {
+    public MNamedValueList<Integer> createListModel() {
         _file.readIndexFile();
-        MXWrapList<Integer> model = new MXWrapList<>();
+        MNamedValueList<Integer> model = new MNamedValueList<>();
         for (int i = 0; i < 128; ++ i) {
             String title = _file.getTitle(i);
             if (title == null) {

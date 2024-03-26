@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.libs.midi.port;
 import java.util.ArrayList;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
@@ -51,10 +51,10 @@ public class MXMIDIOutManager implements MXSettingTarget {
         if (_setting == null) {
             _setting = new MXSetting("MIDIOutput");
             _setting.setTarget(this);
-            MXWrapList<MXMIDIOut> listOut = listAllOutput();
+            MNamedValueList<MXMIDIOut> listOut = listAllOutput();
             _setting.readSettingFile();
 
-            MXWrapList<MXMIDIOut> list = listAllOutput();
+            MNamedValueList<MXMIDIOut> list = listAllOutput();
 
             boolean assigned = false;
             for (int i = 0; i < list.getSize(); ++i) {
@@ -87,17 +87,17 @@ public class MXMIDIOutManager implements MXSettingTarget {
     protected MXMIDIOutManager() {
     }
 
-    protected MXWrapList<MXMIDIOut> _listAllOutput;
-    protected MXWrapList<MXMIDIOut> _selectedOutput = null;
+    protected MNamedValueList<MXMIDIOut> _listAllOutput;
+    protected MNamedValueList<MXMIDIOut> _selectedOutput = null;
     //protected MXMIDIOut[] _cache;
 
-    public MXWrapList<MXMIDIOut> listAllOutput() {
+    public MNamedValueList<MXMIDIOut> listAllOutput() {
         synchronized (MXTiming.mutex) {
             if (_listAllOutput != null) {
                 return _listAllOutput;
             }
 
-            MXWrapList<MXMIDIOut> temp = new MXWrapList<MXMIDIOut>();
+            MNamedValueList<MXMIDIOut> temp = new MNamedValueList<MXMIDIOut>();
 
             MXDriver java = MXDriver_Java._instance;
             for (int i = 0; i < java.OutputDevicesRoomSize(); i++) {
@@ -142,23 +142,10 @@ public class MXMIDIOutManager implements MXSettingTarget {
     }
 
     public MXMIDIOut findMIDIOutput(String deviceName) {
-        MXWrapList<MXMIDIOut> model = listAllOutput();
+        MNamedValueList<MXMIDIOut> model = listAllOutput();
         return model.valueOfName(deviceName);
     }
 
-    /*
-    public List<MXMIDIOut> listMIDIOutput(int port) {
-        MXWrapList<MXMIDIOut> model = listAllOutput();
-        ArrayList<MXMIDIOut> ret = new ArrayList();
-        for (int x = 0; x < model.getSize(); ++ x) {
-            MXMIDIOut out = model.valueOfIndex(x);
-            if (out.isPortAssigned(port)) {
-                ret.add(out);
-            }
-        }
-        return ret;
-    }
-     */
     void onClose(MXMIDIOut output) {
         synchronized (MXTiming.mutex) {
             clearMIDIOutCache();
@@ -172,12 +159,12 @@ public class MXMIDIOutManager implements MXSettingTarget {
         }
     }
 
-    public MXWrapList<MXMIDIOut> listSelectedOutput() {
+    public MNamedValueList<MXMIDIOut> listSelectedOutput() {
         synchronized (MXTiming.mutex) {
             if (_selectedOutput != null) {
                 return _selectedOutput;
             }
-            _selectedOutput = new MXWrapList();
+            _selectedOutput = new MNamedValueList();
             for (MXMIDIOut midi : listAllOutput().valueList()) {
                 if (midi.getPortAssignCount() == 0) {
                     continue;
@@ -231,7 +218,7 @@ public class MXMIDIOutManager implements MXSettingTarget {
                 }
             }
 
-            MXWrapList<MXMIDIOut> detected = listAllOutput();
+            MNamedValueList<MXMIDIOut> detected = listAllOutput();
             MXMIDIOut out = detected.valueOfName(deviceName);
             if (out != null) {
                 if (deviceOpen.equals("1")) {
@@ -257,7 +244,7 @@ public class MXMIDIOutManager implements MXSettingTarget {
 
     @Override
     public void beforeWriteSettingFile() {
-        MXWrapList<MXMIDIOut> all = listAllOutput();
+        MNamedValueList<MXMIDIOut> all = listAllOutput();
         int x = 0;
         for (MXMIDIOut e : all.valueList()) {
             StringBuffer assigned = new StringBuffer();

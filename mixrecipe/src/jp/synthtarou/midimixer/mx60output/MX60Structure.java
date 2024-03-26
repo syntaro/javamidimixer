@@ -88,7 +88,7 @@ public class MX60Structure extends MX10Structure {
 
     public synchronized void startPlaying(int x) {
         _playingTrack = _listRecorder[x];
-        _playingTrack.startPlayer(0, new SMFCallback() {
+        _playingTrack.startPlayerThread(0, new SMFCallback() {
             MXNoteOffWatcher _noteOff = new MXNoteOffWatcher();
 
             @Override

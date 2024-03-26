@@ -21,9 +21,9 @@ import java.awt.Rectangle;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueLsitFactory;
 import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
 
 /**
@@ -39,8 +39,8 @@ public class NavigatorForNote extends javax.swing.JPanel implements  INavigator<
     }
 
     MXPianoKeys _piano;
-    MXWrapList<Integer> _watchPort = MXWrapListFactory.listupPort("Omni");
-    MXWrapList<Integer> _watchChannel = MXWrapListFactory.listupChannel(null);
+    MNamedValueList<Integer> _watchPort = MNamedValueLsitFactory.listupPort("Omni");
+    MNamedValueList<Integer> _watchChannel = MNamedValueLsitFactory.listupChannel(null);
     private boolean _closeOK = false;
     private int[] _retNote = null;
     

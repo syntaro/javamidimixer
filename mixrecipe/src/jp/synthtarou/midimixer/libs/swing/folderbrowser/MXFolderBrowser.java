@@ -42,7 +42,7 @@ import jp.synthtarou.midimixer.MXThread;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
-import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
+import jp.synthtarou.midimixer.libs.accessor.MainThreadTask;
 
 /**
  *
@@ -529,9 +529,9 @@ public class MXFolderBrowser extends javax.swing.JPanel implements INavigator<Fi
 
     public void ensureNodeToVisible(FileSystemCache.Element node) {
         if (node != null) {
-            new VUITask() {
+            new MainThreadTask() {
                 @Override
-                public Object run() {
+                public Object runTask() {
                     TreePath path = new TreePath(node._pairNode.getPath());
                     jTree1.expandPath(path);
                     jTree1.setSelectionPath(path);
@@ -588,9 +588,9 @@ public class MXFolderBrowser extends javax.swing.JPanel implements INavigator<Fi
     }
 
     public void progress(String text) {
-        new VUITask() {
+        new MainThreadTask() {
             @Override
-            public Object run() {
+            public Object runTask() {
                 jLabelScan.setText(text);
                 jLabelScan.paintImmediately(jLabelScan.getVisibleRect());
                 return NOTHING;

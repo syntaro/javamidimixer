@@ -23,9 +23,9 @@ import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
-import jp.synthtarou.midimixer.libs.swing.variableui.VUIAccessor;
-import jp.synthtarou.midimixer.libs.swing.variableui.VUIAccessorEvent;
-import jp.synthtarou.midimixer.libs.swing.variableui.VUIAccessorListener;
+import jp.synthtarou.midimixer.libs.accessor.MAccessor;
+import jp.synthtarou.midimixer.libs.accessor.MAccessorEvent;
+import jp.synthtarou.midimixer.libs.accessor.MAccessorListener;
 
 /**
  *
@@ -33,24 +33,24 @@ import jp.synthtarou.midimixer.libs.swing.variableui.VUIAccessorListener;
  */
 public class RGBTransVUI extends javax.swing.JPanel {
 
-    public class ViewModel implements VUIAccessorListener {
+    public class ViewModel implements MAccessorListener {
 
-        public final VUIAccessor _spinnerRed, _spinnerGreen, _spinnerBlue;
-        public final VUIAccessor _sliderRed, _sliderGreen, _sliderBlue;
-        public final VUIAccessor _textHex, _textDec;
+        public final MAccessor _spinnerRed, _spinnerGreen, _spinnerBlue;
+        public final MAccessor _sliderRed, _sliderGreen, _sliderBlue;
+        public final MAccessor _textHex, _textDec;
 
         boolean _construction = true;
         ViewModel() {
-            _spinnerRed = new VUIAccessor(jSpinnerRed, this);
-            _spinnerGreen = new VUIAccessor(jSpinnerGreen, this);
-            _spinnerBlue = new VUIAccessor(jSpinnerBlue, this);
+            _spinnerRed = new MAccessor(jSpinnerRed, this);
+            _spinnerGreen = new MAccessor(jSpinnerGreen, this);
+            _spinnerBlue = new MAccessor(jSpinnerBlue, this);
 
-            _sliderRed = new VUIAccessor(jSliderRed, this);
-            _sliderGreen = new VUIAccessor(jSliderGreen, this);
-            _sliderBlue = new VUIAccessor(jSliderBlue, this);
+            _sliderRed = new MAccessor(jSliderRed, this);
+            _sliderGreen = new MAccessor(jSliderGreen, this);
+            _sliderBlue = new MAccessor(jSliderBlue, this);
 
-            _textDec = new VUIAccessor(jTextField10);
-            _textHex = new VUIAccessor(jTextField16);
+            _textDec = new MAccessor(jTextField10);
+            _textHex = new MAccessor(jTextField16);
             
             _textDec.addChangeListener(this);
             _textHex.addChangeListener(this);
@@ -59,14 +59,14 @@ public class RGBTransVUI extends javax.swing.JPanel {
         }
 
         @Override
-        public void accessorUIValueChanged(VUIAccessorEvent evt) {
+        public void accessorValueChanged(MAccessorEvent evt) {
             if (_underFlushing) {
                 return;
             }
             if (_construction) {
                 return;
             }
-            VUIAccessor accessor = evt.getUIAccessor();
+            MAccessor accessor = evt.getAccessor();
             if (accessor == _spinnerRed
                     || accessor == _spinnerGreen
                     || accessor == _spinnerBlue) {

@@ -285,15 +285,19 @@ public class SMFParser {
                     seek._millisecond = (long) (seek._tick / tickPerMillisecond);
                     _listMessage.add(seek);
                 }
+                _listMeasure = null;
             } else {
                 _tempoArray = new SMFTempoArray(this);
+                long lastMillisecond = 0;
                 for (SMFMessage seek : list) {
                     seek._millisecond = _tempoArray.calcMicrosecondByTick(seek._tick) / 1000;
+                    lastMillisecond = seek._millisecond;
                     if (seek.getStatus() == 0xff && seek.getData1() == 0x51) {
                         _tempoArray.addMPQwithTick(seek.getMetaTempo(), seek._tick);
                     }
                     _listMessage.add(seek);
                 }
+                _listMeasure = _tempoArray.listMeasure(lastMillisecond);
             }
             parseAdditionalInfo();
             return !_listMessage.isEmpty();
@@ -550,5 +554,10 @@ public class SMFParser {
                 }
             }
         }
+    }
+
+    long [] _listMeasure;
+    public long[] listMeasure() {
+        return _listMeasure;
     }
 }

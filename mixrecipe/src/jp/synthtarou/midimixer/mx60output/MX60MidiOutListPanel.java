@@ -27,7 +27,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXAppConfig;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_NotFound;
@@ -119,7 +119,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     public TableModel createDeviceModel() {
-        MXWrapList<MXMIDIOut> allOutput = MXMIDIOutManager.getManager().listAllOutput();
+        MNamedValueList<MXMIDIOut> allOutput = MXMIDIOutManager.getManager().listAllOutput();
         MXMIDIOutManager manager = MXMIDIOutManager.getManager();
         DefaultTableModel tableModel = new DefaultTableModel() {
             public boolean isCellEditable(int row, int column) {
@@ -236,7 +236,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
         if (col == 2) {
             DefaultTableModel tableModel = (DefaultTableModel)jTableDevice.getModel();
             String name = (String)tableModel.getValueAt(row, 0);
-            MXWrapList<MXMIDIOut> allOutput = MXMIDIOutManager.getManager().listAllOutput();
+            MNamedValueList<MXMIDIOut> allOutput = MXMIDIOutManager.getManager().listAllOutput();
             for (MXMIDIOut output : allOutput.valueList()) {
                 if (output.getName().equals(name)) {
                     if (output.isOpen()) {

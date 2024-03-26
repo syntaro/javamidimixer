@@ -36,8 +36,8 @@ import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.plaf.metal.MetalTheme;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
 import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
@@ -252,8 +252,8 @@ public class ThemeManager implements MXSettingTarget {
     }
     
 
-    public MXWrapList<String> getLookAndFeelModel() {
-        MXWrapList<String> model = new MXWrapList();
+    public MNamedValueList<String> getLookAndFeelModel() {
+        MNamedValueList<String> model = new MNamedValueList();
         for (UIManager.LookAndFeelInfo info: UIManager.getInstalledLookAndFeels()) {
             model.addNameAndValue(info.getName(), info.getName());
         }
@@ -265,8 +265,8 @@ public class ThemeManager implements MXSettingTarget {
         return model;
     }
     
-    public MXWrapList<String> getFontNameModel() {
-        MXWrapList<String> model = new MXWrapList();
+    public MNamedValueList<String> getFontNameModel() {
+        MNamedValueList<String> model = new MNamedValueList();
         String[] names = {
             "Dialog",
             "Monospaced",
@@ -284,31 +284,29 @@ public class ThemeManager implements MXSettingTarget {
         return model;
     }
 
-    public MXWrapList<Integer> getFontStyleModel() {
-        MXWrapList<Integer> model = new MXWrapList();
+    public MNamedValueList<Integer> getFontStyleModel() {
+        MNamedValueList<Integer> model = new MNamedValueList();
         model.addNameAndValue("Plain", Font.PLAIN);
         model.addNameAndValue("Italic", Font.ITALIC);
         model.addNameAndValue("Bold", Font.BOLD);
         model.addNameAndValue("BoldItalic", Font.BOLD + Font.ITALIC);
 
-        for (int i = 0; i < model.size(); i++) {
-            MXWrap<Integer> wrap = model.get(i);
-            if (wrap._value == fontStyle) {
-                model.setSelectedItem(wrap);
+        for (MNamedValue<Integer> seek : model) {
+            if (seek._value == fontStyle) {
+                model.setSelectedItem(seek);
             }
         }
         return model;
     }
 
-    public MXWrapList<Integer> getFontSizeModel() {
-        MXWrapList<Integer> model = new MXWrapList();
+    public MNamedValueList<Integer> getFontSizeModel() {
+        MNamedValueList<Integer> model = new MNamedValueList();
         for (int x = 6; x < 16; x += 1) {
             model.addNameAndValue(String.valueOf(x), x);
         }
-        for (int i = 0; i < model.size(); i++) {
-            MXWrap<Integer> wrap = model.get(i);
-            if (wrap._value == fontSize) {
-                model.setSelectedItem(wrap);
+        for (MNamedValue<Integer> seek : model) {
+            if (seek._value == fontSize) {
+                model.setSelectedItem(seek);
             }
         }
         return model;

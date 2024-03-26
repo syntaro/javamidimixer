@@ -27,7 +27,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 
 /**
  *
@@ -44,8 +44,8 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     public final int _row;
     public final int _column;
 
-    public MXWrapList<Integer> _outValueTable; //TODO
-    public MXWrapList<Integer> _outGateTable;
+    public MNamedValueList<Integer> _outValueTable; //TODO
+    public MNamedValueList<Integer> _outGateTable;
 
     String _name = "";
     String _memo = "";

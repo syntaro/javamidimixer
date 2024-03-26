@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.mx30surface;
 import java.io.File;
 import java.io.IOException;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
@@ -60,7 +60,7 @@ public class MGStatusForDrum implements Cloneable {
     public static final int LINKMODE_MIN = 44;
     public static final int LINKMODE_MIDDLE = 45;
 
-    static MXWrapList<Integer> _typeMap = new MXWrapList();
+    static MNamedValueList<Integer> _typeMap = new MNamedValueList();
 
     int _outStyle = STYLE_SAME_CC;
     int _outValueTypeOn = VALUETYPE_AS_INPUT;
@@ -188,7 +188,7 @@ public class MGStatusForDrum implements Cloneable {
         long seek = _sequencerSeekStart ? _songFilePlayer.getFirstNoteMilliSecond() : 0;
         final int _port = port;
         final int _channel = channel;
-        _songFilePlayer.startPlayer(seek, new SMFCallback() {
+        _songFilePlayer.startPlayerThread(seek, new SMFCallback() {
             @Override
             public void smfPlayNote(MXTiming timing, SMFMessage e) {
                 e._port = _port;

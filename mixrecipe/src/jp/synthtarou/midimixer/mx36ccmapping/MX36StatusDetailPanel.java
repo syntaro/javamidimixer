@@ -36,8 +36,8 @@ import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueLsitFactory;
 import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
@@ -135,7 +135,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                         }
                     }
                 } else {
-                    MXWrapList<Integer> listForGate = _status.safeGateTable();
+                    MNamedValueList<Integer> listForGate = _status.safeGateTable();
                     MXPopup sub = new MXPopupForList<Integer>(null, listForGate) {
                         @Override
                         public void approvedIndex(int selectedIndex) {
@@ -253,9 +253,9 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                 String name = ccm._name;
                 String memo = ccm._memo;
                 MXRangedValue gate = ccm.getParsedGate();
-                MXWrapList<Integer> gateTable = ccm.getParsedGateTable();
+                MNamedValueList<Integer> gateTable = ccm.getParsedGateTable();
                 MXRangedValue value = ccm.getParsedValue();
-                MXWrapList<Integer> valueTable = ccm.getParsedValueTable();
+                MNamedValueList<Integer> valueTable = ccm.getParsedValueTable();
                 MXTemplate template = null;
                 try {
                     template = new MXTemplate(data);
@@ -303,10 +303,9 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         jButtonNewInFolder.setEnabled(true);
     }
 
-    MXWrapList<Integer> _listPort = MXWrapListFactory.listupPort("-");
-    MXWrapList<Integer> _listColumn = MXWrapListFactory.listupColumn("-");
-    MXWrapList<Integer> _listChannel = MXWrapListFactory.listupChannel(null);
-    //MXWrapList<Integer> _listRSCParam = MXWrapListFactory.listupRange(0, 127);
+    MNamedValueList<Integer> _listPort = MNamedValueLsitFactory.listupPort("-");
+    MNamedValueList<Integer> _listColumn = MNamedValueLsitFactory.listupColumn("-");
+    MNamedValueList<Integer> _listChannel = MNamedValueLsitFactory.listupChannel(null);
 
     public void updateViewByStatus(MX36Status status) {
         setEnabledRecurs(true);
@@ -1081,7 +1080,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jTextFieldValueValueMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextFieldValueValueMousePressed
-        MXWrapList<Integer> list = _status.safeValueTable();
+        MNamedValueList<Integer> list = _status.safeValueTable();
         new MXPopupForList<Integer>(jTextFieldValueValue, list) {
             @Override
             public void approvedIndex(int selectedIndex) {
@@ -1146,7 +1145,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
     }
     
     private void jButtonMoveFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveFolderActionPerformed
-        MXWrapList<MX36Folder> listFolder = new MXWrapList<>();
+        MNamedValueList<MX36Folder> listFolder = new MNamedValueList<>();
         for (MX36Folder folder : _process._folders._listFolder) {
             listFolder.addNameAndValue(folder._folderName, folder);
         }
@@ -1171,7 +1170,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonMoveFolderActionPerformed
 
     private void jButtonNewInFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNewInFolderActionPerformed
-        MXWrapList<MX36Folder> listFolder = new MXWrapList<>();
+        MNamedValueList<MX36Folder> listFolder = new MNamedValueList<>();
         for (MX36Folder folder : _process._folders._listFolder) {
             listFolder.addNameAndValue(folder._folderName, folder);
         }

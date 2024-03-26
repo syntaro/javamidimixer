@@ -46,7 +46,7 @@ import jp.synthtarou.midimixer.ccxml.InformationForCCM;
 import jp.synthtarou.midimixer.ccxml.InformationForModule;
 import jp.synthtarou.midimixer.ccxml.rules.CCValueRule;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
 import jp.synthtarou.midimixer.libs.common.MXLineReader;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -337,7 +337,7 @@ public class CXFile {
         if (missingAttr.size() > 0) {
             warning.append(target._nodeName + " hasn's attributes " + missingAttr + "");
         }
-        for (MXWrap<String> keyValue : target._listAttributes) {
+        for (MNamedValue<String> keyValue : target._listAttributes) {
             if (targetRule.getAttribute(keyValue._name) == null) {
                 undocumentedAttr.add(keyValue._name + "=" + keyValue._value);
             }
@@ -398,7 +398,7 @@ public class CXFile {
         if (ccnode._textContext != null && ccnode._textContext.length() > 0) {
             newnode.setTextContent(MXUtil.shrinkText(ccnode._textContext));
         }
-        for (MXWrap<String> attr : ccnode._listAttributes) {
+        for (MNamedValue<String> attr : ccnode._listAttributes) {
             String name = attr._name;
             String value = attr._value;
             newnode.setAttribute(name, value);

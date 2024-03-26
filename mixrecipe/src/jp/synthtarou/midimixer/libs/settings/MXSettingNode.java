@@ -179,25 +179,6 @@ public class MXSettingNode {
         return null;
     }
 
-    /*
-    public Integer getSettingAsWrappedInteger(String name, MXWrapList<Integer> table) {
-        MXSettingNode node = findNode(name);
-        if (node != null) {
-            String text = node._value;
-            try {
-                Integer x = table.valueOfName(text);
-                if (x == null) {
-                    return null;
-                }
-                return x;
-            }catch(NumberFormatException e) {
-                return null;
-            }
-        }
-        return null;
-    }
-    */
-    
     public boolean getSettingAsBoolean(String name, boolean defval) {
         if (defval) {
             return MXSettingNode.this.getSettingAsInt(name, 1) != 0;

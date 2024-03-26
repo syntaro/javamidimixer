@@ -44,6 +44,7 @@ public class SMFSequencer {
     }
     
     private long _startMilliSeconds;
+    private long _currentMilliSeconds;
     private File _lastFile;
     boolean _paraPlay = false;
     public SMFParser _parser;
@@ -81,7 +82,7 @@ public class SMFSequencer {
     boolean _stopPlayer;
     Thread _playerThread;
 
-    public void startPlayer(long position, SMFCallback callback) {
+    public void startPlayerThread(long position, SMFCallback callback) {
         if (isRunning()) {
             stopPlayer();
         }
@@ -93,20 +94,14 @@ public class SMFSequencer {
                 _callback.smfStarted();
                 try {
                     playWithMilliSeconds(position);
-                    _isRunning = false;
                 } catch (RuntimeException ex) {
-                    _isRunning = false;
                     MXLogger2.getLogger(SMFSequencer.class).log(Level.WARNING, ex.getMessage(), ex);
                 } finally {
-                    synchronized (this) {
-                        notifyAll();
-                    }
+                    _isRunning = false;
                 }
                 _callback.smfStoped(_stopPlayer ? false : true);
                 try {
-                    synchronized (this) {
-                        wait(500);
-                    }
+                    Thread.sleep(500);
                 } catch (InterruptedException e) {
                     _stopPlayer = true;
                 }
@@ -119,9 +114,6 @@ public class SMFSequencer {
 
     public void stopPlayer() {
         _stopPlayer = true;
-        synchronized (this) {
-            notifyAll();
-        }
         if (_isRunning) {
             if (_playerThread != null) {
                 try {
@@ -221,7 +213,7 @@ public class SMFSequencer {
                         _divDraw = 1;
                     }
                 }
-                _pianoRoll.setTiming(elapsed);
+                _pianoRoll.setSoundTiming(elapsed);
                 _nextDraw += _divDraw;
             }
         }
@@ -278,6 +270,7 @@ public class SMFSequencer {
             long elapsed = (System.currentTimeMillis() - launched);
             long nextNote = list.get(pos)._millisecond;
             paintPiano(elapsed);
+            _currentMilliSeconds = elapsed;
             while (nextNote - elapsed >= 5) {
                 try {
                     long waiting = nextNote - elapsed - 5;
@@ -388,12 +381,16 @@ public class SMFSequencer {
         }
     }
 
-    public synchronized boolean isRunning() {
+    public boolean isRunning() {
         return _isRunning;
     }
 
     public long getStartMilliSecond() {
         return _startMilliSeconds;
+    }
+
+    public long getCurrentMilliSeconds() {
+        return _currentMilliSeconds;
     }
 
     public long getMaxMilliSecond() {

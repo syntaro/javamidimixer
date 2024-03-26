@@ -27,8 +27,8 @@ import jp.synthtarou.midimixer.ccxml.xml.CXTreeModel;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.navigator.legacy.NavigatorForText;
 import jp.synthtarou.midimixer.libs.navigator.legacy.NavigatorForNodeAttribute;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
 
 /**
@@ -61,7 +61,7 @@ public class EditorForXMLTag extends javax.swing.JPanel {
     public void setTargetFile(CXFile file) {
         //jTextFieldTagPath.setText(node.getAsPathString(null));
         _file = file;
-        MXWrapList<InformationForModule> model = new MXWrapList();
+        MNamedValueList<InformationForModule> model = new MNamedValueList();
 
         new MXAttachComboRendererShrinkable(jComboBox1);
         for (InformationForModule module : file.listModules()) {
@@ -83,7 +83,7 @@ public class EditorForXMLTag extends javax.swing.JPanel {
         };
         model.addColumn("Name");
         model.addColumn("Value");
-        for (MXWrap<String> attr : _selection._listAttributes) {
+        for (MNamedValue<String> attr : _selection._listAttributes) {
             model.addRow(new Object[]{attr._name, attr._value});
         }
         jTable1.setModel(model);
@@ -422,7 +422,7 @@ public class EditorForXMLTag extends javax.swing.JPanel {
         NavigatorForNodeAttribute prompt = new NavigatorForNodeAttribute(_selection, null);
         MXUtil.showAsDialog(this, prompt, "Attribute");
         if (prompt.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-            MXWrap<String> result = prompt.getReturnValue();
+            MNamedValue<String> result = prompt.getReturnValue();
             if (result == null) {
                 return;
             }
@@ -478,14 +478,14 @@ public class EditorForXMLTag extends javax.swing.JPanel {
         NavigatorForNodeAttribute prompt = new NavigatorForNodeAttribute(_selection, name);
         MXUtil.showAsDialog(this, prompt, "Attritutes");
         if (prompt.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-            MXWrap<String> result = prompt.getReturnValue();
+            MNamedValue<String> result = prompt.getReturnValue();
             if (result != null) {
                 if (result._name == null || result._name.length() == 0) {
                     return;
                 }
                 if (name.equals(result._name)) {
                     int prevIndex = _selection._listAttributes.indexOfName(name);
-                    _selection._listAttributes.set(prevIndex, new MXWrap<>(name, result._value));
+                    _selection._listAttributes.set(prevIndex, new MNamedValue<>(name, result._value));
                 } else {
                     int prevIndex = _selection._listAttributes.indexOfName(name);
                     _selection._listAttributes.remove(prevIndex);
@@ -529,14 +529,14 @@ public class EditorForXMLTag extends javax.swing.JPanel {
         MXUtil.getOwnerWindow(this).setVisible(false);
     }//GEN-LAST:event_jButtonCloseActionPerformed
 
-    MXWrapList<CXNode> _warningListModel;
+    MNamedValueList<CXNode> _warningListModel;
 
     /**
      *
      * @return
      */
-    public MXWrapList<CXNode> createWarningListModel() {
-        MXWrapList<CXNode> ret = new MXWrapList<>();
+    public MNamedValueList<CXNode> createWarningListModel() {
+        MNamedValueList<CXNode> ret = new MNamedValueList<>();
         for (CXNode warn : _file.listWarning()) {
             int line = warn.getLineNumber();
             int col = warn.getColumnNumber();

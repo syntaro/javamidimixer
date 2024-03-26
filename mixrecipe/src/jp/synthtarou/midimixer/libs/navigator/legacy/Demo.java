@@ -19,9 +19,9 @@ package jp.synthtarou.midimixer.libs.navigator.legacy;
 import jp.synthtarou.midimixer.ccxml.xml.CXGeneralMidiFile;
 import jp.synthtarou.midimixer.ccxml.xml.CXNode;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueLsitFactory;
 
 /**
  *
@@ -151,7 +151,7 @@ public class Demo extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonListActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonListActionPerformed
-        MXWrapList<Integer> list = MXWrapListFactory.listupDrumnote(true);
+        MNamedValueList<Integer> list = MNamedValueLsitFactory.listupDrumnote(true);
         int x = 0;
         try {
             int y = Integer.valueOf(jTextArea1.getText());
@@ -193,7 +193,7 @@ public class Demo extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonAttribActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        MXWrapList<Integer> list = MXWrapListFactory.listupDrumnote(true);
+        MNamedValueList<Integer> list = MNamedValueLsitFactory.listupDrumnote(true);
         int x;
         try {
             int y = Integer.valueOf(jTextArea1.getText());

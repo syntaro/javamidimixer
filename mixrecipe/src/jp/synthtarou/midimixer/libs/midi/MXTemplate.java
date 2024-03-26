@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.libs.midi;
 import java.util.ArrayList;
 import java.util.IllegalFormatException;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
 
 /**
@@ -41,8 +41,8 @@ public class MXTemplate implements Comparable<MXTemplate> {
     private int _indexOfValueHi;
     private ArrayList<CheckSumInfo> _listChecksum;
 
-    static MXWrapList<Integer> textCommand = new MXWrapList();
-    static MXWrapList<Integer> textAlias = new MXWrapList();
+    static MNamedValueList<Integer> textCommand = new MNamedValueList();
+    static MNamedValueList<Integer> textAlias = new MNamedValueList();
 
     public MXTemplate(int[] template) {
         if (template == null || template.length == 0 || template[0] == 0) {

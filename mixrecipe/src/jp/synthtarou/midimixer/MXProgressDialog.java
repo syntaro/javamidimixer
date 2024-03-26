@@ -22,7 +22,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.swing.variableui.VUITask;
+import jp.synthtarou.midimixer.libs.accessor.MainThreadTask;
 import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
 
 /**
@@ -117,9 +117,9 @@ public class MXProgressDialog extends javax.swing.JDialog {
     }
     
     public void writeLine(String line) {
-        new VUITask() {
+        new MainThreadTask() {
             @Override
-            public Object run() {                
+            public Object runTask() {                
                 jTextArea1.setText(jTextArea1.getText() + line + "\n");
                 return null;
             }
@@ -177,9 +177,9 @@ public class MXProgressDialog extends javax.swing.JDialog {
                         last = 40;
                         _piano.noteOn(40);
                     }
-                    new VUITask() {
+                    new MainThreadTask() {
                         @Override
-                        public Object run() {
+                        public Object runTask() {
                             _piano.invalidate();
                             _piano.repaint();
                             return null;

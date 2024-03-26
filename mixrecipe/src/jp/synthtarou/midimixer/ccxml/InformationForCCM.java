@@ -20,13 +20,12 @@ import jp.synthtarou.midimixer.ccxml.xml.CXNode;
 import jp.synthtarou.midimixer.ccxml.xml.CXFile;
 import java.util.IllegalFormatException;
 import java.util.logging.Level;
-import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.common.MXRangedValue;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueLsitFactory;
 
 /**
  *
@@ -46,8 +45,8 @@ public class InformationForCCM {
     public final MXRangedValue _gate;
     public final int _offsetGate;
 
-    public final MXWrapList<Integer> _valueTable;
-    public final MXWrapList<Integer> _gateTable;
+    public final MNamedValueList<Integer> _valueTable;
+    public final MNamedValueList<Integer> _gateTable;
     public final boolean _gateTypeKey;
 
     public final int _id;
@@ -118,8 +117,8 @@ public class InformationForCCM {
             hasGateHi = (template.indexOfGateHi() >= 0) ? true : false;
         }
 
-        MXWrapList<Integer> valueTable = null;
-        MXWrapList<Integer> gateTable = null;
+        MNamedValueList<Integer> valueTable = null;
+        MNamedValueList<Integer> gateTable = null;
 
         CXNode value = _node.firstChild("Value");
         int minValue, maxValue, defaultValue, offsetValue;
@@ -170,7 +169,7 @@ public class InformationForCCM {
         }
         if (gateType != null && gateType.equalsIgnoreCase("Key")) {
             if (gateTable == null) {
-                gateTable = MXWrapListFactory.listupNoteNo(false);
+                gateTable = MNamedValueLsitFactory.listupNoteNo(false);
             }
             _gateTypeKey = true;
         } else {
@@ -181,13 +180,13 @@ public class InformationForCCM {
         _gateTable = gateTable;
     }    
     
-    public MXWrapList<Integer> canonicalTable(MXWrapList<Integer> original, int offset) {
+    public MNamedValueList<Integer> canonicalTable(MNamedValueList<Integer> original, int offset) {
         if (offset == 0) {
             return original;
         }
-        MXWrapList<Integer> result = new MXWrapList<>();
-        for (MXWrap<Integer> wrap : original) {
-            result.addNameAndValue(wrap._name, wrap._value + offset);
+        MNamedValueList<Integer> result = new MNamedValueList<>();
+        for (MNamedValue<Integer> seek : original) {
+            result.addNameAndValue(seek._name, seek._value + offset);
         }
         return result;
     }
@@ -236,17 +235,17 @@ public class InformationForCCM {
         return new MXRangedValue(value, min, max);
     }
 
-    public MXWrapList<Integer> getParsedGateTable() {
+    public MNamedValueList<Integer> getParsedGateTable() {
         if (_offsetGate == 0) {
             return _gateTable;
         }
         if (_gateTable == null) {
             return null;
         }
-        MXWrapList<Integer> result = new MXWrapList<>();
-        for (MXWrap<Integer> wrap : _gateTable) {
-            int value = wrap._value + _offsetGate;
-            result.addNameAndValue(wrap._name, value);
+        MNamedValueList<Integer> result = new MNamedValueList<>();
+        for (MNamedValue<Integer> seek : _gateTable) {
+            int value = seek._value + _offsetGate;
+            result.addNameAndValue(seek._name, value);
         }
         return result;
     }
@@ -261,17 +260,17 @@ public class InformationForCCM {
         return new MXRangedValue(value, min, max);
     }
 
-    public MXWrapList<Integer> getParsedValueTable() {
+    public MNamedValueList<Integer> getParsedValueTable() {
         if (_offsetValue == 0) {
             return _valueTable;
         }
         if (_valueTable == null) {
             return null;
         }
-        MXWrapList<Integer> result = new MXWrapList<>();
-        for (MXWrap<Integer> wrap : _valueTable) {
-            int value = wrap._value + _offsetValue;
-            result.addNameAndValue(wrap._name, value);
+        MNamedValueList<Integer> result = new MNamedValueList<>();
+        for (MNamedValue<Integer> seek : _valueTable) {
+            int value = seek._value + _offsetValue;
+            result.addNameAndValue(seek._name, value);
         }
         return result;
     }

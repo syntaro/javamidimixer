@@ -30,15 +30,15 @@ import javax.swing.event.DocumentListener;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.ccxml.rules.CCValueRule;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrap;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapList;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.wraplist.MXWrapListFactory;
+import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueLsitFactory;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
@@ -68,8 +68,8 @@ public class PickerForinstrument extends javax.swing.JPanel {
     public PickerForinstrument(CXFile file) {
         initComponents();
 
-        jComboBoxTestPort.setModel(MXWrapListFactory.listupPort(null));
-        jComboBoxTestChannel.setModel(MXWrapListFactory.listupChannel(null));
+        jComboBoxTestPort.setModel(MNamedValueLsitFactory.listupPort(null));
+        jComboBoxTestChannel.setModel(MNamedValueLsitFactory.listupChannel(null));
         _listXMLFile = CXXMLManager.getInstance().listLoaded();
 
         if (file == null) {
@@ -138,15 +138,15 @@ public class PickerForinstrument extends javax.swing.JPanel {
     int _testChannel;
 
     ArrayList<CXFile> _listXMLFile;
-    MXWrapList<CXFile> _modelListXML;
-    MXWrapList<CXNode> _modelListModule;
-    MXWrapList<CXNode> _modelListMap;
-    MXWrapList<CXNode> _modelListProgram;
-    MXWrapList<CXNode> _modelListBank;
+    MNamedValueList<CXFile> _modelListXML;
+    MNamedValueList<CXNode> _modelListModule;
+    MNamedValueList<CXNode> _modelListMap;
+    MNamedValueList<CXNode> _modelListProgram;
+    MNamedValueList<CXNode> _modelListBank;
 
     MXPianoKeys _piano;
 
-    MXWrapList<MXReceiver> _listReceiver;
+    MNamedValueList<MXReceiver> _listReceiver;
 
     CXFile _resultXMLFile = null;
     CXNode _resultModule = null;
@@ -635,10 +635,10 @@ public class PickerForinstrument extends javax.swing.JPanel {
     public void updateXMLFileView() {
         MXMain.printDebug("scanXMLFile = " + _scanXMLFile);
         /* XML一覧を更新し、_scanXMLFileを選択する */
-        _modelListXML = new MXWrapList();
+        _modelListXML = new MNamedValueList();
         if (_resultXMLFile != _scanXMLFile || _modelListXML == null) {
             _resultXMLFile = _scanXMLFile;
-            _modelListXML = new MXWrapList<>();
+            _modelListXML = new MNamedValueList<>();
             _modelListModule = null;
 
             int selection = -1;
@@ -670,7 +670,7 @@ public class PickerForinstrument extends javax.swing.JPanel {
             _resultModule = _scanModule;
             _modelListMap = null;
 
-            _modelListModule = new MXWrapList<>();
+            _modelListModule = new MNamedValueList<>();
             int selection = -1;
 
             if (_resultXMLFile != null && _resultXMLFile._document != null) {
@@ -711,7 +711,7 @@ public class PickerForinstrument extends javax.swing.JPanel {
             _resultMap = _scanMap;
             _modelListProgram = null;
 
-            _modelListMap = new MXWrapList<>();
+            _modelListMap = new MNamedValueList<>();
             int selection = -1;
 
             // 一覧を更新する
@@ -751,7 +751,7 @@ public class PickerForinstrument extends javax.swing.JPanel {
         }
         if (resultPC != _scanProgram || _scanText.equals(_resultText) == false || _modelListProgram == null) {
             _modelListBank = null;
-            _modelListProgram = new MXWrapList<>();
+            _modelListProgram = new MNamedValueList<>();
 
             if (_resultMap != null) {
                 //一覧を更新する
@@ -795,7 +795,7 @@ public class PickerForinstrument extends javax.swing.JPanel {
         }
         if (_scanBankMSB != resultMSB || _scanBankLSB != resultLSB || _scanText.equals(_resultText) == false || _modelListBank == null) {
 
-            _modelListBank = new MXWrapList<>();
+            _modelListBank = new MNamedValueList<>();
 
             int selection = -1;
 
@@ -837,9 +837,9 @@ public class PickerForinstrument extends javax.swing.JPanel {
     }
 
     public void sendProgramChange() {
-        MXWrap<MXReceiver> receiverObj = (MXWrap) jComboBoxTestReceiver.getSelectedItem();
-        MXWrap<Integer> portObj = (MXWrap) jComboBoxTestPort.getSelectedItem();
-        MXWrap<Integer> channelObj = (MXWrap) jComboBoxTestChannel.getSelectedItem();
+        MNamedValue<MXReceiver> receiverObj = (MNamedValue) jComboBoxTestReceiver.getSelectedItem();
+        MNamedValue<Integer> portObj = (MNamedValue) jComboBoxTestPort.getSelectedItem();
+        MNamedValue<Integer> channelObj = (MNamedValue) jComboBoxTestChannel.getSelectedItem();
 
         if (_listReceiver == null) {
             return;
@@ -889,9 +889,9 @@ public class PickerForinstrument extends javax.swing.JPanel {
     }
 
     public void sendMessageToReceiver(int command, int data1, int data2) {
-        MXWrap<MXReceiver> receiverObj = (MXWrap) jComboBoxTestReceiver.getSelectedItem();
-        MXWrap<Integer> portObj = (MXWrap) jComboBoxTestPort.getSelectedItem();
-        MXWrap<Integer> channelObj = (MXWrap) jComboBoxTestChannel.getSelectedItem();
+        MNamedValue<MXReceiver> receiverObj = (MNamedValue) jComboBoxTestReceiver.getSelectedItem();
+        MNamedValue<Integer> portObj = (MNamedValue) jComboBoxTestPort.getSelectedItem();
+        MNamedValue<Integer> channelObj = (MNamedValue) jComboBoxTestChannel.getSelectedItem();
 
         MXReceiver receiver = _listReceiver.readComboBox(jComboBoxTestReceiver);
         int port = portObj._value;
