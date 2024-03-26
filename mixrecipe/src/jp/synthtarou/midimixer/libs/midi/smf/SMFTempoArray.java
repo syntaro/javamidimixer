@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi.smf;
 
+import java.util.ArrayList;
 import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
 
 /**
@@ -132,15 +133,16 @@ public class SMFTempoArray extends SortedArray<SMFTempo> {
         add(newTempo);
     }
     
-    public long[] listMeasure(long lastMilliseconds) {
-        long lastTick = calcTicksByMicrosecond(lastMilliseconds);
-        double countD = (double)lastTick *4;
-        int count = (int)(countD);
-        long[] result = new long[count + 1];
-        long step = _parent._fileResolution;
-        for (int i = 0; i < count + 1; i ++) {
-            result[i] = calcMicrosecondByTick((i * step))/1000;
+    public long[] listMeasure() {
+        long lastTick = _parent._listMessage.getLast()._tick / _parent._fileResolution + 2;
+        ArrayList<Long> result = new ArrayList<>();
+        for (int i = 0; i <= lastTick; i ++) {
+            result.add(calcMicrosecondByTick(i * _parent._fileResolution)/1000);
         }
-        return result;
+        long[] ret = new long[result.size()];
+        for (int i = 0; i < ret.length; ++i ){
+            ret[i] = result.get(i);
+        }
+        return ret;
     }
 }

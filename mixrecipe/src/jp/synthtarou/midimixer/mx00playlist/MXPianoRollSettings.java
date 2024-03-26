@@ -16,8 +16,9 @@
  */
 package jp.synthtarou.midimixer.mx00playlist;
 
+import java.awt.Color;
 import java.awt.Dimension;
-import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.common.MXUtil;
 import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
 import jp.synthtarou.midimixer.libs.navigator.MXPopupForList;
@@ -27,24 +28,24 @@ import jp.synthtarou.midimixer.libs.navigator.MXPopupForList;
  * @author yaman
  */
 public class MXPianoRollSettings extends javax.swing.JPanel {
-    MXPianoRoll _roll;
     MNamedValueList<Integer> listColor = new MNamedValueList();
     MNamedValueList<Integer> listMagin = new MNamedValueList();
     MNamedValueList<Integer> listSpan = new MNamedValueList();
     MNamedValueList<Integer> listTiming = new MNamedValueList();
-
+    MX00Process _process;
 
     /**
      * Creates new form PianoRollSettings
      */
-    public MXPianoRollSettings(MXPianoRoll roll) {
+    public MXPianoRollSettings(MX00Process process) {
         initComponents();
-        _roll = roll;
         MXUtil.centerWindow(this);
+        _process = process;
 
         jTextFieldColor.setEditable(false);
         jTextFieldMargin.setEditable(false);
         jTextFieldSpan.setEditable(false);
+        jTextFieldShowTiming.setEditable(false);
 
         listColor.addNameAndValue("Color", -1);
         for (int ch = 0; ch < 16; ++ ch) {
@@ -59,45 +60,62 @@ public class MXPianoRollSettings extends javax.swing.JPanel {
         listTiming.addNameAndValue("Off", 0);
         listTiming.addNameAndValue("On", 1);
         
-        jTextFieldColor.setText(listColor.nameOfValue(_roll.getFocuChannel()));
         MXPopupForList<Integer> popupForColor = new MXPopupForList<Integer>(jTextFieldColor, listColor) {
             @Override
             public void approvedIndex(int selectedIndex) {
                 int value = listColor.valueOfIndex(selectedIndex);
-                _roll.setFocusChannel(value);
-                jTextFieldColor.setText(listColor.nameOfValue(_roll.getFocuChannel()));
+                _process._structure._focusChannel = value;
+                jTextFieldColor.setText(listColor.nameOfValue(_process._structure._focusChannel));
+                _process._view._pianoRollRoll.setFocusChannel(value);
             }
         };
-        jTextFieldMargin.setText(listMagin.nameOfValue((int)_roll.getSoundMargin()));
         MXPopupForList<Integer> popupForMargin = new MXPopupForList<Integer>(jTextFieldMargin, listMagin) {
             @Override
             public void approvedIndex(int selectedIndex) {
                 int value = listMagin.valueOfIndex(selectedIndex);
-                _roll.setSoundMargin(value);
-                jTextFieldMargin.setText(listMagin.nameOfValue((int)_roll.getSoundMargin()));
+                _process._structure._soundMargin = value;
+                jTextFieldMargin.setText(listMagin.nameOfValue((int)_process._structure._soundMargin));
+                _process._view._pianoRollRoll.setSoundMargin(value);
             }
         };
-        jTextFieldSpan.setText(listSpan.nameOfValue((int)_roll.getSoundSpan()));
         MXPopupForList<Integer> popupForSpan = new MXPopupForList<Integer>(jTextFieldSpan, listSpan) {
             @Override
             public void approvedIndex(int selectedIndex) {
                 int value = listSpan.valueOfIndex(selectedIndex);
-                _roll.setSoundSpan(value);
-                jTextFieldSpan.setText(listSpan.nameOfValue((int)_roll.getSoundSpan()));
+                _process._structure._soundSpan = value;
+                jTextFieldSpan.setText(listSpan.nameOfValue((int)_process._structure._soundSpan));
+                _process._view._pianoRollRoll.setSoundSpan(value);
             }
         };
 
-        jTextFieldShowTiming.setText(listTiming.nameOfValue(_roll._showTempo ? Integer.valueOf(1) : Integer.valueOf(0)));
         MXPopupForList<Integer> popupForTiming = new MXPopupForList<Integer>(jTextFieldShowTiming, listTiming) {
             @Override
             public void approvedIndex(int selectedIndex) {
                 int value = listTiming.valueOfIndex(selectedIndex);
-                _roll._showTempo = value > 0;
-                jTextFieldShowTiming.setText(listTiming.nameOfValue(_roll._showTempo ? Integer.valueOf(1) : Integer.valueOf(0)));
+                _process._structure._showMeasure = value > 0;
+                jTextFieldShowTiming.setText(listTiming.nameOfValue(Integer.valueOf(_process._structure._showMeasure ? 1 : 0)));
+                _process._view._pianoRollRoll.setShowMeasure(value > 0);
             }
         };
         this.setSize(new Dimension(350, 150));
+        showStructureFirst();
     }
+
+    public void showStructureFirst() {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                jTextFieldColor.setText(listColor.nameOfValue(_process._structure._focusChannel));
+                jTextFieldMargin.setText(listMagin.nameOfValue((int)_process._structure._soundMargin));
+                jTextFieldSpan.setText(listSpan.nameOfValue((int)_process._structure._soundSpan));
+                jTextFieldShowTiming.setText(listTiming.nameOfValue(Integer.valueOf(_process._structure._showMeasure ? 1 : 0)));
+                _process._view._pianoRollRoll._showMeasure = _process._structure._showMeasure;
+                _process._view._pianoRollRoll._soundMargin = _process._structure._soundMargin;
+                _process._view._pianoRollRoll.setSoundSpan(_process._structure._soundSpan);
+            }
+        });
+    }
+
 
     /**
      * This method is called from within the constructor to initialize the form.

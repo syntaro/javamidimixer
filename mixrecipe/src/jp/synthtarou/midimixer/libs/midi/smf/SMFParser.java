@@ -297,7 +297,7 @@ public class SMFParser {
                     }
                     _listMessage.add(seek);
                 }
-                _listMeasure = _tempoArray.listMeasure(lastMillisecond);
+                _listMeasure = _tempoArray.listMeasure();
             }
             parseAdditionalInfo();
             return !_listMessage.isEmpty();

@@ -48,10 +48,15 @@ public class MXPianoRoll extends JComponent {
     boolean _doingPaint = true;
 
     public void setDoingPaint(boolean flag) {
-        _doingPaint = flag;
-        if (_doingPaint != flag && flag) {
-            clearCache(_songPos);
-        }
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                _doingPaint = flag;
+                if (_doingPaint != flag && flag) {
+                    clearCache(_soundTiming);
+                }
+            }
+        });
     }
 
     public static class NoteRect {
@@ -80,6 +85,8 @@ public class MXPianoRoll extends JComponent {
     SMFSequencer _sequencer;
     MXPianoKeys _keys;
 
+    boolean _showMeasure = true;
+
     public MXPianoRoll(SMFSequencer sequencer, MXPianoKeys keys) {
         _sequencer = sequencer;
         _sequencer._pianoRoll = this;
@@ -89,7 +96,7 @@ public class MXPianoRoll extends JComponent {
             public void componentResized(ComponentEvent e) {
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
-                        clearCache(_songPos);
+                        clearCache(_soundTiming);
                     }
                 });
             }
@@ -98,19 +105,12 @@ public class MXPianoRoll extends JComponent {
             public void componentShown(ComponentEvent e) {
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
-                        clearCache(_songPos);
+                        clearCache(_soundTiming);
                     }
                 });
             }
         });
     }
-
-    BufferedImage _buff2 = null;
-    Graphics _buff2Graph = null;
-    int _measureIndex;
-    long _measureNextTiming;
-    int _measureOnLine = 0;
-    boolean _showTempo = true;
 
     @Override
     public void paintComponent(Graphics g) {
@@ -122,105 +122,39 @@ public class MXPianoRoll extends JComponent {
         }
         int widthAll = getWidth();
         int heightAll = getHeight();
-        double startTime = _lastSongPos - _soundMargin;
-        
+
         if (widthAll <= 0 || heightAll <= 0) {
             return;
         }
 
         if (_bufferForRoll != null) {
             if (widthAll != _bufferForRoll.getWidth() || heightAll != _bufferForRoll.getHeight()) {
-                paintOnBuffer1();
+                if (_bufferForRollGraphics != null) {
+                    _bufferForRollGraphics.dispose();
+                    _bufferForRollGraphics = null;
+                }
+                _bufferForRoll = null;
             }
         }
         if (_bufferForRoll == null) {
-            return;
+            paintOnBuffer1();
+            if (_bufferForRoll == null) {
+                return;
+            }
         }
 
-        if (_showTempo == false) {
-            if (_lastRollingY == 0) {
-                g.drawImage(_bufferForRoll, 0, 0, widthAll, heightAll, 0, 0, widthAll, heightAll, this);
-            } else {
-                g.drawImage(_bufferForRoll,
-                        0, (int) (heightAll - _lastRollingY) - 1, widthAll, heightAll,
-                        0, 0, widthAll, (int) _lastRollingY, this);
-                g.drawImage(_bufferForRoll,
-                        0, 0, widthAll, (int) (heightAll - _lastRollingY) + 1,
-                        0, (int) _lastRollingY, widthAll, heightAll, this);
-            }
-        }else {
-            if (_buff2 != null) {
-                if (_buff2.getWidth() != widthAll || _buff2.getHeight() != heightAll) {
-                    _buff2Graph.dispose();
-                    _buff2 = null;
-                }
-            }
-            if (_buff2 == null) {
-                _buff2 = new BufferedImage(widthAll, heightAll, BufferedImage.TYPE_3BYTE_BGR);
-                _buff2Graph = _buff2.getGraphics();
-            }
-            if (_lastRollingY == 0) {
-                _buff2Graph.drawImage(_bufferForRoll, 0, 0, widthAll, heightAll, 0, 0, widthAll, heightAll, this);
-            } else {
-                _buff2Graph.drawImage(_bufferForRoll,
-                        0, (int) (heightAll - _lastRollingY) - 1, widthAll, heightAll,
-                        0, 0, widthAll, (int) _lastRollingY, this);
-                _buff2Graph.drawImage(_bufferForRoll,
-                        0, 0, widthAll, (int) (heightAll - _lastRollingY) + 1,
-                        0, (int) _lastRollingY, widthAll, heightAll, this);
-            }
-            long[] measure = _sequencer._parser.listMeasure();
-
-            _measureIndex = 0;
-            _measureOnLine = 0;
-            _measureNextTiming = 0;
-            for (_measureIndex = 0; _measureIndex < measure.length; ++ _measureIndex) {
-                _measureNextTiming = measure[_measureIndex];
-                if (_measureNextTiming > startTime) {
-                    break;
-                }
-            }
-            Color separator = Color.white;
-            if (_measureIndex < measure.length) {
-                for (long y = heightAll- 1; y >= 0; --y) {
-                    double distanceY = (double) (heightAll - y);
-                    double distanceTime = distanceY * _soundSpan / heightAll;
-                    long lineTime = (long) (startTime + distanceTime);
-                    if (lineTime < _measureNextTiming) {
-                        continue;
-                    }
-                    if (_measureOnLine <= 0) {
-                            if ((_measureIndex & 3) == 0) {
-                                _measureOnLine += 5;
-                                separator = Color.red;
-                            } else if ((_measureIndex & 1) == 0) {
-                                _measureOnLine += 2;
-                                separator = Color.yellow;
-                            }else {
-                                _measureOnLine ++;
-                                separator = Color.yellow;
-                            }
-
-                        _measureIndex++;
-                        if (_measureIndex -1 >= measure.length) {
-                            break;
-                        }
-                        _measureNextTiming = measure[_measureIndex-1];
-                    }
-                    else {
-                        for (int x = _measureOnLine % 1; x < widthAll; x += 2) {
-                            if (_buff2.getRGB(x, (int)y) == back.getRGB()) {
-                                _buff2.setRGB(x, (int) y, separator.getRGB());
-                            }
-                        }
-                        _measureOnLine--;
-                    }
-                }
-            }
-            g.drawImage(_buff2, 0, 0, widthAll, heightAll, this);
+        if (_lastRollingY == 0) {
+            g.drawImage(_bufferForRoll, 0, 0, widthAll, heightAll, 0, 0, widthAll, heightAll, this);
+        } else {
+            g.drawImage(_bufferForRoll,
+                    0, (int) (heightAll - _lastRollingY) - 1, widthAll, heightAll,
+                    0, 0, widthAll, (int) _lastRollingY, this);
+            g.drawImage(_bufferForRoll,
+                    0, 0, widthAll, (int) (heightAll - _lastRollingY) + 1,
+                    0, (int) _lastRollingY, widthAll, heightAll, this);
         }
     }
-    
+
     protected void paintOnBuffer1() {
         if (!_doingPaint) {
             return;
@@ -246,23 +180,35 @@ public class MXPianoRoll extends JComponent {
             }
             _bufferForRoll = new BufferedImage(widthAll, heightAll, BufferedImage.TYPE_3BYTE_BGR);
             _bufferForRollGraphics = _bufferForRoll.getGraphics();
+            _rollingY = 0;
+            _lastRollingY = Integer.MAX_VALUE;
+            _doneTiming = - _soundSpan;
+            _lastPickupForKick = 0;
+            _keys.allNoteOff();
+            for (int i = 0; i < _kickedChannelList.length; ++i) {
+                _kickedChannelList[i] = 0;
+            }
+            _lastPickupForPaint = 0;
+            for (int i = 0; i < _pickedNoteForPaint.length; ++i) {
+                _pickedNoteForPaint[i] = 0;
+            }
+            _keys.repaint();
         }
         if (_bufferForRoll != null) {
             //描画するべき時間の長さ
             long needDraw;
-            needDraw = _songPos - _lastSongPos;
+            needDraw = _soundTiming - _doneTiming;
             if (needDraw >= _soundSpan) {
                 needDraw = _soundSpan;
             }
 
             //lsatSongPosからsongPosまで描写する、Y座標としていくつ違うか
-            long y0 = (long) (((_lastSongPos) * 1.0 / _soundSpan) * heightAll);
-            long y1 = (long) (((_songPos) * 1.0 / _soundSpan) * heightAll);
+            long y0 = (long) (((_doneTiming) * 1.0 / _soundSpan) * heightAll);
+            long y1 = (long) (((_soundTiming) * 1.0 / _soundSpan) * heightAll);
 
-            long startDrawY = _rollingY;
-            double startTime = _lastSongPos + _soundSpan - _soundMargin;
+            double startTime = _doneTiming + _soundSpan - _soundMargin;
 
-            for (long y = y0; y <= y1; ++y) {
+            for (long y = y0; y < y1; ++y) {
                 double distanceY = (double) (y - y0);
                 double distanceTime = distanceY * _soundSpan / heightAll;
                 long linetime = (long) (startTime + distanceTime);
@@ -270,15 +216,15 @@ public class MXPianoRoll extends JComponent {
                 int keysRoot = _keyboardRoot;
                 int keysCount = _keyboardOctave * 12;
                 int onlyDrum = 1 << 9;
-                long realY2 = startDrawY - y + y0;
-                while (realY2 <= 0) {
+                int realY2 = (int)(_rollingY - y + y0);
+                while (realY2 < 0) {
                     realY2 += heightAll;
                 }
-                while (realY2 > heightAll) {
+                while (realY2 >= heightAll) {
                     realY2 -= heightAll;
                 }
                 _bufferForRollGraphics.setColor(back);
-                _bufferForRollGraphics.drawLine((int) 0, (int) realY2, (int) widthAll, (int) realY2);
+                _bufferForRollGraphics.drawLine((int) 0, realY2, (int) widthAll, realY2);
                 for (int i = keysRoot; i < keysRoot + keysCount; ++i) {
                     boolean selected = false;
                     if (playing[i] > 0 && playing[i] != onlyDrum) {
@@ -302,17 +248,77 @@ public class MXPianoRoll extends JComponent {
                             continue;
                         }
                         _bufferForRollGraphics.setColor(col);
-                        _bufferForRollGraphics.drawLine((int) from, (int) realY2, (int) to, (int) realY2);
+                        _bufferForRollGraphics.drawLine((int) from, realY2, (int) to, realY2);
                     }
                 }
             }
 
+            if (_showMeasure) {
+                long[] measure = _sequencer._parser.listMeasure();
+                int measureIndex;
+                long measureNextTiming;
+                int measureOnLine = 0;
+
+                measureIndex = 0;
+                measureOnLine = 0;
+                measureNextTiming = 0;
+
+                startTime = _doneTiming - _soundMargin;
+                for (measureIndex = 0; measureIndex < measure.length; ++measureIndex) {
+                    measureNextTiming = measure[measureIndex];
+                    if (measureNextTiming >= startTime) {
+                        break;
+                    }
+                }
+                Color separator = Color.white;
+                measureIndex --;
+                for (long y = heightAll -1 ; y >= 0; --y) {
+                    double distanceY = (double) (heightAll - y + 2);
+                    double distanceTime = distanceY * _soundSpan / heightAll;
+                    long lineTime = (long) (startTime + distanceTime);
+                    if (lineTime < measureNextTiming) {
+                        continue;
+                    }
+                    if (measureOnLine <= 0) {
+                        if ((measureIndex & 3) == 0) {
+                            measureOnLine += 3;
+                            separator = Color.red;
+                        } else if ((measureIndex & 1) == 0) {
+                            measureOnLine += 2;
+                            separator = Color.yellow;
+                        } else {
+                            measureOnLine++;
+                            separator = Color.yellow;
+                        }
+
+                        measureIndex++;
+                        if (measureIndex >= measure.length) {
+                            break;
+                        }
+                        measureNextTiming = measure[measureIndex];
+                    } else {
+                        int realY2 = (int)(_rollingY + y);
+                        while (realY2 < 0) {
+                            realY2 += heightAll;
+                        }
+                        while (realY2 >= heightAll) {
+                            realY2 -= heightAll;
+                        }
+                        for (int x = measureOnLine % 1; x < widthAll; x += 2) {
+                            if (_bufferForRoll.getRGB(x, realY2) == back.getRGB()) {
+                                _bufferForRoll.setRGB(x, realY2, separator.getRGB());
+                            }
+                        }
+                        measureOnLine--;
+                    }
+                }
+            }
+            _lastRollingY = _rollingY;
             _rollingY -= y1 - y0;
             while (_rollingY < 0) {
                 _rollingY += heightAll;
             }
-            _lastSongPos = _songPos;
-            _lastRollingY = _rollingY;
+            _doneTiming = _soundTiming;
         }
     }
 
@@ -342,31 +348,13 @@ public class MXPianoRoll extends JComponent {
             });
             return;
         }
-        _measureIndex = 0;
-        _measureNextTiming = 0;
-        _measureOnLine = 0;
+        _soundTiming = position;
 
-        _rollingY = 0;
-        _lastRollingY = 0;
-        _songPos = position;
-        _lastSongPos = _songPos - _soundSpan;
-        _lastPickupForKick = 0;
-        _keys.allNoteOff();
-        for (int i = 0; i < _kickedChannelList.length; ++i) {
-            _kickedChannelList[i] = 0;
-        }
-        _lastPickupForPaint = 0;
-        for (int i = 0; i < _pickedNoteForPaint.length; ++i) {
-            _pickedNoteForPaint[i] = 0;
-        }
         _bufferForRoll = null;
         if (_bufferForRollGraphics != null) {
             _bufferForRollGraphics.dispose();
             _bufferForRollGraphics = null;
         }
-        _keys.repaint();
-        paintOnBuffer1();
-        repaint();
     }
 
     public int[] listPaintNote(long milliSeconds) {
@@ -464,13 +452,13 @@ public class MXPianoRoll extends JComponent {
         }
     }
 
-    public long getSongPos() {
-        return _songPos;
+    public long getSoundTiming() {
+        return _soundTiming;
     }
 
-    long _songPos = 0;
+    long _soundTiming = 0;
     long _soundSpan = 4000;
-    long _lastSongPos = -_soundSpan;
+    long _doneTiming = -_soundSpan;
     long _soundMargin = 200;
     long _rollingY = 0;
     long _lastRollingY = 0;
@@ -478,7 +466,7 @@ public class MXPianoRoll extends JComponent {
 
     public void setFocusChannel(int ch) {
         _focusChannel = ch;
-        clearCache(_songPos);
+        clearCache(_soundTiming);
     }
 
     public int getFocuChannel() {
@@ -549,7 +537,7 @@ public class MXPianoRoll extends JComponent {
         comp._keyboardOctave = 10;
         win.add(comp);
         win.setVisible(true);
-        comp._songPos = 0;
+        comp._soundTiming = 0;
         sequencer._progressSpan = 50;
         MXPianoKeys key = new MXPianoKeys();
 
@@ -566,12 +554,17 @@ public class MXPianoRoll extends JComponent {
 
     public void setSoundSpan(long span) {
         _soundSpan = span;
-        clearCache(_songPos);
+        clearCache(_soundTiming);
     }
 
     public void setSoundMargin(long margin) {
         _soundMargin = margin;
-        clearCache(_songPos);
+        clearCache(_soundTiming);
+    }
+
+    public void setShowMeasure(boolean show) {
+        _showMeasure = show;
+        clearCache(_soundTiming);
     }
 
     public void setSoundTiming(long elapsed) {
@@ -583,9 +576,9 @@ public class MXPianoRoll extends JComponent {
             });
             return;
         }
-        _songPos = elapsed;
+        _soundTiming = elapsed;
 
-        noteForKick(_songPos);
+        noteForKick(_soundTiming);
         _keys.repaint();
         paintOnBuffer1();
         repaint();

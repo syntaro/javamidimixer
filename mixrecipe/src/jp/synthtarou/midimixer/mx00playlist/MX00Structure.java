@@ -16,6 +16,8 @@
  */
 package jp.synthtarou.midimixer.mx00playlist;
 
+import jp.synthtarou.midimixer.libs.navigator.MXPopupForList;
+
 /**
  *
  * @author Syntarou YOSHIDA
@@ -25,9 +27,15 @@ public class MX00Structure {
         _playListModel = new PlayListDX();
         _playAsChained = false;
         _playAsRepeated = false;
+        _focusChannel = -1;
     }
 
     boolean _playAsChained;
     boolean _playAsRepeated;
     PlayListDX _playListModel;
+    
+    int _focusChannel;
+    int _soundMargin;
+    int _soundSpan;
+    boolean _showMeasure;
 }

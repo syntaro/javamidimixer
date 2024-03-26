@@ -25,7 +25,6 @@ import jp.synthtarou.midimixer.libs.settings.MXSetting;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.settings.MXSettingNode;
 import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
-import jp.synthtarou.midimixer.libs.vst.IndexedFile;
 
 /**
  *
@@ -38,7 +37,7 @@ public class MX00Process extends MXReceiver<MX00View> implements MXSettingTarget
         _setting.setTarget(this);
 
         _structure = new MX00Structure();
-        _view = new MX00View();
+        _view = new MX00View(this);
     }
 
     MX00View _view;
@@ -65,6 +64,10 @@ public class MX00Process extends MXReceiver<MX00View> implements MXSettingTarget
         _setting.register("playAsLooped");
         _setting.register("playAsChained");
         _setting.register("song[]");
+        _setting.register("focusChannel");
+        _setting.register("showMeasure");
+        _setting.register("soundMargin");
+        _setting.register("soundSpan");
     }
 
     @Override
@@ -72,6 +75,10 @@ public class MX00Process extends MXReceiver<MX00View> implements MXSettingTarget
         _structure._playListModel.clear();
         _structure._playAsRepeated = _setting.getSettingAsBoolean("playAsLooped", false);
         _structure._playAsChained = _setting.getSettingAsBoolean("playAsChained", false);
+        _structure._focusChannel = _setting.getSettingAsInt("focusChannel", -1);
+        _structure._showMeasure = _setting.getSettingAsBoolean("showMeasure", true);
+        _structure._soundMargin = _setting.getSettingAsInt("soundMargin", 100);
+        _structure._soundSpan = _setting.getSettingAsInt("soundSpan", 6000);
         
         List<MXSettingNode> nodeList  = _setting.findByPath("song[]");
         int min = 100000;
@@ -98,16 +105,20 @@ public class MX00Process extends MXReceiver<MX00View> implements MXSettingTarget
             _structure._playListModel.addFile("SynthTAROU002.mid");
         }
 
-        _view.setStructureDX(_structure);
+        _view.showStructureFirst();
     }
 
     @Override
     public void beforeWriteSettingFile() {
         _setting.clearValue();
-        _structure = _view.getStructureDX();
 
         _setting.setSetting("playAsLooped", _structure._playAsRepeated);
         _setting.setSetting("playAsChained", _structure._playAsChained);
+
+        _setting.setSetting("focusChannel", _structure._focusChannel);
+        _setting.setSetting("showMeasure", _structure._showMeasure);
+        _setting.setSetting("soundMargin", _structure._soundMargin);
+        _setting.setSetting("soundSpan", _structure._soundSpan);
 
         for (int i = 0; i < _structure._playListModel.size(); ++ i) {
             File f = _structure._playListModel.getElementAt(i)._file;
