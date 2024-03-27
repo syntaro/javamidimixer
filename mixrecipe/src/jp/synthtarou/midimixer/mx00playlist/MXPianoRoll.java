@@ -24,6 +24,8 @@ import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -81,7 +83,9 @@ public class MXPianoRoll extends JComponent {
 
     BufferedImage _bufferForRoll = null;
     Graphics _bufferForRollGraphics = null;
-
+    WritableRaster _rasterForBuffer = null;
+    DataBufferByte _rasterDataBytesForBuffer = null;
+    
     SMFSequencer _sequencer;
     MXPianoKeys _keys;
 
@@ -180,9 +184,11 @@ public class MXPianoRoll extends JComponent {
             }
             _bufferForRoll = new BufferedImage(widthAll, heightAll, BufferedImage.TYPE_3BYTE_BGR);
             _bufferForRollGraphics = _bufferForRoll.getGraphics();
-            _rollingY = 0;
+            _rasterForBuffer = _bufferForRoll.getRaster();
+            _rasterDataBytesForBuffer = (DataBufferByte) _rasterForBuffer.getDataBuffer();
+           _rollingY = 0;
             _lastRollingY = Integer.MAX_VALUE;
-            _doneTiming = - _soundSpan;
+            _doneTiming = -_soundSpan;
             _lastPickupForKick = 0;
             _keys.allNoteOff();
             for (int i = 0; i < _kickedChannelList.length; ++i) {
@@ -216,14 +222,14 @@ public class MXPianoRoll extends JComponent {
                 int keysRoot = _keyboardRoot;
                 int keysCount = _keyboardOctave * 12;
                 int onlyDrum = 1 << 9;
-                int realY2 = (int)(_rollingY - y + y0);
+                int realY2 = (int) (_rollingY - y + y0);
                 while (realY2 < 0) {
                     realY2 += heightAll;
                 }
                 while (realY2 >= heightAll) {
                     realY2 -= heightAll;
                 }
-                _bufferForRollGraphics.setColor(back);
+                _bufferForRollGraphics.setColor(_back);
                 _bufferForRollGraphics.drawLine((int) 0, realY2, (int) widthAll, realY2);
                 for (int i = keysRoot; i < keysRoot + keysCount; ++i) {
                     boolean selected = false;
@@ -271,8 +277,8 @@ public class MXPianoRoll extends JComponent {
                     }
                 }
                 Color separator = Color.white;
-                measureIndex --;
-                for (long y = heightAll -1 ; y >= 0; --y) {
+                measureIndex--;
+                for (long y = heightAll - 1; y >= 0; --y) {
                     double distanceY = (double) (heightAll - y + 2);
                     double distanceTime = distanceY * _soundSpan / heightAll;
                     long lineTime = (long) (startTime + distanceTime);
@@ -297,16 +303,26 @@ public class MXPianoRoll extends JComponent {
                         }
                         measureNextTiming = measure[measureIndex];
                     } else {
-                        int realY2 = (int)(_rollingY + y);
+                        int realY2 = (int) (_rollingY + y);
                         while (realY2 < 0) {
                             realY2 += heightAll;
                         }
                         while (realY2 >= heightAll) {
                             realY2 -= heightAll;
                         }
+                        byte[] datas = _rasterDataBytesForBuffer.getData();
+
+                        byte back_b = (byte) _back.getBlue();
+                        byte back_g = (byte) _back.getGreen();
+                        byte back_r = (byte) _back.getRed();
                         for (int x = measureOnLine % 1; x < widthAll; x += 2) {
-                            if (_bufferForRoll.getRGB(x, realY2) == back.getRGB()) {
-                                _bufferForRoll.setRGB(x, realY2, separator.getRGB());
+                            int address = (x * 3) + (realY2 * _rasterForBuffer.getWidth() * 3);
+                            if (datas[address] == back_b
+                             && datas[address+1] == back_g
+                             && datas[address+2] == back_r) {
+                                datas[address] = (byte) separator.getBlue();
+                                datas[address + 1] = (byte) separator.getGreen();
+                                datas[address + 2] = (byte) separator.getRed();
                             }
                         }
                         measureOnLine--;
@@ -462,7 +478,7 @@ public class MXPianoRoll extends JComponent {
     long _soundMargin = 200;
     long _rollingY = 0;
     long _lastRollingY = 0;
-    Color back = new Color(0, 50, 50);
+    Color _back = new Color(0, 50, 50);
 
     public void setFocusChannel(int ch) {
         _focusChannel = ch;
