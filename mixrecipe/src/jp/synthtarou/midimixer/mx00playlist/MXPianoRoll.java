@@ -244,10 +244,7 @@ public class MXPianoRoll extends JComponent {
                 if (c != null) {
                     SimpleRGBCanvas.colorToBgr(c, colBuff);
                     for (int x = 0; x < widthAll; x += 2) {
-                        byte[] bgr = _canvas.getPixel(x, realY2, peekBuff);
-                        if (bgr[0] == _back[0] && bgr[1] == _back[1] && bgr[2] == _back[2]) {
-                            _canvas.setPixel(x, realY2, colBuff);
-                        }
+                        _canvas.setPixel(x, realY2, colBuff);
                     }
                 }
                 for (int i = keysRoot; i < keysRoot + keysCount; ++i) {

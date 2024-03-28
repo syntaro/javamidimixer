@@ -28,16 +28,24 @@ import java.util.logging.Level;
 import jp.synthtarou.midimixer.libs.common.MXLogger2;
 
 /**
- *
+ * jsonファイルを読み込むため
  * @author Syntarou YOSHIDA
  */
-public class JsonReader {
+public class MJsonReader {
 
     String _data;
     int _pos;
     File _file;
 
-    public JsonReader(File file) throws IOException {
+    /**
+     * ファイルを指定してインスタンスを生成する
+     * 読み込みまで行う
+     * 主に,Utf8が用いられているが、まれにUnicode形式であることがある
+     * 自動掲出(utf or unicodeの2種類のみ)した文字コードでデコードする
+          * @param file File
+     * @throws IOException 読込エラー
+     */
+    public MJsonReader(File file) throws IOException {
         _file = file;
         _data = readFile(file, "utf-8");
         int zero = 0;
@@ -57,12 +65,20 @@ public class JsonReader {
         _pos = 0;
     }
 
-    public JsonReader(String text) {
+    /**
+     * 文字列からインスタンスを生成する
+     * @param text
+     */
+    public MJsonReader(String text) {
         _file = null;
         _data = text;
         _pos = 0;
     }
 
+    /**
+     * 先頭１文字目を読み取る（読み取り位置は更新しない）
+     * @return 文字コード、EOFの場合-1
+     */
     public int peek() {
         if (_pos < _data.length()) {
             return _data.charAt(_pos);
@@ -70,6 +86,11 @@ public class JsonReader {
         return -1;
     }
 
+    /**
+     * 先頭ｎ文字目を読み取る（読み取り位置は更新しない）
+     * @param offset 何文字目を読み取るか（日本語にするとoffset=0で最初の文字)
+     * @return 文字コード、EOFの場合-1
+     */
     public int peek(int offset) {
         if (_pos + offset < _data.length()) {
             return _data.charAt(_pos + offset);
@@ -77,10 +98,18 @@ public class JsonReader {
         return -1;
     }
 
+    /**
+     * offset分スキップする
+     * @param offset offset
+     */
     public void skip(int offset) {
         _pos += offset;
     }
 
+    /**
+     * 戦闘文字を取得し、1文字すすめる
+     * @return 文字コード、EOFの場合-1
+     */
     public int read() {
         if (_pos < _data.length()) {
             return _data.charAt(_pos++);
@@ -88,6 +117,13 @@ public class JsonReader {
         return -1;
     }
 
+    /**
+     *　ファイルを読み込む
+     * @param file ファイル
+     * @param encoding 文字コード
+     * @return String
+     * @throws IOException なんらかのファイルエラー
+     */
     public String readFile(File file, String encoding) throws IOException {
         InputStream in = null;
         StringBuffer result = new StringBuffer();
@@ -100,9 +136,6 @@ public class JsonReader {
                 if (text == null) {
                     break;
                 }
-                if (text.startsWith("//") && result.length() == 0)  {
-                    continue;
-                }
                 result.append(text);
                 result.append("\n");
             }
@@ -112,18 +145,21 @@ public class JsonReader {
             return result.toString();
         } catch (IOException ex) {
             ex.printStackTrace();
-            MXLogger2.getLogger(JsonParser.class).log(Level.SEVERE, ex.getMessage(), ex);
+            MXLogger2.getLogger(MJsonParser.class).log(Level.SEVERE, ex.getMessage(), ex);
             if (in != null) {
                 try {
                     in.close();
                 } catch (IOException ex2) {
-                    MXLogger2.getLogger(JsonParser.class).log(Level.SEVERE, ex2.getMessage(), ex2);
+                    MXLogger2.getLogger(MJsonParser.class).log(Level.SEVERE, ex2.getMessage(), ex2);
                 }
             }
             return null;
         }
     }
 
+    /**
+     * 空白をスキップする
+     */
     public void skipBlank() {
         int ch = peek();
         while (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n') {
@@ -132,6 +168,11 @@ public class JsonReader {
         }
     }
 
+    /**
+     * マジックナンバー0をスキップする
+     * @param text マジックナンバー
+     * @return 検出してスキップしたばあいtrue
+     */
     public boolean skipMagicNumber(String text) {
         for (int i = 0; i < text.length(); ++i) {
             if (_pos + i < _data.length()) {
@@ -146,6 +187,11 @@ public class JsonReader {
         return true;
     }
 
+    /**
+     * json用のエスケープシーケンスで、エスケープする
+     * @param unescaped　エスケープされてない文字列を渡す
+     * @return エスケープされた文字列
+     */
     public static String encape(String unescaped) {
         int len = unescaped.length();
         int pos = 0;
@@ -198,6 +244,11 @@ public class JsonReader {
         return "\"" + buffer.toString() + "\"";
     }
     
+    /**
+     * json用のエスケープシーケンスで、アンエスケープする
+     * @param escaped　エスケープされている文字列を渡す
+     * @return アンエスケープ（解除）された文字列
+     */
     public static String unescape(String escaped) {
         int len = escaped.length();
         int pos = 0;
@@ -293,8 +344,13 @@ public class JsonReader {
         return buffer.toString();
     }
 
+    /**
+     * ファイルをタイプのつく文字列に分解して1件づつ取得する
+     * @return パーツの文字列
+     */
     public String readPartial() {
         boolean inDQuote = false;
+        boolean inComment = false;
         StringBuffer text = new StringBuffer();
         if (peek() == '"') {
             inDQuote = true;
@@ -330,8 +386,38 @@ public class JsonReader {
                     text.append((char) ch);
                     skip(1);
                 }
+            } else if (inComment) {
+                if (ch == '*' && peek(1) == '/') {
+                    skip(2);
+                    inComment = false;
+                    continue;
+                }
+                skip(1);
             } else {
                 ch = peek();
+                if (ch == '/') {
+                    if (peek(1) == '*') {
+                        inComment = true;
+                        skip(2);
+                        continue;
+                    }
+                    if (peek(1) == '/') {
+                        skip(2);
+                        while (true) {
+                            ch = read();
+                            if (ch < 0) {
+                                break;
+                            }
+                            if (ch == '\n') {
+                                break;
+                            }
+                        }
+                        if (ch < 0) {
+                            break;
+                        }
+                        continue;
+                    }
+                }
                 if (ch == '"') {
                     inDQuote = true;
                     text.append((char) ch);
@@ -378,7 +464,12 @@ public class JsonReader {
         return text.toString();
     }
 
-    public boolean isNumericCharSub(int ch) {
+    /**
+     * 文字コードが数値であるか
+     * @param ch 文字コード
+     * @return 数値とみなせる場合true
+     */
+    static boolean isNumericCharSub(int ch) {
         if (ch >= '0' && ch <= '9') {
             return true;
         }
@@ -388,7 +479,12 @@ public class JsonReader {
         return false;
     }
 
-    public boolean isCapitalNumericCharSub(int ch) {
+    /**
+     * 文字コードが数値であるか、先頭につかえないコードは除外される
+     * @param ch 文字コード
+     * @return 数値とみなせる場合true
+     */
+    static boolean isCapitalNumericCharSub(int ch) {
         if (ch >= '0' && ch <= '9') {
             return true;
         }
