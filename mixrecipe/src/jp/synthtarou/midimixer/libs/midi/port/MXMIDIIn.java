@@ -347,9 +347,6 @@ public class MXMIDIIn {
                     dword = (status << 16) | (data1 << 8) | data2;
                 }
             }
-            if (this == INTERNAL_PLAYER) {
-                MXMain.getMain().getPlayListProcess().updatePianoDX(dword);
-            }
             if (command == MXMidi.COMMAND_CH_NOTEOFF) {
                 if (_myNoteOff.raiseHandler(0, timing, status & 0xf, data1)) {
                     return;

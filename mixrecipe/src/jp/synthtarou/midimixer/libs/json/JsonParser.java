@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.TreeMap;
 
 /**
  *
@@ -349,7 +350,7 @@ public class JsonParser {
     }
 
     public static void main(String[] args) throws IOException {
-        //doTest(new File("C:\\Users\\yaman\\test.json"));
+        doTest(new File("C:\\Users\\yaman\\test.json"));
         recursiveCheck(new File("C:\\Users\\yaman\\.nuget\\packages\\microsoft.netcore.platforms\\2.0.0"));
         recursiveCheck(new File("C:\\Users\\All Users\\Microsoft"));
         if (false) {

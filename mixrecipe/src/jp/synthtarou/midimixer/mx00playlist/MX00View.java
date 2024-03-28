@@ -725,7 +725,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                 jSliderSongPosition.setValue((int)_pianoRollRoll._sequencer.getCurrentMilliSeconds());
                 jSliderStopCallback = false;
             }else if (_pianoRollRoll._sequencer.getSongLength() != 0) {
-                _pianoRollRoll.clearCache(jSliderSongPosition.getValue());
+                _pianoRollRoll.setSoundTiming(jSliderSongPosition.getValue());
             }
         }
     }//GEN-LAST:event_jSliderSongPositionStateChanged
@@ -838,6 +838,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
 
     @Override
     public void smfPlayNote(MXTiming timing, SMFMessage e) {
+        updatePianoDX(e.toDwordMessage());
     }
 
     @Override

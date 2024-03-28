@@ -10,6 +10,7 @@ jp.synthtarou.midimixer.libs.accessor
 jp.synthtarou.midimixer.libs.accordion
 jp.synthtarou.midimixer.libs.common
 jp.synthtarou.midimixer.libs.common.async
+jp.synthtarou.midimixer.libs.json
 jp.synthtarou.midimixer.libs.loopmidi
 jp.synthtarou.midimixer.libs.midi
 jp.synthtarou.midimixer.libs.midi.capture
