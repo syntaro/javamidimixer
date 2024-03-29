@@ -20,12 +20,14 @@ import java.util.ArrayList;
 
 /**
  * jsonファイル内のラベルとコンテンツを表現するクラス。ネストしている。
+ *
  * @author Syntarou YOSHIDA
  */
 public class MJsonValue {
 
     /**
      * ラベルを指定してオブジェクトを生成する
+     *
      * @param text
      */
     public MJsonValue(String text) {
@@ -34,6 +36,7 @@ public class MJsonValue {
 
     /**
      * ラベルとコンテンツを指定してオブジェクトを生成する
+     *
      * @param label ラベル
      * @param value コンテンツ（単一）
      * @param doEscapeValue コンテンツをエスケープする必要がある場合
@@ -41,66 +44,123 @@ public class MJsonValue {
     public MJsonValue(String label, String value, boolean doEscapeValue) {
         _label = label;
         if (doEscapeValue) {
-            value = MJsonReader.encape(value);
+            value = escape(value);
         }
         addToContentsValue(new MJsonValue(value));
     }
 
     String _label;
     ArrayList<MJsonValue> _listContents;
-    
-    boolean _contentsTypeArray;
-    boolean _contentsTypeStructure;
-    boolean _contentsTypeList;
 
     /**
-     * タイプ：オールマイティ
+     * コンテンツタイプ：未設定
+     */
+    public static final int CONTENTS_TYPE_NOTSET = 0;
+
+    /**
+     * コンテンツタイプ：リスト
+     */
+    public static final int CONTENTS_TYPE_LIST = 1;
+
+    /**
+     * コンテンツタイプ：構造体
+     */
+    public static final int CONTENTS_TYPE_STRUCTURE = 2;
+
+    /**
+     * コンテンツタイプ：値
+     */
+    public static final int CONTENTS_TYPE_VALUE = 3;
+
+    int _conetentsType = CONTENTS_TYPE_NOTSET;
+
+    /**
+     * コンテンツタイプを設定する（一度設定したら変更できない）
+     * @param type コンテンツタイプ
+     */
+    public void setContentsType(int type) {
+        if (_conetentsType == CONTENTS_TYPE_NOTSET) {
+            _conetentsType = type;
+            return;
+        }
+        if (_conetentsType != type) {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    /**
+     * コンテンツタイプが、値であるか
+     * @return 値であればTrue
+     */
+    public boolean isContentsValue() {
+        return _conetentsType == CONTENTS_TYPE_VALUE;
+    }
+
+    /**
+     * コンテンツタイプが、配列であるか
+     * @return 配列であればTrue
+     */
+    public boolean isContentsArray() {
+        return _conetentsType == CONTENTS_TYPE_LIST;
+    }
+
+    /**
+     * コンテンツタイプが、構造体であるか
+     * @return 構造体であればTrue
+     */
+    public boolean isContentsSturucture() {
+        return _conetentsType == CONTENTS_TYPE_STRUCTURE;
+    }
+
+    /**
+     * Valueタイプ：オールマイティ
      */
     public static final int TYPE_ANY = 0;
 
     /**
-     * タイプ：NULL
+     * Valueタイプ：NULL
      */
     public static final int TYPE_NULL = 1;
 
     /**
-     * タイプ:ダブルカンマ -> :
+     * Valueタイプ:ダブルカンマ -> :
      */
     public static final int TYPE_DOUBLECOMMA = 2;
 
     /**
-     * タイプ:リストの開始-> [
+     * Valueタイプ:リストの開始-> [
      */
     public static final int TYPE_START_LIST = 4;
 
     /**
-     * タイプ:構造体(名前つきリスト)の開始-> {
+     * Valueタイプ:構造体(名前つきリスト)の開始-> {
      */
     public static final int TYPE_START_STRUCTURE = 5;
 
     /**
-     * タイプ:リストの終了-> ]
+     * Valueタイプ:リストの終了-> ]
      */
     public static final int TYPE_END_LIST = 6;
 
     /**
-     * タイプ:構造体(名前つきリスト)の終了-> }
+     * Valueタイプ:構造体(名前つきリスト)の終了-> }
      */
     public static final int TYPE_END_STRUCTURE = 7;
 
     /**
-     * タイプ：カンマ -> ,
+     * Valueタイプ：カンマ -> ,
      */
     public static final int TYPE_COMMA = 8;
 
     /**
-     *　タイプ：テキスト（エスケープのありなしはプログラマーが管理すること
+     * Valueタイプ：テキスト（エスケープのありなしはプログラマーが管理すること
      */
     public static final int TYPE_TEXT = 10;
 
     /**
-     * ラベルの文字列からタイプを推測する
-     * @return タイプ
+     * ラベルの文字列からValueタイプを推測する
+     *
+     * @return Valueタイプ
      */
     public int getType() {
         if (_label == null) {
@@ -133,8 +193,9 @@ public class MJsonValue {
     }
 
     /**
-     *　推測されたタイプから、タイプを表すタイプ名を取得する
-     * @return タイプ名
+     * 推測されたValueタイプから、Valueタイプの名称を取得する
+     *
+     * @return Valueタイプ名
      */
     public String getTypeText() {
         switch (getType()) {
@@ -162,56 +223,50 @@ public class MJsonValue {
     }
 
     /**
-     *　contentsとして配列を選択し、varを追加する
+     * contentsとして配列を選択し、varを追加する
+     *
      * @param var MJsonValueタイプ
      */
     public void addToContentsArray(MJsonValue var) {
-        if (_contentsTypeStructure || _contentsTypeList) {
-            throw new IllegalStateException();
-        }
         if (_listContents == null) {
             _listContents = new ArrayList<>();
         }
-        _contentsTypeArray = true;
+        setContentsType(CONTENTS_TYPE_LIST);
         _listContents.add(var);
     }
 
     /**
-     *　contentsとして名前つきリスト(構造体)を選択し、varを追加する
+     * contentsとして名前つきリスト(構造体)を選択し、varを追加する
+     *
      * @param var MJsonValueタイプ
      */
     public void addToContentsStructure(MJsonValue var) {
-        if (_contentsTypeArray || _contentsTypeList) {
-            throw new IllegalStateException();
-        }
         if (_listContents == null) {
             _listContents = new ArrayList<>();
         }
-        _contentsTypeStructure = true;
+        setContentsType(CONTENTS_TYPE_STRUCTURE);
         _listContents.add(var);
     }
 
     /**
-     *　contentsとして単一のvarを設定する
+     * contentsとして単一のvarを設定する
+     *
      * @param var MJsonValueタイプ
      */
     public void addToContentsValue(MJsonValue var) {
-        if (_contentsTypeArray || _contentsTypeStructure) {
-            throw new IllegalStateException();
-        }
         if (_listContents == null) {
             _listContents = new ArrayList<>();
-        }
-        else {
+        } else {
             _listContents.clear();
         }
-        _contentsTypeList = true;
+        setContentsType(CONTENTS_TYPE_VALUE);
         _listContents.clear();
         _listContents.add(var);
     }
 
     /**
-     *　contentsとして名前つきリスト(構造体)を選択し、Stringを追加する
+     * contentsとして名前つきリスト(構造体)を選択し、Stringを追加する
+     *
      * @param label ラベル
      * @param value 値（文字列）文字列以外の場合、もうひとつの同名メソッドを用いること
      * @param doEscapeValue 値をエスケープする必要があるか
@@ -222,7 +277,8 @@ public class MJsonValue {
     }
 
     /**
-     *　contentsとして配列を選択し、Stringを追加する
+     * contentsとして配列を選択し、Stringを追加する
+     *
      * @param value 配列についかされる値（子のラベル)
      * @param doEscape 値をエスケープする必要があるか
      */
@@ -235,7 +291,8 @@ public class MJsonValue {
     }
 
     /**
-     *　contentsとして単一のvarを設定する
+     * contentsとして単一のvarを設定する
+     *
      * @param var 子のラベル=thisのcontents
      * @param doEscape 値をエスケープする必要があるか
      */
@@ -249,19 +306,11 @@ public class MJsonValue {
 
     /**
      * String型にする（表示用）
+     *
      * @return ラベルのテキスト
      */
     public String toString() {
         return (_label == null) ? "" : _label;
-    }
-
-    private void enterIfNeed(StringBuffer str) {
-        if (str.length() > 0) {
-            if (str.charAt(str.length() - 1) == '\n') {
-                return;
-            }
-            str.append("\n");
-        }
     }
 
     /**
@@ -269,85 +318,132 @@ public class MJsonValue {
      * @return 整形された文字列
      */
     public String formatForDisplay() {
-        StringBuffer str = new StringBuffer();
-        if (_label != null) {
-            str.append(_label);
-        }
-        if (_contentsTypeArray) {
-            if (_label != null) {
-                str.append(":");
-            }
-            str.append("[");
-            if (_listContents != null) {
-                boolean first = true;
-                for (MJsonValue seek : _listContents) {
-                    if (first == false) {
-                        str.append(",");
-                    }
-                    first = false;
-                    str.append(seek.formatForDisplay());
-                }
-            }
-            str.append("]");
-            enterIfNeed(str);
-        } else if (_contentsTypeStructure) {
-            if (_label != null) {
-                str.append(":");
-            }
-            str.append("{");
-            if (_listContents != null) {                
-                boolean first = true;
-                for (MJsonValue seek : _listContents) {
-                    if (first == false) {
-                        str.append(",");
-                        enterIfNeed(str);
-                    }
-                    first = false;
-                    str.append(seek.formatForDisplay());
-                }
-            }
-            str.append("}");
-            enterIfNeed(str);
-        } else if (_contentsTypeList) {
-            if (_label != null) {
-                str.append(":");
-            }
-            if (_listContents.size() > 0) {
-                str.append(_listContents.get(0).formatForDisplay());
-            } else {
-                str.append("null");
-            }
-        }
-        return str.toString();
+        return formatForDisplay(0);
     }
     
     /**
+     * 文字バッファにインデントを追加する
+     * @param indent インデント数
+     * @param str 文字バッファ
+     */
+    public void doIndent(int indent, StringBuffer str) {
+        for (int i = 0; i < indent; ++ i) {
+            str.append(" ");
+        }
+    }
+
+    /**
+     * 表示用に、自身とコンテンツを簡易整形する
+     *
+     * @param indent 現在のインデント値
+     * @return 整形された文字列
+     */
+    public String formatForDisplay(int indent) {
+        StringBuffer str = new StringBuffer();
+        switch (_conetentsType) {
+            case CONTENTS_TYPE_LIST:
+                if (_label != null) {
+                    str.append(_label + ":");
+                }
+                str.append("[\n");
+                indent += 4;
+                doIndent(indent, str);
+                if (_listContents != null) {
+                    boolean first = true;
+                    for (MJsonValue seek : _listContents) {
+                        if (first == false) {
+                            str.append(",\n");
+                            doIndent(indent, str);
+                        }
+                        first = false;
+                        str.append(seek.formatForDisplay(indent));
+                    }
+                }
+                str.append("\n");
+                indent -= 4;
+                doIndent(indent, str);
+                str.append("]");
+                break;
+            case CONTENTS_TYPE_STRUCTURE:
+                if (_label != null) {
+                    str.append(_label + ":");
+                }
+                str.append("{\n");
+                indent += 4;
+                doIndent(indent, str);
+                if (_listContents != null) {
+                    boolean first = true;
+                    for (MJsonValue seek : _listContents) {
+                        if (first == false) {
+                            str.append(",\n");
+                            doIndent(indent, str);
+                        }
+                        first = false;
+                        str.append(seek.formatForDisplay(indent));
+                    }
+                }
+                str.append("\n");
+                indent -= 4;
+                doIndent(indent, str);
+                str.append("}");
+                break;
+            case CONTENTS_TYPE_VALUE:
+                if (_label != null) {
+                    str.append(_label + ":");
+                }
+                if (_listContents.size() > 0) {
+                    str.append(_listContents.get(0).formatForDisplay(indent));
+                } else {
+                    str.append("null");
+                }
+                break;
+            case CONTENTS_TYPE_NOTSET:
+                if (_label != null) {
+                    if (_label.equals("]") || _label.equals("}")) {
+                        if (indent >= 4) {
+                            indent -= 4;
+                        }
+                    }
+                    str.append(_label);
+                    if (_label.equals("[") || _label.equals("{")) {
+                        indent += 4;
+                    }
+                }
+                break;
+        }
+        return str.toString();
+    }
+
+    /**
      * ラベルをあとから変更する
+     *
      * @param label ラベル
      * @param doEscape エスケープする必要がある場合
      */
     public void setLabel(String label, boolean doEscape) {
         if (doEscape) {
-            label = MJsonReader.encape(label);
+            label = escape(label);
         }
         _label = label;
     }
-    
+
     /**
      * ラベルを取得する
+     *
      * @param doUnescape アンエスケープ（解除）する必要がある場合
      * @return ラベル
      */
     public String getLabel(boolean doUnescape) {
         String label = _label;
         if (doUnescape) {
-            label = MJsonReader.unescape(label);
+            label = unescape(label);
         }
         return label;
     }
-    
+
     /**
      * コンテンツのカウント
+     *
      * @return 数値
      */
     public int contentsCount() {
@@ -356,9 +452,10 @@ public class MJsonValue {
         }
         return _listContents.size();
     }
-    
+
     /**
      * コンテンツを取得する
+     *
      * @param index インデックス
      * @return MJsonValue型
      */
@@ -371,17 +468,18 @@ public class MJsonValue {
 
     /**
      * コンテンツをラベルから取得する（名前つき配列の場合用いることができる）
+     *
      * @param label ラベル
      * @param doEscapeAndSearch エスケープしてから探索する場合
      * @return 見つかったインデックス
      */
     public int searchContentsByLabel(String label, boolean doEscapeAndSearch) {
         if (doEscapeAndSearch) {
-            label = MJsonReader.encape(label);
+            label = escape(label);
         }
-        for (int i = 0; i < _listContents.size(); ++ i) {
+        for (int i = 0; i < _listContents.size(); ++i) {
             MJsonValue seek = _listContents.get(i);
-            if (seek._label == null){
+            if (seek._label == null) {
                 if (label == null) {
                     return i;
                 }
@@ -396,6 +494,7 @@ public class MJsonValue {
 
     /**
      * コンテンツから項目を削除
+     *
      * @param index 項目のインデックス
      */
     public void removeContentsAt(int index) {
@@ -404,39 +503,696 @@ public class MJsonValue {
         }
         _listContents.remove(index);
     }
-    
+
     /**
      * 簡易テスト
+     *
      * @param args 不使用
      */
     public static void main(String[] args) {
-        MJsonValue root = new MJsonValue(null);
+        MJsonValue parse1 = testLegacy();
+        String text1 = parse1.formatForDisplay();
+
+        MJsonValue parse2 = testNewType();
+        String text2 = parse2.formatForDisplay();
         
+        MJsonValue parse3 = new MJsonParser(text1)._treeRoot;
+        String text3 = parse3.formatForDisplay();
+
+        MJsonValue parse4 = new MJsonParser(text2)._treeRoot;
+        String text4 = parse4.formatForDisplay();
+
+        System.out.println(text1.equals(text2));
+        System.out.println(text1.equals(text3));
+        System.out.println(text1.equals(text4));
+        System.out.println(text2.equals(text3));
+        System.out.println(text2.equals(text4));
+        System.out.println(text3.equals(text4));
+
+        System.out.println(text1);
+        System.out.println(text4);
+    }
+    
+    /**
+     *
+     * @return
+     */
+    public static MJsonValue testLegacy() {
+        MJsonValue root = new MJsonValue(null);
+
         root.addToContentsStructure(new MJsonValue("abc", "ABC[]", true));
         root.addToContentsStructure(new MJsonValue("def", "DEF\\", true));
         root.addToContentsStructure(new MJsonValue("ghi", "GHI\"", true));
-        
+
         MJsonValue attributes = new MJsonValue("attributes");
         attributes.addToContentsStructure("name", "synthtarou", true);
         attributes.addToContentsStructure("age", "47", false);
         attributes.addToContentsStructure("gender", "man", true);
         attributes.addToContentsStructure("fine", "thank you", true);
-        
+
         root.addToContentsStructure(attributes);
-        
+
         MJsonValue routine = new MJsonValue("routine");
         routine.addToContentsArray("eat", true);
         routine.addToContentsArray("sleep", true);
         routine.addToContentsArray("work", true);
         routine.addToContentsArray("walk", true);
         routine.addToContentsArray("study", true);
-        
+
         root.addToContentsStructure(routine);
-        
-        System.out.println(root.formatForDisplay());
-        
-        MJsonParser parser = new MJsonParser(root.formatForDisplay());
-        System.out.println("***** COMPARE ***********");
-        System.out.println(parser._treeRoot.formatForDisplay());
+
+        return root;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public static MJsonValue testNewType() {
+        MJsonValue root = new MJsonValue(null);
+
+        MJsonValue.HelperForStructure rootSttucture = root.new HelperForStructure();
+        rootSttucture.addText("abc", "ABC[]");
+        rootSttucture.addText("def", "DEF\\");
+        rootSttucture.addText("ghi", "GHI\"");
+
+        MJsonValue.HelperForStructure structure2 = rootSttucture.addStructure("attributes");
+        structure2.addText("name", "synthtarou");
+        structure2.addNumber("age", 47);
+        structure2.addText("gender", "man");
+        structure2.addText("fine", "thank you");
+
+        MJsonValue.HelperForArray routine = rootSttucture.addArray("routine");
+        routine.addText("eat");
+        routine.addText("sleep");
+        routine.addText("work");
+        routine.addText("walk");
+        routine.addText("study");
+
+        return root;
+    }
+
+    /**
+     * 一般的なプログラムで用いるかたちでラベルを取得する
+     * @return アンエスケープされたラベル
+     */
+    public String helpGetLabel() {
+        if (_label == null || _label.equals("null")) {
+            return null;
+        }
+        return unescape(_label);
+    }
+
+    /**
+     * 一般的なプログラムで用いる数値でラベルを取得する
+     * @return 数値型のラベル
+     * @throws NumberFormatException 数値型ではなかった
+     */
+    public Number helpGetLabelAsNumber() throws NumberFormatException {
+        if (_label == null || _label.equals("null")) {
+            return null;
+        }
+        if (_label.startsWith("\"")) {
+            throw new NumberFormatException("label was " + _label);
+        }
+        NumberFormatException out = null;
+        try {
+            return Integer.parseInt(_label);
+        } catch (NumberFormatException ex) {
+
+        }
+        try {
+            return Double.parseDouble(_label);
+        } catch (NumberFormatException ex) {
+            out = ex;
+        }
+
+        throw out;
+    }
+
+    /**
+     * 一般的なプログラムで用いる文字列でラベルを取得する
+     * @param label エスケープされていない文字列か、null
+     */
+    public void helpSetLabel(String label) {
+        if (label == null) {
+            addToContentsValue("null", false);
+        } else {
+            addToContentsValue(label, true);
+        }
+    }
+
+    /**
+     * 一般的なプログラムで用いる数値でラベルを設定する
+     * @param label 設定する数値
+     */
+    public void helpSetLabelAsNumber(Number label) {
+        if (label == null) {
+            addToContentsValue("null", false);
+        } else {
+            addToContentsValue(String.valueOf(label), false);
+        }
+    }
+
+    /**
+     * 配列タイプをあつかうヘルパークラス
+     */
+    public class HelperForArray {
+
+        /**
+         * コンストラクタ
+         * MJsonValue value = ...;
+         * MJsonValue.HelperForArray helper = value.new HelperForArray();
+         * としてインスタンスを生成する
+         */
+        public HelperForArray() {
+            setContentsType(CONTENTS_TYPE_LIST);
+        }
+
+        /**
+         * ラベル文字列を取得する
+         * @return エスケープされていないラベル文字列
+         */
+        public String getLabel() {
+            return unescape(MJsonValue.this._label);
+        }
+
+        /**
+         * ラベル文字列を設定する
+         * @param label エスケープされていないラベル文字列
+         */
+        public void setLabel(String label) {
+            MJsonValue.this._label = MJsonValue.escape(label);
+        }
+
+        /**
+         * 配列の大きさを取得する
+         * @return 配列の大きさ
+         */
+        public int count() {
+            return contentsCount();
+        }
+
+        /**
+         * 配列から要素を取得する
+         * @param index　インデックス
+         * @return 要素
+         */
+        public MJsonValue getValue(int index) {
+            MJsonValue child = getContentsAt(index);
+            return child;
+        }
+
+        /**
+         * 配列から数を取得する 
+         * @param index インデックス
+         * @return 数値
+         */
+        public Number getNumber(int index) {
+            MJsonValue child = getContentsAt(index);
+            return child.helpGetLabelAsNumber();
+        }
+
+        /**
+         * 配列からエスケープされていない文字列を取得する 
+         * @param index インデックス
+         * @return 文字列
+         */
+        public String getText(int index) {
+            MJsonValue child = getContentsAt(index);
+            return child.helpGetLabel();
+        }
+
+        /**
+         * 配列にnullを追加する
+         */
+        public void addNull() {
+            MJsonValue.this.addToContentsArray("null", false);
+        }
+
+        /**
+         * 配列に数値を追加する
+         * @param value 数値
+         */
+        public void addNumber(Number value) {
+            MJsonValue.this.addToContentsArray(String.valueOf(value), false);
+        }
+
+        /**
+         * 配列に文字列をエスケープして追加する
+         * @param value エスケープされていない文字列
+         */
+        public void addText(String value) {
+            if (value == null) {
+                addNull();
+            } else {
+                MJsonValue.this.addToContentsArray(value, true);
+            }
+        }
+
+        /**
+         * 配列にMJsonValue型を追加する
+         * @param value 追加するMJsonValue
+         */
+        public void addValue(MJsonValue value) {
+            if (value == null) {
+                addNull();
+            } else {
+                MJsonValue.this.addToContentsArray(value);
+            }
+        }
+
+        /**
+         * 配列を追加して、HelperForArray型で取得する
+         * @param label ラベル
+         * @return 追加されたHelperForArray型
+         */
+        public HelperForArray addArray(String label) {
+            MJsonValue value = new MJsonValue(label);
+            addValue(value);
+            return value.new HelperForArray();
+        }
+
+        /**
+         * 構造体を追加して、HelperForStructure型で取得する
+         * @param label ラベル
+         * @return 追加されたHelperForStructure型
+         */
+        public HelperForStructure addStructure(String label) {
+            MJsonValue value = new MJsonValue(label);
+            addValue(value);
+            return value.new HelperForStructure();
+        }
+
+        /**
+         * 構造体を検索して、HelperForStructure型で取得する
+         * @param index インデックス
+         * @return HelperForStructure型
+         */
+        public HelperForStructure findStructure(int index) {
+            MJsonValue value = getContentsAt(index);
+            return value.new HelperForStructure();
+        }
+
+        /**
+         * 配列を検索して、HelperForStructure型で取得する
+         * @param index インデックス
+         * @return HelperForStructure型
+         */
+        public HelperForArray findArray(int index) {
+            MJsonValue value = getContentsAt(index);
+            return value.new HelperForArray();
+        }
+    }
+
+    /**
+     * 構造体タイプをあつかうヘルパークラス
+     */
+    public class HelperForStructure {
+
+        /**
+         * コンストラクタ
+         * MJsonValue value = ...;
+         * MJsonValue.HelperForSturucture helper = value.new HelperForSturucture();
+         * としてインスタンスを生成する
+         */
+        public HelperForStructure() {
+            setContentsType(CONTENTS_TYPE_STRUCTURE);
+        }
+
+        /**
+         * ラベル文字列を取得する
+         * @return エスケープされていないラベル文字列
+         */
+        public String getLabel() {
+            return unescape(MJsonValue.this._label);
+        }
+
+        /**
+         * ラベル文字列を設定する
+         * @param label エスケープされていないラベル文字列
+         */
+        public void setLabel(String label) {
+            MJsonValue.this._label = MJsonValue.escape(label);
+        }
+
+        /**
+         * 構造体の大きさを取得する
+         * @return 配列の大きさ
+         */
+        public int count() {
+            return contentsCount();
+        }
+
+        /**
+         *　インデックスのラベル名を取得する
+         * @param index インデックス
+         * @return ラベル名
+         */
+        public String getName(int index) {
+            MJsonValue child = getContentsAt(index);
+            return child.helpGetLabel();
+        }
+
+        /**
+         * 配列から要素を取得する
+         * @param index　インデックス
+         * @return 要素
+         */
+        public MJsonValue getValue(int index) {
+            MJsonValue child = getContentsAt(index);
+            return child;
+        }
+
+        /**
+         * 配列から数を取得する 
+         * @param index インデックス
+         * @return 数値
+         */
+        public Number getNumber(int index) {
+            MJsonValue child = getContentsAt(index);
+            return child.helpGetLabelAsNumber();
+        }
+
+        /**
+         * 配列をラベル名で探索する
+         * @param label ラベル名
+         * @return 見つかったインデックス、見つからない場合-1
+         */
+        public int findByNameLabel(String label) {
+            String escaped = label == null ? "null" : escape(label);
+            for (int i = 0; i < MJsonValue.this.contentsCount(); ++i) {
+                MJsonValue value = MJsonValue.this.getContentsAt(i);
+                if (escaped.equals(value._label)) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        /**
+         * 配列を巣内で探索する
+         * @param number 数値型のラベル
+         * @return 見つかったインデックス、見つからない場合-1
+         */
+        public int findByNumberLabel(Number number) {
+            String label = number == null ? "null" : String.valueOf(number);
+            for (int i = 0; i < MJsonValue.this.contentsCount(); ++i) {
+                MJsonValue value = MJsonValue.this.getContentsAt(i);
+                if (label.equals(value._label)) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        /**
+         * 構造体から要素を取得する
+         * @param name 文字列型のラベル
+         * @return 要素
+         */
+        public MJsonValue getValue(String name) {
+            int index = findByNameLabel(name);
+            if (index < 0) {
+                return null;
+            }
+            MJsonValue child = getContentsAt(index);
+            return child;
+        }
+
+        /**
+         * ラベルから文字列を取得する
+         * @param name ラベル文字列
+         * @return みつかった文字列
+         */
+        public String getText(String name) {
+            MJsonValue child = getValue(name);
+            return child != null ? child.helpGetLabel() : null;
+        }
+
+        /**
+         *
+         * ラベルから数値を取得する
+         * @param name ラベル文字列
+         * @return みつかった数値
+         */
+        public Number getNumber(String name) {
+            MJsonValue child = getValue(name);
+            return child != null ? child.helpGetLabelAsNumber() : null;
+        }
+
+        /**
+         * 配列にnullを追加する
+         * @param name ラベル
+         */
+        public void addNull(String name) {
+            MJsonValue.this.addToContentsStructure(name, "null", false);
+        }
+
+        /**
+         * 配列に数値を追加する
+         * @param name ラベル
+         * @param value 数値
+         */
+        public void addNumber(String name, Number value) {
+            MJsonValue.this.addToContentsStructure(name, String.valueOf(value), false);
+        }
+
+        /**
+         * 配列に文字列をエスケープして追加する
+         * @param name ラベル
+         * @param value エスケープされていない文字列
+         */
+        public void addText(String name, String value) {
+            if (value == null) {
+                addNull(name);
+            } else {
+                MJsonValue.this.addToContentsStructure(name, value, true);
+            }
+        }
+
+        /**
+         * 配列にMJsonValue型を追加する
+         * @param name 名前
+         * @param value 追加するMJsonValue
+         */
+        public void addValue(String name, MJsonValue value) {
+            if (value == null) {
+                addNull(name);
+            } else {
+                MJsonValue temp = new MJsonValue(name);
+                temp.addToContentsValue(value);
+                MJsonValue.this.addToContentsStructure(temp);
+            }
+        }
+
+        /**
+         * 配列を追加して、HelperForArray型で取得する
+         * @param label ラベル
+         * @return 追加されたHelperForArray型
+         */
+        public HelperForArray addArray(String label) {
+            MJsonValue value = new MJsonValue(label);
+            addToContentsStructure(value);
+            return value.new HelperForArray();
+        }
+
+        /**
+         * 構造体を追加して、HelperForStructure型で取得する
+         * @param label ラベル
+         * @return 追加されたHelperForStructure型
+         */
+        public HelperForStructure addStructure(String label) {
+            MJsonValue value = new MJsonValue(label);
+            addToContentsStructure(value);
+            return value.new HelperForStructure();
+        }
+
+        /**
+         * 構造体を検索して、HelperForStructure型で取得する
+         * @param label ラベル
+         * @return 追加されたHelperForStructure型
+         */
+        public HelperForStructure findStructure(String label) {
+            int index = findByNameLabel(label);
+            if (index < 0) {
+                return null;
+            }
+            MJsonValue value = getContentsAt(index);
+            return value.new HelperForStructure();
+        }
+
+        /**
+         * 配列を検索して、HelperForStructure型で取得する
+         * @param label ラベル
+         * @return 追加されたHelperForStructure型
+         */
+        public HelperForArray findArray(String label) {
+            int index = findByNameLabel(label);
+            if (index < 0) {
+                return null;
+            }
+            MJsonValue value = getContentsAt(index);
+            return value.new HelperForArray();
+        }
+    }
+
+    /**
+     * json用のエスケープシーケンスで、エスケープする
+     *
+     * @param unescaped　エスケープされてない文字列を渡す
+     * @return エスケープされた文字列
+     */
+    public static String escape(String unescaped) {
+        int len = unescaped.length();
+        int pos = 0;
+        StringBuffer buffer = new StringBuffer();
+        try {
+            while (pos < len) {
+                char ch = unescaped.charAt(pos++);
+                switch (ch) {
+                    case '"':
+                        buffer.append("\\\"");
+                        break;
+                    case '\\':
+                        buffer.append("\\\\");
+                        break;
+                    case '/':
+                        buffer.append("/");
+                        break;
+                    case '\b':
+                        buffer.append("\\b");
+                        break;
+                    case '\f':
+                        buffer.append("\\f");
+                        break;
+                    case '\n':
+                        buffer.append("\\n");
+                        break;
+                    case '\r':
+                        buffer.append("\\r");
+                        break;
+                    case '\t':
+                        buffer.append("\\t");
+                        break;
+                    default:
+                        if (ch >= 0 && ch <= 0x1f) {
+                            buffer.append("\\u");
+                            String hex = Integer.toHexString(ch);
+                            while (hex.length() < 4) {
+                                hex = " " + hex;
+                            }
+                            buffer.append(hex);
+                            break;
+                        }
+                        buffer.append(ch);
+                        break;
+                }
+            }
+        } catch (ArrayIndexOutOfBoundsException ex) {
+            ex.printStackTrace();;
+        }
+        return "\"" + buffer.toString() + "\"";
+    }
+
+    /**
+     * json用のエスケープシーケンスで、アンエスケープする
+     *
+     * @param escaped　エスケープされている文字列を渡す
+     * @return アンエスケープ（解除）された文字列
+     */
+    public static String unescape(String escaped) {
+        int len = escaped.length();
+        int pos = 0;
+        StringBuffer buffer = new StringBuffer();
+        boolean inDQuote = false;
+        try {
+            while (pos < len) {
+                int ch = escaped.charAt(pos);
+                if (!inDQuote) {
+                    if (ch == '"') {
+                        inDQuote = true;
+                        pos++;
+                        continue;
+                    }
+                    buffer.append((char) ch);
+                    pos++;
+                    continue;
+                } else {
+                    if (ch == '\"') {
+                        inDQuote = false;
+                        pos++;
+                        continue;
+                    } else if (ch == '\\') {
+                        if (pos + 1 >= len) {
+                            throw new IllegalArgumentException("pos +1 >= len when detected \\");
+                        }
+                        int ch1 = escaped.charAt(pos + 1);
+                        switch (ch1) {
+                            case '"':
+                                buffer.append("\"");
+                                pos += 2;
+                                break;
+                            case '\\':
+                                buffer.append("\\");
+                                pos += 2;
+                                break;
+                            case '/':
+                                buffer.append("/");
+                                pos += 2;
+                                break;
+                            case 'b': //バックスぺース
+                                buffer.append("\n");
+                                pos += 2;
+                                break;
+                            case 'f': //改ページ
+                                buffer.append("\f");
+                                pos += 2;
+                                break;
+                            case 'n': //改行
+                                buffer.append("\n");
+                                pos += 2;
+                                break;
+                            case 'r': //リターン
+                                pos += 2;
+                                break;
+                            case 't': //タブ
+                                buffer.append("\t");
+                                pos += 2;
+                                break;
+                            case 'u': //文字コード (4桁) 0000~001f
+                                try {
+                                if (pos + 6 <= len) {
+                                    String hex = escaped.substring(pos + 2, pos + 6);
+                                    int built = Integer.parseInt(hex, 16);
+                                    buffer.append(Character.valueOf((char) built));
+                                    pos += 6;
+                                    continue;
+                                } else {
+                                }
+                            } catch (NumberFormatException ex) {
+                            }
+                            buffer.append('\\');
+                            buffer.append(Character.valueOf((char) ch1));
+                            pos += 2;
+                            break;
+                            default:
+                                buffer.append('\\');
+                                buffer.append(Character.valueOf((char) ch1));
+                                pos += 2;
+                                break;
+                        }
+                        continue;
+                    } else {
+                        buffer.append((char) ch);
+                        pos++;
+                    }
+                }
+
+            }
+        } catch (ArrayIndexOutOfBoundsException ex) {
+            ex.printStackTrace();;
+        }
+        return buffer.toString();
     }
 }

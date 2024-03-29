@@ -40,6 +40,7 @@ public class MJsonParser {
     /**
      * ファイルからインスタンスを生成する。パースまでやる
      * @param file jsonファイル
+     * @throws java.io.IOException
      * @throws IOException　Fileエラー
      */
     public MJsonParser(File file) throws IOException {
@@ -59,6 +60,7 @@ public class MJsonParser {
     /**
      * あとからファイルをパースする
      * @param file jsonファイル
+     * @throws java.io.IOException
      * @throws IOException　Fileエラー
      */
     public void parse(File file) throws IOException {
@@ -67,7 +69,7 @@ public class MJsonParser {
     }
 
     ArrayList<String> _parse1 = null;
-    static boolean g_dodebug = false;
+    static boolean g_dodebug = true;
 
     /**
      * MJsonReaderを指定してパースする、ほかのparseメソッドから呼ばれる
@@ -89,11 +91,11 @@ public class MJsonParser {
                 if (original.startsWith("\"")) {
                     //ok
                 } else {
-                    escaped1 = MJsonReader.encape(original);
+                    escaped1 = MJsonValue.escape(original);
                 }
-                String unescaped1 = MJsonReader.unescape(escaped1);
-                String escaped2 = MJsonReader.encape(unescaped1);
-                String unescaped2 = MJsonReader.unescape(escaped2);
+                String unescaped1 = MJsonValue.unescape(escaped1);
+                String escaped2 = MJsonValue.escape(unescaped1);
+                String unescaped2 = MJsonValue.unescape(escaped2);
 
                 if (escaped1.equals(escaped2) == false || unescaped2.equals(unescaped1) == false) {
                     System.out.println("escaped1[" + escaped1 + "]");
@@ -120,7 +122,6 @@ public class MJsonParser {
     }
 
     MJsonValue _treeRoot;
-
     int currentReading = MJsonValue.TYPE_START_STRUCTURE;
 
     /**
@@ -245,11 +246,10 @@ public class MJsonParser {
         while (true) {
             if (checkQueue(queue, MJsonValue.TYPE_END_LIST)) {
                 if (result._listContents == null) {
-                    result._contentsTypeArray = true;
+                    result.setContentsType(MJsonValue.CONTENTS_TYPE_LIST);
                 }
                 queue.removeFirst();
                 if (commaFin) {
-                    System.out.println("comma fin ******");
                     result.addToContentsArray(new MJsonValue(""));
                 }
                 break;
@@ -284,7 +284,7 @@ public class MJsonParser {
         while (true) {
             if (checkQueue(queue, MJsonValue.TYPE_END_STRUCTURE)) {
                 if (result._listContents == null) {
-                    result._contentsTypeStructure = true;
+                    result.setContentsType(MJsonValue.CONTENTS_TYPE_STRUCTURE);
                 }
                 queue.removeFirst();
                 if (commaFin) {
@@ -420,7 +420,7 @@ public class MJsonParser {
                 System.out.println("t1 = " + parser2._parse1);
             }
             else {
-                System.out.println("t1 = t2");
+                //System.out.println("t1 = t2");
             }
         }
     }
@@ -470,5 +470,4 @@ public class MJsonParser {
             }
         }
     }
-
 }

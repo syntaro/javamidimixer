@@ -188,163 +188,6 @@ public class MJsonReader {
     }
 
     /**
-     * json用のエスケープシーケンスで、エスケープする
-     * @param unescaped　エスケープされてない文字列を渡す
-     * @return エスケープされた文字列
-     */
-    public static String encape(String unescaped) {
-        int len = unescaped.length();
-        int pos = 0;
-        StringBuffer buffer = new StringBuffer();
-        try {
-            while (pos < len) {
-                char ch = unescaped.charAt(pos ++);
-                switch(ch) {
-                    case '"':
-                        buffer.append("\\\"");
-                        break;
-                    case '\\':
-                        buffer.append("\\\\");
-                        break;
-                    case '/':
-                        buffer.append("/");
-                        break;
-                    case '\b':
-                        buffer.append("\\b");
-                        break;
-                    case '\f':
-                        buffer.append("\\f");
-                        break;
-                    case '\n':
-                        buffer.append("\\n");
-                        break;
-                    case '\r':
-                        buffer.append("\\r");
-                        break;
-                    case '\t':
-                        buffer.append("\\t");
-                        break;
-                    default:
-                        if (ch >= 0 && ch <= 0x1f) {
-                           buffer.append("\\u");
-                           String hex = Integer.toHexString(ch);
-                           while (hex.length() < 4) {
-                                hex = " "  + hex;
-                           }
-                           buffer.append(hex);
-                           break;
-                        }
-                        buffer.append(ch);
-                        break;
-                }
-            }
-        } catch (ArrayIndexOutOfBoundsException ex) {
-            ex.printStackTrace();;
-        }
-        return "\"" + buffer.toString() + "\"";
-    }
-    
-    /**
-     * json用のエスケープシーケンスで、アンエスケープする
-     * @param escaped　エスケープされている文字列を渡す
-     * @return アンエスケープ（解除）された文字列
-     */
-    public static String unescape(String escaped) {
-        int len = escaped.length();
-        int pos = 0;
-        StringBuffer buffer = new StringBuffer();
-        boolean inDQuote = false;
-        try {
-            while (pos < len) {
-                int ch = escaped.charAt(pos);
-                if (!inDQuote) {
-                    if (ch == '"') {
-                        inDQuote = true;
-                        pos++;
-                        continue;
-                    }
-                    buffer.append((char) ch);
-                    pos ++;
-                    continue;
-                } else {
-                    if (ch == '\"') {
-                        inDQuote = false;
-                        pos ++;
-                        continue;
-                    }else if (ch == '\\') {
-                        if (pos + 1 >= len) {
-                            throw new IllegalArgumentException("pos +1 >= len when detected \\");
-                        }
-                        int ch1 = escaped.charAt(pos + 1);
-                        switch (ch1) {
-                            case '"':
-                                buffer.append("\"");
-                                pos += 2;
-                                break;
-                            case '\\':
-                                buffer.append("\\");
-                                pos += 2;
-                                break;
-                            case '/':
-                                buffer.append("/");
-                                pos += 2;
-                                break;
-                            case 'b': //バックスぺース
-                                buffer.append("\n");
-                                pos += 2;
-                                break;
-                            case 'f': //改ページ
-                                buffer.append("\f");
-                                pos += 2;
-                                break;
-                            case 'n': //改行
-                                buffer.append("\n");
-                                pos += 2;
-                                break;
-                            case 'r': //リターン
-                                pos += 2;
-                                break;
-                            case 't': //タブ
-                                buffer.append("\t");
-                                pos += 2;
-                                break;
-                            case 'u': //文字コード (4桁) 0000~001f
-                                try {
-                                    if (pos + 6 <= len) {
-                                        String hex = escaped.substring(pos + 2, pos + 6);
-                                        int built = Integer.parseInt(hex, 16);
-                                        buffer.append(Character.valueOf((char) built));
-                                        pos += 6;
-                                        continue;
-                                    } else {
-                                    }
-                                } catch (NumberFormatException ex) {
-                                }
-                                buffer.append('\\');
-                                buffer.append(Character.valueOf((char)ch1));
-                                pos += 2;
-                                break;
-                            default:
-                                buffer.append('\\');
-                                buffer.append(Character.valueOf((char)ch1));
-                                pos += 2;
-                                break;
-                        }
-                        continue;
-                    } else {
-                        buffer.append((char) ch);
-                        pos ++;
-                    }
-                }
-
-            }
-        } catch (ArrayIndexOutOfBoundsException ex) {
-            ex.printStackTrace();;
-        }
-        return buffer.toString();
-    }
-
-    /**
      * ファイルをタイプのつく文字列に分解して1件づつ取得する
      * @return パーツの文字列
      */
@@ -424,15 +267,7 @@ public class MJsonReader {
                     skip(1);
                     continue;
                 }
-                char[] separatorKind = {',', '[', ']', '{', '}', ':'};
-                boolean hit = false;
-                for (int i = 0; i < separatorKind.length; ++ i) {
-                    if (ch == separatorKind[i]) {
-                        hit = true;
-                        break;
-                    }
-                } 
-                if (hit) {
+                if (",[]{}:".indexOf(ch) >= 0) {
                     if (text.length() == 0) {
                         skip(1);
                         text.append((char) ch);
@@ -441,7 +276,7 @@ public class MJsonReader {
                         break;
                     }
                 }
-                if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n') {
+                if (" \t\r\n".indexOf(ch) >= 0) {
                     skip(1);
                     if (text.length() > 0) {
                         break;
