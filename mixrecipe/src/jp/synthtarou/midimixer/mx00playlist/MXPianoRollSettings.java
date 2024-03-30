@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 yaman
+ * Copyright (C) 2024 Syntarou YOSHIDA
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,22 +16,21 @@
  */
 package jp.synthtarou.midimixer.mx00playlist;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
-import jp.synthtarou.midimixer.libs.navigator.MXPopupForList;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.libs.navigator.MXPopupForList;
 
 /**
  *
- * @author yaman
+ * @author Syntarou YOSHIDA
  */
 public class MXPianoRollSettings extends javax.swing.JPanel {
-    MNamedValueList<Integer> listColor = new MNamedValueList();
-    MNamedValueList<Integer> listMagin = new MNamedValueList();
-    MNamedValueList<Integer> listSpan = new MNamedValueList();
-    MNamedValueList<Integer> listTiming = new MNamedValueList();
+    MXNamedObjectList<Integer> listColor = new MXNamedObjectList();
+    MXNamedObjectList<Integer> listMagin = new MXNamedObjectList();
+    MXNamedObjectList<Integer> listSpan = new MXNamedObjectList();
+    MXNamedObjectList<Integer> listTiming = new MXNamedObjectList();
     MX00Process _process;
 
     /**
@@ -64,8 +63,8 @@ public class MXPianoRollSettings extends javax.swing.JPanel {
             @Override
             public void approvedIndex(int selectedIndex) {
                 int value = listColor.valueOfIndex(selectedIndex);
-                _process._structure._focusChannel = value;
-                jTextFieldColor.setText(listColor.nameOfValue(_process._structure._focusChannel));
+                _process._viewData._focusChannel = value;
+                jTextFieldColor.setText(listColor.nameOfValue(_process._viewData._focusChannel));
                 _process._view._pianoRollRoll.setFocusChannel(value);
             }
         };
@@ -73,8 +72,8 @@ public class MXPianoRollSettings extends javax.swing.JPanel {
             @Override
             public void approvedIndex(int selectedIndex) {
                 int value = listMagin.valueOfIndex(selectedIndex);
-                _process._structure._soundMargin = value;
-                jTextFieldMargin.setText(listMagin.nameOfValue((int)_process._structure._soundMargin));
+                _process._viewData._soundMargin = value;
+                jTextFieldMargin.setText(listMagin.nameOfValue((int)_process._viewData._soundMargin));
                 _process._view._pianoRollRoll.setSoundMargin(value);
             }
         };
@@ -82,8 +81,8 @@ public class MXPianoRollSettings extends javax.swing.JPanel {
             @Override
             public void approvedIndex(int selectedIndex) {
                 int value = listSpan.valueOfIndex(selectedIndex);
-                _process._structure._soundSpan = value;
-                jTextFieldSpan.setText(listSpan.nameOfValue((int)_process._structure._soundSpan));
+                _process._viewData._soundSpan = value;
+                jTextFieldSpan.setText(listSpan.nameOfValue((int)_process._viewData._soundSpan));
                 _process._view._pianoRollRoll.setSoundSpan(value);
             }
         };
@@ -92,26 +91,26 @@ public class MXPianoRollSettings extends javax.swing.JPanel {
             @Override
             public void approvedIndex(int selectedIndex) {
                 int value = listTiming.valueOfIndex(selectedIndex);
-                _process._structure._showMeasure = value > 0;
-                jTextFieldShowTiming.setText(listTiming.nameOfValue(Integer.valueOf(_process._structure._showMeasure ? 1 : 0)));
+                _process._viewData._showMeasure = value > 0;
+                jTextFieldShowTiming.setText(listTiming.nameOfValue(Integer.valueOf(_process._viewData._showMeasure ? 1 : 0)));
                 _process._view._pianoRollRoll.setShowMeasure(value > 0);
             }
         };
         this.setSize(new Dimension(350, 150));
-        showStructureFirst();
+        showDataFirst();
     }
 
-    public void showStructureFirst() {
+    public void showDataFirst() {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                jTextFieldColor.setText(listColor.nameOfValue(_process._structure._focusChannel));
-                jTextFieldMargin.setText(listMagin.nameOfValue((int)_process._structure._soundMargin));
-                jTextFieldSpan.setText(listSpan.nameOfValue((int)_process._structure._soundSpan));
-                jTextFieldShowTiming.setText(listTiming.nameOfValue(Integer.valueOf(_process._structure._showMeasure ? 1 : 0)));
-                _process._view._pianoRollRoll._showMeasure = _process._structure._showMeasure;
-                _process._view._pianoRollRoll._soundMargin = _process._structure._soundMargin;
-                _process._view._pianoRollRoll.setSoundSpan(_process._structure._soundSpan);
+                jTextFieldColor.setText(listColor.nameOfValue(_process._viewData._focusChannel));
+                jTextFieldMargin.setText(listMagin.nameOfValue((int)_process._viewData._soundMargin));
+                jTextFieldSpan.setText(listSpan.nameOfValue((int)_process._viewData._soundSpan));
+                jTextFieldShowTiming.setText(listTiming.nameOfValue(Integer.valueOf(_process._viewData._showMeasure ? 1 : 0)));
+                _process._view._pianoRollRoll._showMeasure = _process._viewData._showMeasure;
+                _process._view._pianoRollRoll._soundMargin = _process._viewData._soundMargin;
+                _process._view._pianoRollRoll.setSoundSpan(_process._viewData._soundSpan);
             }
         });
     }

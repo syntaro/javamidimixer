@@ -19,11 +19,11 @@ package jp.synthtarou.midimixer.ccxml.xml;
 import jp.synthtarou.midimixer.ccxml.ui.EditorForXMLTag;
 import java.awt.Dimension;
 import javax.swing.JOptionPane;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
-import jp.synthtarou.midimixer.libs.settings.MXSetting;
+import jp.synthtarou.libs.inifile.MXINIFile;
 
 /**
  *
@@ -32,18 +32,18 @@ import jp.synthtarou.midimixer.libs.settings.MXSetting;
 public class CXXMLManagerPanel extends javax.swing.JPanel {
 
     public static void main(String[] args) {
-        MXMIDIInManager.getManager().initWithSetting();
-        MXMIDIOutManager.getManager().initWithSetting();
+        MXMIDIInManager.getManager().readINIFile(null);
+        MXMIDIOutManager.getManager().readINIFile(null);
 
         CXXMLManagerPanel panel = new CXXMLManagerPanel();
         MXUtil.showAsDialog(null, panel, "Test");
 
-        MXSetting.saveEverySettingToFile();
+        MXINIFile.invokeAutoSave();
 
         System.exit(0);
     }
 
-    public MNamedValueList<CXFile> _listModel;
+    public MXNamedObjectList<CXFile> _listModel;
 
     /**
      * Creates new form CXFileListPanel
@@ -58,7 +58,7 @@ public class CXXMLManagerPanel extends javax.swing.JPanel {
     public void reloadListModel() {
         CXXMLManager manager = CXXMLManager.getInstance();
 
-        _listModel = new MNamedValueList<>();
+        _listModel = new MXNamedObjectList<>();
 
         for (CXFile file : manager._listLoaded) {
             _listModel.addNameAndValue(file._file.getName(), file);

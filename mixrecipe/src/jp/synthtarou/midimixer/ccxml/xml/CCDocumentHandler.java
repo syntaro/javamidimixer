@@ -21,7 +21,7 @@ import jp.synthtarou.midimixer.ccxml.rules.CCRuleManager;
 import jp.synthtarou.midimixer.ccxml.rules.CCRuleForTag;
 import java.util.LinkedList;
 import java.util.List;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXUtil;
 import org.w3c.dom.Node;
 import org.w3c.dom.UserDataHandler;
 import org.xml.sax.Attributes;

@@ -16,23 +16,25 @@
  */
 package jp.synthtarou.midimixer.mx12masterpiano;
 
-import javax.swing.JPanel;
+import java.io.File;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.libs.accordion.MXAccordion;
+import jp.synthtarou.libs.accordionui.MXAccordion;
+import jp.synthtarou.libs.json.MXJsonValue;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.settings.MXSetting;
-import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
+import jp.synthtarou.libs.inifile.MXINIFile;
+import jp.synthtarou.libs.json.MXJsonSupport;
+import jp.synthtarou.libs.inifile.MXINIFileSupport;
+import jp.synthtarou.libs.json.MXJsonFile;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX12Process extends MXReceiver<MXAccordion> implements MXSettingTarget {
+public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSupport, MXJsonSupport  {
 
-    private MXSetting _setting;
     MX12MasterkeysPanel _view;
     MXAccordion _accordion;
     MXNoteOffWatcher _noteOff;
@@ -49,8 +51,6 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXSettingTar
     
     public MX12Process() {
         _construction = true;
-        _setting = new MXSetting("VirtualKey");
-        _setting.setTarget(this);
         _noteOff = new MXNoteOffWatcher();
         _overwriteInputChannel = false;
         _construction = false;
@@ -62,52 +62,56 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXSettingTar
     }
 
     @Override
-    public MXSetting getSettings() {
-        return _setting;
+    public MXINIFile prepareINIFile(File custom) {
+        if (custom == null) {
+            custom = MXINIFile.pathOf("VirtualKey");
+        }
+        MXINIFile setting = new MXINIFile(custom, this);
+        setting.register("outputReceiver");
+        setting.register("outputPort");
+        setting.register("outputChannel");
+        setting.register("overwriteControllerChannel");
+        setting.register("outputVelocity");
+        setting.register("acceptThisPanelSignal");
+        setting.register("acceptInputPanelSignal");
+        return setting;
     }
 
     @Override
-    public void prepareSettingFields() {
-        _setting.register("outputReceiver");
-        _setting.register("outputPort");
-        _setting.register("outputChannel");
-        _setting.register("overwriteControllerChannel");
-        _setting.register("outputVelocity");
-        _setting.register("acceptThisPanelSignal");
-        _setting.register("acceptInputPanelSignal");
-    }
-
-    @Override
-    public void afterReadSettingFile() {
-        String receiverName = _setting.getSetting("outputReceiver");
+    public void readINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
+        setting.readINIFile();
+        String receiverName = setting.getSetting("outputReceiver");
         if (receiverName != null) {
             int x = MXMain.getMain().getReceiverList().indexOfName(receiverName);
             if (x >= 0) {
                 setNextReceiver(MXMain.getMain().getReceiverList().get(x)._value);
             }
         }
-        setOverwriteInputChannel(_setting.getSettingAsInt("overwriteControllerChannel", 0) != 0);        
-        setMousePort(_setting.getSettingAsInt("outputPort", 0));
-        setMouseChannel(_setting.getSettingAsInt("outputChannel", 0));
-        setMouseVelocity(_setting.getSettingAsInt("outputVelocity", 100));
-        _acceptThisPageSignal = _setting.getSettingAsBoolean("acceptThisPanelSignal", true);
-        _acceptInputPanelSignal = _setting.getSettingAsBoolean("acceptInputPanelSignal", true);
+        setOverwriteInputChannel(setting.getSettingAsInt("overwriteControllerChannel", 0) != 0);        
+        setMousePort(setting.getSettingAsInt("outputPort", 0));
+        setMouseChannel(setting.getSettingAsInt("outputChannel", 0));
+        setMouseVelocity(setting.getSettingAsInt("outputVelocity", 100));
+        _acceptThisPageSignal = setting.getSettingAsBoolean("acceptThisPanelSignal", true);
+        _acceptInputPanelSignal = setting.getSettingAsBoolean("acceptInputPanelSignal", true);
         _view.updateViewForSettingChange();
     }
 
     @Override
-    public void beforeWriteSettingFile() {
+    public void writeINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
         if (getNextReceiver() == null) {
-            _setting.setSetting("outputReceiver", "");
+            setting.setSetting("outputReceiver", "");
         }else {
-            _setting.setSetting("outputReceiver", getNextReceiver().getReceiverName());
-        }
-        _setting.setSetting("outputPort", getMousePort());
-        _setting.setSetting("outputChannel", getMouseChannel());
-        _setting.setSetting("overwriteControllerChannel", isOverwriteInputChannel());
-        _setting.setSetting("outputVelocity", getMouseVelocity());
-        _setting.setSetting("acceptThisPanelSignal", _acceptThisPageSignal);
-        _setting.setSetting("acceptInputPanelSignal", _acceptInputPanelSignal);
+            setting.setSetting("outputReceiver", getNextReceiver().getReceiverName());
+        }   
+        setting.setSetting("outputPort", getMousePort());
+        setting.setSetting("outputChannel", getMouseChannel());
+        setting.setSetting("overwriteControllerChannel", isOverwriteInputChannel());
+        setting.setSetting("outputVelocity", getMouseVelocity());
+        setting.setSetting("acceptThisPanelSignal", _acceptThisPageSignal);
+        setting.setSetting("acceptInputPanelSignal", _acceptInputPanelSignal);
+        setting.writeINIFile();
     }
 
     @Override
@@ -119,7 +123,25 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXSettingTar
     public MXAccordion getReceiverView() {
         return _accordion;
     }
-   
+
+    @Override
+    public void readJSonfile(File custom) {
+        MXJsonFile file = new MXJsonFile(custom);
+        MXJsonValue value = file.readJsonFile();
+        if (value == null) {
+            value = new MXJsonValue(null);
+        }
+        //TODO
+    }
+
+    @Override
+    public void writeJsonFile(File custom) {
+        MXJsonValue value = new MXJsonValue(null);
+        
+        MXJsonFile file = new MXJsonFile(custom);
+        file.writeJsonFile(value);
+    }
+
     public class MyNoteOffHandler implements MXNoteOffWatcher.Handler {
         MXReceiver _receiver;
         

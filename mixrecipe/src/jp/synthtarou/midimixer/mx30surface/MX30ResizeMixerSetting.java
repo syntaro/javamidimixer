@@ -16,8 +16,8 @@
  */
 package jp.synthtarou.midimixer.mx30surface;
 
-import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.MXConfiguration;
+import jp.synthtarou.libs.MXUtil;
 
 /**
  *
@@ -25,9 +25,9 @@ import jp.synthtarou.midimixer.libs.common.MXUtil;
  */
 public class MX30ResizeMixerSetting extends javax.swing.JPanel {
 
-    boolean[] activeKnob = new boolean[MXAppConfig.CIRCLE_ROW_COUNT];
-    boolean[] activePad = new boolean[MXAppConfig.DRUM_ROW_COUNT];
-    int activeLines = MXAppConfig.SLIDER_COLUMN_COUNT;
+    boolean[] activeKnob = new boolean[MXConfiguration.CIRCLE_ROW_COUNT];
+    boolean[] activePad = new boolean[MXConfiguration.DRUM_ROW_COUNT];
+    int activeLines = MXConfiguration.SLIDER_COLUMN_COUNT;
     final MX30Process _process;
 
     /**
@@ -62,7 +62,7 @@ public class MX30ResizeMixerSetting extends javax.swing.JPanel {
                 break;
                 
         }
-        for (int r = 0; r < MXAppConfig.CIRCLE_ROW_COUNT; ++ r) {
+        for (int r = 0; r < MXConfiguration.CIRCLE_ROW_COUNT; ++ r) {
             activeKnob[r] = process.isKnobVisible(r);
             switch(r) {
                 case 0:
@@ -79,7 +79,7 @@ public class MX30ResizeMixerSetting extends javax.swing.JPanel {
                     break;
             }
         }
-        for (int r = 0; r < MXAppConfig.DRUM_ROW_COUNT; ++ r) {
+        for (int r = 0; r < MXConfiguration.DRUM_ROW_COUNT; ++ r) {
             activePad[r] = process.isPadVisible(r);
             switch(r) {
                 case 0:
@@ -282,7 +282,7 @@ public class MX30ResizeMixerSetting extends javax.swing.JPanel {
         activeKnob[2] = jCheckBoxKnob3.isSelected();
         activeKnob[3] = jCheckBoxKnob4.isSelected();
 
-        for (int r = 0; r < MXAppConfig.CIRCLE_ROW_COUNT; ++ r) {
+        for (int r = 0; r < MXConfiguration.CIRCLE_ROW_COUNT; ++ r) {
             _process.setKnobVisible(r, activeKnob[r]);
         }
         
@@ -290,7 +290,7 @@ public class MX30ResizeMixerSetting extends javax.swing.JPanel {
         activePad[1] = jCheckBoxPad2.isSelected();
         activePad[2] = jCheckBoxPad3.isSelected();
 
-        for (int r = 0; r < MXAppConfig.DRUM_ROW_COUNT; ++ r) {
+        for (int r = 0; r < MXConfiguration.DRUM_ROW_COUNT; ++ r) {
             _process.setPadVisible(r, activePad[r]);
         }
         

@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.mx30surface;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 

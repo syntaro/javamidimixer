@@ -17,15 +17,15 @@
 package jp.synthtarou.midimixer.ccxml.xml;
 
 import jp.synthtarou.midimixer.ccxml.rules.CCRuleForAttribute;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.namedobject.MXNamedObject;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class CXAttributes extends MNamedValueList<String> {
+public class CXAttributes extends MXNamedObjectList<String> {
     final CXNode _tag;
     
     public CXAttributes(CXNode tag) {
@@ -55,8 +55,8 @@ public class CXAttributes extends MNamedValueList<String> {
             super.addNameAndValue(attrName, value);
         }
         else {
-            MNamedValue<String> data = super.get(x);
-            MNamedValue<String> newData = new MNamedValue(attrName, value);
+            MXNamedObject<String> data = super.get(x);
+            MXNamedObject<String> newData = new MXNamedObject(attrName, value);
             super.set(x, newData);
         }
     }

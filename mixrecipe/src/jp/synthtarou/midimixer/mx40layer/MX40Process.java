@@ -22,27 +22,26 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JPanel;
-import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.settings.MXSetting;
-import jp.synthtarou.midimixer.libs.settings.MXSettingNode;
-import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
+import jp.synthtarou.libs.inifile.MXINIFile;
+import jp.synthtarou.libs.inifile.MXINIFileNode;
+import jp.synthtarou.libs.inifile.MXINIFileSupport;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX40Process extends MXReceiver<MX40View> implements MXSettingTarget {
+public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSupport {
     MX40View _view;
     MXVisitantRecorder _inputInfo;
     MXVisitantRecorder _outputInfo;
     MXNoteOffWatcher _noteOff;
-    MXSetting _setting;
     ArrayList<MX40Group> _groupList;
 
     public MX40Process() {
@@ -51,20 +50,16 @@ public class MX40Process extends MXReceiver<MX40View> implements MXSettingTarget
         _outputInfo = new MXVisitantRecorder();
         _noteOff = new MXNoteOffWatcher();
         _view = new MX40View(this);
-        _setting = new MXSetting("SoundLayer");
-        _setting.setTarget(this);
     }
-    
+
     public void exportSetting(File file) {
-        MXSetting setting2 = new MXSetting(file, false);
-        setting2.setTarget(this);
-        setting2.writeSettingFile();
+        MXINIFile setting2 = new MXINIFile(file, this);
+        setting2.writeINIFile();
     }
 
     public void importSetting(File file) {
-        MXSetting setting2 = new MXSetting(file, false);
-        setting2.setTarget(this);
-        setting2.readSettingFile();
+        MXINIFile setting2 = new MXINIFile(file, this);
+        setting2.readINIFile();
     }
     
     public void sendToNext(MXMessage message) {
@@ -86,7 +81,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXSettingTarget
             return;
         }
 
-        if (isUsingThisRecipeDX() == false) { 
+        if (isUsingThisRecipe() == false) { 
             sendToNext(message); 
             return; 
         }
@@ -178,7 +173,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXSettingTarget
     }
 
     public synchronized void resendProgramChange() {
-        for(int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
+        for(int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
             for(int channel = 0; channel < 16; ++ channel) {
                 MXVisitant info = _inputInfo.getVisitant(port, channel);
                 if (info.isHavingProgram()) {
@@ -198,58 +193,61 @@ public class MX40Process extends MXReceiver<MX40View> implements MXSettingTarget
     }
     
     @Override
-    public MXSetting getSettings() {
-        return _setting;
+    public MXINIFile prepareINIFile(File custom) {
+        if (custom == null) {
+            custom = MXINIFile.pathOf("SoundLayer");
+        }
+        MXINIFile setting = new MXINIFile(custom, this);
+
+        setting.register("Group[].title");
+        setting.register("Group[].isWatchPort");
+        setting.register("Group[].watchingPort");
+        setting.register("Group[].isWatchChannel");
+        setting.register("Group[].watchingCahnnel");
+        setting.register("Group[].isWatchBank");
+        setting.register("Group[].watchingBankMSB");
+        setting.register("Group[].watchingBankLSB");
+        setting.register("Group[].isWatchProgram");
+        setting.register("Group[].watchingProgram");
+        setting.register("Group[].rotateLayer");
+        setting.register("Group[].rotatePoly");
+
+        setting.register("Group[].Layer");
+        setting.register("Group[].Layer[]");
+        setting.register("Group[].Layer[].title");
+        setting.register("Group[].Layer[].disabled");
+        setting.register("Group[].Layer[].modPort");
+        setting.register("Group[].Layer[].fixedPort");
+        setting.register("Group[].Layer[].modChannel");
+        setting.register("Group[].Layer[].fixedChannel");
+        setting.register("Group[].Layer[].modBank");
+        setting.register("Group[].Layer[].fixedBankMSB");
+        setting.register("Group[].Layer[].fixedBankLSB");
+        setting.register("Group[].Layer[].modProgram");
+        setting.register("Group[].Layer[].fixedProgram");
+        setting.register("Group[].Layer[].modPan");
+        setting.register("Group[].Layer[].fixedPan");
+        setting.register("Group[].Layer[].adjustExpression");
+        setting.register("Group[].Layer[].adjustTranspose");
+        setting.register("Group[].Layer[].adjustVelocity");
+        setting.register("Group[].Layer[].sendKeyLowest");
+        setting.register("Group[].Layer[].sendKeyHighest");
+        setting.register("Group[].Layer[].sendVelocityLowest");
+        setting.register("Group[].Layer[].sendVelocityHighest");
+        return  setting;
     }
 
     @Override
-    public void prepareSettingFields() {
-        _setting.register("Group[].title");
-        _setting.register("Group[].isWatchPort");
-        _setting.register("Group[].watchingPort");
-        _setting.register("Group[].isWatchChannel");
-        _setting.register("Group[].watchingCahnnel");
-        _setting.register("Group[].isWatchBank");
-        _setting.register("Group[].watchingBankMSB");
-        _setting.register("Group[].watchingBankLSB");
-        _setting.register("Group[].isWatchProgram");
-        _setting.register("Group[].watchingProgram");
-        _setting.register("Group[].rotateLayer");
-        _setting.register("Group[].rotatePoly");
-
-        _setting.register("Group[].Layer");
-        _setting.register("Group[].Layer[]");
-        _setting.register("Group[].Layer[].title");
-        _setting.register("Group[].Layer[].disabled");
-        _setting.register("Group[].Layer[].modPort");
-        _setting.register("Group[].Layer[].fixedPort");
-        _setting.register("Group[].Layer[].modChannel");
-        _setting.register("Group[].Layer[].fixedChannel");
-        _setting.register("Group[].Layer[].modBank");
-        _setting.register("Group[].Layer[].fixedBankMSB");
-        _setting.register("Group[].Layer[].fixedBankLSB");
-        _setting.register("Group[].Layer[].modProgram");
-        _setting.register("Group[].Layer[].fixedProgram");
-        _setting.register("Group[].Layer[].modPan");
-        _setting.register("Group[].Layer[].fixedPan");
-        _setting.register("Group[].Layer[].adjustExpression");
-        _setting.register("Group[].Layer[].adjustTranspose");
-        _setting.register("Group[].Layer[].adjustVelocity");
-        _setting.register("Group[].Layer[].sendKeyLowest");
-        _setting.register("Group[].Layer[].sendKeyHighest");
-        _setting.register("Group[].Layer[].sendVelocityLowest");
-        _setting.register("Group[].Layer[].sendVelocityHighest");
-    }
-
-    @Override
-    public void afterReadSettingFile() {
+    public void readINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
+        setting.readINIFile();
         ArrayList<MX40Group> newGroupList = new ArrayList();
         this._groupList = newGroupList;
-        List<MXSettingNode> readingGroups = _setting.findByPath("Group");   
+        List<MXINIFileNode> readingGroups = setting.findByPath("Group");   
         if (readingGroups.size() > 0) {
             readingGroups = readingGroups.get(0).findNumbers();
         }
-        for (MXSettingNode node : readingGroups) {
+        for (MXINIFileNode node : readingGroups) {
             MX40Group group = new MX40Group(this);
             group._title = node.findNode("title")._value;
 
@@ -268,10 +266,10 @@ public class MX40Process extends MXReceiver<MX40View> implements MXSettingTarget
             group._watchingProgram = node.getSettingAsInt("watchingProgram", 0);
             newGroupList.add(group);
 
-            MXSettingNode layerNode = node.findNode("Layer");
+            MXINIFileNode layerNode = node.findNode("Layer");
             if (layerNode != null) {
-                List<MXSettingNode> numbers = layerNode.findNumbers();
-                for (MXSettingNode node2 : numbers) {
+                List<MXINIFileNode> numbers = layerNode.findNumbers();
+                for (MXINIFileNode node2 : numbers) {
                     MX40Layer layer = new MX40Layer(this, group);
                     layer._title = node2.getSetting("title");
                     layer._disabled  = node2.getSettingAsBoolean("disabled", false);
@@ -308,48 +306,49 @@ public class MX40Process extends MXReceiver<MX40View> implements MXSettingTarget
     }
 
     @Override
-    public void beforeWriteSettingFile() {
+    public void writeINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
         for (int i = 0; i < _groupList.size(); i ++){
             String prefixG = "Group[" + i + "]";
             MX40Group group = _groupList.get(i);
-            _setting.setSetting(prefixG + ".title", group._title);
-            _setting.setSetting(prefixG + ".isWatchPort", group._isWatchPort);
-            _setting.setSetting(prefixG + ".watchingPort", group._watchingPort);
-            _setting.setSetting(prefixG + ".isWatchChannel", group._isWatchChannel);
-            _setting.setSetting(prefixG + ".watchingCahnnel", group._watchingChannel);
-            _setting.setSetting(prefixG + ".isWatchBank", group._isWatchBank);
-            _setting.setSetting(prefixG + ".watchingBankMSB", group._watchingBankMSB);
-            _setting.setSetting(prefixG + ".watchingBankLSB", group._watchingBankLSB);
-            _setting.setSetting(prefixG + ".isWatchProgram", group._isWatchProgram);
-            _setting.setSetting(prefixG + ".watchingProgram", group._watchingProgram);
-            _setting.setSetting(prefixG + ".rotateLayer", group._isRotate);
-            _setting.setSetting(prefixG + ".rotatePoly", group._rotatePoly);
+            setting.setSetting(prefixG + ".title", group._title);
+            setting.setSetting(prefixG + ".isWatchPort", group._isWatchPort);
+            setting.setSetting(prefixG + ".watchingPort", group._watchingPort);
+            setting.setSetting(prefixG + ".isWatchChannel", group._isWatchChannel);
+            setting.setSetting(prefixG + ".watchingCahnnel", group._watchingChannel);
+            setting.setSetting(prefixG + ".isWatchBank", group._isWatchBank);
+            setting.setSetting(prefixG + ".watchingBankMSB", group._watchingBankMSB);
+            setting.setSetting(prefixG + ".watchingBankLSB", group._watchingBankLSB);
+            setting.setSetting(prefixG + ".isWatchProgram", group._isWatchProgram);
+            setting.setSetting(prefixG + ".watchingProgram", group._watchingProgram);
+            setting.setSetting(prefixG + ".rotateLayer", group._isRotate);
+            setting.setSetting(prefixG + ".rotatePoly", group._rotatePoly);
 
             for (int j = 0; j < group._listLayer.size(); ++ j) {
                 String prefixL = "Group[" + i + "].Layer[" + j + "]";
                 MX40Layer layer = group._listLayer.get(j);
-                _setting.setSetting(prefixL + ".title", layer._title);
-                _setting.setSetting(prefixL + ".disabled", layer._disabled);
-                _setting.setSetting(prefixL + ".modPort", layer._modPort);
-                _setting.setSetting(prefixL + ".fixedPort", layer._fixedPort);
-                _setting.setSetting(prefixL + ".modChannel", layer._modChannel);
-                _setting.setSetting(prefixL + ".fixedChannel", layer._fixedChannel);
-                _setting.setSetting(prefixL + ".modBank", layer._modBank);
-                _setting.setSetting(prefixL + ".fixedBankMSB", layer._fixedBankMSB);
-                _setting.setSetting(prefixL + ".fixedBankLSB", layer._fixedBankLSB);
-                _setting.setSetting(prefixL + ".modProgram", layer._modProgram);
-                _setting.setSetting(prefixL + ".fixedProgram",layer._fixedProgram);
-                _setting.setSetting(prefixL + ".modPan", layer._modPan);
-                _setting.setSetting(prefixL + ".fixedPan", layer._fixedPan);
-                _setting.setSetting(prefixL + ".adjustExpression", layer._adjustExpression);
-                _setting.setSetting(prefixL + ".adjustTranspose", layer._adjustTranspose);
-                _setting.setSetting(prefixL + ".adjustVelocity", layer._adjustVelocity);
-                _setting.setSetting(prefixL + ".sendKeyLowest", layer.getAcceptKeyLowest());
-                _setting.setSetting(prefixL + ".sendKeyHighest", layer.getAcceptKeyHighest());
-                _setting.setSetting(prefixL + ".sendVelocityLowest", layer.getAcceptVelocityLowest());
-                _setting.setSetting(prefixL + ".sendVelocityHighest", layer.getAcceptVelocityHighest());
+                setting.setSetting(prefixL + ".title", layer._title);
+                setting.setSetting(prefixL + ".disabled", layer._disabled);
+                setting.setSetting(prefixL + ".modPort", layer._modPort);
+                setting.setSetting(prefixL + ".fixedPort", layer._fixedPort);
+                setting.setSetting(prefixL + ".modChannel", layer._modChannel);
+                setting.setSetting(prefixL + ".fixedChannel", layer._fixedChannel);
+                setting.setSetting(prefixL + ".modBank", layer._modBank);
+                setting.setSetting(prefixL + ".fixedBankMSB", layer._fixedBankMSB);
+                setting.setSetting(prefixL + ".fixedBankLSB", layer._fixedBankLSB);
+                setting.setSetting(prefixL + ".modProgram", layer._modProgram);
+                setting.setSetting(prefixL + ".fixedProgram",layer._fixedProgram);
+                setting.setSetting(prefixL + ".modPan", layer._modPan);
+                setting.setSetting(prefixL + ".fixedPan", layer._fixedPan);
+                setting.setSetting(prefixL + ".adjustExpression", layer._adjustExpression);
+                setting.setSetting(prefixL + ".adjustTranspose", layer._adjustTranspose);
+                setting.setSetting(prefixL + ".adjustVelocity", layer._adjustVelocity);
+                setting.setSetting(prefixL + ".sendKeyLowest", layer.getAcceptKeyLowest());
+                setting.setSetting(prefixL + ".sendKeyHighest", layer.getAcceptKeyHighest());
+                setting.setSetting(prefixL + ".sendVelocityLowest", layer.getAcceptVelocityLowest());
+                setting.setSetting(prefixL + ".sendVelocityHighest", layer.getAcceptVelocityHighest());
             }
         }
-//        resendProgramChange();
+        setting.writeINIFile();
     }
 }

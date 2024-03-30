@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXUtil;
 
 /**
  *

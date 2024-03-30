@@ -31,21 +31,21 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
 import jp.synthtarou.midimixer.ccxml.ui.PickerForControlChange;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.MXRangedValue;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.MXRangedValue;
+import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueLsitFactory;
-import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
+import jp.synthtarou.libs.navigator.legacy.INavigator;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
-import jp.synthtarou.midimixer.libs.navigator.MXPopup;
-import jp.synthtarou.midimixer.libs.navigator.MXPopupForList;
-import jp.synthtarou.midimixer.libs.navigator.MXPopupForNumber;
-import jp.synthtarou.midimixer.libs.navigator.MXPopupForText;
-import jp.synthtarou.midimixer.libs.navigator.legacy.NavigatorForNote;
+import jp.synthtarou.libs.navigator.MXPopup;
+import jp.synthtarou.libs.navigator.MXPopupForList;
+import jp.synthtarou.libs.navigator.MXPopupForNumber;
+import jp.synthtarou.libs.navigator.MXPopupForText;
+import jp.synthtarou.libs.navigator.legacy.NavigatorForNote;
 import jp.synthtarou.midimixer.mx30surface.MX32MixerProcess;
 
 /**
@@ -135,7 +135,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                         }
                     }
                 } else {
-                    MNamedValueList<Integer> listForGate = _status.safeGateTable();
+                    MXNamedObjectList<Integer> listForGate = _status.safeGateTable();
                     MXPopup sub = new MXPopupForList<Integer>(null, listForGate) {
                         @Override
                         public void approvedIndex(int selectedIndex) {
@@ -253,14 +253,14 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                 String name = ccm._name;
                 String memo = ccm._memo;
                 MXRangedValue gate = ccm.getParsedGate();
-                MNamedValueList<Integer> gateTable = ccm.getParsedGateTable();
+                MXNamedObjectList<Integer> gateTable = ccm.getParsedGateTable();
                 MXRangedValue value = ccm.getParsedValue();
-                MNamedValueList<Integer> valueTable = ccm.getParsedValueTable();
+                MXNamedObjectList<Integer> valueTable = ccm.getParsedValueTable();
                 MXTemplate template = null;
                 try {
                     template = new MXTemplate(data);
                 } catch (IllegalFormatException ex) {
-                    MXLogger2.getLogger(MX36StatusDetailPanel.class).log(Level.WARNING, ex.getMessage(), ex);
+                    MXFileLogger.getLogger(MX36StatusDetailPanel.class).log(Level.WARNING, ex.getMessage(), ex);
                     return;
                 }
 
@@ -303,9 +303,9 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         jButtonNewInFolder.setEnabled(true);
     }
 
-    MNamedValueList<Integer> _listPort = MNamedValueLsitFactory.listupPort("-");
-    MNamedValueList<Integer> _listColumn = MNamedValueLsitFactory.listupColumn("-");
-    MNamedValueList<Integer> _listChannel = MNamedValueLsitFactory.listupChannel(null);
+    MXNamedObjectList<Integer> _listPort = MXNamedObjectListFactory.listupPort("-");
+    MXNamedObjectList<Integer> _listColumn = MXNamedObjectListFactory.listupColumn("-");
+    MXNamedObjectList<Integer> _listChannel = MXNamedObjectListFactory.listupChannel(null);
 
     public void updateViewByStatus(MX36Status status) {
         setEnabledRecurs(true);
@@ -1080,7 +1080,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jTextFieldValueValueMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextFieldValueValueMousePressed
-        MNamedValueList<Integer> list = _status.safeValueTable();
+        MXNamedObjectList<Integer> list = _status.safeValueTable();
         new MXPopupForList<Integer>(jTextFieldValueValue, list) {
             @Override
             public void approvedIndex(int selectedIndex) {
@@ -1145,7 +1145,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
     }
     
     private void jButtonMoveFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveFolderActionPerformed
-        MNamedValueList<MX36Folder> listFolder = new MNamedValueList<>();
+        MXNamedObjectList<MX36Folder> listFolder = new MXNamedObjectList<>();
         for (MX36Folder folder : _process._folders._listFolder) {
             listFolder.addNameAndValue(folder._folderName, folder);
         }
@@ -1170,7 +1170,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonMoveFolderActionPerformed
 
     private void jButtonNewInFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNewInFolderActionPerformed
-        MNamedValueList<MX36Folder> listFolder = new MNamedValueList<>();
+        MXNamedObjectList<MX36Folder> listFolder = new MXNamedObjectList<>();
         for (MX36Folder folder : _process._folders._listFolder) {
             listFolder.addNameAndValue(folder._folderName, folder);
         }

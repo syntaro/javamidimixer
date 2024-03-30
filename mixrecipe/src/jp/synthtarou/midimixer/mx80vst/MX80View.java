@@ -45,11 +45,11 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
-import jp.synthtarou.midimixer.libs.common.async.Transaction;
-import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.libs.async.Transaction;
+import jp.synthtarou.libs.navigator.legacy.INavigator;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXFolderBrowser;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
@@ -80,9 +80,9 @@ public class MX80View extends javax.swing.JPanel {
         MXUtil.showAsDialog(null, panel, "VST Picker");
     }
 
-    MNamedValueList<Integer> _streamModel;
-    MNamedValueList<Integer> _sampleRateModel;
-    MNamedValueList<Integer> _latencyModel;
+    MXNamedObjectList<Integer> _streamModel;
+    MXNamedObjectList<Integer> _sampleRateModel;
+    MXNamedObjectList<Integer> _latencyModel;
 
     /**
      * Creates new form MX80Panel
@@ -147,8 +147,8 @@ public class MX80View extends javax.swing.JPanel {
         });
     }
 
-    MNamedValueList<Integer> createStreamModel() {
-        MNamedValueList<Integer> model = new MNamedValueList();
+    MXNamedObjectList<Integer> createStreamModel() {
+        MXNamedObjectList<Integer> model = new MXNamedObjectList();
         VSTStream stream = VSTStream.getInstance();
         for (int i = 0; i < stream.count(); ++i) {
             if (stream.getTypeName(i).equals(("ASIO"))) {
@@ -159,8 +159,8 @@ public class MX80View extends javax.swing.JPanel {
         return model;
     }
 
-    MNamedValueList<Integer> createLatencyModel() {
-        MNamedValueList<Integer> list = new MNamedValueList();
+    MXNamedObjectList<Integer> createLatencyModel() {
+        MXNamedObjectList<Integer> list = new MXNamedObjectList();
         int[] entry = {32, 64, 128, 256, 512, 1024, 2048, 4096};
         for (int i = 0; i < entry.length; ++i) {
             int x = entry[i];
@@ -169,8 +169,8 @@ public class MX80View extends javax.swing.JPanel {
         return list;
     }
 
-    MNamedValueList<Integer> createSampleRateModel() {
-        MNamedValueList<Integer> list = new MNamedValueList();
+    MXNamedObjectList<Integer> createSampleRateModel() {
+        MXNamedObjectList<Integer> list = new MXNamedObjectList();
         list.addNameAndValue("22.05khz", (Integer) 22050);
         list.addNameAndValue("44.1khz", (Integer) 44100);
         list.addNameAndValue("48khz", (Integer) 48000);
@@ -705,13 +705,13 @@ public class MX80View extends javax.swing.JPanel {
             if (user instanceof File) {
                 return new File((File) user, (String) obj);
             }
-            MXLogger2.getLogger(MX80View.class).warning(user.getClass() + "(" + user + ") is not file");
+            MXFileLogger.getLogger(MX80View.class).warning(user.getClass() + "(" + user + ") is not file");
             return null;
         }
         if (obj instanceof File) {
             return (File) obj;
         }
-        MXLogger2.getLogger(MX80View.class).warning("unknown object " + obj);
+        MXFileLogger.getLogger(MX80View.class).warning("unknown object " + obj);
         return null;
     }
 

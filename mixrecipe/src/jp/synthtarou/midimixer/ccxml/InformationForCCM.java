@@ -20,12 +20,12 @@ import jp.synthtarou.midimixer.ccxml.xml.CXNode;
 import jp.synthtarou.midimixer.ccxml.xml.CXFile;
 import java.util.IllegalFormatException;
 import java.util.logging.Level;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.MXRangedValue;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.MXRangedValue;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueLsitFactory;
+import jp.synthtarou.libs.namedobject.MXNamedObject;
+import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
 
 /**
  *
@@ -45,8 +45,8 @@ public class InformationForCCM {
     public final MXRangedValue _gate;
     public final int _offsetGate;
 
-    public final MNamedValueList<Integer> _valueTable;
-    public final MNamedValueList<Integer> _gateTable;
+    public final MXNamedObjectList<Integer> _valueTable;
+    public final MXNamedObjectList<Integer> _gateTable;
     public final boolean _gateTypeKey;
 
     public final int _id;
@@ -107,7 +107,7 @@ public class InformationForCCM {
                 template = new MXTemplate(_data);
             }
         } catch (IllegalFormatException ex) {
-            MXLogger2.getLogger(InformationForCCM.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(InformationForCCM.class).log(Level.WARNING, ex.getMessage(), ex);
         }
 
         boolean hasValueHi = false;
@@ -117,8 +117,8 @@ public class InformationForCCM {
             hasGateHi = (template.indexOfGateHi() >= 0) ? true : false;
         }
 
-        MNamedValueList<Integer> valueTable = null;
-        MNamedValueList<Integer> gateTable = null;
+        MXNamedObjectList<Integer> valueTable = null;
+        MXNamedObjectList<Integer> gateTable = null;
 
         CXNode value = _node.firstChild("Value");
         int minValue, maxValue, defaultValue, offsetValue;
@@ -169,7 +169,7 @@ public class InformationForCCM {
         }
         if (gateType != null && gateType.equalsIgnoreCase("Key")) {
             if (gateTable == null) {
-                gateTable = MNamedValueLsitFactory.listupNoteNo(false);
+                gateTable = MXNamedObjectListFactory.listupNoteNo(false);
             }
             _gateTypeKey = true;
         } else {
@@ -180,12 +180,12 @@ public class InformationForCCM {
         _gateTable = gateTable;
     }    
     
-    public MNamedValueList<Integer> canonicalTable(MNamedValueList<Integer> original, int offset) {
+    public MXNamedObjectList<Integer> canonicalTable(MXNamedObjectList<Integer> original, int offset) {
         if (offset == 0) {
             return original;
         }
-        MNamedValueList<Integer> result = new MNamedValueList<>();
-        for (MNamedValue<Integer> seek : original) {
+        MXNamedObjectList<Integer> result = new MXNamedObjectList<>();
+        for (MXNamedObject<Integer> seek : original) {
             result.addNameAndValue(seek._name, seek._value + offset);
         }
         return result;
@@ -235,15 +235,15 @@ public class InformationForCCM {
         return new MXRangedValue(value, min, max);
     }
 
-    public MNamedValueList<Integer> getParsedGateTable() {
+    public MXNamedObjectList<Integer> getParsedGateTable() {
         if (_offsetGate == 0) {
             return _gateTable;
         }
         if (_gateTable == null) {
             return null;
         }
-        MNamedValueList<Integer> result = new MNamedValueList<>();
-        for (MNamedValue<Integer> seek : _gateTable) {
+        MXNamedObjectList<Integer> result = new MXNamedObjectList<>();
+        for (MXNamedObject<Integer> seek : _gateTable) {
             int value = seek._value + _offsetGate;
             result.addNameAndValue(seek._name, value);
         }
@@ -260,15 +260,15 @@ public class InformationForCCM {
         return new MXRangedValue(value, min, max);
     }
 
-    public MNamedValueList<Integer> getParsedValueTable() {
+    public MXNamedObjectList<Integer> getParsedValueTable() {
         if (_offsetValue == 0) {
             return _valueTable;
         }
         if (_valueTable == null) {
             return null;
         }
-        MNamedValueList<Integer> result = new MNamedValueList<>();
-        for (MNamedValue<Integer> seek : _valueTable) {
+        MXNamedObjectList<Integer> result = new MXNamedObjectList<>();
+        for (MXNamedObject<Integer> seek : _valueTable) {
             int value = seek._value + _offsetValue;
             result.addNameAndValue(seek._name, value);
         }

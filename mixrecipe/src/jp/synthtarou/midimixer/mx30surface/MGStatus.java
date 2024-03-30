@@ -19,15 +19,15 @@ package jp.synthtarou.midimixer.mx30surface;
 import java.util.IllegalFormatException;
 import java.util.logging.Level;
 import javax.swing.JComponent;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.MXRangedValue;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 
 /**
  *
@@ -44,8 +44,8 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     public final int _row;
     public final int _column;
 
-    public MNamedValueList<Integer> _outValueTable; //TODO
-    public MNamedValueList<Integer> _outGateTable;
+    public MXNamedObjectList<Integer> _outValueTable; //TODO
+    public MXNamedObjectList<Integer> _outGateTable;
 
     String _name = "";
     String _memo = "";
@@ -125,7 +125,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
                 MXMessage message = MXMessageFactory.fromTemplate(_port, template, 0, null, null);
                 _base = message;
             } catch (IllegalFormatException ex) {
-                MXLogger2.getLogger(MGStatus.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(MGStatus.class).log(Level.WARNING, ex.getMessage(), ex);
             }  
         }
     }

@@ -21,7 +21,7 @@ import javax.swing.JFileChooser;
 import java.io.File;
 import java.util.ArrayList;
 import javax.swing.filechooser.FileFilter;
-import jp.synthtarou.midimixer.libs.settings.MXSettingUtil;
+import jp.synthtarou.libs.MXUtil;
 
 /**
  *
@@ -29,7 +29,7 @@ import jp.synthtarou.midimixer.libs.settings.MXSettingUtil;
  */
 public class MXFileChooser extends JFileChooser {
 
-    static File currentDir = MXSettingUtil.getAppBaseDirectory().getAbsoluteFile();
+    static File currentDir = MXUtil.getAppBaseDirectory().getAbsoluteFile();
 
     public static File getStartDirectory() {
         return currentDir;

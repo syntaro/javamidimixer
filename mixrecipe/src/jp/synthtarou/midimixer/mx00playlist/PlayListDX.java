@@ -21,8 +21,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 import javax.swing.DefaultListModel;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.MXQueue1;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.MXQueue;
 
 /**
  *
@@ -30,7 +30,7 @@ import jp.synthtarou.midimixer.libs.common.MXQueue1;
  */
 public class PlayListDX extends DefaultListModel<PlayListElement> {
 
-    MXQueue1<PlayListElement> _queueForAdd = new MXQueue1<>();
+    MXQueue<PlayListElement> _queueForAdd = new MXQueue<>();
 
     private void orderCommit() {
         if (!SwingUtilities.isEventDispatchThread()) {
@@ -43,7 +43,7 @@ public class PlayListDX extends DefaultListModel<PlayListElement> {
                 });
             } catch (InterruptedException ex) {
             } catch (InvocationTargetException ex) {
-                MXLogger2.getLogger(PlayListDX.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(PlayListDX.class).log(Level.WARNING, ex.getMessage(), ex);
             }
             return;
         }

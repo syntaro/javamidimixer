@@ -27,27 +27,23 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
  * @author Syntarou YOSHIDA
  */
 public class MX11Process extends MXReceiver<MX11View> {
-    MX11Structure _structure;
+    MX11ViewData _viewData;
     MX11View _view;
     int _type;
 
     public MX11Process() {
-        _structure = new MX11Structure();
+        _viewData = new MX11ViewData();
         _view = new MX11View(this);
     }
     
-    public MX11Structure getData() {
-        return _structure;
-    }
-
     @Override
     public void processMXMessage(MXMessage message) {
-        if (isUsingThisRecipeDX() == false) { sendToNext(message); return; }
+        if (isUsingThisRecipe() == false) { sendToNext(message); return; }
 
         if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
             int port = message.getPort();
             int velocity = message.getGate()._value;
-            int newVelocity = _structure.transform(port, velocity);
+            int newVelocity = _viewData.transform(port, velocity);
             if (velocity == newVelocity) {
                 sendToNext(message);
             }else {

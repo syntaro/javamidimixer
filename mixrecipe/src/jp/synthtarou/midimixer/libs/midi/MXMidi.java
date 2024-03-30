@@ -25,9 +25,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.logging.Level;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXLineReader;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.MXLineReader;
+import jp.synthtarou.libs.MXFileLogger;
 
 /**
  *
@@ -95,12 +95,12 @@ public class MXMidi {
                 System.out.println(s);
             }
         }catch(IOException ex) {
-            MXLogger2.getLogger(MXMidi.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(MXMidi.class).log(Level.WARNING, ex.getMessage(), ex);
         }finally {
             try {
                 in.close();
             } catch (IOException ex) {
-                MXLogger2.getLogger(MXMidi.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(MXMidi.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
     }

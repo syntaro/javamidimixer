@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.mx00playlist;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import javax.swing.JToggleButton;
-import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
+import jp.synthtarou.libs.MXCountdownTimer;
 import jp.synthtarou.midimixer.ccxml.xml.CXGeneralMidiFile;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 
@@ -108,7 +108,7 @@ public class MX00DrumPadPanel extends javax.swing.JPanel {
             if (timer == 0) {
                 btn.setSelected(false);
             }
-            MXGlobalTimer.letsCountdown(100, new Runnable() {
+            MXCountdownTimer.letsCountdown(100, new Runnable() {
                 public void run() {
                     //if (timer + 100 >= System.currentTimeMillis()) {
                         btn.setSelected(false);

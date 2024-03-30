@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.libs.swing.attachment;
 
 import java.awt.Dimension;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXUtil;
 
 /**
  *

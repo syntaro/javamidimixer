@@ -23,7 +23,7 @@ import java.util.HashSet;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeCellRenderer;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
+import jp.synthtarou.libs.namedobject.MXNamedObject;
 
 /**
  *
@@ -101,7 +101,7 @@ public class CXTreeRenderer implements TreeCellRenderer {
                     already.add(name.toLowerCase());
                 }
 
-                for (MNamedValue<String> attr : node._listAttributes) {
+                for (MXNamedObject<String> attr : node._listAttributes) {
                     if (already.contains(attr._name.toLowerCase())) {
                         continue;
                     }
@@ -109,7 +109,7 @@ public class CXTreeRenderer implements TreeCellRenderer {
                 }
             }
             else {
-                for (MNamedValue<String> attr : node._listAttributes) {
+                for (MXNamedObject<String> attr : node._listAttributes) {
                     listAttrNonedefined.add(attr._name + "="  + escapeDQuote(attr._value));
                 }
             }

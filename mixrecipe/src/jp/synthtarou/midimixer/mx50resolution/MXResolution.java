@@ -16,12 +16,12 @@
  */
 package jp.synthtarou.midimixer.mx50resolution;
 
-import jp.synthtarou.midimixer.libs.common.MXRangedValue;
+import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 
 /**
  *
@@ -34,8 +34,8 @@ public class MXResolution implements Cloneable {
     int _gate;
     int _defaultValue;
     int _resolution;
-    MNamedValueList<Integer> _gateTable;
-    MNamedValueList<Integer> _valueTable;
+    MXNamedObjectList<Integer> _gateTable;
+    MXNamedObjectList<Integer> _valueTable;
     
     final MX50Process _process;
     MXResolutionView _bindedView;   

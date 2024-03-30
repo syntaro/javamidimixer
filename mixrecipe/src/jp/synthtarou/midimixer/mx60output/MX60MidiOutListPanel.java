@@ -25,9 +25,9 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
-import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_NotFound;
@@ -119,7 +119,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     public TableModel createDeviceModel() {
-        MNamedValueList<MXMIDIOut> allOutput = MXMIDIOutManager.getManager().listAllOutput();
+        MXNamedObjectList<MXMIDIOut> allOutput = MXMIDIOutManager.getManager().listAllOutput();
         MXMIDIOutManager manager = MXMIDIOutManager.getManager();
         DefaultTableModel tableModel = new DefaultTableModel() {
             public boolean isCellEditable(int row, int column) {
@@ -176,7 +176,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
     public JPopupMenu createPopupMenuForPort(final int row) {
         JPopupMenu popup = new JPopupMenu();
         
-        for (int i = -1; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
+        for (int i = -1; i < MXConfiguration.TOTAL_PORT_COUNT; ++ i) {
             JMenuItem item;
             if (i < 0) {
                 item = popup.add("(none)");
@@ -236,7 +236,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
         if (col == 2) {
             DefaultTableModel tableModel = (DefaultTableModel)jTableDevice.getModel();
             String name = (String)tableModel.getValueAt(row, 0);
-            MNamedValueList<MXMIDIOut> allOutput = MXMIDIOutManager.getManager().listAllOutput();
+            MXNamedObjectList<MXMIDIOut> allOutput = MXMIDIOutManager.getManager().listAllOutput();
             for (MXMIDIOut output : allOutput.valueList()) {
                 if (output.getName().equals(name)) {
                     if (output.isOpen()) {

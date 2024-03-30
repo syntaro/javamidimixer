@@ -18,8 +18,8 @@ package jp.synthtarou.midimixer.libs.midi.port;
 
 import java.util.logging.Level;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
+import jp.synthtarou.midimixer.MXConfiguration;
+import jp.synthtarou.libs.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -55,7 +55,7 @@ public class MXMIDIOut {
     }
 
     public boolean isPortAssigned(int port) {
-        if (port < 0 || port >= MXAppConfig.TOTAL_PORT_COUNT) {
+        if (port < 0 || port >= MXConfiguration.TOTAL_PORT_COUNT) {
             return false;
         }
         return _assigned[port];
@@ -67,7 +67,7 @@ public class MXMIDIOut {
 
     public String getPortAssignedAsText() {
         StringBuffer assigned = new StringBuffer();
-        for (int p = 0; p < MXAppConfig.TOTAL_PORT_COUNT; ++p) {
+        for (int p = 0; p < MXConfiguration.TOTAL_PORT_COUNT; ++p) {
             if (isPortAssigned(p)) {
                 if (assigned.length() > 0) {
                     assigned.append(",");
@@ -99,7 +99,7 @@ public class MXMIDIOut {
 
     public void resetPortAssigned() {
         synchronized (MXTiming.mutex) {
-            for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++i) {
+            for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++i) {
                 setPortAssigned(i, false);
             }
         }
@@ -157,7 +157,7 @@ public class MXMIDIOut {
         try {
             processMidiOutInternal(message);
         } catch (Throwable ex) {
-            MXLogger2.getLogger(MXMIDIOut.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(MXMIDIOut.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 

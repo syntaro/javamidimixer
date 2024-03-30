@@ -20,7 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.logging.Level;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiMessage;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
+import jp.synthtarou.libs.MXFileLogger;
 
 /**
  *　Java20以上で、SysEXを処理するJava標準MidiMessageのラッパー
@@ -101,7 +101,7 @@ public class SplittableSysexMessage extends MidiMessage {
             return inst;
         }
         catch(InvalidMidiDataException ex) {
-            MXLogger2.getLogger(SplittableSysexMessage.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(SplittableSysexMessage.class).log(Level.WARNING, ex.getMessage(), ex);
             return null;
         }
     }
@@ -137,7 +137,7 @@ public class SplittableSysexMessage extends MidiMessage {
         }
         if (raw.length > 0 && (raw[0] & 0xff) == 0xf7) {
             Exception ex = new Exception("Something Wrong");
-            MXLogger2.getLogger(SplittableSysexMessage.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(SplittableSysexMessage.class).log(Level.WARNING, ex.getMessage(), ex);
         }
         return raw;
     }

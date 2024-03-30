@@ -27,7 +27,7 @@ import java.awt.font.TextLayout;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXUtil;
 
 /**
  *

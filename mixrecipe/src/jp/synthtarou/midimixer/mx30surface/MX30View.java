@@ -18,7 +18,7 @@ package jp.synthtarou.midimixer.mx30surface;
 
 import java.awt.Component;
 import javax.swing.JScrollPane;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXUtil;
 
 /**
  *
@@ -106,7 +106,7 @@ public class MX30View extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jCheckBoxUseThisMixRecipeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxUseThisMixRecipeActionPerformed
-        _process.setUsingThisRecipeDX(jCheckBoxUseThisMixRecipe.isSelected());
+        _process.setUsingThisRecipe(jCheckBoxUseThisMixRecipe.isSelected());
         if (jCheckBoxUseThisMixRecipe.isSelected()) {
             MXUtil.swingTreeEnable(this, true);
         }else {

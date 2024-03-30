@@ -23,8 +23,8 @@ import java.awt.Insets;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import jp.synthtarou.midimixer.libs.accordion.MXAccordion;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.accordionui.MXAccordion;
+import jp.synthtarou.libs.MXUtil;
 /**
  *
  * @author Syntarou YOSHIDA

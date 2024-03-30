@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.mx00playlist;
 
 import java.io.File;
-import jp.synthtarou.midimixer.libs.settings.MXSettingUtil;
+import jp.synthtarou.libs.MXUtil;
 
 /**
  *
@@ -36,7 +36,7 @@ public class PlayListElement  {
     public PlayListElement(File file) {
         String fileName = file.getPath();
         if (fileName.indexOf('/') < 0 && fileName.indexOf('\\') < 0) {
-            file = new File(MXSettingUtil.getAppBaseDirectory(), fileName);
+            file = new File(MXUtil.getAppBaseDirectory(), fileName);
         }
         _file = file;
         _id = _seq ++;

@@ -24,13 +24,14 @@ import javax.swing.JSlider;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicSliderUI;
-import jp.synthtarou.midimixer.MXAppConfig;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MXAttachSliderSingleClick {
+
+    public static boolean _trapMouseForOnlySelect = false;
 
     /**
      *
@@ -57,7 +58,7 @@ public class MXAttachSliderSingleClick {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     return;
                 }
-                if (MXAppConfig._trapMouseForOnlySelect) {
+                if (_trapMouseForOnlySelect) {
                     return;
                 }
                 if (slider.isEnabled()) {
@@ -84,7 +85,7 @@ public class MXAttachSliderSingleClick {
             
             @Override
             public void mouseDragged(MouseEvent e) {
-                mouseClicked(e);
+                mousePressed(e);
             }
             // disable check that will invoke scrollDueToClickInTrack
             @Override

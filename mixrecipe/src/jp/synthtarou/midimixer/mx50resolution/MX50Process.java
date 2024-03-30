@@ -16,25 +16,25 @@
  */
 package jp.synthtarou.midimixer.mx50resolution;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.logging.Level;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.MXRangedValue;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
-import jp.synthtarou.midimixer.libs.settings.MXSetting;
-import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
+import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
+import jp.synthtarou.libs.inifile.MXINIFileSupport;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX50Process extends MXReceiver<MX50View> implements MXSettingTarget {
+public class MX50Process extends MXReceiver<MX50View> implements MXINIFileSupport {
 
-    MXSetting _setting;
     MX50View _view;
     ArrayList<MXResolution> _listResolution;
     ArrayList<MXResolutionView> _listResolutionView;
@@ -43,9 +43,6 @@ public class MX50Process extends MXReceiver<MX50View> implements MXSettingTarget
         _listResolution = new ArrayList();
         _listResolutionView = new ArrayList();
         _view = new MX50View(this);
-
-        _setting = new MXSetting("ResolutionDown");
-        _setting.setTarget(this);
     }
 
     @Override
@@ -85,23 +82,25 @@ public class MX50Process extends MXReceiver<MX50View> implements MXSettingTarget
     }
 
     @Override
-    public MXSetting getSettings() {
-        return _setting;
+    public MXINIFile prepareINIFile(File custom) {
+        if (custom == null) {
+            custom = MXINIFile.pathOf("ResolutionDown");
+        }
+        MXINIFile setting = new MXINIFile(custom, this);
+        setting.register("Resolution[].Command");
+        setting.register("Resolution[].Port");
+        setting.register("Resolution[].Channel");
+        setting.register("Resolution[].Gate");
+        setting.register("Resolution[].Min");
+        setting.register("Resolution[].Max");
+        setting.register("Resolution[].Resolution");
+        return setting;
     }
 
     @Override
-    public void prepareSettingFields() {
-        _setting.register("Resolution[].Command");
-        _setting.register("Resolution[].Port");
-        _setting.register("Resolution[].Channel");
-        _setting.register("Resolution[].Gate");
-        _setting.register("Resolution[].Min");
-        _setting.register("Resolution[].Max");
-        _setting.register("Resolution[].Resolution");
-    }
-
-    @Override
-    public void afterReadSettingFile() {
+    public void readINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
+        setting.readINIFile();
         int x = 1;
         _listResolution.clear();
         _listResolutionView.clear();
@@ -109,16 +108,16 @@ public class MX50Process extends MXReceiver<MX50View> implements MXSettingTarget
         while (true) {
             String prefix = "Resolution[" + x + "].";
             x++;
-            String command = _setting.getSetting(prefix + "Command");
-            int port = _setting.getSettingAsInt(prefix + "Port", -1);
+            String command = setting.getSetting(prefix + "Command");
+            int port = setting.getSettingAsInt(prefix + "Port", -1);
             if (port < 0) {
                 break;
             }
-            int channel = _setting.getSettingAsInt(prefix + "Channel", 0);
-            int gate = _setting.getSettingAsInt(prefix + "Gate", 0);
-            int min = _setting.getSettingAsInt(prefix + "Min", -1);
-            int max = _setting.getSettingAsInt(prefix + "Max", -1);
-            int resolution = _setting.getSettingAsInt(prefix + "Resolution", -1);
+            int channel = setting.getSettingAsInt(prefix + "Channel", 0);
+            int gate = setting.getSettingAsInt(prefix + "Gate", 0);
+            int min = setting.getSettingAsInt(prefix + "Min", -1);
+            int max = setting.getSettingAsInt(prefix + "Max", -1);
+            int resolution = setting.getSettingAsInt(prefix + "Resolution", -1);
 
             try {
                 MXTemplate template = new MXTemplate(command);
@@ -136,7 +135,7 @@ public class MX50Process extends MXReceiver<MX50View> implements MXSettingTarget
                 _listResolutionView.add(new MXResolutionView(reso));
                 
             } catch (RuntimeException ex) {
-                MXLogger2.getLogger(MX50Process.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(MX50Process.class).log(Level.WARNING, ex.getMessage(), ex);
                 continue;
             }
         }
@@ -144,18 +143,19 @@ public class MX50Process extends MXReceiver<MX50View> implements MXSettingTarget
     }
 
     @Override
-    public void beforeWriteSettingFile() {
-        _setting.clearValue();
+    public void writeINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
         int x = 1;
         for (MXResolution reso : _listResolution) {
             String prefix = "Resolution[" + x + "].";
             x++;
-            _setting.setSetting(prefix + "Command", reso._command != null ? reso._command.toDText(): "-");
-            _setting.setSetting(prefix + "Port", reso._port);
-            _setting.setSetting(prefix + "Channel", reso._channel);
-            _setting.setSetting(prefix + "Gate", reso._gate);
-            _setting.setSetting(prefix + "Resolution", reso._resolution);
+            setting.setSetting(prefix + "Command", reso._command != null ? reso._command.toDText(): "-");
+            setting.setSetting(prefix + "Port", reso._port);
+            setting.setSetting(prefix + "Channel", reso._channel);
+            setting.setSetting(prefix + "Gate", reso._gate);
+            setting.setSetting(prefix + "Resolution", reso._resolution);
         }
+        setting.writeINIFile();
     }
 
     public MXResolution createNewResolution() {

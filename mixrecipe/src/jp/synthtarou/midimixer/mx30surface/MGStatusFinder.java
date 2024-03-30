@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.mx30surface;
 
 import java.util.ArrayList;
-import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 
@@ -42,20 +42,20 @@ public class MGStatusFinder {
         _cachedNoteMessage = new ArrayList[16][256];
         _cachedAnotherMessage = new ArrayList();
         _cachedDataentry = new ArrayList();
-        for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++row) {
-            for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
+        for (int row = 0; row < MXConfiguration.SLIDER_ROW_COUNT; ++row) {
+            for (int column = 0; column < MXConfiguration.SLIDER_COLUMN_COUNT; ++column) {
                 makeCacheImpl(_mixer.getStatus(MGStatus.TYPE_SLIDER,  row, column));
             }
         }
 
-        for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++row) {
-            for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
+        for (int row = 0; row < MXConfiguration.CIRCLE_ROW_COUNT; ++row) {
+            for (int column = 0; column < MXConfiguration.SLIDER_COLUMN_COUNT; ++column) {
                 makeCacheImpl(_mixer.getStatus(MGStatus.TYPE_CIRCLE, row, column));
             }
         }
 
-        for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++row) {
-            for (int column = 0; column < MXAppConfig.SLIDER_COLUMN_COUNT; ++column) {
+        for (int row = 0; row < MXConfiguration.DRUM_ROW_COUNT; ++row) {
+            for (int column = 0; column < MXConfiguration.SLIDER_COLUMN_COUNT; ++column) {
                 MGStatus status = _mixer.getStatus(MGStatus.TYPE_DRUMPAD, row, column);
                 makeCacheImpl(status);
             }

@@ -25,8 +25,8 @@ import jp.synthtarou.midimixer.ccxml.xml.CXNode;
 import jp.synthtarou.midimixer.ccxml.rules.CCRuleForAttribute;
 import jp.synthtarou.midimixer.ccxml.rules.CCRuleForTag;
 import jp.synthtarou.midimixer.ccxml.xml.CXNode;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.MXUtil;
 
 /**
  *
@@ -72,7 +72,7 @@ public class CCValueRule {
 
                 return true;
             }catch(ArrayIndexOutOfBoundsException ex) {
-                MXLogger2.getLogger(CCValueRule.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(CCValueRule.class).log(Level.WARNING, ex.getMessage(), ex);
             }
             return false;
         }
@@ -86,7 +86,7 @@ public class CCValueRule {
                 //4/4 etc
                 return true;
             }catch(ArrayIndexOutOfBoundsException ex) {
-                MXLogger2.getLogger(CCValueRule.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(CCValueRule.class).log(Level.WARNING, ex.getMessage(), ex);
             }
             return false;
         }

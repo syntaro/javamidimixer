@@ -19,17 +19,17 @@ package jp.synthtarou.midimixer.mx30surface;
 import java.io.File;
 import java.io.IOException;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
-import jp.synthtarou.midimixer.libs.common.MXRangedValue;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFCallback;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
+import jp.synthtarou.libs.smf.SMFCallback;
+import jp.synthtarou.libs.smf.SMFMessage;
+import jp.synthtarou.libs.smf.SMFSequencer;
 
 /**
  *
@@ -60,7 +60,7 @@ public class MGStatusForDrum implements Cloneable {
     public static final int LINKMODE_MIN = 44;
     public static final int LINKMODE_MIDDLE = 45;
 
-    static MNamedValueList<Integer> _typeMap = new MNamedValueList();
+    static MXNamedObjectList<Integer> _typeMap = new MXNamedObjectList();
 
     int _outStyle = STYLE_SAME_CC;
     int _outValueTypeOn = VALUETYPE_AS_INPUT;

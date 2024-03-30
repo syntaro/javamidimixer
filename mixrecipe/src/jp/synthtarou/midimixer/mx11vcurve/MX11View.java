@@ -26,8 +26,8 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
-import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
+import jp.synthtarou.midimixer.MXConfiguration;
+import jp.synthtarou.libs.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
@@ -62,8 +62,8 @@ public class MX11View extends javax.swing.JPanel {
             col.setCellRenderer(tableCellRenderer);
         }
 
-        jCheckBoxUseRoute.setSelected(_process.isUsingThisRecipeDX());
-        jTableVelocity.setEnabled(_process.isUsingThisRecipeDX());
+        jCheckBoxUseRoute.setSelected(_process.isUsingThisRecipe());
+        jTableVelocity.setEnabled(_process.isUsingThisRecipe());
 
         jLabelVelocityPort.setText("-");
         jLabelVelocityOriginal.setText("-");
@@ -202,20 +202,20 @@ public class MX11View extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jCheckBoxUseRouteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxUseRouteActionPerformed
-        _process.setUsingThisRecipeDX(jCheckBoxUseRoute.isSelected());
+        _process.setUsingThisRecipe(jCheckBoxUseRoute.isSelected());
         jTableVelocity.setEnabled(jCheckBoxUseRoute.isSelected());
     }//GEN-LAST:event_jCheckBoxUseRouteActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        MX11Structure data = _process.getData();
         DefaultTableModel model = (DefaultTableModel)jTableVelocity.getModel();
         int port = jLabelVelocityPort.getText().charAt(0) - 'A';
         int velocityOrg = Integer.parseInt(jLabelVelocityOriginal.getText());
         int velocity = (int)jSpinnerVelocityCurve.getValue();
         
-        for (int i = 0; i < data.curveCount(); i ++) {
-            if (data.curveDefault(i) == velocityOrg) {
-                data.setCurveValue(port, i, velocity);
+        MX11ViewData viewData = _process._viewData;
+        for (int i = 0; i < viewData.curveCount(); i ++) {
+            if (viewData.curveDefault(i) == velocityOrg) {
+                viewData.setCurveValue(port, i, velocity);
                 model.setValueAt(velocity, model.getRowCount() - 1 - i, port  + 1);
             }
         }
@@ -233,19 +233,19 @@ public class MX11View extends javax.swing.JPanel {
 
         String inName = "";
         String outName = "";
-        MX11Structure data = _process.getData();
+        MX11ViewData viewData = _process._viewData;
 
         model.addColumn("");
         
-        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
+        for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
             model.addColumn(outName + MXMidi.nameOfPortInput(port));
         }
         
-        for (int i = data.curveCount() - 1; i >= 0; --i) {
+        for (int i = viewData.curveCount() - 1; i >= 0; --i) {
             Vector line = new Vector();
-            line.add(inName + data.curveDefault(i));
-            for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
-                line.add(data.curveValue(port, i));
+            line.add(inName + viewData.curveDefault(i));
+            for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
+                line.add(viewData.curveValue(port, i));
             }
             model.addRow(line);
         }
@@ -261,18 +261,18 @@ public class MX11View extends javax.swing.JPanel {
 
         if (column >= 0) {         
             try {
-                MX11Structure data = _process.getData();
-                int curveId = data.curveCount() - 1 - row;
+                MX11ViewData viewData = _process._viewData;
+                int curveId = viewData.curveCount() - 1 - row;
                 int port = column;
                 
-                int base = data.curveDefault(curveId);
-                int set = data.curveValue(port, curveId);
+                int base = viewData.curveDefault(curveId);
+                int set = viewData.curveValue(port, curveId);
 
                 jLabelVelocityPort.setText(MXMidi.nameOfPortInput(port));
                 jLabelVelocityOriginal.setText(String.valueOf(base));
                 jSpinnerVelocityCurve.setModel(new SafeSpinnerNumberModel(set, 0, 127, 1));
             }catch(RuntimeException ex) {
-                MXLogger2.getLogger(MX11View.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(MX11View.class).log(Level.WARNING, ex.getMessage(), ex);
             }   
         }
     }

@@ -28,14 +28,14 @@ import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
-import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXCountdownTimer;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.accessor.MainThreadTask;
-import static jp.synthtarou.midimixer.libs.accessor.MainThreadTask.NOTHING;
+import jp.synthtarou.libs.MainThreadTask;
+import static jp.synthtarou.libs.MainThreadTask.NOTHING;
 
 /**
  *
@@ -151,7 +151,7 @@ public class MXMidiConsole implements ListModel<String> {
         } else if (true) {
             if (e.getTiming() == null) {
                 Exception ex = new Exception("null timing" + e.formatMessageLong());
-                MXLogger2.getLogger(MXMidiConsole.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(MXMidiConsole.class).log(Level.WARNING, ex.getMessage(), ex);
             }
             synchronized (_queue) {
                 _queue.add(e);
@@ -224,7 +224,7 @@ public class MXMidiConsole implements ListModel<String> {
                 MXTiming prevNumber = prevE.getTiming();
                 int comp = prevNumber.compareTo(e.getTiming());
                 if (comp > 0) {
-                    MXLogger2.getLogger(MXMessage.class).warning("This " + e.formatMessageLong() + "\n" + "Before " + prevE.formatMessageLong());
+                    MXFileLogger.getLogger(MXMessage.class).warning("This " + e.formatMessageLong() + "\n" + "Before " + prevE.formatMessageLong());
                 }
             }
         }
@@ -246,7 +246,7 @@ public class MXMidiConsole implements ListModel<String> {
             invokeFire();
         } else {
             _repainReserved = true;
-            MXGlobalTimer.letsCountdown(_timer - (tickNow - _repaintLastTick), new Runnable() {
+            MXCountdownTimer.letsCountdown(_timer - (tickNow - _repaintLastTick), new Runnable() {
                 @Override
                 public void run() {
                     invokeFire();
@@ -285,7 +285,7 @@ public class MXMidiConsole implements ListModel<String> {
                 try {
                     listener.contentsChanged(e);
                 } catch (RuntimeException ex) {
-                    MXLogger2.getLogger(MXMidiConsole.class).log(Level.WARNING, ex.getMessage(), ex);
+                    MXFileLogger.getLogger(MXMidiConsole.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
             if (_refList != null) {

@@ -31,13 +31,13 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXCountdownTimer;
+import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys.KeyRect;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFTestSynthesizer;
+import jp.synthtarou.libs.smf.SMFMessage;
+import jp.synthtarou.libs.smf.SMFSequencer;
+import jp.synthtarou.libs.smf.SMFTestSynthesizer;
 
 /**
  *
@@ -145,6 +145,41 @@ public class MXPianoRoll extends JComponent {
     
     static long _static_x = 0;
     static long _static_y = 0;
+    
+    int seekIndex(long[] measure, long timing) {
+        long span = 50;
+        int left = 0;
+        int right = measure.length - 1;
+        
+        long searchLeft = timing;
+        long searchRight = timing + 50;
+        
+        while (left < right) {
+            int index = (right + left) / 2;
+            long currentLeft = measure[index];
+            long currentRight = measure[index] + 50;
+            if (currentLeft < searchLeft) {
+                left = index + 1;
+            }
+            else if (currentRight > searchRight) {
+                right = index - 1;
+            }
+            else {
+                if (index > 0) {
+                    index --;
+                }
+                return index;
+            }
+        }
+        if (right < 0) {
+            right = 0;
+        }
+        int index = right;
+        if (index > 0) {
+            index --;
+        }
+        return index;
+    }
 
     protected Color measureColor(long timing) {
         long[] measure = _sequencer._parser.listMeasure();
@@ -157,7 +192,7 @@ public class MXPianoRoll extends JComponent {
         measureNextTiming = 0;
         Color col = null;
         
-        for (measureIndex = 0; measureIndex < measure.length; ++measureIndex) {
+        for (measureIndex = seekIndex(measure, timing); measureIndex < measure.length; ++measureIndex) {
             measureNextTiming = measure[measureIndex];
             
             if ((measureIndex & 3) == 0) {
@@ -179,7 +214,7 @@ public class MXPianoRoll extends JComponent {
         return null;
     }
     
-    protected void paintOnBuffer1(long timing) {
+    protected void paintOnBuffer1(long currentMilliSec) {
         if (!_doingPaint) {
             return;
         }
@@ -193,11 +228,10 @@ public class MXPianoRoll extends JComponent {
         }
 
         _canvas.prepare(widthAll, heightAll);
-        if (_canvas._prepareReseted || timing < _doneTiming) {
-            _lastRollingY = Integer.MAX_VALUE;
-            _doneTiming = -_soundSpan;
-            _lastPickupForKick = 0;
-            _keys.allNoteOff();
+        if (_canvas._prepareReseted || _lastMilliSec < 0) {
+            _lastRollingY = 0;
+            _rollingY = 0;
+            _lastMilliSec = -_spanMilliSec;
             for (int i = 0; i < _kickedChannelList.length; ++i) {
                 _kickedChannelList[i] = 0;
             }
@@ -208,24 +242,21 @@ public class MXPianoRoll extends JComponent {
             _keys.repaint();
         }
         if (_canvas.isReady()) {
-            //描画するべき時間の長さ
-            long needDraw;
-            needDraw = _soundTiming - _doneTiming;
-            if (needDraw >= _soundSpan) {
-                needDraw = _soundSpan;
-            }
-
             //lsatSongPosからsongPosまで描写する、Y座標としていくつ違うか
-            long y0 = (long) (((_doneTiming) * 1.0 / _soundSpan) * heightAll);
-            long y1 = (long) (((timing) * 1.0 / _soundSpan) * heightAll);
-
-            double startTime = _doneTiming + _soundSpan - _soundMargin;
+            long last = _lastMilliSec;
+            if (currentMilliSec - last >= _spanMilliSec) {
+                last = currentMilliSec - _spanMilliSec;
+            }
+            long y0 = (long) (((last) * 1.0 / _spanMilliSec) * heightAll);
+            long y1 = (long) (((currentMilliSec) * 1.0 / _spanMilliSec) * heightAll);
+            
+            double startTime = last + _spanMilliSec - _soundMargin;
             byte[] colBuff = new byte[3];
             byte[] peekBuff = new byte[3];
 
             for (long y = y0; y < y1; ++y) {
                 double distanceY = (double) (y - y0);
-                double distanceTime = distanceY * _soundSpan / heightAll;
+                double distanceTime = distanceY * _spanMilliSec / heightAll;
                 long linetime = (long) (startTime + distanceTime);
                 int[] playing = listPaintNote(linetime);
                 int keysRoot = _keyboardRoot;
@@ -280,7 +311,7 @@ public class MXPianoRoll extends JComponent {
             while (_rollingY < 0) {
                 _rollingY += heightAll;
             }
-            _doneTiming = _soundTiming;
+            _lastMilliSec = _soundTiming;
         }
     }
 
@@ -310,12 +341,8 @@ public class MXPianoRoll extends JComponent {
             });
             return;
         }
-        _canvas.dispose(); //reserve reset
-        _keys.repaint();
-        _doneTiming = 0;
-        _soundTiming = position;
-        paintOnBuffer1(position);
-        repaint();
+        _lastMilliSec = -1;
+        setSoundTiming(position);
     }
 
     public int[] listPaintNote(long milliSeconds) {
@@ -365,6 +392,7 @@ public class MXPianoRoll extends JComponent {
         List<SMFMessage> list = _sequencer.listMessage();
         if (list != null && list.size() > _lastPickupForKick) {
             if (milliSeconds < list.get(_lastPickupForKick)._millisecond) {
+                _keys.setOnlyBuffer(true);
                 _keys.allNoteOff();
                 _lastPickupForKick = 0;
             }
@@ -411,6 +439,7 @@ public class MXPianoRoll extends JComponent {
                     break;
             }
         }
+        _keys.setOnlyBuffer(false);
     }
 
     public long getSoundTiming() {
@@ -418,8 +447,8 @@ public class MXPianoRoll extends JComponent {
     }
 
     long _soundTiming = 0;
-    long _soundSpan = 4000;
-    long _doneTiming = -_soundSpan;
+    long _spanMilliSec = 4000;
+    long _lastMilliSec = -_spanMilliSec;
     long _soundMargin = 200;
     long _rollingY = 0;
     long _lastRollingY = 0;
@@ -506,7 +535,7 @@ public class MXPianoRoll extends JComponent {
     }
 
     public long getSoundSpan() {
-        return _soundSpan;
+        return _spanMilliSec;
     }
 
     public long getSoundMargin() {
@@ -514,7 +543,7 @@ public class MXPianoRoll extends JComponent {
     }
 
     public void setSoundSpan(long span) {
-        _soundSpan = span;
+        _spanMilliSec = span;
         clearCache(_soundTiming);
     }
 
@@ -538,14 +567,13 @@ public class MXPianoRoll extends JComponent {
             return;
         }
         if (elapsed < _soundTiming) {
-            clearCache(elapsed);
-        }else {            
-            _soundTiming = elapsed;
-            noteForKick(_soundTiming);
-            _keys.repaint();
-            paintOnBuffer1(elapsed);
-            repaint();
+            _lastMilliSec = - 1;
         }
+        _soundTiming = elapsed;
+        noteForKick(_soundTiming);
+        _keys.repaint();
+        paintOnBuffer1(elapsed);
+        repaint();
     }
 
     private int _keyboardRoot = 36;

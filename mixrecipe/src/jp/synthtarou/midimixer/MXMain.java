@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer;
 
+import jp.synthtarou.libs.MXSafeThread;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
@@ -24,15 +25,15 @@ import java.util.logging.Level;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import jp.synthtarou.midimixer.ccxml.xml.CXXMLManager;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
-import jp.synthtarou.midimixer.libs.settings.MXSetting;
+import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.midimixer.libs.swing.themes.ThemeManager;
 import jp.synthtarou.midimixer.mx80vst.MX80Process;
 import jp.synthtarou.midimixer.libs.vst.VSTStream;
@@ -43,8 +44,8 @@ import jp.synthtarou.midimixer.mx40layer.MX40Process;
 import jp.synthtarou.midimixer.mx60output.MX60Process;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
-import jp.synthtarou.midimixer.libs.accessor.MainThreadTask;
+import jp.synthtarou.libs.smf.SMFSequencer;
+import jp.synthtarou.libs.MainThreadTask;
 import jp.synthtarou.midimixer.libs.vst.VSTInstance;
 import jp.synthtarou.midimixer.mx36ccmapping.MX36Process;
 import jp.synthtarou.midimixer.mx12masterpiano.MX12Process;
@@ -131,20 +132,20 @@ public class MXMain  {
         try {
             MXUtil.fixConsoleEncoding();
         }catch(Throwable ex) {
-            MXLogger2.getLogger(MXMain.class).log(Level.SEVERE, ex.getMessage(), ex);
+            MXFileLogger.getLogger(MXMain.class).log(Level.SEVERE, ex.getMessage(), ex);
         }
         try {
             //フォント描写でアンチエイリアスを有効にする
             System.setProperty("awt.useSystemAAFontSettings", "on");
-            ThemeManager.getInstance().getSettings().readSettingFile();
+            ThemeManager.getInstance().readINIFile(null);
 
         }catch(Throwable ex) {
-            MXLogger2.getLogger(MXMain.class).log(Level.SEVERE, ex.getMessage(), ex);
+            MXFileLogger.getLogger(MXMain.class).log(Level.SEVERE, ex.getMessage(), ex);
         }
         try {
             getMain().startUI();
         }catch(Throwable ex) {
-            MXLogger2.getLogger(MXMain.class).log(Level.SEVERE, ex.getMessage(), ex);
+            MXFileLogger.getLogger(MXMain.class).log(Level.SEVERE, ex.getMessage(), ex);
         }
     }
     
@@ -153,8 +154,8 @@ public class MXMain  {
         _progress.setMessageAsStartUP();
         _progress.setVisible(true);
 
-        MXMIDIInManager.getManager().initWithSetting();
-        MXMIDIOutManager.getManager().initWithSetting();
+        MXMIDIInManager.getManager().readINIFile(null);
+        MXMIDIOutManager.getManager().readINIFile(null);
 
         _mx00playlistProcess = new MX00Process();
         _mx10inputProcess = new MX10Process();
@@ -188,17 +189,16 @@ public class MXMain  {
         _mx50resolutionProcess.setNextReceiver(_mx60outputProcess);
         _mx60outputProcess.setNextReceiver(FinalMIDIOut.getInstance());
 
-        _mx30kontrolProcess.getSettings().readSettingFile();
-        _mx00playlistProcess.getSettings().readSettingFile();
+        _mx30kontrolProcess.readINIFile(null);
+        _mx00playlistProcess.readINIFile(null);
         
-        _mx10inputProcess.getSettings().readSettingFile();
-        _mx12pianoProcess.getSettings().readSettingFile();
-        _mx36ccmappingProcess.getSettings().readSettingFile();
-        _mx60outputProcess.getSettings().readSettingFile();
-        _mx40layerProcess.getSettings().readSettingFile();
-        _mx50resolutionProcess.getSettings().readSettingFile();
-        _mx70CosoleProcess.getSettings().readSettingFile();                
-
+        _mx10inputProcess.readINIFile(null);
+        _mx12pianoProcess.readINIFile(null);
+        _mx36ccmappingProcess.readINIFile(null);
+        _mx60outputProcess.readINIFile(null);
+        _mx40layerProcess.readINIFile(null);
+        _mx50resolutionProcess.readINIFile(null);
+        
         _mainWindow = new MXMainWindow(this);
         _mainWindow.setEnabled(false);
         _mainWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -211,24 +211,24 @@ public class MXMain  {
                     @Override
                     public void run() {
                         try {
-                            MXSetting.saveEverySettingToFile();
+                            MXINIFile.invokeAutoSave();
                             VSTStream.getInstance().postCloseStream(null);
                         }
                         catch(RuntimeException ex) {
-                            MXLogger2.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
+                            MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
                         }
 
                         try {
                             SMFSequencer.stopAll();
                             MXMIDIInManager.getManager().closeAll();
                             MXMIDIOutManager.getManager().closeAll();
-                            MXThread.exitAll();
+                            MXSafeThread.exitAll();
                         }catch(RuntimeException ex) {
-                            MXLogger2.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
+                            MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
                         }
-                        MXLogger2.getLogger(MXMain.class).info("stopping vst");
+                        MXFileLogger.getLogger(MXMain.class).info("stopping vst");
                         VSTInstance.stopEngine(null);
-                        MXLogger2.getLogger(MXMain.class).info("stopped vst");
+                        MXFileLogger.getLogger(MXMain.class).info("stopped vst");
                         System.exit(0);
                     }
                 });
@@ -294,10 +294,10 @@ public class MXMain  {
         _mx70CosoleProcess.createWindow();
     }
 
-    private MNamedValueList<MXReceiver> _masterToList = new MNamedValueList();
+    private MXNamedObjectList<MXReceiver> _masterToList = new MXNamedObjectList();
     
-    public MNamedValueList<MXReceiver> getReceiverList() {
-        MNamedValueList<MXReceiver> list = new MNamedValueList();
+    public MXNamedObjectList<MXReceiver> getReceiverList() {
+        MXNamedObjectList<MXReceiver> list = new MXNamedObjectList();
         if (_masterToList.size() == 0) {
             _masterToList.addNameAndValue("Direct Output", FinalMIDIOut.getInstance());
         }
@@ -306,7 +306,7 @@ public class MXMain  {
     }
 
     public void saveEverySettingToFile() {
-        MXSetting.saveEverySettingToFile();
+        MXINIFile.invokeAutoSave();
     }
     
     public MX10Process getInputProcess() {
@@ -329,7 +329,7 @@ public class MXMain  {
                     receiver.processMXMessage(message);
                 }
             }catch(RuntimeException ex) {
-                MXLogger2.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
     }
@@ -390,7 +390,7 @@ public class MXMain  {
         new MainThreadTask(true) {
             @Override
             public Object runTask() {
-                JOptionPane.showMessageDialog(MXMain.getMain()._mainWindow, text, MXAppConfig.MX_APPNAME, JOptionPane.OK_OPTION);
+                JOptionPane.showMessageDialog(MXMain.getMain()._mainWindow, text, MXConfiguration.MX_APPLICATION, JOptionPane.OK_OPTION);
                 return NOTHING;
             }
         };

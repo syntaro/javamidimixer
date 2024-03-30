@@ -26,7 +26,7 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import jp.synthtarou.midimixer.ccxml.InformationForModule;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachCopyAndPaste;
-import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
+import jp.synthtarou.libs.MXCountdownTimer;
 
 /**
  *
@@ -79,7 +79,7 @@ public class CXTreeModel implements TreeModel {
         tree.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
             public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
                 _lastMoveSequence++;
-                MXGlobalTimer.letsCountdown(300, new ViewUpdateTimer(_lastMoveSequence));
+                MXCountdownTimer.letsCountdown(300, new ViewUpdateTimer(_lastMoveSequence));
             }
         });
     }

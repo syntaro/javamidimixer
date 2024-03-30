@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.windows;
 
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.libs.common.async.TransactionBox;
+import jp.synthtarou.libs.async.TransactionBox;
 import jp.synthtarou.midimixer.mx80vst.MX80Process;
 
 /**

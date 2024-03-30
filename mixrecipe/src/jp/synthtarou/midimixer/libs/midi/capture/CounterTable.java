@@ -26,8 +26,8 @@ import jp.synthtarou.midimixer.ccxml.InformationForCCM;
 import jp.synthtarou.midimixer.ccxml.xml.CXGeneralMidiFile;
 import jp.synthtarou.midimixer.ccxml.xml.CXNode;
 import jp.synthtarou.midimixer.ccxml.InformationForModule;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.MXRangedValue;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -78,7 +78,7 @@ public class CounterTable {
                     try {
                         template = new MXTemplate(ccm._data);
                     }catch(Exception ex) {
-                        MXLogger2.getLogger(CounterTable.class).log(Level.WARNING, ex.getMessage(), ex);
+                        MXFileLogger.getLogger(CounterTable.class).log(Level.WARNING, ex.getMessage(), ex);
                     }
                     MXMessage message = MXMessageFactory.fromTemplate(0, template, 0, MXRangedValue.ZERO7, MXRangedValue.ZERO7);
                     

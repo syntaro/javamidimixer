@@ -22,9 +22,9 @@ import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import jp.synthtarou.midimixer.libs.common.MXRangedValue;
+import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
-import jp.synthtarou.midimixer.libs.accessor.MainThreadTask;
+import jp.synthtarou.libs.MainThreadTask;
 import jp.synthtarou.midimixer.libs.vst.VSTInstance;
 
 /**

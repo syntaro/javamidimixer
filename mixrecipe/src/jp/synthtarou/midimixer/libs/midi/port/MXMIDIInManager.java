@@ -16,22 +16,23 @@
  */
 package jp.synthtarou.midimixer.libs.midi.port;
 
+import java.io.File;
 import java.util.ArrayList;
-import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
+import jp.synthtarou.midimixer.MXConfiguration;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
-import jp.synthtarou.midimixer.libs.settings.MXSetting;
-import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
+import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_NotFound;
+import jp.synthtarou.libs.inifile.MXINIFileSupport;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MXMIDIInManager implements MXSettingTarget {
+public class MXMIDIInManager implements MXINIFileSupport {
     private static final MXMIDIInManager _instance = new MXMIDIInManager();
     
     public static MXMIDIInManager getManager() {
@@ -45,11 +46,9 @@ public class MXMIDIInManager implements MXSettingTarget {
     protected MXMIDIInManager() {
     }
     
-    private MXSetting _setting;
-    
     public int getFreeAssignPort() {
         int found = -1;
-        for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
+        for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++ i) {
             boolean entered = false;
             for (MXMIDIIn in : listAllInput().valueList()) {
                 if (in.isPortAssigned(i)) {
@@ -64,39 +63,16 @@ public class MXMIDIInManager implements MXSettingTarget {
         }
         return found;
     }
-    
-    public void initWithSetting() {
-        if (_setting == null) {
-            _setting = new MXSetting("MIDIInput");
-            _setting.setTarget(this);
 
-            MNamedValueList<MXMIDIIn> list = listAllInput();
-            
-            _setting.readSettingFile();
+    protected MXNamedObjectList<MXMIDIIn> _listAllInput;
+    protected MXNamedObjectList<MXMIDIIn> _listUsingInput;
 
-            boolean assigned = false;
-            for (int i = 0; i < list.getSize(); ++ i) {
-                MXMIDIIn in = list.valueOfIndex(i);
-                if (in.getPortAssignCount() > 0) {
-                    assigned = true;
-                }
-            }
-            
-            if (!assigned) {
-                MXMIDIIn.INTERNAL_PLAYER.setPortAssigned(0, true);
-            }
-        }
-    }
-
-    protected MNamedValueList<MXMIDIIn> _listAllInput;
-    protected MNamedValueList<MXMIDIIn> _listUsingInput;
-
-    public synchronized MNamedValueList<MXMIDIIn> listAllInput() {
+    public synchronized MXNamedObjectList<MXMIDIIn> listAllInput() {
         if (_listAllInput != null) {
             return _listAllInput;
         }
 
-        MNamedValueList<MXMIDIIn> temp = new MNamedValueList<MXMIDIIn>();
+        MXNamedObjectList<MXMIDIIn> temp = new MXNamedObjectList<MXMIDIIn>();
 
         MXMIDIIn tester = MXMIDIIn.INTERNAL_TESTER;
         temp.addNameAndValue(tester.getName(), tester);
@@ -148,11 +124,11 @@ public class MXMIDIInManager implements MXSettingTarget {
         //_cache = null;        
     }
 
-    public synchronized MNamedValueList<MXMIDIIn>listSelectedInput() {
+    public synchronized MXNamedObjectList<MXMIDIIn>listSelectedInput() {
         if (_listUsingInput != null) {
             return _listUsingInput;
         }
-        MNamedValueList<MXMIDIIn> newInput = new MNamedValueList();
+        MXNamedObjectList<MXMIDIIn> newInput = new MXNamedObjectList();
         for (MXMIDIIn midi : listAllInput().valueList()) {
             if (midi.getPortAssignCount() > 0) {
                 newInput.addNameAndValue(midi.toString(), midi);
@@ -171,27 +147,34 @@ public class MXMIDIInManager implements MXSettingTarget {
     }
 
     @Override
-    public MXSetting getSettings() {
-        return _setting;
+    public MXINIFile prepareINIFile(File custom) {
+        if (custom == null) {
+            custom = MXINIFile.pathOf("MIDIInput");
+        }
+        MXINIFile setting = new MXINIFile(custom, this);
+        setting.register("device[].name");
+        setting.register("device[].open");
+        setting.register("device[].port");
+        setting.register("device[].toMaster");
+        return setting;
     }
-
+    
     @Override
-    public void prepareSettingFields() {
-        _setting.register("device[].name");
-        _setting.register("device[].open");
-        _setting.register("device[].port");
-        _setting.register("device[].toMaster");
-    }
+    public void readINIFile(File custom) {
+        if (custom == null) {
+            custom = MXINIFile.pathOf("MIDIInput");
+        }
+        MXINIFile setting = prepareINIFile(custom);
+        setting.readINIFile();
 
-    @Override
-    public void afterReadSettingFile() {
+        MXNamedObjectList<MXMIDIIn> list = listAllInput();
         MXDriver_NotFound dummy = MXDriver_NotFound.getInstance();
         
         for (int seek = 0; seek < 1000; ++ seek) {
-            String deviceName = _setting.getSetting("device[" + seek + "].name");
-            String deviceOpen = _setting.getSetting("device[" + seek + "].open");
-            String deviceMaster = _setting.getSetting("device[" + seek + "].toMaster");
-            String devicePort = _setting.getSetting("device[" + seek + "].port");
+            String deviceName = setting.getSetting("device[" + seek + "].name");
+            String deviceOpen = setting.getSetting("device[" + seek + "].open");
+            String deviceMaster = setting.getSetting("device[" + seek + "].toMaster");
+            String devicePort = setting.getSetting("device[" + seek + "].port");
             if (deviceName == null || deviceName.length() == 0) {
                 break;
             }
@@ -213,7 +196,7 @@ public class MXMIDIInManager implements MXSettingTarget {
                 }
             }
 
-            MNamedValueList<MXMIDIIn> detected = listAllInput();
+            MXNamedObjectList<MXMIDIIn> detected = listAllInput();
             MXMIDIIn in = detected.valueOfName(deviceName);
             if (in != null) {
                 if (deviceOpen.equals("1")) {
@@ -239,18 +222,31 @@ public class MXMIDIInManager implements MXSettingTarget {
         }
 
         clearMIDIInCache();
+
+        boolean assigned = false;
+        for (int i = 0; i < list.getSize(); ++ i) {
+            MXMIDIIn in = list.valueOfIndex(i);
+            if (in.getPortAssignCount() > 0) {
+                assigned = true;
+            }
+        }
+
+        if (!assigned) {
+            MXMIDIIn.INTERNAL_PLAYER.setPortAssigned(0, true);
+        }
     }
 
     @Override
-    public void beforeWriteSettingFile() {
-        MNamedValueList<MXMIDIIn> all = listAllInput();
+    public void writeINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
+        MXNamedObjectList<MXMIDIIn> all = listAllInput();
         int x = 0;
         for (MXMIDIIn e : all.valueList()) {
             if (e.getPortAssignCount() <= 0) {
                 continue;
             }
             StringBuffer assigned = new StringBuffer();
-            for (int p = 0; p < MXAppConfig.TOTAL_PORT_COUNT; ++ p) {
+            for (int p = 0; p < MXConfiguration.TOTAL_PORT_COUNT; ++ p) {
                 if (e.isPortAssigned(p)) {
                     if (assigned.length() > 0) {
                         assigned.append(",");
@@ -259,12 +255,13 @@ public class MXMIDIInManager implements MXSettingTarget {
                 }
             }
             if (assigned.length() > 0) {
-                _setting.setSetting("device[" + x + "].name", e.getName());
-                _setting.setSetting("device[" + x + "].open", e.isOpen() ? "1" : "0");
-                _setting.setSetting("device[" + x + "].port", assigned.toString());
-                _setting.setSetting("device[" + x + "].toMaster", e.getMasterList());
+                setting.setSetting("device[" + x + "].name", e.getName());
+                setting.setSetting("device[" + x + "].open", e.isOpen() ? "1" : "0");
+                setting.setSetting("device[" + x + "].port", assigned.toString());
+                setting.setSetting("device[" + x + "].toMaster", e.getMasterList());
                 x ++;
             }
         }
+        setting.writeINIFile();
     }
 }

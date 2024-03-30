@@ -27,14 +27,14 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import javax.swing.JTextArea;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.MXThread;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXSafeThread;
+import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.sysex.SysexSplitter;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFInputStream;
-import jp.synthtarou.midimixer.libs.common.MXLineReader;
+import jp.synthtarou.libs.smf.SMFInputStream;
+import jp.synthtarou.libs.MXLineReader;
 
 /**
  *
@@ -285,7 +285,7 @@ public class SysEXFile {
     }
     
     public void sendSysexTo(int port, SysexProgress progress, int splitSize) {
-        new MXThread("SysEXFile", new Runnable() {
+        new MXSafeThread("SysEXFile", new Runnable() {
             @Override
             public void run() {
                 int count = _contents.size();

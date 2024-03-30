@@ -26,7 +26,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
+import jp.synthtarou.libs.MXCountdownTimer;
 
 /**
  *
@@ -92,7 +92,7 @@ public class MXAttachLabelSeemsButton {
         if (push) {
             _toInstall.setIcon(new SelectedButtonIcon(_title));
             timer = System.currentTimeMillis();
-            MXGlobalTimer.letsCountdown(100, new Runnable() {
+            MXCountdownTimer.letsCountdown(100, new Runnable() {
                 public void run() {
                     if (timer + 100 >= System.currentTimeMillis()) {
                         _toInstall.setIcon(new ButtonIcon(_title));
@@ -104,7 +104,7 @@ public class MXAttachLabelSeemsButton {
                 _toInstall.setIcon(new ButtonIcon(_title));
             }
             timer = System.currentTimeMillis();
-            MXGlobalTimer.letsCountdown(100, new Runnable() {
+            MXCountdownTimer.letsCountdown(100, new Runnable() {
                 public void run() {
                     if (timer + 100 >= System.currentTimeMillis()) {
                         _toInstall.setIcon(new ButtonIcon(_title));

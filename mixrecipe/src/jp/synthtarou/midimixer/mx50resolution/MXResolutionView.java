@@ -27,15 +27,15 @@ import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
 import jp.synthtarou.midimixer.ccxml.ui.PickerForControlChange;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
-import jp.synthtarou.midimixer.libs.navigator.MXPopup;
-import jp.synthtarou.midimixer.libs.navigator.MXPopupForList;
-import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueLsitFactory;
+import jp.synthtarou.libs.navigator.MXPopup;
+import jp.synthtarou.libs.navigator.MXPopupForList;
+import jp.synthtarou.libs.navigator.legacy.INavigator;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
 
 /**
  *
@@ -45,14 +45,14 @@ public class MXResolutionView extends javax.swing.JPanel {
 
     MXResolution _resolution;
 
-    MNamedValueList<Integer> _ccGateModel;
-    MNamedValueList<Integer> _keyGateModel;
-    MNamedValueList<Integer> _normalGateModel;
-    MNamedValueList<Integer> _currentGateModel;
+    MXNamedObjectList<Integer> _ccGateModel;
+    MXNamedObjectList<Integer> _keyGateModel;
+    MXNamedObjectList<Integer> _normalGateModel;
+    MXNamedObjectList<Integer> _currentGateModel;
 
-    MNamedValueList<Integer> _listPort = MNamedValueLsitFactory.listupPort(null);
-    MNamedValueList<Integer> _listChannel = MNamedValueLsitFactory.listupChannel(null);
-    MNamedValueList<Integer> _listResolution = new MNamedValueList<>();
+    MXNamedObjectList<Integer> _listPort = MXNamedObjectListFactory.listupPort(null);
+    MXNamedObjectList<Integer> _listChannel = MXNamedObjectListFactory.listupChannel(null);
+    MXNamedObjectList<Integer> _listResolution = new MXNamedObjectList<>();
 
     public void displayResolutionToPanel() {
         int command = 0;
@@ -68,7 +68,7 @@ public class MXResolutionView extends javax.swing.JPanel {
         } else {
             _currentGateModel = _normalGateModel;
         }
-        MNamedValueList<Integer> gateTable = _resolution._gateTable;
+        MXNamedObjectList<Integer> gateTable = _resolution._gateTable;
         if (gateTable == null) {
             gateTable = _currentGateModel;
         }
@@ -92,9 +92,9 @@ public class MXResolutionView extends javax.swing.JPanel {
         _resolution = resolution;
         resolution._bindedView = this;
 
-        _ccGateModel = MNamedValueLsitFactory.listupControlChange(true);
-        _keyGateModel = MNamedValueLsitFactory.listupNoteNo(true);
-        _normalGateModel = MNamedValueLsitFactory.listupGate7Bit();
+        _ccGateModel = MXNamedObjectListFactory.listupControlChange(true);
+        _keyGateModel = MXNamedObjectListFactory.listupNoteNo(true);
+        _normalGateModel = MXNamedObjectListFactory.listupGate7Bit();
 
         new MXPopup(jTextFieldCommand) {
             @Override
@@ -120,7 +120,7 @@ public class MXResolutionView extends javax.swing.JPanel {
                 displayResolutionToPanel();
             }
         };
-        _listResolution = new MNamedValueList<>();
+        _listResolution = new MXNamedObjectList<>();
         int[] newReso = new int[]{
             0, 8, 16, 32, 64, 128, 256, 512
         };
@@ -142,7 +142,7 @@ public class MXResolutionView extends javax.swing.JPanel {
         new MXPopup(jTextFieldGate) {
             @Override
             public void showPopup(JComponent mouseBase) {
-                MNamedValueList<Integer> gateTable = _resolution._gateTable == null ? _currentGateModel : _resolution._gateTable;
+                MXNamedObjectList<Integer> gateTable = _resolution._gateTable == null ? _currentGateModel : _resolution._gateTable;
                 if (gateTable != null) {
                     MXPopupForList<Integer> popup = new MXPopupForList(null, gateTable) {
                         @Override
@@ -329,7 +329,6 @@ public class MXResolutionView extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonRemoveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRemoveActionPerformed
-        // TODO add your handling code here:
         _resolution._process.removeResolution(_resolution);
         _resolution._process._view.reloadList();
     }//GEN-LAST:event_jButtonRemoveActionPerformed
@@ -362,7 +361,7 @@ public class MXResolutionView extends javax.swing.JPanel {
                 }
                 displayResolutionToPanel();
             } catch (RuntimeException ex) {
-                MXLogger2.getLogger(MXResolutionView.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(MXResolutionView.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
     }

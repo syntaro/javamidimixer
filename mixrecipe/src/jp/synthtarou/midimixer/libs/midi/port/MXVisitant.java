@@ -16,7 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi.port;
 
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 

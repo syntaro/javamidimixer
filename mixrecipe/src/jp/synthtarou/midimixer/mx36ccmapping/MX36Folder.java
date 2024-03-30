@@ -17,9 +17,9 @@
 package jp.synthtarou.midimixer.mx36ccmapping;
 
 import java.util.List;
-import jp.synthtarou.midimixer.libs.accordion.MXAccordion;
-import jp.synthtarou.midimixer.libs.accordion.MXAccordionElement;
-import jp.synthtarou.midimixer.libs.accordion.MXAccordionFocus;
+import jp.synthtarou.libs.accordionui.MXAccordion;
+import jp.synthtarou.libs.accordionui.MXAccordionElement;
+import jp.synthtarou.libs.accordionui.MXAccordionFocus;
 
 /**
  *

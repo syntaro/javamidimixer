@@ -20,6 +20,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Font;
 import java.awt.Window;
+import java.io.File;
 import java.util.logging.Level;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -35,20 +36,22 @@ import javax.swing.plaf.SliderUI;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.plaf.metal.MetalTheme;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
-import jp.synthtarou.midimixer.libs.settings.MXSetting;
-import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.namedobject.MXNamedObject;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
+import jp.synthtarou.libs.json.MXJsonSupport;
+import jp.synthtarou.libs.inifile.MXINIFileSupport;
+import jp.synthtarou.libs.json.MXJsonFile;
+import jp.synthtarou.libs.json.MXJsonValue;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class ThemeManager implements MXSettingTarget {
-    MXSetting _setting;
+public class ThemeManager implements MXINIFileSupport, MXJsonSupport {
     static ThemeManager _manager = new ThemeManager();
     public static ThemeManager getInstance() {
         return _manager;
@@ -72,10 +75,8 @@ public class ThemeManager implements MXSettingTarget {
         additionalTheme = new String[] {
             "*Sea", "*Forest", "*WineRed", "*Stone"
         };
-        _setting = new MXSetting("ThemeManager");
-        _setting.setTarget(this);
     }
-
+ 
     public void setUITheme(String themeName) {
         UIManager.put("swing.boldMetal", Boolean.FALSE);
 
@@ -118,15 +119,15 @@ public class ThemeManager implements MXSettingTarget {
                 }
             }
         } catch (UnsupportedLookAndFeelException ex) {
-            MXLogger2.getLogger(ThemeManager.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(ThemeManager.class).log(Level.WARNING, ex.getMessage(), ex);
         } catch (ClassNotFoundException ex) {
-            MXLogger2.getLogger(ThemeManager.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(ThemeManager.class).log(Level.WARNING, ex.getMessage(), ex);
         } catch (IllegalAccessException ex) {
-            MXLogger2.getLogger(ThemeManager.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(ThemeManager.class).log(Level.WARNING, ex.getMessage(), ex);
         } catch (InstantiationException ex) {
-            MXLogger2.getLogger(ThemeManager.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(ThemeManager.class).log(Level.WARNING, ex.getMessage(), ex);
         } catch (RuntimeException ex) {
-            MXLogger2.getLogger(ThemeManager.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(ThemeManager.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 
@@ -194,24 +195,26 @@ public class ThemeManager implements MXSettingTarget {
     }
 
     @Override
-    public void prepareSettingFields() {
-        _setting.register("themeLabelColorful");
-        _setting.register("themeName");
-        _setting.register("fontName");
-        _setting.register("fontSize");
-        _setting.register("fontStyle");
-        _setting.register("circleIsCircle");
+    public MXINIFile prepareINIFile(File custom) {
+        if (custom == null) {
+            custom = MXINIFile.pathOf("ThemeManager");
+        }
+        MXINIFile setting = new MXINIFile(custom, this);
+        setting.register("themeLabelColorful");
+        setting.register("themeName");
+        setting.register("fontName");
+        setting.register("fontSize");
+        setting.register("fontStyle");
+        setting.register("circleIsCircle");
+        return setting;
     }
 
     @Override
-    public MXSetting getSettings() {
-        return _setting;
-    }
-    
-    @Override
-    public void afterReadSettingFile() {
-        colorfulMetalTheme = _setting.getSettingAsBoolean("themeLabelColorful", false);
-        themeName = _setting.getSetting("themeName");
+    public void readINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
+        setting.readINIFile();
+        colorfulMetalTheme = setting.getSettingAsBoolean("themeLabelColorful", false);
+        themeName = setting.getSetting("themeName");
         if (themeName == null || themeName.isEmpty()) {
             for (UIManager.LookAndFeelInfo info: UIManager.getInstalledLookAndFeels()) {
                 if (info.getName().equals("Windows")) {
@@ -229,31 +232,32 @@ public class ThemeManager implements MXSettingTarget {
         if (themeName == null || themeName.isEmpty()) {
             themeName = "Metal";
         }
-        fontName = _setting.getSetting("fontName");
+        fontName = setting.getSetting("fontName");
         if (fontName == null || fontName.isEmpty()) {
             fontName = "Monospaced";
         }
-        fontSize = _setting.getSettingAsInt("fontSize", 12);
-        fontStyle = _setting.getSettingAsInt("fontStyle", Font.PLAIN);
+        fontSize = setting.getSettingAsInt("fontSize", 12);
+        fontStyle = setting.getSettingAsInt("fontStyle", Font.PLAIN);
         setFont(fontName, fontStyle, fontSize);
         setUITheme(themeName);
-        CurvedSlider.setMouseCircleIsCircle(_setting.getSettingAsBoolean("circleIsCircle", true));
+        CurvedSlider.setMouseCircleIsCircle(setting.getSettingAsBoolean("circleIsCircle", true));
         updateUITree();
     }
 
     @Override
-    public void beforeWriteSettingFile() {
-        _setting.setSetting("themeLabelColorful", colorfulMetalTheme);
-        _setting.setSetting("themeName", themeName);
-        _setting.setSetting("fontName", fontName);
-        _setting.setSetting("fontSize", fontSize);
-        _setting.setSetting("fontStyle", fontStyle);
-        _setting.setSetting("circleIsCircle", CurvedSlider.isMouseCircleIsCircle());
+    public void writeINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
+        setting.setSetting("themeLabelColorful", colorfulMetalTheme);
+        setting.setSetting("themeName", themeName);
+        setting.setSetting("fontName", fontName);
+        setting.setSetting("fontSize", fontSize);
+        setting.setSetting("fontStyle", fontStyle);
+        setting.setSetting("circleIsCircle", CurvedSlider.isMouseCircleIsCircle());
+        setting.writeINIFile();
     }
     
-
-    public MNamedValueList<String> getLookAndFeelModel() {
-        MNamedValueList<String> model = new MNamedValueList();
+    public MXNamedObjectList<String> getLookAndFeelModel() {
+        MXNamedObjectList<String> model = new MXNamedObjectList();
         for (UIManager.LookAndFeelInfo info: UIManager.getInstalledLookAndFeels()) {
             model.addNameAndValue(info.getName(), info.getName());
         }
@@ -265,8 +269,8 @@ public class ThemeManager implements MXSettingTarget {
         return model;
     }
     
-    public MNamedValueList<String> getFontNameModel() {
-        MNamedValueList<String> model = new MNamedValueList();
+    public MXNamedObjectList<String> getFontNameModel() {
+        MXNamedObjectList<String> model = new MXNamedObjectList();
         String[] names = {
             "Dialog",
             "Monospaced",
@@ -284,14 +288,14 @@ public class ThemeManager implements MXSettingTarget {
         return model;
     }
 
-    public MNamedValueList<Integer> getFontStyleModel() {
-        MNamedValueList<Integer> model = new MNamedValueList();
+    public MXNamedObjectList<Integer> getFontStyleModel() {
+        MXNamedObjectList<Integer> model = new MXNamedObjectList();
         model.addNameAndValue("Plain", Font.PLAIN);
         model.addNameAndValue("Italic", Font.ITALIC);
         model.addNameAndValue("Bold", Font.BOLD);
         model.addNameAndValue("BoldItalic", Font.BOLD + Font.ITALIC);
 
-        for (MNamedValue<Integer> seek : model) {
+        for (MXNamedObject<Integer> seek : model) {
             if (seek._value == fontStyle) {
                 model.setSelectedItem(seek);
             }
@@ -299,12 +303,12 @@ public class ThemeManager implements MXSettingTarget {
         return model;
     }
 
-    public MNamedValueList<Integer> getFontSizeModel() {
-        MNamedValueList<Integer> model = new MNamedValueList();
+    public MXNamedObjectList<Integer> getFontSizeModel() {
+        MXNamedObjectList<Integer> model = new MXNamedObjectList();
         for (int x = 6; x < 16; x += 1) {
             model.addNameAndValue(String.valueOf(x), x);
         }
-        for (MNamedValue<Integer> seek : model) {
+        for (MXNamedObject<Integer> seek : model) {
             if (seek._value == fontSize) {
                 model.setSelectedItem(seek);
             }
@@ -314,5 +318,60 @@ public class ThemeManager implements MXSettingTarget {
     
     public boolean isColorfulMetalTheme() {
         return colorfulMetalTheme;
+    }
+
+    @Override
+    public void readJSonfile(File custom) {
+        MXJsonFile file = new MXJsonFile(custom);
+        MXJsonValue value = file.readJsonFile();
+        if (value == null) {
+            value = new MXJsonValue(null);
+        }
+        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
+
+        colorfulMetalTheme = root.getSettingBool("themeLabelColorful", false);
+        themeName = root.getSettingText("themeName", null);
+        if (themeName == null || themeName.isEmpty()) {
+            for (UIManager.LookAndFeelInfo info: UIManager.getInstalledLookAndFeels()) {
+                if (info.getName().equals("Windows")) {
+                    themeName = "Windows";
+                }
+            }
+        }
+        if (themeName == null || themeName.isEmpty()) {
+            for (UIManager.LookAndFeelInfo info: UIManager.getInstalledLookAndFeels()) {
+                if (info.getName().equals("Nimbus")) {
+                    themeName = "Nimbus";
+                }
+            }
+        }
+        if (themeName == null || themeName.isEmpty()) {
+            themeName = "Metal";
+        }
+        fontName = root.getSettingText("fontName", null);
+        if (fontName == null || fontName.isEmpty()) {
+            fontName = "Monospaced";
+        }
+        fontSize = root.getSettingInt("fontSize", 12);
+        fontStyle = root.getSettingInt("fontStyle", Font.PLAIN);
+        setFont(fontName, fontStyle, fontSize);
+        setUITheme(themeName);
+        CurvedSlider.setMouseCircleIsCircle(root.getSettingBool("circleIsCircle", true));
+        updateUITree();
+    }
+
+    @Override
+    public void writeJsonFile(File custom) {
+        MXJsonValue value = new MXJsonValue(null);
+
+        MXJsonValue.HelperForStructure structure = value.new HelperForStructure();
+        structure.setSettingBool("themeLabelColorful", colorfulMetalTheme);
+        structure.setSettingText("themeName", themeName);
+        structure.setSettingText("fontName", fontName);
+        structure.setSettingInt("fontSize", fontSize);
+        structure.setSettingInt("fontStyle", fontStyle);
+        structure.setSettingBool("circleIsCircle", CurvedSlider.isMouseCircleIsCircle());
+
+        new MXJsonFile(custom).writeJsonFile(value);
     }
 }

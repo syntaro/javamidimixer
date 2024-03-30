@@ -17,8 +17,8 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXRangedValue;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.swing.themes.ThemeManager;
 
 /**

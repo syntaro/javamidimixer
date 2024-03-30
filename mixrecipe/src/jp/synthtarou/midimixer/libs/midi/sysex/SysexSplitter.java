@@ -18,7 +18,7 @@ package jp.synthtarou.midimixer.libs.midi.sysex;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFInputStream;
+import jp.synthtarou.libs.smf.SMFInputStream;
 
 /**
  *　SysEXメッセージを分割、結合するため

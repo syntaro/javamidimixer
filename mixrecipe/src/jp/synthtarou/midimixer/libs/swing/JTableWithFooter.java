@@ -23,8 +23,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.settings.StringPath;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.inifile.StringPath;
 
 /**
  *
@@ -47,7 +47,7 @@ public class JTableWithFooter extends JTableWithColumnHeader {
         
         if (gridBagPanel.getComponentCount() > 0) {
             Exception ex = new IllegalArgumentException("Need plaing JPanel for MJTable (but cleanup and continue)");
-            MXLogger2.getLogger(JTableWithFooter.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(JTableWithFooter.class).log(Level.WARNING, ex.getMessage(), ex);
             
             for(Component c : gridBagPanel.getComponents()) {
                 gridBagPanel.remove(c);

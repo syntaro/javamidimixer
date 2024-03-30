@@ -18,7 +18,7 @@ package jp.synthtarou.midimixer.libs.vst;
 
 import java.awt.Container;
 import java.awt.Dimension;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXUtil;
 
 /**
  *

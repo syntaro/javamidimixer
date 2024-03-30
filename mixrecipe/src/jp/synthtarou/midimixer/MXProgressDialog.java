@@ -16,13 +16,14 @@
  */
 package jp.synthtarou.midimixer;
 
+import jp.synthtarou.libs.MXSafeThread;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.accessor.MainThreadTask;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.MainThreadTask;
 import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
 
 /**
@@ -134,7 +135,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
         setSize(500, 400);
         MXUtil.centerWindow(this);
         
-        jLabelVersion.setText(MXAppConfig.MX_APPNAME);
+        jLabelVersion.setText(MXConfiguration.MX_APPLICATION);
         getContentPane().setBackground(Color.white);
 
         _piano = new MXPianoKeys();
@@ -143,7 +144,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
         _piano.setPreferredSize(new Dimension(480, 120));
         jPanelPiano.add(_piano);
 
-        Thread pianoColor = new MXThread("*PianoColor", new Runnable() {
+        Thread pianoColor = new MXSafeThread("*PianoColor", new Runnable() {
             public void run() {
                 int x = 0;
                 int last = -1;

@@ -34,11 +34,9 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
-import jp.synthtarou.midimixer.libs.accessor.MainThreadTask;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.MainThreadTask;
 
 /**
  *
@@ -364,7 +362,7 @@ public class MXPianoKeys extends JComponent {
                     rect.x, rect.y, rect.x + rect.width, rect.y + rect.height,
                     rect.x, rect.y, rect.x + rect.width, rect.y + rect.height, this);
         } catch (RuntimeException ex) {
-            MXLogger2.getLogger(MXPianoKeys.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(MXPianoKeys.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 
@@ -414,12 +412,27 @@ public class MXPianoKeys extends JComponent {
                 _bufferedRect = a;
             }
         } catch (RuntimeException ex) {
-            MXLogger2.getLogger(MXPianoKeys.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(MXPianoKeys.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 
     public boolean isNoteOn(int note) {
         return _sequenceNoteOn[note];
+    }
+    
+    
+    boolean _lockRedraw = false;
+    public void setOnlyBuffer(boolean lockDraw) {
+        if (lockDraw) {
+            _lockRedraw = true;
+            return;
+        }
+        else {
+           if (_lockRedraw && !lockDraw) {
+                _lockRedraw = lockDraw;
+                orderRedrawNote(-1);
+            }
+        }
     }
 
     public void noteOn(int note) {

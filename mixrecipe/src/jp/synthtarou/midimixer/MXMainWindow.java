@@ -29,7 +29,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.themes.ThemeManagerDialog;
 import jp.synthtarou.midimixer.mx00playlist.MX00View;
 import jp.synthtarou.midimixer.mx10input.MX10View;
@@ -85,7 +85,7 @@ public class MXMainWindow extends javax.swing.JFrame {
             }
         });
         helpParent.add(helpMenu2);
-        JMenu appMenu = new JMenu(MXAppConfig.MX_APPNAME);
+        JMenu appMenu = new JMenu(MXConfiguration.MX_APPLICATION);
         jMenuBar1.add(appMenu);
 
         JMenuItem themeMenu = new JMenuItem("Theme");
@@ -153,7 +153,7 @@ public class MXMainWindow extends javax.swing.JFrame {
      * ウィンドウの初期化
      */
     public void initLatebind(List<MXReceiver> viewList) {
-        setTitle(MXAppConfig.MX_APPNAME);
+        setTitle(MXConfiguration.MX_APPLICATION);
         setSize(new Dimension(1200, 800));
 
         MXUtil.centerWindow(this);

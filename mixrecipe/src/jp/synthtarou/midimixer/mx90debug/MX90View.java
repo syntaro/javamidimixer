@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.mx90debug;
 
 import javax.swing.JOptionPane;
-import jp.synthtarou.midimixer.MXThread;
+import jp.synthtarou.libs.MXSafeThread;
 
 /**
  *
@@ -86,7 +86,7 @@ public class MX90View extends javax.swing.JPanel {
         }
         _testing = true;
         jList1.setModel(debugMessages);            
-        new MXThread("TestLoop", new Runnable() {
+        new MXSafeThread("TestLoop", new Runnable() {
             @Override
             public void run() {
                 _process.doAllTest(debugMessages);

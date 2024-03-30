@@ -66,14 +66,6 @@ public class MyRenderer extends  DefaultTreeCellRenderer{
                         //label.setToolTipText(file.getPath());
                         if (icon != null) {                    
                             int width = 200;
-                            /*
-                            try {
-                                JViewport port = (JViewport)tree.getParent();
-                                JScrollPane scroll = (JScrollPane)port.getParent();
-                                width = scroll.getWidth();
-                            }catch(Exception e) {
-                                e.printStackTrace();
-                            }*/
                             component.setPreferredSize(new Dimension(width, icon.getIconHeight() + 4));
                         }
                     }

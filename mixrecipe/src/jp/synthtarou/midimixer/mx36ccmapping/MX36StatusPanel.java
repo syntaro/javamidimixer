@@ -19,9 +19,9 @@ package jp.synthtarou.midimixer.mx36ccmapping;
 import java.util.Comparator;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.accordion.MXAccordion;
-import jp.synthtarou.midimixer.libs.accordion.MXAccordionElement;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.accordionui.MXAccordion;
+import jp.synthtarou.libs.accordionui.MXAccordionElement;
 
 /**
  *

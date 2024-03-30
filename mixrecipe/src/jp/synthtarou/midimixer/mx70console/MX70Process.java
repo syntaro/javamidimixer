@@ -17,20 +17,20 @@
 package jp.synthtarou.midimixer.mx70console;
 
 import java.util.logging.Level;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.json.MXJsonValue;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.settings.MXSetting;
-import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
-import jp.synthtarou.midimixer.mx40layer.MX40View;
+import jp.synthtarou.libs.inifile.MXINIFile;
+import jp.synthtarou.libs.json.MXJsonSupport;
+import jp.synthtarou.libs.inifile.MXINIFileSupport;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX70Process implements MXSettingTarget {
-    MXSetting _setting;
+public class MX70Process {
     MX70View _view;
     MXMidiConsole _outsideInput = new MXMidiConsole();
     MXMidiConsole _insideInput = new MXMidiConsole();
@@ -39,12 +39,6 @@ public class MX70Process implements MXSettingTarget {
     MXMidiConsole _listBinary = new MXMidiConsole();
 
     public MX70Process() {
-        _setting = new MXSetting("FreeConsole");
-        _setting.setTarget(this);
-    }
-
-    public void readSettingAndSetup() {
-        _setting.readSettingFile();
     }
 
     public void createWindow() {
@@ -77,30 +71,13 @@ public class MX70Process implements MXSettingTarget {
         try {
             e.getTiming().recordWrap(2);
         }catch(RuntimeException ex) {
-            MXLogger2.getLogger(MX70Process.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(MX70Process.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 
     public void addOutsideOutput(MXMidiConsoleElement e) {
         _outsideOutput.add(e);
         e.getTiming().recordWrap(3);
-    }
-
-    @Override
-    public MXSetting getSettings() {
-        return _setting;
-    }
-
-    @Override
-    public void prepareSettingFields() {
-    }
-
-    @Override
-    public void afterReadSettingFile() {
-    }
-
-    @Override
-    public void beforeWriteSettingFile() {
     }
     
     MX70SysexPanel _sysex;

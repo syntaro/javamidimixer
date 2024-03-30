@@ -18,13 +18,13 @@ package jp.synthtarou.midimixer.mx36ccmapping;
 
 import java.util.Collections;
 import java.util.logging.Level;
-import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
-import jp.synthtarou.midimixer.libs.common.MXRangedValue;
+import jp.synthtarou.midimixer.MXConfiguration;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueLsitFactory;
+import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
 import jp.synthtarou.midimixer.mx30surface.MX32MixerProcess;
 
@@ -50,11 +50,11 @@ public class MX36Status {
 
     MXRangedValue _outValueRange;
     int _outValueOffset = 0;
-    MNamedValueList<Integer> _outValueTable;
+    MXNamedObjectList<Integer> _outValueTable;
     
     MXRangedValue _outGateRange;
     int _outGateOffset = 0;
-    MNamedValueList<Integer> _outGateTable;
+    MXNamedObjectList<Integer> _outGateTable;
     
     boolean _outGateTypeKey;
     
@@ -70,26 +70,26 @@ public class MX36Status {
         return (rowType << 8) | rowNumber;
     }
     
-    static MNamedValueList<Integer> _listRowType;
+    static MXNamedObjectList<Integer> _listRowType;
 
     static {
-        _listRowType = new MNamedValueList<>();
+        _listRowType = new MXNamedObjectList<>();
         _listRowType.addNameAndValue("-", -1);
-        for (int i = 0; i < MXAppConfig.CIRCLE_ROW_COUNT; ++ i) {
+        for (int i = 0; i < MXConfiguration.CIRCLE_ROW_COUNT; ++ i) {
             String caption = "Knob";
             if (i != 0) {
                 caption += Integer.toString(i + 1);
             }
             _listRowType.addNameAndValue(caption, makeRowValue(MGStatus.TYPE_CIRCLE, i));
         }
-        for (int i = 0; i < MXAppConfig.SLIDER_ROW_COUNT; ++ i) {
+        for (int i = 0; i < MXConfiguration.SLIDER_ROW_COUNT; ++ i) {
             String caption = "Slider";
             if (i != 0) {
                 caption += Integer.toString(i + 1);
             }
             _listRowType.addNameAndValue(caption, makeRowValue(MGStatus.TYPE_SLIDER, i));
         }
-        for (int i = 0; i < MXAppConfig.DRUM_ROW_COUNT; ++ i) {
+        for (int i = 0; i < MXConfiguration.DRUM_ROW_COUNT; ++ i) {
             String caption = "Drum";
             if (i != 0) {
                 caption += Integer.toString(i + 1);
@@ -203,8 +203,8 @@ public class MX36Status {
         return "";
     }
     
-    public MNamedValueList<Integer> createTable(MXRangedValue range) {
-        MNamedValueList<Integer> list = new MNamedValueList<>();
+    public MXNamedObjectList<Integer> createTable(MXRangedValue range) {
+        MXNamedObjectList<Integer> list = new MXNamedObjectList<>();
         for (int i = range._min; i <= range._max; ++ i) {
             list.addNameAndValue(String.valueOf(i), i);
         }
@@ -252,7 +252,7 @@ public class MX36Status {
             try {
                 _outCachedMessage = MXMessageFactory.fromCCXMLText(_outValueOffset, _outDataText, _outChannel);
             }catch(Exception ex) {
-                MXLogger2.getLogger(MX36Status.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(MX36Status.class).log(Level.WARNING, ex.getMessage(), ex);
             }
             if (_outCachedMessage == null) {
                 _outDataText = null;
@@ -288,9 +288,9 @@ public class MX36Status {
         return true;
     }
     
-    static MNamedValueList<Integer> listForDefault = MNamedValueLsitFactory.listupRange(0, 127);
+    static MXNamedObjectList<Integer> listForDefault = MXNamedObjectListFactory.listupRange(0, 127);
 
-    public MNamedValueList<Integer> safeGateTable() {
+    public MXNamedObjectList<Integer> safeGateTable() {
         if (_outGateTable != null) {
             return _outGateTable;
         }
@@ -298,11 +298,11 @@ public class MX36Status {
         if (range._min == 0 && range._max == 127) {
             return listForDefault;
         }
-        MNamedValueList<Integer> listForGate = MNamedValueLsitFactory.listupRange(range._min, range._max);
+        MXNamedObjectList<Integer> listForGate = MXNamedObjectListFactory.listupRange(range._min, range._max);
         return listForGate;
     }
 
-    public MNamedValueList<Integer> safeValueTable() {
+    public MXNamedObjectList<Integer> safeValueTable() {
         if (_outValueTable != null) {
             return _outValueTable;
         }
@@ -310,7 +310,7 @@ public class MX36Status {
         if (range._min == 0 && range._max == 127) {
             return listForDefault;
         }
-        MNamedValueList<Integer> listForValue = MNamedValueLsitFactory.listupRange(range._min, range._max);
+        MXNamedObjectList<Integer> listForValue = MXNamedObjectListFactory.listupRange(range._min, range._max);
         return listForValue;
     }
     

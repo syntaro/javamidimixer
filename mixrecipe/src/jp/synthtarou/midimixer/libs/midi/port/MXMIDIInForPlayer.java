@@ -22,13 +22,13 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Level;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_PlayList;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFMessage;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFCallback;
+import jp.synthtarou.libs.smf.SMFMessage;
+import jp.synthtarou.libs.smf.SMFSequencer;
+import jp.synthtarou.libs.smf.SMFCallback;
 import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
  
 /**
@@ -97,9 +97,9 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
                 }
             }
         } catch (IOException ex) {
-            MXLogger2.getLogger(MXMIDIInForPlayer.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(MXMIDIInForPlayer.class).log(Level.WARNING, ex.getMessage(), ex);
         }catch(RuntimeException ex) {
-            MXLogger2.getLogger(MXMIDIInForPlayer.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(MXMIDIInForPlayer.class).log(Level.WARNING, ex.getMessage(), ex);
         }
         String[] list = new String[ret.size()];
         ret.toArray(list);
@@ -144,7 +144,7 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
                         receiveShortMessage(timing, dword);
                     }
                 }catch(RuntimeException ex) {
-                    MXLogger2.getLogger(MXMIDIInForPlayer.class).log(Level.WARNING, ex.getMessage(), ex);
+                    MXFileLogger.getLogger(MXMIDIInForPlayer.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
            }
 

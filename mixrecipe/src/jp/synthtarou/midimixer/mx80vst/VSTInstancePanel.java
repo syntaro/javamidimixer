@@ -23,9 +23,9 @@ import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
-import jp.synthtarou.midimixer.libs.common.async.Transaction;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.libs.async.Transaction;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
@@ -376,7 +376,7 @@ public class VSTInstancePanel extends javax.swing.JPanel {
             }
             
             if (!_instance.isEffect()) {
-                MNamedValueList<MXMIDIOut> list = MXMIDIOutManager.getManager().listSelectedOutput();
+                MXNamedObjectList<MXMIDIOut> list = MXMIDIOutManager.getManager().listSelectedOutput();
                 MXMIDIOut found = null;
                 for (int i = 0; i < list.getSize(); ++ i) {
                     MXMIDIOut out = list.valueOfIndex(i);

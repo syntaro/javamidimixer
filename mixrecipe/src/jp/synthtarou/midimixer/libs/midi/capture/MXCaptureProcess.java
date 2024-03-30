@@ -22,7 +22,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.tree.TreeCellRenderer;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
-import jp.synthtarou.midimixer.libs.accessor.MainThreadTask;
+import jp.synthtarou.libs.MainThreadTask;
 
 /**
  *

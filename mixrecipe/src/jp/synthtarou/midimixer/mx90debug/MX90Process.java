@@ -16,10 +16,10 @@
  */
 package jp.synthtarou.midimixer.mx90debug;
 
-import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.libs.common.MXRangedValue;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXRangedValue;
+import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -79,7 +79,7 @@ public class MX90Process extends MXReceiver<MX90View> {
         }
         result.println("Testing Random Note");
         for (int x = 0; x < 50; ++x) {
-            for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++port) {
+            for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
                 int channel = random(16);
                 int note = random(50) + 50;
 
@@ -122,6 +122,7 @@ public class MX90Process extends MXReceiver<MX90View> {
                 MXTemplate template4 = new MXTemplate("@SYSEX F0H [ #GL #VL ] F7H");
                 MXMessage message3 = MXMessageFactory.fromTemplate(0, template3, 10, MXRangedValue.new7bit(gate), MXRangedValue.new7bit(value));
                 MXMessage message4 = MXMessageFactory.fromTemplate(0, template4, 10, MXRangedValue.new7bit(gate), MXRangedValue.new7bit(value));
+
                 byte[] question3 = message3.getBinary();
                 byte[] answer = { (byte)0xf0, (byte)gate, (byte)value, (byte)0xf7 };
                 byte[] question4 = message4.getBinary();
@@ -142,6 +143,7 @@ public class MX90Process extends MXReceiver<MX90View> {
                 else {
                     result.println("checksum not work");
                 }
+                new MXDebugSame(result, message3);
             }
         }
         result.println("Finished All Tests");

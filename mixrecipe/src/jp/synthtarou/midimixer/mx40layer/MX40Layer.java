@@ -17,8 +17,8 @@
 package jp.synthtarou.midimixer.mx40layer;
 
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -100,8 +100,8 @@ public class MX40Layer {
         return "mod-unknown";
     }
     
-    public static MNamedValueList createSendOption(boolean haveNoneOption) {
-        MNamedValueList<Integer> list = new MNamedValueList();
+    public static MXNamedObjectList createSendOption(boolean haveNoneOption) {
+        MXNamedObjectList<Integer> list = new MXNamedObjectList();
         list.addNameAndValue("Fixed", MOD_FIXED);
         list.addNameAndValue("AsFrom", MOD_ASFROM);
         if (haveNoneOption) {

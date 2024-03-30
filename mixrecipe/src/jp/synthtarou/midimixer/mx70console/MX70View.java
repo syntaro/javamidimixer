@@ -27,10 +27,10 @@ import java.util.logging.Level;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.MXGlobalTimer;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.MXConfiguration;
+import jp.synthtarou.libs.MXCountdownTimer;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachCopyAndPaste;
 import jp.synthtarou.midimixer.mx50resolution.MX50Process;
@@ -565,7 +565,7 @@ public class MX70View extends javax.swing.JPanel {
                     }
                     jLabelMemory.setText(getMemoryInfo());
                 } catch (RuntimeException ex) {
-                    MXLogger2.getLogger(MX70View.class).log(Level.WARNING, ex.getMessage(), ex);
+                    MXFileLogger.getLogger(MX70View.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
                 Container parent = getParent();
                 while (parent != null) {
@@ -583,7 +583,7 @@ public class MX70View extends javax.swing.JPanel {
                     }
                     parent = parent.getParent();
                 }
-                MXGlobalTimer.letsCountdown(1000, new Runnable() {
+                MXCountdownTimer.letsCountdown(1000, new Runnable() {
                     public void run() {
                         showTimeSpend();
                     }
@@ -594,7 +594,7 @@ public class MX70View extends javax.swing.JPanel {
 
     public void showAsWindow() {
         JFrame newFrame = new JFrame();
-        newFrame.setTitle("Free Consone / SysEX(" + MXAppConfig.MX_APPNAME + ")");
+        newFrame.setTitle("Free Consone / SysEX(" + MXConfiguration.MX_APPLICATION + ")");
         //dialog.setAlwaysOnTop(modal ? true : false);
         newFrame.pack();
         newFrame.getContentPane().add(this);

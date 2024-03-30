@@ -18,7 +18,7 @@ package jp.synthtarou.midimixer.mx90debug;
 
 import java.util.ArrayList;
 import java.util.List;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;

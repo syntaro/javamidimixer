@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.mx36ccmapping;
 
 import java.util.ArrayList;
-import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
 
 /**
@@ -36,13 +36,13 @@ public class MX36Index {
             int totalRow = typeToIndex(-1, 0);
             _listPocket = new ArrayList[totalRow + 1];
             
-            for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++ row) {
+            for (int row = 0; row < MXConfiguration.CIRCLE_ROW_COUNT; ++ row) {
                 _listPocket[typeToIndex(MGStatus.TYPE_CIRCLE, row)] = new ArrayList<Column>();
             }
-            for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++ row) {
+            for (int row = 0; row < MXConfiguration.SLIDER_ROW_COUNT; ++ row) {
                 _listPocket[typeToIndex(MGStatus.TYPE_SLIDER, row)] = new ArrayList<Column>();
             }
-            for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++ row) {
+            for (int row = 0; row < MXConfiguration.DRUM_ROW_COUNT; ++ row) {
                 _listPocket[typeToIndex(MGStatus.TYPE_DRUMPAD, row)] = new ArrayList<Column>();
             }
         }
@@ -58,7 +58,7 @@ public class MX36Index {
         int column = status._surfaceColumn;
         
         if (_listPort == null) {
-            _listPort = new PortData[MXAppConfig.TOTAL_PORT_COUNT];
+            _listPort = new PortData[MXConfiguration.TOTAL_PORT_COUNT];
         }
         PortData portData = _listPort[port];
         if (portData == null) {
@@ -123,10 +123,10 @@ public class MX36Index {
             case MGStatus.TYPE_CIRCLE:
                 return row;
             case MGStatus.TYPE_SLIDER:
-                return row + MXAppConfig.CIRCLE_ROW_COUNT;
+                return row + MXConfiguration.CIRCLE_ROW_COUNT;
             case MGStatus.TYPE_DRUMPAD:
-                return row + MXAppConfig.CIRCLE_ROW_COUNT + MXAppConfig.SLIDER_ROW_COUNT;
+                return row + MXConfiguration.CIRCLE_ROW_COUNT + MXConfiguration.SLIDER_ROW_COUNT;
         }
-        return row + MXAppConfig.CIRCLE_ROW_COUNT + MXAppConfig.SLIDER_ROW_COUNT + MXAppConfig.DRUM_ROW_COUNT;
+        return row + MXConfiguration.CIRCLE_ROW_COUNT + MXConfiguration.SLIDER_ROW_COUNT + MXConfiguration.DRUM_ROW_COUNT;
     }
 }

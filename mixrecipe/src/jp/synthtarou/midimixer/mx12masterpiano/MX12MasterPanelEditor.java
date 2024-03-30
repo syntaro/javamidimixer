@@ -19,10 +19,10 @@ package jp.synthtarou.midimixer.mx12masterpiano;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueLsitFactory;
+import jp.synthtarou.midimixer.MXConfiguration;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 
@@ -57,9 +57,9 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
         return dialog;
     }
 
-    MNamedValueList<Integer> _portModel;
-    MNamedValueList<Integer> _channelModel;
-    MNamedValueList<MXReceiver> _receiverModel;
+    MXNamedObjectList<Integer> _portModel;
+    MXNamedObjectList<Integer> _channelModel;
+    MXNamedObjectList<MXReceiver> _receiverModel;
 
     final MX12Process _process;
     
@@ -78,10 +78,10 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
         _receiverModel = MXMain.getMain().getReceiverList();
         _receiverModel.writeComboBox(jComboBoxReciever, _process.getNextReceiver());
 
-        _portModel = MNamedValueLsitFactory.listupPort(null);
+        _portModel = MXNamedObjectListFactory.listupPort(null);
         _portModel.writeComboBox(jComboBoxPort, _process.getMousePort());
         
-        _channelModel = MNamedValueLsitFactory.listupChannel(null);
+        _channelModel = MXNamedObjectListFactory.listupChannel(null);
         _channelModel.writeComboBox(jComboBoxChannel, _process.getMouseChannel());
         
         jSpinnerMouseVelocity.setModel(new SafeSpinnerNumberModel(_process.getMouseVelocity(), 1, 127, 1));
@@ -108,7 +108,7 @@ public class MX12MasterPanelEditor extends javax.swing.JPanel {
     }
 
     public String getTitle() {
-        return MXAppConfig.MX_APPNAME;
+        return MXConfiguration.MX_APPLICATION;
     }
     
     /**

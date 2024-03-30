@@ -22,11 +22,11 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
-import jp.synthtarou.midimixer.libs.common.MXRangedValue;
+import jp.synthtarou.libs.namedobject.MXNamedObject;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
-import jp.synthtarou.midimixer.libs.accessor.MainThreadTask;
+import jp.synthtarou.libs.MainThreadTask;
 
 /**
  *
@@ -35,9 +35,9 @@ import jp.synthtarou.midimixer.libs.accessor.MainThreadTask;
 public class ThemeManagerDialog extends javax.swing.JDialog {
     JFrame parentFrame;
     ThemeManager config;
-    MNamedValueList<String> _listModelFontName;
-    MNamedValueList<Integer> _listModelFontSyle;
-    MNamedValueList<Integer> _listModelFontSize;
+    MXNamedObjectList<String> _listModelFontName;
+    MXNamedObjectList<Integer> _listModelFontSyle;
+    MXNamedObjectList<Integer> _listModelFontSize;
 
     /**
      *
@@ -59,8 +59,8 @@ public class ThemeManagerDialog extends javax.swing.JDialog {
         jComboBoxFontSize.setModel(_listModelFontSize);
         jComboBoxFontStyle.setModel(_listModelFontSyle);
         
-        MNamedValueList<String> listLaf = config.getLookAndFeelModel();
-        for (MNamedValue<String> elem : listLaf) {
+        MXNamedObjectList<String> listLaf = config.getLookAndFeelModel();
+        for (MXNamedObject<String> elem : listLaf) {
             String name = elem._name;
             JButton button = new JButton(name);
             button.addActionListener(new LookAndFeelThemeAction(name));

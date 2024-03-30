@@ -21,8 +21,8 @@ import java.util.LinkedList;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
-import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.MXConfiguration;
+import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -37,7 +37,7 @@ public class MXVisitantRecorder implements TableModel {
 
     public MXVisitantRecorder() {
         _element = new ArrayList();
-        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
+        for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
             _element.add(new MXVisitant16());
         }
     }

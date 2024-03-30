@@ -25,10 +25,10 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
-import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
@@ -120,7 +120,7 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     public TableModel createDeviceModel() {
-        MNamedValueList<MXMIDIIn> allInput = MXMIDIInManager.getManager().listAllInput();
+        MXNamedObjectList<MXMIDIIn> allInput = MXMIDIInManager.getManager().listAllInput();
         MXMIDIInManager manager = MXMIDIInManager.getManager();
         DefaultTableModel tableModel = new DefaultTableModel() {
             public boolean isCellEditable(int row, int column) {
@@ -182,7 +182,7 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
     public JPopupMenu createPopupMenuForPort(final int row) {
         JPopupMenu popup = new JPopupMenu();
         
-        for (int i = -1; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
+        for (int i = -1; i < MXConfiguration.TOTAL_PORT_COUNT; ++ i) {
             JMenuItem item;
             if (i < 0) {
                 item = popup.add("(none)");

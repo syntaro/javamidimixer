@@ -25,7 +25,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
-import jp.synthtarou.midimixer.MXAppConfig;
+import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 
@@ -36,7 +36,7 @@ import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 public class MX10View extends javax.swing.JPanel {
     MX10MidiInListPanel _inPanel;
     JTableWithColumnHeader _jTableSkip;
-    MX10Structure _bindedStructure;
+    MX10ViewData _viewData;
     
     /**
      * Creates new form MX10View
@@ -75,7 +75,7 @@ public class MX10View extends javax.swing.JPanel {
         int port = column - 1;
         DefaultTableModel model = (DefaultTableModel)_jTableSkip.getModel();
         
-        if (port >= 0 && port < MXAppConfig.TOTAL_PORT_COUNT) {
+        if (port >= 0 && port < MXConfiguration.TOTAL_PORT_COUNT) {
             String var = (String)model.getValueAt(row, column);
             if (var == null || var.length() == 0) {
                 setSkipDX(row, column, true);
@@ -96,10 +96,10 @@ public class MX10View extends javax.swing.JPanel {
             });
             return;
         }
-        if (_bindedStructure != null) {
+        if (_viewData != null) {
             int type = row;
             int port = column - 1;
-            _bindedStructure.setSkip(port, type, skip);
+            _viewData.setSkip(port, type, skip);
         }
         DefaultTableModel model = (DefaultTableModel)_jTableSkip.getModel();
         if (skip) {
@@ -168,7 +168,7 @@ public class MX10View extends javax.swing.JPanel {
         setUsingThisRecipeDX(jCheckBoxUseSkip.isSelected());
     }//GEN-LAST:event_jCheckBoxUseSkipActionPerformed
 
-    public synchronized TableModel createSkipTableModel(MX10Structure structure) {
+    public synchronized TableModel createSkipTableModel(MX10ViewData data) {
         DefaultTableModel model = new DefaultTableModel() {
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -177,17 +177,17 @@ public class MX10View extends javax.swing.JPanel {
 
         model.addColumn("");
         
-        for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
+        for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++ i) {
             model.addColumn(MXMidi.nameOfPortShort(i));
         }
         
-        for (int row = 0; row  < MX10Structure.TYPE_COUNT; ++ row) {
+        for (int row = 0; row  < MX10ViewData.TYPE_COUNT; ++ row) {
             Vector line = new Vector();
-            line.add(MX10Structure.typeNames[row]);
+            line.add(MX10ViewData.typeNames[row]);
             
-            for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
+            for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
                 int type = row ;
-                if (structure.isSkipDX(port, type)) {
+                if (data.isSkip(port, type)) {
                     line.add("Skip");
                 }else {
                     line.add("");
@@ -199,7 +199,7 @@ public class MX10View extends javax.swing.JPanel {
             Vector line = new Vector();
             line.add("");
 
-            for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
+            for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++ i) {
                 line.add(MXMidi.nameOfPortShort(i));
             }
         }
@@ -240,18 +240,18 @@ public class MX10View extends javax.swing.JPanel {
         _jTableSkip.setEnabled(usingThisRecipe);
     }
     
-    public void setStructureDX(MX10Structure structure) {
+    public void setStructureDX(MX10ViewData viewData) {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    setStructureDX(structure);
+                    setStructureDX(viewData);
                 }
             });
             return;
         }
-        _bindedStructure = structure;
-        _jTableSkip.setModel(createSkipTableModel(structure));
+        _viewData = viewData;
+        _jTableSkip.setModel(createSkipTableModel(viewData));
         //_jTableSkip.getColumnModel().getColumn(0).setMinWidth(150);
         new MXAttachTableResize(_jTableSkip);
     }

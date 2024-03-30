@@ -34,8 +34,8 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
 import jp.synthtarou.midimixer.ccxml.InformationForModule;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.navigator.legacy.INavigator;
 
 /**
  *

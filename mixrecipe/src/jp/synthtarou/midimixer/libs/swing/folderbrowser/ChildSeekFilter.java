@@ -20,8 +20,8 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.HashSet;
 import java.util.logging.Level;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.midi.smf.SMFSequencer;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.smf.SMFSequencer;
 
 /**
  *
@@ -89,7 +89,7 @@ public class ChildSeekFilter implements FileFilter {
                         hit = true;
                     }
                 } catch (RuntimeException ex) {
-                    MXLogger2.getLogger(ChildSeekFilter.class).log(Level.WARNING, ex.getMessage(), ex);
+                    MXFileLogger.getLogger(ChildSeekFilter.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
 
@@ -100,7 +100,7 @@ public class ChildSeekFilter implements FileFilter {
             }
             return hit;
         } catch (Throwable ex) {
-            MXLogger2.getLogger(ChildSeekFilter.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(ChildSeekFilter.class).log(Level.WARNING, ex.getMessage(), ex);
             _listFailed.add(file.toString());
             return false;
         }

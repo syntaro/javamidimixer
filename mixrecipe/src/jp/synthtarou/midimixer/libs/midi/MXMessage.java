@@ -20,10 +20,10 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.common.MXRangedValue;
-import jp.synthtarou.midimixer.libs.common.async.Transaction;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.MXRangedValue;
+import jp.synthtarou.libs.async.Transaction;
 import static jp.synthtarou.midimixer.libs.midi.MXTemplate.parseDAlias;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
@@ -269,9 +269,9 @@ public final class MXMessage implements Comparable<MXMessage> {
                 text = new String(data, 2, data.length - 2, "utf8");
                 text = new String(data, 2, data.length - 2, "SJIS");
             } catch (UnsupportedEncodingException ex) {
-                MXLogger2.getLogger(MXMessage.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(MXMessage.class).log(Level.WARNING, ex.getMessage(), ex);
             } catch (RuntimeException ex) {
-                MXLogger2.getLogger(MXMessage.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(MXMessage.class).log(Level.WARNING, ex.getMessage(), ex);
             }
             return text;
         }
@@ -314,7 +314,7 @@ public final class MXMessage implements Comparable<MXMessage> {
     public byte[] getBinary() {
         if (getDwordCount() >= 2) {
             Exception ex = new IllegalStateException("dword count == "+  getDwordCount());
-            MXLogger2.getLogger(MXMessage.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(MXMessage.class).log(Level.WARNING, ex.getMessage(), ex);
         }
         createBytes();
         return _dataBytes;        //SYSEXの場合１バイト目は、STATUSに入る
@@ -652,7 +652,7 @@ public final class MXMessage implements Comparable<MXMessage> {
             return (((status << 8) | data1) << 8) | data2;
         }
         if (getVisitant() == null) {
-            MXLogger2.getLogger(MXMessage.class).log(Level.WARNING, "Visitant was NULL");
+            MXFileLogger.getLogger(MXMessage.class).log(Level.WARNING, "Visitant was NULL");
             return 0;
         }
         else {
@@ -667,8 +667,8 @@ public final class MXMessage implements Comparable<MXMessage> {
                 data2 = getVisitant().getDataroomMSB();
                 return (((status << 8) | data1) << 8) | data2;
             }
-            MXLogger2.getLogger(MXMessage.class).warning("Incomplete  ?" + getVisitant().isIncomplemteDataentry());
-            MXLogger2.getLogger(MXMessage.class).warning("Visitant has nodata  "+ getVisitant());
+            MXFileLogger.getLogger(MXMessage.class).warning("Incomplete  ?" + getVisitant().isIncomplemteDataentry());
+            MXFileLogger.getLogger(MXMessage.class).warning("Visitant has nodata  "+ getVisitant());
         }
         return 0;
     }
@@ -691,7 +691,7 @@ public final class MXMessage implements Comparable<MXMessage> {
             return (((status << 8) | data1) << 8) | data2;
         }
         if (getVisitant() == null) {
-            MXLogger2.getLogger(MXMessage.class).log(Level.WARNING, "Visitant was NULL");
+            MXFileLogger.getLogger(MXMessage.class).log(Level.WARNING, "Visitant was NULL");
             return 0;
         }
         else {
@@ -722,7 +722,7 @@ public final class MXMessage implements Comparable<MXMessage> {
             return (((status << 8) | data1) << 8) | data2;
         }
         if (getVisitant() == null) {
-            MXLogger2.getLogger(MXMessage.class).log(Level.WARNING, "Visitant was NULL");
+            MXFileLogger.getLogger(MXMessage.class).log(Level.WARNING, "Visitant was NULL");
             return 0;
         }
         else {
@@ -748,7 +748,7 @@ public final class MXMessage implements Comparable<MXMessage> {
             return (((status << 8) | data1) << 8) | data2;
         }
         if (getVisitant() == null) {
-            MXLogger2.getLogger(MXMessage.class).log(Level.WARNING, "Visitant was NULL");
+            MXFileLogger.getLogger(MXMessage.class).log(Level.WARNING, "Visitant was NULL");
             return 0;
         }
         else {

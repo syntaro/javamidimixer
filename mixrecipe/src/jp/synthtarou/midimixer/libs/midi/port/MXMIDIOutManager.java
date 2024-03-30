@@ -16,24 +16,25 @@
  */
 package jp.synthtarou.midimixer.libs.midi.port;
 
+import java.io.File;
 import java.util.ArrayList;
-import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
+import jp.synthtarou.midimixer.MXConfiguration;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
-import jp.synthtarou.midimixer.libs.settings.MXSetting;
-import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
+import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_NotFound;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_VSTi;
+import jp.synthtarou.libs.inifile.MXINIFileSupport;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MXMIDIOutManager implements MXSettingTarget {
+public class MXMIDIOutManager implements MXINIFileSupport {
 
     private static final MXMIDIOutManager _instance = new MXMIDIOutManager();
 
@@ -45,41 +46,78 @@ public class MXMIDIOutManager implements MXSettingTarget {
         //TODO Java not support?
     }
 
-    private MXSetting _setting;
+    @Override
+    public void readINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
+        setting.readINIFile();
+        MXNamedObjectList<MXMIDIOut> listOut = listAllOutput();
+        MXDriver_NotFound dummy = MXDriver_NotFound.getInstance();
 
-    public void initWithSetting() {
-        if (_setting == null) {
-            _setting = new MXSetting("MIDIOutput");
-            _setting.setTarget(this);
-            MNamedValueList<MXMIDIOut> listOut = listAllOutput();
-            _setting.readSettingFile();
+        for (int seek = 0; seek < 1000; ++seek) {
+            String deviceName = setting.getSetting("device[" + seek + "].name");
+            String deviceOpen = setting.getSetting("device[" + seek + "].open");
+            String devicePort = setting.getSetting("device[" + seek + "].port");
 
-            MNamedValueList<MXMIDIOut> list = listAllOutput();
-
-            boolean assigned = false;
-            for (int i = 0; i < list.getSize(); ++i) {
-                MXMIDIOut out = list.valueOfIndex(i);
-                if (out.getPortAssignCount() > 0) {
-                    assigned = true;
+            if (deviceName == null || deviceName.length() == 0) {
+                break;
+            }
+            if (deviceOpen == null) {
+                deviceOpen = "0";
+            }
+            if (deviceOpen.equals("1")) {
+                if (devicePort == null) {
+                    devicePort = String.valueOf(seek);
                 }
             }
 
-            if (!assigned) {
-                MXMIDIOut reserve1 = MXMIDIOutManager.getManager().findMIDIOutput("Microsoft GS Wavetable Synth");
-                MXMIDIOut reserve2 = MXMIDIOutManager.getManager().findMIDIOutput("Gervill");
-                MXMIDIOut reserve3 = MXMIDIOutManager.getManager().findMIDIOutput("VirtualMIDISynth #1");
+            MXNamedObjectList<MXMIDIOut> detected = listAllOutput();
+            MXMIDIOut out = detected.valueOfName(deviceName);
+            if (out != null) {
+                if (deviceOpen.equals("1")) {
+                    out.openOutput(5);
+                }
+            } else {
+                out = new MXMIDIOut(dummy, dummy.OuputAddDevice(deviceName));
+                detected.addNameAndValue(deviceName, out);
+            }
+            ArrayList<String> split = new ArrayList();
+            MXUtil.split(devicePort, split, ',');
+            for (String t1 : split) {
+                try {
+                    int x = Integer.parseInt(t1);
+                    out.setPortAssigned(x, true);
+                } catch (NumberFormatException e) {
 
-                if (reserve2 != null) {
-                    reserve1 = reserve2;
                 }
-                if (reserve3 != null) {
-                    reserve1 = reserve3;
-                }
+            }
+        }
+        clearMIDIOutCache();
 
-                if (reserve1 != null) {
-                    reserve1.setPortAssigned(0, true);
-                    reserve1.openOutput(5);
-                }
+        MXNamedObjectList<MXMIDIOut> list = listAllOutput();
+
+        boolean assigned = false;
+        for (int i = 0; i < list.getSize(); ++i) {
+            MXMIDIOut out = list.valueOfIndex(i);
+            if (out.getPortAssignCount() > 0) {
+                assigned = true;
+            }
+        }
+
+        if (!assigned) {
+            MXMIDIOut reserve1 = MXMIDIOutManager.getManager().findMIDIOutput("Microsoft GS Wavetable Synth");
+            MXMIDIOut reserve2 = MXMIDIOutManager.getManager().findMIDIOutput("Gervill");
+            MXMIDIOut reserve3 = MXMIDIOutManager.getManager().findMIDIOutput("VirtualMIDISynth #1");
+
+            if (reserve2 != null) {
+                reserve1 = reserve2;
+            }
+            if (reserve3 != null) {
+                reserve1 = reserve3;
+            }
+
+            if (reserve1 != null) {
+                reserve1.setPortAssigned(0, true);
+                reserve1.openOutput(5);
             }
         }
     }
@@ -87,17 +125,17 @@ public class MXMIDIOutManager implements MXSettingTarget {
     protected MXMIDIOutManager() {
     }
 
-    protected MNamedValueList<MXMIDIOut> _listAllOutput;
-    protected MNamedValueList<MXMIDIOut> _selectedOutput = null;
+    protected MXNamedObjectList<MXMIDIOut> _listAllOutput;
+    protected MXNamedObjectList<MXMIDIOut> _selectedOutput = null;
     //protected MXMIDIOut[] _cache;
 
-    public MNamedValueList<MXMIDIOut> listAllOutput() {
+    public MXNamedObjectList<MXMIDIOut> listAllOutput() {
         synchronized (MXTiming.mutex) {
             if (_listAllOutput != null) {
                 return _listAllOutput;
             }
 
-            MNamedValueList<MXMIDIOut> temp = new MNamedValueList<MXMIDIOut>();
+            MXNamedObjectList<MXMIDIOut> temp = new MXNamedObjectList<MXMIDIOut>();
 
             MXDriver java = MXDriver_Java._instance;
             for (int i = 0; i < java.OutputDevicesRoomSize(); i++) {
@@ -142,7 +180,7 @@ public class MXMIDIOutManager implements MXSettingTarget {
     }
 
     public MXMIDIOut findMIDIOutput(String deviceName) {
-        MNamedValueList<MXMIDIOut> model = listAllOutput();
+        MXNamedObjectList<MXMIDIOut> model = listAllOutput();
         return model.valueOfName(deviceName);
     }
 
@@ -159,12 +197,12 @@ public class MXMIDIOutManager implements MXSettingTarget {
         }
     }
 
-    public MNamedValueList<MXMIDIOut> listSelectedOutput() {
+    public MXNamedObjectList<MXMIDIOut> listSelectedOutput() {
         synchronized (MXTiming.mutex) {
             if (_selectedOutput != null) {
                 return _selectedOutput;
             }
-            _selectedOutput = new MNamedValueList();
+            _selectedOutput = new MXNamedObjectList();
             for (MXMIDIOut midi : listAllOutput().valueList()) {
                 if (midi.getPortAssignCount() == 0) {
                     continue;
@@ -186,69 +224,25 @@ public class MXMIDIOutManager implements MXSettingTarget {
     }
 
     @Override
-    public MXSetting getSettings() {
-        return _setting;
-    }
-    
-    @Override
-    public void prepareSettingFields() {
-        _setting.register("device[].name");
-        _setting.register("device[].open");
-        _setting.register("device[].port");
-    }
-
-    @Override
-    public void afterReadSettingFile() {
-        MXDriver_NotFound dummy = MXDriver_NotFound.getInstance();
-
-        for (int seek = 0; seek < 1000; ++seek) {
-            String deviceName = _setting.getSetting("device[" + seek + "].name");
-            String deviceOpen = _setting.getSetting("device[" + seek + "].open");
-            String devicePort = _setting.getSetting("device[" + seek + "].port");
-
-            if (deviceName == null || deviceName.length() == 0) {
-                break;
-            }
-            if (deviceOpen == null) {
-                deviceOpen = "0";
-            }
-            if (deviceOpen.equals("1")) {
-                if (devicePort == null) {
-                    devicePort = String.valueOf(seek);
-                }
-            }
-
-            MNamedValueList<MXMIDIOut> detected = listAllOutput();
-            MXMIDIOut out = detected.valueOfName(deviceName);
-            if (out != null) {
-                if (deviceOpen.equals("1")) {
-                    out.openOutput(5);
-                }
-            } else {
-                out = new MXMIDIOut(dummy, dummy.OuputAddDevice(deviceName));
-                detected.addNameAndValue(deviceName, out);
-            }
-            ArrayList<String> split = new ArrayList();
-            MXUtil.split(devicePort, split, ',');
-            for (String t1 : split) {
-                try {
-                    int x = Integer.parseInt(t1);
-                    out.setPortAssigned(x, true);
-                } catch (NumberFormatException e) {
-
-                }
-            }
+    public MXINIFile prepareINIFile(File custom) {
+        if (custom == null) {
+            custom = MXINIFile.pathOf("MIDIOutput");
         }
-        clearMIDIOutCache();
+        MXINIFile setting = new MXINIFile(custom, this);
+        setting.register("device[].name");
+        setting.register("device[].open");
+        setting.register("device[].port");
+        return setting;
     }
 
     @Override
-    public void beforeWriteSettingFile() {
-        MNamedValueList<MXMIDIOut> all = listAllOutput();
+    public void writeINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
+        MXNamedObjectList<MXMIDIOut> all = listAllOutput();
         int x = 0;
         for (MXMIDIOut e : all.valueList()) {
             StringBuffer assigned = new StringBuffer();
-            for (int p = 0; p < MXAppConfig.TOTAL_PORT_COUNT; ++p) {
+            for (int p = 0; p < MXConfiguration.TOTAL_PORT_COUNT; ++p) {
                 if (e.isPortAssigned(p)) {
                     if (assigned.length() > 0) {
                         assigned.append(",");
@@ -257,11 +251,12 @@ public class MXMIDIOutManager implements MXSettingTarget {
                 }
             }
             if (assigned.length() > 0) {
-                _setting.setSetting("device[" + x + "].name", e.getName());
-                _setting.setSetting("device[" + x + "].open", e.isOpen() ? "1" : "0");
-                _setting.setSetting("device[" + x + "].port", assigned.toString());
+                setting.setSetting("device[" + x + "].name", e.getName());
+                setting.setSetting("device[" + x + "].open", e.isOpen() ? "1" : "0");
+                setting.setSetting("device[" + x + "].port", assigned.toString());
                 x++;
             }
         }
+        setting.writeINIFile();
     }
 }

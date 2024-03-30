@@ -22,22 +22,23 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import jp.synthtarou.midimixer.MXThread;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.async.Transaction;
+import jp.synthtarou.libs.MXSafeThread;
+import jp.synthtarou.libs.async.Transaction;
+import jp.synthtarou.libs.json.MXJsonValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
-import jp.synthtarou.midimixer.libs.settings.MXSetting;
-import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
+import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.midimixer.libs.vst.VSTStream;
 import jp.synthtarou.midimixer.windows.MXLIB02VST3;
+import jp.synthtarou.libs.json.MXJsonSupport;
+import jp.synthtarou.libs.inifile.MXINIFileSupport;
+import jp.synthtarou.libs.json.MXJsonFile;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget {
+public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSupport, MXJsonSupport  {
     static MX80Process _instance = new MX80Process();
     
     public static synchronized MX80Process getInstance() {
@@ -45,7 +46,6 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
     }
     
     ArrayList<VSTFolder> _listFolder = new ArrayList();
-    MXSetting _setting;
     Callback _callback;
     Thread _thread = null;
 
@@ -78,23 +78,10 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
         }
         
         if (MXLIB02VST3.getInstance().isUsable()) {
-            _setting = new MXSetting("VSTFolderList");
-            _setting.setTarget(this);
-            _setting.readSettingFile();
+            readINIFile(null);
         }
     }
-    
-    public boolean readSettingFile() {
-        return _setting.readSettingFile();
-    }
-    
-    public boolean writeToSettingFile() {
-        if (MXLIB02VST3.getInstance().isUsable() == false) {
-            return false;
-        }
-        return _setting.writeSettingFile();
-    }
-    
+
     public int countFolder() {
         return _listFolder.size();
     }
@@ -168,44 +155,46 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
     }
 
     @Override
-    public MXSetting getSettings() {
-        return _setting;
-    }
-    
-    @Override
-    public void prepareSettingFields() {
-        _setting.register("stream.name");
-        _setting.register("stream.open");
-        _setting.register("stream.latency");
-        _setting.register("stream.samplingrate");
-        _setting.register("stream.masterVolume");
-        _setting.register("load[].path");
-        _setting.register("load[].open");
-        _setting.register("load[].volume.count");
-        _setting.register("load[].volume[]");
-        _setting.register("load[].insertBalance");
-        _setting.register("load[].auxSend");
-        _setting.register("effect[].path");
-        _setting.register("effect[].open");
-        _setting.register("effect[].volume.count");
-        _setting.register("effect[].volume[]");
-        _setting.register("base[].path");
-        _setting.register("base[].scanDone");
-        _setting.register("base[].directory[].path");
-        _setting.register("base[].directory[].file[].path");
-        _setting.register("skip[].path");
+    public MXINIFile prepareINIFile(File custom) {
+        if (custom == null) {
+            custom = MXINIFile.pathOf("VSTFolderList");
+        }
+        MXINIFile setting = new MXINIFile(custom, this);
+        setting.register("stream.name");
+        setting.register("stream.open");
+        setting.register("stream.latency");
+        setting.register("stream.samplingrate");
+        setting.register("stream.masterVolume");
+        setting.register("load[].path");
+        setting.register("load[].open");
+        setting.register("load[].volume.count");
+        setting.register("load[].volume[]");
+        setting.register("load[].insertBalance");
+        setting.register("load[].auxSend");
+        setting.register("effect[].path");
+        setting.register("effect[].open");
+        setting.register("effect[].volume.count");
+        setting.register("effect[].volume[]");
+        setting.register("base[].path");
+        setting.register("base[].scanDone");
+        setting.register("base[].directory[].path");
+        setting.register("base[].directory[].file[].path");
+        setting.register("skip[].path");
+        return setting;
     }
 
     @Override
-    public void afterReadSettingFile() {
+    public void readINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
+        setting.readINIFile();
         _listFolder.clear();
         _listSkip.clear();
 
-        String streamName  =  _setting.getSetting("stream.name");
-        boolean open = _setting.getSettingAsBoolean("stream.open", false);
-        int samplingRate = _setting.getSettingAsInt("stream.samplingrate", 48000);
-        int latency =  _setting.getSettingAsInt("stream.latency", 128);
-        int volume =  _setting.getSettingAsInt("stream.masterVolume", 20);
+        String streamName  =  setting.getSetting("stream.name");
+        boolean open = setting.getSettingAsBoolean("stream.open", false);
+        int samplingRate = setting.getSettingAsInt("stream.samplingrate", 48000);
+        int latency =  setting.getSettingAsInt("stream.latency", 128);
+        int volume =  setting.getSettingAsInt("stream.masterVolume", 20);
         int streamIndex = -1;
 
         MXLIB02VST3.getInstance().setMasterVolume(0.01f * volume);
@@ -235,7 +224,7 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
         int l = 1;
         while(true) {
             
-            String loadPath = _setting.getSetting("load[" +  l + "].path");
+            String loadPath = setting.getSetting("load[" +  l + "].path");
             if (loadPath == null) {
                 break;
             }
@@ -244,7 +233,7 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
                 continue;
             }
 
-            open = _setting.getSettingAsBoolean("load[" +  l + "].open", false);
+            open = setting.getSettingAsBoolean("load[" +  l + "].open", false);
             
             VSTInstance vst = new VSTInstance(false, l - 1);
 
@@ -260,15 +249,15 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
                 int result = vst.postLoadPreset(file.getPath(), null).awaitResult();
             }
 
-            int count = _setting.getSettingAsInt("load[" + l + "].volume.count", 0);
+            int count = setting.getSettingAsInt("load[" + l + "].volume.count", 0);
             for (int bus = 0; bus < count; ++ bus) {
-                int busVolume = _setting.getSettingAsInt("load[" + l + "].volume[" + bus + "]", 127);
+                int busVolume = setting.getSettingAsInt("load[" + l + "].volume[" + bus + "]", 127);
                 vst.setBusVolume(bus, busVolume);
             }
 
-            int balance = _setting.getSettingAsInt("load[" + l + "].insertBalance", 0);
+            int balance = setting.getSettingAsInt("load[" + l + "].insertBalance", 0);
             vst.setInsertBalance(balance);
-            int send = _setting.getSettingAsInt("load[" + l + "].auxSend", 0);
+            int send = setting.getSettingAsInt("load[" + l + "].auxSend", 0);
             vst.setAuxSend(send);
             
             panel.createVolumePanel();
@@ -279,7 +268,7 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
         l = 1;
         while(true) {
             
-            String loadPath = _setting.getSetting("effect[" +  l + "].path");
+            String loadPath = setting.getSetting("effect[" +  l + "].path");
             if (loadPath == null) {
                 break;
             }
@@ -288,7 +277,7 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
                 continue;
             }
             
-            open = _setting.getSettingAsBoolean("effect[" +  l + "].open", false);
+            open = setting.getSettingAsBoolean("effect[" +  l + "].open", false);
 
             VSTInstance vst = new VSTInstance(true, l - 1);
 
@@ -304,9 +293,9 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
                 int result = vst.postLoadPreset(file.getPath(), null).awaitResult();
             }
 
-            int count = _setting.getSettingAsInt("effect[" + l + "].volume.count", 0);
+            int count = setting.getSettingAsInt("effect[" + l + "].volume.count", 0);
             for (int bus = 0; bus < count; ++ bus) {
-                int busVolume = _setting.getSettingAsInt("effect[" + l + "].volume[" + bus + "]", 127);
+                int busVolume = setting.getSettingAsInt("effect[" + l + "].volume[" + bus + "]", 127);
                 vst.setBusVolume(bus, busVolume);
             }
 
@@ -317,9 +306,9 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
 
         int b = 1;
         while(true) {
-            int scanDone = _setting.getSettingAsInt("base[" + b + "].scanDone", 0);
+            int scanDone = setting.getSettingAsInt("base[" + b + "].scanDone", 0);
 
-            String basePath = _setting.getSetting("base[" + b + "].path");
+            String basePath = setting.getSetting("base[" + b + "].path");
             if (basePath == null) {
                 break;
             }
@@ -337,7 +326,7 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
             
             TreeMap<File, ArrayList<File>> mapFolders = new TreeMap();
             while (true) {
-                String directory = _setting.getSetting("base[" + b + "].directory[" + d + "].path");
+                String directory = setting.getSetting("base[" + b + "].directory[" + d + "].path");
                 if (directory == null) {
                     break;
                 }
@@ -348,7 +337,7 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
                 ArrayList<File> listFiles = new ArrayList();
                 int f = 1;
                 while(true) {
-                    String file = _setting.getSetting("base[" + b + "].directory[" + d + "].file[" + f + "].path");
+                    String file = setting.getSetting("base[" + b + "].directory[" + d + "].file[" + f + "].path");
                     f ++;
                     if (file == null) {
                         break;
@@ -370,7 +359,7 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
 
         int s = 1;
         while(true) {
-            String skipPath = _setting.getSetting("skip[" +  s + "].path");
+            String skipPath = setting.getSetting("skip[" +  s + "].path");
             if (skipPath == null) {
                 break;
             }
@@ -391,18 +380,21 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
     }
     
     @Override
-    public void beforeWriteSettingFile() {
-        _setting.clearValue();
+    public void writeINIFile(File custom) {
+        if (MXLIB02VST3.getInstance().isUsable() == false) {
+            return;
+        }
+        MXINIFile setting = prepareINIFile(custom);
         
         VSTStream stream = VSTStream.getInstance();
 
-        _setting.setSetting("stream.name", stream.getName(stream.getStream()));
-        _setting.setSetting("stream.open", stream.isOpen());
-        _setting.setSetting("stream.latency", stream.getBlockSize());
-        _setting.setSetting("stream.samplingrate", stream.getSampleRate());
+        setting.setSetting("stream.name", stream.getName(stream.getStream()));
+        setting.setSetting("stream.open", stream.isOpen());
+        setting.setSetting("stream.latency", stream.getBlockSize());
+        setting.setSetting("stream.samplingrate", stream.getSampleRate());
 
         int volume = (int)(MXLIB02VST3.getInstance().getMasterVolume() * 100);
-        _setting.setSetting("stream.masterVolume", volume);
+        setting.setSetting("stream.masterVolume", volume);
         
         int streamIndex = -1;
 
@@ -413,17 +405,17 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
         Transaction t = null;
         while(itLoad.hasNext()) {
             VSTInstance vst = itLoad.next();
-            _setting.setSetting("load[" + l +  "].path", vst.getPath());
+            setting.setSetting("load[" + l +  "].path", vst.getPath());
             if (vst.isOpen()) {
                 t = vst.postSavePreset(VSTInstance.getTotalRecallSetting(false, l - 1).getPath(), null);
             }
-            _setting.setSetting("load[" +  l + "].open", vst.isOpen());
-            _setting.setSetting("load[" +  l + "].volume.count", vst.getBusCount());
+            setting.setSetting("load[" +  l + "].open", vst.isOpen());
+            setting.setSetting("load[" +  l + "].volume.count", vst.getBusCount());
             for (int bus = 0; bus < vst.getBusCount(); ++ bus) {
-                _setting.setSetting("load[" +  l + "].volume[" + bus + "]", vst.getBusVolume(bus));
+                setting.setSetting("load[" +  l + "].volume[" + bus + "]", vst.getBusVolume(bus));
             }
-            _setting.setSetting("load[" + l + "].insertBalance", vst.getInsertBalanace());
-            _setting.setSetting("load[" + l + "].auxSend", vst.getAuxSend());
+            setting.setSetting("load[" + l + "].insertBalance", vst.getInsertBalanace());
+            setting.setSetting("load[" + l + "].auxSend", vst.getAuxSend());
             
             l ++;
         }
@@ -438,14 +430,14 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
         t = null;
         while(itLoad.hasNext()) {
             VSTInstance vst = itLoad.next();
-            _setting.setSetting("effect[" + l +  "].path", vst.getPath());
+            setting.setSetting("effect[" + l +  "].path", vst.getPath());
             if (vst.isOpen()) {
                 t = vst.postSavePreset(VSTInstance.getTotalRecallSetting(true, l - 1).getPath(), null);
             }
-            _setting.setSetting("effect[" +  l + "].open", vst.isOpen());
-            _setting.setSetting("effect[" +  l + "].volume.count", vst.getBusCount());
+            setting.setSetting("effect[" +  l + "].open", vst.isOpen());
+            setting.setSetting("effect[" +  l + "].volume.count", vst.getBusCount());
             for (int bus = 0; bus < vst.getBusCount(); ++ bus) {
-                _setting.setSetting("effect[" +  l + "].volume[" + bus + "]", vst.getBusVolume(bus));
+                setting.setSetting("effect[" +  l + "].volume[" + bus + "]", vst.getBusVolume(bus));
             }
             l ++;
         }
@@ -459,20 +451,20 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
             
             VSTFolder vstFolder = _listFolder.get(i);
 
-            _setting.setSetting("base[" + b + "].scanDone", vstFolder.isScanDone() ? 1 : 0);
+            setting.setSetting("base[" + b + "].scanDone", vstFolder.isScanDone() ? 1 : 0);
 
-            _setting.setSetting("base[" + b + "].path", vstFolder._rootDirectory.toString());
+            setting.setSetting("base[" + b + "].path", vstFolder._rootDirectory.toString());
             
             TreeMap<File, ArrayList<File>> result = vstFolder.getListResult();
             
             int d = 1;
             for (File directory : result.keySet()) {
-                _setting.setSetting("base[" + b + "].directory[" + d + "].path", directory.toString());
+                setting.setSetting("base[" + b + "].directory[" + d + "].path", directory.toString());
                 ArrayList<File> fileList = result.get(directory);
     
                 int f = 1;
                 for (File file : fileList) {
-                    _setting.setSetting("base[" + b + "].directory[" + d + "].file[" + f + "].path", file.toString());
+                    setting.setSetting("base[" + b + "].directory[" + d + "].file[" + f + "].path", file.toString());
                     f ++;
                 }
                 d ++;
@@ -483,11 +475,11 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
         int s = 1;
         while(itSkip.hasNext()) {
             String path = itSkip.next();
-            _setting.setSetting("skip[" + s +  "].path", path);
+            setting.setSetting("skip[" + s +  "].path", path);
             s ++;
         }
+        setting.writeINIFile();
     }
-
     @Override
     public String getReceiverName() {
         return "(VSTRack)";
@@ -502,7 +494,25 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
     public void processMXMessage(MXMessage message) {
         //nothing
     }
-    
+
+    @Override
+    public void readJSonfile(File custom) {
+        MXJsonFile file = new MXJsonFile(custom);
+        MXJsonValue value = file.readJsonFile();
+        if (value == null) {
+            value = new MXJsonValue(null);
+        }
+        //TODO
+    }
+
+    @Override
+    public void writeJsonFile(File custom) {
+        MXJsonValue value = new MXJsonValue(null);
+        
+        MXJsonFile file = new MXJsonFile(custom);
+        file.writeJsonFile(value);
+    }
+
     public interface Callback {
         public void vstScanProgress(String text, long hit, long total);
         public void vstScanCanceled();
@@ -511,7 +521,7 @@ public class MX80Process extends MXReceiver<MX80View> implements MXSettingTarget
     
     public void startScan(boolean quick) {
         cleanCancelFlag();
-        _thread = new MXThread("MX80Process", new Runnable() {
+        _thread = new MXSafeThread("MX80Process", new Runnable() {
             public void run() {
                 _scanRealTotal = 0;
                 ArrayList<VSTFolder> copy = new ArrayList<>(_listFolder);

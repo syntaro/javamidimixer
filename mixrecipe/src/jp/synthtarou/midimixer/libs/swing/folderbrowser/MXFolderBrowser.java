@@ -38,11 +38,12 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-import jp.synthtarou.midimixer.MXThread;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
-import jp.synthtarou.midimixer.libs.accessor.MainThreadTask;
+import jp.synthtarou.libs.MXSafeThread;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.navigator.legacy.INavigator;
+import jp.synthtarou.libs.MainThreadTask;
+import jp.synthtarou.libs.uitester.MXComponentControllerDemo;
 
 /**
  *
@@ -93,13 +94,7 @@ public class MXFolderBrowser extends javax.swing.JPanel implements INavigator<Fi
         public long distance() {
             return System.currentTimeMillis() - tick;
         }
-
-        public void dump() {
-            e.printStackTrace();
-        }
     }
-
-    HashMap<Thread, Alive> _test = new HashMap();
 
     abstract class Runnable2 {
 
@@ -110,7 +105,7 @@ public class MXFolderBrowser extends javax.swing.JPanel implements INavigator<Fi
             try {
                 process(file);
             } catch (Throwable ex) {
-                MXLogger2.getLogger(MXFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(MXFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
             } finally {
             }
         }
@@ -121,30 +116,14 @@ public class MXFolderBrowser extends javax.swing.JPanel implements INavigator<Fi
             } else {
                 Runnable run = new Runnable() {
                     public void run() {
-                        try {
-                            launchStay(file);
-                        } finally {
-                            synchronized (_test) {
-                                Collection<Alive> seek = _test.values();
-                                for (Alive a : seek) {
-                                    if (a.distance() >= 100000) {
-                                        //System.out.println("Distance " + a.distance());
-                                        //a.dump();
-                                        //_test.remove(a);
-                                    }
-                                }
-                            }
-                        }
+                        launchStay(file);
                     }
                 };
                 if (_disableThreading) {
                     run.run();
                 } else {
-                    Thread th = new MXThread("FolderBrowser1", run);
+                    Thread th = new MXSafeThread("FolderBrowser1", run);
                     th.setPriority(Thread.MIN_PRIORITY);
-                    synchronized (_test) {
-                        _test.put(th, new Alive());
-                    }
                     th.start();
                 }
             }
@@ -161,9 +140,9 @@ public class MXFolderBrowser extends javax.swing.JPanel implements INavigator<Fi
                         }
                     });
                 } catch (InterruptedException ex) {
-                    MXLogger2.getLogger(MXFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
+                    MXFileLogger.getLogger(MXFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
                 } catch (InvocationTargetException ex) {
-                    MXLogger2.getLogger(MXFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
+                    MXFileLogger.getLogger(MXFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
         }
@@ -334,7 +313,7 @@ public class MXFolderBrowser extends javax.swing.JPanel implements INavigator<Fi
                     nest = itsPC._fileObject.listFiles();
                 }
             } catch (Throwable ex) {
-                MXLogger2.getLogger(MXFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(MXFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);
             }
             if (nest == null) {
                 return false;

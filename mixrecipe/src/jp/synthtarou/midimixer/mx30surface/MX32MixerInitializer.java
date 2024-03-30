@@ -17,8 +17,8 @@
 package jp.synthtarou.midimixer.mx30surface;
 
 import java.util.ArrayList;
-import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.MXRangedValue;
+import jp.synthtarou.midimixer.MXConfiguration;
+import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -65,8 +65,8 @@ public class MX32MixerInitializer {
     }
 
     void initVolumeMixer() {
-        ArrayList<MGStatus>[] circleMatrix = new ArrayList[MXAppConfig.CIRCLE_ROW_COUNT];
-        ArrayList<MGStatus>[] sliderMatrix = new ArrayList[MXAppConfig.SLIDER_ROW_COUNT];
+        ArrayList<MGStatus>[] circleMatrix = new ArrayList[MXConfiguration.CIRCLE_ROW_COUNT];
+        ArrayList<MGStatus>[] sliderMatrix = new ArrayList[MXConfiguration.SLIDER_ROW_COUNT];
 
         circleMatrix[0] = new ArrayList();
         circleMatrix[1] = new ArrayList();
@@ -83,7 +83,7 @@ public class MX32MixerInitializer {
         for (int row = 0; row < sliderMatrix.length; ++row) {
             ArrayList<MGStatus> slider = sliderMatrix[row];
 
-            while (slider.size() < MXAppConfig.SLIDER_COLUMN_COUNT) {
+            while (slider.size() < MXConfiguration.SLIDER_COLUMN_COUNT) {
                 String text;
                 if (slider.size() >= 16) {
                     //F0H，7FH，7FH，04H，01H，00H，mm，F7H
@@ -111,7 +111,7 @@ public class MX32MixerInitializer {
                 MXMidi.DATA1_CC_EXPRESSION,
                 MXMidi.DATA1_CC_PANPOT
             };
-            while (circle.size() < MXAppConfig.SLIDER_COLUMN_COUNT) {
+            while (circle.size() < MXConfiguration.SLIDER_COLUMN_COUNT) {
                 if (circle.size() >= 16) {
                     status = new MGStatus(_mixer,  MGStatus.TYPE_CIRCLE, row, circle.size());
                     String text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
@@ -151,8 +151,8 @@ public class MX32MixerInitializer {
         
         int _port = _mixer._port;
 
-        for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++row) {
-            for (int col = 0; col < MXAppConfig.SLIDER_COLUMN_COUNT; ++col) {
+        for (int row = 0; row < MXConfiguration.SLIDER_ROW_COUNT; ++row) {
+            for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
                 status = _mixer.getStatus(MGStatus.TYPE_SLIDER, row, col);
                 if (col < cclist.length) {
                     message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_CONTROLCHANGE + row, cclist[col], 128 - 1);
@@ -163,8 +163,8 @@ public class MX32MixerInitializer {
             }
         }
 
-        for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++row) {
-            for (int col = 0; col < MXAppConfig.SLIDER_COLUMN_COUNT; ++col) {
+        for (int row = 0; row < MXConfiguration.CIRCLE_ROW_COUNT; ++row) {
+            for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
                 status = _mixer.getStatus(MGStatus.TYPE_CIRCLE, row, col);
                 if (col < cclist2.length) {
                     message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_CONTROLCHANGE + row, cclist2[col], 128 - 1);
@@ -178,8 +178,8 @@ public class MX32MixerInitializer {
     }
 
     void initZero() {
-        ArrayList<MGStatus>[] circleMatrix = new ArrayList[MXAppConfig.CIRCLE_ROW_COUNT];
-        ArrayList<MGStatus>[] sliderMatrix = new ArrayList[MXAppConfig.SLIDER_ROW_COUNT];
+        ArrayList<MGStatus>[] circleMatrix = new ArrayList[MXConfiguration.CIRCLE_ROW_COUNT];
+        ArrayList<MGStatus>[] sliderMatrix = new ArrayList[MXConfiguration.SLIDER_ROW_COUNT];
 
         circleMatrix[0] = new ArrayList();
         circleMatrix[1] = new ArrayList();
@@ -196,7 +196,7 @@ public class MX32MixerInitializer {
         for (int row = 0; row < sliderMatrix.length; ++row) {
             ArrayList<MGStatus> slider = new ArrayList();
 
-            while (slider.size() < MXAppConfig.SLIDER_COLUMN_COUNT) {
+            while (slider.size() < MXConfiguration.SLIDER_COLUMN_COUNT) {
                 status = new MGStatus(_mixer,  MGStatus.TYPE_SLIDER, row, slider.size());
                 slider.add(status);
             }
@@ -204,7 +204,7 @@ public class MX32MixerInitializer {
         }
         for (int row = 0; row < circleMatrix.length; ++row) {
             ArrayList<MGStatus> circle = new ArrayList();
-            while (circle.size() < MXAppConfig.SLIDER_COLUMN_COUNT) {
+            while (circle.size() < MXConfiguration.SLIDER_COLUMN_COUNT) {
                 status = new MGStatus(_mixer,  MGStatus.TYPE_CIRCLE, row, circle.size());
                 circle.add(status);
             }
@@ -232,8 +232,8 @@ public class MX32MixerInitializer {
             112, 74, 71, 76, 77, 93, 73, 75
         };
 
-        for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++row) {
-            for (int col = 0; col < MXAppConfig.SLIDER_COLUMN_COUNT; ++col) {
+        for (int row = 0; row < MXConfiguration.SLIDER_ROW_COUNT; ++row) {
+            for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
                 status = _mixer.getStatus(MGStatus.TYPE_SLIDER, row, col);
                 if (col < cclist.length) {
                     message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_CONTROLCHANGE + row, cclist[col], 128 - 1);
@@ -244,8 +244,8 @@ public class MX32MixerInitializer {
             }
         }
 
-        for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++row) {
-            for (int col = 0; col < MXAppConfig.SLIDER_COLUMN_COUNT; ++col) {
+        for (int row = 0; row < MXConfiguration.CIRCLE_ROW_COUNT; ++row) {
+            for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
                 status = _mixer.getStatus(MGStatus.TYPE_CIRCLE, row, col);
                 if (col < cclist2.length) {
                     message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_CONTROLCHANGE + row, cclist2[col], 128 - 1);
@@ -268,8 +268,8 @@ public class MX32MixerInitializer {
         MGStatus status = null;
         int _port = _mixer._port;
 
-        for (int row = 0; row < MXAppConfig.SLIDER_ROW_COUNT; ++row) {
-            for (int col = 0; col < MXAppConfig.SLIDER_COLUMN_COUNT; ++col) {
+        for (int row = 0; row < MXConfiguration.SLIDER_ROW_COUNT; ++row) {
+            for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
                 status = _mixer.getStatus(MGStatus.TYPE_SLIDER, row, col);
                 if (col >= 16) {
                     String text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
@@ -286,8 +286,8 @@ public class MX32MixerInitializer {
             MXMidi.DATA1_CC_SOUND_DECAYTIME,
             MXMidi.DATA1_CC_SOUND_RELEASETIME,
             MXMidi.DATA1_CC_SOUND_BLIGHTNESS,};
-        for (int row = 0; row < MXAppConfig.CIRCLE_ROW_COUNT; ++row) {
-            for (int col = 0; col < MXAppConfig.SLIDER_COLUMN_COUNT; ++col) {
+        for (int row = 0; row < MXConfiguration.CIRCLE_ROW_COUNT; ++row) {
+            for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
                 status = _mixer.getStatus(MGStatus.TYPE_CIRCLE, row, col);
                 if (col >= 16) {
                     String text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
@@ -303,8 +303,8 @@ public class MX32MixerInitializer {
             -1, 0, 2, 5, 8, 10, 13, 27, 36, 40, 56, 65, 72, 82, 96, 106, 120
         };
 
-        for (int row = 0; row < MXAppConfig.DRUM_ROW_COUNT; ++row) {
-            for (int col = 0; col < MXAppConfig.SLIDER_COLUMN_COUNT; ++col) {
+        for (int row = 0; row < MXConfiguration.DRUM_ROW_COUNT; ++row) {
+            for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
                 status = _mixer.getStatus(MGStatus.TYPE_DRUMPAD, row, col);
                 int prog = proglist[col];
                 switch (row) {
@@ -392,14 +392,14 @@ public class MX32MixerInitializer {
 
     public void initDrumMinMidleMax() {
         ArrayList<MGStatus>[] sliderMatrix = _mixer._matrixSliderStatus;
-        ArrayList<MGStatus>[] padMatrix = new ArrayList[MXAppConfig.DRUM_ROW_COUNT];
+        ArrayList<MGStatus>[] padMatrix = new ArrayList[MXConfiguration.DRUM_ROW_COUNT];
 
         padMatrix[0] = new ArrayList();
         padMatrix[1] = new ArrayList();
         padMatrix[2] = new ArrayList();
 
         int column = 0;
-        while (padMatrix[0].size() < MXAppConfig.SLIDER_COLUMN_COUNT) {
+        while (padMatrix[0].size() < MXConfiguration.SLIDER_COLUMN_COUNT) {
             MGStatus status;
             status = new MGStatus(_mixer,  MGStatus.TYPE_DRUMPAD, 0, column);
             fillMaxOfSlider(status, column);

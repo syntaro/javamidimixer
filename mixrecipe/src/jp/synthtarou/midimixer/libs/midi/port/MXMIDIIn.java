@@ -20,12 +20,12 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.MXThread;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.MXQueue1;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
+import jp.synthtarou.midimixer.MXConfiguration;
+import jp.synthtarou.libs.MXSafeThread;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.MXQueue;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -86,7 +86,7 @@ public class MXMIDIIn {
 
     public MXMIDIIn(MXDriver driver, int driverOrder) {
         _name = driver.InputDeviceName(driverOrder);
-        _assigned = new boolean[MXAppConfig.TOTAL_PORT_COUNT];
+        _assigned = new boolean[MXConfiguration.TOTAL_PORT_COUNT];
         _driver = driver;
         _driverOrder = driverOrder;
         if (driver instanceof MXDriver_UWP) {
@@ -108,7 +108,7 @@ public class MXMIDIIn {
 
     public String getPortAssignedAsText() {
         StringBuffer assigned = new StringBuffer();
-        for (int p = 0; p < MXAppConfig.TOTAL_PORT_COUNT; ++p) {
+        for (int p = 0; p < MXConfiguration.TOTAL_PORT_COUNT; ++p) {
             if (isPortAssigned(p)) {
                 if (assigned.length() > 0) {
                     assigned.append(",");
@@ -140,7 +140,7 @@ public class MXMIDIIn {
 
     public void resetPortAssigned() {
         synchronized (MXTiming.mutex) {
-            for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++i) {
+            for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++i) {
                 setPortAssigned(i, false);
             }
         }
@@ -305,10 +305,10 @@ public class MXMIDIIn {
         @Override
         public void processMXMessage(MXMessage message) {
             MXTiming timing = new MXTiming();
-            MNamedValueList<MXMIDIIn> list = MXMIDIInManager.getManager().listAllInput();
+            MXNamedObjectList<MXMIDIIn> list = MXMIDIInManager.getManager().listAllInput();
             for (int x = 0; x < list.size(); ++x) {
                 MXMIDIIn input = list.valueOfIndex(x);
-                for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++port) {
+                for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
                     if (input.isPortAssigned(port) == false) {
                         continue;
                     }
@@ -357,7 +357,7 @@ public class MXMIDIIn {
                 _myNoteOff.allNoteOff(timing);
             }
 
-            for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++port) {
+            for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
                 if (isPortAssigned(port) == false) {
                     continue;
                 }
@@ -389,13 +389,13 @@ public class MXMIDIIn {
         }
     }
 
-    static MXQueue1<MXMessage> _messageQueue = new MXQueue1<>();
+    static MXQueue<MXMessage> _messageQueue = new MXQueue<>();
     static Thread _threadQueue = null;
 
     private void dispatchToPort(MXMessage message) {
         if (true) {
             if (_threadQueue == null || _threadQueue.isAlive() == false) {
-                _threadQueue = new MXThread("MXMidiIn", new Runnable() {
+                _threadQueue = new MXSafeThread("MXMidiIn", new Runnable() {
                     @Override
                     public void run() {
                         while (true) {
@@ -408,7 +408,7 @@ public class MXMIDIIn {
                                     return;
                                 }
                             } catch (RuntimeException ex) {
-                                MXLogger2.getLogger(MXMIDIIn.class).log(Level.WARNING, ex.getMessage(), ex);
+                                MXFileLogger.getLogger(MXMIDIIn.class).log(Level.WARNING, ex.getMessage(), ex);
                             }
                         }
                     }

@@ -16,33 +16,34 @@
  */
 package jp.synthtarou.midimixer.mx30surface;
 
+import java.io.File;
 import java.util.ArrayList;
-import jp.synthtarou.midimixer.MXAppConfig;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.midimixer.MXConfiguration;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.json.MXJsonValue;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.settings.MXSetting;
-import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
+import jp.synthtarou.libs.inifile.MXINIFile;
+import jp.synthtarou.libs.json.MXJsonSupport;
+import jp.synthtarou.libs.inifile.MXINIFileSupport;
+import jp.synthtarou.libs.json.MXJsonFile;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX30Process extends MXReceiver<MX30View> implements MXSettingTarget {
+public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSupport, MXJsonSupport  {
 
     private MX30View _rootView;
     MX32MixerProcess[] _pageProcess;
-    MXSetting _setting;
     boolean _underConstruction;
     
     public MX30Process() {
         _underConstruction = true;
-        _setting = new MXSetting("MixingGlobal");
-        _setting.setTarget(this);
         prepareActiveSlider();
         _rootView = new MX30View(this);
-        _pageProcess = new MX32MixerProcess[MXAppConfig.TOTAL_PORT_COUNT];
-        for (int i = 0; i < MXAppConfig.TOTAL_PORT_COUNT; ++ i) {
+        _pageProcess = new MX32MixerProcess[MXConfiguration.TOTAL_PORT_COUNT];
+        for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++ i) {
             _pageProcess[i] = new MX32MixerProcess(this, i);
         }
         _underConstruction = false;
@@ -57,20 +58,22 @@ public class MX30Process extends MXReceiver<MX30View> implements MXSettingTarget
     }
     
     @Override
-    public MXSetting getSettings() {
-        return _setting;
+    public MXINIFile prepareINIFile(File custom) {
+        if (custom == null) {
+            custom = MXINIFile.pathOf("MixingGlobal");
+        }
+        MXINIFile setting = new MXINIFile(custom, this);
+        setting.register("ActiveCircle");
+        setting.register("ActiveLine");
+        setting.register("ActivePad");
+        return setting;
     }
 
     @Override
-    public void prepareSettingFields() {
-        _setting.register("ActiveCircle");
-        _setting.register("ActiveLine");
-        _setting.register("ActivePad");
-    }
-
-    @Override
-    public void afterReadSettingFile() {
-        String circle = _setting.getSetting("ActiveCircle");
+    public void readINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
+        setting.readINIFile();
+        String circle = setting.getSetting("ActiveCircle");
         if  (circle == null) {
             circle = "1, 2, 3, 4";
         }
@@ -86,7 +89,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXSettingTarget
             }
         }
 
-        String line = _setting.getSetting("ActiveLine");
+        String line = setting.getSetting("ActiveLine");
         int lineNum = 17;
         try {
             if (line != null) {
@@ -95,7 +98,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXSettingTarget
         }catch(Exception e) {
         }
         this._visibleLineCount = lineNum;
-        String pad = _setting.getSetting("ActivePad");
+        String pad = setting.getSetting("ActivePad");
         if (pad == null) {
             pad = "1, 2, 3";
         }
@@ -111,17 +114,19 @@ public class MX30Process extends MXReceiver<MX30View> implements MXSettingTarget
 
             }
         }
-        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
-            _pageProcess[port].readSettingFile();
-            MX32MixerProcess mixer = _pageProcess[port];
-            _rootView.addPage(port, mixer);
+        if (custom == null) {            
+            for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
+                _pageProcess[port].readINIFile(null);
+                MX32MixerProcess mixer = _pageProcess[port];
+                _rootView.addPage(port, mixer);
+            }
         }
         globalContollerHidden();
     }
 
     @Override
-    public void beforeWriteSettingFile() {
-        _setting.clearValue();
+    public void writeINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
         StringBuffer circle = new StringBuffer();
         for (int i = 0; i < _visibleKnob.length; ++ i) {
             if (_visibleKnob[i]) {
@@ -136,9 +141,10 @@ public class MX30Process extends MXReceiver<MX30View> implements MXSettingTarget
                 pad.append(i+1);
             }
         }
-        _setting.setSetting("ActiveCircle", circle.toString());
-        _setting.setSetting("ActiveLine", _visibleLineCount);
-        _setting.setSetting("ActivePad", pad.toString());
+        setting.setSetting("ActiveCircle", circle.toString());
+        setting.setSetting("ActiveLine", _visibleLineCount);
+        setting.setSetting("ActivePad", pad.toString());
+        setting.writeINIFile();
     }
        
     public MX32MixerProcess getPage(int i) {
@@ -147,7 +153,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXSettingTarget
 
     @Override
     public void processMXMessage(MXMessage message) {
-        if (isUsingThisRecipeDX() == false) { 
+        if (isUsingThisRecipe() == false) { 
             sendToNext(message);
             return; 
         }
@@ -212,5 +218,23 @@ public class MX30Process extends MXReceiver<MX30View> implements MXSettingTarget
         for (int t = 0; t < _pageProcess.length; ++ t) {
             _pageProcess[t]._view.globalControllerHidden();
         }
+    }
+
+    @Override
+    public void readJSonfile(File custom) {
+        MXJsonFile file = new MXJsonFile(custom);
+        MXJsonValue value = file.readJsonFile();
+        if (value == null) {
+            value = new MXJsonValue(null);
+        }
+        //TODO
+    }
+
+    @Override
+    public void writeJsonFile(File custom) {
+        MXJsonValue value = new MXJsonValue(null);
+        
+        MXJsonFile file = new MXJsonFile(custom);
+        file.writeJsonFile(value);
     }
 }

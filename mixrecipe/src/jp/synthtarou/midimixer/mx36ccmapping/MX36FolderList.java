@@ -20,9 +20,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
-import jp.synthtarou.midimixer.libs.accordion.MXAccordion;
-import jp.synthtarou.midimixer.libs.accordion.MXAccordionElement;
-import jp.synthtarou.midimixer.libs.accordion.MXAccordionFocus;
+import jp.synthtarou.libs.accordionui.MXAccordion;
+import jp.synthtarou.libs.accordionui.MXAccordionElement;
+import jp.synthtarou.libs.accordionui.MXAccordionFocus;
 
 /**
  *

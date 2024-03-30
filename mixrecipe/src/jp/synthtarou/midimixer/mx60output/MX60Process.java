@@ -16,48 +16,46 @@
  */
 package jp.synthtarou.midimixer.mx60output;
 
-import jp.synthtarou.midimixer.MXAppConfig;
+import java.io.File;
+import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
-import jp.synthtarou.midimixer.libs.settings.MXSetting;
-import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
-import jp.synthtarou.midimixer.mx10input.MX10Structure;
+import jp.synthtarou.libs.inifile.MXINIFile;
+import jp.synthtarou.midimixer.mx10input.MX10ViewData;
+import jp.synthtarou.libs.inifile.MXINIFileSupport;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX60Process extends MXReceiver<MX60View> implements MXSettingTarget {
+public class MX60Process extends MXReceiver<MX60View> implements MXINIFileSupport {
     MX60View _view;
-    MXSetting _setting;
-    MX60Structure _structure;
+    MX60ViewData _viewData;
 
     public MX60Process() {
-        _structure = new MX60Structure(this);
+        _viewData = new MX60ViewData(this);
         _view = new MX60View();
-        _setting = new MXSetting("OutputSkip");
-        _setting.setTarget(this);
     }
     
     @Override
-    public boolean isUsingThisRecipeDX() {
+    public boolean isUsingThisRecipe() {
         return _view.isUsingThisRecipeDX();
     }
 
     @Override
-    public void setUsingThisRecipeDX(boolean flag) {
+    public void setUsingThisRecipe(boolean flag) {
         _view.setUsingThisRecipeDX(flag);
     }
 
     @Override
     public void processMXMessage(MXMessage message) {
-        if (isUsingThisRecipeDX() && _structure.isMessageForSkip(message)) {
+        if (isUsingThisRecipe() && _viewData.isMessageForSkip(message)) {
             return;
         }
 
-        if (_structure.isRecording()) {
-            _structure.record(message);
-            _view.setSongLengthDX(_structure._recordingTrack, _structure.getSongLength(_structure._recordingTrack));
+        if (_viewData.isRecording()) {
+            _viewData.record(message);
+            _view.setSongLengthDX(_viewData._recordingTrack, _viewData.getSongLength(_viewData._recordingTrack));
         }
 
         sendToNext(message);
@@ -74,44 +72,48 @@ public class MX60Process extends MXReceiver<MX60View> implements MXSettingTarget
     }
 
     @Override
-    public MXSetting getSettings() {
-        return _setting;
-    }
-    
-    @Override
-    public void afterReadSettingFile() {
-        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
+    public void readINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
+        setting.readINIFile();
+        for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
             String prefix = "Setting[" + port + "].";
             StringBuffer str = new StringBuffer();
-            for (int j = 0; j <_structure.countOfTypes(); ++ j) {
-                String name = _structure.typeNames[j];
-                boolean set = _setting.getSettingAsBoolean(prefix + name, false);
-                _structure.setSkip(port, j, set);
+            for (int j = 0; j <_viewData.countOfTypes(); ++ j) {
+                String name = _viewData.typeNames[j];
+                boolean set = setting.getSettingAsBoolean(prefix + name, false);
+                _viewData.setSkip(port, j, set);
             }
         }
-        _structure.loadSequenceData();
-        _view.setStructureDX(_structure);
+        _viewData.loadSequenceData();
+        _view.setDataDX(_viewData);
     }
 
     @Override
-    public void beforeWriteSettingFile() {
-        _structure.saveSequenceData();
-        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
+    public void writeINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
+        _viewData.saveSequenceData();
+        for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
             String prefix = "Setting[" + port + "].";
             StringBuffer str = new StringBuffer();
-            for (int j = 0; j <_structure.countOfTypes(); ++ j) {
-                boolean set = _structure.isSkipDX(port, j);
-                String name = _structure.typeNames[j];
-                _setting.setSetting(prefix + name, set);
+            for (int j = 0; j <_viewData.countOfTypes(); ++ j) {
+                boolean set = _viewData.isSkip(port, j);
+                String name = _viewData.typeNames[j];
+                setting.setSetting(prefix + name, set);
             }
         }
+        setting.writeINIFile();
     }
 
     @Override
-    public void prepareSettingFields() {
+    public MXINIFile prepareINIFile(File custom) {
+        if (custom == null) {
+            custom = MXINIFile.pathOf("OutputSkip");
+        }
+        MXINIFile setting = new MXINIFile(custom, this);
         String prefix = "Setting[].";
-        for (String text : MX10Structure.typeNames) {
-            _setting.register(prefix + text);
+        for (String text : MX10ViewData.typeNames) {
+            setting.register(prefix + text);
         }
+        return setting;
     }
 }

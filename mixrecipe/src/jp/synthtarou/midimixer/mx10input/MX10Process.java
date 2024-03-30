@@ -16,42 +16,43 @@
  */
 package jp.synthtarou.midimixer.mx10input;
 
-import jp.synthtarou.midimixer.MXAppConfig;
+import java.io.File;
+import jp.synthtarou.midimixer.MXConfiguration;
+import jp.synthtarou.libs.json.MXJsonValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
-import jp.synthtarou.midimixer.libs.settings.MXSetting;
-import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
+import jp.synthtarou.libs.inifile.MXINIFile;
+import jp.synthtarou.libs.json.MXJsonSupport;
+import jp.synthtarou.libs.inifile.MXINIFileSupport;
+import jp.synthtarou.libs.json.MXJsonFile;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX10Process extends MXReceiver<MX10View> implements MXSettingTarget {
+public class MX10Process extends MXReceiver<MX10View> implements MXINIFileSupport, MXJsonSupport  {
     MX10View _view;
-    MXSetting _setting;
-    MX10Structure _structure;
+    MXINIFile _setting;
+    MX10ViewData _viewData;
 
     public MX10Process() {
         _view = new MX10View();
-        _structure = new MX10Structure();
-        _setting = new MXSetting("InputSkip");
-        _setting.setTarget(this);
+        _viewData = new MX10ViewData();
     }
-    
     @Override
-    public boolean isUsingThisRecipeDX() {
+    public boolean isUsingThisRecipe() {
         return _view.isUsingThisRecipeDX();
     }
 
     @Override
-    public void setUsingThisRecipeDX(boolean flag) {
+    public void setUsingThisRecipe(boolean flag) {
         _view.setUsingThisRecipeDX(flag);
     }
     
     @Override
     public void processMXMessage(MXMessage message) {
-        if (isUsingThisRecipeDX()) {
-            if (_structure.isMessageForSkip(message)) {
+        if (isUsingThisRecipe()) {
+            if (_viewData.isMessageForSkip(message)) {
                 return;
             }
         }
@@ -67,46 +68,89 @@ public class MX10Process extends MXReceiver<MX10View> implements MXSettingTarget
     public MX10View getReceiverView() {
         return _view;
     }
-
-    @Override
-    public MXSetting getSettings() {
-        return _setting;
-    }
     
     @Override
-    public void prepareSettingFields() {
-        String prefix = "Setting[].";
-        for (String text : _structure.typeNames) {
-            _setting.register(prefix + text);
+    public MXINIFile prepareINIFile(File custom) {
+        if (custom == null) {
+            custom = MXINIFile.pathOf("InputSkip");
         }
+        MXINIFile setting = new MXINIFile(custom, this);
+        String prefix = "Setting[].";
+        for (String text : _viewData.typeNames) {
+            setting.register(prefix + text);
+        }
+        return setting;
     }
 
     @Override
-    public void afterReadSettingFile() {
-        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
+    public void readINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
+        setting.readINIFile();
+        for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
             String prefix = "Setting[" + port + "].";
-            for (int j = 0; j < _structure.countOfTypes(); ++ j) {
-                String name = _structure.typeNames[j];
-                boolean set = _setting.getSettingAsBoolean(prefix + name, false);
-                _structure.setSkip(port, j, set);
+            for (int j = 0; j < _viewData.countOfTypes(); ++ j) {
+                String name = _viewData.typeNames[j];
+                boolean set = setting.getSettingAsBoolean(prefix + name, false);
+                _viewData.setSkip(port, j, set);
             }
         }
-        _view.setUsingThisRecipeDX(isUsingThisRecipeDX());
-        _view.setStructureDX(_structure);
+        _view.setUsingThisRecipeDX(isUsingThisRecipe());
+        _view.setStructureDX(_viewData);
     }
 
     @Override
-    public void beforeWriteSettingFile() {
-        for (int port = 0; port < MXAppConfig.TOTAL_PORT_COUNT; ++ port) {
+    public void writeINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
+        for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
             String prefix = "Setting[" + port + "].";
             StringBuffer str = new StringBuffer();
-            for (int j = 0; j < _structure.countOfTypes(); ++ j) {
-                boolean set = _structure.isSkipDX(port, j);
+            for (int j = 0; j < _viewData.countOfTypes(); ++ j) {
+                boolean set = _viewData.isSkip(port, j);
                 if (set) {                   
-                    String name = _structure.typeNames[j];
-                    _setting.setSetting(prefix + name, set);
+                    String name = _viewData.typeNames[j];
+                    setting.setSetting(prefix + name, set);
                 }
             }
         }
+        setting.writeINIFile();
+    }
+
+    @Override
+    public void readJSonfile(File custom) {
+        MXJsonFile file = new MXJsonFile(custom);
+        MXJsonValue value = file.readJsonFile();
+        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
+        for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
+            MXJsonValue.HelperForStructure prefix = root.findStructure("Port" + port);
+            if (prefix == null) {
+                continue;
+            }
+            for (int j = 0; j < _viewData.countOfTypes(); ++ j) {
+                String name = _viewData.typeNames[j];
+                boolean set = prefix.getSettingBool(name, false);
+                _viewData.setSkip(port, j, set);
+            }
+        }
+        _view.setUsingThisRecipeDX(isUsingThisRecipe());
+        _view.setStructureDX(_viewData);
+    }
+
+    @Override
+    public void writeJsonFile(File custom) {
+        MXJsonValue value = new MXJsonValue(null);
+        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
+        for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
+            MXJsonValue.HelperForStructure prefix = root.addStructure("Port" + port);
+            StringBuffer str = new StringBuffer();
+            for (int j = 0; j < _viewData.countOfTypes(); ++ j) {
+                boolean set = _viewData.isSkip(port, j);
+                if (set) {                   
+                    String name = _viewData.typeNames[j];
+                    prefix.setSettingBool(name, set);
+                }
+            }
+        }
+        MXJsonFile file = new MXJsonFile(custom);
+        file.writeJsonFile(value);
     }
 }

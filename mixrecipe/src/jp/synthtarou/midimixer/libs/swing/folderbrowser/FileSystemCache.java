@@ -24,7 +24,7 @@ import java.util.logging.Level;
 import javax.swing.Icon;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.tree.DefaultMutableTreeNode;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
+import jp.synthtarou.libs.MXFileLogger;
 import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
 
 /**
@@ -237,7 +237,7 @@ public class FileSystemCache {
                         break;
                     }
                 }catch(Exception ex) {
-                    MXLogger2.getLogger(FileSystemCache.class).log(Level.WARNING, ex.getMessage(), ex);
+                    MXFileLogger.getLogger(FileSystemCache.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
         }

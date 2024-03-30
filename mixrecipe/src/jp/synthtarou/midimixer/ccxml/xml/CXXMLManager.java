@@ -28,39 +28,33 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
-import jp.synthtarou.midimixer.libs.navigator.legacy.INavigator;
-import jp.synthtarou.midimixer.libs.settings.MXSetting;
-import jp.synthtarou.midimixer.libs.settings.MXSettingNode;
-import jp.synthtarou.midimixer.libs.settings.MXSettingTarget;
-import jp.synthtarou.midimixer.libs.settings.MXSettingUtil;
+import jp.synthtarou.libs.navigator.legacy.INavigator;
+import jp.synthtarou.libs.inifile.MXINIFile;
+import jp.synthtarou.libs.inifile.MXINIFileNode;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXFolderBrowser;
+import jp.synthtarou.libs.inifile.MXINIFileSupport;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXSettingTarget {
+public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXINIFileSupport {
 
     private static final CXXMLManager _instance = new CXXMLManager();
-    private MXSetting _setting;
     
     public static CXXMLManager getInstance() {
         return _instance;
     }
 
     private CXXMLManager() {
-        _setting = new MXSetting("CCXMLManager");
-        _setting.setTarget(this);
-        _setting.readSettingFile();
         CXGeneralMidiFile gmfile = CXGeneralMidiFile.getInstance();
         for (CXFile file : _listLoaded) {
             if (file._file.getName().equals(gmfile._file.getName())) {
@@ -71,7 +65,7 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXSet
     }
     
     public static File getSaveDirectory() {
-        File dir = new File(MXSettingUtil.getAppBaseDirectory(), "Editing");
+        File dir = new File(MXUtil.getAppBaseDirectory(), "Editing");
         if (dir.isDirectory()) {
             return dir;
         }
@@ -166,7 +160,7 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXSet
             out = null;
             return true;
         } catch (IOException ex) {
-            MXLogger2.getLogger(CXXMLManager.class.getName()).log(Level.WARNING, null, ex);
+            MXFileLogger.getLogger(CXXMLManager.class.getName()).log(Level.WARNING, null, ex);
             return false;
         } finally {
             if (out != null) {
@@ -174,7 +168,7 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXSet
                     out.close();
                     out = null;
                 } catch (IOException ex) {
-                    MXLogger2.getLogger(CXXMLManager.class.getName()).log(Level.INFO, null, ex);
+                    MXFileLogger.getLogger(CXXMLManager.class.getName()).log(Level.INFO, null, ex);
                 }
             }
             if (in != null) {
@@ -182,7 +176,7 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXSet
                     in.close();
                     in = null;
                 } catch (IOException ex) {
-                    MXLogger2.getLogger(CXXMLManager.class.getName()).log(Level.INFO, null, ex);
+                    MXFileLogger.getLogger(CXXMLManager.class.getName()).log(Level.INFO, null, ex);
                 }
             }
         }
@@ -298,39 +292,43 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXSet
     }
     
     @Override
-    public MXSetting getSettings() {
-        return _setting;
+    public MXINIFile prepareINIFile(File custom) {
+        if (custom == null) {
+            custom = MXINIFile.pathOf("CCXMLManager");
+        }
+        MXINIFile setting = new MXINIFile(custom, this);
+        setting.register("file[]");
+        return setting;
     }
 
     @Override
-    public void prepareSettingFields() {
-        _setting.register("file[]");
-    }
+    public void readINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
+        setting.readINIFile();
 
-    @Override
-    public void afterReadSettingFile() {
-        ArrayList<MXSettingNode> list = _setting.findByPath("file[]");
+        ArrayList<MXINIFileNode> list = setting.findByPath("file[]");
 
         _listLoaded.clear();
 
-        for (MXSettingNode node : list) {
+        for (MXINIFileNode node : list) {
             String path = node._value;
             CXFile xmlFile = new CXFile(new File(path));
             if (xmlFile.isLoaded()) {
                 _listLoaded.add(xmlFile);
             }
             else {
-                MXLogger2.getLogger(CXXMLManager.class.getName()).log(Level.SEVERE, xmlFile.getAdviceForXML());
+                MXFileLogger.getLogger(CXXMLManager.class.getName()).log(Level.SEVERE, xmlFile.getAdviceForXML());
             }
         }
     }
 
     @Override
-    public void beforeWriteSettingFile() {
-        _setting.clearValue();
+    public void writeINIFile(File custom) {
+        MXINIFile setting = prepareINIFile(custom);
         for (int i = 0; i < _listLoaded.size(); ++ i) {
-            _setting.setSetting("file[" + i + "]", _listLoaded.get(i)._file.getPath());
+            setting.setSetting("file[" + i + "]", _listLoaded.get(i)._file.getPath());
         }
+        setting.writeINIFile();
     }
 
     @Override

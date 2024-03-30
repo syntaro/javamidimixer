@@ -18,8 +18,8 @@ package jp.synthtarou.midimixer.libs.vst;
 
 import java.io.File;
 import javax.swing.filechooser.FileSystemView;
-import jp.synthtarou.midimixer.libs.common.async.Transaction;
-import jp.synthtarou.midimixer.libs.settings.MXSettingUtil;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.async.Transaction;
 import jp.synthtarou.midimixer.windows.MXLIB02VST3;
 
 /**
@@ -33,7 +33,7 @@ public class VSTInstance {
         _slot = slot;
         _isEffect = effectType;
         if (_vstRoot == null) {
-            File appdir = MXSettingUtil.getAppBaseDirectory();
+            File appdir = MXUtil.getAppBaseDirectory();
             File vst = new File(appdir, "vst");
             if (vst.exists() == false) {
                 vst.mkdirs();

@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.mx30surface;
 
 import javax.swing.JOptionPane;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
+import jp.synthtarou.libs.MXUtil;
 
 /**
  *

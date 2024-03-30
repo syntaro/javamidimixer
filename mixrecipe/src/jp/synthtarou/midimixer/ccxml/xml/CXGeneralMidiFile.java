@@ -25,15 +25,15 @@ import java.util.List;
 import java.util.logging.Level;
 import javax.xml.transform.TransformerException;
 import jp.synthtarou.midimixer.ccxml.InformationForModule;
-import jp.synthtarou.midimixer.libs.common.MXUtil;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValue;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.namedobject.MXNamedObject;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.common.MXLineReader;
-import jp.synthtarou.midimixer.libs.common.MXLogger2;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueList;
-import jp.synthtarou.midimixer.libs.namedvalue.MNamedValueLsitFactory;
+import jp.synthtarou.libs.MXLineReader;
+import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
 
 /**
  *
@@ -77,7 +77,7 @@ public class CXGeneralMidiFile extends CXFile {
             readCSVProgram(instrumentList, stream, "Shift_JIS");
             stream.close();
         } catch (IOException ex) {
-            MXLogger2.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
         }
 
         CXNode drumSetList = moduleData.newTag(CCRuleManager.getInstance().getDrumSetListTag().getName(), true);
@@ -87,7 +87,7 @@ public class CXGeneralMidiFile extends CXFile {
             readCSVDrum(drumSetList, stream, "Shift_JIS");
             stream.close();
         } catch (IOException ex) {
-            MXLogger2.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
         }
 
         CXNode controlChangeMacroList = moduleData.newTag(CCRuleManager.getInstance().getControlChangeMacroListTag().getName(), true);
@@ -107,9 +107,9 @@ public class CXGeneralMidiFile extends CXFile {
             writeToTeporary();
             moveTemporaryToThis();
         } catch (TransformerException ex) {
-            MXLogger2.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
         } catch (IOException ex) {
-            MXLogger2.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 
@@ -149,12 +149,12 @@ public class CXGeneralMidiFile extends CXFile {
                         bankTag._listAttributes.addNameAndValue("MSB", "0");
                         bankTag._listAttributes.addNameAndValue("LSB", "0");
                     } catch (RuntimeException ex) {
-                        MXLogger2.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
+                        MXFileLogger.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
                     }
                 }
             }
         } catch (IOException ex) {
-            MXLogger2.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 
@@ -197,14 +197,14 @@ public class CXGeneralMidiFile extends CXFile {
                 }
             }
         } catch (IOException ex) {
-            MXLogger2.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(CXGeneralMidiFile.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 
     public void createControlChange(CXNode controlChangeMacroList) {
         CXNode folderTag0 = controlChangeMacroList.newTag("Folder", true);
         folderTag0._listAttributes.addNameAndValue("Name", "Note");
-        for (MNamedValue<Integer> seek : MNamedValueLsitFactory.listupCommand(false)) {
+        for (MXNamedObject<Integer> seek : MXNamedObjectListFactory.listupCommand(false)) {
             int command = seek._value;
             if (command != MXMidi.COMMAND_CH_NOTEON && command != MXMidi.COMMAND_CH_NOTEOFF) {
                 continue;
@@ -241,7 +241,7 @@ public class CXGeneralMidiFile extends CXFile {
         CXNode folderTag1 = controlChangeMacroList.newTag("Folder", true);
         folderTag1._listAttributes.addNameAndValue("Name", "Command");
 
-        for (MNamedValue<Integer> seek : MNamedValueLsitFactory.listupCommand(false)) {
+        for (MXNamedObject<Integer> seek : MXNamedObjectListFactory.listupCommand(false)) {
             int command = seek._value;
             if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF) {
                 continue;
@@ -295,7 +295,7 @@ public class CXGeneralMidiFile extends CXFile {
         }
 
         /* https://www.dtmstation.com/wp-content/uploads/2022/05/AMS_MIDI_Impre.pdf ? */
-        MNamedValueList<String> listDataentry = new MNamedValueList<>();
+        MXNamedObjectList<String> listDataentry = new MXNamedObjectList<>();
         listDataentry.addNameAndValue("Vibrate Rate", "@NRPN 1 1 #VL 0");
         listDataentry.addNameAndValue("Vibrate Depth", "@NRPN 1 9 #VL 0");
         listDataentry.addNameAndValue("Vibrate Delay", "@NRPN 1 10 #VL 0");
