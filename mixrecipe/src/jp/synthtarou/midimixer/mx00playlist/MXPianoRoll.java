@@ -53,7 +53,7 @@ public class MXPianoRoll extends JComponent {
             public void run() {
                 _doingPaint = flag;
                 if (_doingPaint != flag && flag) {
-                    clearCache(_soundTiming);
+                    setPosition(_position, true);
                 }
             }
         });
@@ -95,7 +95,7 @@ public class MXPianoRoll extends JComponent {
             public void componentResized(ComponentEvent e) {
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
-                        clearCache(_soundTiming);
+                        setPosition(_position, true);
                     }
                 });
             }
@@ -104,7 +104,7 @@ public class MXPianoRoll extends JComponent {
             public void componentShown(ComponentEvent e) {
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
-                        clearCache(_soundTiming);
+                        setPosition(_position, true);
                     }
                 });
             }
@@ -128,7 +128,7 @@ public class MXPianoRoll extends JComponent {
 
         _canvas.prepare(widthAll, heightAll);
         if (_canvas._prepareReseted) {
-            paintOnBuffer1(_soundTiming);
+            paintOnBuffer1(_position);
         }
 
         if (_lastRollingY == 0) {
@@ -311,7 +311,7 @@ public class MXPianoRoll extends JComponent {
             while (_rollingY < 0) {
                 _rollingY += heightAll;
             }
-            _lastMilliSec = _soundTiming;
+            _lastMilliSec = _position;
         }
     }
 
@@ -331,19 +331,6 @@ public class MXPianoRoll extends JComponent {
     int _lastPickupForPaint = 0;
     int[] _pickedNoteForPaint = new int[256];
     int _lastPickupForKick = 0;
-
-    public void clearCache(long position) {
-        if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    clearCache(position);
-                }
-            });
-            return;
-        }
-        _lastMilliSec = -1;
-        setSoundTiming(position);
-    }
 
     public int[] listPaintNote(long milliSeconds) {
         List<SMFMessage> list = _sequencer.listMessage();
@@ -442,11 +429,11 @@ public class MXPianoRoll extends JComponent {
         _keys.setOnlyBuffer(false);
     }
 
-    public long getSoundTiming() {
-        return _soundTiming;
+    public long getPosition() {
+        return _position;
     }
 
-    long _soundTiming = 0;
+    long _position = 0;
     long _spanMilliSec = 4000;
     long _lastMilliSec = -_spanMilliSec;
     long _soundMargin = 200;
@@ -456,7 +443,7 @@ public class MXPianoRoll extends JComponent {
 
     public void setFocusChannel(int ch) {
         _focusChannel = ch;
-        clearCache(_soundTiming);
+        setPosition(_position, true);
     }
 
     public int getFocuChannel() {
@@ -527,7 +514,7 @@ public class MXPianoRoll extends JComponent {
         comp._keyboardOctave = 10;
         win.add(comp);
         win.setVisible(true);
-        comp._soundTiming = 0;
+        comp._position = 0;
         sequencer._progressSpan = 50;
         MXPianoKeys key = new MXPianoKeys();
 
@@ -544,33 +531,33 @@ public class MXPianoRoll extends JComponent {
 
     public void setSoundSpan(long span) {
         _spanMilliSec = span;
-        clearCache(_soundTiming);
+        setPosition(_position, true);
     }
 
     public void setSoundMargin(long margin) {
         _soundMargin = margin;
-        clearCache(_soundTiming);
+        setPosition(_position, true);
     }
 
     public void setShowMeasure(boolean show) {
         _showMeasure = show;
-        clearCache(_soundTiming);
+        setPosition(_position, true);
     }
 
-    public void setSoundTiming(long elapsed) {
+    public void setPosition(long elapsed, boolean clearCache) {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    setSoundTiming(elapsed);
+                    setPosition(elapsed, clearCache);
                 }
             });
             return;
         }
-        if (elapsed < _soundTiming) {
+        if (elapsed < _position || clearCache) {
             _lastMilliSec = - 1;
         }
-        _soundTiming = elapsed;
-        noteForKick(_soundTiming);
+        _position = elapsed;
+        noteForKick(_position);
         _keys.repaint();
         paintOnBuffer1(elapsed);
         repaint();

@@ -21,6 +21,7 @@ import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -31,7 +32,7 @@ import jp.synthtarou.libs.MXFileLogger;
  * jsonファイルを読み込むため
  * @author Syntarou YOSHIDA
  */
-public class MXJsonReader {
+public class MXJsonFileReader {
 
     String _data;
     int _pos;
@@ -45,23 +46,34 @@ public class MXJsonReader {
           * @param file File
      * @throws IOException 読込エラー
      */
-    public MXJsonReader(File file) throws IOException {
+    public MXJsonFileReader(File file) throws FileNotFoundException, IOException {
         _file = file;
-        _data = readFile(file, "utf-8");
-        int zero = 0;
+        _data = readFileImpl(file, "utf-8");
+        int zero0 = 0;
+        int zero1 = 0;
         int nonZero = 0;
-        for (int i = 0; i < _data.length(); ++ i) {
-            if (_data.charAt(i) == 0) {
-                zero ++;
+            for (int i = 0; i < _data.length(); ++ i) {
+                if (_data.charAt(i) == 0) {
+                    if ((i & 1) == 0) {
+                        zero0 ++ ;
+                    }
+                    else {
+                        zero1 ++;
+                    }
+                }
+                else {
+                    nonZero ++;
+                }
             }
-            else {
-                nonZero ++;
+            if (nonZero >= 1 && (nonZero - zero0 - zero1) >= -5 && (nonZero - zero0 - zero1) <= 5) {
+                System.out.println("******************RELOADED***************");
+                if (zero0 > zero1) {
+                    _data = readFileImpl(file, "UTF-16BE");
+                }else {
+                    _data = readFileImpl(file, "UTF-16LE");
+                }
+                System.out.println(_data);
             }
-        }
-        if (nonZero >= 1 && (nonZero - zero) >= -5 && (nonZero - zero) <= 5) {
-            System.out.println("******************RELOADED***************");
-            _data = readFile(file, "Unicode");
-        }
         _pos = 0;
     }
 
@@ -69,7 +81,7 @@ public class MXJsonReader {
      * 文字列からインスタンスを生成する
      * @param text
      */
-    public MXJsonReader(String text) {
+    public MXJsonFileReader(String text) {
         _file = null;
         _data = text;
         _pos = 0;
@@ -124,7 +136,7 @@ public class MXJsonReader {
      * @return String
      * @throws IOException なんらかのファイルエラー
      */
-    public String readFile(File file, String encoding) throws IOException {
+    public String readFileImpl(File file, String encoding) throws FileNotFoundException, IOException {
         InputStream in = null;
         StringBuffer result = new StringBuffer();
         try {
@@ -140,19 +152,19 @@ public class MXJsonReader {
                 result.append("\n");
             }
             return result.toString();
+        } catch (FileNotFoundException ex) {
+            throw ex;
         } catch (EOFException ex) {
-            MXFileLogger.getLogger(MXJsonReader.class).log(Level.WARNING, ex.getMessage(), ex);
             return result.toString();
         } catch (IOException ex) {
-            MXFileLogger.getLogger(MXJsonReader.class).log(Level.SEVERE, ex.getMessage(), ex);
             if (in != null) {
                 try {
                     in.close();
                 } catch (IOException ex2) {
-                    MXFileLogger.getLogger(MXJsonReader.class).log(Level.SEVERE, ex2.getMessage(), ex2);
+                    MXFileLogger.getLogger(MXJsonFileReader.class).log(Level.SEVERE, ex2.getMessage(), ex2);
                 }
             }
-            return null;
+            throw  ex;
         }
     }
 

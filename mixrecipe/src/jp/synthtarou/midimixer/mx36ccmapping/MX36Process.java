@@ -33,7 +33,7 @@ import jp.synthtarou.libs.inifile.MXINIFileNode;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
-import jp.synthtarou.libs.json.MXJsonFile;
+import jp.synthtarou.libs.json.MXJsonParser;
 
 /**
  *
@@ -439,8 +439,10 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
 
     @Override
     public void readJSonfile(File custom) {
-        MXJsonFile file = new MXJsonFile(custom);
-        MXJsonValue value = file.readJsonFile();
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("CCMapping");
+        }
+        MXJsonValue value = MXJsonParser.parseFile(custom);
         if (value == null) {
             value = new MXJsonValue(null);
         }
@@ -451,7 +453,9 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
     public void writeJsonFile(File custom) {
         MXJsonValue value = new MXJsonValue(null);
         
-        MXJsonFile file = new MXJsonFile(custom);
-        file.writeJsonFile(value);
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("CCMapping");
+        }
+        MXJsonParser.writeFile(value, custom);
     }
 }

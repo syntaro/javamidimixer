@@ -26,7 +26,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
-import jp.synthtarou.libs.json.MXJsonFile;
+import jp.synthtarou.libs.json.MXJsonParser;
 
 /**
  *
@@ -222,8 +222,10 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
 
     @Override
     public void readJSonfile(File custom) {
-        MXJsonFile file = new MXJsonFile(custom);
-        MXJsonValue value = file.readJsonFile();
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("MixingGlobal");
+        }
+        MXJsonValue value = MXJsonParser.parseFile(custom);
         if (value == null) {
             value = new MXJsonValue(null);
         }
@@ -234,7 +236,9 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
     public void writeJsonFile(File custom) {
         MXJsonValue value = new MXJsonValue(null);
         
-        MXJsonFile file = new MXJsonFile(custom);
-        file.writeJsonFile(value);
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("MixingGlobal");
+        }
+        MXJsonParser.writeFile(value, custom);
     }
 }

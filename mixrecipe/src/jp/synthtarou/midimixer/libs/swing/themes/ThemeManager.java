@@ -44,7 +44,7 @@ import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
-import jp.synthtarou.libs.json.MXJsonFile;
+import jp.synthtarou.libs.json.MXJsonParser;
 import jp.synthtarou.libs.json.MXJsonValue;
 
 /**
@@ -322,11 +322,14 @@ public class ThemeManager implements MXINIFileSupport, MXJsonSupport {
 
     @Override
     public void readJSonfile(File custom) {
-        MXJsonFile file = new MXJsonFile(custom);
-        MXJsonValue value = file.readJsonFile();
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("ThemeManager");
+        }
+        MXJsonValue value = MXJsonParser.parseFile(custom);
         if (value == null) {
             value = new MXJsonValue(null);
         }
+
         MXJsonValue.HelperForStructure root = value.new HelperForStructure();
 
         colorfulMetalTheme = root.getSettingBool("themeLabelColorful", false);
@@ -362,6 +365,9 @@ public class ThemeManager implements MXINIFileSupport, MXJsonSupport {
 
     @Override
     public void writeJsonFile(File custom) {
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("ThemeManager");
+        }
         MXJsonValue value = new MXJsonValue(null);
 
         MXJsonValue.HelperForStructure structure = value.new HelperForStructure();
@@ -372,6 +378,6 @@ public class ThemeManager implements MXINIFileSupport, MXJsonSupport {
         structure.setSettingInt("fontStyle", fontStyle);
         structure.setSettingBool("circleIsCircle", CurvedSlider.isMouseCircleIsCircle());
 
-        new MXJsonFile(custom).writeJsonFile(value);
+        MXJsonParser.writeFile(value, custom);
     }
 }

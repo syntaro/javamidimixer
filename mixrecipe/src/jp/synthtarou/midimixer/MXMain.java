@@ -46,6 +46,7 @@ import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.libs.smf.SMFSequencer;
 import jp.synthtarou.libs.MainThreadTask;
+import jp.synthtarou.libs.json.MXJsonParser;
 import jp.synthtarou.midimixer.libs.vst.VSTInstance;
 import jp.synthtarou.midimixer.mx36ccmapping.MX36Process;
 import jp.synthtarou.midimixer.mx12masterpiano.MX12Process;
@@ -211,7 +212,7 @@ public class MXMain  {
                     @Override
                     public void run() {
                         try {
-                            MXINIFile.invokeAutoSave();
+                            saveEverySettingToFile();
                             VSTStream.getInstance().postCloseStream(null);
                         }
                         catch(RuntimeException ex) {
@@ -306,6 +307,7 @@ public class MXMain  {
     }
 
     public void saveEverySettingToFile() {
+        MXJsonParser.invokeAutosave();
         MXINIFile.invokeAutoSave();
     }
     

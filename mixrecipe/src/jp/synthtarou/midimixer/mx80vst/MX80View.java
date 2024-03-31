@@ -853,7 +853,7 @@ public class MX80View extends javax.swing.JPanel {
             if (parent != null && (parent instanceof File)) {
                 File folder = (File) parent;
                 File target = (File) user;
-
+                
                 name = VSTFolder.getAsAbsolute(folder, target);
                 icon = _view.getSystemIcon(target);
 

@@ -27,7 +27,7 @@ import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
-import jp.synthtarou.libs.json.MXJsonFile;
+import jp.synthtarou.libs.json.MXJsonParser;
 
 /**
  *
@@ -126,20 +126,23 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
 
     @Override
     public void readJSonfile(File custom) {
-        MXJsonFile file = new MXJsonFile(custom);
-        MXJsonValue value = file.readJsonFile();
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("VirtualKey");
+        }
+        MXJsonValue value = MXJsonParser.parseFile(custom);
         if (value == null) {
             value = new MXJsonValue(null);
         }
-        //TODO
     }
 
     @Override
     public void writeJsonFile(File custom) {
         MXJsonValue value = new MXJsonValue(null);
         
-        MXJsonFile file = new MXJsonFile(custom);
-        file.writeJsonFile(value);
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("VirtualKey");
+        }
+        MXJsonParser.writeFile(value, custom);
     }
 
     public class MyNoteOffHandler implements MXNoteOffWatcher.Handler {

@@ -535,7 +535,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
             }
         }
         if (_pianoRollKeys != null && _pianoRollRoll != null) {
-            _pianoRollRoll.clearCache(_pianoRollRoll.getSoundTiming());
+            _pianoRollRoll.setPosition(_pianoRollRoll.getPosition(), true);
             int width = _pianoRollRoll.getWidth();
             _pianoRollKeys.setPreferredSize(new Dimension(width, 100));
         }
@@ -718,7 +718,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                 jSliderSongPosition.setValue((int)_pianoRollRoll._sequencer.getCurrentMilliSeconds());
                 jSliderStopCallback = false;
             }else if (_pianoRollRoll._sequencer.getSongLength() != 0) {
-                _pianoRollRoll.setSoundTiming(jSliderSongPosition.getValue());
+                _pianoRollRoll.setPosition(jSliderSongPosition.getValue(), false);
             }
         }
     }//GEN-LAST:event_jSliderSongPositionStateChanged
@@ -986,7 +986,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
             if (_lastPlayed != file) {
                 MXMain.getMain().getPlayListProcess()._view.createPianoControls(noteLowest, octaveRange, exist, program, drums);
             }
-            _pianoRollRoll.clearCache(pos);
+            _pianoRollRoll.setPosition(pos, false);
             _lastPlayed = file;
             _playingFile = file;
             //??

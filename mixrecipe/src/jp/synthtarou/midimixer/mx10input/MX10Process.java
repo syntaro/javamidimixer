@@ -24,7 +24,7 @@ import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
-import jp.synthtarou.libs.json.MXJsonFile;
+import jp.synthtarou.libs.json.MXJsonParser;
 
 /**
  *
@@ -117,8 +117,13 @@ public class MX10Process extends MXReceiver<MX10View> implements MXINIFileSuppor
 
     @Override
     public void readJSonfile(File custom) {
-        MXJsonFile file = new MXJsonFile(custom);
-        MXJsonValue value = file.readJsonFile();
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("InputSkip");
+        }
+        MXJsonValue value = MXJsonParser.parseFile(custom);
+        if (value == null) {
+            value = new MXJsonValue(null);
+        }
         MXJsonValue.HelperForStructure root = value.new HelperForStructure();
         for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
             MXJsonValue.HelperForStructure prefix = root.findStructure("Port" + port);
@@ -150,7 +155,9 @@ public class MX10Process extends MXReceiver<MX10View> implements MXINIFileSuppor
                 }
             }
         }
-        MXJsonFile file = new MXJsonFile(custom);
-        file.writeJsonFile(value);
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("InputSkip");
+        }
+        MXJsonParser.writeFile(value, custom);
     }
 }

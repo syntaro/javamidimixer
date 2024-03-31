@@ -213,7 +213,7 @@ public class SMFSequencer {
                         _divDraw = 1;
                     }
                 }
-                _pianoRoll.setSoundTiming(elapsed);
+                _pianoRoll.setPosition(elapsed, false);
                 _nextDraw += _divDraw;
             }
         }
@@ -222,7 +222,7 @@ public class SMFSequencer {
     protected void playWithMilliSeconds(long position) {
         _stopPlayer = false;
         if (_pianoRoll != null) {
-            _pianoRoll.clearCache(position);
+            _pianoRoll.setPosition(position, true);
         }
         _startMilliSeconds = position;
         paintPiano(position);

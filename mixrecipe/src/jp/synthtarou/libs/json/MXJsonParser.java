@@ -16,58 +16,185 @@
  */
 package jp.synthtarou.libs.json;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.LinkedList;
 import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.inifile.MXSettingUtil;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  * jsonテキストを,MJsonValueオブジェクトのツリーに格納する、パーサー
  * @author Syntarou YOSHIDA
  */
 public class MXJsonParser {
+    static ArrayList<MXJsonSupport> _listAutosave = new ArrayList<>();
+
+    public static File pathOf(String name) {
+        return new File(getJsonDirectory(), name + ".json");
+    }
+    
+    public static void invokeAutosave() {
+        for (MXJsonSupport seek : _listAutosave) {
+            try {
+                seek.writeJsonFile(null);
+            }catch(Throwable ex) {
+                MXFileLogger.getLogger(MXJsonParser.class).log(Level.SEVERE, ex.getMessage(), ex);
+            }
+        }
+    }
+    public static void addAutosaveChain(MXJsonSupport support) {
+        if (_listAutosave.indexOf(support) < 0) {
+            _listAutosave.add(support);
+        }
+    }
+  
+    public static MXJsonValue parseFile(String resource) {
+        return MXJsonParser.parseFile(new File(getJsonDirectory(), resource + ".json"));
+    }
+
+    public static MXJsonValue parseFile(File file) {
+        return new MXJsonParser().parseFile(null, file);
+    }
+
+    public static MXJsonValue parseText(String text) {
+        return new MXJsonParser().parseText(null, text);
+    }
+
+    public static boolean writeFile(MXJsonValue value, String resouce) {
+        return writeFile(value, new File(getJsonDirectory(), resouce + ".json"));
+    }
+    
+    public static boolean writeFile(MXJsonValue value, File file) {
+        String text = value.formatForFile();
+
+        MXMain.progress("writing " + file.getName());
+
+        File target = MXUtil.createTemporaryFile(file);
+        boolean needMove = false;
+        if (target != null) {
+            needMove = true;
+        } else {
+            needMove = false;
+            target = file;
+        }
+        FileOutputStream fout = null;
+        try {
+            fout = new FileOutputStream(target);
+            BufferedOutputStream bout = new BufferedOutputStream(fout);
+            OutputStreamWriter writer = new OutputStreamWriter(bout, "utf-8");
+            writer.write(text);
+            writer.flush();
+            fout.close();
+            fout = null;
+            if (needMove) {
+                file.delete();
+                target.renameTo(file);
+            }
+            return true;
+        } catch (IOException ioe) {
+            MXFileLogger.getLogger(MXJsonParser.class).log(Level.SEVERE, ioe.toString(), ioe);
+        } finally {
+            if (fout != null) {
+                try {
+                    fout.close();
+                } catch (IOException ioe) {
+                    MXFileLogger.getLogger(MXJsonParser.class).log(Level.SEVERE, ioe.toString(), ioe);
+                }
+            }
+        }
+        return false;
+    }
+
+    public static File getJsonDirectory() {
+        File dir = new File(MXUtil.getAppBaseDirectory(), "json");
+        if (dir.isDirectory()) {
+            return dir;
+        }
+
+        try {
+            Path p = Paths.get(dir.toURI());
+            Files.createDirectory(p);
+        } catch (IOException ex) {
+            MXFileLogger.getLogger(MXSettingUtil.class).log(Level.WARNING, ex.getMessage(), ex);
+        }
+
+        if (dir.isDirectory()) {
+            return dir;
+        }
+
+        return null;
+    }
+    /**
+     * ファイルからインスタンスを生成する。パースまでやる
+     * @throws IOException　Fileエラー
+     */
+    public MXJsonParser() {
+    }
 
     /**
-     * 文字列からインスタンスを生成する。パースまでやる
-     * @param text json文字列　nullの場合パースしない
+     * 文字列をパースする
+     * @param value 格納先
+     * @param contents 文字列
      */
-    public MXJsonParser(String text) {
-        if (text != null) {
-            parse(text);
+    public MXJsonValue parseText(MXJsonValue value, String contents) {
+        if (value == null) {
+            value = new MXJsonValue(null);
+        }
+        return parseImpl(value, new MXJsonFileReader(contents));
+    }
+    /**
+     * ファイルをパースする
+     * @param value 格納先
+     * @param file jsonファイル
+     * @throws java.io.IOException
+     * @throws IOException　Fileエラー
+     */
+    public MXJsonValue parseFile(MXJsonValue value, File file) {
+        if (value == null) {
+            value = new MXJsonValue(null);
+        }
+        try {
+            return parseImpl(value, new MXJsonFileReader(file));
+        }catch(FileNotFoundException ex) {
+            return null;
+        }catch(IOException ex) {
+            ex.printStackTrace();
+            return null;
         }
     }
 
     /**
-     * ファイルからインスタンスを生成する。パースまでやる
+     * ファイルをパースする
+     * @param value 格納先
      * @param file jsonファイル
      * @throws java.io.IOException
      * @throws IOException　Fileエラー
      */
-    public MXJsonParser(File file) throws IOException {
-        parse(file);
-
-    }
-
-    /**
-     * あとから文字列をパースする
-     * @param contents 文字列
-     */
-    public void parse(String contents) {
-        _reader = new MXJsonReader(contents);
-        parseImpl(_reader);
-    }
-
-    /**
-     * あとからファイルをパースする
-     * @param file jsonファイル
-     * @throws java.io.IOException
-     * @throws IOException　Fileエラー
-     */
-    public void parse(File file) throws IOException {
-        _reader = new MXJsonReader(file);
-        parseImpl(_reader);
+    public MXJsonValue parseFile(MXJsonValue value, String resource){
+        if (value == null) {
+            value = new MXJsonValue(null);
+        }
+        File file = new File(getJsonDirectory(), resource + ".json");
+        try {
+            return parseImpl(value, new MXJsonFileReader(file));
+        }catch(FileNotFoundException ex) {
+            ex.printStackTrace();
+            return null;
+        }catch(IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
     }
 
     ArrayList<String> _parse1 = null;
@@ -76,11 +203,11 @@ public class MXJsonParser {
     /**
      * MJsonReaderを指定してパースする、ほかのparseメソッドから呼ばれる
      * @param reader MJsonReader
+     * @return パース結果
      */
-    protected void parseImpl(MXJsonReader reader) {
+    protected MXJsonValue parseImpl(MXJsonValue root, MXJsonFileReader reader) {
         int point = 0;
         int total = 0;
-        _treeRoot = null;
         _parse1 = new ArrayList<>();
         while (true) {
             String original = reader.readPartial();
@@ -100,6 +227,7 @@ public class MXJsonParser {
                 String unescaped2 = MXJsonValue.unescape(escaped2);
 
                 if (escaped1.equals(escaped2) == false || unescaped2.equals(unescaped1) == false) {
+                    System.out.println("orginal[" + original + "]");
                     System.out.println("escaped1[" + escaped1 + "]");
                     System.out.println("escaped2[" + escaped2 + "]");
                     System.out.println("unescaped1[" + unescaped1 + "]");
@@ -114,16 +242,21 @@ public class MXJsonParser {
         //System.out.println("point " + point + " total  " + total);
         LinkedList<MXJsonValue> queue = new LinkedList<>();
         for (String seek : _parse1) {
-            queue.add(new MXJsonValue(seek));
+            MXJsonValue value = new MXJsonValue(seek);
+            queue.add(value);
         }
         try {
-            _treeRoot = readSomething(queue);
+            MXJsonValue value = readSomething(queue);
+            root._conetentsType = value._conetentsType;
+            root._label = value._label;
+            root._listContents = value._listContents;
+            return root;
         } catch (Throwable ex) {
             MXFileLogger.getLogger(MXJsonParser.class).log(Level.WARNING, ex.getMessage(), ex);
+            return null;
         }
     }
 
-    MXJsonValue _treeRoot;
     int currentReading = MXJsonValue.TYPE_START_STRUCTURE;
 
     /**
@@ -233,7 +366,7 @@ public class MXJsonParser {
             }
             str.append(queue.get(i).getTypeText() + "(" + queue.get(i)._label + ")");
         }
-        return str.toString();
+        return queue.size() + " : " + str.toString();
     }
 
     /**
@@ -293,12 +426,39 @@ public class MXJsonParser {
                     result.addToContentsStructure(new MXJsonValue(null));
                 }
                 break;
+            } else if (checkQueue(queue, MXJsonValue.TYPE_TEXT, MXJsonValue.TYPE_DOUBLECOMMA, MXJsonValue.TYPE_START_LIST)) {
+                MXJsonValue name2 = queue.removeFirst();
+                MXJsonValue dq = queue.removeFirst();
+                MXJsonValue value = readSomething(queue);
+                value._label = name2._label;
+                result.addToContentsStructure(value);
+                commaFin = false;
+
+                if (checkQueue(queue, MXJsonValue.TYPE_COMMA)) {
+                    commaFin = true;
+                    queue.removeFirst();
+                    continue;
+                }
+            } else if (checkQueue(queue, MXJsonValue.TYPE_TEXT, MXJsonValue.TYPE_DOUBLECOMMA, MXJsonValue.TYPE_START_STRUCTURE)) {
+                MXJsonValue name2 = queue.removeFirst();
+                MXJsonValue dq = queue.removeFirst();
+                MXJsonValue value = readSomething(queue);
+                value._label = name2._label;
+                result.addToContentsStructure(value);
+                commaFin = false;
+
+                if (checkQueue(queue, MXJsonValue.TYPE_COMMA)) {
+                    commaFin = true;
+                    queue.removeFirst();
+                    continue;
+                }
             } else if (checkQueue(queue, MXJsonValue.TYPE_TEXT, MXJsonValue.TYPE_DOUBLECOMMA, MXJsonValue.TYPE_ANY)) {
                 MXJsonValue name2 = queue.removeFirst();
                 MXJsonValue dq = queue.removeFirst();
                 MXJsonValue value = readSomething(queue);
-                result.addToContentsStructure(name2);
-                name2.addToContentsValue(value);
+                
+                MXJsonValue add = new MXJsonValue(name2._label, value._label);
+                result.addToContentsStructure(add);
                 commaFin = false;
 
                 if (checkQueue(queue, MXJsonValue.TYPE_COMMA)) {
@@ -307,7 +467,7 @@ public class MXJsonParser {
                     continue;
                 }
             } else {
-                throw new IllegalArgumentException("File format " + first5ToText(queue) + " file = " + _reader._file);
+                throw new IllegalArgumentException("File format " + first5ToText(queue));
             }
         }
         return result;
@@ -322,7 +482,7 @@ public class MXJsonParser {
         if (queue.isEmpty()) {
             return null;
         }
-
+        
         MXJsonValue operand = queue.removeFirst();
         MXJsonValue result = null;
         switch (operand.getType()) {
@@ -357,12 +517,9 @@ public class MXJsonParser {
             default:
                 break;
         }
-        System.out.println("readed unknown " + first5ToText(queue));
         queue.removeFirst();
         return readSomething(queue);
     }
-
-    MXJsonReader _reader;
 
     static int count = 20000;
     static Throwable _fatal = null;
@@ -373,35 +530,22 @@ public class MXJsonParser {
      */
     public static void doTest(File file) {
         System.out.println("*PARSE*" + file);
-        MXJsonParser parser1;
-        try {
-            parser1 = new MXJsonParser(file);
-        } catch (IOException ex) {
-            _fatal = ex;
-            return;
-        }
-        String form = parser1._treeRoot.formatForDisplay();
-        if (false) {
-            System.out.println("*FORMAT*");        
-            System.out.println(form);
-        }
+        MXJsonParser parser1 = new MXJsonParser();
+        MXJsonParser parser2 = new MXJsonParser();
+        String form, form2;
+        MXJsonValue value = parser1.parseFile(null, file);
+        form = value.formatForFile();
         //System.out.println("*DONE*");
 
-        MXJsonParser parser2 = null;
-        try {
-            parser2 = new MXJsonParser(form);
-
-            String form2 = parser2._treeRoot.formatForDisplay();
-            if (form.equals(form2)) {
-                //System.out.println("Test O");
-            } else {
-                System.out.println("Test X");
-                _fatal = new Throwable("Test X");
-            }
-        } catch (Throwable ex) {
-            _fatal = ex;
-            MXFileLogger.getLogger(MXJsonParser.class).log(Level.WARNING, ex.getMessage(), ex);
+        MXJsonValue value2 = parser2.parseText(null, form);
+        form2 = value2.formatForFile();
+        if (form.equals(form2)) {
+            //System.out.println("Test O");
+        } else {
+            System.out.println("Test X");
+            _fatal = new Throwable("Test X");
         }
+
         if (_fatal == null) {
             for (int i = 0; i < parser1._parse1.size(); ++i) {
                 String t1 = i >= parser1._parse1.size() ? null : parser1._parse1.get(i);
@@ -413,7 +557,7 @@ public class MXJsonParser {
                 } else if (t1.equals(t2)) {
                     continue;
                 }
-                System.out.println(parser1._reader._file + "  -> index " + i + " / " + parser1._parse1.size());
+                System.out.println(file + "  -> index " + i + " / " + parser1._parse1.size());
                 System.out.println("t1 = " + t1);
                 System.out.println("t2 = " + t2);
             }
@@ -434,6 +578,8 @@ public class MXJsonParser {
      */
     public static void main(String[] args) throws IOException {
         g_dodebug = true;
+        recursiveCheck(new File("C:\\Users\\All Users\\Microsoft\\VisualStudio\\ChromeAdapter\\262f7dc2\\i18n\\chs\\out\\src\\chromeDebugAdapter.i18n.json"));
+        recursiveCheck(new File("C:\\VST_SDK"));
         recursiveCheck(new File("C:\\Users\\yaman\\.nuget\\packages\\microsoft.netcore.platforms\\2.0.0"));
         recursiveCheck(new File("C:\\Users\\All Users\\Microsoft"));
         if (false) {

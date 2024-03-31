@@ -20,7 +20,6 @@ import jp.synthtarou.midimixer.libs.vst.VSTInstance;
 import jp.synthtarou.midimixer.libs.vst.VSTFolder;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.TreeMap;
 import jp.synthtarou.libs.MXSafeThread;
 import jp.synthtarou.libs.async.Transaction;
@@ -32,7 +31,7 @@ import jp.synthtarou.midimixer.libs.vst.VSTStream;
 import jp.synthtarou.midimixer.windows.MXLIB02VST3;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
-import jp.synthtarou.libs.json.MXJsonFile;
+import jp.synthtarou.libs.json.MXJsonParser;
 
 /**
  *
@@ -78,10 +77,12 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
         }
         
         if (MXLIB02VST3.getInstance().isUsable()) {
-            readINIFile(null);
+            readJSonfile(null);
+            MXJsonParser.addAutosaveChain(this);
+            //readINIFile(null);
         }
     }
-
+    
     public int countFolder() {
         return _listFolder.size();
     }
@@ -398,13 +399,9 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
         
         int streamIndex = -1;
 
-        MXLIB02VST3.getInstance().setMasterVolume(0.01f * volume);
-
-        Iterator<VSTInstance> itLoad = _listInstrument.iterator();
         int l = 1;
         Transaction t = null;
-        while(itLoad.hasNext()) {
-            VSTInstance vst = itLoad.next();
+        for (VSTInstance vst : _listInstrument) {
             setting.setSetting("load[" + l +  "].path", vst.getPath());
             if (vst.isOpen()) {
                 t = vst.postSavePreset(VSTInstance.getTotalRecallSetting(false, l - 1).getPath(), null);
@@ -424,12 +421,9 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
             t.awaitResult();
         }
 
-        itLoad = _listEffect.iterator();
-        
         l = 1;
         t = null;
-        while(itLoad.hasNext()) {
-            VSTInstance vst = itLoad.next();
+        for (VSTInstance vst : _listEffect) {
             setting.setSetting("effect[" + l +  "].path", vst.getPath());
             if (vst.isOpen()) {
                 t = vst.postSavePreset(VSTInstance.getTotalRecallSetting(true, l - 1).getPath(), null);
@@ -452,7 +446,6 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
             VSTFolder vstFolder = _listFolder.get(i);
 
             setting.setSetting("base[" + b + "].scanDone", vstFolder.isScanDone() ? 1 : 0);
-
             setting.setSetting("base[" + b + "].path", vstFolder._rootDirectory.toString());
             
             TreeMap<File, ArrayList<File>> result = vstFolder.getListResult();
@@ -471,10 +464,8 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
             }
         }
 
-        Iterator<String> itSkip = _listSkip.iterator();
         int s = 1;
-        while(itSkip.hasNext()) {
-            String path = itSkip.next();
+        for (String path : _listSkip) {
             setting.setSetting("skip[" + s +  "].path", path);
             s ++;
         }
@@ -497,20 +488,323 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
 
     @Override
     public void readJSonfile(File custom) {
-        MXJsonFile file = new MXJsonFile(custom);
-        MXJsonValue value = file.readJsonFile();
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("VSTFolderList");
+        }
+        MXJsonValue value = MXJsonParser.parseFile(custom);
         if (value == null) {
             value = new MXJsonValue(null);
         }
-        //TODO
+
+        _listFolder.clear();
+        _listSkip.clear();
+        
+        
+        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
+        
+        MXJsonValue.HelperForStructure jsonStream = root.findStructure("stream");
+
+        if (jsonStream != null) {
+            String streamName  =  jsonStream.getSettingText("name", "");
+            boolean open = jsonStream.getSettingBool("open", false);
+            int samplingRate = jsonStream.getSettingInt("samplingrate", 48000);
+            int latency =  jsonStream.getSettingInt("latency", 128);
+            int volume =  jsonStream.getSettingInt("masterVolume", 20);
+            int streamIndex = -1;
+
+            MXLIB02VST3.getInstance().setMasterVolume(0.01f * volume);
+
+            VSTStream stream = VSTStream.getInstance();
+            if (streamName != null && streamName.length() > 0) {
+                for (int i = 0; i < stream.count(); ++ i) {
+                    if (stream.getName(i).equals(streamName)) {
+                        streamIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            if (streamIndex < 0) {
+                streamIndex = stream.getOffer();
+            }
+
+            stream.setSampleRate(samplingRate);
+            stream.setBlockSize(latency);
+            stream.setStream(streamIndex);
+
+            if (streamIndex >= 0 && open) {
+                stream.postOpenStream(null);
+            }
+        }
+        else {
+            MXLIB02VST3.getInstance().setMasterVolume(0.01f * 20);
+
+            VSTStream stream = VSTStream.getInstance();
+
+            stream.setSampleRate(48000);
+            stream.setBlockSize(128);
+            stream.setStream(stream.getOffer());
+        }
+
+        MXJsonValue.HelperForArray listLoad = root.findArray("load");
+        
+        if (listLoad != null) {
+            for (int i = 0; i < listLoad.count(); ++ i) {
+                MXJsonValue seek = listLoad.getValue(i);
+                if (seek == null) {
+                    continue;
+                }
+                MXJsonValue.HelperForStructure jsonLoad = seek.new HelperForStructure();
+                String loadPath = jsonLoad.getSettingText("path", "");
+                if (loadPath == null || loadPath.length() == 0) {
+                    continue;
+                }
+
+                boolean open = jsonLoad.getSettingBool("open", false);
+                
+                System.out.println("----2" + open);
+
+                VSTInstance vst = new VSTInstance(false, i);
+
+                vst.setPath(loadPath);
+                _listInstrument.set(i, vst);
+
+                VSTInstancePanel panel = new VSTInstancePanel(vst);
+                _listInstrumentPanel.set(i, panel);
+
+                if (open) {
+                    panel.enterOpenVST();
+                    File file = VSTInstance.getTotalRecallSetting(false, i);
+                    int result = vst.postLoadPreset(file.getPath(), null).awaitResult();
+                }
+                MXJsonValue.HelperForArray listVolume = jsonLoad.findArray("volume");
+                for (int j = 0; j < listVolume.count(); ++ j) {
+                    int busVolume = listVolume.getSettingInt(j, 127);
+                    vst.setBusVolume(j, busVolume);
+                }
+
+                int balance = jsonLoad.getSettingInt("insertBalance", 0);
+                vst.setInsertBalance(balance);
+                int send = jsonLoad.getSettingInt("auxSend", 0);
+                vst.setAuxSend(send);
+
+                panel.createVolumePanel();
+            }
+        }
+        
+        MXJsonValue.HelperForArray listEffect = root.findArray("effect");
+        if (listEffect != null) {
+            for (int i = 0; i < listEffect.count(); ++ i) {
+                MXJsonValue.HelperForStructure effect = listEffect.getValue(i).new HelperForStructure();
+                String loadPath = effect.getSettingText("path", "");
+                if (loadPath == null || loadPath.length() == 0) {
+                    continue;
+                }
+
+                boolean open = effect.getSettingBool("open", false);
+                
+                VSTInstance vst = new VSTInstance(true, i);
+
+                vst.setPath(loadPath);
+                _listEffect.set(i, vst);
+
+                VSTInstancePanel panel = new VSTInstancePanel(vst);
+                _listEffectPanel.set(i, panel);
+
+                if (open) {
+                    panel.enterOpenVST();
+                    File file = VSTInstance.getTotalRecallSetting(true, i);
+                    int result = vst.postLoadPreset(file.getPath(), null).awaitResult();
+                }
+
+                MXJsonValue.HelperForArray listVolume = effect.findArray("volume");
+                for (int j = 0; j < listVolume.count(); ++ j) {
+                    int busVolume = listVolume.getSettingInt(j, 127);
+                    vst.setBusVolume(j, busVolume);
+                }
+
+                panel.createVolumePanel();
+            }
+        }
+        
+        MXJsonValue.HelperForArray listBase = root.findArray("base");
+        if (listBase != null) {
+            for (int i = 0; i < listBase.count(); ++ i) {
+                MXJsonValue jsonBase = listBase.getValue(i);
+                MXJsonValue.HelperForStructure base = jsonBase.new HelperForStructure();
+
+                boolean scanDone = base.getSettingBool("scanDone", false);
+                String path = base.getSettingText("path", "");
+                
+                System.out.println("scanDone " + scanDone);
+                System.out.println("path " + path);
+                
+                if (path == null || path.length() == 0) {
+                    continue;
+                }
+
+                VSTFolder baseVSTFolder = new VSTFolder();
+                baseVSTFolder.setExtension(".vst3");
+                baseVSTFolder.setRootDirectory(new File(path));
+                baseVSTFolder.setScanDone(scanDone);
+
+                MXJsonValue.HelperForArray listDirectory = base.findArray("directory");
+                TreeMap<File, ArrayList<File>> mapFolders = new TreeMap<>();
+
+                for (int j = 0; j < listDirectory.count(); ++ j) {
+                    MXJsonValue.HelperForStructure jsonDirectory = listDirectory.getValue(j).new HelperForStructure();
+                    
+
+                    String directory = jsonDirectory.getSettingText("path", "");
+                    if (directory.length() == 0) {
+                        continue;
+                    }
+                    
+                    MXJsonValue.HelperForArray listPath = jsonDirectory.findArray("file");
+                    ArrayList<File> listFiles = new ArrayList<>();
+                    if (listPath != null) {
+                        for (int k = 0; k < listPath.count(); ++ k) {
+                            String file = listPath.getSettingText(k, "");
+                            if (file.length() == 0) {
+                                continue;
+                            }
+                            listFiles.add(new File(file));
+                        }
+                    }
+
+                    mapFolders.put(new File(directory), listFiles);
+                }
+
+                 baseVSTFolder.setResult(mapFolders);
+                 _listFolder.add(baseVSTFolder);
+            }
+            
+        }
+
+        MXJsonValue.HelperForArray listSkip = root.findArray("skip");
+        if (listSkip != null) {
+            for (int i = 0; i < listSkip.count(); ++ i) {
+                String skipPath = listSkip.getSettingText(i, "");
+                if (skipPath.length() == 0) {
+                    continue;
+                }
+                _listSkip.add(skipPath);
+            }
+        }
+        
+        if (_listFolder.isEmpty()) {
+           VSTFolder folder = new VSTFolder();
+           folder.setExtension(".VST3");
+           folder.setRootDirectory(new File("C:/Program Files/Common Files/VST3"));
+           _listFolder.add(folder);
+        }
     }
 
     @Override
     public void writeJsonFile(File custom) {
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("VSTFolderList");
+        }
         MXJsonValue value = new MXJsonValue(null);
+
+        if (MXLIB02VST3.getInstance().isUsable() == false) {
+            return;
+        }
         
-        MXJsonFile file = new MXJsonFile(custom);
-        file.writeJsonFile(value);
+        VSTStream stream = VSTStream.getInstance();
+        
+        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
+
+        MXJsonValue.HelperForStructure jsonStream = root.addStructure("stream");
+        
+        jsonStream.setSettingText("name", stream.getName(stream.getStream()));
+        jsonStream.setSettingBool("open", stream.isOpen());
+        jsonStream.setSettingInt("latency", stream.getBlockSize());
+        jsonStream.setSettingInt("jsonStreamsamplingrate", stream.getSampleRate());
+
+        int volume = (int)(MXLIB02VST3.getInstance().getMasterVolume() * 100);
+        jsonStream.setSettingInt("masterVolume", volume);
+        
+        int streamIndex = -1;
+
+        int l = 1;
+        Transaction t = null;
+        MXJsonValue.HelperForArray listLoad = root.addArray("load");
+        for (VSTInstance vst : _listInstrument) {
+            MXJsonValue.HelperForStructure jsonLoad = listLoad.addStructure();
+            
+            jsonLoad.setSettingText("path", vst.getPath());
+            if (vst.isOpen()) {
+                t = vst.postSavePreset(VSTInstance.getTotalRecallSetting(false, l - 1).getPath(), null);
+            }
+            jsonLoad.setSettingBool("open", vst.isOpen());
+            
+            MXJsonValue.HelperForArray listVolume = jsonLoad.addArray("volume");
+            for (int bus = 0; bus < vst.getBusCount(); ++ bus) {
+                listVolume.addNumber(vst.getBusVolume(bus));
+            }
+            jsonLoad.setSettingInt("insertBalance", vst.getInsertBalanace());
+            jsonLoad.setSettingInt("auxSend", vst.getAuxSend());
+            
+            l ++;
+        }
+
+        if (t != null) {
+            t.awaitResult();
+        }
+
+        l = 1;
+        t = null;
+        MXJsonValue.HelperForArray listEffect = root.addArray("effect");
+        for(VSTInstance vst : _listEffect) {
+            MXJsonValue.HelperForStructure jsonEffect = listEffect.addStructure();
+            jsonEffect.setSettingText("path", vst.getPath());
+            if (vst.isOpen()) {
+                t = vst.postSavePreset(VSTInstance.getTotalRecallSetting(true, l - 1).getPath(), null);
+            }
+            jsonEffect.setSettingBool("open", vst.isOpen());
+            
+            MXJsonValue.HelperForArray listVolume = jsonEffect.addArray("volume");
+            for (int bus = 0; bus < vst.getBusCount(); ++ bus) {
+                listVolume.addNumber(vst.getBusVolume(bus));
+            }
+            l ++;
+        }
+
+        if (t != null) {
+            t.awaitResult();
+        }
+
+        MXJsonValue.HelperForArray listBase = root.addArray("base");
+        for (int i = 0; i < _listFolder.size(); ++ i) {
+            VSTFolder vstFolder = _listFolder.get(i);
+
+            MXJsonValue.HelperForStructure jsonBase = listBase.addStructure();
+            jsonBase.setSettingBool("scanDone", vstFolder.isScanDone());
+            jsonBase.setSettingText("path", vstFolder._rootDirectory.toString());
+            
+            TreeMap<File, ArrayList<File>> result = vstFolder.getListResult();
+            
+            MXJsonValue.HelperForArray listDirectory = jsonBase.addArray("directory");
+            for (File directory : result.keySet()) {
+                MXJsonValue.HelperForStructure jsonDirectory = listDirectory.addStructure();
+                
+                jsonDirectory.setSettingText("path", directory.toString());
+                ArrayList<File> fileList = result.get(directory);
+    
+                MXJsonValue.HelperForArray listFile = jsonDirectory.addArray("file");
+                for (File file : fileList) {
+                    listFile.addText(file.toString());
+                }
+            }
+        }
+
+        MXJsonValue.HelperForArray listSkip = root.addArray("skip");
+        for(String path : _listSkip) {
+            listSkip.addText(path);;
+        }
+
+        MXJsonParser.writeFile(value, custom);
     }
 
     public interface Callback {
