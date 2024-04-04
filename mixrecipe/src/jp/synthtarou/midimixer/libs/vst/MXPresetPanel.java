@@ -20,6 +20,7 @@ import java.awt.Dimension;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
@@ -188,7 +189,7 @@ public class MXPresetPanel extends javax.swing.JPanel {
         if (index >= 0) {
             Integer x = _listModel.valueOfIndex(index);
             if (x != index) {
-                MXMain.printAlert("Something Wrong , List Index != Data Index");
+                MXFileLogger.getLogger(MXPresetPanel.class).warning("Something Wrong , List Index != Data Index");
                 return;
             }
             if (_action.presetActionLoad(_file.getPath(x))) {
@@ -202,7 +203,7 @@ public class MXPresetPanel extends javax.swing.JPanel {
         if (index >= 0) {
             Integer x = _listModel.valueOfIndex(index);
             if (x != index) {
-                MXMain.printAlert("Something Wrong , List Index != Data Index");
+                MXFileLogger.getLogger(MXPresetPanel.class).warning("Something Wrong , List Index != Data Index");
                 return;
             }
             String title = _file.getTitle(x);

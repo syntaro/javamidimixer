@@ -21,7 +21,6 @@ import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
@@ -32,12 +31,15 @@ import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.libs.inifile.MXINIFileNode;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
+import jp.synthtarou.libs.json.MXJsonParser;
+import jp.synthtarou.libs.json.MXJsonSupport;
+import jp.synthtarou.libs.json.MXJsonValue;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSupport {
+public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSupport, MXJsonSupport {
     MX40View _view;
     MXVisitantRecorder _inputInfo;
     MXVisitantRecorder _outputInfo;
@@ -238,9 +240,11 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
     }
 
     @Override
-    public void readINIFile(File custom) {
+    public boolean readINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
-        setting.readINIFile();
+        if (!setting.readINIFile()) {
+            return false;
+        }
         ArrayList<MX40Group> newGroupList = new ArrayList();
         this._groupList = newGroupList;
         List<MXINIFileNode> readingGroups = setting.findByPath("Group");   
@@ -303,10 +307,11 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
         }
         resendProgramChange();
         _view.justRefreshViewListAndPanel();
+        return true;
     }
 
     @Override
-    public void writeINIFile(File custom) {
+    public boolean writeINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
         for (int i = 0; i < _groupList.size(); i ++){
             String prefixG = "Group[" + i + "]";
@@ -349,6 +354,34 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                 setting.setSetting(prefixL + ".sendVelocityHighest", layer.getAcceptVelocityHighest());
             }
         }
-        setting.writeINIFile();
+        return setting.writeINIFile();
+    }
+
+    @Override
+    public boolean readJSonfile(File custom) {
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("SoundLayer");
+        }
+        MXJsonValue value = new MXJsonParser(custom).parseFile();
+        if (value == null) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean writeJsonFile(File custom) {
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("SoundLayer");
+        }
+        MXJsonValue value = new MXJsonValue(null);
+
+        MXJsonParser parser = new MXJsonParser(custom);
+        parser.setRoot(value);
+        return parser.writeFile();
+    }
+
+    @Override
+    public void resetSetting() {
     }
 }

@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.mx00playlist;
 import java.io.File;
 import java.util.List;
 import java.util.logging.Level;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -71,9 +71,11 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
     }
 
     @Override
-    public void readINIFile(File custom) {
+    public boolean readINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
-        setting.readINIFile();
+        if (!setting.readINIFile()) {
+            return false;
+        }
         _viewData._playListModel.clear();
         _viewData._playAsRepeated = setting.getSettingAsBoolean("playAsLooped", false);
         _viewData._playAsChained = setting.getSettingAsBoolean("playAsChained", false);
@@ -108,10 +110,11 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
         }
 
         _view.showDataFirst();
+        return false;
     }
 
     @Override
-    public void writeINIFile(File custom) {
+    public boolean writeINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
 
         setting.setSetting("playAsLooped", _viewData._playAsRepeated);
@@ -126,7 +129,7 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
             File f = _viewData._playListModel.getElementAt(i)._file;
             setting.setSetting("song[" + (i + 1) + "]", f.getPath());
         }
-        setting.writeINIFile();
+        return setting.writeINIFile();
     }
 
     @Override
@@ -138,24 +141,30 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
     }
 
     @Override
-    public void readJSonfile(File custom) {
+    public boolean readJSonfile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("PlayList");
         }
-        MXJsonValue value = MXJsonParser.parseFile(custom);
+        MXJsonValue value = new MXJsonParser(custom).parseFile();
         if (value == null) {
-            value = new MXJsonValue(null);
+            return false;
         }
-        //TODO
+        return true;
     }
 
     @Override
-    public void writeJsonFile(File custom) {
-        MXJsonValue value = new MXJsonValue(null);
+    public boolean writeJsonFile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("PlayList");
         }
-        
-        MXJsonParser.writeFile(value, custom);
+        MXJsonValue value = new MXJsonValue(null);
+
+        MXJsonParser parser = new MXJsonParser(custom);
+        parser.setRoot(value);
+        return parser.writeFile();
+    }
+
+    @Override
+    public void resetSetting() {
     }
 }

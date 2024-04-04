@@ -18,7 +18,7 @@ package jp.synthtarou.libs.uitester;
 
 import java.util.logging.Level;
 import javax.swing.SpinnerNumberModel;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXSafeThread;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;

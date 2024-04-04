@@ -32,7 +32,7 @@ import java.util.LinkedList;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import javax.sound.midi.ShortMessage;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.json.MXJsonParser;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.MXMain;

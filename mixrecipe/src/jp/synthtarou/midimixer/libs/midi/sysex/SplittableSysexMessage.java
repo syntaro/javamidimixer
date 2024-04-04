@@ -20,7 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.logging.Level;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiMessage;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 
 /**
  *　Java20以上で、SysEXを処理するJava標準MidiMessageのラッパー

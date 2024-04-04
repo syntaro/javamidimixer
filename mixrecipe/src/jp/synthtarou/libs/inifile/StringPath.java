@@ -18,7 +18,7 @@ package jp.synthtarou.libs.inifile;
 
 import java.util.ArrayList;
 import java.util.logging.Level;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 
 /**
  *

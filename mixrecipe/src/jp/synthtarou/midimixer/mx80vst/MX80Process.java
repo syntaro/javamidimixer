@@ -32,6 +32,7 @@ import jp.synthtarou.midimixer.windows.MXLIB02VST3;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
+import jp.synthtarou.libs.json.MXJsonValue.HelperForStructure;
 
 /**
  *
@@ -74,12 +75,6 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
 
             _listEffect.add(vst);
             _listEffectPanel.add(panel);
-        }
-        
-        if (MXLIB02VST3.getInstance().isUsable()) {
-            readJSonfile(null);
-            MXJsonParser.addAutosaveChain(this);
-            //readINIFile(null);
         }
     }
     
@@ -185,9 +180,11 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
     }
 
     @Override
-    public void readINIFile(File custom) {
+    public boolean readINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
-        setting.readINIFile();
+        if (setting.readINIFile() == false) {
+            return false;
+        }
         _listFolder.clear();
         _listSkip.clear();
 
@@ -378,12 +375,13 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
            folder.setRootDirectory(new File("C:/Program Files/Common Files/VST3"));
            _listFolder.add(folder);
         }
+        return true;
     }
     
     @Override
-    public void writeINIFile(File custom) {
+    public boolean writeINIFile(File custom) {
         if (MXLIB02VST3.getInstance().isUsable() == false) {
-            return;
+            return false;
         }
         MXINIFile setting = prepareINIFile(custom);
         
@@ -469,8 +467,9 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
             setting.setSetting("skip[" + s +  "].path", path);
             s ++;
         }
-        setting.writeINIFile();
+        return setting.writeINIFile();
     }
+
     @Override
     public String getReceiverName() {
         return "(VSTRack)";
@@ -487,13 +486,18 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
     }
 
     @Override
-    public void readJSonfile(File custom) {
+    public boolean readJSonfile(File custom) {
+        if (!MXLIB02VST3.getInstance().isUsable()) {
+            return false;
+        }
         if (custom == null) {
             custom = MXJsonParser.pathOf("VSTFolderList");
         }
-        MXJsonValue value = MXJsonParser.parseFile(custom);
+        MXJsonParser parser = new MXJsonParser(custom);
+        MXJsonParser.setAutosave(this);
+        MXJsonValue value = parser.parseFile();
         if (value == null) {
-            value = new MXJsonValue(null);
+            return false;
         }
 
         _listFolder.clear();
@@ -590,6 +594,7 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
 
                 panel.createVolumePanel();
             }
+            return true;
         }
         
         MXJsonValue.HelperForArray listEffect = root.findArray("effect");
@@ -698,17 +703,19 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
            folder.setRootDirectory(new File("C:/Program Files/Common Files/VST3"));
            _listFolder.add(folder);
         }
+        return true;
     }
 
     @Override
-    public void writeJsonFile(File custom) {
+    public boolean writeJsonFile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("VSTFolderList");
         }
-        MXJsonValue value = new MXJsonValue(null);
+        MXJsonParser parser = new MXJsonParser(custom);
+        MXJsonValue value = parser.getRoot();
 
         if (MXLIB02VST3.getInstance().isUsable() == false) {
-            return;
+            return false;
         }
         
         VSTStream stream = VSTStream.getInstance();
@@ -804,7 +811,11 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
             listSkip.addText(path);;
         }
 
-        MXJsonParser.writeFile(value, custom);
+        return parser.writeFile();
+    }
+
+    @Override
+    public void resetSetting() {
     }
 
     public interface Callback {

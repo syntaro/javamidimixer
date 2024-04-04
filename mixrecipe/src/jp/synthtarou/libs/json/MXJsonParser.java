@@ -28,7 +28,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.LinkedList;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.inifile.MXSettingUtil;
 import jp.synthtarou.midimixer.MXMain;
@@ -39,6 +39,34 @@ import jp.synthtarou.midimixer.MXMain;
  */
 public class MXJsonParser {
     static ArrayList<MXJsonSupport> _listAutosave = new ArrayList<>();
+
+    private File _file;
+    private MXJsonValue _root;
+
+    public MXJsonParser() {
+        this((File)null);
+    }
+   
+    public MXJsonValue getRoot() {
+        return _root;
+    }
+
+    public void setRoot(MXJsonValue root) {
+        _root = root;
+    }
+    
+    public MXJsonParser(String file) {
+        this(pathOf(file));
+    }
+    
+    /**
+     * ファイルからインスタンスを生成する。パースまでやる
+     * @throws IOException　Fileエラー
+     */
+    public MXJsonParser(File file) {
+        _file = file;
+        _root = new MXJsonValue(null);
+    }
 
     public static File pathOf(String name) {
         return new File(getJsonDirectory(), name + ".json");
@@ -53,32 +81,23 @@ public class MXJsonParser {
             }
         }
     }
-    public static void addAutosaveChain(MXJsonSupport support) {
-        if (_listAutosave.indexOf(support) < 0) {
-            _listAutosave.add(support);
+    public static void setAutosave(MXJsonSupport target) {
+        if (_listAutosave.indexOf(target) < 0) {
+            _listAutosave.add(target);
         }
     }
-  
-    public static MXJsonValue parseFile(String resource) {
-        return MXJsonParser.parseFile(new File(getJsonDirectory(), resource + ".json"));
-    }
 
-    public static MXJsonValue parseFile(File file) {
-        return new MXJsonParser().parseFile(null, file);
-    }
-
-    public static MXJsonValue parseText(String text) {
-        return new MXJsonParser().parseText(null, text);
-    }
-
-    public static boolean writeFile(MXJsonValue value, String resouce) {
-        return writeFile(value, new File(getJsonDirectory(), resouce + ".json"));
-    }
-    
-    public static boolean writeFile(MXJsonValue value, File file) {
+    public boolean writeFile() {
+        MXJsonValue value = _root;
         String text = value.formatForFile();
 
-        MXMain.progress("writing " + file.getName());
+        File file = _file;
+        String fileName = _file.toString();
+        String dir = getJsonDirectory().getParent();
+        if (fileName.startsWith(dir)) {
+            fileName = "$(APP)" + fileName.substring(dir.length());
+        }
+        MXMain.progress("writing " + fileName);
 
         File target = MXUtil.createTemporaryFile(file);
         boolean needMove = false;
@@ -135,22 +154,14 @@ public class MXJsonParser {
 
         return null;
     }
-    /**
-     * ファイルからインスタンスを生成する。パースまでやる
-     * @throws IOException　Fileエラー
-     */
-    public MXJsonParser() {
-    }
 
     /**
      * 文字列をパースする
      * @param value 格納先
      * @param contents 文字列
      */
-    public MXJsonValue parseText(MXJsonValue value, String contents) {
-        if (value == null) {
-            value = new MXJsonValue(null);
-        }
+    public MXJsonValue parseText(String contents) {
+        MXJsonValue value = new MXJsonValue(null);
         return parseImpl(value, new MXJsonFileReader(contents));
     }
     /**
@@ -160,10 +171,9 @@ public class MXJsonParser {
      * @throws java.io.IOException
      * @throws IOException　Fileエラー
      */
-    public MXJsonValue parseFile(MXJsonValue value, File file) {
-        if (value == null) {
-            value = new MXJsonValue(null);
-        }
+    public MXJsonValue parseFile() {
+        File file = _file;
+        MXJsonValue value = new MXJsonValue(null);
         try {
             return parseImpl(value, new MXJsonFileReader(file));
         }catch(FileNotFoundException ex) {
@@ -181,11 +191,9 @@ public class MXJsonParser {
      * @throws java.io.IOException
      * @throws IOException　Fileエラー
      */
-    public MXJsonValue parseFile(MXJsonValue value, String resource){
-        if (value == null) {
-            value = new MXJsonValue(null);
-        }
-        File file = new File(getJsonDirectory(), resource + ".json");
+    public MXJsonValue parseFile(String resource){
+        MXJsonValue value = new MXJsonValue(null);
+        File file = pathOf(resource);
         try {
             return parseImpl(value, new MXJsonFileReader(file));
         }catch(FileNotFoundException ex) {
@@ -208,7 +216,15 @@ public class MXJsonParser {
     protected MXJsonValue parseImpl(MXJsonValue root, MXJsonFileReader reader) {
         int point = 0;
         int total = 0;
+        File file = _file;
+        String fileName = _file.toString();
+        String dir = getJsonDirectory().getParent();
+        if (fileName.startsWith(dir)) {
+            fileName = "$(APP)" + fileName.substring(dir.length());
+        }
+        MXMain.progress("reading " + fileName);
         _parse1 = new ArrayList<>();
+        _root = null;
         while (true) {
             String original = reader.readPartial();
             if (original == null) {
@@ -250,6 +266,7 @@ public class MXJsonParser {
             root._conetentsType = value._conetentsType;
             root._label = value._label;
             root._listContents = value._listContents;
+            _root = root;
             return root;
         } catch (Throwable ex) {
             MXFileLogger.getLogger(MXJsonParser.class).log(Level.WARNING, ex.getMessage(), ex);
@@ -530,14 +547,14 @@ public class MXJsonParser {
      */
     public static void doTest(File file) {
         System.out.println("*PARSE*" + file);
-        MXJsonParser parser1 = new MXJsonParser();
+        MXJsonParser parser1 = new MXJsonParser(file);
         MXJsonParser parser2 = new MXJsonParser();
         String form, form2;
-        MXJsonValue value = parser1.parseFile(null, file);
+        MXJsonValue value = parser1.parseFile();
         form = value.formatForFile();
         //System.out.println("*DONE*");
 
-        MXJsonValue value2 = parser2.parseText(null, form);
+        MXJsonValue value2 = parser2.parseText(form);
         form2 = value2.formatForFile();
         if (form.equals(form2)) {
             //System.out.println("Test O");

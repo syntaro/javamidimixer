@@ -8,7 +8,7 @@ import java.awt.event.ActionEvent;
 import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.tree.TreeSelectionModel;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 
 public final class MainPanel extends JPanel {
 

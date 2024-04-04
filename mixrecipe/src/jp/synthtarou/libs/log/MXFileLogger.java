@@ -14,12 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.libs;
+package jp.synthtarou.libs.log;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.logging.*;
+import javax.swing.JList;
+import javax.swing.ListModel;
+import jp.synthtarou.libs.MXUtil;
 
 /**
  *
@@ -32,11 +36,11 @@ public class MXFileLogger {
         MXFileLogger.getLogger(MXFileLogger.class).warning("**ワーニング");
         MXFileLogger.getLogger(MXFileLogger.class).info("**インフォ");
         MXFileLogger.getLogger(MXFileLogger.class).severe("**エラー");
-        Throwable e = new RuntimeException("runtime error");
+        Throwable e = new RuntimeException("test runtime error");
         MXFileLogger.getLogger(MXFileLogger.class).log(Level.INFO, e.getMessage(), e);
         MXFileLogger.getLogger(MXFileLogger.class).info("**COMPLETE");
     }
-    
+
     public static Logger getLogger(Class clz) {
         return _instance.get(clz.getName());
     }
@@ -44,30 +48,47 @@ public class MXFileLogger {
     public static Logger getLogger(String name) {
         return _instance.get(name);
     }
+    
+    public static ListModelOutputStream getListStream() {
+        return _instance._lineModel;
+    }
+    
+    public static void clearLogLinesModel() {
+        synchronized(_instance._lineModel){
+            _instance._lineModel.clearLogLine();
+        }
+    }
 
     File _logFile;
     Handler _fileHandler;
-    Handler _stdoutHandler;
+    Handler _windowHandler;
 
+    ParallelOutputStream _parallel;
+    private ListModelOutputStream _lineModel;
+    
     public MXFileLogger() {
         File base = MXUtil.getAppBaseDirectory();
         File logDir = new File(base, "log");
         logDir.mkdir();
+
         _logFile = new File(logDir, "MixRecipe.log");
 
-        Logger logger = Logger.getLogger("MixRecipe");
+        System.setProperty("java.util.logging.SimpleFormatter.format",
+                "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL %5$s %6$s (%2$s)%n");
+
+        _lineModel = new ListModelOutputStream();
+        _parallel = new ParallelOutputStream();
+        _parallel.connect(System.out);
+        _parallel.connect(_lineModel);
+        _windowHandler = new AutoFlushHandler(_parallel);
 
         try {
             _fileHandler = new FileHandler(_logFile.getPath());
         }catch(IOException e){
             System.err.println("can't make logfile " + _logFile);
             _fileHandler = null;
-            
         }
-        _stdoutHandler = new StdOutHandler();
-
-        System.setProperty("java.util.logging.SimpleFormatter.format",
-                "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL %5$s %6$s (%2$s)%n");
+        
 
         System.out.println("Loggin: " + _logFile);
     }
@@ -87,10 +108,10 @@ public class MXFileLogger {
             _fileHandler.setFormatter(formatter1);
         }
         /* stderr -> X stdout -> O */
-        if (_stdoutHandler != null) {
-            newLogger.addHandler(_stdoutHandler);
+        if (_windowHandler != null) {
+            newLogger.addHandler(_windowHandler);
             Formatter formatter2 = new SimpleFormatter();
-            _stdoutHandler.setFormatter(formatter2);
+            _windowHandler.setFormatter(formatter2);
 
             newLogger.setUseParentHandlers(false);
         }
@@ -98,9 +119,16 @@ public class MXFileLogger {
         return newLogger;
     }
 
-    static class StdOutHandler extends StreamHandler {
-        public StdOutHandler() {   
-            setOutputStream(System.out);
+    static final boolean _DEBUG = true;
+    
+    public class AutoFlushHandler extends StreamHandler {
+        public AutoFlushHandler(OutputStream stream) {
+            setOutputStream(stream);
+            if (_DEBUG) {
+                setLevel(Level.ALL);
+            }else {
+                setLevel(Level.WARNING);
+            }
         }
         
         @Override
@@ -108,5 +136,13 @@ public class MXFileLogger {
             super.publish(record);
             super.flush();
         }
+    }
+    
+    public void installJList(JList jList) {
+        _lineModel.attach(jList);
+    }
+    
+    public void pauseUpdateJList(boolean pause) {
+        _lineModel._pause = pause;
     }
 }

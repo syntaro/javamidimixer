@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.libs;
 
+import jp.synthtarou.libs.log.MXFileLogger;
 import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 import javax.swing.SwingUtilities;

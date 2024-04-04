@@ -24,7 +24,7 @@ import java.util.logging.Level;
 import javax.swing.Icon;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.tree.DefaultMutableTreeNode;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
 
 /**

@@ -30,7 +30,7 @@ import java.util.Locale;
 import java.util.logging.Level;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
@@ -41,12 +41,15 @@ import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXFolderBrowser;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
+import jp.synthtarou.libs.json.MXJsonParser;
+import jp.synthtarou.libs.json.MXJsonSupport;
+import jp.synthtarou.libs.json.MXJsonValue;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXINIFileSupport {
+public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXINIFileSupport, MXJsonSupport {
 
     private static final CXXMLManager _instance = new CXXMLManager();
     
@@ -302,9 +305,11 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXINI
     }
 
     @Override
-    public void readINIFile(File custom) {
+    public boolean readINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
-        setting.readINIFile();
+        if (!setting.readINIFile()) {
+            return false;
+        }
 
         ArrayList<MXINIFileNode> list = setting.findByPath("file[]");
 
@@ -320,15 +325,16 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXINI
                 MXFileLogger.getLogger(CXXMLManager.class.getName()).log(Level.SEVERE, xmlFile.getAdviceForXML());
             }
         }
+        return true;
     }
 
     @Override
-    public void writeINIFile(File custom) {
+    public boolean writeINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
         for (int i = 0; i < _listLoaded.size(); ++ i) {
             setting.setSetting("file[" + i + "]", _listLoaded.get(i)._file.getPath());
         }
-        setting.writeINIFile();
+        return setting.writeINIFile();
     }
 
     @Override
@@ -349,5 +355,34 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXINI
     @Override
     public void processMXMessage(MXMessage message) {
         //nothing
+    }
+
+    @Override
+    public boolean readJSonfile(File custom) {
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("CCXMLManager");
+        }
+        MXJsonParser parser = new MXJsonParser(custom);
+        MXJsonValue value = parser.parseFile();
+        if (value == null) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean writeJsonFile(File custom) {
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("CCXMLManager");
+        }
+        MXJsonParser parser = new MXJsonParser(custom);
+        MXJsonValue value = parser.getRoot();
+
+        return parser.writeFile();
+    }
+
+    @Override
+    public void resetSetting() {
+        return;//nothing
     }
 }

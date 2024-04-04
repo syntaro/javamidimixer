@@ -78,9 +78,11 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
     }
 
     @Override
-    public void readINIFile(File custom) {
+    public boolean readINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
-        setting.readINIFile();
+        if (!setting.readINIFile()) {
+            return false;
+        }
         String receiverName = setting.getSetting("outputReceiver");
         if (receiverName != null) {
             int x = MXMain.getMain().getReceiverList().indexOfName(receiverName);
@@ -95,10 +97,11 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
         _acceptThisPageSignal = setting.getSettingAsBoolean("acceptThisPanelSignal", true);
         _acceptInputPanelSignal = setting.getSettingAsBoolean("acceptInputPanelSignal", true);
         _view.updateViewForSettingChange();
+        return true;
     }
 
     @Override
-    public void writeINIFile(File custom) {
+    public boolean writeINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
         if (getNextReceiver() == null) {
             setting.setSetting("outputReceiver", "");
@@ -111,7 +114,7 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
         setting.setSetting("outputVelocity", getMouseVelocity());
         setting.setSetting("acceptThisPanelSignal", _acceptThisPageSignal);
         setting.setSetting("acceptInputPanelSignal", _acceptInputPanelSignal);
-        setting.writeINIFile();
+        return setting.writeINIFile();
     }
 
     @Override
@@ -125,24 +128,31 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
     }
 
     @Override
-    public void readJSonfile(File custom) {
+    public boolean readJSonfile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("VirtualKey");
         }
-        MXJsonValue value = MXJsonParser.parseFile(custom);
+        MXJsonValue value = new MXJsonParser(custom).parseFile();
         if (value == null) {
-            value = new MXJsonValue(null);
+            return false;
         }
+        return true;
     }
 
     @Override
-    public void writeJsonFile(File custom) {
-        MXJsonValue value = new MXJsonValue(null);
-        
+    public boolean writeJsonFile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("VirtualKey");
         }
-        MXJsonParser.writeFile(value, custom);
+        MXJsonValue value = new MXJsonValue(null);
+
+        MXJsonParser parser = new MXJsonParser(custom);
+        parser.setRoot(value);
+        return parser.writeFile();
+    }
+
+    @Override
+    public void resetSetting() {
     }
 
     public class MyNoteOffHandler implements MXNoteOffWatcher.Handler {

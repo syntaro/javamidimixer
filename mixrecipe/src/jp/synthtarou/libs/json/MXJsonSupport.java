@@ -23,6 +23,7 @@ import java.io.File;
  * @author Syntarou YOSHIDA
  */
 public interface MXJsonSupport {
-    public void readJSonfile(File custom);
-    public void writeJsonFile(File custom);
+    public void resetSetting();
+    public boolean readJSonfile(File custom);
+    public boolean writeJsonFile(File custom);
 }

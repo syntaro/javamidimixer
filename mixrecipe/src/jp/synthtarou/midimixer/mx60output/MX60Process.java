@@ -23,12 +23,15 @@ import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.midimixer.mx10input.MX10ViewData;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
+import jp.synthtarou.libs.json.MXJsonParser;
+import jp.synthtarou.libs.json.MXJsonSupport;
+import jp.synthtarou.libs.json.MXJsonValue;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX60Process extends MXReceiver<MX60View> implements MXINIFileSupport {
+public class MX60Process extends MXReceiver<MX60View> implements MXINIFileSupport, MXJsonSupport {
     MX60View _view;
     MX60ViewData _viewData;
 
@@ -72,9 +75,11 @@ public class MX60Process extends MXReceiver<MX60View> implements MXINIFileSuppor
     }
 
     @Override
-    public void readINIFile(File custom) {
+    public boolean readINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
-        setting.readINIFile();
+        if (setting.readINIFile() == false) {
+            return false;
+        }
         for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
             String prefix = "Setting[" + port + "].";
             StringBuffer str = new StringBuffer();
@@ -86,10 +91,11 @@ public class MX60Process extends MXReceiver<MX60View> implements MXINIFileSuppor
         }
         _viewData.loadSequenceData();
         _view.setDataDX(_viewData);
+        return true;
     }
 
     @Override
-    public void writeINIFile(File custom) {
+    public boolean writeINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
         _viewData.saveSequenceData();
         for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
@@ -101,7 +107,7 @@ public class MX60Process extends MXReceiver<MX60View> implements MXINIFileSuppor
                 setting.setSetting(prefix + name, set);
             }
         }
-        setting.writeINIFile();
+        return setting.writeINIFile();
     }
 
     @Override
@@ -115,5 +121,33 @@ public class MX60Process extends MXReceiver<MX60View> implements MXINIFileSuppor
             setting.register(prefix + text);
         }
         return setting;
+    }
+
+    @Override
+    public boolean readJSonfile(File custom) {
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("OutputSkip");
+        }
+        MXJsonValue value = new MXJsonParser(custom).parseFile();
+        if (value == null) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean writeJsonFile(File custom) {
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("OutputSkip");
+        }
+        MXJsonValue value = new MXJsonValue(null);
+
+        MXJsonParser parser = new MXJsonParser(custom);
+        parser.setRoot(value);
+        return parser.writeFile();
+    }
+
+    @Override
+    public void resetSetting() {
     }
 }

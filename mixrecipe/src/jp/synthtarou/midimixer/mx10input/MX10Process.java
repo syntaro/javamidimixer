@@ -83,9 +83,11 @@ public class MX10Process extends MXReceiver<MX10View> implements MXINIFileSuppor
     }
 
     @Override
-    public void readINIFile(File custom) {
+    public boolean readINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
-        setting.readINIFile();
+        if (!setting.readINIFile()) {
+            return false;
+        }
         for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
             String prefix = "Setting[" + port + "].";
             for (int j = 0; j < _viewData.countOfTypes(); ++ j) {
@@ -96,10 +98,11 @@ public class MX10Process extends MXReceiver<MX10View> implements MXINIFileSuppor
         }
         _view.setUsingThisRecipeDX(isUsingThisRecipe());
         _view.setStructureDX(_viewData);
+        return true;
     }
 
     @Override
-    public void writeINIFile(File custom) {
+    public boolean writeINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
         for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
             String prefix = "Setting[" + port + "].";
@@ -112,17 +115,17 @@ public class MX10Process extends MXReceiver<MX10View> implements MXINIFileSuppor
                 }
             }
         }
-        setting.writeINIFile();
+        return setting.writeINIFile();
     }
 
     @Override
-    public void readJSonfile(File custom) {
+    public boolean readJSonfile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("InputSkip");
         }
-        MXJsonValue value = MXJsonParser.parseFile(custom);
+        MXJsonValue value = new MXJsonParser(custom).parseFile();
         if (value == null) {
-            value = new MXJsonValue(null);
+            return false;
         }
         MXJsonValue.HelperForStructure root = value.new HelperForStructure();
         for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
@@ -138,10 +141,11 @@ public class MX10Process extends MXReceiver<MX10View> implements MXINIFileSuppor
         }
         _view.setUsingThisRecipeDX(isUsingThisRecipe());
         _view.setStructureDX(_viewData);
+        return true;
     }
 
     @Override
-    public void writeJsonFile(File custom) {
+    public boolean writeJsonFile(File custom) {
         MXJsonValue value = new MXJsonValue(null);
         MXJsonValue.HelperForStructure root = value.new HelperForStructure();
         for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
@@ -158,6 +162,13 @@ public class MX10Process extends MXReceiver<MX10View> implements MXINIFileSuppor
         if (custom == null) {
             custom = MXJsonParser.pathOf("InputSkip");
         }
-        MXJsonParser.writeFile(value, custom);
+
+        MXJsonParser parser = new MXJsonParser(custom);
+        parser.setRoot(value);
+        return parser.writeFile();
+    }
+
+    @Override
+    public void resetSetting() {
     }
 }

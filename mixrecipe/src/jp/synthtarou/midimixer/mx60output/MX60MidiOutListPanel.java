@@ -25,6 +25,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
@@ -35,6 +36,7 @@ import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
+import jp.synthtarou.midimixer.libs.vst.MXPresetPanel;
 
 /**
  *
@@ -159,7 +161,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
             String newOpen = (String)newModel.getValueAt(i, 2);
             
             if (name.equals(newName) == false) {
-                MXMain.printAlert("any troubole?");
+                MXFileLogger.getLogger(MX60MidiOutListPanel.class).warning("any trouble?");
                 break;
             }
             

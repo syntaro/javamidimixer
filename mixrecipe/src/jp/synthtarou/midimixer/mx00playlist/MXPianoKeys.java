@@ -34,7 +34,7 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.MainThreadTask;
 

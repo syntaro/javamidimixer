@@ -29,7 +29,7 @@ import javax.swing.JList;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.MXCountdownTimer;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachCopyAndPaste;

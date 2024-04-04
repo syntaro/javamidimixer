@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.mx36ccmapping;
 import java.util.Collections;
 import java.util.logging.Level;
 import jp.synthtarou.midimixer.MXConfiguration;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;

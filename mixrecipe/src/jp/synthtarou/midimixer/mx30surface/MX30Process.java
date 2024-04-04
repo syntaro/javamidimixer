@@ -70,9 +70,11 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
     }
 
     @Override
-    public void readINIFile(File custom) {
+    public boolean readINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
-        setting.readINIFile();
+        if (!setting.readINIFile()) {
+            return false;
+        }
         String circle = setting.getSetting("ActiveCircle");
         if  (circle == null) {
             circle = "1, 2, 3, 4";
@@ -122,10 +124,11 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
             }
         }
         globalContollerHidden();
+        return true;
     }
 
     @Override
-    public void writeINIFile(File custom) {
+    public boolean writeINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
         StringBuffer circle = new StringBuffer();
         for (int i = 0; i < _visibleKnob.length; ++ i) {
@@ -144,7 +147,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
         setting.setSetting("ActiveCircle", circle.toString());
         setting.setSetting("ActiveLine", _visibleLineCount);
         setting.setSetting("ActivePad", pad.toString());
-        setting.writeINIFile();
+        return setting.writeINIFile();
     }
        
     public MX32MixerProcess getPage(int i) {
@@ -221,24 +224,30 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
     }
 
     @Override
-    public void readJSonfile(File custom) {
+    public boolean readJSonfile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("MixingGlobal");
         }
-        MXJsonValue value = MXJsonParser.parseFile(custom);
+        MXJsonValue value = new MXJsonParser(custom).parseFile();
         if (value == null) {
-            value = new MXJsonValue(null);
+            return false;
         }
-        //TODO
+        return true;
     }
 
     @Override
-    public void writeJsonFile(File custom) {
-        MXJsonValue value = new MXJsonValue(null);
-        
+    public boolean writeJsonFile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("MixingGlobal");
         }
-        MXJsonParser.writeFile(value, custom);
+        MXJsonValue value = new MXJsonValue(null);
+
+        MXJsonParser parser = new MXJsonParser(custom);
+        parser.setRoot(value);
+        return parser.writeFile();
+    }
+
+    @Override
+    public void resetSetting() {
     }
 }

@@ -24,6 +24,7 @@ import java.io.File;
  */
 public interface MXINIFileSupport {
     public MXINIFile prepareINIFile(File custom);
-    public void readINIFile(File custom);
-    public void writeINIFile(File custom);
+    public void resetSetting();
+    public boolean readINIFile(File custom);
+    public boolean writeINIFile(File custom);
 }

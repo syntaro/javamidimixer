@@ -17,14 +17,10 @@
 package jp.synthtarou.midimixer.mx70console;
 
 import java.util.logging.Level;
-import jp.synthtarou.libs.MXFileLogger;
-import jp.synthtarou.libs.json.MXJsonValue;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.libs.inifile.MXINIFile;
-import jp.synthtarou.libs.json.MXJsonSupport;
-import jp.synthtarou.libs.inifile.MXINIFileSupport;
 
 /**
  *

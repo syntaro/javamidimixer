@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.mx90debug;
 
+import javax.swing.JOptionPane;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.libs.MXRangedValue;
@@ -30,7 +31,7 @@ import jp.synthtarou.midimixer.libs.midi.MXTemplate;
  *
  * @author Syntarou YOSHIDA
  */
-public class MX90Process extends MXReceiver<MX90View> {
+public class MX90Process extends MXReceiver<MX90View>{
 
     MX90View _view;
 
@@ -147,7 +148,7 @@ public class MX90Process extends MXReceiver<MX90View> {
             }
         }
         result.println("Finished All Tests");
-        MXMain.printAlert("Finished All Tests");
+        JOptionPane.showMessageDialog(_view, "Finished All Tests", "Done.", JOptionPane.OK_OPTION);
     }
 
     public boolean checkSame(byte[] data1, byte[] data2) {

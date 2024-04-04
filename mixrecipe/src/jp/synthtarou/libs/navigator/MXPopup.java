@@ -26,7 +26,7 @@ import java.awt.event.MouseListener;
 import java.util.logging.Level;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 
 /**
  *

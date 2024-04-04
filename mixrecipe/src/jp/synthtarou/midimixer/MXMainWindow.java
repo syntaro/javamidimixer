@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer;
 
+import jp.synthtarou.midimixer.progress.MXProgressDialog;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import java.awt.Component;
 import java.awt.Desktop;

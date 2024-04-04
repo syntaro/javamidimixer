@@ -27,12 +27,15 @@ import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_NotFound;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
+import jp.synthtarou.libs.json.MXJsonParser;
+import jp.synthtarou.libs.json.MXJsonSupport;
+import jp.synthtarou.libs.json.MXJsonValue;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MXMIDIInManager implements MXINIFileSupport {
+public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
     private static final MXMIDIInManager _instance = new MXMIDIInManager();
     
     public static MXMIDIInManager getManager() {
@@ -160,12 +163,11 @@ public class MXMIDIInManager implements MXINIFileSupport {
     }
     
     @Override
-    public void readINIFile(File custom) {
-        if (custom == null) {
-            custom = MXINIFile.pathOf("MIDIInput");
-        }
+    public boolean readINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
-        setting.readINIFile();
+        if (!setting.readINIFile()) {
+            return false;
+        }
 
         MXNamedObjectList<MXMIDIIn> list = listAllInput();
         MXDriver_NotFound dummy = MXDriver_NotFound.getInstance();
@@ -234,10 +236,11 @@ public class MXMIDIInManager implements MXINIFileSupport {
         if (!assigned) {
             MXMIDIIn.INTERNAL_PLAYER.setPortAssigned(0, true);
         }
+        return true;
     }
 
     @Override
-    public void writeINIFile(File custom) {
+    public boolean writeINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
         MXNamedObjectList<MXMIDIIn> all = listAllInput();
         int x = 0;
@@ -262,6 +265,36 @@ public class MXMIDIInManager implements MXINIFileSupport {
                 x ++;
             }
         }
-        setting.writeINIFile();
+        return setting.writeINIFile();
+    }
+
+
+    @Override
+    public boolean readJSonfile(File custom) {
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("MIDIInput");
+        }
+        MXJsonValue value = new MXJsonParser(custom).parseFile();
+        if (value == null) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean writeJsonFile(File custom) {
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("MIDIInput");
+        }
+        MXJsonValue value = new MXJsonValue(null);
+
+        MXJsonParser parser = new MXJsonParser(custom);
+        parser.setRoot(value);
+        return parser.writeFile();
+    }
+
+    @Override
+    public void resetSetting() {
+        return;
     }
 }

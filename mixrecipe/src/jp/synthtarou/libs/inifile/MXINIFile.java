@@ -30,8 +30,9 @@ import java.util.logging.Level;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.libs.MXLineReader;
 import jp.synthtarou.libs.MXLineWriter;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.json.MXJsonSupport;
 
 /**
  *
@@ -64,7 +65,7 @@ public class MXINIFile {
         }
     }
 
-    static ArrayList<MXINIFile> _autosaveTarget = new ArrayList();
+    static ArrayList<MXINIFileSupport> _autosaveTarget = new ArrayList();
 
     public MXINIFile(String file, MXINIFileSupport support) {
         this(pathOf(file), support);
@@ -73,17 +74,15 @@ public class MXINIFile {
     public MXINIFile(File file, MXINIFileSupport support) {
         _file = file;
         _registered = new TreeSet(comparatorForRegister);
-        _target = support;
-        _targetName = getClassName(_target.getClass());
     }
-    
-    public void setAutoSave() {
-        _autosaveTarget.add(this);
+
+    public static void setAutoSave(MXINIFileSupport target) {
+        _autosaveTarget.add(target);
     }
     
     public static void invokeAutoSave() {
-        for (MXINIFile setting : _autosaveTarget) {
-            setting.writeINIFile();
+        for (MXINIFileSupport setting : _autosaveTarget) {
+            setting.writeINIFile(null);
         }
     }
 
@@ -98,9 +97,7 @@ public class MXINIFile {
         ArrayList<Detail> list = new ArrayList();
     }
 
-    private MXINIFileSupport _target = null;
     private File _file;
-    private String _targetName;
 
     public static String getClassName(Class cls) {
         String name = cls.getName();
@@ -130,7 +127,7 @@ public class MXINIFile {
             if (fileName.startsWith(dir)) {
                 fileName = "$(APP)" + fileName.substring(dir.length());
             }
-            MXMain.progress("reading " + _targetName + " from " + fileName);
+            MXMain.progress("reading " + fileName);
             MXLineReader reader = new MXLineReader(fin, "utf-8");
             while (true) {
                 String line = reader.readLine();
@@ -175,7 +172,7 @@ public class MXINIFile {
         if (fileName.startsWith(dir)) {
             fileName = "$(APP)" + fileName.substring(dir.length());
         }
-        MXMain.progress("writing " + _targetName + " from " + fileName);
+        MXMain.progress("writing " + fileName);
 
         try {
             writer = new MXLineWriter(temporary, "utf-8");

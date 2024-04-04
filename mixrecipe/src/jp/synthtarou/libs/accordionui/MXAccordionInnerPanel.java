@@ -20,7 +20,7 @@ import java.awt.Component;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import jp.synthtarou.libs.MXSafeThread;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MainThreadTask;
 
 /**

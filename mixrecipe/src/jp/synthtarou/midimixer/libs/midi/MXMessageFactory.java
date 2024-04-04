@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.libs.midi;
 
 import java.util.logging.Level;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.libs.async.Transaction;
 

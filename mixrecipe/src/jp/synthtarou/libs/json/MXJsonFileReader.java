@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.logging.Level;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 
 /**
  * jsonファイルを読み込むため
@@ -37,6 +37,16 @@ public class MXJsonFileReader {
     String _data;
     int _pos;
     File _file;
+    
+    public String toString() {
+        if (_file != null) {
+            return _file.toString();
+        }
+        if (_data != null) {
+            return "String";
+        }
+        return "null";
+    }
 
     /**
      * ファイルを指定してインスタンスを生成する

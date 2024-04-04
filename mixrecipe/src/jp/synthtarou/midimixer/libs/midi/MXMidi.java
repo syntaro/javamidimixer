@@ -27,7 +27,7 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.MXLineReader;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 
 /**
  *

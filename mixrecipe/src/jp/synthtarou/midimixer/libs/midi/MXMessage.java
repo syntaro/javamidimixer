@@ -20,7 +20,7 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.libs.async.Transaction;

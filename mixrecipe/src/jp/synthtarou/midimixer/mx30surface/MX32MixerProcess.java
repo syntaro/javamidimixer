@@ -21,7 +21,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import jp.synthtarou.midimixer.MXConfiguration;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.libs.json.MXJsonValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -183,9 +183,11 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
     }
 
     @Override
-    public void readINIFile(File custom) {
+    public boolean readINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
-        setting.readINIFile();
+        if (!setting.readINIFile()) {
+            return false;
+        }
         ArrayList<MXINIFileNode> children;
         children = setting.findByPath("Circle[]");
         _patchToMixer = setting.getSettingAsInt("PatchToMixer", -1);
@@ -365,10 +367,11 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
             }
         }
         _view.updateUI();
+        return true;
     }
 
     @Override
-    public void writeINIFile(File custom) {
+    public boolean writeINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
         int counter;
         counter = 1;
@@ -484,7 +487,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
                 counter++;
             }
         }
-        setting.writeINIFile();
+        return setting.writeINIFile();
     }
 
     void updateStatusAndSend(MGStatus status, int newValue) {
@@ -773,24 +776,31 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
     }
 
     @Override
-    public void readJSonfile(File custom) {
+    public boolean readJSonfile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("Mixing" + (_port + 1));
         }
-        MXJsonValue value = MXJsonParser.parseFile(custom);
+        MXJsonValue value = new MXJsonParser(custom).parseFile();
         if (value == null) {
-            value = new MXJsonValue(null);
+            return false;
         }
         //TODO
+        return true;
     }
 
     @Override
-    public void writeJsonFile(File custom) {
-        MXJsonValue value = new MXJsonValue(null);
+    public boolean writeJsonFile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("Mixing" + (_port + 1));
         }
-        
-        MXJsonParser.writeFile(value, custom);
+        MXJsonValue value = new MXJsonValue(null);
+
+        MXJsonParser parser = new MXJsonParser(custom);
+        parser.setRoot(value);
+        return parser.writeFile();
+    }
+
+    @Override
+    public void resetSetting() {
     }
 }

@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.libs;
 
+import jp.synthtarou.libs.log.MXFileLogger;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;

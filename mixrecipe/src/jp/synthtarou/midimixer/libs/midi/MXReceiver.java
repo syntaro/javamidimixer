@@ -17,8 +17,8 @@
 package jp.synthtarou.midimixer.libs.midi;
 
 import javax.swing.JPanel;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.libs.MXFileLogger;
 
 /**
  *

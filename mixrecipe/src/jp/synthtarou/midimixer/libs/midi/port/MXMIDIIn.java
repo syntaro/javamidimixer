@@ -22,7 +22,7 @@ import javax.swing.JPanel;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.MXSafeThread;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXQueue;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;

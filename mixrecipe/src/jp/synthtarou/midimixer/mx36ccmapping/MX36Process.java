@@ -20,7 +20,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObject;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
@@ -173,9 +173,11 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
     }
 
     @Override
-    public void readINIFile(File custom) {
+    public boolean readINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
-        setting.readINIFile();
+        if (!setting.readINIFile()) {
+            return false;
+        }
         List<MXINIFileNode> listFolder = setting.findByPath("Folder[]");
         for (MXINIFileNode folderNode : listFolder) {
             String folderName = folderNode.getSetting("Name");
@@ -265,10 +267,11 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
                 folder.sortElements();
             }
         }
+        return true;
     }
 
     @Override
-    public void writeINIFile(File custom) {
+    public boolean writeINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
         int folderN = 0;
 
@@ -332,7 +335,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
             }
 
         }
-        setting.writeINIFile();
+        return setting.writeINIFile();
     }
 
     MXMessage updateSurfaceValue(MX36Status status, int value) {
@@ -438,24 +441,31 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
     }
 
     @Override
-    public void readJSonfile(File custom) {
+    public boolean readJSonfile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("CCMapping");
         }
-        MXJsonValue value = MXJsonParser.parseFile(custom);
+        MXJsonValue value = new MXJsonParser(custom).parseFile();
         if (value == null) {
-            value = new MXJsonValue(null);
+            return false;
         }
         //TODO
+        return true;
     }
 
     @Override
-    public void writeJsonFile(File custom) {
-        MXJsonValue value = new MXJsonValue(null);
-        
+    public boolean writeJsonFile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("CCMapping");
         }
-        MXJsonParser.writeFile(value, custom);
+        MXJsonValue value = new MXJsonValue(null);
+
+        MXJsonParser parser = new MXJsonParser(custom);
+        parser.setRoot(value);
+        return parser.writeFile();
+    }
+
+    @Override
+    public void resetSetting() {
     }
 }

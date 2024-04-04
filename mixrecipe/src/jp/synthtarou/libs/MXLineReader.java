@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.libs;
 
+import jp.synthtarou.libs.log.MXFileLogger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Level;

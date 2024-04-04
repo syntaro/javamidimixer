@@ -18,14 +18,11 @@ package jp.synthtarou.midimixer.mx90debug;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import jp.synthtarou.libs.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInForTest;
-import jp.synthtarou.midimixer.mx70console.MX70Process;
 
 /**
  *

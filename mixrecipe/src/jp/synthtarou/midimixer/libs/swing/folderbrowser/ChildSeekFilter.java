@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.HashSet;
 import java.util.logging.Level;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.smf.SMFSequencer;
 
 /**

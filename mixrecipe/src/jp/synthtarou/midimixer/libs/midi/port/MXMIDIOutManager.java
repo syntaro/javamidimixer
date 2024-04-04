@@ -29,12 +29,15 @@ import jp.synthtarou.midimixer.libs.midi.driver.MXDriver;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_NotFound;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_VSTi;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
+import jp.synthtarou.libs.json.MXJsonParser;
+import jp.synthtarou.libs.json.MXJsonSupport;
+import jp.synthtarou.libs.json.MXJsonValue;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MXMIDIOutManager implements MXINIFileSupport {
+public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
 
     private static final MXMIDIOutManager _instance = new MXMIDIOutManager();
 
@@ -47,9 +50,11 @@ public class MXMIDIOutManager implements MXINIFileSupport {
     }
 
     @Override
-    public void readINIFile(File custom) {
+    public boolean readINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
-        setting.readINIFile();
+        if (!setting.readINIFile()) {
+            return false;
+        }
         MXNamedObjectList<MXMIDIOut> listOut = listAllOutput();
         MXDriver_NotFound dummy = MXDriver_NotFound.getInstance();
 
@@ -120,6 +125,7 @@ public class MXMIDIOutManager implements MXINIFileSupport {
                 reserve1.openOutput(5);
             }
         }
+        return true;
     }
 
     protected MXMIDIOutManager() {
@@ -236,7 +242,7 @@ public class MXMIDIOutManager implements MXINIFileSupport {
     }
 
     @Override
-    public void writeINIFile(File custom) {
+    public boolean writeINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
         MXNamedObjectList<MXMIDIOut> all = listAllOutput();
         int x = 0;
@@ -257,6 +263,35 @@ public class MXMIDIOutManager implements MXINIFileSupport {
                 x++;
             }
         }
-        setting.writeINIFile();
+        return setting.writeINIFile();
+    }
+
+    @Override
+    public boolean readJSonfile(File custom) {
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("MIDIOutput");
+        }
+        MXJsonParser parser = new MXJsonParser(custom);
+        MXJsonValue value = parser.parseFile();
+        if (value == null) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean writeJsonFile(File custom) {
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("MIDIOutput");
+        }
+        MXJsonValue value = new MXJsonValue(null);
+
+        MXJsonParser parser = new MXJsonParser(custom);
+        parser.setRoot(value);
+        return parser.writeFile();
+    }
+
+    @Override
+    public void resetSetting() {
     }
 }

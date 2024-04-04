@@ -36,7 +36,7 @@ import javax.swing.plaf.SliderUI;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.plaf.metal.MetalTheme;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.namedobject.MXNamedObject;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.libs.inifile.MXINIFile;
@@ -210,9 +210,11 @@ public class ThemeManager implements MXINIFileSupport, MXJsonSupport {
     }
 
     @Override
-    public void readINIFile(File custom) {
+    public boolean readINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
-        setting.readINIFile();
+        if (!setting.readINIFile()) {
+            return false;
+        }
         colorfulMetalTheme = setting.getSettingAsBoolean("themeLabelColorful", false);
         themeName = setting.getSetting("themeName");
         if (themeName == null || themeName.isEmpty()) {
@@ -242,10 +244,11 @@ public class ThemeManager implements MXINIFileSupport, MXJsonSupport {
         setUITheme(themeName);
         CurvedSlider.setMouseCircleIsCircle(setting.getSettingAsBoolean("circleIsCircle", true));
         updateUITree();
+        return true;
     }
 
     @Override
-    public void writeINIFile(File custom) {
+    public boolean writeINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
         setting.setSetting("themeLabelColorful", colorfulMetalTheme);
         setting.setSetting("themeName", themeName);
@@ -253,7 +256,7 @@ public class ThemeManager implements MXINIFileSupport, MXJsonSupport {
         setting.setSetting("fontSize", fontSize);
         setting.setSetting("fontStyle", fontStyle);
         setting.setSetting("circleIsCircle", CurvedSlider.isMouseCircleIsCircle());
-        setting.writeINIFile();
+        return setting.writeINIFile();
     }
     
     public MXNamedObjectList<String> getLookAndFeelModel() {
@@ -321,13 +324,13 @@ public class ThemeManager implements MXINIFileSupport, MXJsonSupport {
     }
 
     @Override
-    public void readJSonfile(File custom) {
+    public boolean readJSonfile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("ThemeManager");
         }
-        MXJsonValue value = MXJsonParser.parseFile(custom);
+        MXJsonValue value = new MXJsonParser(custom).parseFile();
         if (value == null) {
-            value = new MXJsonValue(null);
+            return false;
         }
 
         MXJsonValue.HelperForStructure root = value.new HelperForStructure();
@@ -361,10 +364,11 @@ public class ThemeManager implements MXINIFileSupport, MXJsonSupport {
         setUITheme(themeName);
         CurvedSlider.setMouseCircleIsCircle(root.getSettingBool("circleIsCircle", true));
         updateUITree();
+        return true;
     }
 
     @Override
-    public void writeJsonFile(File custom) {
+    public boolean writeJsonFile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("ThemeManager");
         }
@@ -378,6 +382,12 @@ public class ThemeManager implements MXINIFileSupport, MXJsonSupport {
         structure.setSettingInt("fontStyle", fontStyle);
         structure.setSettingBool("circleIsCircle", CurvedSlider.isMouseCircleIsCircle());
 
-        MXJsonParser.writeFile(value, custom);
+        MXJsonParser parser = new MXJsonParser(custom);
+        parser.setRoot(value);
+        return parser.writeFile();
+    }
+
+    @Override
+    public void resetSetting() {
     }
 }

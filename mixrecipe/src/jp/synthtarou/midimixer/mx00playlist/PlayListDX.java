@@ -21,7 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 import javax.swing.DefaultListModel;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXQueue;
 
 /**

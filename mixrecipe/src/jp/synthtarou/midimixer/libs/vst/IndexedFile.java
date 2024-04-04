@@ -27,7 +27,7 @@ import java.nio.charset.Charset;
 import java.util.Comparator;
 import java.util.TreeMap;
 import java.util.logging.Level;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 
 /**
  *

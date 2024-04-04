@@ -25,7 +25,7 @@ import jp.synthtarou.midimixer.ccxml.xml.CXNode;
 import jp.synthtarou.midimixer.ccxml.rules.CCRuleForAttribute;
 import jp.synthtarou.midimixer.ccxml.rules.CCRuleForTag;
 import jp.synthtarou.midimixer.ccxml.xml.CXNode;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 
 /**

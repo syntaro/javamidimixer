@@ -19,21 +19,23 @@ package jp.synthtarou.midimixer.mx50resolution;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.logging.Level;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.libs.inifile.MXINIFile;
-import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
+import jp.synthtarou.libs.json.MXJsonParser;
+import jp.synthtarou.libs.json.MXJsonSupport;
+import jp.synthtarou.libs.json.MXJsonValue;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX50Process extends MXReceiver<MX50View> implements MXINIFileSupport {
+public class MX50Process extends MXReceiver<MX50View> implements MXINIFileSupport, MXJsonSupport {
 
     MX50View _view;
     ArrayList<MXResolution> _listResolution;
@@ -98,9 +100,11 @@ public class MX50Process extends MXReceiver<MX50View> implements MXINIFileSuppor
     }
 
     @Override
-    public void readINIFile(File custom) {
+    public boolean readINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
-        setting.readINIFile();
+        if (!setting.readINIFile()) {
+            return false;
+        }
         int x = 1;
         _listResolution.clear();
         _listResolutionView.clear();
@@ -140,10 +144,11 @@ public class MX50Process extends MXReceiver<MX50View> implements MXINIFileSuppor
             }
         }
         _view.reloadList();
+        return true;
     }
 
     @Override
-    public void writeINIFile(File custom) {
+    public boolean writeINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
         int x = 1;
         for (MXResolution reso : _listResolution) {
@@ -155,7 +160,7 @@ public class MX50Process extends MXReceiver<MX50View> implements MXINIFileSuppor
             setting.setSetting(prefix + "Gate", reso._gate);
             setting.setSetting(prefix + "Resolution", reso._resolution);
         }
-        setting.writeINIFile();
+        return setting.writeINIFile();
     }
 
     public MXResolution createNewResolution() {
@@ -172,5 +177,33 @@ public class MX50Process extends MXReceiver<MX50View> implements MXINIFileSuppor
             _listResolution.remove(index);
             _listResolutionView.remove(index);
         }
+    }
+
+    @Override
+    public boolean readJSonfile(File custom) {
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("ResolutionDown");
+        }
+        MXJsonValue value = new MXJsonParser(custom).parseFile();
+        if (value == null) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean writeJsonFile(File custom) {
+        if (custom == null) {
+            custom = MXJsonParser.pathOf("ResolutionDown");
+        }
+        MXJsonValue value = new MXJsonValue(null);
+
+        MXJsonParser parser = new MXJsonParser(custom);
+        parser.setRoot(value);
+        return parser.writeFile();
+    }
+
+    @Override
+    public void resetSetting() {
     }
 }

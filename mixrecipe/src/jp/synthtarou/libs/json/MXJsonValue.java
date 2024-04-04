@@ -18,7 +18,7 @@ package jp.synthtarou.libs.json;
 
 import java.util.ArrayList;
 import java.util.logging.Level;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 
 /**
  * jsonファイル内のラベルとコンテンツを表現するクラス。ネストしている。
@@ -504,7 +504,7 @@ public class MXJsonValue {
         System.out.println(text1);
 
         MXJsonParser parse2 = new MXJsonParser();
-        MXJsonValue value2 = parse2.parseText(null, text1);
+        MXJsonValue value2 = parse2.parseText(text1);
         String text2 = value2.formatForDisplay(false);
 
         System.out.println(text2);
@@ -514,7 +514,7 @@ public class MXJsonValue {
         System.out.println(text3);
 
         MXJsonParser parse4 = new MXJsonParser();
-        MXJsonValue value4 =parse4.parseText(null, text3);
+        MXJsonValue value4 =parse4.parseText(text3);
         String text4 = value4.formatForDisplay(false);
         System.out.println(text4);
 

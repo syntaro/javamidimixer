@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.libs.midi;
 import java.util.Iterator;
 import java.util.LinkedList;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 
 /**
  *

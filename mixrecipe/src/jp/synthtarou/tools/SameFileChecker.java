@@ -40,7 +40,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import jp.synthtarou.libs.MXSafeThread;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.navigator.legacy.INavigator;
 import jp.synthtarou.libs.navigator.legacy.NavigatorForText;

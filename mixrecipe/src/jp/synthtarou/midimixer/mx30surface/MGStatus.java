@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.mx30surface;
 import java.util.IllegalFormatException;
 import java.util.logging.Level;
 import javax.swing.JComponent;
-import jp.synthtarou.libs.MXFileLogger;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
