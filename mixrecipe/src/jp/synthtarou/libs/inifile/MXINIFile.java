@@ -149,6 +149,7 @@ public class MXINIFile {
                 String value = line.substring(index + 1);
                 _root.setSetting(key, value);
             }
+            return true;
         } catch (IOException e) {
             //System.out.println("First Time for [" + _settingFile + "]");
         } finally {
@@ -160,7 +161,7 @@ public class MXINIFile {
                 }
             }
         }
-        return true;
+        return false;
     }
 
     public boolean writeINIFile() {
@@ -189,11 +190,13 @@ public class MXINIFile {
                     try {
                         backup.delete();
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 } else {
                     try {
                         Desktop.getDesktop().moveToTrash(backup);
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
             }

@@ -123,7 +123,6 @@ public class MXMain  {
     public static void setCapture(MXReceiver capture) {
         _capture = capture;
     }
-    
     /**
      * アプリを起動する
      * @param args 引数
@@ -138,12 +137,7 @@ public class MXMain  {
         try {
             //フォント描写でアンチエイリアスを有効にする
             System.setProperty("awt.useSystemAAFontSettings", "on");
-            if (ThemeManager.getInstance().readJSonfile(null) == false) {
-                if (!ThemeManager.getInstance().readINIFile(null)) {
-                    ThemeManager.getInstance().resetSetting();
-                }
-            }
-
+            MXReceiver.initProcessWithSetting(ThemeManager.getInstance());
         }catch(Throwable ex) {
             MXFileLogger.getLogger(MXMain.class).log(Level.SEVERE, ex.getMessage(), ex);
         }
@@ -202,48 +196,15 @@ public class MXMain  {
         _mx50resolutionProcess.setNextReceiver(_mx60outputProcess);
         _mx60outputProcess.setNextReceiver(FinalMIDIOut.getInstance());
 
-        if (!_mx30kontrolProcess.readJSonfile(null)) {
-            if (!_mx30kontrolProcess.readINIFile(null)) {
-                _mx30kontrolProcess.resetSetting();
-            }
-        }
-        if (!_mx00playlistProcess.readJSonfile(null)) {
-            if (!_mx00playlistProcess.readINIFile(null)) {
-                _mx00playlistProcess.resetSetting();
-            }
-        }
-        
-        if (!_mx10inputProcess.readJSonfile(null)) {
-            if (!_mx10inputProcess.readINIFile(null)) {
-                _mx10inputProcess.resetSetting();
-            }
-        }
-        if (!_mx12pianoProcess.readJSonfile(null)) {
-            if (!_mx12pianoProcess.readINIFile(null)) {
-                _mx12pianoProcess.resetSetting();
-            }
-        }
-        if (!_mx36ccmappingProcess.readJSonfile(null)) {
-            if (!_mx36ccmappingProcess.readINIFile(null)) {
-                _mx36ccmappingProcess.resetSetting();;
-            }
-        }
-        if (!_mx60outputProcess.readJSonfile(null)) {
-            if (!_mx60outputProcess.readINIFile(null)) {
-                _mx60outputProcess.resetSetting();
-            }
-        }
-        if (!_mx40layerProcess.readJSonfile(null)) {
-            if (!_mx40layerProcess.readINIFile(null)) {
-                _mx40layerProcess.resetSetting();
-            }
-        }
-        if (!_mx50resolutionProcess.readJSonfile(null)) {
-            if (!_mx50resolutionProcess.readINIFile(null)) {
-                _mx50resolutionProcess.resetSetting();;
-            }
-        }
-        
+        _mx30kontrolProcess.initProcessWithSetting();
+        _mx00playlistProcess.initProcessWithSetting();
+        _mx10inputProcess.initProcessWithSetting();
+        _mx12pianoProcess.initProcessWithSetting();
+        _mx36ccmappingProcess.initProcessWithSetting();
+        _mx60outputProcess.initProcessWithSetting();
+        _mx40layerProcess.initProcessWithSetting();
+        _mx50resolutionProcess.initProcessWithSetting();
+       
         _mainWindow = new MXMainWindow(this);
         _mainWindow.setEnabled(false);
         _mainWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);

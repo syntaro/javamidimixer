@@ -335,8 +335,8 @@ public class ThemeManager implements MXINIFileSupport, MXJsonSupport {
 
         MXJsonValue.HelperForStructure root = value.new HelperForStructure();
 
-        colorfulMetalTheme = root.getSettingBool("themeLabelColorful", false);
-        themeName = root.getSettingText("themeName", null);
+        colorfulMetalTheme = root.getFollowingBool("themeLabelColorful", false);
+        themeName = root.getFollowingText("themeName", null);
         if (themeName == null || themeName.isEmpty()) {
             for (UIManager.LookAndFeelInfo info: UIManager.getInstalledLookAndFeels()) {
                 if (info.getName().equals("Windows")) {
@@ -354,15 +354,15 @@ public class ThemeManager implements MXINIFileSupport, MXJsonSupport {
         if (themeName == null || themeName.isEmpty()) {
             themeName = "Metal";
         }
-        fontName = root.getSettingText("fontName", null);
+        fontName = root.getFollowingText("fontName", null);
         if (fontName == null || fontName.isEmpty()) {
             fontName = "Monospaced";
         }
-        fontSize = root.getSettingInt("fontSize", 12);
-        fontStyle = root.getSettingInt("fontStyle", Font.PLAIN);
+        fontSize = root.getFollowingInt("fontSize", 12);
+        fontStyle = root.getFollowingInt("fontStyle", Font.PLAIN);
         setFont(fontName, fontStyle, fontSize);
         setUITheme(themeName);
-        CurvedSlider.setMouseCircleIsCircle(root.getSettingBool("circleIsCircle", true));
+        CurvedSlider.setMouseCircleIsCircle(root.getFollowingBool("circleIsCircle", true));
         updateUITree();
         return true;
     }
@@ -375,12 +375,12 @@ public class ThemeManager implements MXINIFileSupport, MXJsonSupport {
         MXJsonValue value = new MXJsonValue(null);
 
         MXJsonValue.HelperForStructure structure = value.new HelperForStructure();
-        structure.setSettingBool("themeLabelColorful", colorfulMetalTheme);
-        structure.setSettingText("themeName", themeName);
-        structure.setSettingText("fontName", fontName);
-        structure.setSettingInt("fontSize", fontSize);
-        structure.setSettingInt("fontStyle", fontStyle);
-        structure.setSettingBool("circleIsCircle", CurvedSlider.isMouseCircleIsCircle());
+        structure.setFollowingBool("themeLabelColorful", colorfulMetalTheme);
+        structure.setFollowingText("themeName", themeName);
+        structure.setFollowingText("fontName", fontName);
+        structure.setFollowingInt("fontSize", fontSize);
+        structure.setFollowingInt("fontStyle", fontStyle);
+        structure.setFollowingBool("circleIsCircle", CurvedSlider.isMouseCircleIsCircle());
 
         MXJsonParser parser = new MXJsonParser(custom);
         parser.setRoot(value);

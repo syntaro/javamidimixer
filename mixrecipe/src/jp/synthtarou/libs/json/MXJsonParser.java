@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.libs.json;
 
+import java.awt.Desktop;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -75,7 +76,8 @@ public class MXJsonParser {
     public static void invokeAutosave() {
         for (MXJsonSupport seek : _listAutosave) {
             try {
-                seek.writeJsonFile(null);
+                boolean done = seek.writeJsonFile(null);
+                System.out.println("tried write json = " + done + "@ " + seek.getClass());
             }catch(Throwable ex) {
                 MXFileLogger.getLogger(MXJsonParser.class).log(Level.SEVERE, ex.getMessage(), ex);
             }
@@ -91,7 +93,6 @@ public class MXJsonParser {
         MXJsonValue value = _root;
         String text = value.formatForFile();
 
-        File file = _file;
         String fileName = _file.toString();
         String dir = getJsonDirectory().getParent();
         if (fileName.startsWith(dir)) {
@@ -99,27 +100,17 @@ public class MXJsonParser {
         }
         MXMain.progress("writing " + fileName);
 
-        File target = MXUtil.createTemporaryFile(file);
-        boolean needMove = false;
-        if (target != null) {
-            needMove = true;
-        } else {
-            needMove = false;
-            target = file;
-        }
         FileOutputStream fout = null;
         try {
-            fout = new FileOutputStream(target);
+            fout = new FileOutputStream(_file);
             BufferedOutputStream bout = new BufferedOutputStream(fout);
             OutputStreamWriter writer = new OutputStreamWriter(bout, "utf-8");
             writer.write(text);
             writer.flush();
+            writer.close();
+            bout.close();
             fout.close();
             fout = null;
-            if (needMove) {
-                file.delete();
-                target.renameTo(file);
-            }
             return true;
         } catch (IOException ioe) {
             MXFileLogger.getLogger(MXJsonParser.class).log(Level.SEVERE, ioe.toString(), ioe);

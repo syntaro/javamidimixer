@@ -80,7 +80,7 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
         _viewData._playAsRepeated = setting.getSettingAsBoolean("playAsLooped", false);
         _viewData._playAsChained = setting.getSettingAsBoolean("playAsChained", false);
         _viewData._focusChannel = setting.getSettingAsInt("focusChannel", -1);
-        _viewData._showMeasure = setting.getSettingAsBoolean("showMeasure", true);
+        _viewData._highlightTiming = setting.getSettingAsBoolean("showMeasure", true);
         _viewData._soundMargin = setting.getSettingAsInt("soundMargin", 100);
         _viewData._soundSpan = setting.getSettingAsInt("soundSpan", 6000);
         
@@ -121,7 +121,7 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
         setting.setSetting("playAsChained", _viewData._playAsChained);
         
         setting.setSetting("focusChannel", _viewData._focusChannel);
-        setting.setSetting("showMeasure", _viewData._showMeasure);
+        setting.setSetting("showMeasure", _viewData._highlightTiming);
         setting.setSetting("soundMargin", _viewData._soundMargin);
         setting.setSetting("soundSpan", _viewData._soundSpan);
 
@@ -166,5 +166,18 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
 
     @Override
     public void resetSetting() {
+        _viewData._playListModel.clear();
+        _viewData._playListModel.addFile("SynthTAROU000.mid");
+        _viewData._playListModel.addFile("SynthTAROU001.mid");
+        _viewData._playListModel.addFile("SynthTAROU002.mid");
+
+        _viewData._playAsRepeated = false;
+        _viewData._playAsChained = false;
+        _viewData._focusChannel = -1;
+        _viewData._highlightTiming = true;
+        _viewData._soundMargin = 100;
+        _viewData._soundSpan = 6000;
+        
+        _view.showDataFirst();
     }
 }

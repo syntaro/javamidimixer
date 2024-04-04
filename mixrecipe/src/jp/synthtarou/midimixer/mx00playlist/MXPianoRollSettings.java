@@ -44,7 +44,7 @@ public class MXPianoRollSettings extends javax.swing.JPanel {
         jTextFieldColor.setEditable(false);
         jTextFieldMargin.setEditable(false);
         jTextFieldSpan.setEditable(false);
-        jTextFieldShowTiming.setEditable(false);
+        jTextFieldHighlightTiming.setEditable(false);
 
         listColor.addNameAndValue("Color", -1);
         for (int ch = 0; ch < 16; ++ ch) {
@@ -87,13 +87,13 @@ public class MXPianoRollSettings extends javax.swing.JPanel {
             }
         };
 
-        MXPopupForList<Integer> popupForTiming = new MXPopupForList<Integer>(jTextFieldShowTiming, listTiming) {
+        MXPopupForList<Integer> popupForTiming = new MXPopupForList<Integer>(jTextFieldHighlightTiming, listTiming) {
             @Override
             public void approvedIndex(int selectedIndex) {
                 int value = listTiming.valueOfIndex(selectedIndex);
-                _process._viewData._showMeasure = value > 0;
-                jTextFieldShowTiming.setText(listTiming.nameOfValue(Integer.valueOf(_process._viewData._showMeasure ? 1 : 0)));
-                _process._view._pianoRollRoll.setShowMeasure(value > 0);
+                _process._viewData._highlightTiming = value > 0;
+                jTextFieldHighlightTiming.setText(listTiming.nameOfValue(Integer.valueOf(_process._viewData._highlightTiming ? 1 : 0)));
+                _process._view._pianoRollRoll.setHighlightTiming(value > 0);
             }
         };
         this.setSize(new Dimension(350, 150));
@@ -107,8 +107,8 @@ public class MXPianoRollSettings extends javax.swing.JPanel {
                 jTextFieldColor.setText(listColor.nameOfValue(_process._viewData._focusChannel));
                 jTextFieldMargin.setText(listMagin.nameOfValue((int)_process._viewData._soundMargin));
                 jTextFieldSpan.setText(listSpan.nameOfValue((int)_process._viewData._soundSpan));
-                jTextFieldShowTiming.setText(listTiming.nameOfValue(Integer.valueOf(_process._viewData._showMeasure ? 1 : 0)));
-                _process._view._pianoRollRoll._showMeasure = _process._viewData._showMeasure;
+                jTextFieldHighlightTiming.setText(listTiming.nameOfValue(Integer.valueOf(_process._viewData._highlightTiming ? 1 : 0)));
+                _process._view._pianoRollRoll._highlightTiming = _process._viewData._highlightTiming;
                 _process._view._pianoRollRoll._soundMargin = _process._viewData._soundMargin;
                 _process._view._pianoRollRoll.setSoundSpan(_process._viewData._soundSpan);
             }
@@ -124,7 +124,6 @@ public class MXPianoRollSettings extends javax.swing.JPanel {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-        java.awt.GridBagConstraints gridBagConstraints;
 
         jLabel1 = new javax.swing.JLabel();
         jTextFieldColor = new javax.swing.JTextField();
@@ -133,7 +132,7 @@ public class MXPianoRollSettings extends javax.swing.JPanel {
         jLabel2 = new javax.swing.JLabel();
         jTextFieldMargin = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
-        jTextFieldShowTiming = new javax.swing.JTextField();
+        jTextFieldHighlightTiming = new javax.swing.JTextField();
 
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
 
@@ -155,11 +154,11 @@ public class MXPianoRollSettings extends javax.swing.JPanel {
         jTextFieldMargin.setEditable(false);
         add(jTextFieldMargin);
 
-        jLabel4.setText("Timing");
+        jLabel4.setText("Highlight");
         add(jLabel4);
 
-        jTextFieldShowTiming.setEditable(false);
-        add(jTextFieldShowTiming);
+        jTextFieldHighlightTiming.setEditable(false);
+        add(jTextFieldHighlightTiming);
     }// </editor-fold>//GEN-END:initComponents
 
 
@@ -169,8 +168,8 @@ public class MXPianoRollSettings extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JTextField jTextFieldColor;
+    private javax.swing.JTextField jTextFieldHighlightTiming;
     private javax.swing.JTextField jTextFieldMargin;
-    private javax.swing.JTextField jTextFieldShowTiming;
     private javax.swing.JTextField jTextFieldSpan;
     // End of variables declaration//GEN-END:variables
 }

@@ -201,4 +201,6 @@ public class MX60ViewData extends MX10ViewData {
         }
         return !error;
     }
+
+    boolean _isUsingThieRecipe = true;
 }

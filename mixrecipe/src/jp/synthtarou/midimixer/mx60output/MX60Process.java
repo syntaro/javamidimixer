@@ -42,12 +42,12 @@ public class MX60Process extends MXReceiver<MX60View> implements MXINIFileSuppor
     
     @Override
     public boolean isUsingThisRecipe() {
-        return _view.isUsingThisRecipeDX();
+        return _viewData._isUsingThieRecipe;
     }
 
     @Override
     public void setUsingThisRecipe(boolean flag) {
-        _view.setUsingThisRecipeDX(flag);
+        _viewData._isUsingThieRecipe = flag;
     }
 
     @Override
@@ -84,13 +84,14 @@ public class MX60Process extends MXReceiver<MX60View> implements MXINIFileSuppor
             String prefix = "Setting[" + port + "].";
             StringBuffer str = new StringBuffer();
             for (int j = 0; j <_viewData.countOfTypes(); ++ j) {
-                String name = _viewData.typeNames[j];
+                String name = _viewData._typeNames[j];
                 boolean set = setting.getSettingAsBoolean(prefix + name, false);
                 _viewData.setSkip(port, j, set);
             }
         }
         _viewData.loadSequenceData();
-        _view.setDataDX(_viewData);
+        _viewData._isUsingThieRecipe = true;
+        _view.setViewData(_viewData);
         return true;
     }
 
@@ -103,7 +104,7 @@ public class MX60Process extends MXReceiver<MX60View> implements MXINIFileSuppor
             StringBuffer str = new StringBuffer();
             for (int j = 0; j <_viewData.countOfTypes(); ++ j) {
                 boolean set = _viewData.isSkip(port, j);
-                String name = _viewData.typeNames[j];
+                String name = _viewData._typeNames[j];
                 setting.setSetting(prefix + name, set);
             }
         }
@@ -117,7 +118,7 @@ public class MX60Process extends MXReceiver<MX60View> implements MXINIFileSuppor
         }
         MXINIFile setting = new MXINIFile(custom, this);
         String prefix = "Setting[].";
-        for (String text : MX10ViewData.typeNames) {
+        for (String text : MX10ViewData._typeNames) {
             setting.register(prefix + text);
         }
         return setting;
@@ -127,11 +128,38 @@ public class MX60Process extends MXReceiver<MX60View> implements MXINIFileSuppor
     public boolean readJSonfile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("OutputSkip");
+            MXJsonParser.setAutosave(this);
         }
         MXJsonValue value = new MXJsonParser(custom).parseFile();
         if (value == null) {
             return false;
         }
+        
+        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
+        MXJsonValue.HelperForArray arraySetting = root.getFollowingArray("ListPort");
+        
+        if (arraySetting != null) {
+            for (int i = 0; i < arraySetting.count(); ++ i) {
+                MXJsonValue.HelperForStructure setting = arraySetting.getFollowingStructure(i);
+
+                int port = setting.getFollowingInt("Port", -1);
+                if (port < 0) {
+                    continue;
+                }
+                MXJsonValue.HelperForArray types = setting.getFollowingArray("Skip");
+                if (types != null) {
+                    for (int j = 0; j < types.count(); ++ j) {
+                        String type = types.getFollowingValue(j).getLabelUnscaped();
+                        int typeN = MX10ViewData.typeOfName(type);
+                        if (typeN >= 0) {
+                            _viewData.setSkip(port, typeN, true);
+                        }
+                    }
+                }
+            }
+        }
+        _viewData.loadSequenceData();
+        _view.setViewData(_viewData);
         return true;
     }
 
@@ -141,6 +169,21 @@ public class MX60Process extends MXReceiver<MX60View> implements MXINIFileSuppor
             custom = MXJsonParser.pathOf("OutputSkip");
         }
         MXJsonValue value = new MXJsonValue(null);
+        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
+        MXJsonValue.HelperForArray arraySetting = root.addFollowingArray("ListPort");
+        for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
+            MXJsonValue.HelperForStructure setting = arraySetting.addFollowingStructure();
+            setting.addFollowingNumber("Port", port);
+            MXJsonValue.HelperForArray arrayTypes = setting.addFollowingArray("Skip");
+            
+            for (int j = 0; j <_viewData.countOfTypes(); ++ j) {
+                boolean set = _viewData.isSkip(port, j);
+                if (set) {
+                    String name = _viewData._typeNames[j];
+                    arrayTypes.addFollowingText(name);
+                } 
+            }
+        }
 
         MXJsonParser parser = new MXJsonParser(custom);
         parser.setRoot(value);
@@ -149,5 +192,7 @@ public class MX60Process extends MXReceiver<MX60View> implements MXINIFileSuppor
 
     @Override
     public void resetSetting() {
+        _viewData.resetSkip();
+        _view.setViewData(_viewData);
     }
 }

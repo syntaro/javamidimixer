@@ -45,6 +45,8 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
         _pageProcess = new MX32MixerProcess[MXConfiguration.TOTAL_PORT_COUNT];
         for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++ i) {
             _pageProcess[i] = new MX32MixerProcess(this, i);
+            _pageProcess[i].resetSetting();
+            _rootView.addPage(i, _pageProcess[i]);
         }
         _underConstruction = false;
     }
@@ -249,5 +251,9 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
 
     @Override
     public void resetSetting() {
+        for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
+            MX32MixerProcess mixer = _pageProcess[port];
+            mixer.resetSetting();
+        }
     }
 }

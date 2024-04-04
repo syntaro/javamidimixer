@@ -506,14 +506,14 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
         
         MXJsonValue.HelperForStructure root = value.new HelperForStructure();
         
-        MXJsonValue.HelperForStructure jsonStream = root.findStructure("stream");
+        MXJsonValue.HelperForStructure jsonStream = root.getFollowingStructure("stream");
 
         if (jsonStream != null) {
-            String streamName  =  jsonStream.getSettingText("name", "");
-            boolean open = jsonStream.getSettingBool("open", false);
-            int samplingRate = jsonStream.getSettingInt("samplingrate", 48000);
-            int latency =  jsonStream.getSettingInt("latency", 128);
-            int volume =  jsonStream.getSettingInt("masterVolume", 20);
+            String streamName  =  jsonStream.getFollowingText("name", "");
+            boolean open = jsonStream.getFollowingBool("open", false);
+            int samplingRate = jsonStream.getFollowingInt("samplingrate", 48000);
+            int latency =  jsonStream.getFollowingInt("latency", 128);
+            int volume =  jsonStream.getFollowingInt("masterVolume", 20);
             int streamIndex = -1;
 
             MXLIB02VST3.getInstance().setMasterVolume(0.01f * volume);
@@ -550,21 +550,21 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
             stream.setStream(stream.getOffer());
         }
 
-        MXJsonValue.HelperForArray listLoad = root.findArray("load");
+        MXJsonValue.HelperForArray listLoad = root.getFollowingArray("load");
         
         if (listLoad != null) {
             for (int i = 0; i < listLoad.count(); ++ i) {
-                MXJsonValue seek = listLoad.getValue(i);
+                MXJsonValue seek = listLoad.getFollowingValue(i);
                 if (seek == null) {
                     continue;
                 }
                 MXJsonValue.HelperForStructure jsonLoad = seek.new HelperForStructure();
-                String loadPath = jsonLoad.getSettingText("path", "");
+                String loadPath = jsonLoad.getFollowingText("path", "");
                 if (loadPath == null || loadPath.length() == 0) {
                     continue;
                 }
 
-                boolean open = jsonLoad.getSettingBool("open", false);
+                boolean open = jsonLoad.getFollowingBool("open", false);
                 
                 System.out.println("----2" + open);
 
@@ -581,15 +581,15 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
                     File file = VSTInstance.getTotalRecallSetting(false, i);
                     int result = vst.postLoadPreset(file.getPath(), null).awaitResult();
                 }
-                MXJsonValue.HelperForArray listVolume = jsonLoad.findArray("volume");
+                MXJsonValue.HelperForArray listVolume = jsonLoad.getFollowingArray("volume");
                 for (int j = 0; j < listVolume.count(); ++ j) {
-                    int busVolume = listVolume.getSettingInt(j, 127);
+                    int busVolume = listVolume.getFollowingInt(j, 127);
                     vst.setBusVolume(j, busVolume);
                 }
 
-                int balance = jsonLoad.getSettingInt("insertBalance", 0);
+                int balance = jsonLoad.getFollowingInt("insertBalance", 0);
                 vst.setInsertBalance(balance);
-                int send = jsonLoad.getSettingInt("auxSend", 0);
+                int send = jsonLoad.getFollowingInt("auxSend", 0);
                 vst.setAuxSend(send);
 
                 panel.createVolumePanel();
@@ -597,16 +597,16 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
             return true;
         }
         
-        MXJsonValue.HelperForArray listEffect = root.findArray("effect");
+        MXJsonValue.HelperForArray listEffect = root.getFollowingArray("effect");
         if (listEffect != null) {
             for (int i = 0; i < listEffect.count(); ++ i) {
-                MXJsonValue.HelperForStructure effect = listEffect.getValue(i).new HelperForStructure();
-                String loadPath = effect.getSettingText("path", "");
+                MXJsonValue.HelperForStructure effect = listEffect.getFollowingValue(i).new HelperForStructure();
+                String loadPath = effect.getFollowingText("path", "");
                 if (loadPath == null || loadPath.length() == 0) {
                     continue;
                 }
 
-                boolean open = effect.getSettingBool("open", false);
+                boolean open = effect.getFollowingBool("open", false);
                 
                 VSTInstance vst = new VSTInstance(true, i);
 
@@ -622,9 +622,9 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
                     int result = vst.postLoadPreset(file.getPath(), null).awaitResult();
                 }
 
-                MXJsonValue.HelperForArray listVolume = effect.findArray("volume");
+                MXJsonValue.HelperForArray listVolume = effect.getFollowingArray("volume");
                 for (int j = 0; j < listVolume.count(); ++ j) {
-                    int busVolume = listVolume.getSettingInt(j, 127);
+                    int busVolume = listVolume.getFollowingInt(j, 127);
                     vst.setBusVolume(j, busVolume);
                 }
 
@@ -632,14 +632,14 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
             }
         }
         
-        MXJsonValue.HelperForArray listBase = root.findArray("base");
+        MXJsonValue.HelperForArray listBase = root.getFollowingArray("base");
         if (listBase != null) {
             for (int i = 0; i < listBase.count(); ++ i) {
-                MXJsonValue jsonBase = listBase.getValue(i);
+                MXJsonValue jsonBase = listBase.getFollowingValue(i);
                 MXJsonValue.HelperForStructure base = jsonBase.new HelperForStructure();
 
-                boolean scanDone = base.getSettingBool("scanDone", false);
-                String path = base.getSettingText("path", "");
+                boolean scanDone = base.getFollowingBool("scanDone", false);
+                String path = base.getFollowingText("path", "");
                 
                 System.out.println("scanDone " + scanDone);
                 System.out.println("path " + path);
@@ -653,23 +653,23 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
                 baseVSTFolder.setRootDirectory(new File(path));
                 baseVSTFolder.setScanDone(scanDone);
 
-                MXJsonValue.HelperForArray listDirectory = base.findArray("directory");
+                MXJsonValue.HelperForArray listDirectory = base.getFollowingArray("directory");
                 TreeMap<File, ArrayList<File>> mapFolders = new TreeMap<>();
 
                 for (int j = 0; j < listDirectory.count(); ++ j) {
-                    MXJsonValue.HelperForStructure jsonDirectory = listDirectory.getValue(j).new HelperForStructure();
+                    MXJsonValue.HelperForStructure jsonDirectory = listDirectory.getFollowingValue(j).new HelperForStructure();
                     
 
-                    String directory = jsonDirectory.getSettingText("path", "");
+                    String directory = jsonDirectory.getFollowingText("path", "");
                     if (directory.length() == 0) {
                         continue;
                     }
                     
-                    MXJsonValue.HelperForArray listPath = jsonDirectory.findArray("file");
+                    MXJsonValue.HelperForArray listPath = jsonDirectory.getFollowingArray("file");
                     ArrayList<File> listFiles = new ArrayList<>();
                     if (listPath != null) {
                         for (int k = 0; k < listPath.count(); ++ k) {
-                            String file = listPath.getSettingText(k, "");
+                            String file = listPath.getFollowingText(k, "");
                             if (file.length() == 0) {
                                 continue;
                             }
@@ -686,10 +686,10 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
             
         }
 
-        MXJsonValue.HelperForArray listSkip = root.findArray("skip");
+        MXJsonValue.HelperForArray listSkip = root.getFollowingArray("skip");
         if (listSkip != null) {
             for (int i = 0; i < listSkip.count(); ++ i) {
-                String skipPath = listSkip.getSettingText(i, "");
+                String skipPath = listSkip.getFollowingText(i, "");
                 if (skipPath.length() == 0) {
                     continue;
                 }
@@ -722,36 +722,36 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
         
         MXJsonValue.HelperForStructure root = value.new HelperForStructure();
 
-        MXJsonValue.HelperForStructure jsonStream = root.addStructure("stream");
+        MXJsonValue.HelperForStructure jsonStream = root.addFollowingStructure("stream");
         
-        jsonStream.setSettingText("name", stream.getName(stream.getStream()));
-        jsonStream.setSettingBool("open", stream.isOpen());
-        jsonStream.setSettingInt("latency", stream.getBlockSize());
-        jsonStream.setSettingInt("jsonStreamsamplingrate", stream.getSampleRate());
+        jsonStream.setFollowingText("name", stream.getName(stream.getStream()));
+        jsonStream.setFollowingBool("open", stream.isOpen());
+        jsonStream.setFollowingInt("latency", stream.getBlockSize());
+        jsonStream.setFollowingInt("jsonStreamsamplingrate", stream.getSampleRate());
 
         int volume = (int)(MXLIB02VST3.getInstance().getMasterVolume() * 100);
-        jsonStream.setSettingInt("masterVolume", volume);
+        jsonStream.setFollowingInt("masterVolume", volume);
         
         int streamIndex = -1;
 
         int l = 1;
         Transaction t = null;
-        MXJsonValue.HelperForArray listLoad = root.addArray("load");
+        MXJsonValue.HelperForArray listLoad = root.addFollowingArray("load");
         for (VSTInstance vst : _listInstrument) {
-            MXJsonValue.HelperForStructure jsonLoad = listLoad.addStructure();
+            MXJsonValue.HelperForStructure jsonLoad = listLoad.addFollowingStructure();
             
-            jsonLoad.setSettingText("path", vst.getPath());
+            jsonLoad.setFollowingText("path", vst.getPath());
             if (vst.isOpen()) {
                 t = vst.postSavePreset(VSTInstance.getTotalRecallSetting(false, l - 1).getPath(), null);
             }
-            jsonLoad.setSettingBool("open", vst.isOpen());
+            jsonLoad.setFollowingBool("open", vst.isOpen());
             
-            MXJsonValue.HelperForArray listVolume = jsonLoad.addArray("volume");
+            MXJsonValue.HelperForArray listVolume = jsonLoad.addFollowingArray("volume");
             for (int bus = 0; bus < vst.getBusCount(); ++ bus) {
-                listVolume.addNumber(vst.getBusVolume(bus));
+                listVolume.addFollowingNumber(vst.getBusVolume(bus));
             }
-            jsonLoad.setSettingInt("insertBalance", vst.getInsertBalanace());
-            jsonLoad.setSettingInt("auxSend", vst.getAuxSend());
+            jsonLoad.setFollowingInt("insertBalance", vst.getInsertBalanace());
+            jsonLoad.setFollowingInt("auxSend", vst.getAuxSend());
             
             l ++;
         }
@@ -762,18 +762,18 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
 
         l = 1;
         t = null;
-        MXJsonValue.HelperForArray listEffect = root.addArray("effect");
+        MXJsonValue.HelperForArray listEffect = root.addFollowingArray("effect");
         for(VSTInstance vst : _listEffect) {
-            MXJsonValue.HelperForStructure jsonEffect = listEffect.addStructure();
-            jsonEffect.setSettingText("path", vst.getPath());
+            MXJsonValue.HelperForStructure jsonEffect = listEffect.addFollowingStructure();
+            jsonEffect.setFollowingText("path", vst.getPath());
             if (vst.isOpen()) {
                 t = vst.postSavePreset(VSTInstance.getTotalRecallSetting(true, l - 1).getPath(), null);
             }
-            jsonEffect.setSettingBool("open", vst.isOpen());
+            jsonEffect.setFollowingBool("open", vst.isOpen());
             
-            MXJsonValue.HelperForArray listVolume = jsonEffect.addArray("volume");
+            MXJsonValue.HelperForArray listVolume = jsonEffect.addFollowingArray("volume");
             for (int bus = 0; bus < vst.getBusCount(); ++ bus) {
-                listVolume.addNumber(vst.getBusVolume(bus));
+                listVolume.addFollowingNumber(vst.getBusVolume(bus));
             }
             l ++;
         }
@@ -782,33 +782,33 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
             t.awaitResult();
         }
 
-        MXJsonValue.HelperForArray listBase = root.addArray("base");
+        MXJsonValue.HelperForArray listBase = root.addFollowingArray("base");
         for (int i = 0; i < _listFolder.size(); ++ i) {
             VSTFolder vstFolder = _listFolder.get(i);
 
-            MXJsonValue.HelperForStructure jsonBase = listBase.addStructure();
-            jsonBase.setSettingBool("scanDone", vstFolder.isScanDone());
-            jsonBase.setSettingText("path", vstFolder._rootDirectory.toString());
+            MXJsonValue.HelperForStructure jsonBase = listBase.addFollowingStructure();
+            jsonBase.setFollowingBool("scanDone", vstFolder.isScanDone());
+            jsonBase.setFollowingText("path", vstFolder._rootDirectory.toString());
             
             TreeMap<File, ArrayList<File>> result = vstFolder.getListResult();
             
-            MXJsonValue.HelperForArray listDirectory = jsonBase.addArray("directory");
+            MXJsonValue.HelperForArray listDirectory = jsonBase.addFollowingArray("directory");
             for (File directory : result.keySet()) {
-                MXJsonValue.HelperForStructure jsonDirectory = listDirectory.addStructure();
+                MXJsonValue.HelperForStructure jsonDirectory = listDirectory.addFollowingStructure();
                 
-                jsonDirectory.setSettingText("path", directory.toString());
+                jsonDirectory.setFollowingText("path", directory.toString());
                 ArrayList<File> fileList = result.get(directory);
     
-                MXJsonValue.HelperForArray listFile = jsonDirectory.addArray("file");
+                MXJsonValue.HelperForArray listFile = jsonDirectory.addFollowingArray("file");
                 for (File file : fileList) {
-                    listFile.addText(file.toString());
+                    listFile.addFollowingText(file.toString());
                 }
             }
         }
 
-        MXJsonValue.HelperForArray listSkip = root.addArray("skip");
+        MXJsonValue.HelperForArray listSkip = root.addFollowingArray("skip");
         for(String path : _listSkip) {
-            listSkip.addText(path);;
+            listSkip.addFollowingText(path);;
         }
 
         return parser.writeFile();

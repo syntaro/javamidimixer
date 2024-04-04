@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.mx10input;
 
+import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -38,14 +39,14 @@ public class MX10ViewData {
     public static final int TYPE_SYSEX = 10;
     public static final int TYPE_ACTIVE_SENSING = 11;
 
-    public static final String[] typeNames = {
+    public static final String[] _typeNames = {
         "All", "Note", "DamperPedal", "PitchBend", "ModWheel", "BankChange",
         "ProgramChange", "DataEntry", "AnotherCC", "GM&GS&XGReset", "SysEX", 
         "Active&Clock", 
         
     };
 
-    public static final int TYPE_COUNT = typeNames.length;
+    public static final int TYPE_COUNT = _typeNames.length;
     
     long[] _whichToSkip;
     int _portCount;
@@ -53,9 +54,6 @@ public class MX10ViewData {
     public MX10ViewData() {
         _portCount = MXConfiguration.TOTAL_PORT_COUNT;
         _whichToSkip = new long[MXConfiguration.TOTAL_PORT_COUNT];
-        for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
-            setSkip(port, TYPE_ACTIVE_SENSING, true);
-        }
     }
     
     public boolean isMessageForSkip(MXMessage message) {
@@ -123,6 +121,10 @@ public class MX10ViewData {
             }
         }
     }
+
+    public void resetSkip() {
+        _whichToSkip = new long[MXConfiguration.TOTAL_PORT_COUNT];
+    }
     
     public boolean isSkip(int port, int type) {
         long bit = 1L << (type + 1);
@@ -137,6 +139,17 @@ public class MX10ViewData {
     }
 
     public static String nameOfType(int x) {
-        return typeNames[x];
+        return _typeNames[x];
     }
+    
+    public static int typeOfName(String name) {
+        for (int i = 0; i < _typeNames.length; ++ i) {
+            if (name.equalsIgnoreCase(_typeNames[i])) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    boolean _isUsingThieRecipe = true;
 }

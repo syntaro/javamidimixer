@@ -31,7 +31,6 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.libs.MXCountdownTimer;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys.KeyRect;
@@ -83,7 +82,7 @@ public class MXPianoRoll extends JComponent {
     SMFSequencer _sequencer;
     MXPianoKeys _keys;
 
-    boolean _showMeasure = true;
+    boolean _highlightTiming = true;
 
     public MXPianoRoll(SMFSequencer sequencer, MXPianoKeys keys) {
         _sequencer = sequencer;
@@ -142,78 +141,12 @@ public class MXPianoRoll extends JComponent {
                     0, (int) _lastRollingY, widthAll, heightAll, this);
         }
     }
-    
-    static long _static_x = 0;
-    static long _static_y = 0;
-    
-    int seekIndex(long[] measure, long timing) {
-        long span = 50;
-        int left = 0;
-        int right = measure.length - 1;
-        
-        long searchLeft = timing;
-        long searchRight = timing + 50;
-        
-        while (left < right) {
-            int index = (right + left) / 2;
-            long currentLeft = measure[index];
-            long currentRight = measure[index] + 50;
-            if (currentLeft < searchLeft) {
-                left = index + 1;
-            }
-            else if (currentRight > searchRight) {
-                right = index - 1;
-            }
-            else {
-                if (index > 0) {
-                    index --;
-                }
-                return index;
-            }
-        }
-        if (right < 0) {
-            right = 0;
-        }
-        int index = right;
-        if (index > 0) {
-            index --;
-        }
-        return index;
-    }
 
-    protected Color measureColor(long timing) {
-        long[] measure = _sequencer._parser.listMeasure();
-        int measureIndex;
-        long measureNextTiming;
-        int measureOnLine = 0;
+    byte[] _colorSeparator = SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(Color.red, 30, Color.black, 70), null);
+    byte[] _colorBackBlack = SimpleRGBCanvas.colorToBgr(Color.black, null);
+    byte[] _colorBackGray2 = SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(Color.green, 20, Color.lightGray, 10, Color.black, 70), null);
+    byte[] _colorBackGray4 = SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(Color.orange, 30, Color.black, 70), null);
 
-        measureIndex = 0;
-        measureOnLine = 0;
-        measureNextTiming = 0;
-        Color col = null;
-        
-        for (measureIndex = seekIndex(measure, timing); measureIndex < measure.length; ++measureIndex) {
-            measureNextTiming = measure[measureIndex];
-            
-            if ((measureIndex & 3) == 0) {
-                measureOnLine = 40;
-                col = Color.red;
-            } else if ((measureIndex & 1) == 0) {
-                measureOnLine = 30;
-                col = Color.yellow;
-            } else {
-                measureOnLine = 20;
-                col = Color.yellow;
-            } 
-            
-            long distance = measureNextTiming - timing;
-            if (distance >= 0 && distance <= measureOnLine) {
-                return col;
-            }
-        }
-        return null;
-    }
-    
     protected void paintOnBuffer1(long currentMilliSec) {
         if (!_doingPaint) {
             return;
@@ -239,20 +172,24 @@ public class MXPianoRoll extends JComponent {
             for (int i = 0; i < _pickedNoteForPaint.length; ++i) {
                 _pickedNoteForPaint[i] = 0;
             }
-            _keys.repaint();
+            if (_keys != null) {            
+                _keys.repaint();
+            }
         }
         if (_canvas.isReady()) {
-            //lsatSongPosからsongPosまで描写する、Y座標としていくつ違うか
             long last = _lastMilliSec;
             if (currentMilliSec - last >= _spanMilliSec) {
                 last = currentMilliSec - _spanMilliSec;
             }
             long y0 = (long) (((last) * 1.0 / _spanMilliSec) * heightAll);
             long y1 = (long) (((currentMilliSec) * 1.0 / _spanMilliSec) * heightAll);
-            
+
+            _lastMilliSec = currentMilliSec;
+
             double startTime = last + _spanMilliSec - _soundMargin;
             byte[] colBuff = new byte[3];
             byte[] peekBuff = new byte[3];
+            int lastMeasure = _sequencer._parser.calcMeasureByMilliseconds((long) (startTime - _spanMilliSec / heightAll));
 
             for (long y = y0; y < y1; ++y) {
                 double distanceY = (double) (y - y0);
@@ -270,14 +207,33 @@ public class MXPianoRoll extends JComponent {
                     realY2 -= heightAll;
                 }
 
-                _canvas.line(0, realY2, widthAll, realY2, _back); 
-                Color c = measureColor(linetime);
-                if (c != null) {
-                    SimpleRGBCanvas.colorToBgr(c, colBuff);
-                    for (int x = 0; x < widthAll; x += 2) {
-                        _canvas.setPixel(x, realY2, colBuff);
+                _canvas.line(0, realY2, widthAll, realY2, _back);
+                int measure = _sequencer._parser.calcMeasureByMilliseconds(linetime);
+                byte[] color;
+                if (!_highlightTiming) {
+                    color = _colorBackBlack;
+                } else {
+                    if (lastMeasure != measure) {
+                        color = _colorSeparator;
+                        lastMeasure = measure;
+                    } else {
+                        switch (measure % 8) {
+                            case 0:
+                                color = _colorBackGray4;
+                                break;
+                            case 2:
+                            case 4:
+                            case 6:
+                                color = _colorBackGray2;
+                                break;
+                            default:
+                                color = _colorBackBlack;
+                        }
                     }
                 }
+
+                _canvas.line((int) 0, realY2, (int) widthAll - 1, realY2, color);
+
                 for (int i = keysRoot; i < keysRoot + keysCount; ++i) {
                     boolean selected = false;
                     if (playing[i] > 0 && playing[i] != onlyDrum) {
@@ -311,7 +267,6 @@ public class MXPianoRoll extends JComponent {
             while (_rollingY < 0) {
                 _rollingY += heightAll;
             }
-            _lastMilliSec = _position;
         }
     }
 
@@ -373,14 +328,21 @@ public class MXPianoRoll extends JComponent {
     int[] _kickedChannelList = new int[128];
 
     private void noteForKick(long milliSeconds) {
+        if (_keys == null) {
+            return;
+        }
         if (SwingUtilities.isEventDispatchThread() == false) {
             throw new IllegalStateException();
         }
+        boolean lockBuffered = false;
         List<SMFMessage> list = _sequencer.listMessage();
         if (list != null && list.size() > _lastPickupForKick) {
             if (milliSeconds < list.get(_lastPickupForKick)._millisecond) {
-                _keys.setOnlyBuffer(true);
-                _keys.allNoteOff();
+                if (_keys != null) {            
+                    _keys.setOnlyBuffer(true);
+                   _keys.allNoteOff();
+                   lockBuffered = true;
+                }
                 _lastPickupForKick = 0;
             }
         }
@@ -426,7 +388,9 @@ public class MXPianoRoll extends JComponent {
                     break;
             }
         }
-        _keys.setOnlyBuffer(false);
+        if (lockBuffered){            
+            _keys.setOnlyBuffer(false);
+        }
     }
 
     public long getPosition() {
@@ -439,7 +403,7 @@ public class MXPianoRoll extends JComponent {
     long _soundMargin = 200;
     long _rollingY = 0;
     long _lastRollingY = 0;
-    byte []_back = SimpleRGBCanvas.colorToBgr(new Color(0, 50, 50), new byte[3]);
+    byte[] _back = SimpleRGBCanvas.colorToBgr(new Color(0, 50, 50), new byte[3]);
 
     public void setFocusChannel(int ch) {
         _focusChannel = ch;
@@ -539,8 +503,8 @@ public class MXPianoRoll extends JComponent {
         setPosition(_position, true);
     }
 
-    public void setShowMeasure(boolean show) {
-        _showMeasure = show;
+    public void setHighlightTiming(boolean show) {
+        _highlightTiming = show;
         setPosition(_position, true);
     }
 
@@ -557,8 +521,10 @@ public class MXPianoRoll extends JComponent {
             _lastMilliSec = - 1;
         }
         _position = elapsed;
-        noteForKick(_position);
-        _keys.repaint();
+        if (_keys != null) {
+            noteForKick(_position);
+            _keys.repaint();
+        }
         paintOnBuffer1(elapsed);
         repaint();
     }

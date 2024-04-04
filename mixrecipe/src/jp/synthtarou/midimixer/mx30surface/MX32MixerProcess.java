@@ -802,5 +802,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
 
     @Override
     public void resetSetting() {
+        new MX32MixerInitializer(this).initVolumeMixer();
+        _view.updateUI();
     }
 }

@@ -110,8 +110,11 @@ public class MXSettingUtil {
             if (f.isFile()) {
                 continue;
             }
-            target.renameTo(f);
-            return f;
+            if (target.renameTo(f)) {
+                return  f;
+            }
+            f.delete();
+            return null;
         }
         return null;
     }

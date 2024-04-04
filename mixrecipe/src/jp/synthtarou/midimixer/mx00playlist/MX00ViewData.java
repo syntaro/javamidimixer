@@ -37,5 +37,5 @@ public class MX00ViewData {
     int _focusChannel;
     int _soundMargin;
     int _soundSpan;
-    boolean _showMeasure;
+    boolean _highlightTiming;
 }

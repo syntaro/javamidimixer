@@ -33,7 +33,6 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import javax.sound.midi.ShortMessage;
 import jp.synthtarou.libs.log.MXFileLogger;
-import jp.synthtarou.libs.json.MXJsonParser;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -288,7 +287,6 @@ public class SMFParser {
                     seek._millisecond = (long) (seek._tick / tickPerMillisecond);
                     _listMessage.add(seek);
                 }
-                _listMeasure = null;
             } else {
                 _tempoArray = new SMFTempoArray(this);
                 long lastMillisecond = 0;
@@ -300,7 +298,6 @@ public class SMFParser {
                     }
                     _listMessage.add(seek);
                 }
-                _listMeasure = _tempoArray.listMeasure();
             }
             parseAdditionalInfo();
             return !_listMessage.isEmpty();
@@ -558,9 +555,14 @@ public class SMFParser {
             }
         }
     }
-
-    long [] _listMeasure;
-    public long[] listMeasure() {
-        return _listMeasure;
+    
+    public int calcMeasureByMilliseconds(long milli) {
+        if (milli < 0) {
+            return -1;
+        }
+        long micro = milli * 1000;
+        long tick = _tempoArray.calcTicksByMicrosecond(micro);
+        long measure = tick / _tempoArray._parent._fileResolution;
+        return (int)measure;
     }
 }

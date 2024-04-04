@@ -247,7 +247,7 @@ public class MX60View extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jCheckBoxUseSkipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxUseSkipActionPerformed
-         setUsingThisRecipeDX(jCheckBoxUseSkip.isSelected());
+         _viewData._isUsingThieRecipe = jCheckBoxUseSkip.isSelected();         
     }//GEN-LAST:event_jCheckBoxUseSkipActionPerformed
 
     private void jToggleButtonRecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButtonRecActionPerformed
@@ -321,7 +321,7 @@ public class MX60View extends javax.swing.JPanel {
         
         for (int type = 0; type < _viewData.TYPE_COUNT; ++ type) {
             Vector line = new Vector();
-            line.add(_viewData.typeNames[type]);
+            line.add(_viewData._typeNames[type]);
             
             for (int delivery = 0; delivery < MXConfiguration.TOTAL_PORT_COUNT; ++ delivery) {
                 if (_viewData.isSkip(delivery, type)) {
@@ -480,42 +480,18 @@ public class MX60View extends javax.swing.JPanel {
         enableRecordingButton();
     }
 
-    boolean _isUsingThieRecipe = true;
-    
-    public boolean isUsingThisRecipeDX() {
-        return _isUsingThieRecipe;
-    }
-
-    public void setUsingThisRecipeDX(boolean usingThisRecipe) {
+    public void setViewData(MX60ViewData viewData) {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    setUsingThisRecipeDX(usingThisRecipe);
-                }
-            });
-            return;
-        }
-        if (usingThisRecipe == _isUsingThieRecipe) {
-            //double enter
-            return;
-        }
-        _isUsingThieRecipe = usingThisRecipe;
-        jCheckBoxUseSkip.setSelected(usingThisRecipe);
-        _jTableSkip.setEnabled(usingThisRecipe);
-    }
-
-    public void setDataDX(MX60ViewData viewData) {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    setDataDX(viewData);
+                    setViewData(viewData);
                 }
             });
             return;
         }
         _viewData = viewData;
+        jCheckBoxUseSkip.setSelected(_viewData._isUsingThieRecipe);
         _jTableSkip.setModel(createSkipTableModel(viewData));
         _jTableSkip.getColumnModel().getColumn(0).setMinWidth(150);
         new MXAttachTableResize(_jTableSkip);
