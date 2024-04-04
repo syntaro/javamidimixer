@@ -1426,7 +1426,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
 
     public void doImportLayer() {
         MXFileChooser chooser = new MXFileChooser();
-        chooser.addExtension(".xml", "XML File");
+        chooser.addExtension(".ini", "INI File");
         chooser.setAcceptAllFileFilterUsed(false);
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             File file = chooser.getSelectedFile();
@@ -1443,7 +1443,10 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
     }
     
     public void doExportLayer() {
-        JFileChooser chooser = new JFileChooser();
+        MXFileChooser chooser = new MXFileChooser();
+        chooser.addExtension(".ini", "INI File");
+        chooser.setDialogType(JFileChooser.SAVE_DIALOG);
+        chooser.setAcceptAllFileFilterUsed(true);
         if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
             File file = chooser.getSelectedFile();
             _process.exportSetting(file);
@@ -1451,7 +1454,6 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         }  
     }
 
-    
     public void recursibleEnable(Component c, boolean enable) { 
         if (c instanceof Container) {
             Container parent = (Container)c;

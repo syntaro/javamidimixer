@@ -174,7 +174,7 @@ public class MX10Process extends MXReceiver<MX10View> implements MXINIFileSuppor
 
         for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
             MXJsonValue.HelperForStructure setting = arraySetting.addFollowingStructure();
-            setting.addFollowingNumber("Port", port);
+            setting.setFollowingNumber("Port", port);
             MXJsonValue.HelperForArray arrayTypes = setting.addFollowingArray("Skip");
             
             for (int j = 0; j <_viewData.countOfTypes(); ++ j) {

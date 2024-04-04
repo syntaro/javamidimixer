@@ -26,7 +26,6 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
-import jp.synthtarou.midimixer.mx30surface.MX32MixerProcess;
 
 /**
  *

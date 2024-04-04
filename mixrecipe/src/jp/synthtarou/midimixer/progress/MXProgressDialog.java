@@ -21,7 +21,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import javax.swing.ListModel;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.MainThreadTask;
 import jp.synthtarou.libs.log.ListModelOutputStream;
@@ -97,6 +96,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
         _stream.addLine("V0.63.2 CPU Optimized for Console\n");
         _stream.addLine("V0.64 BugFix to not Skip note when Inperfect DataEntry\n");
         _stream.addLine("V0.70 Test Driven Development");
+        _stream.addLine("V0.71 support json, more good piano roll, ");
 
         _stream.addLine("It is beta release, please send me issue,\n");
         _stream.addLine("Im waiting for public relesae timing.\n\n");
@@ -125,7 +125,6 @@ public class MXProgressDialog extends javax.swing.JDialog {
         _stream.attach(jList1);
         
         jLabelVersion.setText(MXConfiguration.MX_APPLICATION);
-        getContentPane().setBackground(Color.white);
 
         _piano = new MXPianoKeys();
         _piano.setNoteRange(0, 3);
@@ -216,7 +215,6 @@ public class MXProgressDialog extends javax.swing.JDialog {
         jList1 = new javax.swing.JList<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setBackground(new java.awt.Color(255, 255, 255));
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
         jPanelPiano.setLayout(new javax.swing.BoxLayout(jPanelPiano, javax.swing.BoxLayout.LINE_AXIS));
@@ -228,7 +226,6 @@ public class MXProgressDialog extends javax.swing.JDialog {
         getContentPane().add(jPanelPiano, gridBagConstraints);
 
         jLabelVersion.setFont(new java.awt.Font("Bell MT", 0, 24)); // NOI18N
-        jLabelVersion.setForeground(new java.awt.Color(0, 0, 255));
         jLabelVersion.setText("Version");
         getContentPane().add(jLabelVersion, new java.awt.GridBagConstraints());
 

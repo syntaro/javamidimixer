@@ -202,7 +202,7 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXINI
         return false;
     }
 
-    public boolean backupFileToOld(File target) {
+    public boolean moveToBackupFolder(File target) {
         File backupFolder = getSaveDirectory();
         if (backupFolder == null) {
             //can't user this function
@@ -282,7 +282,7 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXINI
                 }
                 return false;
             }else {
-                backupFileToOld(localFile);
+                moveToBackupFolder(localFile);
             }
         }
         if (copyFileNative(file, localFile) == false) {

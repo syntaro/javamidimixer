@@ -566,15 +566,15 @@ public class MXJsonValue {
         MXJsonValue root = new MXJsonValue(null);
 
         MXJsonValue.HelperForStructure rootSttucture = root.new HelperForStructure();
-        rootSttucture.addFollowingText("abc", "ABC[]");
-        rootSttucture.addFollowingText("def", "DEF\\");
-        rootSttucture.addFollowingText("ghi", "GHI\"");
+        rootSttucture.setFollowingText("abc", "ABC[]");
+        rootSttucture.setFollowingText("def", "DEF\\");
+        rootSttucture.setFollowingText("ghi", "GHI\"");
 
         MXJsonValue.HelperForStructure structure2 = rootSttucture.addFollowingStructure("attributes");
-        structure2.addFollowingText("name", "synthtarou");
-        structure2.addFollowingNumber("age", 47);
-        structure2.addFollowingText("gender", "man");
-        structure2.addFollowingText("fine", "thank you");
+        structure2.setFollowingText("name", "synthtarou");
+        structure2.setFollowingNumber("age", 47);
+        structure2.setFollowingText("gender", "man");
+        structure2.setFollowingText("fine", "thank you");
 
         MXJsonValue.HelperForArray routine = rootSttucture.addFollowingArray("routine");
         routine.addFollowingText("eat");
@@ -802,6 +802,9 @@ public class MXJsonValue {
             return value.new HelperForArray();
         }
 
+        /**
+         * 紐づくMXJsonValueを取得する
+         */
         public MXJsonValue toJsonValue() {
             return MXJsonValue.this;
         }
@@ -840,7 +843,7 @@ public class MXJsonValue {
 
         /**
          * 構造体の大きさを取得する
-         * @return 配列の大きさ
+         * @return 構造体の大きさ
          */
         public int count() {
             return contentsCount();
@@ -857,7 +860,7 @@ public class MXJsonValue {
         }
 
         /**
-         * 配列から要素を取得する
+         * 構造体から要素を取得する
          * @param index　インデックス
          * @return 要素
          */
@@ -867,7 +870,7 @@ public class MXJsonValue {
         }
 
         /**
-         * 配列から数を取得する 
+         * 構造体から数を取得する 
          * @param index インデックス
          * @return 数値
          */
@@ -877,11 +880,11 @@ public class MXJsonValue {
         }
 
         /**
-         * 配列をラベル名で探索する
+         * 構造体をラベル名で探索する
          * @param label エスケープされているラベル名
          * @return 見つかったインデックス、見つからない場合-1
          */
-        public int indexOfWithEscape(String label) {
+        public int indexOfUnescapedLabel(String label) {
             String escaped = escape(label);
             for (int i = 0; i < MXJsonValue.this.contentsCount(); ++i) {
                 MXJsonValue value = MXJsonValue.this.getContentsAt(i);
@@ -893,46 +896,19 @@ public class MXJsonValue {
         }
 
         /**
-         * ラベルから文字列を取得する
-         * @param name ラベル文字列
-         * @return みつかった文字列
+         * 構造体をラベル名で探索する
+         * @param label エスケープされているラベル名
+         * @return 見つかったインデックス、見つからない場合-1
          */
-        public String getFollowingText(String name, String defValue) {
-            int index = indexOfWithEscape(name);
-            if (index < 0) {
-                return null;
+        public int indexOfNumberLabel(Number label) {
+            String textLabel = String.valueOf(label);
+            for (int i = 0; i < MXJsonValue.this.contentsCount(); ++i) {
+                MXJsonValue value = MXJsonValue.this.getContentsAt(i);
+                if (textLabel.equals(value._label)) {
+                    return i;
+                }
             }
-            MXJsonValue pair = getContentsAt(index).getContentsAt(0);
-            return unescape(pair._label);
-        }
-
-        /**
-         * 配列にnullを追加する
-         * @param name ラベル
-         */
-        public void addFollowingNull(String name) {
-            MXJsonValue key = new MXJsonValue(escape(name), null);
-            addToContentsStructure(key);
-        }
-
-        /**
-         * 配列に数値を追加する
-         * @param name ラベル
-         * @param value 数値
-         */
-        public void addFollowingNumber(String name, Number value) {
-            MXJsonValue key = new MXJsonValue(escape(name), String.valueOf(value));
-            addToContentsStructure(key);
-        }
-
-        /**
-         * 配列に文字列をエスケープして追加する
-         * @param name ラベル
-         * @param value エスケープされていない文字列
-         */
-        public void addFollowingText(String name, String value) {
-            MXJsonValue key = new MXJsonValue(escape(name), escape(value));
-            addToContentsStructure(key);
+            return -1;
         }
 
         /**
@@ -965,7 +941,7 @@ public class MXJsonValue {
          * @return HelperForStructure型
          */
         public HelperForStructure getFollowingStructure(String label) {
-            int index = indexOfWithEscape(label);
+            int index = indexOfUnescapedLabel(label);
             if (index < 0) {
                 return null;
             }
@@ -974,12 +950,40 @@ public class MXJsonValue {
         }
 
         /**
-         * 配列を検索して、HelperForStructure型で取得する
+         * 構造体を検索して、文字列を取得する
+         * @param label ラベル文字列
+         * @return みつかった文字列
+         */
+        public String getFollowingText(String label, String defValue) {
+            int index = indexOfUnescapedLabel(label);
+            if (index < 0) {
+                return null;
+            }
+            MXJsonValue pair = getContentsAt(index).getContentsAt(0);
+            return unescape(pair._label);
+        }
+
+        /**
+         * 構造体を検索して、文字列を取得する
+         * @param label ラベル文字列
+         * @return みつかった文字列
+         */
+        public String getFollowingText(Number label, String defValue) {
+            int index = indexOfUnescapedLabel(String.valueOf(label));
+            if (index < 0) {
+                return null;
+            }
+            MXJsonValue pair = getContentsAt(index).getContentsAt(0);
+            return unescape(pair._label);
+        }
+
+        /**
+         * 構造体を検索して、HelperForStructure型で取得する
          * @param label エスケープされてないラベル
          * @return HelperForStructure型
          */
         public HelperForArray getFollowingArray(String label) {
-            int index = indexOfWithEscape(label);
+            int index = indexOfUnescapedLabel(label);
             if (index < 0) {
                 return null;
             }
@@ -987,8 +991,13 @@ public class MXJsonValue {
             return value.new HelperForArray();
         }
         
+        /**
+         * 構造体を検索して、int型で取得する
+         * @param label エスケープされてないラベル
+         * @return HelperForStructure型
+         */
         public int getFollowingInt(String label, int defvalue) {
-            int x = indexOfWithEscape(label);
+            int x = indexOfUnescapedLabel(label);
             if (x < 0) {
                 return defvalue;
             }
@@ -1001,9 +1010,14 @@ public class MXJsonValue {
             }
         }
 
+        /**
+         * 構造体を検索して、boolean型で取得する
+         * @param label エスケープされてないラベル
+         * @return HelperForStructure型
+         */
         public boolean getFollowingBool(String label, boolean defvalue) {
             try {
-                int x = indexOfWithEscape(label);
+                int x = indexOfUnescapedLabel(label);
                 if (x < 0) {
                     System.out.println("label " + label + "-1");
                     return defvalue;
@@ -1023,20 +1037,30 @@ public class MXJsonValue {
             return defvalue;
         }
 
-        public void setFollowingText(String label, String text) {
-            int x = indexOfWithEscape(label);
+        /**
+         * 構造体のlabelにString型のvalueを設置する
+         * @param label ラベル
+         * @param value 設置する値
+         */
+        public void setFollowingText(String label, String value) {
+            int x = indexOfUnescapedLabel(label);
             if (x < 0) {
-                MXJsonValue var = new MXJsonValue(escape(label), escape(text));
+                MXJsonValue var = new MXJsonValue(escape(label), escape(value));
                 MXJsonValue.this.addToContentsStructure(var);
             }
             else {
                 MXJsonValue var = getContentsAt(x);
-                var.getContentsAt(0)._label = escape(text);
+                var.getContentsAt(0)._label = escape(value);
             }
         }
         
+        /**
+         * 構造体のlabelにint型のvalueを設置する
+         * @param label ラベル
+         * @param value 設置する値
+         */
         public void setFollowingInt(String label, int value) {
-            int x = indexOfWithEscape(label);
+            int x = indexOfUnescapedLabel(label);
             if (x < 0) {
                 MXJsonValue var = new MXJsonValue(escape(label), String.valueOf(value));
                 MXJsonValue.this.addToContentsStructure(var);
@@ -1047,8 +1071,47 @@ public class MXJsonValue {
             }
         }
 
+
+        /**
+         * 構造体のlabelにnullを設置する
+         * @param label ラベル
+         */
+        public void setFollowingNull(String label) {
+            int x = indexOfUnescapedLabel(label);
+            if (x < 0) {
+                MXJsonValue key = new MXJsonValue(escape(label), null);
+                addToContentsStructure(key);
+            }
+            else {
+                MXJsonValue var = getContentsAt(x);
+                var.getContentsAt(0)._label = "null";
+            }
+        }
+
+        /**
+         * 構造体のlabelにNumber型のvalueを設置する
+         * @param label ラベル
+         * @param value 設置する値
+         */
+        public void setFollowingNumber(String label, Number value) {
+            int x = indexOfUnescapedLabel(label);
+            if (x < 0) {
+                MXJsonValue key = new MXJsonValue(escape(label), String.valueOf(value));
+                addToContentsStructure(key);
+            }
+            else {
+                MXJsonValue var = getContentsAt(x);
+                var.getContentsAt(0)._label = String.valueOf(value);
+            }
+        }
+
+        /**
+         * 構造体のlabelにboolean型のvalueを設置する
+         * @param label ラベル
+         * @param value 設置する値
+         */
         public void setFollowingBool(String label, boolean value) {
-            int x = indexOfWithEscape(label);
+            int x = indexOfUnescapedLabel(label);
             if (x < 0) {
                 MXJsonValue var = new MXJsonValue(escape(label), value ? "true" : "false");
                 MXJsonValue.this.addToContentsStructure(var);
@@ -1058,7 +1121,95 @@ public class MXJsonValue {
                 var.getContentsAt(0)._label = value ? "true" : "false";
             }
         }
+        
+        /**
+         * 構造体のlabelにString型のvalueを設置する
+         * @param label ラベル
+         * @param value 設置する値
+         */
+        public void setFollowingText(Number label, String value) {
+            int x = indexOfNumberLabel(label);
+            if (x < 0) {
+                MXJsonValue var = new MXJsonValue(String.valueOf(label), escape(value));
+                MXJsonValue.this.addToContentsStructure(var);
+            }
+            else {
+                MXJsonValue var = getContentsAt(x);
+                var.getContentsAt(0)._label = escape(value);
+            }
+        }
+        
+        /**
+         * 構造体のlabelにint型のvalueを設置する
+         * @param label ラベル
+         * @param value 設置する値
+         */
+        public void setFollowingInt(Number label, int value) {
+            int x = indexOfNumberLabel(label);
+            if (x < 0) {
+                MXJsonValue var = new MXJsonValue(String.valueOf(label), String.valueOf(value));
+                MXJsonValue.this.addToContentsStructure(var);
+            }
+            else {
+                MXJsonValue var = getContentsAt(x);
+                var.getContentsAt(0)._label = String.valueOf(value);
+            }
+        }
 
+
+        /**
+         * 構造体のlabelにnullを設置する
+         * @param label ラベル
+         */
+        public void setFollowingNull(Number label) {
+            int x = indexOfNumberLabel(label);
+            if (x < 0) {
+                MXJsonValue key = new MXJsonValue(String.valueOf(label), null);
+                addToContentsStructure(key);
+            }
+            else {
+                MXJsonValue var = getContentsAt(x);
+                var.getContentsAt(0)._label = "null";
+            }
+        }
+
+        /**
+         * 構造体のlabelにNumber型のvalueを設置する
+         * @param label ラベル
+         * @param value 設置する値
+         */
+        public void setFollowingNumber(Number label, Number value) {
+            int x = indexOfNumberLabel(label);
+            if (x < 0) {
+                MXJsonValue key = new MXJsonValue(String.valueOf(label), String.valueOf(value));
+                addToContentsStructure(key);
+            }
+            else {
+                MXJsonValue var = getContentsAt(x);
+                var.getContentsAt(0)._label = String.valueOf(value);
+            }
+        }
+
+        /**
+         * 構造体のlabelにboolean型のvalueを設置する
+         * @param label ラベル
+         * @param value 設置する値
+         */
+        public void setFollowingBool(Number label, boolean value) {
+            int x = indexOfNumberLabel(label);
+            if (x < 0) {
+                MXJsonValue var = new MXJsonValue(String.valueOf(label), value ? "true" : "false");
+                MXJsonValue.this.addToContentsStructure(var);
+            }
+            else {
+                MXJsonValue var = getContentsAt(x);
+                var.getContentsAt(0)._label = value ? "true" : "false";
+            }
+        }
+
+        /**
+         * 紐づくMXJsonValueを取得する
+         */
         public MXJsonValue toJsonValue() {
             return MXJsonValue.this;
         }

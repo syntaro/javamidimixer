@@ -67,15 +67,15 @@ public abstract class MXReceiver<T extends JPanel> {
         boolean done = false;
         if (support instanceof MXJsonSupport){
             done = ((MXJsonSupport) support).readJSonfile(null);
-            System.out.println("tried read json = " + done + "@ " + support.getClass());
+            MXFileLogger.getLogger(support.getClass()).info("tried read json = " + done);
         }
         if (!done) {
             done = support.readINIFile(null);
-            System.out.println("tried read ini = " + done + "@ " + support.getClass());
+            MXFileLogger.getLogger(support.getClass()).info("tried read ini= " + done);
         }
         if (!done) {
             support.resetSetting();
-            System.out.println("tried reset "+ "@ " + support.getClass());
+            MXFileLogger.getLogger(support.getClass()).info("tried reset setting");
         }
     }
     

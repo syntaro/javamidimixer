@@ -18,6 +18,7 @@ package jp.synthtarou.midimixer.mx50resolution;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.IllegalFormatException;
 import java.util.logging.Level;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXRangedValue;
@@ -119,14 +120,14 @@ public class MX50Process extends MXReceiver<MX50View> implements MXINIFileSuppor
             }
             int channel = setting.getSettingAsInt(prefix + "Channel", 0);
             int gate = setting.getSettingAsInt(prefix + "Gate", 0);
-            int min = setting.getSettingAsInt(prefix + "Min", -1);
-            int max = setting.getSettingAsInt(prefix + "Max", -1);
+            //int min = setting.getSettingAsInt(prefix + "Min", -1);
+            //int max = setting.getSettingAsInt(prefix + "Max", -1);
             int resolution = setting.getSettingAsInt(prefix + "Resolution", -1);
 
             try {
                 MXTemplate template = new MXTemplate(command);
                 MXRangedValue gateObj = MXRangedValue.new7bit(gate);
-                MXRangedValue value = new MXRangedValue(0, min, max);
+                //MXRangedValue value = new MXRangedValue(0, min, max);
                 
                 MXResolution reso = new MXResolution(this);
                 reso._channel = channel;
@@ -188,6 +189,42 @@ public class MX50Process extends MXReceiver<MX50View> implements MXINIFileSuppor
         if (value == null) {
             return false;
         }
+        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
+        
+        MXJsonValue.HelperForArray listResolution = root.getFollowingArray("Resolution");
+        if(listResolution != null) {
+            for (int i = 0; i < listResolution.count(); ++ i) {
+                MXJsonValue.HelperForStructure resolution = listResolution.getFollowingStructure(i);
+                MXResolution reso = new MXResolution(this);
+                String textComand = resolution.getFollowingText("Command", "");
+                try {
+                    if (textComand == null) {
+                        reso._command = null;
+                    }
+                    else {                        
+                        reso._command = textComand == null ? null : new MXTemplate(textComand);
+                    }
+                }catch(IllegalFormatException ex) {
+                    MXFileLogger.getLogger(MX50Process.class).log(Level.WARNING, ex.getMessage(), ex);
+                    continue;
+                }
+                reso._port = resolution.getFollowingInt("Port",  -1);
+                if (reso._port < 0) {
+                    continue;
+                }
+                reso._channel = resolution.getFollowingInt("Channel", 0);
+                reso._gate = resolution.getFollowingInt("Gate", 0);
+                reso._resolution = resolution.getFollowingInt("Resolution", 128);
+                MXJsonValue.HelperForArray listGateTable = resolution.getFollowingArray("GateTable");
+                for (int j = 0; j < listGateTable.count(); ++ j) {
+                    MXJsonValue gate = listGateTable.getFollowingValue(j);
+                    Number label = gate.getLabelNumber();
+                    String text = value.getContentsTypeText();
+                    reso._gateTable.addNameAndValue(text, label.intValue());
+                }
+            }
+        }
+
         return true;
     }
 
@@ -196,10 +233,25 @@ public class MX50Process extends MXReceiver<MX50View> implements MXINIFileSuppor
         if (custom == null) {
             custom = MXJsonParser.pathOf("ResolutionDown");
         }
-        MXJsonValue value = new MXJsonValue(null);
-
         MXJsonParser parser = new MXJsonParser(custom);
-        parser.setRoot(value);
+        MXJsonValue.HelperForStructure root = parser.getRoot().new HelperForStructure();
+        
+        MXJsonValue.HelperForArray listResolution = root.addFollowingArray("Resolution");
+
+        for (MXResolution reso : _listResolution) {
+            MXJsonValue.HelperForStructure resolution = listResolution.addFollowingStructure();
+            resolution.setFollowingText("Command", reso._command != null ? reso._command.toDText(): "");
+            resolution.setFollowingInt("Port", reso._port);
+            resolution.setFollowingInt("Channel", reso._channel);
+            resolution.setFollowingInt("Gate", reso._gate);
+            resolution.setFollowingInt("Resolution", reso._resolution);
+            MXJsonValue.HelperForArray listGateTable = resolution.addFollowingArray("GateTable");
+            for (int i = 0; i < reso._gateTable.getSize(); ++ i) {
+                MXJsonValue.HelperForStructure gateTable = listGateTable.addFollowingStructure();
+                gateTable.setFollowingText(reso._gateTable.get(i)._value, reso._gateTable.get(i)._name);
+            }
+        }
+
         return parser.writeFile();
     }
 

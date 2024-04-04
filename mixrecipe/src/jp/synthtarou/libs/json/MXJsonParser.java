@@ -207,13 +207,14 @@ public class MXJsonParser {
     protected MXJsonValue parseImpl(MXJsonValue root, MXJsonFileReader reader) {
         int point = 0;
         int total = 0;
-        File file = _file;
-        String fileName = _file.toString();
-        String dir = getJsonDirectory().getParent();
-        if (fileName.startsWith(dir)) {
-            fileName = "$(APP)" + fileName.substring(dir.length());
+        if (_file != null) {
+            String fileName = _file.toString();
+            String dir = getJsonDirectory().getParent();
+            if (fileName.startsWith(dir)) {
+                fileName = "$(APP)" + fileName.substring(dir.length());
+            }
+            MXMain.progress("reading " + fileName);
         }
-        MXMain.progress("reading " + fileName);
         _parse1 = new ArrayList<>();
         _root = null;
         while (true) {

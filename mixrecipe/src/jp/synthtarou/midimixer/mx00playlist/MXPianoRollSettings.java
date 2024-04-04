@@ -16,9 +16,12 @@
  */
 package jp.synthtarou.midimixer.mx00playlist;
 
+import java.awt.Color;
 import java.awt.Dimension;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.namedobject.MXNamedObject;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.libs.navigator.MXPopupForList;
 
@@ -63,37 +66,52 @@ public class MXPianoRollSettings extends javax.swing.JPanel {
             @Override
             public void approvedIndex(int selectedIndex) {
                 int value = listColor.valueOfIndex(selectedIndex);
-                _process._viewData._focusChannel = value;
-                jTextFieldColor.setText(listColor.nameOfValue(_process._viewData._focusChannel));
-                _process._view._pianoRollRoll.setFocusChannel(value);
+                if (_process._viewData._focusChannel != value) {
+                    _process._viewData._focusChannel = value;
+                    jTextFieldColor.setText(listColor.nameOfValue(_process._viewData._focusChannel));
+                    _process._view._pianoRollRoll.setFocusChannel(value);
+                }
+            }
+
+            @Override
+            public void customizeMenu(JRadioButtonMenuItem item, MXNamedObject<Integer> entry) {
+                int channel = entry._value;
+                item.setForeground(MXPianoRoll.channelColor(channel));
             }
         };
         MXPopupForList<Integer> popupForMargin = new MXPopupForList<Integer>(jTextFieldMargin, listMagin) {
             @Override
             public void approvedIndex(int selectedIndex) {
                 int value = listMagin.valueOfIndex(selectedIndex);
-                _process._viewData._soundMargin = value;
-                jTextFieldMargin.setText(listMagin.nameOfValue((int)_process._viewData._soundMargin));
-                _process._view._pianoRollRoll.setSoundMargin(value);
+                if (_process._viewData._soundMargin != value) {
+                    _process._viewData._soundMargin = value;
+                    jTextFieldMargin.setText(listMagin.nameOfValue((int)_process._viewData._soundMargin));
+                    _process._view._pianoRollRoll.setSoundMargin(value);
+                }
             }
         };
         MXPopupForList<Integer> popupForSpan = new MXPopupForList<Integer>(jTextFieldSpan, listSpan) {
             @Override
             public void approvedIndex(int selectedIndex) {
                 int value = listSpan.valueOfIndex(selectedIndex);
-                _process._viewData._soundSpan = value;
-                jTextFieldSpan.setText(listSpan.nameOfValue((int)_process._viewData._soundSpan));
-                _process._view._pianoRollRoll.setSoundSpan(value);
+                if (_process._viewData._soundSpan != value) {
+                    _process._viewData._soundSpan = value;
+                    jTextFieldSpan.setText(listSpan.nameOfValue((int)_process._viewData._soundSpan));
+                    _process._view._pianoRollRoll.setSoundSpan(value);
+                }
             }
         };
 
         MXPopupForList<Integer> popupForTiming = new MXPopupForList<Integer>(jTextFieldHighlightTiming, listTiming) {
             @Override
             public void approvedIndex(int selectedIndex) {
-                int value = listTiming.valueOfIndex(selectedIndex);
-                _process._viewData._highlightTiming = value > 0;
-                jTextFieldHighlightTiming.setText(listTiming.nameOfValue(Integer.valueOf(_process._viewData._highlightTiming ? 1 : 0)));
-                _process._view._pianoRollRoll.setHighlightTiming(value > 0);
+                int valueNumber = listTiming.valueOfIndex(selectedIndex);
+                boolean value = valueNumber > 0;
+                if (_process._viewData._highlightTiming != value) {
+                    _process._viewData._highlightTiming = value;
+                    jTextFieldHighlightTiming.setText(listTiming.nameOfValue(Integer.valueOf(value ? 1 : 0)));
+                    _process._view._pianoRollRoll.setHighlightTiming(value);
+                }
             }
         };
         this.setSize(new Dimension(350, 150));

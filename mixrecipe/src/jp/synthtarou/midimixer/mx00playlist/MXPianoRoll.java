@@ -142,10 +142,10 @@ public class MXPianoRoll extends JComponent {
         }
     }
 
-    byte[] _colorSeparator = SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(Color.red, 30, Color.black, 70), null);
-    byte[] _colorBackBlack = SimpleRGBCanvas.colorToBgr(Color.black, null);
-    byte[] _colorBackGray2 = SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(Color.green, 20, Color.lightGray, 10, Color.black, 70), null);
-    byte[] _colorBackGray4 = SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(Color.orange, 30, Color.black, 70), null);
+    byte[] _colorSeparator = null; //SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(Color.red, 60, Color.black, 40), null);
+    byte[] _colorBackBlack = SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(Color.lightGray, 70, Color.black, 30), null);
+    byte[] _colorBackGray2 = SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(MXUtil.mixtureColor(Color.cyan, 70, Color.white, 20), 20, Color.black, 30), null);
+    byte[] _colorBackGray4 = SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(Color.orange, 30, Color.black, 30), null);
 
     protected void paintOnBuffer1(long currentMilliSec) {
         if (!_doingPaint) {
@@ -165,14 +165,15 @@ public class MXPianoRoll extends JComponent {
             _lastRollingY = 0;
             _rollingY = 0;
             _lastMilliSec = -_spanMilliSec;
-            for (int i = 0; i < _kickedChannelList.length; ++i) {
-                _kickedChannelList[i] = 0;
-            }
-            _lastPickupForPaint = 0;
-            for (int i = 0; i < _pickedNoteForPaint.length; ++i) {
-                _pickedNoteForPaint[i] = 0;
-            }
-            if (_keys != null) {            
+
+            _lastCheckedForRolling = 0;
+            if (_keys != null) {
+                _nextStartForPaintFooterKeys = 0;
+                for (int noteNumber = 0; noteNumber < _listNotePressedChannel.length; ++noteNumber) {
+                    _listNotePressedChannel[noteNumber] = 0;
+                }
+                _keys.allNoteOff();
+                controlFooterKeys(currentMilliSec);
                 _keys.repaint();
             }
         }
@@ -195,7 +196,7 @@ public class MXPianoRoll extends JComponent {
                 double distanceY = (double) (y - y0);
                 double distanceTime = distanceY * _spanMilliSec / heightAll;
                 long linetime = (long) (startTime + distanceTime);
-                int[] playing = listPaintNote(linetime);
+                int[] playing = calcPlayingNote(linetime);
                 int keysRoot = _keyboardRoot;
                 int keysCount = _keyboardOctave * 12;
                 int onlyDrum = 1 << 9;
@@ -213,7 +214,7 @@ public class MXPianoRoll extends JComponent {
                 if (!_highlightTiming) {
                     color = _colorBackBlack;
                 } else {
-                    if (lastMeasure != measure) {
+                    if (lastMeasure != measure && _colorSeparator != null) {
                         color = _colorSeparator;
                         lastMeasure = measure;
                     } else {
@@ -283,26 +284,24 @@ public class MXPianoRoll extends JComponent {
         }
     };
 
-    int _lastPickupForPaint = 0;
-    int[] _pickedNoteForPaint = new int[256];
-    int _lastPickupForKick = 0;
-
-    public int[] listPaintNote(long milliSeconds) {
+    public int[] calcPlayingNote(long milliSeconds) {
         List<SMFMessage> list = _sequencer.listMessage();
-        if (list != null && list.size() > _lastPickupForPaint) {
-            if (milliSeconds < list.get(_lastPickupForPaint)._millisecond) {
-                _lastPickupForPaint = 0;
-                for (int i = 0; i < _pickedNoteForPaint.length; ++i) {
-                    _pickedNoteForPaint[i] = 0;
-                }
+        if (_lastCheckedForRolling < list.size()) {
+            if (milliSeconds < list.get(_lastCheckedForRolling)._millisecond) {
+                _lastCheckedForRolling = 0;
             }
         }
-        for (int x = _lastPickupForPaint; x < list.size(); ++x) {
+        if (_lastCheckedForRolling == 0) {
+            for (int i = 0; i < _currentKeyColor.length; ++i) {
+                _currentKeyColor[i] = 0;
+            }
+        }
+        for (int x = _lastCheckedForRolling; x < list.size(); ++x) {
             SMFMessage smf = list.get(x);
             if (smf._millisecond > milliSeconds) {
                 break;
             }
-            _lastPickupForPaint = x;
+            _lastCheckedForRolling = x;
 
             long time = smf._millisecond;
             int command = smf.getStatus() & 0xf0;
@@ -314,20 +313,24 @@ public class MXPianoRoll extends JComponent {
             switch (command) {
                 case MXMidi.COMMAND_CH_NOTEON:
                     if (velocity >= 1) {
-                        _pickedNoteForPaint[note] |= channelbit;
+                        _currentKeyColor[note] |= channelbit;
                         break;
                     }
                 case MXMidi.COMMAND_CH_NOTEOFF:
-                    _pickedNoteForPaint[note] &= ~channelbit;
+                    _currentKeyColor[note] &= ~channelbit;
                     break;
             }
         }
-        return _pickedNoteForPaint;
+        return _currentKeyColor;
     }
 
-    int[] _kickedChannelList = new int[128];
+    int _lastCheckedForRolling = 0;
+    int[] _currentKeyColor = new int[128];
 
-    private void noteForKick(long milliSeconds) {
+    int _nextStartForPaintFooterKeys = 0;
+    int[] _listNotePressedChannel = new int[128];
+
+    private void controlFooterKeys(long milliSeconds) {
         if (_keys == null) {
             return;
         }
@@ -336,23 +339,27 @@ public class MXPianoRoll extends JComponent {
         }
         boolean lockBuffered = false;
         List<SMFMessage> list = _sequencer.listMessage();
-        if (list != null && list.size() > _lastPickupForKick) {
-            if (milliSeconds < list.get(_lastPickupForKick)._millisecond) {
+        if (list != null && _nextStartForPaintFooterKeys < list.size()) {
+            if (_nextStartForPaintFooterKeys == 0 
+              || milliSeconds < list.get(_nextStartForPaintFooterKeys)._millisecond) {
                 if (_keys != null) {            
+                    lockBuffered = true;
                     _keys.setOnlyBuffer(true);
                    _keys.allNoteOff();
-                   lockBuffered = true;
                 }
-                _lastPickupForKick = 0;
+                for (int note = 0; note < _listNotePressedChannel.length; ++ note) {
+                    _listNotePressedChannel[note] = 0;
+                }
+                _nextStartForPaintFooterKeys = 0;
             }
         }
 
-        for (int x = _lastPickupForKick; x < list.size(); ++x) {
+        for (int x = _nextStartForPaintFooterKeys; x < list.size(); ++x) {
             SMFMessage smf = list.get(x);
             if (smf._millisecond > milliSeconds) {
                 break;
             }
-            _lastPickupForKick = x;
+            _nextStartForPaintFooterKeys = x;
 
             long time = smf._millisecond;
             int command = smf.getStatus() & 0xf0;
@@ -365,24 +372,26 @@ public class MXPianoRoll extends JComponent {
                 continue;
             }
 
-            if (channel != _focusChannel && _focusChannel >= 0) {
-                continue;
+            if (_focusChannel >= 0) {
+                if (channel != _focusChannel) {
+                    continue;
+                }
             }
 
             switch (command) {
                 case MXMidi.COMMAND_CH_NOTEON:
                     if (velocity >= 1) {
-                        if (_kickedChannelList[note] == 0) {
+                        if (_listNotePressedChannel[note] == 0) {
                             _keys.noteOn(note);
                         }
-                        _kickedChannelList[note] |= 1 << channel;
+                        _listNotePressedChannel[note] |= 1 << channel;
                         break;
                     }
                 case MXMidi.COMMAND_CH_NOTEOFF:
-                    if ((_kickedChannelList[note] & (1 << channel)) != 0) {
-                        _kickedChannelList[note] -= (1 << channel);
+                    if ((_listNotePressedChannel[note] & (1 << channel)) != 0) {
+                        _listNotePressedChannel[note] -= (1 << channel);
                     }
-                    if (_kickedChannelList[note] == 0) {
+                    if (_listNotePressedChannel[note] == 0) {
                         _keys.noteOff(note);
                     }
                     break;
@@ -414,9 +423,20 @@ public class MXPianoRoll extends JComponent {
         return _focusChannel;
     }
 
-    Color[] colors = null;
+    static Color[] colors = new Color[]{
+            Color.pink, Color.cyan, Color.orange, Color.blue, Color.green, Color.yellow, Color.red, Color.white
+        };
     Color[] hibridSource = new Color[16];
     int _focusChannel = -1;
+    
+    public static Color channelColor(int channel) {
+        if (channel == -1) {
+            int count = 1;
+            return MXUtil.mixtureColor(new Color(50, 50, 50, 255), 4 - count, Color.white, 4 + count);
+        }
+        Color c = colors[channel % colors.length];
+        return c;
+    }
 
     public Color bitColor(int channel) {
         if (_focusChannel >= 0) {
@@ -443,20 +463,15 @@ public class MXPianoRoll extends JComponent {
             return MXUtil.mixtureColor(new Color(50, 50, 50, 255), 4 - count, Color.white, 4 + count);
         } else {
             int count = 0;
-            for (int b = 0; b < 16; ++b) {
-                hibridSource[b] = null;
-                if (b == 9) {
+            for (int seekCh = 0; seekCh < 16; ++seekCh) {
+                hibridSource[seekCh] = null;
+                if (seekCh == 9) {
                     continue;
                 }
-                int bit = 1 << b;
-                if ((channel & bit) == bit) {
-                    if (colors == null) {
-                        colors = new Color[]{
-                            Color.pink, Color.cyan, Color.orange, Color.blue, Color.green, Color.yellow, Color.red, Color.white
-                        };
-                    }
-                    Color c = colors[b % colors.length];
-                    hibridSource[b] = c;
+                int seekBit = 1 << seekCh;
+                if ((channel & seekBit) == seekBit) {
+                    Color c = colors[seekCh % colors.length];
+                    hibridSource[seekCh] = c;
                     count++;
                 }
             }
@@ -518,11 +533,11 @@ public class MXPianoRoll extends JComponent {
             return;
         }
         if (elapsed < _position || clearCache) {
-            _lastMilliSec = - 1;
+            _lastMilliSec = -1;
         }
         _position = elapsed;
         if (_keys != null) {
-            noteForKick(_position);
+            controlFooterKeys(_position);
             _keys.repaint();
         }
         paintOnBuffer1(elapsed);

@@ -60,32 +60,48 @@ public class MXMainWindow extends javax.swing.JFrame {
 
         jTabbedPane1 = new javax.swing.JTabbedPane();
 
-        JMenuItem helpMenu = new JMenuItem("Wiki");
+        JMenuItem helpMenu = new JMenuItem("HomePage/サイト");
         helpMenu.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent evt) {
-                String wikiPage = "https://osdn.net/projects/midimixer/wiki/FrontPage";
+                String url = "https://syntaro.github.io/javamidimixer/";
                 try {
-                    Desktop.getDesktop().browse(new URI(wikiPage));
+                    Desktop.getDesktop().browse(new URI(url));
                 } catch (Exception e) {
                     JOptionPane.showMessageDialog(MXMainWindow.this, "Failed launch www-Browser", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
         helpParent.add(helpMenu);
-        JMenuItem helpMenu2 = new JMenuItem("Forum");
+
+        JMenuItem helpMenu2 = new JMenuItem("Manual PDF");
         helpMenu2.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent evt) {
-                String wikiPage = "https://osdn.net/projects/midimixer/forums/";
+                String url = "https://syntaro.github.io/javamidimixer/MIXRecipe.pdf";
                 try {
-                    Desktop.getDesktop().browse(new URI(wikiPage));
+                    Desktop.getDesktop().browse(new URI(url));
                 } catch (Exception e) {
                     JOptionPane.showMessageDialog(MXMainWindow.this, "Failed launch www-Browser", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
         helpParent.add(helpMenu2);
+
+        JMenuItem helpMenu3 = new JMenuItem("Issue/問題");
+        helpMenu3.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                String url = "https://github.com/syntaro/javamidimixer/issues";
+                try {
+                    Desktop.getDesktop().browse(new URI(url));
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(MXMainWindow.this, "Failed launch www-Browser", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+        helpParent.add(helpMenu3);
+
         JMenu appMenu = new JMenu(MXConfiguration.MX_APPLICATION);
         jMenuBar1.add(appMenu);
 

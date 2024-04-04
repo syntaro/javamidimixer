@@ -436,24 +436,27 @@ public class MXPianoKeys extends JComponent {
     }
 
     public void noteOn(int note) {
-        _sequenceNoteOn[note] = true;
-        if (_sequenceSustainGlobal) {
-            _sequenceSustain[note] = true;
+        if (!_sequenceNoteOn[note]) {
+            _sequenceNoteOn[note] = true;
+            if (_sequenceSustainGlobal) {
+                _sequenceSustain[note] = true;
+            }
+            orderRedrawNote(note);
         }
-        orderRedrawNote(note);
     }
 
     public void noteOff(int note) {
-        _sequenceNoteOn[note] = false;
-        orderRedrawNote(note);
+        if (_sequenceNoteOn[note]) {
+            _sequenceNoteOn[note] = false;
+            orderRedrawNote(note);
+        }        
     }
 
     public void allNoteOff() {
         _sequenceSustainGlobal = false;
         for (int note = 0; note < _sequenceNoteOn.length; ++note) {
-            _sequenceNoteOn[note] = false;
+            noteOff(note);
         }
-        orderRedrawNote(-1);
     }
 
     public void sustain(int pedal) {

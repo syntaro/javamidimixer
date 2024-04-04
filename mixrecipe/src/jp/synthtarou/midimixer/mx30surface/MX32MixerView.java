@@ -37,6 +37,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileFilter;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.MXUtil;
@@ -337,7 +338,7 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
 
     public void doImportMixer() {
         MXFileChooser chooser = new MXFileChooser();
-        chooser.addExtension(".xml", "XML File");
+        chooser.addExtension(".ini", "INI File");
         chooser.setAcceptAllFileFilterUsed(false);
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             File file = chooser.getSelectedFile();
@@ -350,7 +351,10 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
     }
 
     public void doExportMixer() {
-        JFileChooser chooser = new JFileChooser();
+        MXFileChooser chooser = new MXFileChooser();
+        chooser.addExtension(".ini", "INI File");
+        chooser.setDialogType(JFileChooser.SAVE_DIALOG);
+        chooser.setAcceptAllFileFilterUsed(true);
         if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
             File file = chooser.getSelectedFile();
             MXINIFile setting = new MXINIFile(file, _mixer);

@@ -67,6 +67,5 @@ public class MXSafeThread extends Thread {
             }
         }
         MXFileLogger.getLogger(MXSafeThread.class).info("Finally ... ");
-        _group.list();
     }
 }

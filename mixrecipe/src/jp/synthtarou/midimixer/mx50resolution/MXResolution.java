@@ -32,10 +32,8 @@ public class MXResolution implements Cloneable {
     int _port;
     int _channel;
     int _gate;
-    int _defaultValue;
     int _resolution;
     MXNamedObjectList<Integer> _gateTable;
-    MXNamedObjectList<Integer> _valueTable;
     
     final MX50Process _process;
     MXResolutionView _bindedView;   

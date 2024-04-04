@@ -57,11 +57,11 @@ public class ThemeManager implements MXINIFileSupport, MXJsonSupport {
         return _manager;
     }
     
-    public boolean colorfulMetalTheme;
-    public String themeName;
-    public String fontName;
-    public int fontSize;
-    public int fontStyle;
+    public boolean colorfulMetalTheme = false;
+    public String themeName = "Metal";
+    public String fontName = "Serif";
+    public int fontSize = 12;
+    public int fontStyle = Font.PLAIN;
 
     public static final int THEME_SEA = 0;
     public static final int THEME_FOREST = 1;

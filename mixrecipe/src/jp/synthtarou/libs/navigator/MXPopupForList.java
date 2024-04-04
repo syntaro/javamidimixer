@@ -30,6 +30,7 @@ import javax.swing.event.PopupMenuListener;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObject;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.midimixer.mx00playlist.MXPianoRoll;
 
 /**
  *
@@ -88,6 +89,7 @@ public abstract class MXPopupForList<T> extends MXPopup {
                 if (i == _selectedIndex) {
                     item.setSelected(true);
                 }
+                customizeMenu(item, list.get(i));
                 _menu.add(item);
             }
 
@@ -152,5 +154,7 @@ public abstract class MXPopupForList<T> extends MXPopup {
     }
     
     String _dialogTitle = INavigator.DEFAULT_TITLE;
-    
+
+    public void customizeMenu(JRadioButtonMenuItem item, MXNamedObject<T> entry) {
+    }
 }
