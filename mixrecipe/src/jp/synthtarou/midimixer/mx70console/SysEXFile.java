@@ -35,6 +35,8 @@ import jp.synthtarou.midimixer.libs.midi.sysex.SysexSplitter;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.libs.smf.SMFInputStream;
 import jp.synthtarou.libs.MXLineReader;
+import jp.synthtarou.libs.log.MXFileLogger;
+import jp.synthtarou.midimixer.mx10input.MX10MidiInListPanel;
 
 /**
  *
@@ -147,7 +149,7 @@ public class SysEXFile {
                 break;
             }
             if (sig != 0xf0) {
-                MXMain.printDebug("Error " + MXUtil.toHexFF(sig));
+                MXFileLogger.getLogger(SysEXFile.class).severe("Error " + MXUtil.toHexFF(sig));
                 reader.read8();
                 continue;
             }

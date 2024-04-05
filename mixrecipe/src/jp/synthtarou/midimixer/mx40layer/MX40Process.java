@@ -366,6 +366,74 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
         if (value == null) {
             return false;
         }
+        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
+
+        ArrayList<MX40Group> newGroupList = new ArrayList();
+        this._groupList = newGroupList;
+        MXJsonValue.HelperForArray readingGroups = root.getFollowingArray("Group");
+        if (readingGroups != null) {
+            for (int i = 0; i < readingGroups.count(); ++ i) {
+                MXJsonValue.HelperForStructure node = readingGroups.getFollowingStructure(i);
+                MX40Group group = new MX40Group(this);
+                group._title = node.getFollowingText("title", "");
+
+                group._isWatchPort = node.getFollowingBool("isWatchPort", false);
+                group._watchingPort = node.getFollowingInt("watchingPort", 0);
+                group._isWatchChannel = node.getFollowingBool("isWatchChannel", false);
+                group._watchingChannel = node.getFollowingInt("watchingCahnnel", 0);
+                group._isRotate = node.getFollowingBool("rotateLayer", false);
+                group._rotatePoly = node.getFollowingInt("rotatePoly", 16);
+
+                group._isWatchBank = node.getFollowingBool("isWatchBank", false);
+                group._watchingBankMSB = node.getFollowingInt("watchingBankMSB",0 );
+                group._watchingBankLSB = node.getFollowingInt("watchingBankLSB",0 );
+
+                group._isWatchProgram = node.getFollowingBool("isWatchProgram", false);
+                group._watchingProgram = node.getFollowingInt("watchingProgram", 0);
+                newGroupList.add(group);
+
+                MXJsonValue.HelperForArray layerNode = node.getFollowingArray("Layer");
+                if (layerNode != null) {
+                    for (int j = 0; j < layerNode.count(); ++ j) {
+                        MXJsonValue.HelperForStructure node2 = layerNode.getFollowingStructure(j);
+                        MX40Layer layer = new MX40Layer(this, group);
+                        layer._title = node2.getFollowingText("title", "");
+                        layer._disabled  = node2.getFollowingBool("disabled", false);
+                        layer._modPort = node2.getFollowingInt("modPort", MX40Layer.MOD_ASFROM);
+                        layer._fixedPort = node2.getFollowingInt("fixedPort", 0);
+
+                        layer._modChannel = node2.getFollowingInt("modChannel", MX40Layer.MOD_ASFROM);
+                        layer._fixedChannel = node2.getFollowingInt("fixedChannel", 0);
+
+                        layer._modBank = node2.getFollowingInt("modBank", MX40Layer.MOD_ASFROM);
+                        layer._fixedBankMSB = node2.getFollowingInt("fixedBankMSB", 0);
+                        layer._fixedBankLSB = node2.getFollowingInt("fixedBankLSB", 0);
+
+                        layer._modProgram = node2.getFollowingInt("modProgram", MX40Layer.MOD_ASFROM);
+                        layer._fixedProgram = node2.getFollowingInt("fixedProgram", 0);
+
+                        layer._modPan = node2.getFollowingInt("modPan", MX40Layer.MOD_ASFROM);
+                        layer._fixedPan = node2.getFollowingInt("fixedPan", 64);
+
+                        layer._adjustExpression = node2.getFollowingInt("adjustExpression", 100);
+                        layer._adjustTranspose = node2.getFollowingInt("adjustTranspose", 0);
+                        layer._adjustVelocity = node2.getFollowingInt("adjustVelocity", 0);
+                        layer.setAcceptKeyLowest(node2.getFollowingInt("sendKeyLowest", 0));
+                        layer.setAcceptKeyHighest(node2.getFollowingInt("sendKeyHighest", 127));
+                        layer.setAcceptVelocityLowest(node2.getFollowingInt("sendVelocityLowest", 0));
+                        layer.setAcceptVelocityHighest(node2.getFollowingInt("sendVelocityHighest", 127));
+
+                        group._listLayer.add(layer);
+                    }
+                }
+            }
+        }
+        resendProgramChange();
+        _view.justRefreshViewListAndPanel();
+
+        if (value == null) {
+            return false;
+        }
         return true;
     }
 
@@ -374,10 +442,54 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
         if (custom == null) {
             custom = MXJsonParser.pathOf("SoundLayer");
         }
-        MXJsonValue value = new MXJsonValue(null);
-
         MXJsonParser parser = new MXJsonParser(custom);
-        parser.setRoot(value);
+        MXJsonValue.HelperForStructure root = parser.getRoot().new HelperForStructure();
+        MXJsonValue.HelperForArray baseGroup = root.addFollowingArray("Group");
+        for (int i = 0; i < _groupList.size(); i ++){
+            MX40Group seekGroup = _groupList.get(i);
+            MXJsonValue.HelperForStructure settingGroup = baseGroup.addFollowingStructure();
+            settingGroup.setFollowingText("title", seekGroup._title);
+            settingGroup.setFollowingBool("isWatchPort", seekGroup._isWatchPort);
+            settingGroup.setFollowingInt("watchingPort", seekGroup._watchingPort);
+            settingGroup.setFollowingBool("isWatchChannel", seekGroup._isWatchChannel);
+            settingGroup.setFollowingInt("watchingCahnnel", seekGroup._watchingChannel);
+            settingGroup.setFollowingBool("isWatchBank", seekGroup._isWatchBank);
+            settingGroup.setFollowingInt("watchingBankMSB", seekGroup._watchingBankMSB);
+            settingGroup.setFollowingInt("watchingBankLSB", seekGroup._watchingBankLSB);
+            settingGroup.setFollowingBool("isWatchProgram", seekGroup._isWatchProgram);
+            settingGroup.setFollowingInt("watchingProgram", seekGroup._watchingProgram);
+            settingGroup.setFollowingBool("rotateLayer", seekGroup._isRotate);
+            settingGroup.setFollowingInt("rotatePoly", seekGroup._rotatePoly);
+            
+            MXJsonValue.HelperForArray baseLayer = settingGroup.addFollowingArray("Layer");
+
+            for (int j = 0; j < seekGroup._listLayer.size(); ++ j) {
+                String prefixL = "Group[" + i + "].Layer[" + j + "]";
+                MX40Layer seekLayer = seekGroup._listLayer.get(j);
+                MXJsonValue.HelperForStructure settingLayer = baseLayer.addFollowingStructure();
+                settingLayer.setFollowingText(prefixL + ".title", seekLayer._title);
+                settingLayer.setFollowingBool(prefixL + ".disabled", seekLayer._disabled);
+                settingLayer.setFollowingInt(prefixL + ".modPort", seekLayer._modPort);
+                settingLayer.setFollowingInt(prefixL + ".fixedPort", seekLayer._fixedPort);
+                settingLayer.setFollowingInt(prefixL + ".modChannel", seekLayer._modChannel);
+                settingLayer.setFollowingInt(prefixL + ".fixedChannel", seekLayer._fixedChannel);
+                settingLayer.setFollowingInt(prefixL + ".modBank", seekLayer._modBank);
+                settingLayer.setFollowingInt(prefixL + ".fixedBankMSB", seekLayer._fixedBankMSB);
+                settingLayer.setFollowingInt(prefixL + ".fixedBankLSB", seekLayer._fixedBankLSB);
+                settingLayer.setFollowingInt(prefixL + ".modProgram", seekLayer._modProgram);
+                settingLayer.setFollowingInt(prefixL + ".fixedProgram",seekLayer._fixedProgram);
+                settingLayer.setFollowingInt(prefixL + ".modPan", seekLayer._modPan);
+                settingLayer.setFollowingInt(prefixL + ".fixedPan", seekLayer._fixedPan);
+                settingLayer.setFollowingInt(prefixL + ".adjustExpression", seekLayer._adjustExpression);
+                settingLayer.setFollowingInt(prefixL + ".adjustTranspose", seekLayer._adjustTranspose);
+                settingLayer.setFollowingInt(prefixL + ".adjustVelocity", seekLayer._adjustVelocity);
+                settingLayer.setFollowingInt(prefixL + ".sendKeyLowest", seekLayer.getAcceptKeyLowest());
+                settingLayer.setFollowingInt(prefixL + ".sendKeyHighest", seekLayer.getAcceptKeyHighest());
+                settingLayer.setFollowingInt(prefixL + ".sendVelocityLowest", seekLayer.getAcceptVelocityLowest());
+                settingLayer.setFollowingInt(prefixL + ".sendVelocityHighest", seekLayer.getAcceptVelocityHighest());
+            }
+        }
+
         return parser.writeFile();
     }
 

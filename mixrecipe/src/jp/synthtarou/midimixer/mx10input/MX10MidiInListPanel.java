@@ -33,6 +33,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
+import jp.synthtarou.midimixer.libs.vst.VSTFolder;
 import jp.synthtarou.midimixer.mx00playlist.PlayListDX;
 
 /**
@@ -164,7 +165,7 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
             //String newMaster = (String)newModel.getValueAt(i, 3);
             
             if (name.equals(newName) == false) {
-                MXMain.printDebug("any troubole?");
+                MXFileLogger.getLogger(MX10MidiInListPanel.class).warning("any troubole?");
                 break;
             }
             
@@ -209,7 +210,7 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
                     
                     if (newAssign >= 0) {
                         if (input == null) {
-                            MXMain.printDebug("Can't create / Wrong way");
+                            MXFileLogger.getLogger(MX10MidiInListPanel.class).severe("Can't create / Wrong way");
                             return;
                         }
                         if (input.isPortAssigned(newAssign)) {

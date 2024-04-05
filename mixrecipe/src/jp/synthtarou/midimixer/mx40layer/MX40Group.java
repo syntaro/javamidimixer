@@ -19,12 +19,14 @@ package jp.synthtarou.midimixer.mx40layer;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitantRecorder;
 import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
 import java.util.ArrayList;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
+import jp.synthtarou.midimixer.mx10input.MX10MidiInListPanel;
 
 /**
  *
@@ -261,7 +263,7 @@ public class MX40Group {
 
     public void checkEquals(String name, Object v1, Object v2) {
         if (v1.equals(v2) == false) {
-            MXMain.printDebug(name +" is changing " + v1 + " > " + v2);
+            MXFileLogger.getLogger(MX40Group.class).warning(name +" is changing " + v1 + " > " + v2);
         }
     }
     

@@ -24,6 +24,7 @@ import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 
 /**
  *
@@ -69,7 +70,7 @@ public class MXPresetPanel extends javax.swing.JPanel {
 
             @Override
             public boolean presetActionLoad(File file) {
-                MXMain.printDebug("Loading " + file);
+                MXFileLogger.getLogger(MXPresetPanel.class).info("Loading " + file);
                 return true;
             }
         };

@@ -60,8 +60,8 @@ public class MXDebugDataEntry extends MXDebug {
         return list;
     }
 
-    public MXDebugDataEntry(ResultModel result, boolean type, int msb, int lsb, int data) {
-        super(result, type ? createRPN(msb, lsb, data) : createNRPN(msb, lsb, data));
+    public MXDebugDataEntry(boolean type, int msb, int lsb, int data) {
+        super(type ? createRPN(msb, lsb, data) : createNRPN(msb, lsb, data));
     }
 
     @Override
@@ -84,11 +84,11 @@ public class MXDebugDataEntry extends MXDebug {
             if (x1 != y1 || x2 != y2 || x3 != y3 || x4 != y4) {
                 String str1 = MXUtil.toHexFF(x1) + ", " + MXUtil.toHexFF(x2) + ", " + MXUtil.toHexFF(x3) + ", " + MXUtil.toHexFF(x4) ;
                 String str2 = MXUtil.toHexFF(y1) + ", " + MXUtil.toHexFF(y2) + ", " + MXUtil.toHexFF(y3) + ", " + MXUtil.toHexFF(y4) ;
-                _debugMessages.println("fail in (" + str1 + ") out (" + str2+ ")");
+                MXDebug.printDebug("fail in (" + str1 + ") out (" + str2+ ")");
             }
         }
         else {
-            _debugMessages.println("Size error in (" + in.size() + " in not 4) and (" +out.size() + " is not 1)");
+            MXDebug.printDebug("Size error in (" + in.size() + " in not 4) and (" +out.size() + " is not 1)");
         }
     }
 }

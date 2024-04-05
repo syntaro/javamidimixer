@@ -122,7 +122,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
         setAlwaysOnTop(true);
         setSize(500, 400);
         MXUtil.centerWindow(this);
-        _stream.attach(jList1);
+        _stream.attachListForLogging(jList1);
         
         jLabelVersion.setText(MXConfiguration.MX_APPLICATION);
 

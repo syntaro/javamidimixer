@@ -18,6 +18,7 @@ package jp.synthtarou.midimixer.mx90debug;
 
 import javax.swing.JOptionPane;
 import jp.synthtarou.libs.MXSafeThread;
+import jp.synthtarou.libs.log.MXFileLogger;
 
 /**
  *
@@ -32,6 +33,7 @@ public class MX90View extends javax.swing.JPanel {
     public MX90View(MX90Process process) {
         initComponents();
         _process = process;
+        MXFileLogger.getListStream().attachListForLogging(jList1);
     }
 
     /**
@@ -70,8 +72,6 @@ public class MX90View extends javax.swing.JPanel {
         gridBagConstraints.weighty = 1.0;
         add(jScrollPane1, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
-
-    ResultModel debugMessages = new ResultModel();
     
     boolean _testing = false;
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -80,16 +80,14 @@ public class MX90View extends javax.swing.JPanel {
         }
         int opt = JOptionPane.showConfirmDialog(this, "Test run will dispose all your settings / send random data to SoundModules.", "Take care", JOptionPane.OK_CANCEL_OPTION);
         if (opt == JOptionPane.CANCEL_OPTION) {
-            debugMessages.println("Canceled");
-            jList1.setModel(debugMessages);            
+            MXDebug.printDebug("Canceled");
             return;
         }
-        _testing = true;
-        jList1.setModel(debugMessages);            
+        _testing = true; 
         new MXSafeThread("TestLoop", new Runnable() {
             @Override
             public void run() {
-                _process.doAllTest(debugMessages);
+                _process.doAllTest();
                _testing = false;
             }
         }).start();

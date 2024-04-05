@@ -30,10 +30,10 @@ public class MXJsonValue {
     /**
      * ラベルを指定してオブジェクトを生成する
      *
-     * @param text
+     * @param label
      */
-    public MXJsonValue(String text) {
-        _label = text;
+    public MXJsonValue(String label) {
+        _label = label;
     }
 
     /**
@@ -56,9 +56,9 @@ public class MXJsonValue {
     public static final int CONTENTS_TYPE_NOTSET = 0;
 
     /**
-     * コンテンツタイプ：リスト
+     * コンテンツタイプ：配列
      */
-    public static final int CONTENTS_TYPE_LIST = 1;
+    public static final int CONTENTS_TYPE_ARRAY = 1;
 
     /**
      * コンテンツタイプ：構造体
@@ -72,11 +72,15 @@ public class MXJsonValue {
 
     int _conetentsType = CONTENTS_TYPE_NOTSET;
     
+    /**
+     *
+     * @return
+     */
     public String getContentsTypeText() {
         switch (_conetentsType) {
             case CONTENTS_TYPE_NOTSET:
                 return "not set";
-            case CONTENTS_TYPE_LIST:
+            case CONTENTS_TYPE_ARRAY:
                 return "list";
             case CONTENTS_TYPE_STRUCTURE:
                 return "structure";
@@ -102,25 +106,25 @@ public class MXJsonValue {
 
     /**
      * コンテンツタイプが、値であるか
-     * @return 値であればTrue
+     * @return 値であればtrue
      */
-    public boolean isContentsValue() {
+    public boolean isFollowingContentsValue() {
         return _conetentsType == CONTENTS_TYPE_VALUE;
     }
 
     /**
      * コンテンツタイプが、配列であるか
-     * @return 配列であればTrue
+     * @return 配列であればtrue
      */
-    public boolean isContentsArray() {
-        return _conetentsType == CONTENTS_TYPE_LIST;
+    public boolean isFollowingContentsArray() {
+        return _conetentsType == CONTENTS_TYPE_ARRAY;
     }
 
     /**
-     * コンテンツタイプが、構造体であるか
-     * @return 構造体であればTrue
+     * コンテンツタイプが、"構造体"であるか
+     * @return 構造体であればtrue
      */
-    public boolean isContentsSturucture() {
+    public boolean isFollowingContentsSturucture() {
         return _conetentsType == CONTENTS_TYPE_STRUCTURE;
     }
 
@@ -140,22 +144,22 @@ public class MXJsonValue {
     public static final int TYPE_DOUBLECOMMA = 2;
 
     /**
-     * Valueタイプ:リストの開始-> [
+     * Valueタイプ:配列の開始-> [
      */
-    public static final int TYPE_START_LIST = 4;
+    public static final int TYPE_START_ARRAY = 4;
 
     /**
-     * Valueタイプ:構造体(名前つきリスト)の開始-> {
+     * Valueタイプ:構造体（名前つき配列）の開始-> {
      */
     public static final int TYPE_START_STRUCTURE = 5;
 
     /**
      * Valueタイプ:リストの終了-> ]
      */
-    public static final int TYPE_END_LIST = 6;
+    public static final int TYPE_END_ARRAY = 6;
 
     /**
-     * Valueタイプ:構造体(名前つきリスト)の終了-> }
+     * Valueタイプ:構造体の終了-> }
      */
     public static final int TYPE_END_STRUCTURE = 7;
 
@@ -189,9 +193,9 @@ public class MXJsonValue {
                 case ',':
                     return TYPE_COMMA;
                 case '[':
-                    return TYPE_START_LIST;
+                    return TYPE_START_ARRAY;
                 case ']':
-                    return TYPE_END_LIST;
+                    return TYPE_END_ARRAY;
                 case '{':
                     return TYPE_START_STRUCTURE;
                 case '}':
@@ -217,11 +221,11 @@ public class MXJsonValue {
                 return "any";
             case TYPE_DOUBLECOMMA:
                 return "doubleComma";
-            case TYPE_START_LIST:
+            case TYPE_START_ARRAY:
                 return "list";
             case TYPE_START_STRUCTURE:
                 return "structure";
-            case TYPE_END_LIST:
+            case TYPE_END_ARRAY:
                 return "endList";
             case TYPE_END_STRUCTURE:
                 return "endStructure";
@@ -243,12 +247,12 @@ public class MXJsonValue {
         if (_listContents == null) {
             _listContents = new ArrayList<>();
         }
-        setContentsType(CONTENTS_TYPE_LIST);
+        setContentsType(CONTENTS_TYPE_ARRAY);
         _listContents.add(var);
     }
 
     /**
-     * contentsとして名前つきリスト(構造体)を選択し、varを追加する
+     * contentsとして構造体を選択し、varを追加する
      *
      * @param var MXJsonValueタイプ
      */
@@ -277,7 +281,7 @@ public class MXJsonValue {
     }
 
     /**
-     * contentsとして名前つきリスト(構造体)を選択し、Stringを追加する
+     * contentsとして名前つき構造体を選択し、Stringを追加する
      *
      * @param label ラベル
      * @param value 値（文字列）文字列以外の場合、もうひとつの同名メソッドを用いること
@@ -307,6 +311,7 @@ public class MXJsonValue {
 
     /**
      * 表示用に、自身とコンテンツを簡易整形する
+     * @param showDetail
      * @return 整形された文字列
      */
     public String formatForDisplay(boolean showDetail) {
@@ -335,13 +340,14 @@ public class MXJsonValue {
     /**
      * 表示用に、自身とコンテンツを簡易整形する
      *
+     * @param showDetail
      * @param indent 現在のインデント値
      * @return 整形された文字列
      */
     public String formatForDisplay(boolean showDetail, int indent) {
         StringBuffer str = new StringBuffer();
         switch (_conetentsType) {
-            case CONTENTS_TYPE_LIST:
+            case CONTENTS_TYPE_ARRAY:
                 if (showDetail) {
                     str.append("[" + getContentsTypeText() + "]");
                 }
@@ -655,7 +661,7 @@ public class MXJsonValue {
          * としてインスタンスを生成する
          */
         public HelperForArray() {
-            setContentsType(CONTENTS_TYPE_LIST);
+            setContentsType(CONTENTS_TYPE_ARRAY);
         }
 
         /**
@@ -695,6 +701,7 @@ public class MXJsonValue {
         /**
          * 配列から数を取得する 
          * @param index インデックス
+         * @param defValue
          * @return 数値
          */
         public int getFollowingInt(int index, int defValue) {
@@ -712,6 +719,7 @@ public class MXJsonValue {
         /**
          * 配列からエスケープされていない文字列を取得する 
          * @param index インデックス
+         * @param defValue
          * @return 文字列
          */
         public String getFollowingText(int index, String defValue) {
@@ -762,7 +770,6 @@ public class MXJsonValue {
 
         /**
          * 配列を追加して、HelperForArray型で取得する
-         * @param label ラベル
          * @return 追加されたHelperForArray型
          */
         public HelperForArray addFollowingArray() {
@@ -773,7 +780,6 @@ public class MXJsonValue {
 
         /**
          * 構造体を追加して、HelperForStructure型で取得する
-         * @param label ラベル
          * @return 追加されたHelperForStructure型
          */
         public HelperForStructure addFollowingStructure() {
@@ -804,6 +810,7 @@ public class MXJsonValue {
 
         /**
          * 紐づくMXJsonValueを取得する
+         * @return 
          */
         public MXJsonValue toJsonValue() {
             return MXJsonValue.this;
@@ -847,36 +854,6 @@ public class MXJsonValue {
          */
         public int count() {
             return contentsCount();
-        }
-
-        /**
-         *　インデックスのラベル名を取得する
-         * @param index インデックス
-         * @return ラベル名
-         */
-        public String getFollowingText(int index) {
-            MXJsonValue child = getContentsAt(index);
-            return child.getLabelUnscaped();
-        }
-
-        /**
-         * 構造体から要素を取得する
-         * @param index　インデックス
-         * @return 要素
-         */
-        public MXJsonValue getFollowingValue(int index) {
-            MXJsonValue child = getContentsAt(index);
-            return child;
-        }
-
-        /**
-         * 構造体から数を取得する 
-         * @param index インデックス
-         * @return 数値
-         */
-        public Number getFollowingNumber(int index) {
-            MXJsonValue child = getContentsAt(index);
-            return child.getLabelNumber();
         }
 
         /**
@@ -952,6 +929,7 @@ public class MXJsonValue {
         /**
          * 構造体を検索して、文字列を取得する
          * @param label ラベル文字列
+         * @param defValue
          * @return みつかった文字列
          */
         public String getFollowingText(String label, String defValue) {
@@ -966,6 +944,7 @@ public class MXJsonValue {
         /**
          * 構造体を検索して、文字列を取得する
          * @param label ラベル文字列
+         * @param defValue
          * @return みつかった文字列
          */
         public String getFollowingText(Number label, String defValue) {
@@ -994,6 +973,7 @@ public class MXJsonValue {
         /**
          * 構造体を検索して、int型で取得する
          * @param label エスケープされてないラベル
+         * @param defvalue
          * @return HelperForStructure型
          */
         public int getFollowingInt(String label, int defvalue) {
@@ -1013,6 +993,7 @@ public class MXJsonValue {
         /**
          * 構造体を検索して、boolean型で取得する
          * @param label エスケープされてないラベル
+         * @param defvalue
          * @return HelperForStructure型
          */
         public boolean getFollowingBool(String label, boolean defvalue) {
@@ -1209,6 +1190,7 @@ public class MXJsonValue {
 
         /**
          * 紐づくMXJsonValueを取得する
+         * @return 
          */
         public MXJsonValue toJsonValue() {
             return MXJsonValue.this;

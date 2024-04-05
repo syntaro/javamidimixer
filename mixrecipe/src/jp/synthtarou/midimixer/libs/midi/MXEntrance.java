@@ -25,6 +25,7 @@ import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
  * エントランス番号ごとに、あるメッセージは、1度づつしか通れないという制御を行う
  * @author Syntarou YOSHIDA
  */
+@Deprecated
 public class MXEntrance {
     static class MessageComparator implements Comparator<MXMessage> {
 
@@ -48,13 +49,15 @@ public class MXEntrance {
                 return 1;
             }
             
-            int r = o1.getDwordCount() - o2.getDwordCount();
-            
-            if (r == 0 && o1.getDwordCount() == 1) {
-                r = o1.getAsDword(0) - o2.getAsDword(0);
+            int d1 = o1.getDwordCount();
+            int d2 = o2.getDwordCount();
+            if (d1 > 0 && d1 == d2) {
+                for (int i = 0; i < d1; ++ i) {
+                    int r = o1.getAsDword(i) - o2.getAsDword(i);
+                    if (r < 0) return -1;
+                    if (r > 0) return 1;
+                }
             }
-            if (r < 0) return -1;
-            if (r > 0) return 1;
                 
             byte[] t1 = o1.getBinary();
             byte[] t2 = o2.getBinary();
@@ -96,7 +99,6 @@ public class MXEntrance {
             if (contains(message)) {
                 return false;
             }
-            System.out.println("ride on" + message);
             add(message);
             return true;
         }

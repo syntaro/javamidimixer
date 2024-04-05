@@ -24,8 +24,8 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
  */
 public class MXDebugSame extends MXDebug {
 
-    public MXDebugSame(ResultModel debugMessages, MXMessage target) {
-        super(debugMessages, target);
+    public MXDebugSame(MXMessage target) {
+        super(target);
     }
 
     @Override

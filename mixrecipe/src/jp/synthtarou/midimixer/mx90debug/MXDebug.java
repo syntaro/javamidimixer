@@ -19,6 +19,7 @@ package jp.synthtarou.midimixer.mx90debug;
 import java.util.LinkedList;
 import java.util.List;
 import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
@@ -34,15 +35,13 @@ public abstract class MXDebug {
     static FinalMIDIOut _final = FinalMIDIOut.getInstance();
 
     LinkedList<MXMessage> _input;
-    ResultModel _debugMessages;
     MXMIDIInForTest _test = MXMIDIIn.INTERNAL_TESTER;
 
-    public MXDebug(ResultModel debugMessages, MXMessage target) {
+    public MXDebug(MXMessage target) {
         _final.startTestSignal(-1);
         _input = new LinkedList<>();
         _input.add(target);
         _test.startTest(target);
-        _debugMessages = debugMessages;
         checkResult();
         if (_interval >= 1) {
             try {
@@ -52,10 +51,9 @@ public abstract class MXDebug {
         }
     }
 
-    public MXDebug(ResultModel debugMessages, List<MXMessage> target) {
+    public MXDebug(List<MXMessage> target) {
         _final.startTestSignal(-1);
         _input = new LinkedList<>();
-        _debugMessages = debugMessages;
         for (MXMessage seek : target) {
             _input.add(seek);
             _test.startTest(seek);
@@ -72,35 +70,24 @@ public abstract class MXDebug {
     // overrider it
     public abstract void checkResult();
     
-    public void addDebugMessage(String text) {
-        if (_debugMessages == null) {
-            _debugMessages = new ResultModel();
-        }
-        _debugMessages.println(text);
-    }
-    
-    public ResultModel getDebugMessages() {
-        return _debugMessages;
-    }
-    
     public void checkResultSame() {
         if (_input.size() != 1) {
-            addDebugMessage("Test must process as 1 on 1 (for this checkResult, otherwise please override ::checkResult)");
+            MXDebug.printDebug("Test must process as 1 on 1 (for this checkResult, otherwise please override ::checkResult)");
         }
         MXMessage message1 = _input.get(0);
         LinkedList<MXMessage> result = _final.getTestResult();
         if (result.size() != 1) {
-            addDebugMessage("Error output size = " + result.size());
+            MXDebug.printDebug("Error output size = " + result.size());
         }
         MXMessage message2 =  result.get(0);
         
         if (message1.getPort() != message2.getPort()) {
-            addDebugMessage("Error output port = " + message2.getPort()
+            MXDebug.printDebug("Error output port = " + message2.getPort()
                   + ", input port = " + message1.getPort());
         }
         
         if (message1.getDwordCount() != message2.getDwordCount())  {
-            addDebugMessage("Error output dword length = " + message2.getDwordCount()
+            MXDebug.printDebug("Error output dword length = " + message2.getDwordCount()
                   + ", input dword length = " + message1.getDwordCount());
         }
         else if (message1.getDwordCount() >= 1) {
@@ -108,7 +95,7 @@ public abstract class MXDebug {
                 int d1 = message1.getAsDword(i);
                 int d2 = message2.getAsDword(i);
                 if (d1 != d2)  {
-                    addDebugMessage("Error output dword[" + i + "] = " + MXUtil.dumpDword(d2)
+                    MXDebug.printDebug("Error output dword[" + i + "] = " + MXUtil.dumpDword(d2)
                          + ", input dword[" +  i +  "] = " + MXUtil.dumpDword(d1));
                 }
             }
@@ -117,10 +104,14 @@ public abstract class MXDebug {
             byte[] data2 = message1.getBinary();
             for (int i = 0; i <data1.length; ++ i) {
                 if (data1[i] != data2[i]) {
-                    addDebugMessage("Error output dump[" + MXUtil.dumpHex(data2) + "]"
+                    MXDebug.printDebug("Error output dump[" + MXUtil.dumpHex(data2) + "]"
                           + ", input dump[" + MXUtil.dumpHex(data1) + "]");
                 }
             }
         }
+    }
+    
+    public static void printDebug(String text) {
+        MXFileLogger.getLogger(MXDebug.class).info(text);
     }
 }

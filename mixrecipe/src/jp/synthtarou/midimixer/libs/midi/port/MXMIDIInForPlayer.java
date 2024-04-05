@@ -29,7 +29,7 @@ import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_PlayList;
 import jp.synthtarou.libs.smf.SMFMessage;
 import jp.synthtarou.libs.smf.SMFSequencer;
 import jp.synthtarou.libs.smf.SMFCallback;
-import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
+import jp.synthtarou.libs.SortedArray;
  
 /**
  *

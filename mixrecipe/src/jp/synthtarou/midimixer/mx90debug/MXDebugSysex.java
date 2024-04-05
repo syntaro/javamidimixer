@@ -23,8 +23,8 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
  * @author Syntarou YOSHIDA
  */
 public class MXDebugSysex extends MXDebug {
-    public MXDebugSysex(ResultModel debugMessages, MXMessage target) {
-        super(debugMessages, target);
+    public MXDebugSysex(MXMessage target) {
+        super(target);
     }
 
     @Override

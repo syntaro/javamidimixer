@@ -32,12 +32,16 @@ import jp.synthtarou.libs.log.MXFileLogger;
  * jsonファイルを読み込むため
  * @author Syntarou YOSHIDA
  */
-public class MXJsonFileReader {
+public class MXJsonParsersReader {
 
     String _data;
     int _pos;
     File _file;
     
+    /**
+     * 文字列化
+     * @return ファイル名または、"String"または、"null"
+     */
     public String toString() {
         if (_file != null) {
             return _file.toString();
@@ -50,13 +54,14 @@ public class MXJsonFileReader {
 
     /**
      * ファイルを指定してインスタンスを生成する
-     * 読み込みまで行う
-     * 主に,Utf8が用いられているが、まれにUnicode形式であることがある
-     * 自動掲出(utf or unicodeの2種類のみ)した文字コードでデコードする
-          * @param file File
-     * @throws IOException 読込エラー
+     * 読み込みまで行う（パースは readPartialでおこなっている)
+     * 主に,Utf8が用いられているが、まれにUnicode形式なこともある
+     * 自動検出(utf or unicodeの2種類のみ)した文字コードでデコードする
+     * @param file File ファイルを指定
+     * @throws java.io.FileNotFoundException　ファイルが開けない場合
+     * @throws IOException 読込エラー ファイルが開けない場合
      */
-    public MXJsonFileReader(File file) throws FileNotFoundException, IOException {
+    public MXJsonParsersReader(File file) throws FileNotFoundException, IOException {
         _file = file;
         _data = readFileImpl(file, "utf-8");
         int zero0 = 0;
@@ -89,9 +94,9 @@ public class MXJsonFileReader {
 
     /**
      * 文字列からインスタンスを生成する
-     * @param text
+     * @param text readPartial用の文字列を設定する
      */
-    public MXJsonFileReader(String text) {
+    public MXJsonParsersReader(String text) {
         _file = null;
         _data = text;
         _pos = 0;
@@ -143,8 +148,9 @@ public class MXJsonFileReader {
      *　ファイルを読み込む
      * @param file ファイル
      * @param encoding 文字コード
-     * @return String
-     * @throws IOException なんらかのファイルエラー
+     * @return String 読み込まれた文字列
+     * @throws java.io.FileNotFoundException 読み取りに失敗した
+     * @throws IOException 読み取りに失敗した
      */
     public String readFileImpl(File file, String encoding) throws FileNotFoundException, IOException {
         InputStream in = null;
@@ -171,7 +177,7 @@ public class MXJsonFileReader {
                 try {
                     in.close();
                 } catch (IOException ex2) {
-                    MXFileLogger.getLogger(MXJsonFileReader.class).log(Level.SEVERE, ex2.getMessage(), ex2);
+                    MXFileLogger.getLogger(MXJsonParsersReader.class).log(Level.SEVERE, ex2.getMessage(), ex2);
                 }
             }
             throw  ex;
@@ -190,7 +196,7 @@ public class MXJsonFileReader {
     }
 
     /**
-     * マジックナンバー0をスキップする
+     * マジックナンバーをスキップする
      * @param text マジックナンバー
      * @return 検出してスキップしたばあいtrue
      */
@@ -209,8 +215,8 @@ public class MXJsonFileReader {
     }
 
     /**
-     * ファイルをタイプのつく文字列に分解して1件づつ取得する
-     * @return パーツの文字列
+     * ファイルを文字列パーツに分解して1件づつ取得する
+     * @return タイプのつく文字列パーツ
      */
     public String readPartial() {
         boolean inDQuote = false;

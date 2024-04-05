@@ -20,6 +20,7 @@ import java.util.logging.Level;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.log.MXFileLogger;
+import jp.synthtarou.midimixer.ccxml.ui.PickerForinstrument;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -287,7 +288,7 @@ public class MXMIDIOut {
                     int dword = message.getAsDword(i);
                     if (dword == 0) {
                         //MidiINでまとめるのに失敗して次のデータによりフラッシュされたケース
-                        MXMain.printDebug("input dataentry was solo(not pair) " + message);
+                        MXFileLogger.getLogger(MXMIDIOut.class).warning("input dataentry was solo(not pair) " + message);
                     } else {
                         _driver.OutputShortMessage(_driverOrder, dword);
                     }

@@ -17,7 +17,7 @@
 package jp.synthtarou.libs.smf;
 
 import java.util.ArrayList;
-import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
+import jp.synthtarou.libs.SortedArray;
 
 /**
  *

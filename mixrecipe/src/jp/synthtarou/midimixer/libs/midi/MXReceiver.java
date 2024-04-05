@@ -18,7 +18,7 @@ package jp.synthtarou.midimixer.libs.midi;
 
 import javax.swing.JPanel;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
-import jp.synthtarou.libs.json.MXJsonSupport;
+import jp.synthtarou.libs.inifile.MXSettingUtil;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.MXMain;
 
@@ -61,27 +61,5 @@ public abstract class MXReceiver<T extends JPanel> {
 
     public void setUsingThisRecipe(boolean usingThis) {
         _usingThis = usingThis;
-    }
-    
-    public static void initProcessWithSetting(MXINIFileSupport support) {
-        boolean done = false;
-        if (support instanceof MXJsonSupport){
-            done = ((MXJsonSupport) support).readJSonfile(null);
-            MXFileLogger.getLogger(support.getClass()).info("tried read json = " + done);
-        }
-        if (!done) {
-            done = support.readINIFile(null);
-            MXFileLogger.getLogger(support.getClass()).info("tried read ini= " + done);
-        }
-        if (!done) {
-            support.resetSetting();
-            MXFileLogger.getLogger(support.getClass()).info("tried reset setting");
-        }
-    }
-    
-    public void initProcessWithSetting() {
-        if (this instanceof MXINIFileSupport) {
-            initProcessWithSetting((MXINIFileSupport)this);            
-        }
     }
 }

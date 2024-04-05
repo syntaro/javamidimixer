@@ -23,7 +23,24 @@ import java.io.File;
  * @author Syntarou YOSHIDA
  */
 public interface MXJsonSupport {
+
+    /**
+     * jsonファイルを読み取る
+     * @param file ファイルを指定（デフォルトの場合null)
+     * @return 読み取った場合 true
+     */
+    public boolean readJSonfile(File file);
+
+    /**
+     * jsonファイルを書き込む
+     * @param file ファイルを指定（デフォルトの場合null)
+     * @return 書き込んだ場合true
+     */
+    public boolean writeJsonFile(File file);
+
+
+    /**
+     *　設定をリセットする
+     */
     public void resetSetting();
-    public boolean readJSonfile(File custom);
-    public boolean writeJsonFile(File custom);
 }

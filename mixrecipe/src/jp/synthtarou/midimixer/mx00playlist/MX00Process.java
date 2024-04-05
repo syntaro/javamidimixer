@@ -82,7 +82,7 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
         _viewData._focusChannel = setting.getSettingAsInt("focusChannel", -1);
         _viewData._highlightTiming = setting.getSettingAsBoolean("showMeasure", true);
         _viewData._soundMargin = setting.getSettingAsInt("soundMargin", 100);
-        _viewData._soundSpan = setting.getSettingAsInt("soundSpan", 6000);
+        _viewData._soundSpan = setting.getSettingAsInt("soundSpan", 4000);
         
         List<MXINIFileNode> nodeList  = setting.findByPath("song[]");
         int min = 100000;
@@ -176,7 +176,7 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
         _viewData._focusChannel = -1;
         _viewData._highlightTiming = true;
         _viewData._soundMargin = 100;
-        _viewData._soundSpan = 6000;
+        _viewData._soundSpan = 4000;
         
         _view.showDataFirst();
     }

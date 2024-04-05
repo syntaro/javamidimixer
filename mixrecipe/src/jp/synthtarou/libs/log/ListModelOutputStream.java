@@ -18,12 +18,11 @@ package jp.synthtarou.libs.log;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.SwingUtilities;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
 import jp.synthtarou.libs.MXCountdownTimer;
 
 /**
@@ -32,135 +31,106 @@ import jp.synthtarou.libs.MXCountdownTimer;
  */
 public class ListModelOutputStream extends OutputStream {
 
-    public static interface ByteLinesListener {
+    static class MyModel extends DefaultListModel<String> {
 
-        public void listAdded(ListModelOutputStream byteLines);
+        JList _list;
+
+        MyModel(JList list) {
+            _list = list;
+        }
     }
 
     byte[] _data = new byte[1024];
     int pos = 0;
-    DefaultListModel<String> _lines = new DefaultListModel<>();
+    ArrayList<MyModel> _lines = new ArrayList();
     LinkedList<String> _lagPool = new LinkedList<>();
     long _lastAdded = 0;
     JList _installed;
     boolean _pause = false;
-    ListDataListener _installedListener = new MyDataListener();
 
-    class MyDataListener implements ListDataListener {
-
-        public MyDataListener() {
-
-        }
-
-        @Override
-        public void intervalAdded(ListDataEvent e) {
-            scrollToLast();
-        }
-
-        @Override
-        public void intervalRemoved(ListDataEvent e) {
-            scrollToLast();
-        }
-
-        @Override
-        public void contentsChanged(ListDataEvent e) {
-            scrollToLast();
-        }
-
-        public void scrollToLast() {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    synchronized (ListModelOutputStream.this) {
-                        if (_installed != null) {
-                            int size = _installed.getModel().getSize();
-                            if (size >= 1) {
-                                _installed.ensureIndexIsVisible(size - 1);
-                            }
-                        }
-                    }
-                }
-            }
-            );
-        }
-    }
-
-    public void attach(JList install) {
-        if (_installed != null) {
-            if (_installed == install) {
-                return;
-            }
-
-            _installed.getModel().removeListDataListener(_installedListener);
-        }
+    public synchronized void attachListForLogging(JList install) {
         _installed = install;
-        _installed.setModel(_lines);
-        _installed.getModel().addListDataListener(_installedListener);
+        MyModel model = new MyModel(install);
+        _installed.setModel(model);
+        _lines.add(model);
     }
 
-
-    public void checkLag() {
-        synchronized (this) {
-            if (_lagPool.isEmpty() || _pause) {
-                return;
-            }
-            long spent = System.currentTimeMillis() - _lastAdded;
-            if (spent >= 500) {
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (_installed != null) {
-                            _installed.setValueIsAdjusting(true);
-                        }
-                        synchronized(ListModelOutputStream.this) {
-                            while(_lagPool.isEmpty() == false) {
-                                String str = _lagPool.removeFirst();
-                                _lines.addElement(str);
-                                while (_lines.size() >= 500) {
-                                    _lines.removeElementAt(0);
-                                }
-                            }
-                        }
-                        _lagPool.clear();
-                        if (_installed != null) {
-                            _installed.setValueIsAdjusting(false);
-                        }
-                    }
-                });
-            } else {
-                MXCountdownTimer.letsCountdown(500 - spent, new Runnable() {
-                    @Override
-                    public void run() {
-                        checkLag();
-                    }
-                });
+    public synchronized void detachList(JList instlal) {
+        for (int i = _lines.size() - 1; i >= 0; i--) {
+            MyModel m = _lines.get(i);
+            if (m._list == instlal) {
+                _lines.remove(i);
             }
         }
     }
 
-    public void clearLogLine() {
-        synchronized (this) {
+    public synchronized void checkLag() {
+        if (_lagPool.isEmpty() || _pause) {
+            return;
+        }
+        long spent = System.currentTimeMillis() - _lastAdded;
+        if (spent >= 500) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    _lines.removeAllElements();
+                    if (_installed != null) {
+                        _installed.setValueIsAdjusting(true);
+                    }
+                    synchronized (ListModelOutputStream.this) {
+                        while (_lagPool.isEmpty() == false) {
+                            String str = _lagPool.removeFirst();
+                            for (int i = _lines.size() - 1; i >= 0; i--) {
+                                MyModel m = _lines.get(i);
+                                m.addElement(str);
+                                while (m.size() >= 500) {
+                                    m.removeElementAt(0);
+                                }
+                            }
+                        }
+                    }
+                    _lagPool.clear();
+                    if (_installed != null) {
+                        _installed.setValueIsAdjusting(false);
+                    }
+                    for (int i = _lines.size() - 1; i >= 0; i--) {
+                        synchronized (ListModelOutputStream.this) {
+                            MyModel m = _lines.get(i);
+                            m._list.ensureIndexIsVisible(m.getSize() - 1);
+                        }
+                    }
+                }
+            });
+        } else {
+            MXCountdownTimer.letsCountdown(500 - spent, new Runnable() {
+                @Override
+                public void run() {
+                    checkLag();
                 }
             });
         }
     }
-    
-    public void addLine(String text) {
-        synchronized(this) {            
-            _lagPool.add(text);
-            checkLag();
-        }
+
+    public synchronized void clearLogLine() {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = _lines.size() - 1; i >= 0; i--) {
+                    MyModel m = _lines.get(i);
+                    m.removeAllElements();
+                }
+            }
+        });
     }
-    
-    protected void commitBuffer() {
-        synchronized (this) {
-            String text = new String(_data, 0, pos, System.out.charset());
-            pos = 0;
-            addLine(text);
-        }
+
+    public synchronized void addLine(String text) {
+        _lagPool.add(text);
+        checkLag();
+    }
+
+    protected synchronized void commitBuffer() {
+        String text = new String(_data, 0, pos, System.out.charset());
+        pos = 0;
+        addLine(text);
     }
 
     public void ensureCapacity(int newSize) {

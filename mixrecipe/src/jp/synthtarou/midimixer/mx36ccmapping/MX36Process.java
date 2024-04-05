@@ -243,7 +243,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
                         parsedGateTable = null;
                     }
                     status._outGateTable = parsedGateTable;
-                    status._outGateTypeKey = props.getSettingAsBoolean(props.getSetting("GateTypeIsKey"), false);
+                    status._outGateTypeKey = props.getSettingAsBoolean("GateTypeIsKey", false);
 
                     status._surfacePort = props.getSettingAsInt("SurfacePort", 0);
                     status._surfaceUIType = props.getSettingAsInt("SurfaceUIType", 0);
@@ -449,7 +449,93 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
         if (value == null) {
             return false;
         }
+
+        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
         //TODO
+        MXJsonValue.HelperForArray listFolder = root.getFollowingArray("Folder");
+        for (int i = 0; i < listFolder.count(); ++ i) {
+            MXJsonValue.HelperForStructure folderNode = listFolder.getFollowingStructure(i);
+            String folderName = folderNode.getFollowingText("Name", "");
+            MX36Folder folder = _folders.newFolder(folderName);
+            
+            folder.setSelected(folderNode.getFollowingBool("Selected", true));
+
+            MXJsonValue.HelperForArray statusArray = folderNode.getFollowingArray("Status");
+
+            if (statusArray != null) {
+                for (int j = 0; j < statusArray.count(); ++ j) {
+                    MXJsonValue.HelperForStructure statusNode = statusArray.getFollowingStructure(j);
+                    MX36Status status = new MX36Status();
+
+                    status._outName = statusNode.getFollowingText("Name", "");
+                    status._outMemo = statusNode.getFollowingText("Memo", "");
+                    status.setOutDataText(statusNode.getFollowingText("DataText", ""));
+                    status._outPort = statusNode.getFollowingInt("Port", -1);
+                    status._outChannel = statusNode.getFollowingInt("Channel", 0);
+                    status._outValueRange = stringToRange(statusNode.getFollowingText("ValueRange", "0, 0, 127"));
+                    status._outValueOffset = statusNode.getFollowingInt("ValueOffset", 0);
+                    
+                    MXJsonValue.HelperForArray valueArray = statusNode.getFollowingArray("ValueTable");
+                    MXNamedObjectList<Integer> parsedValueTable = new MXNamedObjectList<>();
+                    if (valueArray != null) {
+                        for (int k = 0; k < valueArray.count(); ++ k) {
+                            MXJsonValue seek = valueArray.getFollowingValue(k);
+                            int var = seek.getLabelNumber().intValue();
+                            String name = seek.getContentsAt(0).getLabelUnscaped();
+                            parsedValueTable.addNameAndValue(name, var);
+                        }
+                    }
+                    if (parsedValueTable.size() == 0) {
+                        parsedValueTable = null;
+                    }
+                    status._outValueTable = parsedValueTable;
+
+                    status._outGateRange = stringToRange(statusNode.getFollowingText("GateRange", "0, 0, 127"));
+                    status._outGateOffset = statusNode.getFollowingInt("GateOffset", 0);
+
+                    MXJsonValue.HelperForArray gateArray = statusNode.getFollowingArray("GateTable");
+                    MXNamedObjectList<Integer> parsedGateTable = new MXNamedObjectList<>();
+                    if (valueArray != null) {
+                        for (int k = 0; k < gateArray.count(); ++ k) {
+                            MXJsonValue seek = gateArray.getFollowingValue(k);
+                            try {
+                                int var = seek.getLabelNumber().intValue();
+                                String name = seek.getContentsAt(0).getLabelUnscaped();
+                                parsedValueTable.addNameAndValue(name, var);
+                            }catch(NumberFormatException ex) {
+                                MXFileLogger.getLogger(MX36Process.class).log(Level.SEVERE, ex.getMessage(), ex);
+                            }
+                        }
+                    }
+
+                    if (parsedGateTable.size() == 0) {
+                        parsedGateTable = null;
+                    }
+                    status._outGateTable = parsedGateTable;
+                    status._outGateTypeKey = statusNode.getFollowingBool("GateTypeIsKey", false);
+
+                    status._surfacePort = statusNode.getFollowingInt("SurfacePort", 0);
+                    status._surfaceUIType = statusNode.getFollowingInt("SurfaceUIType", 0);
+                    status._surfaceRow = statusNode.getFollowingInt("SurfaceRow", 0);
+                    status._surfaceColumn = statusNode.getFollowingInt("SurfaceColumn", 0);
+
+                    status._bind1RCH = statusNode.getFollowingInt("Bind1RCH1", 0);
+                    status._bind2RCH = statusNode.getFollowingInt("Bind1RCH2", 0);
+                    status._bind4RCH = statusNode.getFollowingInt("Bind1RCH4", 0);
+
+                    status._bindRSCTRT1 = statusNode.getFollowingInt("BindRSCTRT1", 0);
+                    status._bindRSCTRT2 = statusNode.getFollowingInt("BindRSCTRT2", 0);
+                    status._bindRSCTRT3 = statusNode.getFollowingInt("BindRSCTRT3", 0);
+
+                    status._bindRSCTPT1 = statusNode.getFollowingInt("BindRSCTPT1", 0);
+                    status._bindRSCTPT2 = statusNode.getFollowingInt("BindRSCTPT2", 0);
+                    status._bindRSCTPT3 = statusNode.getFollowingInt("BindRSCTPT3", 0);
+
+                    folder.addCCItem(status);
+                }
+                folder.sortElements();
+            }
+        }
         return true;
     }
 
@@ -467,5 +553,6 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
 
     @Override
     public void resetSetting() {
+        _folders.clear();
     }
 }

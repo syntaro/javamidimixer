@@ -18,7 +18,6 @@ package jp.synthtarou.libs.inifile;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,6 +27,7 @@ import java.util.Date;
 import java.util.logging.Level;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.json.MXJsonSupport;
 
 /**
  *

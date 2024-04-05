@@ -20,7 +20,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.TreeMap;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.MXMain;
+import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 
 /**
  *
@@ -84,11 +86,11 @@ public class VSTFolder {
     public void scan(ArrayList<String> listSkip) {
         _cancelOperation = false;
         if (_rootDirectory == null) {
-            MXMain.printDebug("FileExtensionFilter::startScan rootDirectory is null");
+            MXFileLogger.getLogger(VSTFolder.class).warning("rootDirectory is null");
             return;
         }
         if (_rootDirectory.isDirectory() == false) {
-            MXMain.printDebug("FileExtensionFilter::startScan rootDirectory[" + _rootDirectory + "] is not directory");
+            MXFileLogger.getLogger(VSTFolder.class).warning("rootDirectory[" + _rootDirectory + "] is not directory");
             return;
         }
 

@@ -29,7 +29,7 @@ import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
+import jp.synthtarou.libs.SortedArray;
 
 /**
  *
@@ -187,7 +187,7 @@ public class SMFSequencer {
 
         if (didProgramChange) {
             try {
-                MXMain.printDebug("*** Sleep 150 x Program Change Count*");
+                MXFileLogger.getLogger(SMFSequencer.class).info("*** Sleep 150 x Program Change Count*");
                 Thread.sleep(150 * doneCh);
             } catch (Exception e) {
 

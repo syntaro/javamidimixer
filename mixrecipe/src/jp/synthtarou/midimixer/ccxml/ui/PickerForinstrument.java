@@ -633,7 +633,7 @@ public class PickerForinstrument extends javax.swing.JPanel {
     boolean _internalChange = false;
 
     public void updateXMLFileView() {
-        MXMain.printDebug("scanXMLFile = " + _scanXMLFile);
+        MXFileLogger.getLogger(PickerForinstrument.class).info("scanXMLFile = " + _scanXMLFile);
         /* XML一覧を更新し、_scanXMLFileを選択する */
         _modelListXML = new MXNamedObjectList();
         if (_resultXMLFile != _scanXMLFile || _modelListXML == null) {
@@ -664,7 +664,7 @@ public class PickerForinstrument extends javax.swing.JPanel {
     }
 
     public void updateModuleView() {
-        MXMain.printDebug("scanModule = " + _scanModule);
+        MXFileLogger.getLogger(PickerForinstrument.class).info("scanModule = " + _scanModule);
         /* MAP一覧を更新し、_scanMapを選択する */
         if (_resultModule != _scanModule || _scanText.equals(_resultText) == false || _modelListModule == null) {
             _resultModule = _scanModule;

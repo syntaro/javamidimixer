@@ -19,10 +19,12 @@ package jp.synthtarou.libs.log;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.logging.*;
 import javax.swing.JList;
-import javax.swing.ListModel;
 import jp.synthtarou.libs.MXUtil;
 
 /**
@@ -64,14 +66,16 @@ public class MXFileLogger {
     Handler _windowHandler;
 
     ParallelOutputStream _parallel;
-    private ListModelOutputStream _lineModel;
+    private static ListModelOutputStream _lineModel;
     
     public MXFileLogger() {
         File base = MXUtil.getAppBaseDirectory();
         File logDir = new File(base, "log");
         logDir.mkdir();
 
-        _logFile = new File(logDir, "MixRecipe.log");
+        DateFormat format = new SimpleDateFormat("yyyyMMdd-HHmmss");
+
+        _logFile = new File(logDir, "MixRecipe." +format.format(new Date()) + ".log");
 
         System.setProperty("java.util.logging.SimpleFormatter.format",
                 "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL %5$s %6$s (%2$s)%n");
@@ -136,13 +140,5 @@ public class MXFileLogger {
             super.publish(record);
             super.flush();
         }
-    }
-    
-    public void installJList(JList jList) {
-        _lineModel.attach(jList);
-    }
-    
-    public void pauseUpdateJList(boolean pause) {
-        _lineModel._pause = pause;
     }
 }

@@ -46,7 +46,10 @@ import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.libs.smf.SMFSequencer;
 import jp.synthtarou.libs.MainThreadTask;
+import jp.synthtarou.libs.inifile.MXINIFileSupport;
+import jp.synthtarou.libs.inifile.MXSettingUtil;
 import jp.synthtarou.libs.json.MXJsonParser;
+import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.midimixer.libs.vst.VSTInstance;
 import jp.synthtarou.midimixer.mx36ccmapping.MX36Process;
 import jp.synthtarou.midimixer.mx12masterpiano.MX12Process;
@@ -137,7 +140,7 @@ public class MXMain  {
         try {
             //フォント描写でアンチエイリアスを有効にする
             System.setProperty("awt.useSystemAAFontSettings", "on");
-            MXReceiver.initProcessWithSetting(ThemeManager.getInstance());
+            initProcessWithSetting(ThemeManager.getInstance());
         }catch(Throwable ex) {
             MXFileLogger.getLogger(MXMain.class).log(Level.SEVERE, ex.getMessage(), ex);
         }
@@ -196,14 +199,14 @@ public class MXMain  {
         _mx50resolutionProcess.setNextReceiver(_mx60outputProcess);
         _mx60outputProcess.setNextReceiver(FinalMIDIOut.getInstance());
 
-        _mx30kontrolProcess.initProcessWithSetting();
-        _mx00playlistProcess.initProcessWithSetting();
-        _mx10inputProcess.initProcessWithSetting();
-        _mx12pianoProcess.initProcessWithSetting();
-        _mx36ccmappingProcess.initProcessWithSetting();
-        _mx60outputProcess.initProcessWithSetting();
-        _mx40layerProcess.initProcessWithSetting();
-        _mx50resolutionProcess.initProcessWithSetting();
+        initProcessWithSetting(_mx30kontrolProcess);
+        initProcessWithSetting(_mx00playlistProcess);
+        initProcessWithSetting(_mx10inputProcess);
+        initProcessWithSetting(_mx12pianoProcess);
+        initProcessWithSetting(_mx36ccmappingProcess);
+        initProcessWithSetting(_mx60outputProcess);
+        initProcessWithSetting(_mx40layerProcess);
+        initProcessWithSetting(_mx50resolutionProcess);
        
         _mainWindow = new MXMainWindow(this);
         _mainWindow.setEnabled(false);
@@ -384,12 +387,23 @@ public class MXMain  {
         }
         return receiver;
     }
-    
-    public static void printDebug(String text) {
-        MX90Process progress = MXMain.getMain()._mx90Debugger;
-        if (progress != null){
-            progress.println(text);
+
+    public static void initProcessWithSetting(MXINIFileSupport support) {
+        if (support == null) {
+            throw new NullPointerException();
         }
-        System.out.println(text);
+        boolean done = false;
+        if (support instanceof MXJsonSupport){
+            done = ((MXJsonSupport) support).readJSonfile(null);
+            MXFileLogger.getLogger(support.getClass()).info("tried read json = " + done);
+        }
+        if (!done) {
+            done = support.readINIFile(null);
+            MXFileLogger.getLogger(support.getClass()).info("tried read ini= " + done);
+        }
+        if (!done) {
+            support.resetSetting();
+            MXFileLogger.getLogger(support.getClass()).info("tried reset setting");
+        }
     }
 }

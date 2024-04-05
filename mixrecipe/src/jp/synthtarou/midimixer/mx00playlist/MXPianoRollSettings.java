@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.mx00playlist;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.SwingUtilities;

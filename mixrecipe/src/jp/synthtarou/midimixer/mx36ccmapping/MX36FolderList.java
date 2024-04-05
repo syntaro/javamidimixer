@@ -171,4 +171,8 @@ public class MX36FolderList {
         }
         return result;
     }
+    
+    public void clear() {
+        _listFolder.clear();
+    }
 }

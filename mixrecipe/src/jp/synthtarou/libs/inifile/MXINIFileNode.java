@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.logging.Level;
-import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.libs.log.MXFileLogger;
 
 /**
@@ -264,7 +263,7 @@ public class MXINIFileNode {
                 writer.write(text + "=" + _value + "\n");
             }
         }else if (_value != null) {
-            MXMain.printDebug("not registered " + text + "=" + _value);
+            MXFileLogger.getLogger(MXINIFileNode.class).warning("not registered " + text + "=" + _value);
         }
 
         for (MXINIFileNode e : _children) {

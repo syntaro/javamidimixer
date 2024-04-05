@@ -31,6 +31,7 @@ import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.json.MXJsonValue;
+import jp.synthtarou.midimixer.mx36ccmapping.MX36Process;
 
 /**
  *
@@ -218,9 +219,13 @@ public class MX50Process extends MXReceiver<MX50View> implements MXINIFileSuppor
                 MXJsonValue.HelperForArray listGateTable = resolution.getFollowingArray("GateTable");
                 for (int j = 0; j < listGateTable.count(); ++ j) {
                     MXJsonValue gate = listGateTable.getFollowingValue(j);
-                    Number label = gate.getLabelNumber();
-                    String text = value.getContentsTypeText();
-                    reso._gateTable.addNameAndValue(text, label.intValue());
+                    try {
+                        Number label = gate.getLabelNumber();
+                        String text = value.getContentsTypeText();
+                        reso._gateTable.addNameAndValue(text, label.intValue());
+                    }catch(NumberFormatException ex) {
+                        MXFileLogger.getLogger(MX50Process.class).log(Level.SEVERE, ex.getMessage(), ex);
+                    }
                 }
             }
         }

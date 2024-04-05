@@ -38,7 +38,7 @@ public class LoggerDemo extends javax.swing.JPanel {
     public LoggerDemo() {
         initComponents();
         MXFileLogger logger = MXFileLogger._instance;
-        logger.installJList(jList1);
+        MXFileLogger.getListStream().attachListForLogging(jList1);
 
         setPreferredSize(new Dimension(400, 300));
 
@@ -151,7 +151,7 @@ public class LoggerDemo extends javax.swing.JPanel {
             }
         }
     }
-    
+
     private void jButton100ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton100ActionPerformed
         new MXSafeThread("1", new Runnable() {
             @Override
@@ -181,9 +181,9 @@ public class LoggerDemo extends javax.swing.JPanel {
 
     private void jCheckBoxPauseItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jCheckBoxPauseItemStateChanged
         if (jCheckBoxPause.isSelected()) {
-            MXFileLogger._instance.pauseUpdateJList(true);
+            MXFileLogger.getListStream()._pause = true;
         } else {
-            MXFileLogger._instance.pauseUpdateJList(false);
+            MXFileLogger.getListStream()._pause = false;
         }
     }//GEN-LAST:event_jCheckBoxPauseItemStateChanged
 

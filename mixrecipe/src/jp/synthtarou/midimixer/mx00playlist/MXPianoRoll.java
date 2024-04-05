@@ -143,9 +143,9 @@ public class MXPianoRoll extends JComponent {
     }
 
     byte[] _colorSeparator = null; //SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(Color.red, 60, Color.black, 40), null);
-    byte[] _colorBackBlack = SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(Color.lightGray, 70, Color.black, 30), null);
-    byte[] _colorBackGray2 = SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(MXUtil.mixtureColor(Color.cyan, 70, Color.white, 20), 20, Color.black, 30), null);
-    byte[] _colorBackGray4 = SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(Color.orange, 30, Color.black, 30), null);
+    byte[] _colorBackBlack = SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(Color.cyan, 20, Color.black, 80, Color.red, 10), null);
+    byte[] _colorBackGray2 = SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(MXUtil.mixtureColor(Color.cyan, 70, Color.white, 20), 20, Color.black, 50), null);
+    byte[] _colorBackGray4 = SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(Color.orange, 20, Color.red, 5, Color.black, 50), null);
 
     protected void paintOnBuffer1(long currentMilliSec) {
         if (!_doingPaint) {

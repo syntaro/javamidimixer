@@ -36,7 +36,8 @@ import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.mx36ccmapping.SortedArray;
+import jp.synthtarou.libs.SortedArray;
+import jp.synthtarou.libs.inifile.MXINIFileNode;
 
 /**
  *
@@ -175,7 +176,7 @@ public class SMFParser {
                     return true;
                 }
             } else {
-                MXMain.printDebug("Seeking " + Integer.toHexString(c) + " before " + magic);
+                MXFileLogger.getLogger(SMFParser.class).warning("Seeking " + Integer.toHexString(c) + " before " + magic);
                 x = 0;
             }
         }
@@ -189,18 +190,18 @@ public class SMFParser {
             SMFInputStream smfStream = new SMFInputStream(input);
 
             if (seekMagicNumber(smfStream, "MThd") == false) {
-                MXMain.printDebug("Magic Number MThd not found. @" + file);
+                MXFileLogger.getLogger(SMFParser.class).warning("Magic Number MThd not found. @" + file);
                 return false;
             }
 
             if (smfStream._eof) {
-                MXMain.printDebug("Illegual EOF. @" + file);
+                MXFileLogger.getLogger(SMFParser.class).warning("Illegual EOF. @" + file);
                 return false;
             }
 
             int headerLength = smfStream.read32();
             if (headerLength < 6) {
-                MXMain.printDebug("Header Length != 6.@" + file);
+                MXFileLogger.getLogger(SMFParser.class).warning("Header Length != 6.@" + file);
                 return false;
             }
 
@@ -236,11 +237,11 @@ public class SMFParser {
 
             for (int tr = 0; tr < trackCount; tr++) {
                 if (seekMagicNumber(smfStream, "MTrk") == false) {
-                    MXMain.printDebug("Magic Number MTrk not Found. @" + file);
+                    MXFileLogger.getLogger(SMFParser.class).warning("Magic Number MTrk not Found. @" + file);
                     break;
                 }
                 if (smfStream._eof) {
-                    MXMain.printDebug("EOF Before count " + trackCount + "@" + file);
+                    MXFileLogger.getLogger(SMFParser.class).warning("EOF Before count " + trackCount + "@" + file);
                     break;
                 }
 
