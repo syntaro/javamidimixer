@@ -46,7 +46,6 @@ import jp.synthtarou.midimixer.libs.midi.visitant.MXDataentry;
 public class MXMIDIIn {
 
     public static final MXMIDIInForPlayer INTERNAL_PLAYER = new MXMIDIInForPlayer();
-    public static final MXMIDIInForTest INTERNAL_TESTER = new MXMIDIInForTest();
 
     private String _name;
     private MXDriver _driver;
@@ -368,7 +367,7 @@ public class MXMIDIIn {
                 MXMessage message = null;
                 if (data != null) {
                     message = MXMessageFactory.fromBinary(port, data);
-                }else {
+                } else {
                     message = MXMessageFactory.fromShortMessage(port, status, data1, data2);
                     if ((status & 0xf0) == MXMidi.COMMAND_CH_NOTEON) {
                         MXMessage noteon = MXMessageFactory.fromShortMessage(0, status, data1, data2);
@@ -408,8 +407,7 @@ public class MXMIDIIn {
                                 MXMessage msg2 = _messageQueue.pop();
                                 if (msg2 != null) {
                                     dispatchToPortCurrent(msg2);
-                                }
-                                else {
+                                } else {
                                     return;
                                 }
                             } catch (RuntimeException ex) {
@@ -428,79 +426,73 @@ public class MXMIDIIn {
         }
     }
 
-    protected void dispatchToPortCurrent(MXMessage message) {
+    MXMessage[] retBuf = new MXMessage[3];
 
+    protected void dispatchToPortCurrent(MXMessage message) {
+        /*
         if (message.isMessageTypeChannel()) {
             MXVisitant visit = _visitant16.get(message.getChannel());
             message.setVisitant(visit.getSnapShot());
-        }
+        }*/
         int port = message.getPort();
+        int channel;
         synchronized (MXTiming.mutex) {
             switch (message.getTemplate().get(0) & 0xff00) {
                 case MXMidi.COMMAND2_CH_RPN:
                 case MXMidi.COMMAND2_CH_NRPN:
                 case MXMidi.COMMAND2_CH_PROGRAM_INC:
-                case MXMidi.COMMAND2_CH_PROGRAM_DEC: {
-                    int ch = message.getChannel();
-                    MXVisitant visit = _visitant16.get(ch);
+                case MXMidi.COMMAND2_CH_PROGRAM_DEC:
+                    channel = message.getChannel();
+                    MXVisitant visit = _visitant16.get(channel);
 
-                    visit.preprocess(message);
-                    tossToMain(message);
-                    return;
-                }
-            }
-            if (message.isMessageTypeChannel()) {
-                boolean worked = false;
-                int ch = message.getChannel();
-                int status = message.getStatus();
-                int gate = message.getGate()._value;
-
-                int command = status;
-                if (command >= 0x80 && command <= 0xef) {
-                    command = command & 0xf0;
-                }
-
-                MXVisitant visit = _visitant16.get(ch);
-
-                message = visit.preprocess(message);
-                if (message == null) {
-                    return;
-                }
-
-                if (visit.isIncompleteBankInfo()) {
-                    if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && (gate == MXMidi.DATA1_CC_BANKSELECT || gate == (MXMidi.DATA1_CC_BANKSELECT + 0x20))) {
-                        ;
-                    } else {
-                        visit.forceCompleteBankInfo();
-                    }
-                }
-
-                MXDataentry fetch = visit.getFetchingDataentry();
-
-                if (fetch != null) {
-                    if (command == MXMidi.COMMAND_CH_CONTROLCHANGE
-                            && (gate == MXMidi.DATA1_CC_RPN_LSB || gate == MXMidi.DATA1_CC_RPN_MSB
-                            || gate == MXMidi.DATA1_CC_NRPN_LSB || gate == MXMidi.DATA1_CC_NRPN_MSB
-                            || gate == MXMidi.DATA1_CC_DATAENTRY || gate == MXMidi.DATA1_CC_DATAENTRY + 0x20)) {
-                        ;
-                    } else {
-                        if (fetch.isIncomplemteDataentry() || fetch.isIncomplemteDataroom()) {
-                            System.err.println("fetching fix." + fetch);
-                            visit.forceCompleteDataentry();
-
-                            MXMessage message2 = MXMessageFactory.fromCCXMLText(port, "@NRPN #GH #GL #VH #VL", ch);
-                            visit.resetFetchingData();
-
-                            tossToMain(message2);
-                            //lets process message
+                    MXMessage[] ret = visit.preprocess(message, retBuf);
+                    if (ret != null) {
+                        retBuf = ret;
+                        for (int i = 0; i < ret.length; ++i) {
+                            if (ret[i] != null) {
+                                tossToMain(ret[i]);
+                            }
                         }
                     }
-                }
-
-                tossToMain(message);
+                    return;
+                case 0:
+                    break;
+                default:
+                    tossToMain(message);
+                    return;
             }
-            else {
+            if (!message.isMessageTypeChannel()) {
                 tossToMain(message);
+                return;
+            }
+            boolean worked = false;
+            int ch = message.getChannel();
+            int status = message.getStatus();
+            int gate = message.getGate()._value;
+
+            int command = status;
+            if (command >= 0x80 && command <= 0xef) {
+                command = command & 0xf0;
+            }
+
+            MXVisitant visit = _visitant16.get(ch);
+
+            MXMessage[] ret = visit.preprocess(message, retBuf);
+             if (ret != null) {
+                retBuf = ret;
+                for (int i = 0; i < ret.length; ++i) {
+                    if (ret[i] != null) {
+                        /*
+                        if (visit.isIncompleteBankInfo()) {
+                            if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && (gate == MXMidi.DATA1_CC_BANKSELECT || gate == (MXMidi.DATA1_CC_BANKSELECT + 0x20))) {
+                                ;
+                            } else {
+                                visit.forceCompleteBankInfo();
+                            }
+                        }*/
+                        tossToMain(ret[i]);
+                    }
+                }
             }
         }
     }

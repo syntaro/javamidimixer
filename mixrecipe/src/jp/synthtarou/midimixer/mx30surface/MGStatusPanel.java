@@ -465,8 +465,12 @@ public class MGStatusPanel extends javax.swing.JPanel {
                 MXMessage message = data._base;
                 if (message == null) {
                     result.add("TextCommand [" + data._base.getTemplateAsText() + "] is not valid.");
-                } else if (message.isDataentryByCC()) {
-                    result.add("If you need DATAENTRY. try [@RPN/@NRPN msb lsb value 0].");
+                } else if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
+                    switch(message.getData1()) {
+                        case MXMidi.DATA1_CC_DATAENTRY:
+                            result.add("If you need DATAENTRY. try [@RPN/@NRPN msb lsb value 0].");
+                            break;
+                    }
                 }
                 /*
                 else if (message.isMessageTypeChannel() && message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE) && !message.isDataentry()) {

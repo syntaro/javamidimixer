@@ -16,12 +16,22 @@
  */
 package jp.synthtarou.midimixer.libs.midi.visitant;
 
+import jp.synthtarou.libs.MXUtil;
+
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MXDataentry implements Cloneable, Comparable<MXDataentry>{
     MXVisitant _owner;
+    
+    public String toString() {
+        String x1 = MXUtil.toHexFF(_dataroomMSB & 0xff);
+        String x2 = MXUtil.toHexFF(_dataroomLSB & 0xff);
+        String x3 = MXUtil.toHexFF(_dataentryMSB & 0xff);
+        String x4 = MXUtil.toHexFF(_dataentryLSB & 0xff);
+        return x1 + ":" + x2 + "=" + x3 + "," + x4;
+    }
     
     public MXDataentry() {
         _owner = null;
@@ -92,7 +102,7 @@ public class MXDataentry implements Cloneable, Comparable<MXDataentry>{
         return _dataroomMSB;
     }
     
-    public boolean isIncomplemteDataroom() {
+    public boolean havePartOfDataroom() {
         if (_isRPN == TYPE_RPN || _isRPN == TYPE_NRPN) {            
             if (_dataroomMSB >=0 && _dataroomLSB >= 0) {
                 if (_dataroomMSB < 0 && _dataroomLSB < 0) {
@@ -111,7 +121,7 @@ public class MXDataentry implements Cloneable, Comparable<MXDataentry>{
         return _dataentryMSB;
     }
 
-    public boolean isIncomplemteDataentry() {
+    public boolean havePartOfDataentry() {
         if (_dataentryMSB >=0 && _dataentryLSB >= 0) {
             if (_dataentryMSB < 0 && _dataentryLSB < 0) {
                 return true;

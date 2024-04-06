@@ -27,6 +27,7 @@ public class MXMIDIInForTest extends MXMIDIIn {
     
     public MXMIDIInForTest() {
         super(MXDriver_Tester._instance, 0);
+        setPortAssigned(0, true);
     }
     
     public void startTest(MXMessage message) {

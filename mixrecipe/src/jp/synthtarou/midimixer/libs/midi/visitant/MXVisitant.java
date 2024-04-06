@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi.visitant;
 
+import java.util.logging.Level;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.log.MXFileLogger;
@@ -29,28 +30,42 @@ import jp.synthtarou.midimixer.libs.midi.MXTemplate;
  * @author Syntarou YOSHIDA
  */
 public class MXVisitant implements Cloneable {
-
+    int _lastPort = -1;
+    int _lastChannel = -1;
     int _program = -1;
     int _bankMSB = -1;
     int _bankLSB = -1;
 
-    boolean[] _havingCC = new boolean[128];
     int[] _valueCC = new int[128];
-  
+
+    public MXVisitant() {
+        for (int i = 0; i < _valueCC.length; ++i) {
+            _valueCC[i] = -1;
+        }
+    }
+
+    protected MXVisitant(int[] oldValueCC) {
+        _valueCC = (int[]) oldValueCC.clone();
+    }
+
     public boolean isCCSet(int cc) {
-        return _havingCC[cc];
+        return _valueCC[cc] >= 0;
     }
 
     public void setCCValue(int cc, int value) {
-        for (int cc1 : MXVisitant.codeList) {
-            if (cc1 == cc) {
-                if (_havingCC[cc] == false || _valueCC[cc] != value) {
-                    _havingCC[cc] = true;
-                    _valueCC[cc] = value;
-                    _currentAge++;
-                }
-                return;
-            }
+        // skip mode change type cc
+        if (cc == MXMidi.DATA1_CC_ALLNOTEOFF || cc == MXMidi.DATA1_CC_ALLSOUNDOFF
+         || cc == MXMidi.DATA1_CC_BANKSELECT || cc == MXMidi.DATA1_CC_DATAENTRY
+         || cc == MXMidi.DATA1_CC_DATAINC || cc == MXMidi.DATA1_CC_DATADEC
+         || cc == MXMidi.DATA1_CC_RPN_MSB || cc == MXMidi.DATA1_CC_RPN_LSB
+         || cc == MXMidi.DATA1_CC_NRPN_MSB || cc == MXMidi.DATA1_CC_NRPN_LSB
+         || cc == MXMidi.DATA1_CC_RESET_ALLCTRLS) {
+            return;
+        }
+        if (_valueCC[cc] != value) {
+            _valueCC[cc] = value;
+            _currentAge++;
+            _currentCCAge++;
         }
     }
 
@@ -128,13 +143,13 @@ public class MXVisitant implements Cloneable {
     }
 
     public String toString() {
-        String str = "";
+        String str = " ";
 
         if (_program >= 0) {
-            str += " Prog[" + _program + "]";
+            str += "Prog[" + _program + "] ";
         }
         if (_bankMSB >= 0 || _bankLSB >= 0) {
-            str += " Bank[" + MXUtil.toHexFF(_bankMSB) + ":" + MXUtil.toHexFF(_bankLSB) + "]";
+            str += "Bank[" + MXUtil.toHexFF(_bankMSB) + ":" + MXUtil.toHexFF(_bankLSB) + "] ";
         }
         for (int cc = 0; cc < 128; ++cc) {
             if (isCCSet(cc)) {
@@ -151,12 +166,9 @@ public class MXVisitant implements Cloneable {
     }
 
     public MXVisitant clone() {
-        MXVisitant obj = new MXVisitant();
+        MXVisitant obj = new MXVisitant(_valueCC);
 
         obj._program = _program;
-
-        obj._havingCC = _havingCC.clone();
-        obj._valueCC = _valueCC.clone();
         obj._bankMSB = _bankMSB;
         obj._bankLSB = _bankLSB;
 
@@ -167,8 +179,6 @@ public class MXVisitant implements Cloneable {
 
         return obj;
     }
-
-    public static final int[] codeList = {MXMidi.DATA1_CC_CHANNEL_VOLUME, MXMidi.DATA1_CC_PANPOT, MXMidi.DATA1_CC_EXPRESSION};
 
     public int mergeNew(MXVisitant visitant) {
         int x = _currentAge;
@@ -185,7 +195,7 @@ public class MXVisitant implements Cloneable {
         if (visitant._bankLSB >= 0) {
             setBankLSB(visitant._bankLSB);
         }
-        
+
         for (int cc = 0; cc < 128; ++cc) {
             if (visitant.isCCSet(cc)) {
                 int contValue = visitant.getCCValue(cc);
@@ -196,14 +206,14 @@ public class MXVisitant implements Cloneable {
             _fetching = null;
             if (_flushed.equals(visitant._flushed) == false) {
                 _flushed = (MXDataentry) visitant._flushed.clone();
-                System.out.println("flushed ");
-                _currentAge ++;
+                _currentAge++;
             }
         }
         return _currentAge - x;
     }
 
     int _currentAge = 0;
+    public int _currentCCAge = 0;
     MXVisitant _lastSnapShort = null;
     boolean _isLocked = false;
 
@@ -216,19 +226,62 @@ public class MXVisitant implements Cloneable {
         return _lastSnapShort;
     }
 
-    public MXDataentry getFetchingDataentry() {
+    public MXDataentry prepareFetchingDataentry() {
         if (_fetching == null) {
             _fetching = new MXDataentry(this, MXDataentry.TYPE_RPN, -1, -1);
         }
         return _fetching;
     }
-    
+
     public void resetFetchingData() {
         _fetching = null;
-        _currentAge ++;
+        _currentAge++;
     }
 
-    public synchronized MXMessage preprocessDataentry(MXMessage message) {
+    protected boolean isDataentryEntry(MXMessage message) {
+        int widerStatus = message.getTemplate().get(0);
+        if (widerStatus >= 0x100) {
+            switch (widerStatus & 0xfff0) {
+                case MXMidi.COMMAND2_CH_RPN:
+                case MXMidi.COMMAND2_CH_NRPN:
+                    return true;
+            }
+            return false;
+        } else {
+            int gate = message.getGate()._value;
+            int value = message.getValue()._value;
+            int status = message.getStatus() & 0xf0;
+            int channel = message.getStatus() & 0x0f;
+            if (status == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                MXDataentry proc = null;
+                switch (gate) {
+                    case MXMidi.DATA1_CC_DATAENTRY:
+                    case MXMidi.DATA1_CC_DATAENTRY + 32:
+                    case MXMidi.DATA1_CC_DATAINC:
+                    case MXMidi.DATA1_CC_DATADEC:
+                    case MXMidi.DATA1_CC_RPN_MSB:
+                    case MXMidi.DATA1_CC_RPN_LSB:
+                    case MXMidi.DATA1_CC_NRPN_MSB:
+                    case MXMidi.DATA1_CC_NRPN_LSB:
+                        return true;
+
+                    default:
+                        break;
+                }
+            }
+        }
+        return false;
+    }
+
+    protected synchronized MXMessage[] preprocessDataentry(MXMessage message, MXMessage[] ret) {
+        if (ret == null || ret.length < 2) {
+            ret = new MXMessage[2];
+        }
+        else {
+            for (int i = 0; i < ret.length; ++ i) {
+                ret[i] = null;
+            }
+        }
         int widerStatus = message.getTemplate().get(0);
         if (widerStatus >= 0x100) {
             switch (widerStatus & 0xfff0) {
@@ -250,11 +303,16 @@ public class MXVisitant implements Cloneable {
                         _flushed.setDataentryLSB(datalsb);
                         message.setVisitant(this);
                         _fetching = null;
-                        return message;
+                        ret[0] = message;
+                        return ret;
+                    }else {
+                        MXFileLogger.getLogger(MXVisitant.class).severe("@RPN got less than 5 length");
+                        return null;
                     }
             }
             MXFileLogger.getLogger(MXVisitant.class).severe("Invalid Process Route");
         } else {
+            int wx = 0;
             int gate = message.getGate()._value;
             int value = message.getValue()._value;
             int status = message.getStatus() & 0xf0;
@@ -262,23 +320,26 @@ public class MXVisitant implements Cloneable {
             if (status == MXMidi.COMMAND_CH_CONTROLCHANGE) {
                 MXDataentry proc = null;
                 if (gate == MXMidi.DATA1_CC_DATAENTRY || gate == MXMidi.DATA1_CC_DATAENTRY + 32) {
-                    proc = getFetchingDataentry();
+                    proc = prepareFetchingDataentry();
                     if (gate == MXMidi.DATA1_CC_DATAENTRY) {
+                        if (proc.getDataentryMSB() >= 0) {
+                            ret[wx ++] = flushDataentry();
+                            proc = prepareFetchingDataentry();
+                        }
                         proc.setDataentryMSB(value);
                     } else {
+                        if (proc.getDataentryLSB() >= 0) {
+                            ret[wx ++] = flushDataentry();
+                            proc = prepareFetchingDataentry();
+                        }
                         proc.setDataentryLSB(value);
                     }
                     if (proc.getDataentryMSB() >= 0 && proc.getDataentryLSB() >= 0) {
-                        _flushed = (MXDataentry) proc.clone();
-                        _fetching = null;
-                        _currentAge++;
-                        MXTemplate temp = new MXTemplate(new int[]{
-                            proc.isRPN() == MXDataentry.TYPE_RPN ? MXMidi.COMMAND2_CH_RPN : MXMidi.COMMAND2_CH_NRPN,
-                             _flushed.getDataroomMSB(), _flushed.getDataroomLSB(),
-                             _flushed.getDataentryMSB(), _flushed.getDataentryMSB()});
-                        MXMessage message2 = MXMessageFactory.fromTemplate(message.getPort(), temp, message.getChannel(), MXRangedValue.ZERO7, MXRangedValue.ZERO7);
-                        message2.setVisitant(getSnapShot());
-                        return message2;
+                        MXMessage message2 = flushDataentry();
+                        ret[wx ++] = message2;
+                    }
+                    if (wx >0) {
+                        return ret;
                     }
                     return null;
                 } else if (gate == MXMidi.DATA1_CC_DATAINC || gate == MXMidi.DATA1_CC_DATADEC) {
@@ -287,7 +348,7 @@ public class MXVisitant implements Cloneable {
                         return null;
                     }
                     value = _flushed.getDataentryValue14();
-                    proc = getFetchingDataentry();
+                    proc = prepareFetchingDataentry();
                     proc.setDataroomMSB(_flushed.getDataroomMSB());
                     proc.setDataroomLSB(_flushed.getDataroomLSB());
                     if (gate == MXMidi.DATA1_CC_DATAINC) {
@@ -300,35 +361,36 @@ public class MXVisitant implements Cloneable {
                         value--;
                         if (value < 0) {
                             MXFileLogger.getLogger(MXVisitant.class).severe("DATAENTRY DEC overflow");
+                            return null;
                         }
-                        return null;
                     }
                     proc.setDataentry14(value);
-                    _flushed = (MXDataentry)proc.clone();
+                    _flushed = (MXDataentry) proc.clone();
                     MXTemplate temp = new MXTemplate(new int[]{
                         proc.isRPN() == MXDataentry.TYPE_RPN ? MXMidi.COMMAND2_CH_RPN : MXMidi.COMMAND2_CH_NRPN,
-                         proc.getDataroomMSB(), proc.getDataroomLSB(),
-                         proc.getDataentryMSB(), proc.getDataentryMSB()});
+                        proc.getDataroomMSB(), proc.getDataroomLSB(),
+                        proc.getDataentryMSB(), proc.getDataentryMSB()});
                     MXMessage message2 = MXMessageFactory.fromTemplate(message.getPort(), temp, message.getChannel(), MXRangedValue.ZERO7, MXRangedValue.ZERO7);
                     message2.setVisitant(getSnapShot());
-                    return message2;
+                    ret[wx ++] = message2;
+                    return ret;
                 } else if (gate == MXMidi.DATA1_CC_RPN_MSB) {
-                    proc = getFetchingDataentry();
+                    proc = prepareFetchingDataentry();
                     proc.setIsRPN(MXDataentry.TYPE_RPN);
                     proc.setDataroomMSB(value);
                     return null;
                 } else if (gate == MXMidi.DATA1_CC_RPN_LSB) {
-                    proc = getFetchingDataentry();
+                    proc = prepareFetchingDataentry();
                     proc.setIsRPN(MXDataentry.TYPE_RPN);
                     proc.setDataroomLSB(value);
                     return null;
                 } else if (gate == MXMidi.DATA1_CC_NRPN_MSB) {
-                    proc = getFetchingDataentry();
+                    proc = prepareFetchingDataentry();
                     proc.setIsRPN(MXDataentry.TYPE_NRPN);
                     proc.setDataroomMSB(value);
                     return null;
                 } else if (gate == MXMidi.DATA1_CC_NRPN_LSB) {
-                    proc = getFetchingDataentry();
+                    proc = prepareFetchingDataentry();
                     proc.setIsRPN(MXDataentry.TYPE_NRPN);
                     proc.setDataroomLSB(value);
                     return null;
@@ -336,42 +398,110 @@ public class MXVisitant implements Cloneable {
             }
             MXFileLogger.getLogger(MXVisitant.class).severe("Invalid Process Route");
         }
-        return message;
+        ret[0] = message;
+        return ret;
     }
 
-    public synchronized MXMessage preprocess(MXMessage message) {
+    public boolean havePartOfDataentry() {
+        MXDataentry fetching = prepareFetchingDataentry();
+        if (fetching != null) {
+            if (fetching.getDataroomLSB() >= 0 && fetching.getDataroomMSB() >= 0) {
+                if (fetching.havePartOfDataentry()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    public MXMessage flushDataentry() {
+        MXDataentry fetching = prepareFetchingDataentry();
+        if (fetching.getDataroomMSB() >= 0 && fetching.getDataroomLSB() >= 0) {
+            int msb = fetching.getDataentryMSB();
+            int lsb = fetching.getDataentryLSB();
+            
+            int isRPN = fetching.isRPN() == MXDataentry.TYPE_RPN ? MXMidi.COMMAND2_CH_RPN : MXMidi.COMMAND2_CH_NRPN;
+            MXTemplate temp = new MXTemplate(new int[]{ isRPN, 
+                fetching.getDataroomMSB(), fetching.getDataroomLSB(),
+                fetching.getDataentryMSB(), fetching.getDataentryLSB()});
+            MXMessage message2 = MXMessageFactory.fromTemplate(_lastPort, temp, _lastChannel, MXRangedValue.ZERO7, MXRangedValue.ZERO7);
+            _flushed = (MXDataentry)fetching.clone();
+            _fetching = null;
+            message2.setVisitant(getSnapShot());
+            //System.out.println("flush dataentry " + message2.getTemplateAsText() +" (" + message2.getVisitant() + ")");
+            return message2;
+        }
+        return null;
+    }
+    
+    public synchronized MXMessage[] preprocess(MXMessage message, MXMessage[] ret) {
+        if (ret == null || ret.length < 2) {
+            ret = new MXMessage[2];
+        }
+        else {
+            for (int i = 0; i < ret.length; ++ i) {
+                ret[i] = null;
+            }
+        }
+        if (message.isMessageTypeChannel()) {
+            if (_lastPort < 0) {
+                _lastPort = message.getPort();
+            }
+            else if (_lastPort != message.getPort()) {
+                MXFileLogger.getLogger(MXVisitant.class).severe("invalid port");
+                new Throwable().printStackTrace();
+                _lastPort = message.getPort();
+            }
+            if (_lastChannel < 0) {
+                _lastChannel = message.getChannel();
+            }
+            else if (_lastChannel != message.getChannel()) {
+                MXFileLogger.getLogger(MXVisitant.class).severe("invalid channel");
+                _lastChannel = message.getChannel();
+            }
+        }
+
+        int wx = 0;
+        if (isDataentryEntry(message)) {
+            return preprocessDataentry(message, ret);
+        }
+        else if (havePartOfDataentry()) {
+            ret[wx ++ ] = flushDataentry();
+        }
         int widerStatus = message.getTemplate().get(0);
         if (widerStatus >= 0x100) {
             int port = message.getPort();
             int channel = message.getChannel();
             switch (widerStatus & 0xfff0) {
-                case MXMidi.COMMAND2_CH_RPN:
-                case MXMidi.COMMAND2_CH_NRPN:
-                    if (message.sizeOfTemplate() >= 5) {
-                        return preprocessDataentry(message);
-                    }
-                    MXFileLogger.getLogger(MXVisitant.class).severe("@RPN got less than 5 length");
-                    return null;
                 case MXMidi.COMMAND2_CH_PROGRAM_DEC:
                     int progDec = isHavingProgram() ? getProgram() - 1 : 0;
                     if (progDec >= 0) {
                         setProgram(progDec);
                         message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, progDec, 0);
-                        return message;
+                        ret[wx ++ ] = message;
+                    }else {
+                        MXFileLogger.getLogger(MXVisitant.class).severe("@PROG_DEC got less than 0");
                     }
-                    MXFileLogger.getLogger(MXVisitant.class).severe("@PROG_DEC got less than 0");
+                    if (wx > 0) {
+                        return ret;
+                    }
                     return null;
                 case MXMidi.COMMAND2_CH_PROGRAM_INC:
                     int progInc = isHavingProgram() ? getProgram() + 1 : 0;
-                    if (progInc <= 127) {                        
+                    if (progInc <= 127) {
                         setProgram(progInc);
                         message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, progInc, 0);
-                        return message;
+                        ret[wx ++ ] = message; 
+                    }  else {
+                        MXFileLogger.getLogger(MXVisitant.class).severe("@PROG_INC got biggger than 127");
                     }
-                    MXFileLogger.getLogger(MXVisitant.class).severe("@PROG_INC got biggger than 127");
+                    if (wx > 0) {
+                        return ret;
+                    }
                     return null;
             }
-            return message;
+            ret[wx ++ ] = message;
+            return ret;
         } else if (message.isMessageTypeChannel()) {
             int gate = message.getGate()._value;
             int value = message.getValue()._value;
@@ -381,40 +511,43 @@ public class MXVisitant implements Cloneable {
             if (status == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
                 if (gate >= 0 && gate <= 127) {
                     setProgram(gate);
-                    return message;
-               }
-                MXFileLogger.getLogger(MXVisitant.class).severe("@PROG got not in 0~127");
+                    ret[wx ++] = message;
+                }
+                else {
+                    MXFileLogger.getLogger(MXVisitant.class).severe("@PROG got not in 0~127");
+                }
+                if (wx > 0) {
+                    return ret;
+                }
                 return null;
             }
             if (status == MXMidi.COMMAND_CH_CONTROLCHANGE) {
                 MXDataentry proc;
                 setCCValue(message.getData1(), value);
                 switch (message.getData1()) {
-                    case MXMidi.DATA1_CC_DATAENTRY:
-                    case MXMidi.DATA1_CC_DATAENTRY + 32:
-                    case MXMidi.DATA1_CC_DATAINC:
-                    case MXMidi.DATA1_CC_DATADEC:
-                    case MXMidi.DATA1_CC_RPN_MSB:
-                    case MXMidi.DATA1_CC_RPN_LSB:
-                    case MXMidi.DATA1_CC_NRPN_MSB:
-                    case MXMidi.DATA1_CC_NRPN_LSB:
-                        return preprocessDataentry(message);
 
                     case MXMidi.DATA1_CC_BANKSELECT:
                         setBankMSB(value);
-                        return message;
+                        ret[wx ++] = message;
+                        break;
 
                     case MXMidi.DATA1_CC_BANKSELECT + 32:
                         setBankLSB(value);
-                        return message;
+                        ret[wx ++] = message;
+                        break;
 
                     default:
-                        return message;
+                        ret[wx ++] = message;
+                        break;
                 }
+                if (wx > 0) {
+                    return ret;
+                }
+                return null;
             }
-            return message;
         }
-        return message;
+        ret[wx ++] = message;
+        return ret;
     }
 
     public boolean isHavingProgram() {
@@ -429,18 +562,16 @@ public class MXVisitant implements Cloneable {
         if (_isLocked) {
             throw new IllegalStateException("Immutable can't change");
         }
-        if (program < 0 ) {
+        if (program < 0) {
             MXFileLogger.getLogger(MXVisitant.class).warning("program <= o");
-        }
-        else if (program == _program) {
+        } else if (program == _program) {
             //MXFileLogger.getLogger(MXVisitant.class).info("program not change " + program);
-        }
-        else {
+        } else {
             _currentAge++;
             _program = program;
         }
     }
-    
+
     public void forceCompleteDataentry() {
         if (_fetching._isRPN < 0) {
             _fetching._isRPN = MXDataentry.TYPE_RPN;

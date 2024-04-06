@@ -192,8 +192,8 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
 
         if (value != null) {
             MXVisitant visit = message.getVisitant();
-            
-            if (message.isDataentryByCC()) {
+            /*
+            if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
                 int original = value._value;
                 int newVar = visit.getFlushedDataentry().getDataentryValue14();
                 switch (message.getGate()._value) {
@@ -223,7 +223,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
                     return true;
                 }
                 return false;
-            }
+            }*/
 
             int newValue = value._value;
 

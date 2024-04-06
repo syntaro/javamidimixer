@@ -89,7 +89,6 @@ public class MXDriver_Java implements MXDriver {
                             out.append(",");
                         }
 
-                        System.out.println(name + " = " + name2 + " = " + name3);
                         continue;
                     }
                 } catch (UnsupportedEncodingException ex) {

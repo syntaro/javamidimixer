@@ -163,6 +163,8 @@ public class MXMIDIOut {
         }
     }
 
+    MXMessage[] retBuf = new MXMessage[4];
+
     private void processMidiOutInternal(MXMessage message) {
         synchronized (MXTiming.mutex) {
             if (!_driver.OutputDeviceIsOpen(_driverOrder)) {
@@ -172,10 +174,6 @@ public class MXMIDIOut {
             MXMain.addInsideOutput(message);
 
             MXVisitant portVisitant = _visitantOut16.get(message.getChannel());
-            MXMessage message2 = portVisitant.preprocess(message);
-            if (message != message2) {
-                System.out.println(message +"  <> " + message2);
-            }
 
             long timeStamp = getTimestamp();
             long recTime = 0;
@@ -192,19 +190,21 @@ public class MXMIDIOut {
                 if (msgVisitant == null) {
                     if (command != MXMidi.COMMAND_CH_NOTEON && command != MXMidi.COMMAND_CH_NOTEOFF) {
                         if (message._bySurface == false) {
-                            message._debug.printStackTrace();
+                            //message._debug.printStackTrace();
                         }
                     }
-                }else {
+                } else {
                     if (command != MXMidi.COMMAND_CH_PROGRAMCHANGE) {
                         if (msgVisitant.isHavingProgram()) {
                             int must = msgVisitant.getProgram();
+                            int old = portVisitant.getProgram();
                             if (portVisitant.isHavingProgram() == false || portVisitant.getProgram() != must) {
                                 portVisitant.setProgram(must);
                                 MXMessage newMessage = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, must, 0);
                                 newMessage._timing = message._timing;
                                 newMessage.setVisitant(portVisitant.getSnapShot());
                                 processMidiOutInternal(newMessage);
+                                //System.out.println("need Fix ProgramChange"+ " @" + channel + " from " + old + " to " + must);
                             }
                         }
                     }
@@ -227,69 +227,97 @@ public class MXMIDIOut {
 
                                 processMidiOutInternal(newMessage1);
                                 processMidiOutInternal(newMessage2);
+                                //System.out.println("need Fix BankSelect"+ " @" + channel);
                             }
                         }
                     }
 
-                    for (int x = 0; x < MXVisitant.codeList.length; ++x) {
-                        int code = MXVisitant.codeList[x];
-                        if (command != MXMidi.COMMAND_CH_CONTROLCHANGE || gate != code) {
-                            if (msgVisitant.isCCSet(code)) {
-                                if (portVisitant.isCCSet(gate) == false || portVisitant.getCCValue(code) != msgVisitant.getCCValue(code)) {
-                                    int newValue = msgVisitant.getCCValue(code);
-                                    portVisitant.setCCValue(code, newValue);
+                    if (command != MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                        if (portVisitant._currentCCAge != msgVisitant._currentCCAge) {
+                            int did = 0;
+                            for (int code = 0; code < 128; ++code) {
+                                if (msgVisitant.isCCSet(code)) {
+                                    int must = msgVisitant.getCCValue(code);
+                                    int old = portVisitant.getCCValue(code);
 
-                                    MXMessage newMessage = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_CONTROLCHANGE + channel, code, newValue);
+                                    if (portVisitant.isCCSet(gate) == false || must != old) {
+                                        did++;
+                                        portVisitant.setCCValue(code, must);
 
-                                    newMessage._timing = message._timing;
-                                    newMessage.setVisitant(portVisitant.getSnapShot());
+                                        MXMessage newMessage = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_CONTROLCHANGE + channel, code, must);
 
-                                    processMidiOutInternal(newMessage);
+                                        newMessage._timing = message._timing;
+                                        newMessage.setVisitant(portVisitant.getSnapShot());
+
+                                        processMidiOutInternal(newMessage);
+                                        //System.out.println("need Fix CC " + code+ " @" + channel+ " from " + old + " to " + must);
+                                    }
                                 }
                             }
+                            portVisitant._currentCCAge = msgVisitant._currentCCAge;
                         }
                     }
                 }
             }
-
-            if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
-                _myNoteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
-                    @Override
-                    public void onNoteOffEvent(MXTiming timing, MXMessage target) {
-                        target._timing = timing;
-                        int dword = target.getAsDword(0);
-                        _driver.OutputShortMessage(_driverOrder, dword);
-                        MXMain.addOutsideOutput(new MXMidiConsoleElement(target._timing, target.getPort(), dword));
+            MXMessage[] ret = portVisitant.preprocess(message, retBuf);
+            if (ret != null) {
+                retBuf = ret;
+                for (int i = 0; i < ret.length; ++i) {
+                    message = ret[i];
+                    if (message == null) {
+                        continue;
                     }
-                });
-                int dword = message.getAsDword(0);
-                _driver.OutputShortMessage(_driverOrder, dword);
-                MXMain.addOutsideOutput(new MXMidiConsoleElement(message._timing, message.getPort(), dword));
-                return;
-            } else if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
-                if (_myNoteOff.raiseHandler(message)) {
-                    return;
-                }
-            } else if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)
-                    && message.getData1() == MXMidi.DATA1_CC_ALLNOTEOFF) {
-                allNoteOff(message._timing);
-            }
 
-            int col = message.getDwordCount();
-            if (col == 0) {
-                byte[] data = message.getBinary();
-                _driver.OutputLongMessage(_driverOrder, data);
-                MXMain.addOutsideOutput(new MXMidiConsoleElement(message._timing, message.getPort(), data));
-            } else {
-                for (int i = 0; i < col; ++i) {
-                    int dword = message.getAsDword(i);
-                    if (dword == 0) {
-                        //MidiINでまとめるのに失敗して次のデータによりフラッシュされたケース
-                        MXFileLogger.getLogger(MXMIDIOut.class).warning("input dataentry was solo(not pair) " + message);
+                    /*
+                    if (message.isCommand(MXMidi.COMMAND2_CH_RPN)) {
+                        System.out.println("RPN " + message);
+                    }
+                    if (message.isCommand(MXMidi.COMMAND2_CH_NRPN)) {
+                        System.out.println("NRPN " + message);
+                    }*/
+
+                    if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
+                        _myNoteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
+                            @Override
+                            public void onNoteOffEvent(MXTiming timing, MXMessage target) {
+                                target._timing = timing;
+                                int dword = target.getAsDword(0);
+                                _driver.OutputShortMessage(_driverOrder, dword);
+                                MXMain.addOutsideOutput(new MXMidiConsoleElement(target._timing, target.getPort(), dword));
+                            }
+                        });
+                        int dword = message.getAsDword(0);
+                        _driver.OutputShortMessage(_driverOrder, dword);
+                        MXMain.addOutsideOutput(new MXMidiConsoleElement(message._timing, message.getPort(), dword));
+                        return;
+                    } else if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
+                        if (_myNoteOff.raiseHandler(message)) {
+                            return;
+                        }
+                    } else if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)
+                            && message.getData1() == MXMidi.DATA1_CC_ALLNOTEOFF) {
+                        allNoteOff(message._timing);
+                    }
+
+                    int col = message.getDwordCount();
+                    if (col == 0) {
+                        byte[] data = message.getBinary();
+                        _driver.OutputLongMessage(_driverOrder, data);
+                        MXMain.addOutsideOutput(new MXMidiConsoleElement(message._timing, message.getPort(), data));
                     } else {
-                        _driver.OutputShortMessage(_driverOrder, dword);
+                        for (int j = 0; j < col; ++ j) {
+                            int dword = message.getAsDword(j);
+                            if (dword == 0) {
+                                //MidiINでまとめるのに失敗して次のデータによりフラッシュされたケース
+                                if (col != 3) {
+                                    MXFileLogger.getLogger(MXMIDIOut.class).warning("input dataentry [" + i + "] was solo(not pair) " + message);
+                                }
+                            } else {
+                                _driver.OutputShortMessage(_driverOrder, dword);
+                                MXMain.addOutsideOutput(new MXMidiConsoleElement(message._timing, message.getPort(), dword));
+                            }
+                        }
                     }
-                    MXMain.addOutsideOutput(new MXMidiConsoleElement(message._timing, message.getPort(), dword));
                 }
             }
         }

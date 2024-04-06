@@ -55,7 +55,7 @@ public final class MXMessage implements Comparable<MXMessage> {
     private boolean _pairedWith14;
 
     private final MXTemplate _template;
-    public Exception _debug = new IOException("Message");
+//    public Exception _debug = new IOException("Message");
     
     public boolean isEmpty() {
         return _template.isEmpty();
@@ -307,6 +307,29 @@ public final class MXMessage implements Comparable<MXMessage> {
         _channel = channel;
         _gate = gate;
         _value = value;
+        
+        /*
+        int[] x = _template.toIntArray();
+        if (template.get(0) == MXMidi.COMMAND2_CH_RPN) {
+            _visitant = new MXVisitant();
+            MXDataentry data = _visitant.prepareFetchingDataentry();
+            data.setIsRPN(MXDataentry.TYPE_RPN);
+            data.setDataroomMSB(x[1]);
+            data.setDataroomLSB(x[2]);
+            data.setDataentryMSB(x[3]);
+            data.setDataentryLSB(x[4]);
+            _visitant.forceCompleteDataentry();
+        }
+        else if (template.get(0) == MXMidi.COMMAND2_CH_NRPN) {
+            _visitant = new MXVisitant();
+            MXDataentry data = _visitant.prepareFetchingDataentry();
+            data.setIsRPN(MXDataentry.TYPE_NRPN);
+            data.setDataroomMSB(x[1]);
+            data.setDataroomLSB(x[2]);
+            data.setDataentryMSB(x[3]);
+            data.setDataentryLSB(x[4]);
+            _visitant.forceCompleteDataentry();
+        }*/
     }
 
     public byte[] getBinary() {
@@ -335,7 +358,7 @@ public final class MXMessage implements Comparable<MXMessage> {
         }
         return false;
     }
-
+/*
     public boolean isDataentryByCC() {
         if (_template.get(0) == MXMidi.COMMAND2_CH_RPN
                 || _template.get(0) == MXMidi.COMMAND2_CH_NRPN) {
@@ -353,7 +376,7 @@ public final class MXMessage implements Comparable<MXMessage> {
         }
         return false;
     }
-
+*/
     public String toString() {
         String str = toStringHeader();
         if (isCommand(MXMidi.COMMAND_CH_PROGRAMCHANGE)) {
@@ -390,11 +413,16 @@ public final class MXMessage implements Comparable<MXMessage> {
         if (getDwordCount() >= 1) {
             StringBuffer str = new StringBuffer();
             for (int i = 0; i < getDwordCount(); ++ i) {
-                int dword = getAsDword(i);
-                if (i != 0) {
-                    str.append(", ");
+                try {
+                    int dword = getAsDword(i);
+                    if (i != 0) {
+                        str.append(", ");
+                    }
+                    str.append(MXMidiConsoleElement.toSegmentText(dword));
+                }catch(NullPointerException ex) {
+                    ex.printStackTrace();
+                    str.append(", null");
                 }
-                str.append(MXMidiConsoleElement.toSegmentText(dword));
             }
             return str.toString();
         }
@@ -402,7 +430,7 @@ public final class MXMessage implements Comparable<MXMessage> {
             return "Binary[" + MXUtil.dumpHex(getBinary()) + "]";
         }
         else {
-            return "*Nan*";
+            return "*Nan[Template " + getTemplateAsText()  +"] =" + MXUtil.toHexFF(getStatus()) + "," + MXUtil.toHexFF(getData1()) + ")*";
         }
     }
 
@@ -561,6 +589,7 @@ public final class MXMessage implements Comparable<MXMessage> {
                 return 3;
             }
         }
+        /*
         if (isDataentryByCC()) {
             MXVisitant visit = getVisitant();
             if (visit != null) {
@@ -569,7 +598,7 @@ public final class MXMessage implements Comparable<MXMessage> {
                 }
             }
             return -1;
-        }
+        }*/
         if (isBinaryMessage()) {
             return 0;
         }
@@ -634,17 +663,17 @@ public final class MXMessage implements Comparable<MXMessage> {
         int status, data1, data2;
         byte[] data = createBytes();
         /* reformat */
-        status = data[0] & 0xff;
+        status = getTemplate().get(0) & 0xfff0;
         
         if (status == MXMidi.COMMAND2_CH_RPN) {
             status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_RPN_MSB;
-            data2 = data[1] & 0xff;
+            data2 = MXTemplate.parseDAlias(getTemplate().get(1), this);
             return (((status << 8) | data1) << 8) | data2;
         } else if (status == MXMidi.COMMAND2_CH_NRPN) {
             status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_NRPN_MSB;
-            data2 = data[11] & 0xff;
+            data2 = MXTemplate.parseDAlias(getTemplate().get(1), this);
             return (((status << 8) | data1) << 8) | data2;
         }
         if (getVisitant() == null) {
@@ -652,7 +681,7 @@ public final class MXMessage implements Comparable<MXMessage> {
             return 0;
         }
         else {
-            MXDataentry entry = getVisitant().getFetchingDataentry();
+            MXDataentry entry = getVisitant().prepareFetchingDataentry();
             if (entry != null && entry.isRPN() == MXDataentry.TYPE_RPN) {
                 status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
                 data1 = MXMidi.DATA1_CC_RPN_MSB;
@@ -675,17 +704,17 @@ public final class MXMessage implements Comparable<MXMessage> {
         int status, data1, data2;
         /* reformat */
         byte[] data = createBytes();
-        status = data[0] & 0xff;
+        status = getTemplate().get(0) & 0xfff0;
 
         if (status == MXMidi.COMMAND2_CH_RPN) {
             status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_RPN_LSB;
-            data2 = data[1] & 0xff;
+            data2 = MXTemplate.parseDAlias(getTemplate().get(2), this);
             return (((status << 8) | data1) << 8) | data2;
         } else if (status == MXMidi.COMMAND2_CH_NRPN) {
             status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_NRPN_LSB;
-            data2 = data[1] & 0xff;
+            data2 = MXTemplate.parseDAlias(getTemplate().get(2), this);
             return (((status << 8) | data1) << 8) | data2;
         }
         if (getVisitant() == null) {
@@ -693,7 +722,7 @@ public final class MXMessage implements Comparable<MXMessage> {
             return 0;
         }
         else {
-            MXDataentry entry = getVisitant().getFetchingDataentry();
+            MXDataentry entry = getVisitant().prepareFetchingDataentry();
             if (entry != null && entry.isRPN() == MXDataentry.TYPE_RPN) {
                     status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
                     data1 = MXMidi.DATA1_CC_RPN_LSB;
@@ -714,12 +743,15 @@ public final class MXMessage implements Comparable<MXMessage> {
     public int toDatavalueMSB1() {
         int status, data1, data2;
         /* reformat */
-        byte[] data = createBytes();
-        status = data[0] & 0xff;
+
+        status = getTemplate().get(0) & 0xfff0;
         if (status == MXMidi.COMMAND2_CH_RPN || status == MXMidi.COMMAND2_CH_NRPN) {
             status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_DATAENTRY;
-            data2 = data[3] & 0xff;
+            if (getTemplate().get(3) < 0) {
+                return 0;
+            }
+            data2 = MXTemplate.parseDAlias(getTemplate().get(3), this);
             return (((status << 8) | data1) << 8) | data2;
         }
         if (getVisitant() == null) {
@@ -727,7 +759,7 @@ public final class MXMessage implements Comparable<MXMessage> {
             return 0;
         }
         else {
-            MXDataentry entry = getVisitant().getFetchingDataentry();
+            MXDataentry entry = getVisitant().prepareFetchingDataentry();
             if (entry != null && entry.getDataroomMSB() >= 0) {               
                 status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
                 data1 = MXMidi.DATA1_CC_DATAENTRY;
@@ -735,7 +767,6 @@ public final class MXMessage implements Comparable<MXMessage> {
                 return (((status << 8) | data1) << 8) | data2;
             }
             else {
-                MXFileLogger.getLogger(MXMessage.class).log(Level.WARNING, "Data MSB = 0");
                 return 0;
             }
         }
@@ -743,28 +774,30 @@ public final class MXMessage implements Comparable<MXMessage> {
 
     public int toDatavalueLSB2() {
         int status, data1, data2;
-        /* reformat */
-        byte[] data = createBytes();
-        status = data[0] & 0xff;
+
+        status = getTemplate().get(0) & 0xfff0;
         if (status == MXMidi.COMMAND2_CH_RPN || status == MXMidi.COMMAND2_CH_NRPN) {
             status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
             data1 = MXMidi.DATA1_CC_DATAENTRY + 0x20;
-            data2 = data[4];
+            if (getTemplate().get(4) < 0) {
+                return 0;
+            }
+            data2 = MXTemplate.parseDAlias(getTemplate().get(4), this);
             return (((status << 8) | data1) << 8) | data2;
         }
         if (getVisitant() == null) {
             MXFileLogger.getLogger(MXMessage.class).log(Level.WARNING, "Visitant was NULL");
+            new Exception().printStackTrace();
             return 0;
         }
         else {
-            MXDataentry entry = getVisitant().getFetchingDataentry();
+            MXDataentry entry = getVisitant().prepareFetchingDataentry();
             if (entry != null && entry.getDataroomLSB() >= 0) {
                 status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
                 data1 = MXMidi.DATA1_CC_DATAENTRY + 0x20;
                 data2 = getVisitant().getFlushedDataentry().getDataentryLSB();
                 return (((status << 8) | data1) << 8) | data2;
             }else {
-                MXFileLogger.getLogger(MXMessage.class).log(Level.WARNING, "Data MSB = 0");
                 return 0;
             }
         }

@@ -335,15 +335,6 @@ public class MXMain  {
                         _capture.processMXMessage(message);
                     }   
                 }
-                if (message.isMessageTypeChannel() && message.getVisitant() == null) {
-                    if ((message.getStatus() & 0xf0) != MXMidi.COMMAND_CH_NOTEOFF) {
-                        if (message._bySurface == false) {
-                            System.err.println("*********************************");
-                            new Throwable(message.toString()).printStackTrace();
-                            message._debug.printStackTrace();
-                        }
-                    }
-                }
                 if (receiver != null) {
                     receiver.processMXMessage(message);
                 }

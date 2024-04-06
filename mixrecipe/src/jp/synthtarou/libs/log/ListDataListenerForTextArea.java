@@ -49,8 +49,6 @@ public class ListDataListenerForTextArea implements ListDataListener {
     }
     
     public void updateTextArea(ListModel model) {
-        System.out.println("******"  + model);
-
         if (SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
@@ -58,23 +56,17 @@ public class ListDataListenerForTextArea implements ListDataListener {
                     updateTextArea(model);
                 }
             });
-            System.out.println("***1");
             return;              
         }
         try {
-            System.out.println("***2");
-
             StringBuffer str = new StringBuffer();
 
             for (int i = 0; i < model.getSize(); ++ i) {
                 String seg = model.getElementAt(i).toString();
-                System.out.println(seg);
                 str.append(seg);
                 str.append("\n");
             }
-            System.out.println("settext target = "  + _target);
             _target.setText(str.toString());
-            System.out.println("gettext = "  + _target.getText());
         }catch(Throwable e) {
             e.printStackTrace();
         }

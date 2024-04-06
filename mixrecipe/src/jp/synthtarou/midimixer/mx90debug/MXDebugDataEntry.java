@@ -19,6 +19,7 @@ package jp.synthtarou.midimixer.mx90debug;
 import java.util.ArrayList;
 import java.util.List;
 import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -69,26 +70,34 @@ public class MXDebugDataEntry extends MXDebug {
         List<MXMessage> in = _input;
         List<MXMessage> out = MXDebug._final.getTestResult();
         
-        if (in.size() == 4 && out.size() == 1) {
+        if (in.size() == 4) {
             int x1 = in.get(0).getAsDword(0);
             int x2 = in.get(1).getAsDword(0);
             int x3 = in.get(2).getAsDword(0);
             int x4 = in.get(3).getAsDword(0);
             
-            MXMessage message = out.get(0);
-            int y1 = message.getAsDword(0);
-            int y2 = message.getAsDword(1);
-            int y3 = message.getAsDword(2);
-            int y4 = message.getAsDword(3);
-            
-            if (x1 != y1 || x2 != y2 || x3 != y3 || x4 != y4) {
-                String str1 = MXUtil.toHexFF(x1) + ", " + MXUtil.toHexFF(x2) + ", " + MXUtil.toHexFF(x3) + ", " + MXUtil.toHexFF(x4) ;
-                String str2 = MXUtil.toHexFF(y1) + ", " + MXUtil.toHexFF(y2) + ", " + MXUtil.toHexFF(y3) + ", " + MXUtil.toHexFF(y4) ;
-                MXDebug.printDebug("fail in (" + str1 + ") out (" + str2+ ")");
+            if (out.size() == 1) {
+                MXMessage message = out.get(0);
+                int y1 = message.getAsDword(0);
+                int y2 = message.getAsDword(1);
+                int y3 = message.getAsDword(2);
+                int y4 = message.getAsDword(3);
+
+                if (x1 != y1 || x2 != y2 || x3 != y3 || x4 != y4) {
+                    String str1 = MXUtil.toHexFF(x1) + ", " + MXUtil.toHexFF(x2) + ", " + MXUtil.toHexFF(x3) + ", " + MXUtil.toHexFF(x4) ;
+                    String str2 = MXUtil.toHexFF(y1) + ", " + MXUtil.toHexFF(y2) + ", " + MXUtil.toHexFF(y3) + ", " + MXUtil.toHexFF(y4) ;
+                    MXFileLogger.getLogger(MXDebugDataEntry.class).severe("fail in (" + str1 + ") out (" + str2+ ")");
+                }
             }
         }
         else {
-            MXDebug.printDebug("Size error in (" + in.size() + " in not 4) and (" +out.size() + " is not 1)");
+            MXFileLogger.getLogger(MXDebugDataEntry.class).severe("Size error in (" + in.size() + " is not 4)" + in);
+        }
+        if (out.size() == 1) {
+            
+        }
+        else {
+            MXFileLogger.getLogger(MXDebugDataEntry.class).severe("Size error out (" +out.size() + " is not 1)" + out);
         }
     }
 }

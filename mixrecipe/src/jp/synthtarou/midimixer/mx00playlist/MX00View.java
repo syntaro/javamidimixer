@@ -690,9 +690,11 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     }//GEN-LAST:event_jButtonPlayActionPerformed
 
     private void jCheckBoxChainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxChainActionPerformed
+        _process._viewData._playAsChained = jCheckBoxChain.isSelected();
     }//GEN-LAST:event_jCheckBoxChainActionPerformed
 
     private void jCheckBoxRepeatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxRepeatActionPerformed
+        _process._viewData._playAsRepeated = jCheckBoxRepeat.isSelected();
     }//GEN-LAST:event_jCheckBoxRepeatActionPerformed
 
     private void jPanelPianoParentComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_jPanelPianoParentComponentResized

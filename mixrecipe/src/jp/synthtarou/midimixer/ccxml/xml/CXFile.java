@@ -511,7 +511,7 @@ public class CXFile {
                 countRunSame++;
             } else {
                 countRunDiffectent++;
-                System.err.println(ccm._data + " != " + data2 + "  != " + data3);
+                MXFileLogger.getLogger(CXFile.class).info(ccm._data + " != " + data2 + "  != " + data3);
             }
         } catch (Exception ex) {
             MXFileLogger.getLogger(CXFile.class).log(Level.WARNING, ex.getMessage(), ex);

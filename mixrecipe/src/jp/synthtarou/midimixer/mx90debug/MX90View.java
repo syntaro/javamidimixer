@@ -96,7 +96,7 @@ public class MX90View extends javax.swing.JPanel {
         }
         int opt = JOptionPane.showConfirmDialog(this, "Test run will dispose all your settings / send random data to SoundModules.", "Take care", JOptionPane.OK_CANCEL_OPTION);
         if (opt == JOptionPane.CANCEL_OPTION) {
-            MXDebug.printDebug("Canceled");
+            MXFileLogger.getLogger(MX90View.class).info("Canceled");
             return;
         }
         _testing = true; 

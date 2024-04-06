@@ -453,7 +453,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
         ArrayList<String> array = toDTextArray();
 
         StringBuffer text = new StringBuffer();
-        String last = "]";
+        String last = "]"; //magic number -> to skip add "space"
         for (String seg : array) {
             if (seg.length() == 0) {
                 continue;
@@ -528,6 +528,9 @@ public class MXTemplate implements Comparable<MXTemplate> {
                     data[wrote++] = _commands[2];
                     data[wrote++] = _commands[3];
                     data[wrote++] = _commands[4];
+                    if (_commands[4] < 0) {
+                        throw new Error();
+                    }
                     return data;
 
                 case MXMidi.COMMAND2_NONE:

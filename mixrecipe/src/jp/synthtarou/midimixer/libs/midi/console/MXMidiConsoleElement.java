@@ -166,6 +166,7 @@ public class MXMidiConsoleElement implements Comparable<MXMidiConsoleElement>{
     }
 
     public static String toSegmentText(int dword) {
+        int extra = (dword >> 24) % 0xff;
         int status = (dword >> 16) & 0xff;
         int data1 = (dword >> 8) & 0xff;
         int data2 = dword & 0xff;
@@ -208,6 +209,10 @@ public class MXMidiConsoleElement implements Comparable<MXMidiConsoleElement>{
         if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
             String ccname = MXMidi.nameOfControlChange(data1);
             return  "[CC-" + ccname + " " + channel + ":" + MXUtil.toHexFF(data2) + "]";
+        }
+        
+        if (extra != 0) {
+            return "XXX "+ MXUtil.toHexFF(extra);
         }
         
         return "****" + MXUtil.toHexFF(status) + MXUtil.toHexFF(data1) + MXUtil.toHexFF(data2);

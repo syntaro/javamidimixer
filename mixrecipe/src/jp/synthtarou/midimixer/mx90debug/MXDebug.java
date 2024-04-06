@@ -22,7 +22,6 @@ import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
-import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInForTest;
 
 /**
@@ -35,8 +34,8 @@ public abstract class MXDebug {
     static FinalMIDIOut _final = FinalMIDIOut.getInstance();
 
     LinkedList<MXMessage> _input;
-    MXMIDIInForTest _test = MXMIDIIn.INTERNAL_TESTER;
-
+    MXMIDIInForTest _test = new MXMIDIInForTest();
+    
     public MXDebug(MXMessage target) {
         _final.startTestSignal(-1);
         _input = new LinkedList<>();
@@ -72,22 +71,27 @@ public abstract class MXDebug {
     
     public void checkResultSame() {
         if (_input.size() != 1) {
-            MXDebug.printDebug("Test must process as 1 on 1 (for this checkResult, otherwise please override ::checkResult)");
+            MXFileLogger.getLogger(MXDebug.class).severe(
+                    "Test must process as 1 on 1 (for this checkResult, otherwise please override ::checkResult)");
         }
         MXMessage message1 = _input.get(0);
         LinkedList<MXMessage> result = _final.getTestResult();
         if (result.size() != 1) {
-            MXDebug.printDebug("Error output size = " + result.size());
+            MXFileLogger.getLogger(MXDebug.class).severe("Error output size = " + result.size() + _final.getTestResult());
         }
         MXMessage message2 =  result.get(0);
         
+        if (message1 == message2) {
+            return;
+        }
+        
         if (message1.getPort() != message2.getPort()) {
-            MXDebug.printDebug("Error output port = " + message2.getPort()
+            MXFileLogger.getLogger(MXDebug.class).severe("Error output port = " + message2.getPort()
                   + ", input port = " + message1.getPort());
         }
         
         if (message1.getDwordCount() != message2.getDwordCount())  {
-            MXDebug.printDebug("Error output dword length = " + message2.getDwordCount()
+            MXFileLogger.getLogger(MXDebug.class).severe("Error output dword length = " + message2.getDwordCount()
                   + ", input dword length = " + message1.getDwordCount());
         }
         else if (message1.getDwordCount() >= 1) {
@@ -95,7 +99,7 @@ public abstract class MXDebug {
                 int d1 = message1.getAsDword(i);
                 int d2 = message2.getAsDword(i);
                 if (d1 != d2)  {
-                    MXDebug.printDebug("Error output dword[" + i + "] = " + MXUtil.dumpDword(d2)
+                    MXFileLogger.getLogger(MXDebug.class).severe("Error output dword[" + i + "] = " + MXUtil.dumpDword(d2)
                          + ", input dword[" +  i +  "] = " + MXUtil.dumpDword(d1));
                 }
             }
@@ -104,14 +108,14 @@ public abstract class MXDebug {
             byte[] data2 = message1.getBinary();
             for (int i = 0; i <data1.length; ++ i) {
                 if (data1[i] != data2[i]) {
-                    MXDebug.printDebug("Error output dump[" + MXUtil.dumpHex(data2) + "]"
+                MXFileLogger.getLogger(MXDebug.class).severe("Error output dump[" + MXUtil.dumpHex(data2) + "]"
                           + ", input dump[" + MXUtil.dumpHex(data1) + "]");
                 }
             }
         }
     }
-    
+    /*
     public static void printDebug(String text) {
         MXFileLogger.getLogger(MXDebug.class).info(text);
-    }
+    }*/
 }

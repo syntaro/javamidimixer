@@ -16,6 +16,8 @@
  */
 package jp.synthtarou.midimixer.libs.midi;
 
+import jp.synthtarou.libs.log.MXFileLogger;
+
 /**
  *
  * @author Syntarou YOSHIDA
@@ -43,7 +45,7 @@ public class MXTiming implements Comparable<MXTiming>{
         synchronized(MXTiming.class) {
             long t = System.currentTimeMillis();
             if (t < _lastClock) {
-                System.err.print(" --- something bad --- (never happens before)");
+                MXFileLogger.getLogger(MXTiming.class).severe(" --- something bad --- (never happens before)");
                 t = _lastClock;
             }
             _clock = t;

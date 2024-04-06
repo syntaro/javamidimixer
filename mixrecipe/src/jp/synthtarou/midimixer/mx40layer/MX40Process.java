@@ -34,12 +34,14 @@ import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.json.MXJsonValue;
+import jp.synthtarou.midimixer.mx30surface.MX32MixerView;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSupport, MXJsonSupport {
+
     MX40View _view;
     MXVisitant16TableModel _inputInfo;
     MXVisitant16TableModel _outputInfo;
@@ -63,113 +65,123 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
         MXINIFile setting2 = new MXINIFile(file, this);
         setting2.readINIFile();
     }
-    
+
+    MXMessage[] buf = new MXMessage[2];
+
     public void sendToNext(MXMessage message) {
-        _outputInfo.preprocess16ForVisitant(message);
-        if (_outputInfo.mergeVisitant16WithVisitant(message)) {
-            
+        buf = _outputInfo.preprocess16ForVisitant(message, buf);
+        for (int i = 0; i < buf.length; ++i) {
+            if (buf[i] == null) {
+                continue;
+            }
+            if (_outputInfo.mergeVisitant16WithVisitant(buf[i])) {
+
+            }
+            super.sendToNext(buf[i]);
         }
-        super.sendToNext(message);
     }
 
     @Override
     public void processMXMessage(MXMessage message) {
-        MXMessage message2 = _inputInfo.preprocess16ForVisitant(message);
-        if (message != message2) {
-            System.out.println("PRREPROCSES " + message2);
-            if (message2 == null) {
-                return;
-            }
-            message = message2;
-        }
-
-        _inputInfo.mergeVisitant16WithVisitant(message);
-        MXTiming timing = message._timing;
-        
-        if (message.isBinaryMessage()) {
-            sendToNext(message);
+        buf = _inputInfo.preprocess16ForVisitant(message, buf);
+        if (buf == null) {
             return;
         }
-
-        if (isUsingThisRecipe() == false) { 
-            sendToNext(message); 
-            return; 
-        }
-
-        int port = message.getPort();
-        int status = message.getStatus();
-        int channel = message.getChannel();
-        int command = status;
-        if (command >= 0x80 && command <= 0xef) {
-            command &= 0xf0;
-        }
-        
-        int first = message.getTemplate().get(0);
-
-        if (first == MXMidi.COMMAND2_CH_PROGRAM_INC) {
-            int x = message.getVisitant().getProgram() + 1;
-            if (x >= 128) {
-                x = 127;
+        for (int mi = 0; mi < buf.length; ++mi) {
+            message = buf[mi];
+            if (message == null) {
+                continue;
             }
-            message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_PROGRAMCHANGE + message.getChannel(), x, 0);
-            message._timing = timing;
-            command = MXMidi.COMMAND_CH_PROGRAMCHANGE;
-        }
-        if (first == MXMidi.COMMAND2_CH_PROGRAM_DEC) {
-            int x = message.getVisitant().getProgram() - 1;
-            if (x < 0) {
-                x = 0;
-            }
-            message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_PROGRAMCHANGE + message.getChannel(), x, 0);
-            message._timing = timing;
-            command = MXMidi.COMMAND_CH_PROGRAMCHANGE;
-        }
 
-        if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-            if (_noteOff.raiseHandler(port, message._timing, channel, message.getGate()._value)) {
+            _inputInfo.mergeVisitant16WithVisitant(message);
+            MXTiming timing = message._timing;
+
+            if (message.isBinaryMessage()) {
+                sendToNext(message);
                 return;
             }
-        }
-        
-        boolean dispatched = false;
 
-        if (message.isMessageTypeChannel()) {
-            for (int i = 0; i < _groupList.size(); ++ i) {
-                final MX40Group col = _groupList.get(i);
-                if (col.processByGroup(message)) {
-                    if (command == MXMidi.COMMAND_CH_NOTEON) {
-                        _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
-                            public void onNoteOffEvent(MXTiming timing, MXMessage target) {
-                                MXMessage msg = MXMessageFactory.fromShortMessage(target.getPort(), 
-                                        MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(), 
-                                        target.getGate()._value, 0);
-                                msg._timing = timing;
-                                col.processByGroup(msg);
-                            }
-                        });
-                    }
-                    dispatched = true;
-                    break;
+            if (isUsingThisRecipe() == false) {
+                sendToNext(message);
+                return;
+            }
+
+            int port = message.getPort();
+            int status = message.getStatus();
+            int channel = message.getChannel();
+            int command = status;
+            if (command >= 0x80 && command <= 0xef) {
+                command &= 0xf0;
+            }
+
+            int first = message.getTemplate().get(0);
+
+            if (first == MXMidi.COMMAND2_CH_PROGRAM_INC) {
+                int x = message.getVisitant().getProgram() + 1;
+                if (x >= 128) {
+                    x = 127;
+                }
+                message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_PROGRAMCHANGE + message.getChannel(), x, 0);
+                message._timing = timing;
+                command = MXMidi.COMMAND_CH_PROGRAMCHANGE;
+            }
+            if (first == MXMidi.COMMAND2_CH_PROGRAM_DEC) {
+                int x = message.getVisitant().getProgram() - 1;
+                if (x < 0) {
+                    x = 0;
+                }
+                message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_PROGRAMCHANGE + message.getChannel(), x, 0);
+                message._timing = timing;
+                command = MXMidi.COMMAND_CH_PROGRAMCHANGE;
+            }
+
+            if (command == MXMidi.COMMAND_CH_NOTEOFF) {
+                if (_noteOff.raiseHandler(port, message._timing, channel, message.getGate()._value)) {
+                    return;
                 }
             }
-        }
-        if (!dispatched) {
-            if (command == MXMidi.COMMAND_CH_NOTEON) {
-                _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
-                    public void onNoteOffEvent(MXTiming timing, MXMessage target) {
-                        MXMessage msg = MXMessageFactory.fromShortMessage(target.getPort(), 
-                                MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(), 
-                                target.getGate()._value, 0);
-                        msg._timing = timing;
-                        sendToNext(msg);
+
+            boolean dispatched = false;
+
+            if (message.isMessageTypeChannel()) {
+                for (int i = 0; i < _groupList.size(); ++i) {
+                    final MX40Group col = _groupList.get(i);
+                    if (col.processByGroup(message)) {
+                        if (command == MXMidi.COMMAND_CH_NOTEON) {
+                            _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
+                                public void onNoteOffEvent(MXTiming timing, MXMessage target) {
+                                    MXMessage msg = MXMessageFactory.fromShortMessage(target.getPort(),
+                                            MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(),
+                                            target.getGate()._value, 0);
+                                    msg._timing = timing;
+                                    col.processByGroup(msg);
+                                }
+                            });
+                        }
+                        dispatched = true;
+                        break;
                     }
-                });
+                }
             }
-            if (message.isCommand(MXMidi.COMMAND_CH_PROGRAMCHANGE) && message.getGate()._value < 0) {
-                return;
+            if (!dispatched) {
+                if (command == MXMidi.COMMAND_CH_NOTEON) {
+                    _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
+                        public void onNoteOffEvent(MXTiming timing, MXMessage target) {
+                            MXMessage msg = MXMessageFactory.fromShortMessage(target.getPort(),
+                                    MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(),
+                                    target.getGate()._value, 0);
+                            msg._timing = timing;
+                            sendToNext(msg);
+                        }
+                    });
+                }
+                if (message.isCommand(MXMidi.COMMAND_CH_PROGRAMCHANGE) && message.getGate()._value < 0) {
+                    return;
+                }
+                sendToNext(message);
             }
-            sendToNext(message);
         }
+
     }
 
     @Override
@@ -183,25 +195,25 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
     }
 
     public synchronized void resendProgramChange() {
-        for(int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
-            for(int channel = 0; channel < 16; ++ channel) {
+        for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
+            for (int channel = 0; channel < 16; ++channel) {
                 MXVisitant info = _inputInfo.getVisitant(port, channel);
                 if (info.isHavingProgram()) {
                     MXMessage programChange = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, info.getProgram(), 0);
                     processMXMessage(programChange);
-                }else {
+                } else {
                     //Tricky way to set Gate -1
                     //TODO Magic Number 
                     /*
                     MXMessage programChange = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, 0, 0);
                     programChange.setGate(null);
                     processMXMessage(programChange);
-                    */
+                     */
                 }
             }
         }
     }
-    
+
     @Override
     public MXINIFile prepareINIFile(File custom) {
         if (custom == null) {
@@ -244,7 +256,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
         setting.register("Group[].Layer[].sendKeyHighest");
         setting.register("Group[].Layer[].sendVelocityLowest");
         setting.register("Group[].Layer[].sendVelocityHighest");
-        return  setting;
+        return setting;
     }
 
     @Override
@@ -255,7 +267,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
         }
         ArrayList<MX40Group> newGroupList = new ArrayList();
         this._groupList = newGroupList;
-        List<MXINIFileNode> readingGroups = setting.findByPath("Group");   
+        List<MXINIFileNode> readingGroups = setting.findByPath("Group");
         if (readingGroups.size() > 0) {
             readingGroups = readingGroups.get(0).findNumbers();
         }
@@ -271,8 +283,8 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
             group._rotatePoly = node.getSettingAsInt("rotatePoly", 16);
 
             group._isWatchBank = node.getSettingAsBoolean("isWatchBank", false);
-            group._watchingBankMSB = node.getSettingAsInt("watchingBankMSB",0 );
-            group._watchingBankLSB = node.getSettingAsInt("watchingBankLSB",0 );
+            group._watchingBankMSB = node.getSettingAsInt("watchingBankMSB", 0);
+            group._watchingBankLSB = node.getSettingAsInt("watchingBankLSB", 0);
 
             group._isWatchProgram = node.getSettingAsBoolean("isWatchProgram", false);
             group._watchingProgram = node.getSettingAsInt("watchingProgram", 0);
@@ -284,7 +296,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                 for (MXINIFileNode node2 : numbers) {
                     MX40Layer layer = new MX40Layer(this, group);
                     layer._title = node2.getSetting("title");
-                    layer._disabled  = node2.getSettingAsBoolean("disabled", false);
+                    layer._disabled = node2.getSettingAsBoolean("disabled", false);
                     layer._modPort = node2.getSettingAsInt("modPort", MX40Layer.MOD_ASFROM);
                     layer._fixedPort = node2.getSettingAsInt("fixedPort", 0);
 
@@ -321,7 +333,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
     @Override
     public boolean writeINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
-        for (int i = 0; i < _groupList.size(); i ++){
+        for (int i = 0; i < _groupList.size(); i++) {
             String prefixG = "Group[" + i + "]";
             MX40Group group = _groupList.get(i);
             setting.setSetting(prefixG + ".title", group._title);
@@ -337,7 +349,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
             setting.setSetting(prefixG + ".rotateLayer", group._isRotate);
             setting.setSetting(prefixG + ".rotatePoly", group._rotatePoly);
 
-            for (int j = 0; j < group._listLayer.size(); ++ j) {
+            for (int j = 0; j < group._listLayer.size(); ++j) {
                 String prefixL = "Group[" + i + "].Layer[" + j + "]";
                 MX40Layer layer = group._listLayer.get(j);
                 setting.setSetting(prefixL + ".title", layer._title);
@@ -350,7 +362,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                 setting.setSetting(prefixL + ".fixedBankMSB", layer._fixedBankMSB);
                 setting.setSetting(prefixL + ".fixedBankLSB", layer._fixedBankLSB);
                 setting.setSetting(prefixL + ".modProgram", layer._modProgram);
-                setting.setSetting(prefixL + ".fixedProgram",layer._fixedProgram);
+                setting.setSetting(prefixL + ".fixedProgram", layer._fixedProgram);
                 setting.setSetting(prefixL + ".modPan", layer._modPan);
                 setting.setSetting(prefixL + ".fixedPan", layer._fixedPan);
                 setting.setSetting(prefixL + ".adjustExpression", layer._adjustExpression);
@@ -380,7 +392,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
         this._groupList = newGroupList;
         MXJsonValue.HelperForArray readingGroups = root.getFollowingArray("Group");
         if (readingGroups != null) {
-            for (int i = 0; i < readingGroups.count(); ++ i) {
+            for (int i = 0; i < readingGroups.count(); ++i) {
                 MXJsonValue.HelperForStructure node = readingGroups.getFollowingStructure(i);
                 MX40Group group = new MX40Group(this);
                 group._title = node.getFollowingText("title", "");
@@ -393,8 +405,8 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                 group._rotatePoly = node.getFollowingInt("rotatePoly", 16);
 
                 group._isWatchBank = node.getFollowingBool("isWatchBank", false);
-                group._watchingBankMSB = node.getFollowingInt("watchingBankMSB",0 );
-                group._watchingBankLSB = node.getFollowingInt("watchingBankLSB",0 );
+                group._watchingBankMSB = node.getFollowingInt("watchingBankMSB", 0);
+                group._watchingBankLSB = node.getFollowingInt("watchingBankLSB", 0);
 
                 group._isWatchProgram = node.getFollowingBool("isWatchProgram", false);
                 group._watchingProgram = node.getFollowingInt("watchingProgram", 0);
@@ -402,11 +414,11 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
 
                 MXJsonValue.HelperForArray layerNode = node.getFollowingArray("Layer");
                 if (layerNode != null) {
-                    for (int j = 0; j < layerNode.count(); ++ j) {
+                    for (int j = 0; j < layerNode.count(); ++j) {
                         MXJsonValue.HelperForStructure node2 = layerNode.getFollowingStructure(j);
                         MX40Layer layer = new MX40Layer(this, group);
                         layer._title = node2.getFollowingText("title", "");
-                        layer._disabled  = node2.getFollowingBool("disabled", false);
+                        layer._disabled = node2.getFollowingBool("disabled", false);
                         layer._modPort = node2.getFollowingInt("modPort", MX40Layer.MOD_ASFROM);
                         layer._fixedPort = node2.getFollowingInt("fixedPort", 0);
 
@@ -453,7 +465,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
         MXJsonParser parser = new MXJsonParser(custom);
         MXJsonValue.HelperForStructure root = parser.getRoot().new HelperForStructure();
         MXJsonValue.HelperForArray baseGroup = root.addFollowingArray("Group");
-        for (int i = 0; i < _groupList.size(); i ++){
+        for (int i = 0; i < _groupList.size(); i++) {
             MX40Group seekGroup = _groupList.get(i);
             MXJsonValue.HelperForStructure settingGroup = baseGroup.addFollowingStructure();
             settingGroup.setFollowingText("title", seekGroup._title);
@@ -468,10 +480,10 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
             settingGroup.setFollowingInt("watchingProgram", seekGroup._watchingProgram);
             settingGroup.setFollowingBool("rotateLayer", seekGroup._isRotate);
             settingGroup.setFollowingInt("rotatePoly", seekGroup._rotatePoly);
-            
+
             MXJsonValue.HelperForArray baseLayer = settingGroup.addFollowingArray("Layer");
 
-            for (int j = 0; j < seekGroup._listLayer.size(); ++ j) {
+            for (int j = 0; j < seekGroup._listLayer.size(); ++j) {
                 String prefixL = "Group[" + i + "].Layer[" + j + "]";
                 MX40Layer seekLayer = seekGroup._listLayer.get(j);
                 MXJsonValue.HelperForStructure settingLayer = baseLayer.addFollowingStructure();
@@ -485,7 +497,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                 settingLayer.setFollowingInt(prefixL + ".fixedBankMSB", seekLayer._fixedBankMSB);
                 settingLayer.setFollowingInt(prefixL + ".fixedBankLSB", seekLayer._fixedBankLSB);
                 settingLayer.setFollowingInt(prefixL + ".modProgram", seekLayer._modProgram);
-                settingLayer.setFollowingInt(prefixL + ".fixedProgram",seekLayer._fixedProgram);
+                settingLayer.setFollowingInt(prefixL + ".fixedProgram", seekLayer._fixedProgram);
                 settingLayer.setFollowingInt(prefixL + ".modPan", seekLayer._modPan);
                 settingLayer.setFollowingInt(prefixL + ".fixedPan", seekLayer._fixedPan);
                 settingLayer.setFollowingInt(prefixL + ".adjustExpression", seekLayer._adjustExpression);

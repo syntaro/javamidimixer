@@ -97,6 +97,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
         _stream.addLine("V0.64 BugFix to not Skip note when Inperfect DataEntry\n");
         _stream.addLine("V0.70 Test Driven Development");
         _stream.addLine("V0.71 support json, more good piano roll, ");
+        _stream.addLine("V0.71a json not save file for now. plz wait 0.72");
 
         _stream.addLine("It is beta release, please send me issue,\n");
         _stream.addLine("Im waiting for public relesae timing.\n\n");

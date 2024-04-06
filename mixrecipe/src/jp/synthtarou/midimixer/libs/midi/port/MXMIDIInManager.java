@@ -77,12 +77,6 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
 
         MXNamedObjectList<MXMIDIIn> temp = new MXNamedObjectList<MXMIDIIn>();
 
-        MXMIDIIn tester = MXMIDIIn.INTERNAL_TESTER;
-        temp.addNameAndValue(tester.getName(), tester);
-        if (tester.getPortAssignCount() == 0) {
-            tester.setPortAssigned(0, true);
-        }
-        
         MXMIDIIn sequencer = MXMIDIIn.INTERNAL_PLAYER;
         temp.addNameAndValue(sequencer.getName(), sequencer);
         if (sequencer.getPortAssignCount() == 0) {

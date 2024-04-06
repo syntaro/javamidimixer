@@ -181,6 +181,7 @@ public class MXMidi {
     public static final int DATA1_CC_FOOTCONTROL = 4;
     public static final int DATA1_CC_PORTAMENTTIME = 5;
     public static final int DATA1_CC_DATAENTRY = 6;
+    public static final int DATA1_CC_DATAENTRY2 = 6 + 32;
     public static final int DATA1_CC_CHANNEL_VOLUME = 7;
     public static final int DATA1_CC_BALANCE = 8;
     public static final int DATA1_CC_9 = 9;
@@ -353,6 +354,8 @@ public class MXMidi {
                 return namePrefix + "PRTA";
             case MXMidi.DATA1_CC_DATAENTRY:
                 return namePrefix + "DATA ";
+            case MXMidi.DATA1_CC_DATAENTRY2:
+                return namePrefix + "DATA2 ";
             case MXMidi.DATA1_CC_CHANNEL_VOLUME:
                 return namePrefix + "VOL ";
             case MXMidi.DATA1_CC_BALANCE:
