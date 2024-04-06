@@ -16,8 +16,8 @@
  */
 package jp.synthtarou.midimixer.mx40layer;
 
-import jp.synthtarou.midimixer.libs.midi.port.MXVisitantRecorder;
-import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
+import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant16TableModel;
+import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant;
 import java.util.ArrayList;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.MXMain;
@@ -72,12 +72,11 @@ public class MX40Group {
     }
     
     public boolean isAssigned(int port, int channel) {
-        MXVisitantRecorder info = _process._inputInfo;
-        MXVisitant e = info.getVisitant(port, channel);
+        MXVisitant visit = _process._inputInfo.getVisitant(port, channel);
 
-        int infoBankMSB = e.isHavingBank() ? e.getBankMSB() : -1;
-        int infoBankLSB = e.isHavingBank() ? e.getBankLSB() : -1;
-        int infoProgram = e.isHavingProgram() ? e.getProgram() : -1;
+        int infoBankMSB = visit.isHavingBank() ? visit.getBankMSB() : -1;
+        int infoBankLSB = visit.isHavingBank() ? visit.getBankLSB() : -1;
+        int infoProgram = visit.isHavingProgram() ? visit.getProgram() : -1;
 
         boolean assigned = false;
     
@@ -108,7 +107,7 @@ public class MX40Group {
             }
         }else {
             assigned = false;
-            if(e.isHavingBank() || e.isHavingProgram()) {
+            if(visit.isHavingBank() || visit.isHavingProgram()) {
                 /* プログラム指定された過去がある */
                 assigned = true;
             }

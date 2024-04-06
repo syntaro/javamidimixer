@@ -16,7 +16,7 @@
  */
 package jp.synthtarou.midimixer.mx40layer;
 
-import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
+import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -372,8 +372,9 @@ public class MX40Layer {
             }
         }
 
-        if (proc) {
-            double exp = info.getInfoExpression();
+        if (proc) { //プログラムチェンジ直後、EXPとPANをいじる
+            int org = info.getCCValue(MXMidi.DATA1_CC_EXPRESSION);
+            double exp = org;
             exp = exp * _adjustExpression * 0.01;
             int data2_exp = (int)exp;
             int command = MXMidi.COMMAND_CH_CONTROLCHANGE;
@@ -385,7 +386,8 @@ public class MX40Layer {
             _process.sendToNext(message2);
 
             command = MXMidi.COMMAND_CH_CONTROLCHANGE;
-            int data2_value = info.getInfoPan();
+            org = info.getCCValue(MXMidi.DATA1_CC_PANPOT);
+            int data2_value = org;
             if (_modPan == MX40Layer.MOD_FIXED) {
                 data2_value = _fixedPan;
             }

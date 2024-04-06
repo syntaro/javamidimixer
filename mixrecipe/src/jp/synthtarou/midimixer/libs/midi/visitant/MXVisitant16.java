@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Syntarou YOSHIDA
+ * Copyright 2023 Syntarou YOSHIDA.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,22 +14,34 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.midi.port;
+package jp.synthtarou.midimixer.libs.midi.visitant;
 
-import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Tester;
+import java.util.ArrayList;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MXMIDIInForTest extends MXMIDIIn {
+public class MXVisitant16 {
     
-    public MXMIDIInForTest() {
-        super(MXDriver_Tester._instance, 0);
+    MXVisitant[] _array;
+
+    public MXVisitant16() {
+        _array = new MXVisitant[16];
+        for(int i = 0; i < _array.length; ++ i) {
+            _array[i] = new MXVisitant();
+        }
+    }
+
+    public MXVisitant get(int channel) {
+        return _array[channel];
     }
     
-    public void startTest(MXMessage message) {
-        super.dispatchToPortCurrent(message);
+    public String toString() {
+        ArrayList<MXVisitant> list = new ArrayList();
+        for (MXVisitant v : _array) {
+            list.add(v);
+        }
+        return list.toString();
     }
 }

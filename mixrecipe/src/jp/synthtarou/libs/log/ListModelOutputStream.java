@@ -47,6 +47,10 @@ public class ListModelOutputStream extends OutputStream {
     long _lastAdded = 0;
     JList _installed;
     boolean _pause = false;
+    
+    public void setPause(boolean pause){ 
+        _pause = pause;
+    }
 
     public synchronized void attachListForLogging(JList install) {
         _installed = install;

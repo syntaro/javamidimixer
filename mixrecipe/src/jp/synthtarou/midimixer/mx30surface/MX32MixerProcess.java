@@ -33,8 +33,6 @@ import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.libs.inifile.MXINIFileNode;
-import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
-import jp.synthtarou.midimixer.libs.midi.port.MXVisitant16;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
@@ -50,7 +48,6 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
     final MX32MixerView _view;
     MXNoteOffWatcher _noteOff;
 
-    MXVisitant16 _visitant16 = new MXVisitant16();
     String _mixerName;
 
     int _patchToMixer = -1;
@@ -492,7 +489,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
 
     void updateStatusAndSend(MGStatus status, int newValue) {
         MXMessageBag bag = new MXMessageBag();
-        updateStatusAndGetResult(status, newValue, null, bag);
+        updateUIStatusAndGetResult(status, newValue, null, bag);
         while (true) {
             MXMessage message = bag.popResult();
             if (message == null) {
@@ -503,7 +500,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
         }
     }
 
-    void updateStatusAndGetResult(MGStatus status, int newValue, MXTiming timing, MXMessageBag bag) {
+    void updateUIStatusAndGetResult(MGStatus status, int newValue, MXTiming timing, MXMessageBag bag) {
         if (_parent._underConstruction) {
             return;
         }
@@ -521,11 +518,13 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
                 MGSlider slider = getSlider(row, column);
                 status.setMessageValue(status.getValue().changeValue(newValue));
                 message = (MXMessage) status._base.clone();
+                message._bySurface = true;
                 slider.publishUI();
             } else if (uiType == MGStatus.TYPE_CIRCLE) {
                 MGCircle circle = getCircle(row, column);
                 status.setMessageValue(status.getValue().changeValue(newValue));
                 message = (MXMessage) status._base.clone();
+                message._bySurface = true;
                 circle.publishUI();
             } else {
                 return;//nothing
@@ -538,13 +537,12 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
                 int nextMin = nextStatus._base.getValue()._min;
                 int nextMax = nextStatus._base.getValue()._max;
                 newValue = status._base.getValue().changeRange(nextMin, nextMax)._value;
-                nextMixer.updateStatusAndGetResult(nextStatus, newValue, timing, bag);
+                nextMixer.updateUIStatusAndGetResult(nextStatus, newValue, timing, bag);
             }
 
             if (_patchToMixer < 0 || _patchTogether) {
                 if (message != null) {
                     message._timing = timing;
-                    message._mx30record = new MGStatus[]{status};
                     startProcess(message, bag);
                     bag.addResult(message);
                 }
@@ -708,12 +706,6 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
             sendToNext(message);
             return;
         }
-        if (MXVisitant.isMesssageHaveVisitant(message)) {
-            _visitant16.get(message.getChannel()).updateVisitantChannel(message);
-        }
-        if (message.isMessageTypeChannel()) {
-            _visitant16.get(message.getChannel()).attachChannelVisitantToMessage(message);
-        }
 
         synchronized (this) {
             if (_finder == null) {
@@ -736,11 +728,10 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
                         continue;
                     }
                     if (seek.controlByMessage(message, bag)) {
-                        updateStatusAndGetResult(seek, seek.getValue()._value, message._timing, bag);
+                        updateUIStatusAndGetResult(seek, seek.getValue()._value, message._timing, bag);
                         proc = true;
                     }
                 }
-                message._mx30record = bag.listTouchedStatus();
             }
             if (!proc) {
                 bag.addResult(message);

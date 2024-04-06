@@ -16,11 +16,12 @@
  */
 package jp.synthtarou.midimixer.libs.midi.port;
 
+import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant16;
+import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant;
 import java.util.logging.Level;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.log.MXFileLogger;
-import jp.synthtarou.midimixer.ccxml.ui.PickerForinstrument;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -43,7 +44,7 @@ public class MXMIDIOut {
     private String _name;
     boolean[] _assigned;
     int _assignCount;
-    private MXVisitant16 _visitant16 = new MXVisitant16();
+    private MXVisitant16 _visitantOut16 = new MXVisitant16();
 
     private MXNoteOffWatcher _myNoteOff = new MXNoteOffWatcher();
 
@@ -170,8 +171,10 @@ public class MXMIDIOut {
 
             MXMain.addInsideOutput(message);
 
-            if (MXVisitant.isMesssageHaveVisitant(message)) {
-                _visitant16.get(message.getChannel()).updateVisitantChannel(message);
+            MXVisitant portVisitant = _visitantOut16.get(message.getChannel());
+            MXMessage message2 = portVisitant.preprocess(message);
+            if (message != message2) {
+                System.out.println(message +"  <> " + message2);
             }
 
             long timeStamp = getTimestamp();
@@ -179,7 +182,6 @@ public class MXMIDIOut {
 
             if (message.isMessageTypeChannel()) {
                 MXVisitant msgVisitant = message.getVisitant();
-                MXVisitant visitant = _visitant16.get(message.getChannel());
                 int status = message.getStatus();
                 int channel = message.getChannel();
                 int gate = message.getGate()._value;
@@ -187,69 +189,64 @@ public class MXMIDIOut {
                 if (status >= 0x80 && status <= 0xef) {
                     command = status & 0xf0;
                 }
-                if (command != MXMidi.COMMAND_CH_PROGRAMCHANGE) {
-                    if (msgVisitant != null && msgVisitant.isHavingProgram()) {
-                        if (visitant.isHavingProgram() == false || visitant.getProgram() != message.getVisitant().getProgram()) {
-                            visitant.mergeNew(message.getVisitant());
-                            MXMessage newMessage = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, visitant.getProgram(), 0);
-                            newMessage._timing = message._timing;
-                            newMessage.setVisitant(visitant.getSnapShot());
-                            processMidiOutInternal(newMessage);
+                if (msgVisitant == null) {
+                    if (command != MXMidi.COMMAND_CH_NOTEON && command != MXMidi.COMMAND_CH_NOTEOFF) {
+                        if (message._bySurface == false) {
+                            message._debug.printStackTrace();
                         }
                     }
-                }
-                if (command != MXMidi.COMMAND_CH_CONTROLCHANGE || (gate != MXMidi.DATA1_CC_BANKSELECT && gate != MXMidi.DATA1_CC_BANKSELECT + 32)) {
-                    //0と32が連続でくる間は、この処理は実行されないので、半端を送ることもない
-                    if (msgVisitant != null && msgVisitant.isHavingBank()) {
-                        if (visitant.isHavingBank() == false || visitant.getBankMSB() != msgVisitant.getBankMSB() || visitant.getBankLSB() != msgVisitant.getBankLSB()) {
-                            visitant.mergeNew(message.getVisitant());
-
-                            MXMessage newMessage1 = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_CONTROLCHANGE + channel, MXMidi.DATA1_CC_BANKSELECT, visitant._bankMSB);
-                            MXMessage newMessage2 = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_CONTROLCHANGE + channel, MXMidi.DATA1_CC_BANKSELECT + 32, visitant._bankLSB);
-                            newMessage1._timing = message._timing;
-                            newMessage2._timing = message._timing;
-
-                            processMidiOutInternal(newMessage1);
-                            processMidiOutInternal(newMessage2);
+                }else {
+                    if (command != MXMidi.COMMAND_CH_PROGRAMCHANGE) {
+                        if (msgVisitant.isHavingProgram()) {
+                            int must = msgVisitant.getProgram();
+                            if (portVisitant.isHavingProgram() == false || portVisitant.getProgram() != must) {
+                                portVisitant.setProgram(must);
+                                MXMessage newMessage = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, must, 0);
+                                newMessage._timing = message._timing;
+                                newMessage.setVisitant(portVisitant.getSnapShot());
+                                processMidiOutInternal(newMessage);
+                            }
                         }
                     }
-                }
+                    if (command != MXMidi.COMMAND_CH_CONTROLCHANGE || (gate != MXMidi.DATA1_CC_BANKSELECT && gate != MXMidi.DATA1_CC_BANKSELECT + 32)) {
+                        //0と32が連続でくる間は、この処理は実行されないので、半端を送ることもない
+                        if (msgVisitant.isHavingBank()) {
+                            int mustLSB = msgVisitant.getBankLSB();
+                            int mustMSB = msgVisitant.getBankMSB();
+                            if (portVisitant.isHavingBank() == false || portVisitant.getBankMSB() != mustMSB || portVisitant.getBankLSB() != mustLSB) {
+                                portVisitant.setBankLSB(msgVisitant.getBankMSB());
+                                portVisitant.setBankLSB(msgVisitant.getBankLSB());
 
-                if (command != MXMidi.COMMAND_CH_CONTROLCHANGE || (gate != MXMidi.DATA1_CC_CHANNEL_VOLUME)) {
-                    if (msgVisitant != null && msgVisitant.isHavingVolume()) {
-                        if (visitant.isHavingVolume() == false || visitant.getInfoVolume() != msgVisitant.getInfoVolume()) {
-                            visitant.mergeNew(message.getVisitant());
+                                MXMessage newMessage1 = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_CONTROLCHANGE + channel, MXMidi.DATA1_CC_BANKSELECT, mustMSB);
+                                MXMessage newMessage2 = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_CONTROLCHANGE + channel, MXMidi.DATA1_CC_BANKSELECT + 32, mustLSB);
 
-                            MXMessage newMessage = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_CONTROLCHANGE + channel, MXMidi.DATA1_CC_CHANNEL_VOLUME, visitant.getInfoVolume());
-                            newMessage._timing = message._timing;
+                                newMessage1._timing = message._timing;
+                                newMessage2._timing = message._timing;
+                                newMessage1.setVisitant(portVisitant.getSnapShot());
+                                newMessage2.setVisitant(portVisitant.getSnapShot());
 
-                            processMidiOutInternal(newMessage);
+                                processMidiOutInternal(newMessage1);
+                                processMidiOutInternal(newMessage2);
+                            }
                         }
                     }
-                }
 
-                if (command != MXMidi.COMMAND_CH_CONTROLCHANGE || (gate != MXMidi.DATA1_CC_EXPRESSION)) {
-                    if (msgVisitant != null && msgVisitant.isHavingExpression()) {
-                        if (visitant.isHavingExpression() == false || visitant.getInfoExpression() != msgVisitant.getInfoExpression()) {
-                            visitant.mergeNew(message.getVisitant());
+                    for (int x = 0; x < MXVisitant.codeList.length; ++x) {
+                        int code = MXVisitant.codeList[x];
+                        if (command != MXMidi.COMMAND_CH_CONTROLCHANGE || gate != code) {
+                            if (msgVisitant.isCCSet(code)) {
+                                if (portVisitant.isCCSet(gate) == false || portVisitant.getCCValue(code) != msgVisitant.getCCValue(code)) {
+                                    int newValue = msgVisitant.getCCValue(code);
+                                    portVisitant.setCCValue(code, newValue);
 
-                            MXMessage newMessage = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_CONTROLCHANGE + channel, MXMidi.DATA1_CC_EXPRESSION, visitant.getInfoExpression());
-                            newMessage._timing = message._timing;
+                                    MXMessage newMessage = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_CONTROLCHANGE + channel, code, newValue);
 
-                            processMidiOutInternal(newMessage);
-                        }
-                    }
-                }
+                                    newMessage._timing = message._timing;
+                                    newMessage.setVisitant(portVisitant.getSnapShot());
 
-                if (command != MXMidi.COMMAND_CH_CONTROLCHANGE || (gate != MXMidi.DATA1_CC_PANPOT)) {
-                    if (msgVisitant != null && msgVisitant.isHavingExpression()) {
-                        if (visitant.isHavingPan() == false || visitant.getInfoPan() != msgVisitant.getInfoPan()) {
-                            visitant.mergeNew(message.getVisitant());
-
-                            MXMessage newMessage = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_CONTROLCHANGE + channel, MXMidi.DATA1_CC_PANPOT, visitant.getInfoPan());
-                            newMessage._timing = message._timing;
-
-                            processMidiOutInternal(newMessage);
+                                    processMidiOutInternal(newMessage);
+                                }
+                            }
                         }
                     }
                 }
@@ -310,7 +307,7 @@ public class MXMIDIOut {
         MXMIDIOutManager manager = MXMIDIOutManager.getManager();
         synchronized (MXTiming.mutex) {
             manager.clearMIDIOutCache();
-            _visitant16 = new MXVisitant16();
+            _visitantOut16 = new MXVisitant16();
             if (_driver.OutputDeviceIsOpen(_driverOrder) == false) {
                 _driver.OutputDeviceOpen(_driverOrder, timeout);
             }

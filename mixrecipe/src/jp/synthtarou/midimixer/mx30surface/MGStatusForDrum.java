@@ -272,14 +272,14 @@ public class MGStatusForDrum implements Cloneable {
                     MGSlider slider = (MGSlider)_slider.getComponent();
                     _slider.setMessageValue(_newValue);
                     slider.publishUI();
-                    _slider._mixer.updateStatusAndGetResult(_slider, _newValue, null, _bag);
+                    _slider._mixer.updateUIStatusAndGetResult(_slider, _newValue, null, _bag);
                     _slider._mixer.flushSendQueue(_bag);
                     break;
                 case MGStatus.TYPE_CIRCLE:
                     MGCircle circle = (MGCircle)_slider.getComponent();
                     _slider.setMessageValue(_newValue);
                     circle.publishUI();
-                    _slider._mixer.updateStatusAndGetResult(_slider, _newValue, null, _bag);
+                    _slider._mixer.updateUIStatusAndGetResult(_slider, _newValue, null, _bag);
                     _slider._mixer.flushSendQueue(_bag);
                     break;
                 case MGStatus.TYPE_DRUMPAD:

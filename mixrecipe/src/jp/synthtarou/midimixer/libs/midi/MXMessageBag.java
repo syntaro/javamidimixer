@@ -59,7 +59,7 @@ public class MXMessageBag {
     }
     
     public synchronized void addResult(MXMessage message) {
-        message = (MXMessage)message.clone();
+        //message = (MXMessage)message.clone();
         if (_alreadyResult.contains(message)) {
             return ;
         }

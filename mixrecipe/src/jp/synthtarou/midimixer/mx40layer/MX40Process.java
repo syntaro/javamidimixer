@@ -16,8 +16,8 @@
  */
 package jp.synthtarou.midimixer.mx40layer;
 
-import jp.synthtarou.midimixer.libs.midi.port.MXVisitantRecorder;
-import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
+import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant16TableModel;
+import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,15 +41,15 @@ import jp.synthtarou.libs.json.MXJsonValue;
  */
 public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSupport, MXJsonSupport {
     MX40View _view;
-    MXVisitantRecorder _inputInfo;
-    MXVisitantRecorder _outputInfo;
+    MXVisitant16TableModel _inputInfo;
+    MXVisitant16TableModel _outputInfo;
     MXNoteOffWatcher _noteOff;
     ArrayList<MX40Group> _groupList;
 
     public MX40Process() {
         _groupList = new ArrayList();
-        _inputInfo = new MXVisitantRecorder();
-        _outputInfo = new MXVisitantRecorder();
+        _inputInfo = new MXVisitant16TableModel();
+        _outputInfo = new MXVisitant16TableModel();
         _noteOff = new MXNoteOffWatcher();
         _view = new MX40View(this);
     }
@@ -65,7 +65,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
     }
     
     public void sendToNext(MXMessage message) {
-        _outputInfo.updateVisitant16WithMessage(message);
+        _outputInfo.preprocess16ForVisitant(message);
         if (_outputInfo.mergeVisitant16WithVisitant(message)) {
             
         }
@@ -74,7 +74,15 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
 
     @Override
     public void processMXMessage(MXMessage message) {
-        _inputInfo.updateVisitant16WithMessage(message);
+        MXMessage message2 = _inputInfo.preprocess16ForVisitant(message);
+        if (message != message2) {
+            System.out.println("PRREPROCSES " + message2);
+            if (message2 == null) {
+                return;
+            }
+            message = message2;
+        }
+
         _inputInfo.mergeVisitant16WithVisitant(message);
         MXTiming timing = message._timing;
         

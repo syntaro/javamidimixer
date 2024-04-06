@@ -14,10 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.midi.port;
+package jp.synthtarou.midimixer.libs.midi.visitant;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import javax.swing.SwingUtilities;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
@@ -32,10 +33,10 @@ import jp.synthtarou.midimixer.libs.midi.MXTiming;
  *
  * @author Syntarou YOSHIDA
  */
-public class MXVisitantRecorder implements TableModel {
+public class MXVisitant16TableModel implements TableModel {
     private ArrayList<MXVisitant16> _element;
 
-    public MXVisitantRecorder() {
+    public MXVisitant16TableModel() {
         _element = new ArrayList();
         for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
             _element.add(new MXVisitant16());
@@ -50,48 +51,22 @@ public class MXVisitantRecorder implements TableModel {
         return _element.get(port).get(ch);
     }
 
-    public boolean updateVisitant16WithMessage(MXMessage message) {
+    public MXMessage preprocess16ForVisitant(MXMessage message) {
         MXVisitant visitant = _element.get(message.getPort()).get(message.getChannel());
-        if (visitant.updateVisitantChannel(message)) {
-            invokeListener();
-            return true;
+        MXMessage message2 = visitant.preprocess(message);
+        if (message != message2 && message.equals(message2) == false)  {
+            invokeListener("proc16 " + message2);
         }
-        return false;
+        return message2;
     }
 
     public boolean mergeVisitant16WithVisitant(MXMessage message) {
         MXVisitant visitant = _element.get(message.getPort()).get(message.getChannel());
-        if (visitant.mergeNew(message.getVisitant())) {
-            invokeListener();
+        if (visitant.mergeNew(message.getVisitant()) > 0) {
+            invokeListener("merge [" + visitant._currentAge + "] = " + message.getVisitant());
             return true;
         }
         return false;
-    }
-
-    public MXMessage incProg(int port, MXTiming timing, int channel) {
-        MXVisitant e = getVisitant(port, channel);
-        if (e.getProgram() < 127) {
-            e.setProgram(e.getProgram() + 1);
-            invokeListener();
-        }else {
-            return null;
-        }
-        MXMessage message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, e.getProgram(), 0);
-        message._timing = timing;
-        return message;
-    }
-
-    public MXMessage decProg(int port, MXTiming timing, int channel) {
-        MXVisitant e = getVisitant(port, channel);
-        if (e.getProgram() > 0) {
-            e.setProgram(e.getProgram() - 1);            
-            invokeListener();
-        }else {
-            return null;
-        }
-        MXMessage message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, e.getProgram(), 0);
-        message._timing = timing;
-        return message;
     }
 
 
@@ -133,35 +108,39 @@ public class MXVisitantRecorder implements TableModel {
             case 0:
                 return MXMidi.nameOfPortShort(port) + (channel+1);
             case 1:
-                if (info._havingBank != MXVisitant.HAVE_VAL_NOT) {
+                if (info.isHavingBank()) {
                     return MXUtil.toHexFF(info.getBankMSB()) + ":" + MXUtil.toHexFF(info.getBankLSB());
                 }
                 break;
+
             case 2:
                 if (info.isHavingProgram()) {
                     return Integer.toString(info.getProgram());
                 }
                 break;
             case 3:
-                if (info.isHavingVolume()) {                    
-                    return Integer.toString(info.getInfoVolume());
+                if (info.isCCSet(MXMidi.DATA1_CC_CHANNEL_VOLUME)) {                    
+                    return Integer.toString(info.getCCValue(MXMidi.DATA1_CC_CHANNEL_VOLUME));
                 }
                 break;
             case 4:
-                if (info.isHavingExpression()) {
-                    return Integer.toString(info.getInfoExpression());
+                if (info.isCCSet(MXMidi.DATA1_CC_EXPRESSION)) {                    
+                    return Integer.toString(info.getCCValue(MXMidi.DATA1_CC_EXPRESSION));
                 }
                 break;
             case 5:
-                if (info.isHavingPan()) {
-                    return Integer.toString(info.getInfoPan());
+                if (info.isCCSet(MXMidi.DATA1_CC_PANPOT)) {                    
+                    return Integer.toString(info.getCCValue(MXMidi.DATA1_CC_PANPOT));
                 }
                 break;
             case 6:
-                if (info.isHavingDataentryRPN()) {
-                    return "R(" + MXUtil.toHexFF(info.getDataentryMSB()) + ":" + MXUtil.toHexFF(info.getDataentryLSB()) + ")=" + info.getDataentryValue14();
-                }else if (info.isHavingDataentryNRPN()) {
-                    return "N(" + MXUtil.toHexFF(info.getDataentryMSB()) + ":" + MXUtil.toHexFF(info.getDataentryLSB()) + ")=" + info.getDataentryValue14();
+                MXDataentry dataentry = info.getFlushedDataentry();
+                if (dataentry != null) {                    
+                    if (dataentry.isRPN() == MXDataentry.TYPE_RPN) {
+                        return "R(" + MXUtil.toHexFF(dataentry.getDataroomMSB()) + ":" + MXUtil.toHexFF(dataentry.getDataroomLSB()) + ")=" + dataentry.getDataentryValue14();
+                    }else if (dataentry.isRPN() == MXDataentry.TYPE_NRPN) {
+                        return "N(" + MXUtil.toHexFF(dataentry.getDataroomMSB()) + ":" + MXUtil.toHexFF(dataentry.getDataroomLSB()) + ")=" + dataentry.getDataentryValue14();
+                    }
                 }
                 break;
         }
@@ -189,10 +168,15 @@ public class MXVisitantRecorder implements TableModel {
         }
     }
 
-    public void invokeListener() {
-        for (TableModelListener l : _listeners) {
-            TableModelEvent e = new TableModelEvent(MXVisitantRecorder.this, 0, getRowCount());
-            l.tableChanged(e);
-        }
+    public void invokeListener(Object message) {
+        SwingUtilities.invokeLater(new Runnable(){
+            @Override
+            public void run() {
+                for (TableModelListener l : _listeners) {
+                    TableModelEvent e = new TableModelEvent(MXVisitant16TableModel.this, 0, getRowCount());
+                    l.tableChanged(e);
+                }
+            }
+        });
     }
 }

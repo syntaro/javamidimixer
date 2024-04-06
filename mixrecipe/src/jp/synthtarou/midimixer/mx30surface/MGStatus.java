@@ -26,7 +26,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
-import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
+import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 
 /**
@@ -195,7 +195,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
             
             if (message.isDataentryByCC()) {
                 int original = value._value;
-                int newVar = visit.getDataentryValue14();
+                int newVar = visit.getFlushedDataentry().getDataentryValue14();
                 switch (message.getGate()._value) {
                     case MXMidi.DATA1_CC_DATAENTRY:
                         if (newVar >= value._min && newVar <= value._max) {

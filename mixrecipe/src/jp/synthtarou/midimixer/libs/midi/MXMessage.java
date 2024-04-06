@@ -16,19 +16,17 @@
  */
 package jp.synthtarou.midimixer.libs.midi;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
-import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.MXRangedValue;
-import jp.synthtarou.libs.async.Transaction;
 import static jp.synthtarou.midimixer.libs.midi.MXTemplate.parseDAlias;
-import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
+import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
-import jp.synthtarou.midimixer.mx30surface.MGStatus;
-import jp.synthtarou.midimixer.mx70console.MX70View;
+import jp.synthtarou.midimixer.libs.midi.visitant.MXDataentry;
 
 /**
  *
@@ -40,8 +38,6 @@ public final class MXMessage implements Comparable<MXMessage> {
     int _progBankMSB = -1;
     int _progBankLSB = -1;
     
-    public MGStatus[] _mx30record = null;
-
     public void setProgramBank(int msb, int lsb) {
         _progBankMSB = msb;
         _progBankLSB = lsb;
@@ -49,6 +45,7 @@ public final class MXMessage implements Comparable<MXMessage> {
 
     public MXTiming _timing;
     private int _port;
+    public boolean _bySurface;
 
     private MXRangedValue _value = MXRangedValue.ZERO7;
     private MXRangedValue _gate = MXRangedValue.ZERO7;
@@ -58,7 +55,8 @@ public final class MXMessage implements Comparable<MXMessage> {
     private boolean _pairedWith14;
 
     private final MXTemplate _template;
-
+    public Exception _debug = new IOException("Message");
+    
     public boolean isEmpty() {
         return _template.isEmpty();
     }
@@ -566,9 +564,7 @@ public final class MXMessage implements Comparable<MXMessage> {
         if (isDataentryByCC()) {
             MXVisitant visit = getVisitant();
             if (visit != null) {
-                if (visit.isHavingDataentryRPN()) {
-                    return 4;
-                } else if (visit.isHavingDataentryNRPN()) {
+                if (visit.getFlushedDataentry() != null) {
                     return 4;
                 }
             }
@@ -656,21 +652,23 @@ public final class MXMessage implements Comparable<MXMessage> {
             return 0;
         }
         else {
-            if (getVisitant().isHavingDataentryRPN()) {
+            MXDataentry entry = getVisitant().getFetchingDataentry();
+            if (entry != null && entry.isRPN() == MXDataentry.TYPE_RPN) {
                 status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
                 data1 = MXMidi.DATA1_CC_RPN_MSB;
-                data2 = getVisitant().getDataroomMSB();
+                data2 = entry.getDataroomMSB();
                 return (((status << 8) | data1) << 8) | data2;
-            } else if (getVisitant().isHavingDataentryNRPN()) {
+            }else if (entry != null && entry.isRPN() == MXDataentry.TYPE_NRPN) {
                 status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
                 data1 = MXMidi.DATA1_CC_NRPN_MSB;
-                data2 = getVisitant().getDataroomMSB();
+                data2 = entry.getDataroomMSB();
                 return (((status << 8) | data1) << 8) | data2;
             }
-            MXFileLogger.getLogger(MXMessage.class).warning("Incomplete  ?" + getVisitant().isIncomplemteDataentry());
-            MXFileLogger.getLogger(MXMessage.class).warning("Visitant has nodata  "+ getVisitant());
+            else {
+                MXFileLogger.getLogger(MXMessage.class).log(Level.WARNING, "Visitant.entry not valie");
+                return 0;
+            }
         }
-        return 0;
     }
 
     public int toDataroomLSB2() {
@@ -695,19 +693,22 @@ public final class MXMessage implements Comparable<MXMessage> {
             return 0;
         }
         else {
-            if (getVisitant().isHavingDataentryRPN()) {
-                status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
-                data1 = MXMidi.DATA1_CC_RPN_LSB;
-                data2 = getVisitant().getDataroomLSB();
-                return (((status << 8) | data1) << 8) | data2;
-            } else if (getVisitant().isHavingDataentryNRPN()) {
+            MXDataentry entry = getVisitant().getFetchingDataentry();
+            if (entry != null && entry.isRPN() == MXDataentry.TYPE_RPN) {
+                    status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
+                    data1 = MXMidi.DATA1_CC_RPN_LSB;
+                    data2 = getVisitant().getFlushedDataentry().getDataroomLSB();
+                    return (((status << 8) | data1) << 8) | data2;
+            } else if (entry != null && entry.isRPN() == MXDataentry.TYPE_NRPN) {
                 status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
                 data1 = MXMidi.DATA1_CC_NRPN_LSB;
-                data2 = getVisitant().getDataroomLSB();
+                data2 = getVisitant().getFlushedDataentry().getDataroomLSB();
                 return (((status << 8) | data1) << 8) | data2;
+            } else {
+                MXFileLogger.getLogger(MXMessage.class).log(Level.WARNING, "Visitant.entry not valie");
+                return 0;
             }
         }
-        return 0;
     }
 
     public int toDatavalueMSB1() {
@@ -726,14 +727,18 @@ public final class MXMessage implements Comparable<MXMessage> {
             return 0;
         }
         else {
-            if (getVisitant().isHavingDataentryRPN() || getVisitant().isHavingDataentryNRPN()) {
+            MXDataentry entry = getVisitant().getFetchingDataentry();
+            if (entry != null && entry.getDataroomMSB() >= 0) {               
                 status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
                 data1 = MXMidi.DATA1_CC_DATAENTRY;
-                data2 = getVisitant().getDataentryMSB();
+                data2 = entry.getDataentryMSB();
                 return (((status << 8) | data1) << 8) | data2;
             }
+            else {
+                MXFileLogger.getLogger(MXMessage.class).log(Level.WARNING, "Data MSB = 0");
+                return 0;
+            }
         }
-        return 0;
     }
 
     public int toDatavalueLSB2() {
@@ -752,14 +757,17 @@ public final class MXMessage implements Comparable<MXMessage> {
             return 0;
         }
         else {
-            if (getVisitant().isHavingDataentryRPN() || getVisitant().isHavingDataentryNRPN()) {
+            MXDataentry entry = getVisitant().getFetchingDataentry();
+            if (entry != null && entry.getDataroomLSB() >= 0) {
                 status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
                 data1 = MXMidi.DATA1_CC_DATAENTRY + 0x20;
-                data2 = getVisitant().getDataentryLSB();
+                data2 = getVisitant().getFlushedDataentry().getDataentryLSB();
                 return (((status << 8) | data1) << 8) | data2;
+            }else {
+                MXFileLogger.getLogger(MXMessage.class).log(Level.WARNING, "Data MSB = 0");
+                return 0;
             }
         }
-        return 0;
     }
 
     public int indexOfValueHi() {
@@ -795,7 +803,6 @@ public final class MXMessage implements Comparable<MXMessage> {
 
         message._visitant = _visitant;
         message._pairedWith14 = _pairedWith14;
-        message._mx30record = _mx30record;
 
         return message;
     }

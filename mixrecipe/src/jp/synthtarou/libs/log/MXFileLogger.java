@@ -24,7 +24,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.logging.*;
-import javax.swing.JList;
 import jp.synthtarou.libs.MXUtil;
 
 /**

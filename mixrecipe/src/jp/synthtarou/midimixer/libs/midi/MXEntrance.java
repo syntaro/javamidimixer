@@ -19,7 +19,8 @@ package jp.synthtarou.midimixer.libs.midi;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.TreeSet;
-import jp.synthtarou.midimixer.libs.midi.port.MXVisitant;
+import jp.synthtarou.midimixer.libs.midi.visitant.MXDataentry;
+import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant;
 
 /**
  * エントランス番号ごとに、あるメッセージは、1度づつしか通れないという制御を行う
@@ -35,16 +36,8 @@ public class MXEntrance {
                 if (o2.isDataentryBy2() == false) {
                     return -1;
                 }
-                MXVisitant v1 = o1.getVisitant();
-                MXVisitant v2 = o2.getVisitant();
-                int x;
-                x = v1.getDataroomType() - v2.getDataroomType();
-                if (x == 0) { x = v1.getDataroomMSB() - v2.getDataroomMSB(); }
-                if (x == 0) { x = v1.getDataroomLSB() - v2.getDataroomLSB(); }
-                if (x == 0) { x = v1.getDataentryMSB()- v2.getDataentryMSB(); }
-                if (x == 0) { x = v1.getDataentryLSB() - v2.getDataentryLSB(); }
-                if (x == 0) { x = v1.getDataentryValue14() - v2.getDataentryValue14(); }
-                return x;
+
+                return o1.compareTo(o2);
             }else if (o2.isDataentryBy2()) {
                 return 1;
             }

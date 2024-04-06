@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Syntarou YOSHIDA.
+ * Copyright (C) 2024 Syntarou YOSHIDA
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,34 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.midi.port;
-
-import java.util.ArrayList;
+package jp.synthtarou.midimixer.libs.midi.visitant;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MXVisitant16 {
+public enum DataentryType {
+    RPN(1),
+    NRPN(2);
     
-    MXVisitant[] _array;
-
-    public MXVisitant16() {
-        _array = new MXVisitant[16];
-        for(int i = 0; i < _array.length; ++ i) {
-            _array[i] = new MXVisitant();
-        }
-    }
-
-    public MXVisitant get(int channel) {
-        return _array[channel];
-    }
+    private int _id;
     
-    public String toString() {
-        ArrayList<MXVisitant> list = new ArrayList();
-        for (MXVisitant v : _array) {
-            list.add(v);
-        }
-        return list.toString();
+    private DataentryType(int id) {
+        this._id = id;
     }
 }

@@ -47,9 +47,9 @@ import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.libs.smf.SMFSequencer;
 import jp.synthtarou.libs.MainThreadTask;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
-import jp.synthtarou.libs.inifile.MXSettingUtil;
 import jp.synthtarou.libs.json.MXJsonParser;
 import jp.synthtarou.libs.json.MXJsonSupport;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.vst.VSTInstance;
 import jp.synthtarou.midimixer.mx36ccmapping.MX36Process;
 import jp.synthtarou.midimixer.mx12masterpiano.MX12Process;
@@ -334,6 +334,15 @@ public class MXMain  {
                     if (_capture != null) {
                         _capture.processMXMessage(message);
                     }   
+                }
+                if (message.isMessageTypeChannel() && message.getVisitant() == null) {
+                    if ((message.getStatus() & 0xf0) != MXMidi.COMMAND_CH_NOTEOFF) {
+                        if (message._bySurface == false) {
+                            System.err.println("*********************************");
+                            new Throwable(message.toString()).printStackTrace();
+                            message._debug.printStackTrace();
+                        }
+                    }
                 }
                 if (receiver != null) {
                     receiver.processMXMessage(message);
