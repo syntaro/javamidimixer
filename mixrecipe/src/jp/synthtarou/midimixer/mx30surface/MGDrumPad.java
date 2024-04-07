@@ -21,7 +21,6 @@ import java.awt.event.MouseEvent;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 
 /**
  *
@@ -53,7 +52,7 @@ public class MGDrumPad extends javax.swing.JPanel {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     return;
                 }
-                increment(null);
+                increment();
             }
 
             @Override
@@ -61,7 +60,7 @@ public class MGDrumPad extends javax.swing.JPanel {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     return;
                 }
-                decriment(null);
+                decriment();
             }
         });
         updateUI();
@@ -118,28 +117,15 @@ public class MGDrumPad extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
 
-    public void increment(MXMessageBag bag) {
+    public void increment() {
         if (getStatus().getValue().incrementable()) {
-            if (bag == null) {
-                bag = new MXMessageBag();
-                getStatus()._drum.mouseDetected(true, bag);
-                _mixer.flushSendQueue(bag);
-            }
-            else {
-                getStatus()._drum.mouseDetected(true, bag);
-            }
+            getStatus()._drum.mouseDetected(true);
         }
     }
 
-    public void decriment(MXMessageBag bag) {
+    public void decriment() {
         if (getStatus().getValue().decrementable()) {
-            if (bag == null) {
-                bag = new MXMessageBag();
-                getStatus()._drum.mouseDetected(false, bag);
-                _mixer.flushSendQueue(bag);
-            }else {
-                getStatus()._drum.mouseDetected(false, bag);
-            }
+            getStatus()._drum.mouseDetected(false);
         }
     }
 

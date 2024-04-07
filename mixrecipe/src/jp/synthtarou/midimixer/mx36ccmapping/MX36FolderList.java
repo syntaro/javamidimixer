@@ -17,7 +17,6 @@
 package jp.synthtarou.midimixer.mx36ccmapping;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 import jp.synthtarou.libs.accordionui.MXAccordion;
@@ -37,34 +36,25 @@ public class MX36FolderList {
     MX36Folder _primalFolder;
     MX36Folder _trashedFolder;
     final MX36Process _process;
-
+    
     public MX36FolderList(MX36Process process) {
         _focus = new MXAccordionFocus();
         _process = process;
+
         _nosaveFolder = newFolder(Integer.MAX_VALUE, "*NoSave(AutoDetected)");
         _primalFolder = newFolder("*Primal");
         _trashedFolder = newFolder(Integer.MAX_VALUE - 1, "*Trash");
+        
+        System.out.println("LIST " + _listFolder);
     }
-
+    
     int _orderNext = 1;
 
-    public synchronized void renumberFolder() {
-        int newOrder = 1;
-        for (MX36Folder f : _listFolder) {
-            if (f._order == Integer.MAX_VALUE) {
-
-            } else {
-                f._order = newOrder++;
-            }
-        }
-        _orderNext = newOrder;
-    }
-
-    public synchronized MX36Folder getFolderForNosave() {
+    public MX36Folder getFolderForNosave() {
         return _nosaveFolder;
     }
 
-    public synchronized MX36Folder getPrimalFolder() {
+    public MX36Folder getPrimalFolder() {
         return _primalFolder;
     }
 
@@ -151,9 +141,9 @@ public class MX36FolderList {
                 for (int j = 0; j < target._accordion.getElementCount(); ++ j) {
                     MX36StatusPanel panel2 = (MX36StatusPanel)target._accordion.getElementAt(j);
                     MX36Status status2 = panel2._status;
-                    if (status1._surfacePort == status2._surfacePort
-                            && status1._surfaceRow == status2._surfaceRow
-                            && status1._surfaceColumn == status2._surfaceColumn) {
+                    if (status1.getSurfacePort() == status2.getSurfacePort()
+                            && status1.getSurfaceRow() == status2.getSurfaceRow()
+                            && status1.getSurfaceColumn() == status2.getSurfaceColumn()) {
                         hit = true;
                         break;
                     }
@@ -170,9 +160,5 @@ public class MX36FolderList {
             }
         }
         return result;
-    }
-    
-    public void clear() {
-        _listFolder.clear();
     }
 }

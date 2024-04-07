@@ -17,17 +17,18 @@
 package jp.synthtarou.midimixer.mx30surface;
 
 import java.util.IllegalFormatException;
+import java.util.LinkedList;
 import java.util.logging.Level;
 import javax.swing.JComponent;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.midimixer.mx36ccmapping.MX36Status;
 
 /**
  *
@@ -58,11 +59,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     }
 
     MXMessage _base = MXMessageFactory.fromTemplate(0, new MXTemplate(""), 0, null, null);
-/*
-    int _dataroomType = MXVisitant.ROOMTYPE_NODATA;
-    int _dataroomMSB = -1;
-    int _dataroomLSB = -1;
-*/
+
     boolean _ccPair14 = false;
 
     MGStatusForDrum _drum = null;
@@ -175,12 +172,12 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
                 + message.toString() + (message.isPairedWith14() ? " (=14bit)" : "");
     }
 
-    public boolean controlByMessage(MXMessage message, MXMessageBag bag) {
+    public int controlByMessage(MXMessage message) {
         if (message.isEmpty()) {
-            return false;
+            return -1;
         }
         if (_base.isEmpty()) {
-            return false;
+            return -1;
         }
 
         if ((_base.getStatus() & 0xf0) == MXMidi.COMMAND_CH_NOTEON) {
@@ -192,38 +189,6 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
 
         if (value != null) {
             MXVisitant visit = message.getVisitant();
-            /*
-            if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
-                int original = value._value;
-                int newVar = visit.getFlushedDataentry().getDataentryValue14();
-                switch (message.getGate()._value) {
-                    case MXMidi.DATA1_CC_DATAENTRY:
-                        if (newVar >= value._min && newVar <= value._max) {
-                        } else {
-                            return false;
-                        }
-                        break;
-                    case MXMidi.DATA1_CC_DATAINC:
-                        newVar = original + 1;
-                        if (newVar >= value._min && newVar <= value._max) {
-                        } else {
-                            return false;
-                        }
-                        break;
-                    case MXMidi.DATA1_CC_DATADEC:
-                        newVar = original - 1;
-                        if (newVar >= value._min && newVar <= value._max) {
-                        } else {
-                            return false;
-                        }
-                        break;
-                }
-                if (newVar >= value._min && newVar <= value._max) {
-                    setMessageValue(value.changeValue(newVar));
-                    return true;
-                }
-                return false;
-            }*/
 
             int newValue = value._value;
 
@@ -231,32 +196,22 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
                 newValue = 0;
             }
             if (newValue >= value._min && newValue <= value._max) {
-                setMessageValue(newValue);
-                if (_drum != null) {
-                    _drum.messageDetected(bag);
-                    return true;
-                }
-                else {
-                    setMessageValue(value.changeValue(newValue));
-                    return true;
-                }
+                return newValue;
             }
-            return false;
         }
-
-        return false;
+        return -1;
     }
 
     public MXRangedValue getValue() {
         return _base.getValue();
     }
 
-    public void setMessageValue(MXRangedValue value) {
-        _base.setValue(value);
+    public boolean setMessageValue(MXRangedValue value) {
+        return _base.setValue(value);
     }
 
-    public void setMessageValue(int value) {
-        _base.setValue(_base.getValue().changeValue(value));
+    public boolean setMessageValue(int value) {
+        return _base.setValue(_base.getValue().changeValue(value));
     }
 
     public boolean hasCustomRange() {
@@ -339,5 +294,27 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         else {
             _drum = null;
         }
+    }
+    
+    LinkedList<MX36Status> _linked36Status = null;
+    
+    public synchronized  void regist36Link(MX36Status linkTo) {
+        if (_linked36Status == null) {
+            _linked36Status = new LinkedList<>();
+        }
+        if (_linked36Status.contains(linkTo)) {
+            return;
+        }
+        _linked36Status.add(linkTo);
+    }
+
+    public synchronized  void unregist36Link(MX36Status linkTo) {
+        if (_linked36Status != null) {
+            _linked36Status.remove(linkTo);
+        }
+    }
+    
+    public synchronized LinkedList<MX36Status> getLinked36() {
+        return _linked36Status;
     }
 }

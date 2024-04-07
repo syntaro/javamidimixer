@@ -14,11 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.libs.midi;
+package jp.synthtarou.midimixer.mx30surface;
 
 import java.util.LinkedList;
+import java.util.TreeMap;
 import java.util.TreeSet;
-import jp.synthtarou.midimixer.mx30surface.MGStatus;
+import jp.synthtarou.midimixer.libs.midi.MXMessage;
 
 /**
  *
@@ -33,6 +34,8 @@ public class MXMessageBag {
     TreeSet<MXMessage> _alreadyResult = new TreeSet<>();
     
     TreeSet<MGStatus> _touchedStatus = new TreeSet<>();
+    
+    TreeMap<MGStatus, MGSliderMove> _listSliderMove = new TreeMap<>();
 
     public int _resultCode = 0;
     
@@ -59,12 +62,15 @@ public class MXMessageBag {
     }
     
     public synchronized void addResult(MXMessage message) {
-        //message = (MXMessage)message.clone();
         if (_alreadyResult.contains(message)) {
             return ;
         }
         _alreadyResult.add(message);
         _listResult.add(message);
+    }
+    
+    public boolean isSkipableResult(MXMessage message) {
+        return _alreadyResult.contains(message);
     }
 
     public synchronized void addResultTask(Runnable task) {
@@ -101,5 +107,18 @@ public class MXMessageBag {
     
     public void clearTouchedStatus() {
         _touchedStatus.clear();
+    }
+    
+    public synchronized void addSliderMove(MGSliderMove move) {
+        _listSliderMove.put(move._status, move);
+    }
+    
+    public synchronized MGSliderMove popSliderMove() {
+        if (_listSliderMove.isEmpty()) {
+            return null;
+        }
+        MGStatus status = _listSliderMove.firstKey();
+        MGSliderMove move = _listSliderMove.remove(status);
+        return move;
     }
 }

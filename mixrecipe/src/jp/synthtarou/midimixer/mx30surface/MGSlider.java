@@ -24,7 +24,6 @@ import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 import jp.synthtarou.midimixer.libs.swing.themes.ThemeManager;
@@ -164,7 +163,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
         if (_selfControl) {
             return;
         }
-        _mixer.updateStatusAndSend(getStatus(), newValue);        
+        _mixer._parent.addSliderMove(getStatus(), newValue);
     }//GEN-LAST:event_jSliderValueStateChanged
 
     public void publishUI() {
@@ -211,32 +210,19 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
     private javax.swing.JSlider jSliderValue;
     // End of variables declaration//GEN-END:variables
 
-    public void increment(MXMessageBag bag) {
+    public void increment() {
         MGStatus status = getStatus();
         if (status.getValue().incrementable()) {
             MXRangedValue var = status.getValue().increment();
-            if (bag == null) {
-                bag = new MXMessageBag();
-                _mixer.updateUIStatusAndGetResult(status, var._value, null, bag);
-                _mixer.flushSendQueue(bag);
-            }
-            else {
-                _mixer.updateUIStatusAndGetResult(status, var._value, null, bag);
-            }
+            _mixer._parent.addSliderMove(status, var._value);
         }
     }
 
-    public void decriment(MXMessageBag bag) {
+    public void decriment() {
         MGStatus status = getStatus();
         if (status.getValue().decrementable()) {
             MXRangedValue var = status.getValue().decrement();
-            if (bag == null) {
-                bag = new MXMessageBag();
-                _mixer.updateUIStatusAndGetResult(status, var._value, null, bag);
-                _mixer.flushSendQueue(bag);
-            }else {
-                _mixer.updateUIStatusAndGetResult(status, var._value, null, bag);
-            }
+            _mixer._parent.addSliderMove(status, var._value);
         }
     }
 
@@ -257,9 +243,9 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
     public void mouseWheelMoved(MouseWheelEvent e) {
         int d = e.getUnitsToScroll();
         if (d > 0) {
-            this.decriment(null);
+            decriment();
         }else {
-            this.increment(null);
+            increment();
         }
     }
 

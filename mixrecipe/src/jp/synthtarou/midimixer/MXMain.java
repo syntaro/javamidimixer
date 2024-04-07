@@ -193,7 +193,8 @@ public class MXMain  {
 
         _mx10inputProcess.setNextReceiver(_mx30kontrolProcess);
 
-        _mx30kontrolProcess.setNextReceiver(_mx36ccmappingProcess);
+        _mx30kontrolProcess.setNextReceiver(_mx40layerProcess);
+        _mx30kontrolProcess.setMappingProcess(_mx36ccmappingProcess);
         _mx36ccmappingProcess.setNextReceiver(_mx40layerProcess);
         _mx40layerProcess.setNextReceiver(_mx50resolutionProcess);
         _mx50resolutionProcess.setNextReceiver(_mx60outputProcess);

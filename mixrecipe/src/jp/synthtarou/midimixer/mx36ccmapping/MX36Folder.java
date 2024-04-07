@@ -17,9 +17,11 @@
 package jp.synthtarou.midimixer.mx36ccmapping;
 
 import java.util.List;
+import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.accordionui.MXAccordion;
 import jp.synthtarou.libs.accordionui.MXAccordionElement;
 import jp.synthtarou.libs.accordionui.MXAccordionFocus;
+import jp.synthtarou.midimixer.mx30surface.MGStatus;
 
 /**
  *
@@ -69,7 +71,33 @@ public class MX36Folder implements Comparable<MX36Folder> {
         return 0;
     }
 
+    public boolean isAlreadyHave(MGStatus mgstatus) {
+        for (int i = 0; i < _accordion.getElementCount(); ++ i) {
+            MXAccordionElement e = _accordion.getElementAt(i);
+            if (e instanceof MX36StatusPanel) {
+                MX36StatusPanel panel = (MX36StatusPanel)e;
+                MX36Status seek = panel._status;
+                if (seek.getSurfacePort() == mgstatus._port
+                 && seek.getSurfaceUIType() == mgstatus._uiType
+                 && seek.getSurfaceRow() == mgstatus._row
+                 && seek.getSurfaceColumn() == mgstatus._column) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public void addCCItem(MX36Status status) {
+        if (SwingUtilities.isEventDispatchThread() == false) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    addCCItem(status);
+                }
+            });
+            return;
+        }
         status._folder = this;
         MX36StatusPanel element = new MX36StatusPanel(_process, _accordion, status);
         _accordion.insertElement(_accordion.getElementCount(), element);
@@ -112,7 +140,7 @@ public class MX36Folder implements Comparable<MX36Folder> {
     }
 
     public void disableAnotherFolder() {
-        List<MX36Folder> conflicts = _process._folders.findConflict(this);
+        List<MX36Folder> conflicts = _process._folderList.findConflict(this);
         if (conflicts == null) {
             return;
         }

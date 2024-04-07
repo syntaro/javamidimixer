@@ -18,6 +18,7 @@ package jp.synthtarou.midimixer.mx30surface;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.logging.Level;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.json.MXJsonValue;
@@ -27,23 +28,25 @@ import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
+import jp.synthtarou.libs.log.MXFileLogger;
+import jp.synthtarou.midimixer.mx36ccmapping.MX36Process;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSupport, MXJsonSupport  {
+public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSupport, MXJsonSupport {
 
     private MX30View _rootView;
     MX32MixerProcess[] _pageProcess;
     boolean _underConstruction;
-    
+
     public MX30Process() {
         _underConstruction = true;
         prepareActiveSlider();
         _rootView = new MX30View(this);
         _pageProcess = new MX32MixerProcess[MXConfiguration.TOTAL_PORT_COUNT];
-        for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++ i) {
+        for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++i) {
             _pageProcess[i] = new MX32MixerProcess(this, i);
             _pageProcess[i].resetSetting();
             _rootView.addPage(i, _pageProcess[i]);
@@ -51,14 +54,14 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
         _underConstruction = false;
     }
 
-    @Override    
+    @Override
     public void setNextReceiver(MXReceiver next) {
         super.setNextReceiver(next);
-        for (int i = 0; i < _pageProcess.length; ++ i) {
+        for (int i = 0; i < _pageProcess.length; ++i) {
             _pageProcess[i].setNextReceiver(next);
         }
     }
-    
+
     @Override
     public MXINIFile prepareINIFile(File custom) {
         if (custom == null) {
@@ -78,7 +81,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
             return false;
         }
         String circle = setting.getSetting("ActiveCircle");
-        if  (circle == null) {
+        if (circle == null) {
             circle = "1, 2, 3, 4";
         }
         ArrayList<String> circleList = new ArrayList();
@@ -87,8 +90,8 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
         for (String str : circleList) {
             str = str.trim();
             try {
-                _visibleKnob[Integer.parseInt(str)-1] = true;
-            }catch(Exception e) {
+                _visibleKnob[Integer.parseInt(str) - 1] = true;
+            } catch (Exception e) {
 
             }
         }
@@ -99,27 +102,27 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
             if (line != null) {
                 lineNum = Integer.parseInt(line.trim());
             }
-        }catch(Exception e) {
+        } catch (Exception e) {
         }
         this._visibleLineCount = lineNum;
         String pad = setting.getSetting("ActivePad");
         if (pad == null) {
             pad = "1, 2, 3";
         }
-        
+
         ArrayList<String> padList = new ArrayList();
         MXUtil.split(pad, padList, ',');
         _visiblePad = new boolean[4];
         for (String str : padList) {
             str = str.trim();
             try {
-                _visiblePad[Integer.parseInt(str)-1] = true;
-            }catch(Exception e) {
+                _visiblePad[Integer.parseInt(str) - 1] = true;
+            } catch (Exception e) {
 
             }
         }
-        if (custom == null) {            
-            for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
+        if (custom == null) {
+            for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
                 _pageProcess[port].readINIFile(null);
                 MX32MixerProcess mixer = _pageProcess[port];
                 _rootView.addPage(port, mixer);
@@ -133,17 +136,21 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
     public boolean writeINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
         StringBuffer circle = new StringBuffer();
-        for (int i = 0; i < _visibleKnob.length; ++ i) {
+        for (int i = 0; i < _visibleKnob.length; ++i) {
             if (_visibleKnob[i]) {
-                if (circle.length() != 0) circle.append(",");
-                circle.append(i+1);
+                if (circle.length() != 0) {
+                    circle.append(",");
+                }
+                circle.append(i + 1);
             }
         }
         StringBuffer pad = new StringBuffer();
-        for (int i = 0; i < _visiblePad.length; ++ i) {
+        for (int i = 0; i < _visiblePad.length; ++i) {
             if (_visiblePad[i]) {
-                if (pad.length() != 0) pad.append(",");
-                pad.append(i+1);
+                if (pad.length() != 0) {
+                    pad.append(",");
+                }
+                pad.append(i + 1);
             }
         }
         setting.setSetting("ActiveCircle", circle.toString());
@@ -151,22 +158,106 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
         setting.setSetting("ActivePad", pad.toString());
         return setting.writeINIFile();
     }
-       
+
     public MX32MixerProcess getPage(int i) {
         return _pageProcess[i];
     }
 
+    MXMessageBag _bag = null;
+    int _bagCount = 0;
+    
+/*
+    static long _debugThrh = 0;
+    static long _debugFlush = 0;
+*/
+    public synchronized MXMessageBag startBagging() {
+        _bagCount++;
+        if (_bagCount == 1) {
+            _bag = new MXMessageBag();
+        }
+        return _bag;
+    }
+    
+    public synchronized void endBagging() {
+        if (_bagCount == 1) {
+            flushSendQueue(_bag);
+            _bag = null;
+            //_debugFlush ++;
+        }else {
+            //_debugThrh ++;
+        }
+        //System.out.println("thrh " + _debugThrh + " / flush " + _debugFlush);
+        --_bagCount;
+    }
+
+    void addSliderMove(MGStatus status, int newValue) {
+        MGSliderMove move = new MGSliderMove(status, newValue);
+        addSliderMove(move);
+    }
+
+    void addSliderMove(MGSliderMove move) {
+        MXMessageBag bag = startBagging();
+        try {
+            bag.addSliderMove(move);
+        }finally {
+            endBagging();
+        }
+    }
+
+    void flushSendQueue(MXMessageBag bag) {
+        while (true) {
+            MGSliderMove move = bag.popSliderMove();
+            if (move == null) {
+                break;
+            }
+            int port = move._status._port;
+            if (bag.isTouchedStatus(move._status)) {
+                return;
+            }
+            bag.addTouchedStatus(move._status);
+            _pageProcess[port].updateUIStatusAndGetResult(move._status, move._newValue, move._timing);
+        }
+        while (true) {
+            MXMessage message = bag.popResult();
+            if (message == null) {
+                break;
+            }
+
+            int port = message.getPort();
+            sendToNext(message);
+            bag.addQueue(message); //reenter
+        }
+        while (true) {
+            Runnable run = bag.popResultTask();
+            if (run == null) {
+                break;
+            }
+            try {
+                run.run();
+            } catch (RuntimeException ex) {
+                MXFileLogger.getLogger(MX32MixerProcess.class).log(Level.WARNING, ex.getMessage(), ex);
+            }
+        }
+        while (true) {
+            MXMessage message = bag.popQueue();
+            if (message == null) {
+                break;
+            }
+            processMXMessage(message);
+        }
+    }
+
     @Override
     public void processMXMessage(MXMessage message) {
-        if (isUsingThisRecipe() == false) { 
+        if (isUsingThisRecipe() == false) {
             sendToNext(message);
-            return; 
+            return;
         }
 
         int port = message.getPort();
         _pageProcess[port].processMXMessage(message);
     }
-    
+
     @Override
     public String getReceiverName() {
         return "Surface17";
@@ -176,21 +267,21 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
     public MX30View getReceiverView() {
         return _rootView;
     }
-    
+
     protected void prepareActiveSlider() {
         if (_visibleLineCount == 0) {
             _visibleLineCount = 17;
             _visibleKnob = new boolean[4];
-            for (int i = 0; i < _visibleKnob.length; ++ i) {
+            for (int i = 0; i < _visibleKnob.length; ++i) {
                 _visibleKnob[i] = true;
             }
             _visiblePad = new boolean[3];
-            for (int i = 0; i < _visiblePad.length; ++ i) {
+            for (int i = 0; i < _visiblePad.length; ++i) {
                 _visiblePad[i] = true;
             }
         }
     }
-    
+
     private boolean[] _visibleKnob;
     private boolean[] _visiblePad;
     private int _visibleLineCount;
@@ -218,9 +309,9 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
     public void setPadVisible(int r, boolean visible) {
         _visiblePad[r] = visible;
     }
-    
+
     public void globalContollerHidden() {
-        for (int t = 0; t < _pageProcess.length; ++ t) {
+        for (int t = 0; t < _pageProcess.length; ++t) {
             _pageProcess[t]._view.globalControllerHidden();
         }
     }
@@ -251,9 +342,15 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
 
     @Override
     public void resetSetting() {
-        for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
+        for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
             MX32MixerProcess mixer = _pageProcess[port];
             mixer.resetSetting();
         }
+    }
+
+    MX36Process _mappingProcess;
+    
+    public void setMappingProcess(MX36Process mappingProcess) {
+        _mappingProcess = mappingProcess;
     }
 }

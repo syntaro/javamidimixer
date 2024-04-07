@@ -18,7 +18,7 @@ package jp.synthtarou.midimixer.mx50resolution;
 
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
+import jp.synthtarou.midimixer.mx30surface.MXMessageBag;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;

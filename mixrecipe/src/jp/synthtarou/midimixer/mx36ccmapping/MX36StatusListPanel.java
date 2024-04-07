@@ -66,12 +66,10 @@ public class MX36StatusListPanel extends javax.swing.JPanel {
         
         int y = 0;
         for (MX36Folder folder : list._listFolder) {
+            System.out.println("list = "+ list._listFolder);
             MXAccordion accordion = folder._accordion;
+            System.out.println("accordion = "+ accordion);
 
-            /*
-            for (MX36Status status : folder._list) {
-                folder.insertSorted(status);
-            }*/
             GridBagConstraints lay1 = new GridBagConstraints(
                     0, y, 1, 1, 1, 0, 
                     GridBagConstraints.CENTER, GridBagConstraints.BOTH, 
@@ -81,11 +79,11 @@ public class MX36StatusListPanel extends javax.swing.JPanel {
         }
 
         GridBagConstraints last = new GridBagConstraints(0, 10, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
-        contents.add(new JLabel(""), last);
+        contents.add(new JLabel("--"), last);
 
         jScrollPane1.setViewportView(contents);
         
-        setPreferredSize(new Dimension(800, 500));
+        //setPreferredSize(new Dimension(800, 500));
     }
     
     /**

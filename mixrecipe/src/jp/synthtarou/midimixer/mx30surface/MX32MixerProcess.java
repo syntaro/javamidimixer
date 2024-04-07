@@ -17,9 +17,9 @@
 package jp.synthtarou.midimixer.mx30surface;
 
 import java.io.File;
-import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import java.util.ArrayList;
 import java.util.logging.Level;
+import javax.swing.plaf.SliderUI;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXRangedValue;
@@ -36,6 +36,7 @@ import jp.synthtarou.libs.inifile.MXINIFileNode;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
+import jp.synthtarou.midimixer.mx36ccmapping.MX36Process;
 
 /**
  *
@@ -77,7 +78,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
             return;
         }
 
-        startProcess(message, null);
+        startProcess(message);
     }
 
     @Override
@@ -486,30 +487,14 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
         }
         return setting.writeINIFile();
     }
-
-    void updateStatusAndSend(MGStatus status, int newValue) {
-        MXMessageBag bag = new MXMessageBag();
-        updateUIStatusAndGetResult(status, newValue, null, bag);
-        while (true) {
-            MXMessage message = bag.popResult();
-            if (message == null) {
-                break;
-            }
-            sendToNext(message);
-            _parent.processMXMessage(message);
-        }
-    }
-
-    void updateUIStatusAndGetResult(MGStatus status, int newValue, MXTiming timing, MXMessageBag bag) {
+    
+    void updateUIStatusAndGetResult(MGStatus status, int newValue, MXTiming timing) {
         if (_parent._underConstruction) {
             return;
         }
         synchronized (MXTiming.mutex) {
             if (timing == null) {
                 timing = new MXTiming();
-            }
-            if (bag.isTouchedStatus(status)) {
-                return;
             }
             MXMessage message = null;
             int row = status._row, column = status._column;
@@ -518,16 +503,16 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
                 MGSlider slider = getSlider(row, column);
                 status.setMessageValue(status.getValue().changeValue(newValue));
                 message = (MXMessage) status._base.clone();
-                message._bySurface = true;
                 slider.publishUI();
             } else if (uiType == MGStatus.TYPE_CIRCLE) {
                 MGCircle circle = getCircle(row, column);
                 status.setMessageValue(status.getValue().changeValue(newValue));
                 message = (MXMessage) status._base.clone();
-                message._bySurface = true;
                 circle.publishUI();
             } else {
-                return;//nothing
+                status.setMessageValue(newValue);
+                status._drum.messageDetected();
+                message = null;
             }
 
             if (_patchToMixer >= 0) {
@@ -537,14 +522,33 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
                 int nextMin = nextStatus._base.getValue()._min;
                 int nextMax = nextStatus._base.getValue()._max;
                 newValue = status._base.getValue().changeRange(nextMin, nextMax)._value;
-                nextMixer.updateUIStatusAndGetResult(nextStatus, newValue, timing, bag);
+
+                MGSliderMove move = new MGSliderMove(nextStatus, newValue, timing);
+                _parent.addSliderMove(move);
+                if (!_patchTogether) {
+                    message = null;
+                }
+            }
+            
+            MX36Process mapping = _parent._mappingProcess;
+            if (mapping != null) {
+                if (mapping.isNotLinked(status)) {
+                    mapping.addToAutoDetected(status);
+                }
+                else if (mapping.invokeMapping(status)) {
+                    return;
+                }
             }
 
-            if (_patchToMixer < 0 || _patchTogether) {
-                if (message != null) {
-                    message._timing = timing;
-                    startProcess(message, bag);
+            if (message != null) {
+                message._timing = timing;
+                startProcess(message);
+                
+                MXMessageBag bag = _parent.startBagging();
+                try {
                     bag.addResult(message);
+                }finally {
+                    _parent.endBagging();
                 }
             }
         }
@@ -693,14 +697,9 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
         notifyCacheBroken();
     }
 
-    public void startProcess(MXMessage message, MXMessageBag bag) {
+    public void startProcess(MXMessage message) {
         if (message == null) {
             return;
-        }
-        boolean createdNow = false;
-        if (bag == null) {
-            createdNow = true;
-            bag = new MXMessageBag();
         }
         if (message.isEmpty()) {
             sendToNext(message);
@@ -713,58 +712,38 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
             }
         }
 
-        bag.addQueue(message);
+        MXMessageBag bag = _parent.startBagging();
+        try {
+            bag.addQueue(message);
 
-        while (true) {
-            message = bag.popQueue();
-            if (message == null) {
-                break;
-            }
-            ArrayList<MGStatus> listStatus = _finder.findCandidate(message);
-            boolean proc = false;
-            if (listStatus != null && listStatus.isEmpty() == false) {
-                for (MGStatus seek : listStatus) {
-                    if (bag.isTouchedStatus(seek)) {
-                        continue;
-                    }
-                    if (seek.controlByMessage(message, bag)) {
-                        updateUIStatusAndGetResult(seek, seek.getValue()._value, message._timing, bag);
-                        proc = true;
+            while (true) {
+                message = bag.popQueue();
+                if (message == null) {
+                    break;
+                }
+                ArrayList<MGStatus> listStatus = _finder.findCandidate(message);
+                boolean proc = false;
+                if (listStatus != null && listStatus.isEmpty() == false) {
+                    for (MGStatus seek : listStatus) {
+                        if (bag.isTouchedStatus(seek)) {
+                            continue;
+                        }
+                        int x = seek.controlByMessage(message);
+                        if (x >= 0) {
+                            _parent.addSliderMove(seek, x);
+                            proc = true;
+                        }
                     }
                 }
+                if (!proc) {
+                    bag.addResult(message);
+                }
             }
-            if (!proc) {
-                bag.addResult(message);
-            }
-        }
-        if (createdNow) {
-            flushSendQueue(bag);
+        }finally{
+            _parent.endBagging();
         }
     }
 
-    void flushSendQueue(MXMessageBag bag) {
-        while (true) {
-            MXMessage message = bag.popResult();
-            if (message == null) {
-                break;
-            }
-
-            int port = message.getPort();
-            sendToNext(message);
-            _parent._pageProcess[port].startProcess(message, bag);
-        }
-        while (true) {
-            Runnable run = bag.popResultTask();
-            if (run == null) {
-                break;
-            }
-            try {
-                run.run();
-            } catch (RuntimeException ex) {
-                MXFileLogger.getLogger(MX32MixerProcess.class).log(Level.WARNING, ex.getMessage(), ex);
-            }
-        }
-    }
 
     @Override
     public boolean readJSonfile(File custom) {

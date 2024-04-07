@@ -18,13 +18,13 @@ package jp.synthtarou.midimixer.mx36ccmapping;
 
 import java.util.Collections;
 import java.util.logging.Level;
-import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
 
 /**
@@ -32,13 +32,61 @@ import jp.synthtarou.midimixer.mx30surface.MGStatus;
  * @author Syntarou YOSHIDA
  */
 public class MX36Status {
-    int _surfacePort;
-    int _surfaceUIType;
-    int _surfaceRow;
-    int _surfaceColumn;
+
+    /**
+     * @return the _surfacePort
+     */
+    public int getSurfacePort() {
+        return _surfacePort;
+    }
+
+    /**
+     * @return the _surfaceUIType
+     */
+    public int getSurfaceUIType() {
+        return _surfaceUIType;
+    }
+
+    /**
+     * @return the _surfaceRow
+     */
+    public int getSurfaceRow() {
+        return _surfaceRow;
+    }
+
+    /**
+     * @return the _surfaceColumn
+     */
+    public int getSurfaceColumn() {
+        return _surfaceColumn;
+    }
+
+    /**
+     * @return the _surfaceobj
+     */
+    public MGStatus getSurfaceobj() {
+        return _surfaceobj;
+    }
+    
+    public void setSurface(int port, int type, int row, int column) {
+        _surfacePort = port;
+        _surfaceUIType = type;
+        _surfaceRow = row;
+        _surfaceColumn = column;
+        
+        if (_surfaceobj != null) {
+            _surfaceobj.unregist36Link(this);
+        }
+        _surfaceobj = MXMain.getMain().getKontrolProcess().getPage(port).getStatus(type, row, column);
+        _surfaceobj.regist36Link(this);
+    }
+    private int _surfacePort;
+    private int _surfaceUIType;
+    private int _surfaceRow;
+    private int _surfaceColumn;
+    private MGStatus _surfaceobj;
+
     MXRangedValue _surfaceValueRange = new MXRangedValue(0, 0, 127);
-   
-    MGStatus _surface;
     
     String _outName;
     String _outMemo;
@@ -57,45 +105,6 @@ public class MX36Status {
     
     boolean _outGateTypeKey;
     
-    static int findRowTypeFromValue(int value) {
-        return (value >> 8) & 0xff;
-    }
-    
-    static int findRowNumberFromValue(int value) {
-        return value & 0xff;
-    }
-    
-    static int makeRowValue(int rowType, int rowNumber) {
-        return (rowType << 8) | rowNumber;
-    }
-    
-    static MXNamedObjectList<Integer> _listRowType;
-
-    static {
-        _listRowType = new MXNamedObjectList<>();
-        _listRowType.addNameAndValue("-", -1);
-        for (int i = 0; i < MXConfiguration.CIRCLE_ROW_COUNT; ++ i) {
-            String caption = "Knob";
-            if (i != 0) {
-                caption += Integer.toString(i + 1);
-            }
-            _listRowType.addNameAndValue(caption, makeRowValue(MGStatus.TYPE_CIRCLE, i));
-        }
-        for (int i = 0; i < MXConfiguration.SLIDER_ROW_COUNT; ++ i) {
-            String caption = "Slider";
-            if (i != 0) {
-                caption += Integer.toString(i + 1);
-            }
-            _listRowType.addNameAndValue(caption, makeRowValue(MGStatus.TYPE_SLIDER, i));
-        }
-        for (int i = 0; i < MXConfiguration.DRUM_ROW_COUNT; ++ i) {
-            String caption = "Drum";
-            if (i != 0) {
-                caption += Integer.toString(i + 1);
-            }
-            _listRowType.addNameAndValue(caption, makeRowValue(MGStatus.TYPE_DRUMPAD, i));
-        }
-    }
     
     public String getOutValueLabel() {
         String text = null;
@@ -158,9 +167,8 @@ public class MX36Status {
     }
     
     public String toSurfaceText() {
-        int x = MX36Status.makeRowValue(_surfaceUIType, _surfaceRow);
-        String row = _listRowType.nameOfValue(x);
-        return "#" + Character.toString('A'+_surfacePort) + "-" + row + "-" + (_surfaceColumn+1);
+        String row = MX36RowId.find(_surfaceUIType, _surfaceRow).toString();
+        return "#" + Character.toString('A'+getSurfacePort()) + "-" + row + "-" + (getSurfaceColumn()+1);
     }
     
     public String toOutputPortText() {
@@ -183,17 +191,14 @@ public class MX36Status {
         MX36Status it = new MX36Status();
                 
         it._outName = status.getAsName();
-        
-        it._surfacePort = status._port;
-        it._surfaceUIType = status._uiType;
-        it._surfaceRow = status._row;
-        it._surfaceColumn = status._column;
+
         it._surfaceValueRange = status.getValue();
-        it._surface = status;
+        it._surfaceobj = status;
 
         it._outChannel = status.getChannel();
         it._outValueRange = status.getValue();
         it._outValueTable = null;
+        it.setSurface(status._port, status._uiType, status._row, status._column);
         
         return it;
     }
@@ -212,38 +217,41 @@ public class MX36Status {
     }
     
     int compareSurfacePositionColumn(MX36Status status) {
-        return MX36Status.this.compareSurfacePositionColumn(status._surfacePort, status._surfaceUIType, status._surfaceRow, status._surfaceColumn);
+        return MX36Status.this.compareSurfacePositionColumn(status.getSurfacePort(), status.getSurfaceUIType(), status.getSurfaceRow(), status.getSurfaceColumn());
     }
 
     int compareSurfacePositionColumn(int port, int uiType, int row, int column) {
-        if (_surfacePort < port) return -1;
-        if (_surfacePort > port) return 1;
-        if (_surfaceColumn < column) return -1;
-        if (_surfaceColumn > column) return 1;
-        if (_surfaceUIType < uiType) return -1;
-        if (_surfaceUIType > uiType) return 1;
-        if (_surfaceRow < row) return -1;
-        if (_surfaceRow > row) return 1;
+        if (getSurfacePort() < port) return -1;
+        if (getSurfacePort() > port) return 1;
+        if (getSurfaceColumn() < column) return -1;
+        if (getSurfaceColumn() > column) return 1;
+        if (getSurfaceUIType() < uiType) return -1;
+        if (getSurfaceUIType() > uiType) return 1;
+        if (getSurfaceRow() < row) return -1;
+        if (getSurfaceRow() > row) return 1;
         return 0;
     }
     
     int compareSurfacePositionRow(MX36Status status) {
-        return MX36Status.this.compareSurfacePositionColumn(status._surfacePort, status._surfaceUIType, status._surfaceRow, status._surfaceColumn);
+        return MX36Status.this.compareSurfacePositionColumn(status.getSurfacePort(), status.getSurfaceUIType(), status.getSurfaceRow(), status.getSurfaceColumn());
     }
 
     int compareSurfacePositionRow(int port, int uiType, int row, int column) {
-        if (_surfacePort < port) return -1;
-        if (_surfacePort > port) return 1;
-        if (_surfaceUIType < uiType) return -1;
-        if (_surfaceUIType > uiType) return 1;
-        if (_surfaceRow < row) return -1;
-        if (_surfaceRow > row) return 1;
-        if (_surfaceColumn < column) return -1;
-        if (_surfaceColumn > column) return 1;
+        if (getSurfacePort() < port) return -1;
+        if (getSurfacePort() > port) return 1;
+        if (getSurfaceUIType() < uiType) return -1;
+        if (getSurfaceUIType() > uiType) return 1;
+        if (getSurfaceRow() < row) return -1;
+        if (getSurfaceRow() > row) return 1;
+        if (getSurfaceColumn() < column) return -1;
+        if (getSurfaceColumn() > column) return 1;
         return 0;
     }
 
     public MXMessage createOutMessage() {
+        if (_folder.isSelected() == false) {
+            return null;
+        }
         if (_outDataText == null || _outDataText.length() == 0) {
             return null;
         }
@@ -262,7 +270,7 @@ public class MX36Status {
             _outDataText = null;
             return null;
         }
-        int port = _surfacePort;
+        int port = getSurfacePort();
         int channel = _outChannel;
         if (_outPort >= 0) {
             port = _outPort;
@@ -278,10 +286,10 @@ public class MX36Status {
     }
     
     public boolean isValidForWork() {
-        if (_surfacePort < 0) return false;
-        if (_surfaceUIType < 0) return false;
-        if (_surfaceRow < 0) return false;
-        if (_surfaceColumn < 0) return false;
+        if (getSurfacePort() < 0) return false;
+        if (getSurfaceUIType() < 0) return false;
+        if (getSurfaceRow() < 0) return false;
+        if (getSurfaceColumn() < 0) return false;
         if (_outDataText == null) return false;
         if (_outDataText.isBlank()) return false;
         return true;

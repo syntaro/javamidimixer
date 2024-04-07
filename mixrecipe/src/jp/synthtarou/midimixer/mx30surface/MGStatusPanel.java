@@ -351,16 +351,6 @@ public class MGStatusPanel extends javax.swing.JPanel {
     MXNamedObjectList<Integer> _listColumn = MXNamedObjectListFactory.listupColumn("-");
     MXNamedObjectList<Integer> _listChannel = MXNamedObjectListFactory.listupChannel(null);
 
-    public boolean catchPopupResult(JTextField target, int value) {
-        if (target == jTextFieldChannel) {
-            _status._base.setChannel(value);
-        }
-        if (target == jTextFieldGate) {
-            _status._base.setGate(_status._base.getGate().changeValue(value));
-        }
-        return true;
-    }
-
     public void displayStatusToPanelSlider() {
         if (skipDataExchange) {
             return;

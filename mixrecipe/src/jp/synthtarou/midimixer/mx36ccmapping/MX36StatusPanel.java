@@ -41,15 +41,15 @@ public class MX36StatusPanel extends javax.swing.JPanel implements MXAccordionEl
             MX36Status s1 = p1._status;
             MX36Status s2 = p2._status;
             
-            int x = s1._surfacePort - s2._surfacePort;
+            int x = s1.getSurfacePort() - s2.getSurfacePort();
             if (x == 0) {
-                x = s1._surfaceUIType - s2._surfaceUIType;
+                x = s1.getSurfaceUIType()- s2.getSurfaceUIType();
             }
             if (x == 0) {
-                x = s1._surfaceRow - s2._surfaceRow;
+                x = s1.getSurfaceRow() - s2.getSurfaceRow();
             }
             if (x == 0) {
-                x = s1._surfaceColumn - s2._surfaceColumn;
+                x = s1.getSurfaceColumn() - s2.getSurfaceColumn();
             }
             
             return x;

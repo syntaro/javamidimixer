@@ -34,6 +34,7 @@ import jp.synthtarou.midimixer.ccxml.ui.PickerForControlChange;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.namedobject.MXNamedObject;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
@@ -46,7 +47,6 @@ import jp.synthtarou.libs.navigator.MXPopupForList;
 import jp.synthtarou.libs.navigator.MXPopupForNumber;
 import jp.synthtarou.libs.navigator.MXPopupForText;
 import jp.synthtarou.libs.navigator.legacy.NavigatorForNote;
-import jp.synthtarou.midimixer.mx30surface.MX32MixerProcess;
 
 /**
  *
@@ -58,6 +58,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
     MX36Status _status;
     JTextField[] _listBindMouse = null;
 
+    
     /**
      * Creates new form MX36View
      */
@@ -70,31 +71,60 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         jLabelEmpty3.setText("");
 
         _listBindMouse = new JTextField[]{
-            jTextFieldSurfaceRow,
+            jTextFieldSurfaceTypeAndRow,
             jTextFieldOutGate,
             jTextFieldOutData,};
 
-        new MXPopupForList<Integer>(jTextFieldSurfacePort, _listPort) {
+        new MXPopupForList<Integer>(jTextFieldSurfacePort, _listInputPort) {
             @Override
             public void approvedIndex(int selectedIndex) {
-                _status._surfacePort = _listPort.valueOfIndex(selectedIndex);
-                updateViewByStatus(_status);
+                int port = _status.getSurfacePort();
+                int type = _status.getSurfaceUIType();
+                int row = _status.getSurfaceRow();
+                int column = _status.getSurfaceColumn();
+                
+                port = _listInputPort.valueOfIndex(selectedIndex);
+
+                _status.setSurface(port, type, row, column);
+
+                showupStatus(_status);
             }
         };
-        new MXPopupForList<Integer>(jTextFieldSurfaceRow, MX36Status._listRowType) {
+        new MXPopupForList<MX36RowId>(jTextFieldSurfaceTypeAndRow, _listRow) {
             @Override
             public void approvedIndex(int selectedIndex) {
-                int row = MX36Status._listRowType.valueOfIndex(selectedIndex);
-                _status._surfaceUIType = MX36Status.findRowTypeFromValue(row);
-                _status._surfaceRow = MX36Status.findRowNumberFromValue(row);
-                updateViewByStatus(_status);
+                int port = _status.getSurfacePort();
+                int type = _status.getSurfaceUIType();
+                int row = _status.getSurfaceRow();
+                int column = _status.getSurfaceColumn();
+                
+                MXNamedObject<MX36RowId> seek = _listRow.get(selectedIndex);
+                if (seek != null) {
+                    type = seek._value._uiType;
+                    row = seek._value._row;
+                }
+                else {
+                    return;
+                }
+
+                _status.setSurface(port, type, row, column);
+
+                showupStatus(_status);
             }
         };
         new MXPopupForList<Integer>(jTextFieldSurfaceColumn, _listColumn) {
             @Override
             public void approvedIndex(int selectedIndex) {
-                _status._surfaceColumn = _listPort.valueOfIndex(selectedIndex);
-                updateViewByStatus(_status);
+                int port = _status.getSurfacePort();
+                int type = _status.getSurfaceUIType();
+                int row = _status.getSurfaceRow();
+                int column = _status.getSurfaceColumn();
+                
+                column = _listColumn.valueOfIndex(selectedIndex);
+                
+                _status.setSurface(port, type, row, column);
+
+                showupStatus(_status);
             }
         };
 
@@ -102,7 +132,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
             @Override
             public void approvedText(String text) {
                 _status._outName = text;
-                updateViewByStatus(_status);
+                showupStatus(_status);
             }
         };
 
@@ -113,11 +143,11 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
             }
         };
 
-        new MXPopupForList<Integer>(jTextFieldOutPort, _listPort) {
+        new MXPopupForList<Integer>(jTextFieldOutPort, _listOutputPort) {
             @Override
             public void approvedIndex(int selectedIndex) {
-                _status._outPort = _listPort.valueOfIndex(selectedIndex);
-                updateViewByStatus(_status);
+                _status._outPort = _listOutputPort.valueOfIndex(selectedIndex);
+                showupStatus(_status);
             }
         };
         new MXPopup(jTextFieldOutGate) {
@@ -131,7 +161,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                         int[] ret = picker.getReturnValue();
                         if (ret != null && ret.length == 1) {
                             _status._outGateRange = _status._outGateRange.changeValue(ret[0]);
-                            updateViewByStatus(_status);
+                            showupStatus(_status);
                         }
                     }
                 } else {
@@ -140,7 +170,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                         @Override
                         public void approvedIndex(int selectedIndex) {
                             _status._outGateRange = _status._outGateRange.changeValue(listForGate.valueOfIndex(selectedIndex));
-                            updateViewByStatus(_status);
+                            showupStatus(_status);
                         }
                     };
                     sub.showPopup(mouseBase);
@@ -151,8 +181,8 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         new MXPopupForList<Integer>(jTextFieldOutChannel, _listChannel) {
             @Override
             public void approvedIndex(int selectedIndex) {
-                _status._outChannel = _listPort.valueOfIndex(selectedIndex);
-                updateViewByStatus(_status);
+                _status._outChannel = _listChannel.valueOfIndex(selectedIndex);
+                showupStatus(_status);
             }
         };
 
@@ -160,63 +190,63 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
             @Override
             public void approvedValue(int selectedValue) {
                 _status._bind1RCH = selectedValue;
-                updateViewByStatus(_status);
+                showupStatus(_status);
             }
         };
         new MXPopupForNumber(jTextFieldBind2RCH, 0, 127) {
             @Override
             public void approvedValue(int selectedValue) {
                 _status._bind2RCH = selectedValue;
-                updateViewByStatus(_status);
+                showupStatus(_status);
             }
         };
         new MXPopupForNumber(jTextFieldBind4RCH, 0, 127) {
             @Override
             public void approvedValue(int selectedValue) {
                 _status._bind4RCH = selectedValue;
-                updateViewByStatus(_status);
+                showupStatus(_status);
             }
         };
         new MXPopupForNumber(jTextFieldBindRSCTPT1, 0, 127) {
             @Override
             public void approvedValue(int selectedValue) {
                 _status._bindRSCTPT1 = selectedValue;
-                updateViewByStatus(_status);
+                showupStatus(_status);
             }
         };
         new MXPopupForNumber(jTextFieldBindRSCTPT2, 0, 127) {
             @Override
             public void approvedValue(int selectedValue) {
                 _status._bindRSCTPT2 = selectedValue;
-                updateViewByStatus(_status);
+                showupStatus(_status);
             }
         };
         new MXPopupForNumber(jTextFieldBindRSCTPT3, 0, 127) {
             @Override
             public void approvedValue(int selectedValue) {
                 _status._bindRSCTPT3 = selectedValue;
-                updateViewByStatus(_status);
+                showupStatus(_status);
             }
         };
         new MXPopupForNumber(jTextFieldBindRSCTRT1, 0, 127) {
             @Override
             public void approvedValue(int selectedValue) {
                 _status._bindRSCTRT1 = selectedValue;
-                updateViewByStatus(_status);
+                showupStatus(_status);
             }
         };
         new MXPopupForNumber(jTextFieldBindRSCTRT2, 0, 127) {
             @Override
             public void approvedValue(int selectedValue) {
                 _status._bindRSCTRT2 = selectedValue;
-                updateViewByStatus(_status);
+                showupStatus(_status);
             }
         };
         new MXPopupForNumber(jTextFieldBindRSCTRT3, 0, 127) {
             @Override
             public void approvedValue(int selectedValue) {
                 _status._bindRSCTRT3 = selectedValue;
-                updateViewByStatus(_status);
+                showupStatus(_status);
             }
         };
 
@@ -272,7 +302,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                     _status._outGateRange = gate;
                     _status._outGateTable = gateTable;
                     _status.setOutDataText(data);
-                    updateViewByStatus(_status);
+                    showupStatus(_status);
                 } else {
                     MX36Status next = new MX36Status();
                     next._outName = name;
@@ -303,17 +333,19 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         jButtonNewInFolder.setEnabled(true);
     }
 
-    MXNamedObjectList<Integer> _listPort = MXNamedObjectListFactory.listupPort("-");
+    MXNamedObjectList<Integer> _listInputPort = MXNamedObjectListFactory.listupPort(null);
+    MXNamedObjectList<Integer> _listOutputPort = MXNamedObjectListFactory.listupPort("=");
     MXNamedObjectList<Integer> _listColumn = MXNamedObjectListFactory.listupColumn("-");
+    MXNamedObjectList<MX36RowId> _listRow = MX36RowId.ListModel;
     MXNamedObjectList<Integer> _listChannel = MXNamedObjectListFactory.listupChannel(null);
 
-    public void updateViewByStatus(MX36Status status) {
+    public void showupStatus(MX36Status status) {
         setEnabledRecurs(true);
 
-        if (_process._folders._nosaveFolder == status._folder) {
+        if (_process._folderList._nosaveFolder == status._folder) {
             if (status.isValidForWork()) {
                 JOptionPane.showMessageDialog(this, "Moved from AutoDecteted to Primal.");
-                _process.moveFolder(_process._folders._primalFolder, status);
+                _process.moveFolder(_process._folderList._primalFolder, status);
             }
         }
 
@@ -321,19 +353,12 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
             _status = null;
             try {
 
-                jTextFieldSurfacePort.setText(_listPort.nameOfValue(status._surfacePort));
-                int row = MX36Status.makeRowValue(status._surfaceUIType, status._surfaceRow);
-                String surfaceRowText = MX36Status._listRowType.nameOfValue(row);
-                if (surfaceRowText == null) {
-                    surfaceRowText = "-";
-                }
-
-                jTextFieldSurfacePort.setText(_listPort.nameOfValue(status._surfacePort));
-                jTextFieldSurfaceRow.setText(surfaceRowText);
-                jTextFieldSurfaceColumn.setText(_listColumn.nameOfValue(status._surfaceColumn));
+                jTextFieldSurfacePort.setText(_listInputPort.nameOfValue(status.getSurfacePort()));
+                jTextFieldSurfaceTypeAndRow.setText(_listRow.nameOfValue(MX36RowId.find(status.getSurfaceUIType(), status.getSurfaceRow())));
+                jTextFieldSurfaceColumn.setText(_listColumn.nameOfValue(status.getSurfaceColumn()));
                 jLabelSurfaceValueRange.setText(status._surfaceValueRange._min + " ... " + status._surfaceValueRange._max);
 
-                jTextFieldOutPort.setText(_listPort.nameOfValue(status._outPort));
+                jTextFieldOutPort.setText(_listOutputPort.nameOfValue(status._outPort));
                 jTextFieldOutChannel.setText(_listChannel.nameOfValue(status._outChannel));
                 jTextFieldOutGate.setText(status.safeGateTable().nameOfValue(status._outGateRange._value));
                 jTextFieldOutName.setText(status._outName);
@@ -367,7 +392,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         }
     }
 
-    public void updateSliderByStatus() {
+    public void repaintDetailSliderStatus() {
         if (_status != null) {
             MX36Status status = _status;
             //再突入を防ぐ
@@ -378,88 +403,6 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         }
     }
 
-    public void catchPopupResult(JTextField target, int value) {
-        if (_editing == false) {
-            return;
-        }
-
-        if (target == jTextFieldSurfacePort) {
-            _status._surfacePort = value;
-            updateViewByStatus(_status);
-            return;
-        }
-        if (target == jTextFieldSurfaceRow) {
-            _status._surfaceRow = value;
-            updateViewByStatus(_status);
-            return;
-        }
-        if (target == jTextFieldOutChannel) {
-            _status._outChannel = value;
-            updateViewByStatus(_status);
-            return;
-        }
-        if (target == jTextFieldOutGate) {
-            //can't come here
-            return;
-        }
-        if (target == jTextFieldOutPort) {
-            _status._outPort = value;
-            updateViewByStatus(_status);
-            return;
-        }
-
-        if (target == jTextFieldOutData) {
-            //can't come here
-            return;
-        }
-        if (target == jTextFieldBind1RCH) {
-            _status._bind1RCH = value;
-            updateViewByStatus(_status);
-            return;
-        }
-        if (target == jTextFieldBind2RCH) {
-            _status._bind2RCH = value;
-            updateViewByStatus(_status);
-            return;
-        }
-        if (target == jTextFieldBind4RCH) {
-            _status._bind4RCH = value;
-            updateViewByStatus(_status);
-            return;
-        }
-
-        if (target == jTextFieldBindRSCTPT1) {
-            _status._bindRSCTPT1 = value;
-            updateViewByStatus(_status);
-            return;
-        }
-        if (target == jTextFieldBindRSCTPT2) {
-            _status._bindRSCTPT2 = value;
-            updateViewByStatus(_status);
-            return;
-        }
-        if (target == jTextFieldBindRSCTPT3) {
-            _status._bindRSCTPT3 = value;
-            updateViewByStatus(_status);
-            return;
-        }
-
-        if (target == jTextFieldBindRSCTRT1) {
-            _status._bindRSCTRT1 = value;
-            updateViewByStatus(_status);
-            return;
-        }
-        if (target == jTextFieldBindRSCTRT2) {
-            _status._bindRSCTRT2 = value;
-            updateViewByStatus(_status);
-            return;
-        }
-        if (target == jTextFieldBindRSCTRT3) {
-            _status._bindRSCTRT3 = value;
-            updateViewByStatus(_status);
-            return;
-        }
-    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -479,7 +422,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         jLabelSurfaceValueRange = new javax.swing.JLabel();
         jLabelEmpty1 = new javax.swing.JLabel();
         jTextFieldSurfacePort = new javax.swing.JTextField();
-        jTextFieldSurfaceRow = new javax.swing.JTextField();
+        jTextFieldSurfaceTypeAndRow = new javax.swing.JTextField();
         jTextFieldSurfaceColumn = new javax.swing.JTextField();
         jPanel3 = new javax.swing.JPanel();
         jLabel5 = new javax.swing.JLabel();
@@ -582,13 +525,13 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         jPanel2.add(jTextFieldSurfacePort, gridBagConstraints);
 
-        jTextFieldSurfaceRow.setEditable(false);
-        jTextFieldSurfaceRow.setText("-");
+        jTextFieldSurfaceTypeAndRow.setEditable(false);
+        jTextFieldSurfaceTypeAndRow.setText("-");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel2.add(jTextFieldSurfaceRow, gridBagConstraints);
+        jPanel2.add(jTextFieldSurfaceTypeAndRow, gridBagConstraints);
 
         jTextFieldSurfaceColumn.setEditable(false);
         jTextFieldSurfaceColumn.setText("-");
@@ -1094,7 +1037,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
 
     private void jButtonOutTextClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOutTextClearActionPerformed
         _status.setOutDataText(null);
-        updateViewByStatus(_status);
+        showupStatus(_status);
     }//GEN-LAST:event_jButtonOutTextClearActionPerformed
 
     private void jButtonValueIncActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonValueIncActionPerformed
@@ -1102,7 +1045,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         var++;
         if (_status._outValueRange._max >= var) {
             _status._outValueRange = _status._outValueRange.changeValue(var);
-            updateViewByStatus(_status);
+            showupStatus(_status);
         }
     }//GEN-LAST:event_jButtonValueIncActionPerformed
 
@@ -1111,7 +1054,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         var--;
         if (_status._outValueRange._min <= var) {
             _status._outValueRange = _status._outValueRange.changeValue(var);
-            updateViewByStatus(_status);
+            showupStatus(_status);
         }
     }//GEN-LAST:event_jButtonValueDecActionPerformed
 
@@ -1123,7 +1066,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         MXPopupForText navi = new MXPopupForText(null) {
             @Override
             public void approvedText(String text) {
-                if (_process._folders.getFolder(text) != null) {
+                if (_process._folderList.getFolder(text) != null) {
                     JOptionPane.showMessageDialog(jButtonMoveFolder, "Already Exists", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
@@ -1131,7 +1074,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                     JOptionPane.showMessageDialog(jButtonMoveFolder, "Can' create * starting name", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                MX36Folder newFolder = _process._folders.newFolder(text);
+                MX36Folder newFolder = _process._folderList.newFolder(text);
                 _newFolderResult = newFolder;
                 if (_process._view != null) {
                     _process._view.tabActivated();
@@ -1146,7 +1089,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
     
     private void jButtonMoveFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveFolderActionPerformed
         MXNamedObjectList<MX36Folder> listFolder = new MXNamedObjectList<>();
-        for (MX36Folder folder : _process._folders._listFolder) {
+        for (MX36Folder folder : _process._folderList._listFolder) {
             listFolder.addNameAndValue(folder._folderName, folder);
         }
         listFolder.addNameAndValue("...", null);
@@ -1162,7 +1105,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                 }
                 _process.moveFolder(ret, _status);
                 _process._view.tabActivated();
-                updateViewByStatus(_status);
+                showupStatus(_status);
             }
         };
 
@@ -1171,7 +1114,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
 
     private void jButtonNewInFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNewInFolderActionPerformed
         MXNamedObjectList<MX36Folder> listFolder = new MXNamedObjectList<>();
-        for (MX36Folder folder : _process._folders._listFolder) {
+        for (MX36Folder folder : _process._folderList._listFolder) {
             listFolder.addNameAndValue(folder._folderName, folder);
         }
         listFolder.addNameAndValue("...", null);
@@ -1189,7 +1132,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                 ret._accordion.setColorFull(true);
                 _process.moveFolder(ret, _status);
                 _process._view.tabActivated();
-                updateViewByStatus(_status);
+                showupStatus(_status);
             }
         };
         navi.showPopup(jButtonNewInFolder);
@@ -1248,7 +1191,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
     private javax.swing.JTextField jTextFieldOutPort;
     private javax.swing.JTextField jTextFieldSurfaceColumn;
     private javax.swing.JTextField jTextFieldSurfacePort;
-    private javax.swing.JTextField jTextFieldSurfaceRow;
+    private javax.swing.JTextField jTextFieldSurfaceTypeAndRow;
     private javax.swing.JTextField jTextFieldValueValue;
     // End of variables declaration//GEN-END:variables
 }

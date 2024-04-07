@@ -52,10 +52,10 @@ public class MX36Index {
 
     public void safeAdd(MX36StatusPanel panel) {
         MX36Status status = panel._status;
-        int port = status._surfacePort;
-        int type = status._surfaceUIType;
-        int row = status._surfaceRow;
-        int column = status._surfaceColumn;
+        int port = status.getSurfacePort();
+        int type = status.getSurfaceUIType();
+        int row = status.getSurfaceRow();
+        int column = status.getSurfaceColumn();
         
         if (_listPort == null) {
             _listPort = new PortData[MXConfiguration.TOTAL_PORT_COUNT];
@@ -108,10 +108,10 @@ public class MX36Index {
 
     public void safeRemove(MX36StatusPanel panel) {
         MX36Status status = panel._status;
-        int port = status._surfacePort;
-        int type = status._surfaceUIType;
-        int row = status._surfaceRow;
-        int column = status._surfaceColumn;
+        int port = status.getSurfacePort();
+        int type = status.getSurfaceUIType();
+        int row = status.getSurfaceRow();
+        int column = status.getSurfaceColumn();
         ArrayList<MX36StatusPanel> hit = safeGet(port, type, row, column);
         if (hit !=null) {
             hit.remove(panel);

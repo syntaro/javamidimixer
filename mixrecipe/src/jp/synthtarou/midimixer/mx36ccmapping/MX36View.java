@@ -17,11 +17,7 @@
 package jp.synthtarou.midimixer.mx36ccmapping;
 
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JOptionPane;
-import jp.synthtarou.libs.namedobject.MXNamedObjectList;
-import jp.synthtarou.libs.navigator.MXPopupForList;
-import jp.synthtarou.libs.navigator.MXPopupForText;
 
 /**
  *
@@ -62,15 +58,12 @@ public class MX36View extends javax.swing.JPanel {
             }
             _firstActive = false;
         }
-        jPanel3.remove(_listPanel);
-        _listPanel = new MX36StatusListPanel(_process._folders);
-        jPanel3.add(_listPanel);
         _listPanel.revalidate();
         jPanel3.revalidate();
     }
 
     public void focusStatus(MX36Status status) {
-        _detailPanel.updateViewByStatus(status);
+        _detailPanel.showupStatus(status);
     }
 
     /**

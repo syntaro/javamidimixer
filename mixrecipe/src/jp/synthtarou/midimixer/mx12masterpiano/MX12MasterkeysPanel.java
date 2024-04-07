@@ -132,13 +132,11 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         _piano.setHandler(new MXPianoKeys.MXMouseHandler() {
             public void noteOn(int note) {
                 MXMessage message = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_NOTEON + _process.getMouseChannel(), note, _process.getMouseVelocity());
-                message._bySurface = true;
                 _process.mouseMessage(message);
             }
 
             public void noteOff(int note) {
                 MXMessage message = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_NOTEOFF + _process.getMouseChannel(), note, 0);
-                message._bySurface = true;
                 _process.mouseMessage(message);
             }
 
@@ -208,7 +206,6 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             jSliderPitch.setValue(value);
             synchronized(MXTiming.mutex) {            
                 MXMessage msg = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_PITCHWHEEL + _process.getMouseChannel(), 0, 0);
-                msg._bySurface = true;
                 if (msg.indexOfValueHi() >= 0) {
                     msg.setValue(MXRangedValue.new14bit(value));
                 }
@@ -237,7 +234,6 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             synchronized(MXTiming.mutex) {            
                 MXMessage msg = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_CONTROLCHANGE + _process.getMouseChannel(), MXMidi.DATA1_CC_MODULATION, 0);
                 msg.setValue(MXRangedValue.new7bit(value));
-                msg._bySurface = true;
                 _process.mouseMessage(msg);
             }
         }

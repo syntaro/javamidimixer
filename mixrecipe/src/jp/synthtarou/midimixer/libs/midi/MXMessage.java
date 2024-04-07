@@ -45,8 +45,7 @@ public final class MXMessage implements Comparable<MXMessage> {
 
     public MXTiming _timing;
     private int _port;
-    public boolean _bySurface;
-
+    
     private MXRangedValue _value = MXRangedValue.ZERO7;
     private MXRangedValue _gate = MXRangedValue.ZERO7;
     private int _channel = 0;
@@ -203,14 +202,15 @@ public final class MXMessage implements Comparable<MXMessage> {
         return _value;
     }
 
-    public void setValue(MXRangedValue value) {
+    public boolean setValue(MXRangedValue value) {
         if (_value != null) {
             if (_value.equals(value)) {
-                return;
+                return false;
             }
         }
         _value = value;
         _dataBytes = null;
+        return true;
     }
 
     public void setValue(int value) {

@@ -22,7 +22,6 @@ import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMessageBag;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
@@ -222,7 +221,7 @@ public class MGStatusForDrum implements Cloneable {
         }
     }
 
-    void mouseDetected(boolean push, MXMessageBag bag) {
+    void mouseDetected(boolean push) {
         int velocity;
         if (push) {
             _status.setMessageValue(_mouseOnValue);
@@ -230,10 +229,10 @@ public class MGStatusForDrum implements Cloneable {
             _status.setMessageValue(_mouseOffValue);
         }
 
-        messageDetected(bag);
+        messageDetected();
     }
 
-    boolean messageDetected(MXMessageBag bag) {
+    boolean messageDetected() {
         boolean flag = _strikeZone.contains(_status.getValue()._value);
 
         if (flag == _lastDetected) {
@@ -250,214 +249,187 @@ public class MGStatusForDrum implements Cloneable {
                 return false;
             }
         }
-        doAction(flag, bag);
+        doAction(flag);
         return true;
     }
 
-    class SliderOperation implements Runnable {
-        MGStatus _slider;
-        int _newValue;
-        MXMessageBag _bag;
-        
-        public SliderOperation(MGStatus slider, int newValue, MXMessageBag bag) {
-            _slider = slider;
-            _newValue = newValue;
-            _bag = bag;
-        }
-        
-        @Override
-        public void run() {
-            switch(_slider._uiType) {
-                case MGStatus.TYPE_SLIDER:
-                    MGSlider slider = (MGSlider)_slider.getComponent();
-                    _slider.setMessageValue(_newValue);
-                    slider.publishUI();
-                    _slider._mixer.updateUIStatusAndGetResult(_slider, _newValue, null, _bag);
-                    _slider._mixer.flushSendQueue(_bag);
-                    break;
-                case MGStatus.TYPE_CIRCLE:
-                    MGCircle circle = (MGCircle)_slider.getComponent();
-                    _slider.setMessageValue(_newValue);
-                    circle.publishUI();
-                    _slider._mixer.updateUIStatusAndGetResult(_slider, _newValue, null, _bag);
-                    _slider._mixer.flushSendQueue(_bag);
-                    break;
-                case MGStatus.TYPE_DRUMPAD:
-                    return;
-            }
-        }
-        
-    }
-    void doAction(boolean flag, MXMessageBag bag) {
+    void doAction(boolean flag) {
         MXMessage message;
+
         if (_lastSent == flag) {
             return;
         }
-        _lastSent = flag;
-        int velocity = _status.getValue()._value;
+        MXMessageBag bag = _status._mixer._parent.startBagging();
+        try {
+            _lastSent = flag;
+            int velocity = _status.getValue()._value;
 
-        MX30Process parentProcess = MXMain.getMain().getKontrolProcess();
-        MX32MixerProcess mixer = _status._mixer;
-        MGDrumPad pad = mixer.getDrumPad(_status._row, _status._column);
-        int port = _outPort;
-        if (port < 0) {
-            port = _status._port;
-        }
-        int channel = _outChannel;
-        if (channel < 0) {
-            channel = _status._base.getChannel();
-        }
-        if (flag) {
-            pad.setDrumActive(true);
-        } else {
-            pad.setDrumActive(false);
-        }
-        if (flag) {
-            switch (_outValueTypeOn) {
-                case VALUETYPE_AS_INPUT:
-                    velocity = _status.getValue()._value;
-                    break;
-                case VALUETYPE_AS_MOUSE:
-                    velocity = _mouseOnValue;
-                    break;
-                case VALUETYPE_NOTHING:
-                    return;
+            MX30Process parentProcess = MXMain.getMain().getKontrolProcess();
+            MX32MixerProcess mixer = _status._mixer;
+            MGDrumPad pad = mixer.getDrumPad(_status._row, _status._column);
+            int port = _outPort;
+            if (port < 0) {
+                port = _status._port;
             }
-            switch (_outStyle) {
-                case STYLE_SAME_CC:
-                    message = (MXMessage) _status._base.clone();
-                    message.setValue(velocity);
-                    bag.addResult(message);
-                    return;
-
-                case STYLE_CUSTOM_CC:
-                    if (_customTemplate != null) {
-                        message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, MXRangedValue.new7bit(velocity));
+            int channel = _outChannel;
+            if (channel < 0) {
+                channel = _status._base.getChannel();
+            }
+            if (flag) {
+                pad.setDrumActive(true);
+            } else {
+                pad.setDrumActive(false);
+            }
+            if (flag) {
+                switch (_outValueTypeOn) {
+                    case VALUETYPE_AS_INPUT:
+                        velocity = _status.getValue()._value;
+                        break;
+                    case VALUETYPE_AS_MOUSE:
+                        velocity = _mouseOnValue;
+                        break;
+                    case VALUETYPE_NOTHING:
+                        return;
+                }
+                switch (_outStyle) {
+                    case STYLE_SAME_CC:
+                        message = (MXMessage) _status._base.clone();
+                        message.setValue(velocity);
                         bag.addResult(message);
                         return;
-                    }
-                    break;
-                case STYLE_NOTES:
-                    int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
-                    for (int note : noteList) {
-                        message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEON + channel, note, velocity);
-                        bag.addResult(message);
-                    }
-                    break;
-                case STYLE_SEQUENCE:
-                    bag.addResultTask(new Runnable() {
-                        @Override
-                        public void run() {
-                            startSongPlayer();
-                        }
-                    });
-                    break;
-                case STYLE_LINK_SLIDER:
-                    int type = _status._drum._linkKontrolType;
-                    int column = _status._drum._linkColumn;
-                    int row = _status._drum._linkRow;
 
-                    if (column < 0) {
-                        column = pad._column;
-                    }
-
-                    MGStatus status = mixer._parent.getPage(_status._drum._outPort).getStatus(type, row, column);
-                    int value = 0;
-                    switch (_status._drum._linkMode) {
-                        case MGStatusForDrum.LINKMODE_VALUE:
-                            if (_outValueTypeOn != VALUETYPE_AS_MOUSE) {
-                                value = velocity;
-                                return;
-                            }
-                            break;
-                        case MGStatusForDrum.LINKMODE_INC:
-                            value = status.getValue().increment()._value;
-                            break;
-                        case MGStatusForDrum.LINKMODE_DEC:
-                            value = status.getValue().decrement()._value;
-                            break;
-                        case MGStatusForDrum.LINKMODE_MAX:
-                            value = status.getValue()._max;
-                            break;
-                        case MGStatusForDrum.LINKMODE_MIN:
-                            value = status.getValue()._min;
-                            break;
-                        case MGStatusForDrum.LINKMODE_MIDDLE:
-                            value = (int) Math.round((status.getValue()._max + status.getValue()._min) / 2.0);
-                            break;
-                        default:
+                    case STYLE_CUSTOM_CC:
+                        if (_customTemplate != null) {
+                            message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, MXRangedValue.new7bit(velocity));
+                            bag.addResult(message);
                             return;
-                    }
-                    bag.addResultTask(new SliderOperation(status, value, bag));
-                    return;
-
-                case STYLE_PROGRAM_CHANGE:
-                    switch (_programType) {
-                        case PROGRAM_SET:
-                            message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, _programNumber, 0);
-                            message.setProgramBank(_programMSB, _programLSB);
-                            bag.addResult(message);
-                            break;
-                        case PROGRAM_INC:
-                            message = MXMessageFactory.fromTemplate(port,
-                                    new MXTemplate(new int[]{MXMidi.COMMAND2_CH_PROGRAM_INC}),
-                                    channel, null, null);
-                            bag.addResult(message);
-                            break;
-                        case PROGRAM_DEC:
-                            message = MXMessageFactory.fromTemplate(port,
-                                    new MXTemplate(new int[]{MXMidi.COMMAND2_CH_PROGRAM_DEC}),
-                                    channel, null, null);
-                            bag.addResult(message);
-                            break;
-                    }
-                    return;
-            }
-        } else {
-            switch (_outValueTypeOff) {
-                case VALUETYPE_AS_INPUT:
-                    // velocity = velocity
-                    break;
-                case VALUETYPE_AS_MOUSE:
-                    velocity = _mouseOnValue;
-                    break;
-                case VALUETYPE_NOTHING:
-                    return;
-            }
-            switch (_outStyle) {
-                case STYLE_SAME_CC:
-                    message = (MXMessage) _status._base.clone();
-                    message.setValue(velocity);
-                    bag.addResult(message);
-                    break;
-
-                case STYLE_CUSTOM_CC:
-                    if (_customTemplate != null) {
-                        message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, MXRangedValue.new7bit(velocity));
-                        bag.addResult(message);
-                    }
-                    break;
-                case STYLE_NOTES:
-                    int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
-                    for (int note : noteList) {
-                        message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + channel, note, 0);
-                        bag.addResult(message);
-                    }
-                    break;
-                case STYLE_SEQUENCE:
-                    bag.addResultTask(new Runnable() {
-                        @Override
-                        public void run() {
-                            stopSongPlayer();
                         }
-                    });
-                    break;
-                case STYLE_LINK_SLIDER:
-                    break;
-                case STYLE_PROGRAM_CHANGE:
-                    break;
+                        break;
+                    case STYLE_NOTES:
+                        int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
+                        for (int note : noteList) {
+                            message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEON + channel, note, velocity);
+                            bag.addResult(message);
+                        }
+                        break;
+                    case STYLE_SEQUENCE:
+                        bag.addResultTask(new Runnable() {
+                            @Override
+                            public void run() {
+                                startSongPlayer();
+                            }
+                        });
+                        break;
+                    case STYLE_LINK_SLIDER:
+                        int type = _status._drum._linkKontrolType;
+                        int column = _status._drum._linkColumn;
+                        int row = _status._drum._linkRow;
+
+                        if (column < 0) {
+                            column = pad._column;
+                        }
+
+                        MGStatus status = mixer._parent.getPage(_status._drum._outPort).getStatus(type, row, column);
+                        int value = 0;
+                        switch (_status._drum._linkMode) {
+                            case MGStatusForDrum.LINKMODE_VALUE:
+                                if (_outValueTypeOn != VALUETYPE_AS_MOUSE) {
+                                    value = velocity;
+                                    return;
+                                }
+                                break;
+                            case MGStatusForDrum.LINKMODE_INC:
+                                value = status.getValue().increment()._value;
+                                break;
+                            case MGStatusForDrum.LINKMODE_DEC:
+                                value = status.getValue().decrement()._value;
+                                break;
+                            case MGStatusForDrum.LINKMODE_MAX:
+                                value = status.getValue()._max;
+                                break;
+                            case MGStatusForDrum.LINKMODE_MIN:
+                                value = status.getValue()._min;
+                                break;
+                            case MGStatusForDrum.LINKMODE_MIDDLE:
+                                value = (int) Math.round((status.getValue()._max + status.getValue()._min) / 2.0);
+                                break;
+                            default:
+                                return;
+                        }
+                        _status._mixer._parent.addSliderMove(status, value);
+                        return;
+
+                    case STYLE_PROGRAM_CHANGE:
+                        switch (_programType) {
+                            case PROGRAM_SET:
+                                message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, _programNumber, 0);
+                                message.setProgramBank(_programMSB, _programLSB);
+                                bag.addResult(message);
+                                break;
+                            case PROGRAM_INC:
+                                message = MXMessageFactory.fromTemplate(port,
+                                        new MXTemplate(new int[]{MXMidi.COMMAND2_CH_PROGRAM_INC}),
+                                        channel, null, null);
+                                bag.addResult(message);
+                                break;
+                            case PROGRAM_DEC:
+                                message = MXMessageFactory.fromTemplate(port,
+                                        new MXTemplate(new int[]{MXMidi.COMMAND2_CH_PROGRAM_DEC}),
+                                        channel, null, null);
+                                bag.addResult(message);
+                                break;
+                        }
+                        return;
+                }
+            } else {
+                switch (_outValueTypeOff) {
+                    case VALUETYPE_AS_INPUT:
+                        // velocity = velocity
+                        break;
+                    case VALUETYPE_AS_MOUSE:
+                        velocity = _mouseOnValue;
+                        break;
+                    case VALUETYPE_NOTHING:
+                        return;
+                }
+                switch (_outStyle) {
+                    case STYLE_SAME_CC:
+                        message = (MXMessage) _status._base.clone();
+                        message.setValue(velocity);
+                        bag.addResult(message);
+                        break;
+
+                    case STYLE_CUSTOM_CC:
+                        if (_customTemplate != null) {
+                            message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, MXRangedValue.new7bit(velocity));
+                            bag.addResult(message);
+                        }
+                        break;
+                    case STYLE_NOTES:
+                        int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
+                        for (int note : noteList) {
+                            message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + channel, note, 0);
+                            bag.addResult(message);
+                        }
+                        break;
+                    case STYLE_SEQUENCE:
+                        bag.addResultTask(new Runnable() {
+                            @Override
+                            public void run() {
+                                stopSongPlayer();
+                            }
+                        });
+                        break;
+                    case STYLE_LINK_SLIDER:
+                        break;
+                    case STYLE_PROGRAM_CHANGE:
+                        break;
+                }
             }
+        } finally {
+            _status._mixer._parent.endBagging();
         }
+
     }
 
     public int[] getHarmonyNotesAsArray() {

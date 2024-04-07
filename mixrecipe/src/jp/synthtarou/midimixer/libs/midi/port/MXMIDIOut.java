@@ -188,11 +188,6 @@ public class MXMIDIOut {
                     command = status & 0xf0;
                 }
                 if (msgVisitant == null) {
-                    if (command != MXMidi.COMMAND_CH_NOTEON && command != MXMidi.COMMAND_CH_NOTEOFF) {
-                        if (message._bySurface == false) {
-                            //message._debug.printStackTrace();
-                        }
-                    }
                 } else {
                     if (command != MXMidi.COMMAND_CH_PROGRAMCHANGE) {
                         if (msgVisitant.isHavingProgram()) {
@@ -309,8 +304,8 @@ public class MXMIDIOut {
                             int dword = message.getAsDword(j);
                             if (dword == 0) {
                                 //MidiINでまとめるのに失敗して次のデータによりフラッシュされたケース
-                                if (col != 3) {
-                                    MXFileLogger.getLogger(MXMIDIOut.class).warning("input dataentry [" + i + "] was solo(not pair) " + message);
+                                if (j != 3) {
+                                    MXFileLogger.getLogger(MXMIDIOut.class).warning("input dataentry [" + j + "] was solo(not pair) " + message);
                                 }
                             } else {
                                 _driver.OutputShortMessage(_driverOrder, dword);

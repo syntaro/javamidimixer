@@ -749,10 +749,10 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
                             MGSlider slider = _mixer.getSlider(row, column);
                             switch (keyCode) {
                                 case ' ':
-                                    slider.increment(null);
+                                    slider.increment();
                                     break;
                                 case '\b':
-                                    slider.decriment(null);
+                                    slider.decriment();
                                     break;
                                 case '\n':
                                     slider.editContoller();
@@ -763,10 +763,10 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
                             MGCircle circle = _mixer.getCircle(row, column);
                             switch (keyCode) {
                                 case ' ':
-                                    circle.increment(null);
+                                    circle.increment();
                                     break;
                                 case '\b':
-                                    circle.decriment(null);
+                                    circle.decriment();
                                     break;
                                 case '\n':
                                     circle.editContoller();
@@ -777,10 +777,10 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
                             MGDrumPad drum = _mixer.getDrumPad(row, column);
                             switch (keyCode) {
                                 case ' ':
-                                    drum.increment(null);
+                                    drum.increment();
                                     break;
                                 case '\b':
-                                    drum.decriment(null);
+                                    drum.decriment();
                                     break;
                                 case '\n':
                                     drum.editContoller();
