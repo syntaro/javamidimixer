@@ -35,7 +35,7 @@ import jp.synthtarou.midimixer.libs.swing.themes.ThemeManager;
 public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
     MX32MixerProcess _mixer;
     int _row, _column;
-    boolean _underInit;
+    boolean _stopFeedback = true;
 
     public MGStatus getStatus() {
         if (_mixer == null) return null;
@@ -50,7 +50,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
         _row = row;
         _column = column;
         _mixer = process;
-        _underInit = true;
+        _stopFeedback = true;
         initComponents();
 
         updateUI();
@@ -58,7 +58,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
         addMouseWheelListener(this);
         new MXAttachSliderSingleClick(jSliderValue);
         new MXAttachSliderLikeEclipse(jSliderValue);
-        _underInit = false;
+        _stopFeedback = false;
     }
     
     public void updateUI() {
@@ -152,17 +152,11 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
     boolean _selfControl = false;
     
     private void jSliderValueStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderValueStateChanged
-        if (_underInit) {
+        if (_stopFeedback) {
             return;
         }
         int newValue = jSliderValue.getValue();
-        if (getStatus()._base.getValue()._value == newValue) {
-            return;
-        }
         jLabelValue.setText(String.valueOf(newValue));
-        if (_selfControl) {
-            return;
-        }
         _mixer._parent.addSliderMove(getStatus(), newValue);
     }//GEN-LAST:event_jSliderValueStateChanged
 

@@ -57,6 +57,7 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
 
         updateUI();
         addMouseWheelListener(this);
+        _stopFeedback = false;
     }
 
     public void updateUI() {
@@ -121,16 +122,14 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
         gridBagConstraints.weightx = 1.0;
     }// </editor-fold>                        
 
-    boolean _selfControl = false;
+    boolean _stopFeedback = true;
 
     private void jCircleValueStateChanged(javax.swing.event.ChangeEvent evt) {
+        if (_stopFeedback) {
+            return;
+        }
         int newValue = jCircleValue.getValue();
-        if (getStatus().getValue()._value == newValue) {
-            return;
-        }
-        if (_selfControl) {
-            return;
-        }
+        jLabel1.setText(String.valueOf(newValue));
         _mixer._parent.addSliderMove(getStatus(), newValue);
     }
 
@@ -151,9 +150,9 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
         if (jCircleValue.getValue() == newValue._value) {
             return;
         }
-        _selfControl = true;
+        _stopFeedback = true;
         jCircleValue.setValue(newValue);
-        _selfControl = false;
+        _stopFeedback = false;
     }
 
     // Variables declaration - do not modify                     

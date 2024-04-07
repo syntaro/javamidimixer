@@ -538,7 +538,7 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
 
             jCheckBoxSyncTogether.setSelected(mixer._patchTogether);
         } finally {
-            //data._underInit = false;
+            //data._stopFeedback = false;
             updateUI();
         }
     }
@@ -777,10 +777,10 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
                             MGDrumPad drum = _mixer.getDrumPad(row, column);
                             switch (keyCode) {
                                 case ' ':
-                                    drum.increment();
+                                    drum.mouseDetected(true);
                                     break;
                                 case '\b':
-                                    drum.decriment();
+                                    drum.mouseDetected(false);
                                     break;
                                 case '\n':
                                     drum.editContoller();

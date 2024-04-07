@@ -52,7 +52,7 @@ public class MGDrumPad extends javax.swing.JPanel {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     return;
                 }
-                increment();
+                mouseDetected(true);
             }
 
             @Override
@@ -60,7 +60,7 @@ public class MGDrumPad extends javax.swing.JPanel {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     return;
                 }
-                decriment();
+                mouseDetected(false);
             }
         });
         updateUI();
@@ -117,16 +117,15 @@ public class MGDrumPad extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
 
-    public void increment() {
-        if (getStatus().getValue().incrementable()) {
-            getStatus()._drum.mouseDetected(true);
+    void mouseDetected(boolean push) {
+        int velocity;
+        if (push) {
+            velocity = getStatus()._drum._mouseOnValue;
+        } else {
+            velocity = getStatus()._drum._mouseOffValue;
         }
-    }
 
-    public void decriment() {
-        if (getStatus().getValue().decrementable()) {
-            getStatus()._drum.mouseDetected(false);
-        }
+        getStatus()._drum.updatetingValue(velocity);
     }
 
     public void editContoller() {

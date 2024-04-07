@@ -243,7 +243,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
             setting.setSetting(prefix + "Name", folder._folderName);
             setting.setSetting(prefix + "Selected", folder.isSelected());
 
-            if (folder == this._folderList._nosaveFolder) {
+            if (folder == this._folderList._autodetectFolder) {
                 continue;
             }
 
@@ -531,7 +531,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
             }
             
             MX36Status status36 = MX36Status.fromMGStatus(status);
-            _folderList._nosaveFolder.addCCItem(status36);
+            _folderList._autodetectFolder.addCCItem(status36);
         }
     }
 
@@ -546,6 +546,12 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
             MX36Folder folder = seek._folder;
             if (folder == null || folder == _folderList._trashedFolder) {
                 continue;
+            }
+            if (folder == _folderList._autodetectFolder) {
+                if (seek.getOutDataText() == null
+                  ||seek.getOutDataText().isBlank()) {
+                    continue;
+                }
             }
             if (folder.isSelected()) {
                 MXMessage msg = updateSurfaceValue(seek, status.getValue());

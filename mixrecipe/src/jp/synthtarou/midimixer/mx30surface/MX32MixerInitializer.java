@@ -350,6 +350,7 @@ public class MX32MixerInitializer {
         status._drum._linkColumn = -1;
         status._drum._strikeZone = hit;
         status._drum._mouseOnValue = x;
+        status._drum._mouseOffValue = x;
         status._drum._outValueTypeOn = MGStatusForDrum.VALUETYPE_AS_INPUT;
         status._drum._outValueTypeOff = MGStatusForDrum.VALUETYPE_NOTHING;
     }
@@ -368,6 +369,7 @@ public class MX32MixerInitializer {
         status._drum._linkColumn = -1;
         status._drum._strikeZone = hit;
         status._drum._mouseOnValue = x;
+        status._drum._mouseOffValue = x;
         status._drum._outValueTypeOn = MGStatusForDrum.VALUETYPE_AS_INPUT;
         status._drum._outValueTypeOff = MGStatusForDrum.VALUETYPE_NOTHING;
     }
@@ -386,6 +388,7 @@ public class MX32MixerInitializer {
         status._drum._linkColumn = -1;
         status._drum._strikeZone = hit;
         status._drum._mouseOnValue = x;
+        status._drum._mouseOffValue = x ;
         status._drum._outValueTypeOn = MGStatusForDrum.VALUETYPE_AS_INPUT;
         status._drum._outValueTypeOff = MGStatusForDrum.VALUETYPE_NOTHING;
     }

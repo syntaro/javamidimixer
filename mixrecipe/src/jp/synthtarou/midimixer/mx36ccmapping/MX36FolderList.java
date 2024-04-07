@@ -32,7 +32,7 @@ public class MX36FolderList {
     final TreeSet<MX36Folder> _listFolder = new TreeSet<>();
 
     MXAccordionFocus _focus;
-    MX36Folder _nosaveFolder;
+    MX36Folder _autodetectFolder;
     MX36Folder _primalFolder;
     MX36Folder _trashedFolder;
     final MX36Process _process;
@@ -41,7 +41,7 @@ public class MX36FolderList {
         _focus = new MXAccordionFocus();
         _process = process;
 
-        _nosaveFolder = newFolder(Integer.MAX_VALUE, "*NoSave(AutoDetected)");
+        _autodetectFolder = newFolder(Integer.MAX_VALUE, "*NoSave(AutoDetected)");
         _primalFolder = newFolder("*Primal");
         _trashedFolder = newFolder(Integer.MAX_VALUE - 1, "*Trash");
         
@@ -51,7 +51,7 @@ public class MX36FolderList {
     int _orderNext = 1;
 
     public MX36Folder getFolderForNosave() {
-        return _nosaveFolder;
+        return _autodetectFolder;
     }
 
     public MX36Folder getPrimalFolder() {

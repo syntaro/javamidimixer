@@ -38,11 +38,10 @@ import jp.synthtarou.midimixer.mx36ccmapping.MX36Process;
 public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSupport, MXJsonSupport {
 
     private MX30View _rootView;
+    boolean _stopFeedback = true;
     MX32MixerProcess[] _pageProcess;
-    boolean _underConstruction;
 
     public MX30Process() {
-        _underConstruction = true;
         prepareActiveSlider();
         _rootView = new MX30View(this);
         _pageProcess = new MX32MixerProcess[MXConfiguration.TOTAL_PORT_COUNT];
@@ -51,7 +50,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
             _pageProcess[i].resetSetting();
             _rootView.addPage(i, _pageProcess[i]);
         }
-        _underConstruction = false;
+        _stopFeedback = false;
     }
 
     @Override
@@ -161,31 +160,23 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
         return _pageProcess[i];
     }
 
-    MXMessageBag _bag = null;
+    MXMessageBag _bag = new MXMessageBag();
     int _bagCount = 0;
-    
-/*
+
+    /*
     static long _debugThrh = 0;
     static long _debugFlush = 0;
-*/
-    public synchronized MXMessageBag startBagging() {
-        _bagCount++;
-        if (_bagCount == 1) {
-            _bag = new MXMessageBag();
-        }
+     */
+    public MXMessageBag startBagging() {
+        ++_bagCount;
         return _bag;
     }
-    
-    public synchronized void endBagging() {
-        if (_bagCount == 1) {
+
+    public void endBagging() {
+        if (_bagCount-- == 1) {
             flushSendQueue(_bag);
-            _bag = null;
-            //_debugFlush ++;
-        }else {
-            //_debugThrh ++;
+            _bag.clearFlags();
         }
-        //System.out.println("thrh " + _debugThrh + " / flush " + _debugFlush);
-        --_bagCount;
     }
 
     void addSliderMove(MGStatus status, int newValue) {
@@ -197,23 +188,34 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
         MXMessageBag bag = startBagging();
         try {
             bag.addSliderMove(move);
-        }finally {
+        } finally {
             endBagging();
         }
     }
 
     void flushSendQueue(MXMessageBag bag) {
+        int did = 1;
+        if (_stopFeedback) {
+            return;
+        }
         while (true) {
             MGSliderMove move = bag.popSliderMove();
             if (move == null) {
                 break;
             }
-            int port = move._status._port;
-            if (bag.isTouchedStatus(move._status)) {
-                return;
+            MGStatus status = move._status;
+            int port = status._port;
+            _pageProcess[port].updateUIStatusAndGetResult(status, move._newValue, move._timing);
+            did++;
+
+            MX36Process mapping = _mappingProcess;
+            if (mapping != null) {
+                if (mapping.isNotLinked(status)) {
+                    mapping.addToAutoDetected(status);
+                } else {
+                    mapping.invokeMapping(status);
+                }
             }
-            bag.addTouchedStatus(move._status);
-            _pageProcess[port].updateUIStatusAndGetResult(move._status, move._newValue, move._timing);
         }
         while (true) {
             MXMessage message = bag.popResult();
@@ -221,9 +223,9 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
                 break;
             }
 
-            int port = message.getPort();
             sendToNext(message);
-            bag.addQueue(message); //reenter
+            boolean added = bag.addQueue(message); //reenter
+            did++;
         }
         while (true) {
             Runnable run = bag.popResultTask();
@@ -231,6 +233,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
                 break;
             }
             try {
+                did++;
                 run.run();
             } catch (RuntimeException ex) {
                 MXFileLogger.getLogger(MX32MixerProcess.class).log(Level.WARNING, ex.getMessage(), ex);
@@ -242,6 +245,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
                 break;
             }
             processMXMessage(message);
+            did++;
         }
     }
 
@@ -328,13 +332,14 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
                 MXJsonParser.setAutosave(_pageProcess[port]);
             }
         }
+        _stopFeedback = true;
         MXJsonValue value = new MXJsonParser(custom).parseFile();
 
         if (value == null) {
-            System.out.println("NULL jp.synthtarou.midimixer.mx30surface.MX30Process.readJSonfile()");
             for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
                 _pageProcess[port]._view.updateUI();
             }
+            _stopFeedback = false;
             return false;
         }
         MXJsonValue.HelperForStructure root = value.new HelperForStructure();
@@ -389,6 +394,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
                 _pageProcess[port]._view.updateUI();
             }
         }
+        _stopFeedback = false;
         return true;
     }
 
@@ -422,7 +428,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
         root.setFollowingText("ActiveCircle", circle.toString());
         root.setFollowingInt("ActiveLine", _visibleLineCount);
         root.setFollowingText("ActivePad", pad.toString());
-         
+
         return parser.writeFile();
     }
 
@@ -435,7 +441,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
     }
 
     MX36Process _mappingProcess;
-    
+
     public void setMappingProcess(MX36Process mappingProcess) {
         _mappingProcess = mappingProcess;
     }

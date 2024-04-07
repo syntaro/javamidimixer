@@ -32,12 +32,19 @@ public class MXMessageBag {
 
     TreeSet<MXMessage> _alreadyQueue = new TreeSet<>();
     TreeSet<MXMessage> _alreadyResult = new TreeSet<>();
-    
-    TreeSet<MGStatus> _touchedStatus = new TreeSet<>();
-    
+    TreeSet<MGStatus> _listInvoked = new TreeSet<>();
     TreeMap<MGStatus, MGSliderMove> _listSliderMove = new TreeMap<>();
-
-    public int _resultCode = 0;
+    
+    public synchronized  void clearFlags() {
+        _listQuque.clear();
+        _listResult.clear();
+        _listResultTask.clear();
+        
+        _alreadyQueue.clear();
+        _alreadyResult.clear();
+        _listInvoked.clear();
+        _listSliderMove.clear();
+    }
     
     public MXMessageBag() {
     }
@@ -46,12 +53,13 @@ public class MXMessageBag {
         System.out.println("dumpqueue "  +_listResult.toString());
     }
     
-    public synchronized void addQueue(MXMessage message) {
+    public synchronized boolean addQueue(MXMessage message) {
         if (_alreadyQueue.contains(message)) {
-            return;
+            return false;
         }
         _alreadyQueue.add(message);
         _listQuque.add(message);
+        return true;
     }
 
     public synchronized MXMessage popQueue() {
@@ -91,22 +99,16 @@ public class MXMessageBag {
         return _listResultTask.removeFirst();
     }
     
-    public synchronized void addTouchedStatus(MGStatus status) {
-        _touchedStatus.add(status);
-    }
-
-    public synchronized MGStatus[] listTouchedStatus() {
-        MGStatus[] result = new MGStatus[_touchedStatus.size()];
-        _touchedStatus.toArray(result);
-        return result;
+    public synchronized void addInvokedStatus(MGStatus status) {
+        _listInvoked.add(status);
     }
     
-    public synchronized boolean isTouchedStatus(MGStatus status) {
-        return _touchedStatus.contains(status);
+    public synchronized boolean isInvokedStatus(MGStatus status) {
+        return _listInvoked.contains(status);
     }
     
     public void clearTouchedStatus() {
-        _touchedStatus.clear();
+        _listInvoked.clear();
     }
     
     public synchronized void addSliderMove(MGSliderMove move) {
@@ -120,5 +122,15 @@ public class MXMessageBag {
         MGStatus status = _listSliderMove.firstKey();
         MGSliderMove move = _listSliderMove.remove(status);
         return move;
+    }
+    
+    public int getResultRollbackTicket() {
+        return _listResult.size();
+    }
+    
+    public void rollbackResult(int ticket) {
+        while (_listResult.size() > ticket) {
+            _listResult.removeLast();
+        }
     }
 }

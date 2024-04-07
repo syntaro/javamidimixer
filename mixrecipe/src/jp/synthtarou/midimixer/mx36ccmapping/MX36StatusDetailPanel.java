@@ -342,7 +342,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
     public void showupStatus(MX36Status status) {
         setEnabledRecurs(true);
 
-        if (_process._folderList._nosaveFolder == status._folder) {
+        if (_process._folderList._autodetectFolder == status._folder) {
             if (status.isValidForWork()) {
                 JOptionPane.showMessageDialog(this, "Moved from AutoDecteted to Primal.");
                 _process.moveFolder(_process._folderList._primalFolder, status);

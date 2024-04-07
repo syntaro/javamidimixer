@@ -35,13 +35,12 @@ import jp.synthtarou.libs.inifile.MXINIFileNode;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
-import jp.synthtarou.midimixer.mx36ccmapping.MX36Process;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINIFileSupport, MXJsonSupport  {
+public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINIFileSupport, MXJsonSupport {
 
     final int _port;
     final MX30Process _parent;
@@ -175,7 +174,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
         setting.register("Pad[].switchLinkColumn");
         setting.register("Pad[].switchLinkMode");
         setting.register("Pad[].switchLinkKontrolType");
-        
+
         return setting;
     }
 
@@ -484,18 +483,15 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
         }
         return setting.writeINIFile();
     }
-    
+
     void updateUIStatusAndGetResult(MGStatus status, int newValue, MXTiming timing) {
-        if (_parent._underConstruction) {
-            return;
-        }
-        synchronized (MXTiming.mutex) {
-            if (timing == null) {
-                timing = new MXTiming();
-            }
+        MXMessageBag bag = _parent.startBagging();
+        try {
+
             MXMessage message = null;
             int row = status._row, column = status._column;
             int uiType = status._uiType;
+
             if (uiType == MGStatus.TYPE_SLIDER) {
                 MGSlider slider = getSlider(row, column);
                 status.setMessageValue(status.getValue().changeValue(newValue));
@@ -507,8 +503,8 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
                 message = (MXMessage) status._base.clone();
                 circle.publishUI();
             } else {
-                status.setMessageValue(newValue);
-                status._drum.messageDetected();
+                MGDrumPad drum = getDrumPad(row, column);
+                status._drum.updatetingValue(newValue);
                 message = null;
             }
 
@@ -526,28 +522,14 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
                     message = null;
                 }
             }
-            
-            MX36Process mapping = _parent._mappingProcess;
-            if (mapping != null) {
-                if (mapping.isNotLinked(status)) {
-                    mapping.addToAutoDetected(status);
-                }
-                else if (mapping.invokeMapping(status)) {
-                    return;
-                }
-            }
-
             if (message != null) {
                 message._timing = timing;
                 startProcess(message);
-                
-                MXMessageBag bag = _parent.startBagging();
-                try {
-                    bag.addResult(message);
-                }finally {
-                    _parent.endBagging();
-                }
+
+                bag.addResult(message);
             }
+        } finally {
+            _parent.endBagging();
         }
     }
 
@@ -722,7 +704,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
                 boolean proc = false;
                 if (listStatus != null && listStatus.isEmpty() == false) {
                     for (MGStatus seek : listStatus) {
-                        if (bag.isTouchedStatus(seek)) {
+                        if (bag.isInvokedStatus(seek)) {
                             continue;
                         }
                         int x = seek.controlByMessage(message);
@@ -736,7 +718,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
                     bag.addResult(message);
                 }
             }
-        }finally{
+        } finally {
             _parent.endBagging();
         }
     }
@@ -770,7 +752,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
         } catch (RuntimeException ex) {
             MXFileLogger.getLogger(MX32MixerProcess.class).log(Level.WARNING, ex.getMessage(), ex);
         }
-        
+
         return status;
     }
 
@@ -789,7 +771,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
         _patchToMixer = root.getFollowingInt("PatchToMixer", -1);
 
         MXJsonValue.HelperForArray listCircle = root.getFollowingArray("Circle");
-        for (int x = 0; x < listCircle.count(); ++ x) {
+        for (int x = 0; x < listCircle.count(); ++x) {
             MXJsonValue.HelperForStructure circle = listCircle.getFollowingStructure(x);
             MGStatus status = readJsonSub(circle);
             setStatus(MGStatus.TYPE_CIRCLE, status._row, status._column, status);
@@ -797,18 +779,16 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
         }
 
         MXJsonValue.HelperForArray listSlider = root.getFollowingArray("Slider");
-        for (int x = 0; x < listSlider.count(); ++ x) {
+        for (int x = 0; x < listSlider.count(); ++x) {
             MXJsonValue.HelperForStructure slider = listSlider.getFollowingStructure(x);
             MGStatus status = readJsonSub(slider);
-            
-            System.out.println("slider " + status._column + " = " + status.getValue());
 
             setStatus(MGStatus.TYPE_SLIDER, status._row, status._column, status);
             getSlider(status._row, status._column).publishUI();
         }
 
         MXJsonValue.HelperForArray listPad = root.getFollowingArray("Pad");
-        for (int x = 0; x < listSlider.count(); ++ x) {
+        for (int x = 0; x < listSlider.count(); ++x) {
             MXJsonValue.HelperForStructure pad = listPad.getFollowingStructure(x);
             MGStatus status = readJsonSub(pad);
 

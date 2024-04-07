@@ -43,7 +43,7 @@ public class MXConfiguration {
         }
     }
     public static final String LOOPMIDI_NAME = "EX MIDIMixer Out";
-    public static final String MX_APPLICATION = "MixRecipe 0.71 Alpha";
+    public static final String MX_APPLICATION = "MixRecipe 0.72 alpha";
     public static final String MX_EDITING = "*** EDIT CONTROl MODE ***";
     public static final int DRUM_CH = 9;
     

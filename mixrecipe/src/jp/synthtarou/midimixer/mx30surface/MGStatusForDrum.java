@@ -221,23 +221,13 @@ public class MGStatusForDrum implements Cloneable {
         }
     }
 
-    void mouseDetected(boolean push) {
-        int velocity;
-        if (push) {
-            _status.setMessageValue(_mouseOnValue);
-        } else {
-            _status.setMessageValue(_mouseOffValue);
-        }
-
-        messageDetected();
-    }
-
-    boolean messageDetected() {
-        boolean flag = _strikeZone.contains(_status.getValue()._value);
-
+    boolean updatetingValue(int value) {
+        boolean flag = _strikeZone.contains(value);
         if (flag == _lastDetected) {
+            //System.out.println("cancel updating value " + value +" == "+ _status._column + ":" + _status._row + ", " + value + " -> " + flag +" vs "+  _lastDetected); 
             return false;
         }
+        //System.out.println("did updating value " + value +" == "+ _status._column + ":" + _status._row + ", " + value + " -> " + flag +" vs "+  _lastDetected); 
         _lastDetected = flag;
         if (flag) {
             if (_modeToggle) {
