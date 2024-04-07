@@ -66,9 +66,7 @@ public class MX36StatusListPanel extends javax.swing.JPanel {
         
         int y = 0;
         for (MX36Folder folder : list._listFolder) {
-            System.out.println("list = "+ list._listFolder);
             MXAccordion accordion = folder._accordion;
-            System.out.println("accordion = "+ accordion);
 
             GridBagConstraints lay1 = new GridBagConstraints(
                     0, y, 1, 1, 1, 0, 

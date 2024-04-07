@@ -214,35 +214,7 @@ public class MXMain  {
         _mainWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         _mainWindow.addWindowListener(new WindowAdapter(){
             public void windowClosing(WindowEvent e) {
-                _progress = new MXProgressDialog(_mainWindow, false);        
-                _progress.setMessageAsExit();
-                _progress.setVisible(true);
-                Thread t = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            saveEverySettingToFile();
-                            VSTStream.getInstance().postCloseStream(null);
-                        }
-                        catch(RuntimeException ex) {
-                            MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
-                        }
-
-                        try {
-                            SMFSequencer.stopAll();
-                            MXMIDIInManager.getManager().closeAll();
-                            MXMIDIOutManager.getManager().closeAll();
-                            MXSafeThread.exitAll();
-                        }catch(RuntimeException ex) {
-                            MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
-                        }
-                        MXFileLogger.getLogger(MXMain.class).info("stopping vst");
-                        VSTInstance.stopEngine(null);
-                        MXFileLogger.getLogger(MXMain.class).info("stopped vst");
-                        System.exit(0);
-                    }
-                });
-                t.start();
+                AppCloseTask(true);
             }
             public void windowClosed(WindowEvent e){
             }
@@ -320,6 +292,52 @@ public class MXMain  {
         MXINIFile.invokeAutoSave();
     }
     
+    public void exitWithoutSave() {
+        AppCloseTask(false);
+    }
+
+    public void saveAndExit() {
+        AppCloseTask(true);
+    }
+    
+    public void AppCloseTask(boolean save) {
+        _progress = new MXProgressDialog(_mainWindow, false);        
+        _progress.setMessageAsExit();
+        _progress.setVisible(true);
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (save) {
+                    try {
+                        saveEverySettingToFile();
+                    }
+                    catch(RuntimeException ex) {
+                        MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
+                    }
+                }
+
+                try {
+                    VSTStream.getInstance().postCloseStream(null);
+                }catch(Throwable ex) {
+                    MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
+                }
+
+                try {
+                    SMFSequencer.stopAll();
+                    MXMIDIInManager.getManager().closeAll();
+                    MXMIDIOutManager.getManager().closeAll();
+                    MXSafeThread.exitAll();
+                }catch(RuntimeException ex) {
+                    MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
+                }
+                MXFileLogger.getLogger(MXMain.class).info("stopping vst");
+                VSTInstance.stopEngine(null);
+                MXFileLogger.getLogger(MXMain.class).info("stopped vst");
+                System.exit(0);
+            }
+        });
+        t.start();
+    }
     public MX10Process getInputProcess() {
         return _mx10inputProcess;
     }

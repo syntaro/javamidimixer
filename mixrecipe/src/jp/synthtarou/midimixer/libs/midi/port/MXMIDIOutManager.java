@@ -96,8 +96,11 @@ public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
                 }
             }
         }
-        clearMIDIOutCache();
+        afterReadSettings();
+        return true;
+    }
 
+    void afterReadSettings() {
         MXNamedObjectList<MXMIDIOut> list = listAllOutput();
 
         boolean assigned = false;
@@ -125,7 +128,7 @@ public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
                 reserve1.openOutput(5);
             }
         }
-        return true;
+        clearMIDIOutCache();
     }
 
     protected MXMIDIOutManager() {
@@ -270,12 +273,56 @@ public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
     public boolean readJSonfile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("MIDIOutput");
+            MXJsonParser.setAutosave(this);
         }
         MXJsonParser parser = new MXJsonParser(custom);
         MXJsonValue value = parser.parseFile();
         if (value == null) {
             return false;
         }
+
+        MXNamedObjectList<MXMIDIOut> listOut = listAllOutput();
+        MXDriver_NotFound dummy = MXDriver_NotFound.getInstance();
+
+        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
+        MXJsonValue.HelperForArray list = root.getFollowingArray("deviceList");
+
+        if (list != null) {
+            for (int seek = 0; seek < list.count(); ++seek) {
+                MXJsonValue.HelperForStructure device = list.getFollowingStructure(seek);
+
+                String deviceName = device.getFollowingText("name", "");
+                boolean deviceOpen = device.getFollowingBool("open", false);
+                String devicePort = device.getFollowingText("port", "");
+
+                if (deviceName == null || deviceName.length() == 0) {
+                    break;
+                }
+
+                MXNamedObjectList<MXMIDIOut> detected = listAllOutput();
+                MXMIDIOut out = detected.valueOfName(deviceName);
+                if (out != null) {
+                    if (deviceOpen) {
+                        out.openOutput(5);
+                    }
+                } else {
+                    out = new MXMIDIOut(dummy, dummy.OuputAddDevice(deviceName));
+                    detected.addNameAndValue(deviceName, out);
+                }
+                ArrayList<String> split = new ArrayList();
+                MXUtil.split(devicePort, split, ',');
+                for (String t1 : split) {
+                    try {
+                        int x = Integer.parseInt(t1);
+                        out.setPortAssigned(x, true);
+                    } catch (NumberFormatException e) {
+
+                    }
+                }
+            }
+        }
+        clearMIDIOutCache();
+        afterReadSettings();
         return true;
     }
 
@@ -284,10 +331,33 @@ public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
         if (custom == null) {
             custom = MXJsonParser.pathOf("MIDIOutput");
         }
-        MXJsonValue value = new MXJsonValue(null);
-
         MXJsonParser parser = new MXJsonParser(custom);
-        parser.setRoot(value);
+        MXJsonValue value = parser.getRoot();
+        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
+
+        MXJsonValue.HelperForArray deviceList = root.addFollowingArray("deviceList");
+
+        MXNamedObjectList<MXMIDIOut> listOut = listAllOutput();
+        int x = 0;
+        for (MXMIDIOut e : listOut.valueList()) {
+            StringBuffer assigned = new StringBuffer();
+            for (int p = 0; p < MXConfiguration.TOTAL_PORT_COUNT; ++p) {
+                if (e.isPortAssigned(p)) {
+                    if (assigned.length() > 0) {
+                        assigned.append(",");
+                    }
+                    assigned.append(Integer.toString(p));
+                }
+            }
+            if (assigned.length() > 0) {
+                MXJsonValue.HelperForStructure device = deviceList.addFollowingStructure();
+                device.setFollowingText("name", e.getName());
+                device.setFollowingBool("open", e.isOpen());
+                device.setFollowingText("port", assigned.toString());
+                x++;
+            }
+        }
+
         return parser.writeFile();
     }
 

@@ -381,6 +381,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
     public boolean readJSonfile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("SoundLayer");
+            MXJsonParser.setAutosave(this);
         }
         MXJsonValue value = new MXJsonParser(custom).parseFile();
         if (value == null) {

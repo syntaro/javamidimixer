@@ -327,6 +327,7 @@ public class ThemeManager implements MXINIFileSupport, MXJsonSupport {
     public boolean readJSonfile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("ThemeManager");
+            MXJsonParser.setAutosave(this);
         }
         MXJsonValue value = new MXJsonParser(custom).parseFile();
         if (value == null) {

@@ -131,11 +131,28 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
     public boolean readJSonfile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("VirtualKey");
+            MXJsonParser.setAutosave(this);
         }
         MXJsonValue value = new MXJsonParser(custom).parseFile();
         if (value == null) {
             return false;
         }
+        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
+        
+        String receiverName = root.getFollowingText("outputReceiver", "");
+        if (receiverName.isBlank() == false) {
+            int x = MXMain.getMain().getReceiverList().indexOfName(receiverName);
+            if (x >= 0) {
+                setNextReceiver(MXMain.getMain().getReceiverList().get(x)._value);
+            }
+        }
+        setOverwriteInputChannel(root.getFollowingInt("overwriteControllerChannel", 0) != 0);        
+        setMousePort(root.getFollowingInt("outputPort", 0));
+        setMouseChannel(root.getFollowingInt("outputChannel", 0));
+        setMouseVelocity(root.getFollowingInt("outputVelocity", 100));
+        _acceptThisPageSignal = root.getFollowingBool("acceptThisPanelSignal", true);
+        _acceptInputPanelSignal = root.getFollowingBool("acceptInputPanelSignal", true);
+        _view.updateViewForSettingChange();
         return true;
     }
 
@@ -144,10 +161,21 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
         if (custom == null) {
             custom = MXJsonParser.pathOf("VirtualKey");
         }
-        MXJsonValue value = new MXJsonValue(null);
-
         MXJsonParser parser = new MXJsonParser(custom);
-        parser.setRoot(value);
+        MXJsonValue.HelperForStructure root = parser.getRoot().new HelperForStructure();
+
+        if (getNextReceiver() == null) {
+            root.setFollowingText("outputReceiver", "");
+        }else {
+            root.setFollowingText("outputReceiver", getNextReceiver().getReceiverName());
+        }   
+        root.setFollowingInt("outputPort", getMousePort());
+        root.setFollowingInt("outputChannel", getMouseChannel());
+        root.setFollowingBool("overwriteControllerChannel", isOverwriteInputChannel());
+        root.setFollowingInt("outputVelocity", getMouseVelocity());
+        root.setFollowingBool("acceptThisPanelSignal", _acceptThisPageSignal);
+        root.setFollowingBool("acceptInputPanelSignal", _acceptInputPanelSignal);
+
         return parser.writeFile();
     }
 

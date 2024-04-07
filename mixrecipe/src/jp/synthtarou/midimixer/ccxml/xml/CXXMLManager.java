@@ -64,6 +64,7 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXINI
                 return;
             }
         }
+        readJSonfile(null);
         _listLoaded.add(gmfile);
     }
     
@@ -361,11 +362,33 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXINI
     public boolean readJSonfile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("CCXMLManager");
+            MXJsonParser.setAutosave(this);
         }
         MXJsonParser parser = new MXJsonParser(custom);
         MXJsonValue value = parser.parseFile();
         if (value == null) {
             return false;
+        }
+        
+        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
+        MXJsonValue.HelperForArray listFile = root.getFollowingArray("file");
+        
+        _listLoaded.clear();
+
+        if (listFile != null) {
+            for (int i = 0; i < listFile.count(); ++ i) {
+                String path = listFile.getFollowingText(i, "");
+                if (path.isBlank()) {
+                    continue;
+                }
+                CXFile xmlFile = new CXFile(new File(path));
+                if (xmlFile.isLoaded()) {
+                    _listLoaded.add(xmlFile);
+                }
+                else {
+                    MXFileLogger.getLogger(CXXMLManager.class.getName()).log(Level.SEVERE, xmlFile.getAdviceForXML());
+                }
+            }
         }
         return true;
     }
@@ -377,6 +400,11 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXINI
         }
         MXJsonParser parser = new MXJsonParser(custom);
         MXJsonValue value = parser.getRoot();
+        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
+        MXJsonValue.HelperForArray listFile = root.addFollowingArray("file");
+        for (int i = 0; i < _listLoaded.size(); ++ i) {
+            listFile.addFollowingText(_listLoaded.get(i)._file.getPath());
+        }
 
         return parser.writeFile();
     }

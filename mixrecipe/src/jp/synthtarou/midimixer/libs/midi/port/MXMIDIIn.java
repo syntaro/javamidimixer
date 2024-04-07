@@ -476,20 +476,11 @@ public class MXMIDIIn {
             }
 
             MXVisitant visit = _visitant16.get(ch);
-
             MXMessage[] ret = visit.preprocess(message, retBuf);
              if (ret != null) {
                 retBuf = ret;
                 for (int i = 0; i < ret.length; ++i) {
                     if (ret[i] != null) {
-                        /*
-                        if (visit.isIncompleteBankInfo()) {
-                            if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && (gate == MXMidi.DATA1_CC_BANKSELECT || gate == (MXMidi.DATA1_CC_BANKSELECT + 0x20))) {
-                                ;
-                            } else {
-                                visit.forceCompleteBankInfo();
-                            }
-                        }*/
                         tossToMain(ret[i]);
                     }
                 }

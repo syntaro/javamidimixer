@@ -185,6 +185,7 @@ public class MX50Process extends MXReceiver<MX50View> implements MXINIFileSuppor
     public boolean readJSonfile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("ResolutionDown");
+            MXJsonParser.setAutosave(this);
         }
         MXJsonValue value = new MXJsonParser(custom).parseFile();
         if (value == null) {

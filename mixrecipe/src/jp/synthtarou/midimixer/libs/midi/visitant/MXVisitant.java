@@ -30,7 +30,6 @@ import jp.synthtarou.midimixer.libs.midi.MXTemplate;
  * @author Syntarou YOSHIDA
  */
 public class MXVisitant implements Cloneable {
-    int _lastPort = -1;
     int _lastChannel = -1;
     int _program = -1;
     int _bankMSB = -1;
@@ -323,19 +322,19 @@ public class MXVisitant implements Cloneable {
                     proc = prepareFetchingDataentry();
                     if (gate == MXMidi.DATA1_CC_DATAENTRY) {
                         if (proc.getDataentryMSB() >= 0) {
-                            ret[wx ++] = flushDataentry();
+                            ret[wx ++] = flushDataentry(message.getPort());
                             proc = prepareFetchingDataentry();
                         }
                         proc.setDataentryMSB(value);
                     } else {
                         if (proc.getDataentryLSB() >= 0) {
-                            ret[wx ++] = flushDataentry();
+                            ret[wx ++] = flushDataentry(message.getPort());
                             proc = prepareFetchingDataentry();
                         }
                         proc.setDataentryLSB(value);
                     }
                     if (proc.getDataentryMSB() >= 0 && proc.getDataentryLSB() >= 0) {
-                        MXMessage message2 = flushDataentry();
+                        MXMessage message2 = flushDataentry(message.getPort());
                         ret[wx ++] = message2;
                     }
                     if (wx >0) {
@@ -414,7 +413,7 @@ public class MXVisitant implements Cloneable {
         return false;
     }
     
-    public MXMessage flushDataentry() {
+    public MXMessage flushDataentry(int port) {
         MXDataentry fetching = prepareFetchingDataentry();
         if (fetching.getDataroomMSB() >= 0 && fetching.getDataroomLSB() >= 0) {
             int msb = fetching.getDataentryMSB();
@@ -424,7 +423,7 @@ public class MXVisitant implements Cloneable {
             MXTemplate temp = new MXTemplate(new int[]{ isRPN, 
                 fetching.getDataroomMSB(), fetching.getDataroomLSB(),
                 fetching.getDataentryMSB(), fetching.getDataentryLSB()});
-            MXMessage message2 = MXMessageFactory.fromTemplate(_lastPort, temp, _lastChannel, MXRangedValue.ZERO7, MXRangedValue.ZERO7);
+            MXMessage message2 = MXMessageFactory.fromTemplate(port, temp, _lastChannel, MXRangedValue.ZERO7, MXRangedValue.ZERO7);
             _flushed = (MXDataentry)fetching.clone();
             _fetching = null;
             message2.setVisitant(getSnapShot());
@@ -444,14 +443,6 @@ public class MXVisitant implements Cloneable {
             }
         }
         if (message.isMessageTypeChannel()) {
-            if (_lastPort < 0) {
-                _lastPort = message.getPort();
-            }
-            else if (_lastPort != message.getPort()) {
-                MXFileLogger.getLogger(MXVisitant.class).severe("invalid port");
-                new Throwable().printStackTrace();
-                _lastPort = message.getPort();
-            }
             if (_lastChannel < 0) {
                 _lastChannel = message.getChannel();
             }
@@ -466,7 +457,7 @@ public class MXVisitant implements Cloneable {
             return preprocessDataentry(message, ret);
         }
         else if (havePartOfDataentry()) {
-            ret[wx ++ ] = flushDataentry();
+            ret[wx ++ ] = flushDataentry(message.getPort());
         }
         int widerStatus = message.getTemplate().get(0);
         if (widerStatus >= 0x100) {

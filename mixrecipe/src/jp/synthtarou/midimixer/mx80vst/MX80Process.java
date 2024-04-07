@@ -492,6 +492,7 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
         }
         if (custom == null) {
             custom = MXJsonParser.pathOf("VSTFolderList");
+            MXJsonParser.setAutosave(this);
         }
         MXJsonParser parser = new MXJsonParser(custom);
         MXJsonParser.setAutosave(this);

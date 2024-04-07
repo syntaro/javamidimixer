@@ -234,6 +234,9 @@ public class MXMainWindow extends javax.swing.JFrame {
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenuFile = new javax.swing.JMenu();
         jMenuSaveNow = new javax.swing.JMenuItem();
+        jMenuExitWithoutSave = new javax.swing.JMenuItem();
+        jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        jMenuSaveAndExit = new javax.swing.JMenuItem();
         jMenuWindow = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
@@ -271,6 +274,23 @@ public class MXMainWindow extends javax.swing.JFrame {
         });
         jMenuFile.add(jMenuSaveNow);
 
+        jMenuExitWithoutSave.setText("Exit Without Save");
+        jMenuExitWithoutSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuExitWithoutSaveActionPerformed(evt);
+            }
+        });
+        jMenuFile.add(jMenuExitWithoutSave);
+        jMenuFile.add(jSeparator1);
+
+        jMenuSaveAndExit.setText("Save And Exit");
+        jMenuSaveAndExit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuSaveAndExitActionPerformed(evt);
+            }
+        });
+        jMenuFile.add(jMenuSaveAndExit);
+
         jMenuBar1.add(jMenuFile);
 
         jMenuWindow.setText("Window");
@@ -285,15 +305,27 @@ public class MXMainWindow extends javax.swing.JFrame {
         _main.saveEverySettingToFile();
     }//GEN-LAST:event_jMenuSaveNowActionPerformed
 
+    private void jMenuExitWithoutSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuExitWithoutSaveActionPerformed
+        // TODO add your handling code here:
+        _main.exitWithoutSave();
+    }//GEN-LAST:event_jMenuExitWithoutSaveActionPerformed
+
+    private void jMenuSaveAndExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuSaveAndExitActionPerformed
+        _main.saveAndExit();
+    }//GEN-LAST:event_jMenuSaveAndExitActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonDummyPiano;
     private javax.swing.JButton jButtonDummyTab;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuItem jMenuExitWithoutSave;
     private javax.swing.JMenu jMenuFile;
+    private javax.swing.JMenuItem jMenuSaveAndExit;
     private javax.swing.JMenuItem jMenuSaveNow;
     private javax.swing.JMenu jMenuWindow;
     private javax.swing.JPanel jPanelForPiano;
     private javax.swing.JPanel jPanelForTab;
+    private javax.swing.JPopupMenu.Separator jSeparator1;
     // End of variables declaration//GEN-END:variables
 
     /**

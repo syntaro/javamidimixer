@@ -405,6 +405,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
     public boolean readJSonfile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("CCMapping");
+            MXJsonParser.setAutosave(this);
         }
         MXJsonValue value = new MXJsonParser(custom).parseFile();
         if (value == null) {
@@ -539,10 +540,11 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
         if (status._uiType == MGStatus.TYPE_DRUMPAD) {
             return false;
         }
+        boolean did = false;
 
         for (MX36Status seek : list) {
             MX36Folder folder = seek._folder;
-            if (folder == _folderList._trashedFolder) {
+            if (folder == null || folder == _folderList._trashedFolder) {
                 continue;
             }
             if (folder.isSelected()) {
@@ -551,9 +553,9 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
                     sendToNext(msg);
                     folder.repaintStatus(seek);
                 }
-                return true;
+                did = true;
             }
         }
-        return false;
+        return did;
     }
 }

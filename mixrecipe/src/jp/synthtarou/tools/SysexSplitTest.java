@@ -18,8 +18,10 @@ package jp.synthtarou.tools;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.SysexMessage;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.sysex.SplittableSysexMessage;
 import jp.synthtarou.midimixer.libs.midi.sysex.SysexSplitter;
 
@@ -168,7 +170,7 @@ public class SysexSplitTest {
                 }
             }
         } catch (InvalidMidiDataException ex) {
-            ex.printStackTrace();
+            MXFileLogger.getLogger(SysexSplitTest.class).log(Level.SEVERE, ex.getMessage(), ex);
             return new byte[] { (byte)0xff, (byte)0xff };
         }
         return data;

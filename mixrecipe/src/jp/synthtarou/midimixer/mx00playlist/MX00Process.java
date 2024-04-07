@@ -110,7 +110,7 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
         }
 
         _view.showDataFirst();
-        return false;
+        return true;
     }
 
     @Override
@@ -144,11 +144,40 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
     public boolean readJSonfile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("PlayList");
+            MXJsonParser.setAutosave(this);
         }
         MXJsonValue value = new MXJsonParser(custom).parseFile();
         if (value == null) {
             return false;
         }
+        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
+
+        _viewData._playListModel.clear();
+        _viewData._playAsRepeated = root.getFollowingBool("playAsLooped", false);
+        _viewData._playAsChained = root.getFollowingBool("playAsChained", false);
+        _viewData._focusChannel = root.getFollowingInt("focusChannel", -1);
+        _viewData._highlightTiming = root.getFollowingBool("showMeasure", true);
+        _viewData._soundMargin = root.getFollowingInt("soundMargin", 100);
+        _viewData._soundSpan = root.getFollowingInt("soundSpan", 4000);
+        
+        MXJsonValue.HelperForArray listSong = root.getFollowingArray("songs");
+        if (listSong != null) {
+            for (int i = 0; i < listSong.count(); ++ i) {
+                String file = listSong.getFollowingText(i, "");
+                if (file.isEmpty()) {
+                    continue;
+                }
+                _viewData._playListModel.addFile(file);
+            }
+        }
+        if (_viewData._playListModel.isEmpty()) {
+            _viewData._playListModel.addFile("SynthTAROU000.mid");
+            _viewData._playListModel.addFile("SynthTAROU001.mid");
+            _viewData._playListModel.addFile("SynthTAROU002.mid");
+        }
+
+        _view.showDataFirst();
+
         return true;
     }
 
@@ -158,9 +187,25 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
             custom = MXJsonParser.pathOf("PlayList");
         }
         MXJsonValue value = new MXJsonValue(null);
-
         MXJsonParser parser = new MXJsonParser(custom);
-        parser.setRoot(value);
+        MXJsonValue root = parser.getRoot();
+        MXJsonValue.HelperForStructure setting = root.new HelperForStructure();
+
+        setting.setFollowingBool("playAsLooped", _viewData._playAsRepeated);
+        setting.setFollowingBool("playAsChained", _viewData._playAsChained);
+        
+        setting.setFollowingInt("focusChannel", _viewData._focusChannel);
+        setting.setFollowingBool("showMeasure", _viewData._highlightTiming);
+        setting.setFollowingInt("soundMargin", _viewData._soundMargin);
+        setting.setFollowingInt("soundSpan", _viewData._soundSpan);
+        
+        MXJsonValue.HelperForArray songList = setting.addFollowingArray("songs");
+        
+        for (int i = 0; i < _viewData._playListModel.size(); ++ i) {
+            File f = _viewData._playListModel.getElementAt(i)._file;
+            songList.addFollowingText(f.getPath());
+        }
+
         return parser.writeFile();
     }
 

@@ -787,7 +787,6 @@ public final class MXMessage implements Comparable<MXMessage> {
         }
         if (getVisitant() == null) {
             MXFileLogger.getLogger(MXMessage.class).log(Level.WARNING, "Visitant was NULL");
-            new Exception().printStackTrace();
             return 0;
         }
         else {

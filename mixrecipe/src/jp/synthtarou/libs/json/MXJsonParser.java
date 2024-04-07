@@ -282,11 +282,16 @@ public class MXJsonParser {
         }
         try {
             MXJsonValue value = readSomething(queue);
-            root._conetentsType = value._conetentsType;
-            root._label = value._label;
-            root._listContents = value._listContents;
-            _root = root;
-            return root;
+            if (value != null) {
+                root._conetentsType = value._conetentsType;
+                root._label = value._label;
+                root._listContents = value._listContents;
+                _root = root;
+                return root;
+            }
+            else {
+                return null;
+            }
         } catch (Throwable ex) {
             MXFileLogger.getLogger(MXJsonParser.class).log(Level.WARNING, ex.getMessage(), ex);
             return null;

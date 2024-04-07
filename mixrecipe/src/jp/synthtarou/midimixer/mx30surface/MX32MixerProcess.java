@@ -19,7 +19,6 @@ package jp.synthtarou.midimixer.mx30surface;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.logging.Level;
-import javax.swing.plaf.SliderUI;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXRangedValue;
@@ -339,9 +338,9 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
 
                 /* sequencer */
                 String switchSequencerFile = node.getSetting("switchSequencerFile");
-                boolean switchSequencerSingleTrack = setting.getSettingAsBoolean("switchSequencerSingleTrack", false);
-                boolean switchSequencerSeekStart = setting.getSettingAsBoolean("switchSequencerSeekStart", false);
-                boolean switchSequencerFilterNote = setting.getSettingAsBoolean("switchSequencerFilterNote", false);
+                boolean switchSequencerSingleTrack = node.getSettingAsBoolean("switchSequencerSingleTrack", false);
+                boolean switchSequencerSeekStart = node.getSettingAsBoolean("switchSequencerSeekStart", false);
+                boolean switchSequencerFilterNote = node.getSettingAsBoolean("switchSequencerFilterNote", false);
 
                 drum._sequencerFile = switchSequencerFile;
                 drum._sequencerSeekStart = switchSequencerSeekStart;
@@ -358,8 +357,6 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
                 drum._linkColumn = switchLinkColumn;
                 drum._linkKontrolType = switchLinkKontrolType;
                 drum._linkMode = switchLinkMode;
-
-                setStatus(MGStatus.TYPE_DRUMPAD, row, column, status);
             } catch (RuntimeException ex) {
                 MXFileLogger.getLogger(MX32MixerProcess.class).log(Level.WARNING, ex.getMessage(), ex);
             }
@@ -744,18 +741,173 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
         }
     }
 
+    public MGStatus readJsonSub(MXJsonValue.HelperForStructure node) {
+        int type = node.getFollowingInt("type", -1);
+        int row = node.getFollowingInt("row", -1);
+        int column = node.getFollowingInt("column", -1);
+        if (type < 0 || row < 0 || column < 0) {
+            return null;
+        }
+        MGStatus status = new MGStatus(this, type, row, column);
+        status._name = node.getFollowingText("name", "");
+        status._memo = node.getFollowingText("note", "");
+        status._ccPair14 = node.getFollowingBool("isCCPair", false);
+
+        try {
+            String msgText = node.getFollowingText("message", "");
+            MXTemplate template = new MXTemplate(msgText);
+
+            int channel = node.getFollowingInt("channel", 0);
+
+            int gateN = node.getFollowingInt("gate", 0);
+            int valueN = node.getFollowingInt("value", 0);
+            int valueMin = node.getFollowingInt("valuemin", 0);
+            int valueMax = node.getFollowingInt("valuemax", 127);
+            MXRangedValue gate = template.indexOfGateHi() >= 0 ? MXRangedValue.new14bit(gateN) : MXRangedValue.new7bit(gateN);
+            MXRangedValue value = new MXRangedValue(valueN, valueMin, valueMax);
+            status.setBaseMessage(MXMessageFactory.fromTemplate(_port, template, channel, gate, value));
+
+        } catch (RuntimeException ex) {
+            MXFileLogger.getLogger(MX32MixerProcess.class).log(Level.WARNING, ex.getMessage(), ex);
+        }
+        
+        return status;
+    }
 
     @Override
     public boolean readJSonfile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("Mixing" + (_port + 1));
+            MXJsonParser.setAutosave(this);
         }
         MXJsonValue value = new MXJsonParser(custom).parseFile();
         if (value == null) {
             return false;
         }
-        //TODO
+
+        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
+        _patchToMixer = root.getFollowingInt("PatchToMixer", -1);
+
+        MXJsonValue.HelperForArray listCircle = root.getFollowingArray("Circle");
+        for (int x = 0; x < listCircle.count(); ++ x) {
+            MXJsonValue.HelperForStructure circle = listCircle.getFollowingStructure(x);
+            MGStatus status = readJsonSub(circle);
+            setStatus(MGStatus.TYPE_CIRCLE, status._row, status._column, status);
+            getCircle(status._row, status._column).publishUI();
+        }
+
+        MXJsonValue.HelperForArray listSlider = root.getFollowingArray("Slider");
+        for (int x = 0; x < listSlider.count(); ++ x) {
+            MXJsonValue.HelperForStructure slider = listSlider.getFollowingStructure(x);
+            MGStatus status = readJsonSub(slider);
+            
+            System.out.println("slider " + status._column + " = " + status.getValue());
+
+            setStatus(MGStatus.TYPE_SLIDER, status._row, status._column, status);
+            getSlider(status._row, status._column).publishUI();
+        }
+
+        MXJsonValue.HelperForArray listPad = root.getFollowingArray("Pad");
+        for (int x = 0; x < listSlider.count(); ++ x) {
+            MXJsonValue.HelperForStructure pad = listPad.getFollowingStructure(x);
+            MGStatus status = readJsonSub(pad);
+
+            try {
+                MGStatusForDrum drum = status._drum;
+
+                int switchInputOnMin = pad.getFollowingInt("switchInputOnMin", 1);
+                int switchInputOnMax = pad.getFollowingInt("switchInputOnMax", 127);
+                drum._strikeZone = new MXRangedValue(0, switchInputOnMin, switchInputOnMax);
+
+                int switchMouseOnValue = pad.getFollowingInt("switchMouseOnValue", 100);
+                int switchMouseOffValue = pad.getFollowingInt("switchMouseOffValue", 0);
+                drum._mouseOnValue = switchMouseOnValue;
+                drum._mouseOffValue = switchMouseOffValue;
+
+                boolean switchModeToggle = pad.getFollowingBool("switchWithToggle", false);
+                drum._modeToggle = switchModeToggle;
+
+                boolean switchOnlySwitched = pad.getFollowingBool("switchOnlySwitched", true);
+                drum._onlySwitched = switchOnlySwitched;
+
+                /* drum out */
+                int switchOutPort = pad.getFollowingInt("switchOutPort", -1); //-1 = same as input
+                drum._outPort = switchOutPort;
+                int switchOutChannel = pad.getFollowingInt("switchOutChannel", -1); //-1 = same as input
+                drum._outChannel = switchOutChannel;
+
+                int switchOutStyle = pad.getFollowingInt("switchOutStyle", MGStatusForDrum.STYLE_SAME_CC);
+                drum._outStyle = switchOutStyle;
+                int switchOutValueTypeOn = pad.getFollowingInt("switchOutValueTypeOn", MGStatusForDrum.VALUETYPE_AS_INPUT);
+                drum._outValueTypeOn = switchOutValueTypeOn;
+                int switchOutValueTypeOff = pad.getFollowingInt("switchOutValueTypeOff", MGStatusForDrum.VALUETYPE_AS_INPUT);
+                drum._outValueTypeOff = switchOutValueTypeOff;
+
+                /* template */
+                String switchTemplateText = pad.getFollowingText("switchTemplateText", "");
+                drum._templateText = switchTemplateText;
+                int switchTemplateTextGate = pad.getFollowingInt("switchTemplateTextGate", 0);
+                drum._teplateTextGate = switchTemplateTextGate;
+
+                /* program */
+                int switchProgramType = pad.getFollowingInt("switchProgramType", MGStatusForDrum.STYLE_PROGRAM_CHANGE);
+                int switchProgramNumber = pad.getFollowingInt("switchProgramNumber", 0);
+                int switchProgramMSB = pad.getFollowingInt("switchProgramMSB", 0);
+                int switchProgramLSB = pad.getFollowingInt("switchProgramLSB", 0);
+                drum._programType = switchProgramType;
+                drum._programNumber = switchProgramNumber;
+                drum._programMSB = switchProgramMSB;
+                drum._programLSB = switchProgramLSB;
+
+                /* note */
+                String switchHarmonyNotes = pad.getFollowingText("switchHarmonyNotes", "");
+                drum._harmonyNotes = switchHarmonyNotes;
+
+                /* sequencer */
+                String switchSequencerFile = pad.getFollowingText("switchSequencerFile", "");
+                boolean switchSequencerSingleTrack = pad.getFollowingBool("switchSequencerSingleTrack", false);
+                boolean switchSequencerSeekStart = pad.getFollowingBool("switchSequencerSeekStart", false);
+                boolean switchSequencerFilterNote = pad.getFollowingBool("switchSequencerFilterNote", false);
+
+                drum._sequencerFile = switchSequencerFile;
+                drum._sequencerSeekStart = switchSequencerSeekStart;
+                drum._sequencerFilterNote = switchSequencerFilterNote;
+                drum._sequencerSingleTrack = switchSequencerSingleTrack;
+
+                /* linkslider TOOD */
+                int switchLinkRow = pad.getFollowingInt("switchLinkRow", 0);
+                int switchLinkColumn = pad.getFollowingInt("switchLinkColumn", -1);
+                int switchLinkMode = pad.getFollowingInt("switchLinkMode", MGStatusForDrum.LINKMODE_VALUE);
+                int switchLinkKontrolType = pad.getFollowingInt("switchLinkKontrolType", MGStatus.TYPE_SLIDER);
+
+                drum._linkRow = switchLinkRow;
+                drum._linkColumn = switchLinkColumn;
+                drum._linkKontrolType = switchLinkKontrolType;
+                drum._linkMode = switchLinkMode;
+
+                setStatus(MGStatus.TYPE_DRUMPAD, status._row, status._column, status);
+            } catch (RuntimeException ex) {
+                MXFileLogger.getLogger(MX32MixerProcess.class).log(Level.WARNING, ex.getMessage(), ex);
+            }
+        }
+        _view.updateUI();
         return true;
+    }
+
+    public void writeJsonSub(MXJsonValue.HelperForStructure node, MGStatus status) {
+        MXMessage base = status._base;
+        node.setFollowingText("name", status._name);
+        node.setFollowingText("note", status._memo);
+        node.setFollowingInt("type", status._uiType);
+        node.setFollowingInt("row", status._row);
+        node.setFollowingInt("column", status._column);
+        node.setFollowingText("message", base.getTemplateAsText());
+        node.setFollowingInt("channel", base.getChannel());
+        node.setFollowingInt("gate", base.getGate()._value);
+        node.setFollowingInt("value", base.getValue()._value);
+        node.setFollowingInt("valuemin", base.getValue()._min);
+        node.setFollowingInt("valuemax", base.getValue()._max);
+        node.setFollowingBool("isCCPair", status._ccPair14);
     }
 
     @Override
@@ -763,10 +915,80 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
         if (custom == null) {
             custom = MXJsonParser.pathOf("Mixing" + (_port + 1));
         }
-        MXJsonValue value = new MXJsonValue(null);
-
         MXJsonParser parser = new MXJsonParser(custom);
-        parser.setRoot(value);
+        MXJsonValue.HelperForStructure root = parser.getRoot().new HelperForStructure();
+        root.setFollowingNumber("PatchToMixer", _patchToMixer);
+
+        MXJsonValue.HelperForArray listCircle = root.addFollowingArray("Circle");
+        for (int column = 0; column < MXConfiguration.SLIDER_COLUMN_COUNT; ++column) {
+            for (int row = 0; row < MXConfiguration.CIRCLE_ROW_COUNT; ++row) {
+                MXJsonValue.HelperForStructure circle = listCircle.addFollowingStructure();
+                MGStatus status = getStatus(MGStatus.TYPE_CIRCLE, row, column);
+                writeJsonSub(circle, status);
+            }
+        }
+        MXJsonValue.HelperForArray listSlider = root.addFollowingArray("Slider");
+        for (int column = 0; column < MXConfiguration.SLIDER_COLUMN_COUNT; ++column) {
+            for (int row = 0; row < MXConfiguration.SLIDER_ROW_COUNT; ++row) {
+                MXJsonValue.HelperForStructure slider = listSlider.addFollowingStructure();
+                MGStatus status = getStatus(MGStatus.TYPE_SLIDER, row, column);
+                writeJsonSub(slider, status);
+            }
+        }
+        MXJsonValue.HelperForArray listPad = root.addFollowingArray("Pad");
+        for (int column = 0; column < MXConfiguration.SLIDER_COLUMN_COUNT; ++column) {
+            for (int row = 0; row < MXConfiguration.DRUM_ROW_COUNT; ++row) {
+                MXJsonValue.HelperForStructure pad = listPad.addFollowingStructure();
+                MGStatus status = getStatus(MGStatus.TYPE_DRUMPAD, row, column);
+                writeJsonSub(pad, status);
+
+                /* Drum */
+                MGStatusForDrum drum = status._drum;
+                pad.setFollowingInt("switchInputOnMin", drum._strikeZone._min);
+                pad.setFollowingInt("switchInputOnMax", drum._strikeZone._max);
+
+                pad.setFollowingInt("switchMouseOnValue", drum._mouseOnValue);
+                pad.setFollowingInt("switchMouseOffValue", drum._mouseOffValue);
+
+                pad.setFollowingBool("switchWithToggle", drum._modeToggle);
+
+                pad.setFollowingBool("switchOnlySwitched", drum._onlySwitched);
+
+                /* drum out */
+                pad.setFollowingInt("switchOutPort", drum._outPort);
+                pad.setFollowingInt("switchOutChannel", drum._outChannel);
+
+                pad.setFollowingInt("switchOutStyle", drum._outStyle);
+                pad.setFollowingInt("switchOutValueTypeOn", drum._outValueTypeOn);
+                pad.setFollowingInt("switchOutValueTypeOff", drum._outValueTypeOff);
+
+                /* template */
+                pad.setFollowingText("switchTemplateText", drum._templateText);
+                pad.setFollowingInt("switchTemplateTextGate", drum._teplateTextGate);
+
+                /* program */
+                pad.setFollowingInt("switchProgramType", drum._programType);
+                pad.setFollowingInt("switchProgramNumber", drum._programNumber);
+                pad.setFollowingInt("switchProgramMSB", drum._programMSB);
+                pad.setFollowingInt("switchProgramLSB", drum._programLSB);
+
+                /* note */
+                pad.setFollowingText("switchHarmonyNotes", drum._harmonyNotes);
+
+                /* sequencer */
+                pad.setFollowingText("switchSequencerFile", drum._sequencerFile);
+                pad.setFollowingBool("switchSequencerSingleTrack", drum._sequencerSeekStart);
+                pad.setFollowingBool("switchSequencerSeekStart", drum._sequencerFilterNote);
+                pad.setFollowingBool("switchSequencerFilterNote", drum._sequencerSingleTrack);
+
+                /* linkslider TOOD */
+                pad.setFollowingInt("switchLinkRow", drum._linkRow);
+                pad.setFollowingInt("switchLinkColumn", drum._linkColumn);
+                pad.setFollowingInt("switchLinkMode", drum._linkMode);
+                pad.setFollowingInt("switchLinkKontrolType", drum._linkKontrolType);
+            }
+        }
+
         return parser.writeFile();
     }
 

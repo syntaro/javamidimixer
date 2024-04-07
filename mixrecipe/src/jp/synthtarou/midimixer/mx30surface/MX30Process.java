@@ -124,8 +124,6 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
         if (custom == null) {
             for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
                 _pageProcess[port].readINIFile(null);
-                MX32MixerProcess mixer = _pageProcess[port];
-                _rootView.addPage(port, mixer);
             }
         }
         globalContollerHidden();
@@ -318,12 +316,78 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
 
     @Override
     public boolean readJSonfile(File custom) {
+        boolean requestSub = false;
         if (custom == null) {
             custom = MXJsonParser.pathOf("MixingGlobal");
+            requestSub = true;
+            MXJsonParser.setAutosave(this);
+        }
+        System.out.println("request Sub = " + requestSub);
+        if (requestSub) {
+            for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
+                MXJsonParser.setAutosave(_pageProcess[port]);
+            }
         }
         MXJsonValue value = new MXJsonParser(custom).parseFile();
+
         if (value == null) {
+            System.out.println("NULL jp.synthtarou.midimixer.mx30surface.MX30Process.readJSonfile()");
+            for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
+                _pageProcess[port]._view.updateUI();
+            }
             return false;
+        }
+        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
+        System.out.println("jsonParser30 " + custom + " = " + root.count());
+
+        String circle = root.getFollowingText("ActiveCircle", "");
+        if (circle.isBlank()) {
+            circle = "1, 2, 3, 4";
+        }
+        ArrayList<String> circleList = new ArrayList();
+        MXUtil.split(circle, circleList, ',');
+        _visibleKnob = new boolean[4];
+        for (String str : circleList) {
+            str = str.trim();
+            try {
+                _visibleKnob[Integer.parseInt(str) - 1] = true;
+            } catch (Exception e) {
+
+            }
+        }
+
+        String line = root.getFollowingText("ActiveLine", "");
+        int lineNum = 17;
+        try {
+            if (line.isBlank() == false) {
+                lineNum = Integer.parseInt(line.trim());
+            }
+        } catch (Exception e) {
+        }
+        this._visibleLineCount = lineNum;
+
+        String pad = root.getFollowingText("ActivePad", "");
+        if (pad.isBlank()) {
+            pad = "1, 2, 3";
+        }
+
+        ArrayList<String> padList = new ArrayList();
+        MXUtil.split(pad, padList, ',');
+        _visiblePad = new boolean[4];
+        for (String str : padList) {
+            str = str.trim();
+            try {
+                _visiblePad[Integer.parseInt(str) - 1] = true;
+            } catch (Exception e) {
+
+            }
+        }
+        globalContollerHidden();
+        if (requestSub) {
+            for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
+                _pageProcess[port].readJSonfile(null);
+                _pageProcess[port]._view.updateUI();
+            }
         }
         return true;
     }
@@ -334,9 +398,31 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
             custom = MXJsonParser.pathOf("MixingGlobal");
         }
         MXJsonValue value = new MXJsonValue(null);
-
         MXJsonParser parser = new MXJsonParser(custom);
-        parser.setRoot(value);
+        MXJsonValue.HelperForStructure root = parser.getRoot().new HelperForStructure();
+
+        StringBuffer circle = new StringBuffer();
+        for (int i = 0; i < _visibleKnob.length; ++i) {
+            if (_visibleKnob[i]) {
+                if (circle.length() != 0) {
+                    circle.append(",");
+                }
+                circle.append(i + 1);
+            }
+        }
+        StringBuffer pad = new StringBuffer();
+        for (int i = 0; i < _visiblePad.length; ++i) {
+            if (_visiblePad[i]) {
+                if (pad.length() != 0) {
+                    pad.append(",");
+                }
+                pad.append(i + 1);
+            }
+        }
+        root.setFollowingText("ActiveCircle", circle.toString());
+        root.setFollowingInt("ActiveLine", _visibleLineCount);
+        root.setFollowingText("ActivePad", pad.toString());
+         
         return parser.writeFile();
     }
 

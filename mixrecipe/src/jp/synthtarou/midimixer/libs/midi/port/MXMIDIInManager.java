@@ -36,8 +36,9 @@ import jp.synthtarou.libs.json.MXJsonValue;
  * @author Syntarou YOSHIDA
  */
 public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
+
     private static final MXMIDIInManager _instance = new MXMIDIInManager();
-    
+
     public static MXMIDIInManager getManager() {
         return _instance;
     }
@@ -48,10 +49,10 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
 
     protected MXMIDIInManager() {
     }
-    
+
     public int getFreeAssignPort() {
         int found = -1;
-        for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++ i) {
+        for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++i) {
             boolean entered = false;
             for (MXMIDIIn in : listAllInput().valueList()) {
                 if (in.isPortAssigned(i)) {
@@ -84,7 +85,7 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
         }
 
         MXDriver java = MXDriver_Java._instance;
-        
+
         for (int i = 0; i < java.InputDevicesRoomSize(); i++) {
             MXMIDIIn device = new MXMIDIIn(java, i);
             if (device == null) {
@@ -95,7 +96,7 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
             }
             temp.addNameAndValue(device.getName(), device);
         }
-        
+
         MXDriver uwp = MXDriver_UWP._instance;
         for (int i = 0; i < uwp.InputDevicesRoomSize(); i++) {
             MXMIDIIn device = new MXMIDIIn(uwp, i);
@@ -115,13 +116,13 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
     synchronized void onClose(MXMIDIIn input) {
         clearMIDIInCache();
     }
-    
+
     protected synchronized void clearMIDIInCache() {
         _listUsingInput = null;
         //_cache = null;        
     }
 
-    public synchronized MXNamedObjectList<MXMIDIIn>listSelectedInput() {
+    public synchronized MXNamedObjectList<MXMIDIIn> listSelectedInput() {
         if (_listUsingInput != null) {
             return _listUsingInput;
         }
@@ -136,7 +137,7 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
     }
 
     public synchronized void closeAll() {
-        for(MXMIDIIn input : listAllInput().valueList()) {
+        for (MXMIDIIn input : listAllInput().valueList()) {
             if (input.isOpen()) {
                 input.close();
             }
@@ -155,7 +156,7 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
         setting.register("device[].toMaster");
         return setting;
     }
-    
+
     @Override
     public boolean readINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
@@ -165,8 +166,8 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
 
         MXNamedObjectList<MXMIDIIn> list = listAllInput();
         MXDriver_NotFound dummy = MXDriver_NotFound.getInstance();
-        
-        for (int seek = 0; seek < 1000; ++ seek) {
+
+        for (int seek = 0; seek < 1000; ++seek) {
             String deviceName = setting.getSetting("device[" + seek + "].name");
             String deviceOpen = setting.getSetting("device[" + seek + "].open");
             String deviceMaster = setting.getSetting("device[" + seek + "].toMaster");
@@ -178,7 +179,7 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
                 //For upgrade setting
                 devicePort = String.valueOf(seek);
             }
-            
+
             if (deviceName == null) {
                 continue;
             }
@@ -198,8 +199,8 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
                 if (deviceOpen.equals("1")) {
                     in.openInput(5000);
                 }
-            }else {
-                in  = new MXMIDIIn(dummy, dummy.InputAddDevice(deviceName));
+            } else {
+                in = new MXMIDIIn(dummy, dummy.InputAddDevice(deviceName));
                 in.setPortAssigned(seek, true);
                 detected.addNameAndValue(deviceName, in);
             }
@@ -210,7 +211,7 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
                 try {
                     int x = Integer.parseInt(t1);
                     in.setPortAssigned(x, true);
-                }catch(NumberFormatException e) {
+                } catch (NumberFormatException e) {
 
                 }
             }
@@ -218,9 +219,15 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
         }
 
         clearMIDIInCache();
+        afterReadSetting();
+        return true;
+    }
 
+    void afterReadSetting() {
         boolean assigned = false;
-        for (int i = 0; i < list.getSize(); ++ i) {
+        MXNamedObjectList<MXMIDIIn> list = listAllInput();
+
+        for (int i = 0; i < list.getSize(); ++i) {
             MXMIDIIn in = list.valueOfIndex(i);
             if (in.getPortAssignCount() > 0) {
                 assigned = true;
@@ -230,7 +237,8 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
         if (!assigned) {
             MXMIDIIn.INTERNAL_PLAYER.setPortAssigned(0, true);
         }
-        return true;
+
+        clearMIDIInCache();
     }
 
     @Override
@@ -243,7 +251,7 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
                 continue;
             }
             StringBuffer assigned = new StringBuffer();
-            for (int p = 0; p < MXConfiguration.TOTAL_PORT_COUNT; ++ p) {
+            for (int p = 0; p < MXConfiguration.TOTAL_PORT_COUNT; ++p) {
                 if (e.isPortAssigned(p)) {
                     if (assigned.length() > 0) {
                         assigned.append(",");
@@ -256,22 +264,71 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
                 setting.setSetting("device[" + x + "].open", e.isOpen() ? "1" : "0");
                 setting.setSetting("device[" + x + "].port", assigned.toString());
                 setting.setSetting("device[" + x + "].toMaster", e.getMasterList());
-                x ++;
+                x++;
             }
         }
         return setting.writeINIFile();
     }
 
-
     @Override
     public boolean readJSonfile(File custom) {
         if (custom == null) {
             custom = MXJsonParser.pathOf("MIDIInput");
+            MXJsonParser.setAutosave(this);
         }
         MXJsonValue value = new MXJsonParser(custom).parseFile();
         if (value == null) {
             return false;
         }
+        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
+
+        MXNamedObjectList<MXMIDIIn> listIn = listAllInput();
+        MXDriver_NotFound dummy = MXDriver_NotFound.getInstance();
+        MXJsonValue.HelperForArray deviceList = root.getFollowingArray("deviceList");
+
+        if (deviceList != null) {
+            for (int seek = 0; seek < deviceList.count(); ++seek) {
+                MXJsonValue.HelperForStructure device = deviceList.getFollowingStructure(seek);
+
+                String deviceName = device.getFollowingText("name", "");
+                boolean deviceOpen = device.getFollowingBool("open", false);
+                String deviceMaster = device.getFollowingText("toMaster", "");
+                String devicePort = device.getFollowingText("port", "");
+                if (deviceName == null || deviceName.length() == 0) {
+                    break;
+                }
+                if (devicePort == null || devicePort.length() == 0) {
+                    //For upgrade setting
+                    devicePort = String.valueOf(seek);
+                }
+
+                MXNamedObjectList<MXMIDIIn> detected = listAllInput();
+                MXMIDIIn in = detected.valueOfName(deviceName);
+                if (in != null) {
+                    if (deviceOpen) {
+                        in.openInput(5000);
+                    }
+                } else {
+                    in = new MXMIDIIn(dummy, dummy.InputAddDevice(deviceName));
+                    in.setPortAssigned(seek, true);
+                    detected.addNameAndValue(deviceName, in);
+                }
+
+                ArrayList<String> split = new ArrayList();
+                MXUtil.split(devicePort, split, ',');
+                for (String t1 : split) {
+                    try {
+                        int x = Integer.parseInt(t1);
+                        in.setPortAssigned(x, true);
+                    } catch (NumberFormatException e) {
+
+                    }
+                }
+                in.setMasterList(deviceMaster);
+            }
+        }
+        clearMIDIInCache();
+        afterReadSetting();
         return true;
     }
 
@@ -280,10 +337,35 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
         if (custom == null) {
             custom = MXJsonParser.pathOf("MIDIInput");
         }
-        MXJsonValue value = new MXJsonValue(null);
 
         MXJsonParser parser = new MXJsonParser(custom);
-        parser.setRoot(value);
+        MXJsonValue.HelperForStructure root = parser.getRoot().new HelperForStructure();
+        MXJsonValue.HelperForArray listDevice = root.addFollowingArray("deviceList");
+        int x = 0;
+        MXNamedObjectList<MXMIDIIn> listIn = listAllInput();
+        for (MXMIDIIn e : listIn.valueList()) {
+            if (e.getPortAssignCount() <= 0) {
+                continue;
+            }
+            StringBuffer assigned = new StringBuffer();
+            for (int p = 0; p < MXConfiguration.TOTAL_PORT_COUNT; ++p) {
+                if (e.isPortAssigned(p)) {
+                    if (assigned.length() > 0) {
+                        assigned.append(",");
+                    }
+                    assigned.append(Integer.toString(p));
+                }
+            }
+            if (assigned.length() > 0) {
+                MXJsonValue.HelperForStructure device = listDevice.addFollowingStructure();
+                device.setFollowingText("name", e.getName());
+                device.setFollowingBool("open", e.isOpen());
+                device.setFollowingText("port", assigned.toString());
+                device.setFollowingText("toMaster", e.getMasterList());
+                x++;
+            }
+        }
+
         return parser.writeFile();
     }
 
