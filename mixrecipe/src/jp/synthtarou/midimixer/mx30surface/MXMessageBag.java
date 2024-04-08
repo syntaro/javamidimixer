@@ -57,7 +57,6 @@ public class MXMessageBag {
         if (_alreadyQueue.contains(message)) {
             return false;
         }
-        System.out.println("queue ok ************** " + message);
         _alreadyQueue.add(message);
         _listQuque.add(message);
         return true;
