@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.log.MXFileLogger;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInForTest;
@@ -41,6 +42,7 @@ public abstract class MXDebug {
         _input = new LinkedList<>();
         _input.add(target);
         _test.startTest(target);
+        MXMain.getMain().waitQueueBeenEmpty();;
         checkResult();
         if (_interval >= 1) {
             try {
@@ -56,7 +58,9 @@ public abstract class MXDebug {
         for (MXMessage seek : target) {
             _input.add(seek);
             _test.startTest(seek);
+        
         }
+        MXMain.getMain().waitQueueBeenEmpty();;
         checkResult();
         if (_interval >= 1) {
             try {
@@ -78,7 +82,7 @@ public abstract class MXDebug {
         LinkedList<MXMessage> result = _final.getTestResult();
         if (result.size() != 1) {
             MXFileLogger.getLogger(MXDebug.class).severe("Error output size = " + result.size() + result);
-            if (result.get(0) != result.get(1)) {               
+            if (result.size() >= 2 && result.get(0) != result.get(1)) {               
                 for (MXMessage seek: result) {
                     seek._debug.printStackTrace();;
                 }

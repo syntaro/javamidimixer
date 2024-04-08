@@ -61,21 +61,22 @@ import jp.synthtarou.midimixer.mx90debug.MX90Process;
  *
  * @author Syntarou YOSHIDA
  */
-public class MXMain  {
-    private static MXMain _main = new MXMain(); 
-    
+public class MXMain {
+
+    private static MXMain _main = new MXMain();
+
     public static MXMain getMain() {
         return _main;
     }
-    
+
     private MXMainWindow _mainWindow;
 
     public MXMainWindow getMainWindow() {
         return _mainWindow;
     }
-    
+
     MXProgressDialog _progress;
-    
+
     public static void progress(String line) {
         if (_main != null) {
             if (_main._progress != null) {
@@ -83,7 +84,7 @@ public class MXMain  {
             }
         }
     }
-    
+
     public static void addOutsideInput(MXMessage msg) {
         if (getMain()._mx70CosoleProcess != null) {
             getMain()._mx70CosoleProcess.addOutsideInput(new MXMidiConsoleElement(msg));
@@ -120,39 +121,41 @@ public class MXMain  {
     private MX80Process _mx80VstRack;
     private MX90Process _mx90Debugger;
     private CXXMLManager _mxXMLManager;
-    
+
     public static MXReceiver _capture = null;
-    
+
     public static void setCapture(MXReceiver capture) {
         _capture = capture;
     }
+
     /**
      * アプリを起動する
+     *
      * @param args 引数
      * @throws Exception エラー通知
      */
     public static void main(String[] args) throws Exception {
         try {
             MXUtil.fixConsoleEncoding();
-        }catch(Throwable ex) {
+        } catch (Throwable ex) {
             MXFileLogger.getLogger(MXMain.class).log(Level.SEVERE, ex.getMessage(), ex);
         }
         try {
             //フォント描写でアンチエイリアスを有効にする
             System.setProperty("awt.useSystemAAFontSettings", "on");
             initProcessWithSetting(ThemeManager.getInstance());
-        }catch(Throwable ex) {
+        } catch (Throwable ex) {
             MXFileLogger.getLogger(MXMain.class).log(Level.SEVERE, ex.getMessage(), ex);
         }
         try {
             getMain().startUI();
-        }catch(Throwable ex) {
+        } catch (Throwable ex) {
             MXFileLogger.getLogger(MXMain.class).log(Level.SEVERE, ex.getMessage(), ex);
         }
     }
-    
-    public void startUI()  {
-        _progress = new MXProgressDialog(null, false);        
+
+    public void startUI() {
+        _progress = new MXProgressDialog(null, false);
         _progress.setMessageAsStartUP();
         _progress.setVisible(true);
 
@@ -170,18 +173,18 @@ public class MXMain  {
         _mx00playlistProcess = new MX00Process();
         _mx10inputProcess = new MX10Process();
         _mx12pianoProcess = new MX12Process();
-        _mx30kontrolProcess =  new MX30Process();
+        _mx30kontrolProcess = new MX30Process();
         _mx36ccmappingProcess = new MX36Process();
         _mx40layerProcess = new MX40Process();
         _mx50resolutionProcess = new MX50Process();
-        
+
         _mx80VstRack = MX80Process.getInstance();
         _mx90Debugger = new MX90Process();
         _mxXMLManager = CXXMLManager.getInstance();
 
         _mx60outputProcess = new MX60Process();
         _mx70CosoleProcess = new MX70Process();
-        
+
         _masterToList.addNameAndValue("*Auto", null);
         _masterToList.addNameAndValue(_mx10inputProcess.getReceiverName(), _mx10inputProcess);
         _masterToList.addNameAndValue(_mx30kontrolProcess.getReceiverName(), _mx30kontrolProcess);
@@ -208,15 +211,16 @@ public class MXMain  {
         initProcessWithSetting(_mx60outputProcess);
         initProcessWithSetting(_mx40layerProcess);
         initProcessWithSetting(_mx50resolutionProcess);
-       
+
         _mainWindow = new MXMainWindow(this);
         _mainWindow.setEnabled(false);
         _mainWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        _mainWindow.addWindowListener(new WindowAdapter(){
+        _mainWindow.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 AppCloseTask(true);
             }
-            public void windowClosed(WindowEvent e){
+
+            public void windowClosed(WindowEvent e) {
             }
         });
 
@@ -244,7 +248,7 @@ public class MXMain  {
                 _mainWindow.setVisible(true);
 
                 Runnable run;
-                while((run = getNextLaunchSequence()) != null) {
+                while ((run = getNextLaunchSequence()) != null) {
                     run.run();
                 }
 
@@ -254,30 +258,30 @@ public class MXMain  {
             }
         };
     }
-    
+
     LinkedList<Runnable> _startQueue = new LinkedList();
-    
+
     public void addLaunchSequence(Runnable run) {
-        synchronized(MXTiming.mutex) {
+        synchronized (MXTiming.mutex) {
             _startQueue.add(run);
         }
     }
-    
+
     public Runnable getNextLaunchSequence() {
-        synchronized(MXTiming.mutex) {
+        synchronized (MXTiming.mutex) {
             if (_startQueue.isEmpty()) {
                 return null;
             }
             return _startQueue.removeFirst();
         }
     }
-    
+
     public void openFreeConsole() {
         _mx70CosoleProcess.createWindow();
     }
 
     private MXNamedObjectList<MXReceiver> _masterToList = new MXNamedObjectList();
-    
+
     public MXNamedObjectList<MXReceiver> getReceiverList() {
         MXNamedObjectList<MXReceiver> list = new MXNamedObjectList();
         if (_masterToList.size() == 0) {
@@ -291,7 +295,7 @@ public class MXMain  {
         MXJsonParser.invokeAutosave();
         MXINIFile.invokeAutoSave();
     }
-    
+
     public void exitWithoutSave() {
         AppCloseTask(false);
     }
@@ -299,9 +303,9 @@ public class MXMain  {
     public void saveAndExit() {
         AppCloseTask(true);
     }
-    
+
     public void AppCloseTask(boolean save) {
-        _progress = new MXProgressDialog(_mainWindow, false);        
+        _progress = new MXProgressDialog(_mainWindow, false);
         _progress.setMessageAsExit();
         _progress.setVisible(true);
         Thread t = new Thread(new Runnable() {
@@ -310,15 +314,14 @@ public class MXMain  {
                 if (save) {
                     try {
                         saveEverySettingToFile();
-                    }
-                    catch(RuntimeException ex) {
+                    } catch (RuntimeException ex) {
                         MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
                     }
                 }
 
                 try {
                     VSTStream.getInstance().postCloseStream(null);
-                }catch(Throwable ex) {
+                } catch (Throwable ex) {
                     MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
 
@@ -327,7 +330,7 @@ public class MXMain  {
                     MXMIDIInManager.getManager().closeAll();
                     MXMIDIOutManager.getManager().closeAll();
                     MXSafeThread.exitAll();
-                }catch(RuntimeException ex) {
+                } catch (RuntimeException ex) {
                     MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
                 MXFileLogger.getLogger(MXMain.class).info("stopping vst");
@@ -338,42 +341,57 @@ public class MXMain  {
         });
         t.start();
     }
+
     public MX10Process getInputProcess() {
         return _mx10inputProcess;
     }
-    
+
     static class MessageQueueElement {
 
         public MessageQueueElement(MXMessage message, MXReceiver receiver) {
             _message = message;
             _receiver = receiver;
         }
-        
+
         MXMessage _message;
         MXReceiver _receiver;
     }
-    
+
     MXQueue<MessageQueueElement> _messageQueue = new MXQueue<>();
     MXSafeThread _messageThread = null;
-    
+
+    public void waitQueueBeenEmpty() {
+        try {
+            while (true) {
+                Thread.sleep(1);
+                synchronized (MXTiming.mutex) {
+                    if (_messageQueue.isEmpty()) {
+                        return;
+                    }
+                }
+            }
+        } catch (InterruptedException ex) {
+        }
+    }
+
     public void messageDispatch(MXMessage message, MXReceiver receiver) {
         synchronized (this) {
             if (_messageThread == null) {
-                _messageThread = 
-                new MXSafeThread("MessageProcess", new Runnable() {
-                    @Override
-                    public void run() {
-                        while(true) {
-                            MessageQueueElement e = _messageQueue.pop();
-                            if(e == null) {
-                                break;
+                _messageThread
+                        = new MXSafeThread("MessageProcess", new Runnable() {
+                            @Override
+                            public void run() {
+                                while (true) {
+                                    MessageQueueElement e = _messageQueue.pop();
+                                    if (e == null) {
+                                        break;
+                                    }
+                                    MXMessage message = e._message;
+                                    MXReceiver receiver = e._receiver;
+                                    messageDispatchBody(message, receiver);
+                                }
                             }
-                            MXMessage message = e._message;
-                            MXReceiver receiver = e._receiver;
-                            messageDispatchBody(message, receiver);
-                        }
-                    }
-                });
+                        });
                 _messageThread.setPriority(Thread.MAX_PRIORITY);
                 _messageThread.setDaemon(true);
                 _messageThread.start();
@@ -381,15 +399,14 @@ public class MXMain  {
         }
         if (Thread.currentThread() == _messageThread) {
             messageDispatchBody(message, receiver);
-        }
-        else {
+        } else {
             _messageQueue.push(new MessageQueueElement(message, receiver));
         }
     }
-    
+
     void messageDispatchBody(MXMessage message, MXReceiver receiver) {
         try {
-            synchronized(MXTiming.mutex) {
+            synchronized (MXTiming.mutex) {
                 try {
                     if (message._timing == null) {
                         message._timing = new MXTiming();
@@ -398,24 +415,24 @@ public class MXMain  {
                         MXMain.addInsideInput(message);
                         if (_capture != null) {
                             _capture.processMXMessage(message);
-                        }   
+                        }
                     }
                     if (receiver != null) {
                         receiver.processMXMessage(message);
                     }
-                }catch(RuntimeException ex) {
+                } catch (RuntimeException ex) {
                     MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
-        }catch(Throwable ex) {
+        } catch (Throwable ex) {
             MXFileLogger.getLogger(MXMain.class).log(Level.SEVERE, ex.getMessage(), ex);
         }
     }
-    
+
     public MX00Process getPlayListProcess() {
         return _mx00playlistProcess;
     }
-    
+
     public MX30Process getKontrolProcess() {
         return _mx30kontrolProcess;
     }
@@ -431,11 +448,11 @@ public class MXMain  {
     public MX12Process getPianoProcess() {
         return _mx12pianoProcess;
     }
-    
+
     public CXXMLManager getXMLManager() {
         return _mxXMLManager;
     }
-    
+
     public MXReceiver getActiveSendableReceiver() {
         if (_mainWindow == null) {
             return _mx10inputProcess;
@@ -461,7 +478,7 @@ public class MXMain  {
             throw new NullPointerException();
         }
         boolean done = false;
-        if (support instanceof MXJsonSupport){
+        if (support instanceof MXJsonSupport) {
             done = ((MXJsonSupport) support).readJSonfile(null);
             MXFileLogger.getLogger(support.getClass()).info("tried read json = " + done);
         }
