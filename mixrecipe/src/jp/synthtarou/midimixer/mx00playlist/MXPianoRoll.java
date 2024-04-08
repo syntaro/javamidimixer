@@ -126,9 +126,9 @@ public class MXPianoRoll extends JComponent {
         }
 
         _canvas.prepare(widthAll, heightAll);
-        if (_canvas._prepareReseted) {
+        //if (_canvas._prepareReseted) {
             paintOnBuffer1(_position);
-        }
+        //}
 
         if (_lastRollingY == 0) {
             g.drawImage(_canvas._image, 0, 0, widthAll, heightAll, 0, 0, widthAll, heightAll, this);
@@ -540,7 +540,8 @@ public class MXPianoRoll extends JComponent {
             controlFooterKeys(_position);
             _keys.repaint();
         }
-        paintOnBuffer1(elapsed);
+        //invalidate();
+        //paintOnBuffer1(elapsed);
         repaint();
     }
 

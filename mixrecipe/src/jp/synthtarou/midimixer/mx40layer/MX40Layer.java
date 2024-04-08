@@ -401,7 +401,10 @@ public class MX40Layer {
     
     public boolean equals(Object o) {
         MX40Layer target = (MX40Layer)o;
-        if (!_title.equals(target._title)) {
+        if (_title == null || target._title == null) {
+            new Exception().printStackTrace();
+        }
+        else if (!_title.equals(target._title)) {
             return false;
         }
         if (_modPort != target._modPort) {

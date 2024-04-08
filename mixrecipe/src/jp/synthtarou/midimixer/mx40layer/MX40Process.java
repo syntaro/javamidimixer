@@ -56,16 +56,6 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
         _view = new MX40View(this);
     }
 
-    public void exportSetting(File file) {
-        MXINIFile setting2 = new MXINIFile(file, this);
-        setting2.writeINIFile();
-    }
-
-    public void importSetting(File file) {
-        MXINIFile setting2 = new MXINIFile(file, this);
-        setting2.readINIFile();
-    }
-
     MXMessage[] buf = new MXMessage[2];
 
     public void sendToNext(MXMessage message) {

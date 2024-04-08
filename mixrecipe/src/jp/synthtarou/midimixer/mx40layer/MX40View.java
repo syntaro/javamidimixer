@@ -1430,15 +1430,16 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         chooser.setAcceptAllFileFilterUsed(false);
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             File file = chooser.getSelectedFile();
-            _process.importSetting(file);
-            _process.resendProgramChange();
-            justRefreshViewListAndPanel();
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    JOptionPane.showMessageDialog(MX40View.this, "Succeed Import [" + file + "]");
-                }
-            });
+            if (_process.readINIFile(file)) {
+                _process.resendProgramChange();
+                justRefreshViewListAndPanel();
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        JOptionPane.showMessageDialog(MX40View.this, "Succeed Import [" + file + "]");
+                    }
+                });
+            }
         }
     }
     
@@ -1449,8 +1450,9 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         chooser.setAcceptAllFileFilterUsed(true);
         if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
             File file = chooser.getSelectedFile();
-            _process.exportSetting(file);
-            JOptionPane.showMessageDialog(this, "Succeed Export [" + file + "]");
+            if (_process.writeINIFile(file)) {
+                JOptionPane.showMessageDialog(this, "Succeed Export [" + file + "]");                
+            }
         }  
     }
 
