@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.libs.midi.port;
 
-import java.io.IOException;
 import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant16;
 import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant;
 import java.util.ArrayList;
@@ -37,7 +36,6 @@ import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
-import jp.synthtarou.midimixer.libs.midi.visitant.MXDataentry;
 
 /**
  *
@@ -317,7 +315,7 @@ public class MXMIDIIn {
                     }
                     MXMessage ported = MXMessageFactory.fromClone(message);
                     ported.setPort(port);
-                    input.dispatchToPortThreaded(ported);
+                    input.dispatchToPort(ported);
                 }
             }
         }
@@ -378,7 +376,7 @@ public class MXMIDIIn {
                             public void onNoteOffEvent(MXTiming timing, MXMessage target) {
                                 target._timing = timing;
                                 MXMain.addOutsideInput(target);
-                                dispatchToPortThreaded(target);
+                                dispatchToPort(target);
                             }
                         });
                     }
@@ -386,49 +384,15 @@ public class MXMIDIIn {
                 if (message != null) {
                     message._timing = timing;
                     MXMain.addOutsideInput(message);
-                    dispatchToPortThreaded(message);
+                    dispatchToPort(message);
                 }
             }
         }
     }
 
-    static MXQueue<MXMessage> _messageQueue = new MXQueue<>();
-    static Thread _threadQueue = null;
-    static boolean _release = true;
-
-    private void dispatchToPortThreaded(MXMessage message) {
-        if (_release) {
-            if (_threadQueue == null || _threadQueue.isAlive() == false) {
-                _threadQueue = new MXSafeThread("MXMidiIn", new Runnable() {
-                    @Override
-                    public void run() {
-                        while (true) {
-                            try {
-                                MXMessage msg2 = _messageQueue.pop();
-                                if (msg2 != null) {
-                                    dispatchToPortCurrent(msg2);
-                                } else {
-                                    return;
-                                }
-                            } catch (RuntimeException ex) {
-                                MXFileLogger.getLogger(MXMIDIIn.class).log(Level.WARNING, ex.getMessage(), ex);
-                            }
-                        }
-                    }
-                });
-                _threadQueue.setDaemon(true);
-                _threadQueue.setPriority(Thread.MAX_PRIORITY);
-                _threadQueue.start();
-            }
-            _messageQueue.push(message);
-        } else {
-            dispatchToPortCurrent(message);
-        }
-    }
-
     MXMessage[] retBuf = new MXMessage[3];
 
-    protected void dispatchToPortCurrent(MXMessage message) {
+    protected void dispatchToPort(MXMessage message) {
         /*
         if (message.isMessageTypeChannel()) {
             MXVisitant visit = _visitant16.get(message.getChannel());

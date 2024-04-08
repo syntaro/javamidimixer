@@ -143,6 +143,7 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
                         int dword = smf.toDwordMessage();
                         receiveShortMessage(timing, dword);
                     }
+                     parent.smfPlayNote(timing, smf);
                 }catch(RuntimeException ex) {
                     MXFileLogger.getLogger(MXMIDIInForPlayer.class).log(Level.WARNING, ex.getMessage(), ex);
                 }

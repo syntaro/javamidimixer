@@ -16,39 +16,10 @@
  */
 package jp.synthtarou.midimixer.mx30surface.capture;
 
-import java.util.TreeMap;
-
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class CaptureValue {
-    public CaptureValue() {
-        _minValue = Integer.MAX_VALUE;
-        _maxValue = Integer.MIN_VALUE;
-        _count = new TreeMap<>();
-    }
-    
-    public void record(int value) {
-        if (_minValue > value) {
-            _minValue = value;
-        }
-        if (_maxValue < value) {
-            _maxValue = value;
-        }
-        Integer x = _count.get(value);
-        if (x == null) {
-            _count.put(value, 1);
-        }else {
-            _count.put(value, x + 1);
-        }
-    }
-    
-    public String toString() {
-        return "Min: " + _minValue + " - Max: "+  _maxValue;
-    }
-
-    int _minValue;
-    int _maxValue;
-    TreeMap<Integer, Integer> _count;
+public interface CaptureCallback {
+    public void captureCallback(int channel, String command, int gate, int valueMin, int valueMax);
 }

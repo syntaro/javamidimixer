@@ -19,7 +19,6 @@ package jp.synthtarou.midimixer.mx30surface.capture;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import javax.swing.JPanel;
-import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
@@ -47,7 +46,6 @@ public class CapturePool {
     }
     
     public synchronized  void record(MXMessage message) {
-        System.out.println("recorded "+  message);
         long timelimit = System.currentTimeMillis() - longestMilliSeconds;
 
         Entry e = new Entry(message);

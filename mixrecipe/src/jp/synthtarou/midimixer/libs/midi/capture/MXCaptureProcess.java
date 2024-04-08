@@ -18,7 +18,6 @@ package jp.synthtarou.midimixer.libs.midi.capture;
 
 import javax.swing.JPanel;
 import javax.swing.JTree;
-import javax.swing.SwingUtilities;
 import javax.swing.tree.TreeCellRenderer;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;

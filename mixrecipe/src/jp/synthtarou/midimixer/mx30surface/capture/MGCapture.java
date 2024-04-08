@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.mx30surface.capture;
 
-import java.util.ArrayList;
 import java.util.TreeMap;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -52,29 +51,25 @@ public class MGCapture {
     }
     
     public void record(MXMessage message) {
-        String command = message.getChannel() + ":" + message.getTemplateAsText();
+        String strCommand = message.getTemplateAsText();
+        int command = message.getStatus() & 0xf0;
         int gate = message.getGate()._value;
         int value = message.getValue()._value;
-        CaptureCommand capCommand = _listCommand.get(command);
+        CaptureCommand capCommand = _listCommand.get(strCommand);
         
         if (capCommand == null) {
-            capCommand = new CaptureCommand(command);
-            _listCommand.put(command, capCommand);
+            capCommand = new CaptureCommand(message.getChannel(), strCommand);
+            _listCommand.put(capCommand.toString(), capCommand);
         }
         
         CaptureGate capGate = capCommand._listGate.get(gate);
         if (capGate == null) {
-            capGate = new CaptureGate(gate, Integer.toString(gate) + "");
+            capGate = new CaptureGate(capCommand, gate, Integer.toString(gate) + "");
             capCommand._listGate.put(gate, capGate);
         }
         
-        CaptureValue capValue = capGate._listValue.get(value);
-        if (capValue == null) {
-            capValue = new CaptureValue(value);
-            capGate._listValue.put(value, capValue);
-        }
-
-        capValue._count ++;
+        CaptureValue capValue = capGate._value;
+        capValue.record(value);
     }
     
     public MXNamedObjectList<CaptureCommand> listCommand() {
@@ -95,22 +90,13 @@ public class MGCapture {
         return ret;
     }
 
-    public MXNamedObjectList<CaptureValue> listValue(CaptureGate gate) {
-        MXNamedObjectList<CaptureValue> ret = new MXNamedObjectList<>();
-        for (Integer key : gate._listValue.keySet()) {
-            CaptureValue value = gate._listValue.get(key);
-            ret.addNameAndValue(String.valueOf(key) +" x" + String.valueOf(value._count), value);
-        }
-        return ret;
-    }
-    
     TreeMap<String, CaptureCommand> _listCommand = new TreeMap<>();
 
     public synchronized MXNamedObjectList<CaptureCommand> createCommandListModel() {
         MXNamedObjectList<CaptureCommand> list = new MXNamedObjectList<>();
 
         for (CaptureCommand seek : _listCommand.values()) {
-            list.addNameAndValue(seek._command, seek);
+            list.addNameAndValue(seek.toString(), seek);
         }
         if (list.isEmpty()) {
             list.addNameAndValue("nothing" + System.currentTimeMillis(), null);
@@ -124,27 +110,31 @@ public class MGCapture {
             return list;
         }
         for (CaptureGate seek : command._listGate.values()) {
-            list.addNameAndValue(seek._text, seek);
+            list.addNameAndValue(seek.toString(), seek);
         }
         return list;
     }
 
-    public synchronized MXNamedObjectList<String> createValueListModel(CaptureGate gate) {
-        MXNamedObjectList<String> list = new MXNamedObjectList<>();
+        
+    public synchronized MXNamedObjectList<CaptureValue> createValueListModel(CaptureGate gate) {
+        MXNamedObjectList<CaptureValue> list = new MXNamedObjectList<>();
         if (gate == null) {
             return list;
         }
-        
-        list.addNameAndValue("0-127", "0-127");
-        list.addNameAndValue("0-16383", "0-16383");
-        
-        TreeMap<Integer,CaptureValue> values = gate._listValue;
-        if (!values.isEmpty()) {
-            int min = values.firstKey();
-            int max = values.lastKey();
-            String str = Integer.toString(min) + "-" + Integer.toString(max);
+        if (gate._command._template != null && gate._command._template.indexOfValueHi() >= 0) {
+            CaptureValue temp = new CaptureValue();
+            temp.record(0);
+            temp.record(128 * 128 -1);
+            list.addNameAndValue(temp.toString(), temp);
         }
-        
+        if (true) {
+            CaptureValue temp = new CaptureValue();
+            temp.record(0);
+            temp.record(128 -1);
+            list.addNameAndValue(temp.toString(), temp);
+        }
+        list.addNameAndValue("detected " + gate._value.toString(), gate._value);
+
         return list;
     }
 }

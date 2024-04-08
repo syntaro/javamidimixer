@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import javax.swing.JFrame;
+import jp.synthtarou.libs.MXQueue;
 import jp.synthtarou.midimixer.ccxml.xml.CXXMLManager;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
@@ -49,7 +50,6 @@ import jp.synthtarou.libs.MainThreadTask;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
 import jp.synthtarou.libs.json.MXJsonSupport;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.vst.VSTInstance;
 import jp.synthtarou.midimixer.mx36ccmapping.MX36Process;
 import jp.synthtarou.midimixer.mx12masterpiano.MX12Process;
@@ -341,25 +341,74 @@ public class MXMain  {
     public MX10Process getInputProcess() {
         return _mx10inputProcess;
     }
+    
+    static class MessageQueueElement {
 
+        public MessageQueueElement(MXMessage message, MXReceiver receiver) {
+            _message = message;
+            _receiver = receiver;
+        }
+        
+        MXMessage _message;
+        MXReceiver _receiver;
+    }
+    
+    MXQueue<MessageQueueElement> _messageQueue = new MXQueue<>();
+    MXSafeThread _messageThread = null;
+    
     public void messageDispatch(MXMessage message, MXReceiver receiver) {
-        synchronized(MXTiming.mutex) {
-            try {
-                if (message._timing == null) {
-                    message._timing = new MXTiming();
-                }
-                if (receiver == _mx10inputProcess) {
-                    MXMain.addInsideInput(message);
-                    if (_capture != null) {
-                        _capture.processMXMessage(message);
-                    }   
-                }
-                if (receiver != null) {
-                    receiver.processMXMessage(message);
-                }
-            }catch(RuntimeException ex) {
-                MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
+        synchronized (this) {
+            if (_messageThread == null) {
+                _messageThread = 
+                new MXSafeThread("MessageProcess", new Runnable() {
+                    @Override
+                    public void run() {
+                        while(true) {
+                            MessageQueueElement e = _messageQueue.pop();
+                            if(e == null) {
+                                break;
+                            }
+                            MXMessage message = e._message;
+                            MXReceiver receiver = e._receiver;
+                            messageDispatchBody(message, receiver);
+                        }
+                    }
+                });
+                _messageThread.setPriority(Thread.MAX_PRIORITY);
+                _messageThread.setDaemon(true);
+                _messageThread.start();
             }
+        }
+        if (Thread.currentThread() == _messageThread) {
+            messageDispatchBody(message, receiver);
+        }
+        else {
+            _messageQueue.push(new MessageQueueElement(message, receiver));
+        }
+    }
+    
+    void messageDispatchBody(MXMessage message, MXReceiver receiver) {
+        try {
+            synchronized(MXTiming.mutex) {
+                try {
+                    if (message._timing == null) {
+                        message._timing = new MXTiming();
+                    }
+                    if (receiver == _mx10inputProcess) {
+                        MXMain.addInsideInput(message);
+                        if (_capture != null) {
+                            _capture.processMXMessage(message);
+                        }   
+                    }
+                    if (receiver != null) {
+                        receiver.processMXMessage(message);
+                    }
+                }catch(RuntimeException ex) {
+                    MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
+                }
+            }
+        }catch(Throwable ex) {
+            MXFileLogger.getLogger(MXMain.class).log(Level.SEVERE, ex.getMessage(), ex);
         }
     }
     

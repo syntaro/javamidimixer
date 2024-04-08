@@ -25,6 +25,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
+import jp.synthtarou.midimixer.mx30surface.MGStatusPanel;
 
 /**
  *
@@ -41,42 +42,19 @@ public class MGCapturePanel extends javax.swing.JPanel {
 
     MXNamedObjectList<CaptureCommand> listCommandModel;
     MXNamedObjectList<CaptureGate> listGateModel;
-    MXNamedObjectList<String> listValueModel;
+    MXNamedObjectList<CaptureValue> listValueModel;
 
+    CaptureCallback _cb;
     /**
      * Creates new form MGCapturePanel
      */
-    public MGCapturePanel() {
+    public MGCapturePanel(CaptureCallback cb) {
         initComponents();
+        _cb = cb;
 
         jPanelCommand.add(new JScrollPane(jListCommand));
         jPanelGate.add(new JScrollPane(jListGate));
         jPanelValue.add(new JScrollPane(jListValue));
-
-        updateListModel();
-    }
-
-    public void updateListModel() {
-        if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    updateListModel();
-                }
-            });
-            return;
-        }
-        listCommandModel = _capture.createCommandListModel();
-        listGateModel = _capture.createGateListModel(null);
-        listValueModel = _capture.createValueListModel(null);
-
-        jListCommand.setModel(listCommandModel);
-        jListGate.setModel(listGateModel);
-        jListValue.setModel(listValueModel);
-
-        jListCommand.revalidate();
-        jListCommand.repaint();
-
         jListCommand.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
@@ -107,6 +85,31 @@ public class MGCapturePanel extends javax.swing.JPanel {
                 }
             }
         });
+
+        updateListModel();
+    }
+
+    public void updateListModel() {
+        if (SwingUtilities.isEventDispatchThread() == false) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    updateListModel();
+                }
+            });
+            return;
+        }
+        listCommandModel = _capture.createCommandListModel();
+        listGateModel = _capture.createGateListModel(null);
+        listValueModel = _capture.createValueListModel(null);
+
+        jListCommand.setModel(listCommandModel);
+        jListGate.setModel(listGateModel);
+        jListValue.setModel(listValueModel);
+
+        jListCommand.revalidate();
+        jListCommand.repaint();
+
 
     }
 
@@ -212,11 +215,11 @@ public class MGCapturePanel extends javax.swing.JPanel {
 
         CaptureCommand command = this.listCommandModel.valueOfIndex(x1);
         CaptureGate gate = this.listGateModel.valueOfIndex(x2);
-        String value = this.listValueModel.valueOfIndex(x3);
+        CaptureValue value = this.listValueModel.valueOfIndex(x3);
 
-        String str = command + "(gate=" + gate + ")" + value;
-
-        JOptionPane.showMessageDialog(this, str, "selected", JOptionPane.OK_OPTION);
+        String str = command.toString() + "(gate=" + gate.toString() + ")" + value;
+        
+        _cb.captureCallback(command._channel, command._command, gate._gate, value._minValue, value._maxValue);
 
     }//GEN-LAST:event_jButton3ActionPerformed
 
@@ -230,14 +233,17 @@ public class MGCapturePanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jCheckBoxCaptureActionPerformed
 
     public void showCapture() {
-        ArrayList<MXMessage> pooled = _pool.getLastTime(5000);
-        MGCapture capture = new MGCapture();
-        for (MXMessage seek : pooled) {
-            capture.record(seek);
-            System.out.println("Copying " + seek);
+        try {
+            ArrayList<MXMessage> pooled = _pool.getLastTime(5000);
+            MGCapture capture = new MGCapture();
+            for (MXMessage seek : pooled) {
+                capture.record(seek);
+            }
+            _capture = capture;
+            updateListModel();
+        }catch(Throwable ex) {
+            ex.printStackTrace();
         }
-        _capture = capture;
-        updateListModel();
     }
 
     public void setTimer(long next) {

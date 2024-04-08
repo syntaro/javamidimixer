@@ -173,7 +173,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
     }
 
     public void endBagging() {
-        if (_bagCount -- == 1) {
+        if (_bagCount-- == 1) {
             flushSendQueue(_bag);
             _bag.clearFlags();
         }
@@ -198,13 +198,13 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
         if (_stopFeedback > 0) {
             return;
         }
-        
-        ++ _bagCount;
+
+        ++_bagCount;
         try {
             while (did >= 1) {
                 did = 0;
                 MGSliderMove move = bag.popSliderMove();
-                if(move != null) {
+                if (move != null) {
                     MGStatus status = move._status;
                     int port = status._port;
                     MXMessage message = _pageProcess[port].updateUIStatusAndGetResult(status, move._newValue, move._timing);
@@ -213,7 +213,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
                         message._timing = move._timing;
 
                         bag.addQueue(message);
-                     
+
                         MX36Process mapping = _mappingProcess;
                         if (mapping != null) {
                             if (mapping.isNotLinked(status)) {
@@ -222,9 +222,9 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
                                 mapping.invokeMapping(status);
                             }
                         }
-                        bag.addResult(message);                        
+                        bag.addResult(message);
                     }
-                    did ++;
+                    did++;
                 }
                 MXMessage message = bag.popQueue();
                 if (message != null) {
@@ -251,8 +251,8 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
                 }
                 sendToNext(seek);
             }
-        }finally{
-            _bagCount --;
+        } finally {
+            _bagCount--;
         }
     }
 

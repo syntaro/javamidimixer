@@ -17,16 +17,48 @@
 package jp.synthtarou.midimixer.mx30surface.capture;
 
 import java.util.TreeMap;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class CaptureCommand {
-    public CaptureCommand(String command) {
+    public CaptureCommand(int channel, String command) {
+        _channel = channel;
         _command = command;
+        _template = null;
+        try {
+            _template = new MXTemplate(command);
+        }catch(Exception ex) {
+            
+        }
+    }
+    
+    public String toString() {
+        int command = -1;
+        if (_template != null && _template.size() >= 1) {
+            command = _template.get(0) & 0xfff0;
+        }
+        String add = "";
+        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+            add = " = CC";
+        }
+        else {
+            add = MXMidi.nameOfSystemCommonMessage(command);
+            if (add == null) {
+                add = "";
+            }
+            else {
+                add = " = "+ add;
+            }
+        }
+        return _channel + ":" + _command + add;
     }
 
+    MXTemplate _template;
+    int _channel;
     String _command;
     TreeMap<Integer, CaptureGate> _listGate = new TreeMap();
 }

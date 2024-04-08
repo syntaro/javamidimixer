@@ -53,6 +53,7 @@ public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
     public boolean readINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
         if (!setting.readINIFile()) {
+            afterReadSettings();
             return false;
         }
         MXNamedObjectList<MXMIDIOut> listOut = listAllOutput();

@@ -31,6 +31,6 @@ public class MXMIDIInForTest extends MXMIDIIn {
     }
     
     public void startTest(MXMessage message) {
-        super.dispatchToPortCurrent(message);
+        super.dispatchToPort(message);
     }
 }

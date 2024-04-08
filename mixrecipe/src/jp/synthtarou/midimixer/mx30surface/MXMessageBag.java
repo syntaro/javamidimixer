@@ -36,6 +36,16 @@ public class MXMessageBag {
     TreeMap<MGStatus, MGSliderMove> _listSliderMove = new TreeMap<>();
     
     public synchronized  void clearFlags() {
+        /*
+        int x = 0;
+        x += _listQuque.size();
+        x += _listResult.size();
+        x += _listResultTask.size();
+        x += _listSliderMove.size();
+        if (x >= 1) {
+            System.err.println("deleting unprocess " + x);
+        }*/
+
         _listQuque.clear();
         _listResult.clear();
         _listResultTask.clear();

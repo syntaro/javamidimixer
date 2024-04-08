@@ -37,7 +37,6 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import jp.synthtarou.midimixer.MXConfiguration;
-import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
 import jp.synthtarou.midimixer.ccxml.ui.PickerForControlChange;
 import jp.synthtarou.libs.log.MXFileLogger;
@@ -50,21 +49,19 @@ import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
-import jp.synthtarou.midimixer.libs.midi.capture.Counter;
-import jp.synthtarou.midimixer.libs.midi.capture.MXCaptureProcess;
-import jp.synthtarou.midimixer.libs.midi.capture.MXCaptureView;
 import jp.synthtarou.libs.navigator.legacy.INavigator;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXFolderBrowser;
+import jp.synthtarou.midimixer.mx30surface.capture.CaptureCallback;
 import jp.synthtarou.midimixer.mx30surface.capture.MGCapturePanel;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MGStatusPanel extends javax.swing.JPanel {
+public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback {
 
     boolean _okOption = false;
     final MX32MixerProcess _process;
@@ -167,7 +164,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
         jLabelBlank7.setText("");
 
         
-        jPanel1.add(new MGCapturePanel());
+        jPanel1.add(new MGCapturePanel(this));
         
         new MXPopupForText(jTextFieldName) {
             @Override
@@ -251,6 +248,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
                         startBrowseXML();
                     }
                 });
+                /*
                 JMenuItem item3 = new JMenuItem("Capture");
                 popup.add(item3);
                 item3.addActionListener(new ActionListener() {
@@ -260,7 +258,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
                     }
                 });
                 popup.addSeparator();
-
+            */
                 JMenuItem item5 = new JMenuItem("Note");
                 item5.addActionListener(new ActionListener() {
                     @Override
@@ -2125,8 +2123,33 @@ public class MGStatusPanel extends javax.swing.JPanel {
     static final String INTERNAL_DATARPN = "Dataentry RPN";
     static final String INTERNAL_DATANRPN = "Dataentry NRPN";
 
-    MXCaptureProcess _capture = null;
+    @Override
+    public void captureCallback(int channel, String command, int gate, int valueMin, int valueMax) {
+        try {
+            MXTemplate temp = new MXTemplate(command);
+            if (temp.get(0) == MXMidi.COMMAND_CH_NOTEOFF) {
+                int z = JOptionPane.showConfirmDialog(
+                        this,
+                        "Seems you choiced Note Off\n"
+                        + "You want to change to Note ON?",
+                        "Offer (adjust value range)",
+                        JOptionPane.YES_NO_OPTION);
+                if (z == JOptionPane.YES_OPTION) {
+                    command = "@ON #GL #VL";
+                    temp = new MXTemplate(command);
+                }
+            }
+            MXMessage base = MXMessageFactory.fromTemplate(0, temp, channel, MXRangedValue.new7bit(gate), new MXRangedValue(valueMax, valueMin, valueMax));
+            _status.setBaseMessage(base);
+            displayStatusToPanelSlider();
+            displayStatusToPanelDrum();
+        }catch(Throwable ex) {
+            ex.printStackTrace();
+        }
+    }
 
+/*
+    MXCaptureProcess _capture = null;
     public void startCapture() {
         _capture = new MXCaptureProcess();
         MXMain.setCapture(_capture);
@@ -2178,7 +2201,7 @@ public class MGStatusPanel extends javax.swing.JPanel {
             displayStatusToPanelDrum();
         }
     }
-
+*/
     public void actionSetValueRange(int min, int max) {
         if (min < 0) {
             min = 0;
