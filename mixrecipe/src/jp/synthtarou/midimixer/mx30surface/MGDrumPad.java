@@ -66,6 +66,7 @@ public class MGDrumPad extends javax.swing.JPanel {
         updateUI();
     }
 
+    
     public void setDrumActive(boolean newValue) {
         if (newValue) {
             _focusSelected = true;

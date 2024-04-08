@@ -56,6 +56,7 @@ public class FinalMIDIOut extends MXReceiver {
             else if (_testPort == message.getPort()) {
                 _listTestResult.add(message);
             }
+            message._debug = new Exception();
         }
         MXNamedObjectList<MXMIDIOut> listOut = MXMIDIOutManager.getManager().listAllOutput();
         for (int i = 0; i < listOut.getSize(); ++ i) {

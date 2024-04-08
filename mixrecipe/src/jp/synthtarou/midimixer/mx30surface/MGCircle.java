@@ -57,7 +57,7 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
 
         updateUI();
         addMouseWheelListener(this);
-        _stopFeedback = false;
+        _stopFeedback = 0;
     }
 
     public void updateUI() {
@@ -122,10 +122,10 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
         gridBagConstraints.weightx = 1.0;
     }// </editor-fold>                        
 
-    boolean _stopFeedback = true;
+    int _stopFeedback = 0;
 
     private void jCircleValueStateChanged(javax.swing.event.ChangeEvent evt) {
-        if (_stopFeedback) {
+        if (_stopFeedback > 0) {
             return;
         }
         int newValue = jCircleValue.getValue();
@@ -135,24 +135,20 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
 
     MXTiming _trackNumer;
 
-    public void publishUI() {
+    public void publishUI(MXRangedValue newValue) {
         MGStatus status = getStatus();
         if (SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    publishUI();
+                    publishUI(newValue);
                 }
             });
             return;
         }
-        MXRangedValue newValue = status._base.getValue();
-        if (jCircleValue.getValue() == newValue._value) {
-            return;
-        }
-        _stopFeedback = true;
+        _stopFeedback ++;
         jCircleValue.setValue(newValue);
-        _stopFeedback = false;
+        _stopFeedback --;
     }
 
     // Variables declaration - do not modify                     

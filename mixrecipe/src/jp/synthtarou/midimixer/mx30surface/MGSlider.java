@@ -149,8 +149,6 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
         add(jLabelMin, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
-    boolean _selfControl = false;
-    
     private void jSliderValueStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderValueStateChanged
         if (_stopFeedback) {
             return;
@@ -160,25 +158,19 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
         _mixer._parent.addSliderMove(getStatus(), newValue);
     }//GEN-LAST:event_jSliderValueStateChanged
 
-    public void publishUI() {
-        MGStatus status = getStatus();
+    public void publishUI(MXRangedValue newValue) {
         if (SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    publishUI();
+                    publishUI(newValue);
                 }
             });
             return;
         }
-        MXRangedValue newValue = status._base.getValue();
-        if (jSliderValue.getValue() == newValue._value) {
-            return;
-        }
-        _selfControl = true;
-        jLabelValue.setText(String.valueOf(newValue._value));
+        _stopFeedback = true;
         jSliderValue.setValue(newValue._value);
-        _selfControl = false;
+        _stopFeedback = false;
     }
 
     public JLabel labelFor(int num, int max) {

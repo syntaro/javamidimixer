@@ -94,6 +94,7 @@ public class MGStatusForDrum implements Cloneable {
 
     MGStatus _status;
 
+
     boolean _lastDetected = false;
     boolean _lastToggled = false;
     MXTemplate _customTemplate = null;
@@ -221,37 +222,30 @@ public class MGStatusForDrum implements Cloneable {
         }
     }
 
-    boolean updatetingValue(int value) {
-        boolean flag = _strikeZone.contains(value);
-        if (flag == _lastDetected) {
-            //System.out.println("cancel updating value " + value +" == "+ _status._column + ":" + _status._row + ", " + value + " -> " + flag +" vs "+  _lastDetected); 
-            return false;
-        }
-        //System.out.println("did updating value " + value +" == "+ _status._column + ":" + _status._row + ", " + value + " -> " + flag +" vs "+  _lastDetected); 
-        _lastDetected = flag;
-        if (flag) {
+    MXMessage updatetingValue(int value) {
+        boolean strike = _strikeZone.contains(value);
+        if (strike) {
             if (_modeToggle) {
                 _lastToggled = !_lastToggled;
-                flag = _lastToggled;
+                strike = _lastToggled;
             }
         } else {
             if (_modeToggle) {
-                return false;
+                return null;
             }
         }
-        doAction(flag);
-        return true;
+        if (strike == _lastDetected) {
+            return null;
+        }
+        _lastDetected = strike;
+        return doAction(strike);
     }
 
-    void doAction(boolean flag) {
-        MXMessage message;
+    MXMessage doAction(boolean flag) {
+        MXMessage message = null;
 
-        if (_lastSent == flag) {
-            return;
-        }
         MXMessageBag bag = _status._mixer._parent.startBagging();
         try {
-            _lastSent = flag;
             int velocity = _status.getValue()._value;
 
             MX30Process parentProcess = MXMain.getMain().getKontrolProcess();
@@ -265,11 +259,11 @@ public class MGStatusForDrum implements Cloneable {
             if (channel < 0) {
                 channel = _status._base.getChannel();
             }
-            if (flag) {
-                pad.setDrumActive(true);
-            } else {
-                pad.setDrumActive(false);
+            pad.setDrumActive(flag);
+            if (_lastSent == flag) {
+                return null;
             }
+            _lastSent = flag;
             if (flag) {
                 switch (_outValueTypeOn) {
                     case VALUETYPE_AS_INPUT:
@@ -279,27 +273,23 @@ public class MGStatusForDrum implements Cloneable {
                         velocity = _mouseOnValue;
                         break;
                     case VALUETYPE_NOTHING:
-                        return;
+                        return null;
                 }
                 switch (_outStyle) {
                     case STYLE_SAME_CC:
                         message = (MXMessage) _status._base.clone();
                         message.setValue(velocity);
-                        bag.addResult(message);
-                        return;
+                        break;
 
                     case STYLE_CUSTOM_CC:
                         if (_customTemplate != null) {
                             message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, MXRangedValue.new7bit(velocity));
-                            bag.addResult(message);
-                            return;
                         }
                         break;
                     case STYLE_NOTES:
                         int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
                         for (int note : noteList) {
                             message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEON + channel, note, velocity);
-                            bag.addResult(message);
                         }
                         break;
                     case STYLE_SEQUENCE:
@@ -325,7 +315,6 @@ public class MGStatusForDrum implements Cloneable {
                             case MGStatusForDrum.LINKMODE_VALUE:
                                 if (_outValueTypeOn != VALUETYPE_AS_MOUSE) {
                                     value = velocity;
-                                    return;
                                 }
                                 break;
                             case MGStatusForDrum.LINKMODE_INC:
@@ -344,32 +333,28 @@ public class MGStatusForDrum implements Cloneable {
                                 value = (int) Math.round((status.getValue()._max + status.getValue()._min) / 2.0);
                                 break;
                             default:
-                                return;
+                                return null;
                         }
                         _status._mixer._parent.addSliderMove(status, value);
-                        return;
-
+                        break;
                     case STYLE_PROGRAM_CHANGE:
                         switch (_programType) {
                             case PROGRAM_SET:
                                 message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, _programNumber, 0);
                                 message.setProgramBank(_programMSB, _programLSB);
-                                bag.addResult(message);
                                 break;
                             case PROGRAM_INC:
                                 message = MXMessageFactory.fromTemplate(port,
                                         new MXTemplate(new int[]{MXMidi.COMMAND2_CH_PROGRAM_INC}),
                                         channel, null, null);
-                                bag.addResult(message);
                                 break;
                             case PROGRAM_DEC:
                                 message = MXMessageFactory.fromTemplate(port,
                                         new MXTemplate(new int[]{MXMidi.COMMAND2_CH_PROGRAM_DEC}),
                                         channel, null, null);
-                                bag.addResult(message);
                                 break;
                         }
-                        return;
+                        return message;
                 }
             } else {
                 switch (_outValueTypeOff) {
@@ -380,26 +365,23 @@ public class MGStatusForDrum implements Cloneable {
                         velocity = _mouseOnValue;
                         break;
                     case VALUETYPE_NOTHING:
-                        return;
+                        return null;
                 }
                 switch (_outStyle) {
                     case STYLE_SAME_CC:
                         message = (MXMessage) _status._base.clone();
                         message.setValue(velocity);
-                        bag.addResult(message);
                         break;
 
                     case STYLE_CUSTOM_CC:
                         if (_customTemplate != null) {
                             message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, MXRangedValue.new7bit(velocity));
-                            bag.addResult(message);
                         }
                         break;
                     case STYLE_NOTES:
                         int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
                         for (int note : noteList) {
                             message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + channel, note, 0);
-                            bag.addResult(message);
                         }
                         break;
                     case STYLE_SEQUENCE:
@@ -416,6 +398,7 @@ public class MGStatusForDrum implements Cloneable {
                         break;
                 }
             }
+            return message;
         } finally {
             _status._mixer._parent.endBagging();
         }

@@ -45,7 +45,7 @@ public class MXMessageBag {
         _listInvoked.clear();
         _listSliderMove.clear();
     }
-    
+
     public MXMessageBag() {
     }
     
@@ -57,6 +57,7 @@ public class MXMessageBag {
         if (_alreadyQueue.contains(message)) {
             return false;
         }
+        System.out.println("queue ok ************** " + message);
         _alreadyQueue.add(message);
         _listQuque.add(message);
         return true;
@@ -70,6 +71,9 @@ public class MXMessageBag {
     }
     
     public synchronized void addResult(MXMessage message) {
+        if (message == null) {
+            return;
+        }
         if (_alreadyResult.contains(message)) {
             return ;
         }
@@ -121,6 +125,9 @@ public class MXMessageBag {
         }
         MGStatus status = _listSliderMove.firstKey();
         MGSliderMove move = _listSliderMove.remove(status);
+        if (move == null) {
+            new Throwable().printStackTrace();;
+        }
         return move;
     }
     

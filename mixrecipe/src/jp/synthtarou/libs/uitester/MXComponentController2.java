@@ -49,12 +49,12 @@ public class MXComponentController2 extends  MXComponentController {
                             case TYPE_MGSLIDER:
                                 MGSlider slider = (MGSlider)_component;
                                 slider.getStatus().setMessageValue(_varAsNumeric);
-                                slider.publishUI();
+                                slider.publishUI(slider.getStatus().getValue());
                                 break;
                             case TYPE_MGCIRCLE:
                                 MGCircle circle = (MGCircle)_component;
                                 circle.getStatus().setMessageValue(_varAsNumeric);
-                                circle.publishUI();
+                                circle.publishUI(circle.getStatus().getValue());
                                 break;
                         }
                     }

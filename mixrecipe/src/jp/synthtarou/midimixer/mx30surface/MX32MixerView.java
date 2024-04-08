@@ -61,7 +61,6 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
 
     public MX32MixerView(MX32MixerProcess process) {
         int port = process._port;
-        _mixer = process;
 
         initComponents();
 
@@ -79,7 +78,7 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
 
         jLabelKeyTracker.setFocusable(true);
         jSplitPane1.setDividerLocation(getWidth() - 250);
-        updateUI();
+        _mixer = process;
     }
 
     /**
@@ -315,6 +314,9 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
 
     public void updateUI() {
         super.updateUI();
+        if (_mixer == null) {
+            return;
+        }
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -330,7 +332,21 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
                             initializeColor(_mixer.getDrumPad(row, column));
                         }
                     }
+
+                    for (int row = 0; row < MXConfiguration.CIRCLE_ROW_COUNT; ++row) {
+                        for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
+                            MGStatus number = _mixer.getStatus(MGStatus.TYPE_CIRCLE, row, col);
+                            _mixer.highlightPad(number._base);
+                        }
+                    }
+                    for (int row = 0; row < MXConfiguration.SLIDER_ROW_COUNT; ++row) {
+                        for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
+                            MGStatus number = _mixer.getStatus(MGStatus.TYPE_SLIDER, row, col);
+                            _mixer.highlightPad(number._base);
+                        }
+                    }
                 } catch (NullPointerException e) {
+                    e.printStackTrace();
                 }
             }
         });
@@ -383,16 +399,15 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
         MX32MixerProcess mixer = this._mixer;
 
         try {
-            _focusGroup = new MXFocusGroup(this);
+            _mixer._parent.startBagging();
 
-            mixer.setEveryComponents(null, null, null);
+            _focusGroup = new MXFocusGroup(this);
 
             JPanel panel001 = getControllerCase();
 
             java.awt.GridBagConstraints gbc;
             panel001.removeAll();
             panel001.setLayout(new GridBagLayout());
-
             columnLabel = new JLabel[MXConfiguration.SLIDER_COLUMN_COUNT];
             circleLabel = new JLabel[MXConfiguration.CIRCLE_ROW_COUNT];
             sliderLabel = new JLabel[MXConfiguration.SLIDER_ROW_COUNT];
@@ -538,7 +553,8 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
 
             jCheckBoxSyncTogether.setSelected(mixer._patchTogether);
         } finally {
-            //data._stopFeedback = false;
+            _mixer._parent._bag.clearFlags();
+            _mixer._parent.endBagging();
             updateUI();
         }
     }
@@ -868,6 +884,9 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
     }
     
     public void initializeColor(JComponent comp) {
+        if (comp == null) {
+            return;
+        }
         Color color = getDefaultColor(comp);
 
         comp.setBackground(color);

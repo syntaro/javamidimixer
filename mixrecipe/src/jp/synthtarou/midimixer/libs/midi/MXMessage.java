@@ -53,7 +53,7 @@ public final class MXMessage implements Comparable<MXMessage> {
     private boolean _pairedWith14;
 
     private final MXTemplate _template;
-//    public Exception _debug = new IOException("Message");
+    public Exception _debug;
     
     public boolean isEmpty() {
         return _template.isEmpty();

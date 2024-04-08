@@ -484,53 +484,41 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
         return setting.writeINIFile();
     }
 
-    void updateUIStatusAndGetResult(MGStatus status, int newValue, MXTiming timing) {
-        MXMessageBag bag = _parent.startBagging();
-        try {
+    MXMessage updateUIStatusAndGetResult(MGStatus status, int newValue, MXTiming timing) {
+        MXMessage message = null;
+        int row = status._row, column = status._column;
+        int uiType = status._uiType;
 
-            MXMessage message = null;
-            int row = status._row, column = status._column;
-            int uiType = status._uiType;
+        if (uiType == MGStatus.TYPE_SLIDER) {
+            MGSlider slider = getSlider(row, column);
+            status.setMessageValue(status.getValue().changeValue(newValue));
+            message = (MXMessage) status._base.clone();
+            slider.publishUI(message.getValue());
+        } else if (uiType == MGStatus.TYPE_CIRCLE) {
+            MGCircle circle = getCircle(row, column);
+            status.setMessageValue(status.getValue().changeValue(newValue));
+            message = (MXMessage) status._base.clone();
+            circle.publishUI(message.getValue());
+        } else {
+            MGDrumPad drum = getDrumPad(row, column);
+            message = status._drum.updatetingValue(newValue);
+        }
 
-            if (uiType == MGStatus.TYPE_SLIDER) {
-                MGSlider slider = getSlider(row, column);
-                status.setMessageValue(status.getValue().changeValue(newValue));
-                message = (MXMessage) status._base.clone();
-                slider.publishUI();
-            } else if (uiType == MGStatus.TYPE_CIRCLE) {
-                MGCircle circle = getCircle(row, column);
-                status.setMessageValue(status.getValue().changeValue(newValue));
-                message = (MXMessage) status._base.clone();
-                circle.publishUI();
-            } else {
-                MGDrumPad drum = getDrumPad(row, column);
-                status._drum.updatetingValue(newValue);
+        if (_patchToMixer >= 0) {
+            MX32MixerProcess nextMixer = _parent.getPage(_patchToMixer);
+            MGStatus nextStatus = nextMixer.getStatus(status._uiType, row, column);
+
+            int nextMin = nextStatus._base.getValue()._min;
+            int nextMax = nextStatus._base.getValue()._max;
+            newValue = status._base.getValue().changeRange(nextMin, nextMax)._value;
+
+            MGSliderMove move = new MGSliderMove(nextStatus, newValue, timing);
+            _parent.addSliderMove(move);
+            if (!_patchTogether) {
                 message = null;
             }
-
-            if (_patchToMixer >= 0) {
-                MX32MixerProcess nextMixer = _parent.getPage(_patchToMixer);
-                MGStatus nextStatus = nextMixer.getStatus(status._uiType, row, column);
-
-                int nextMin = nextStatus._base.getValue()._min;
-                int nextMax = nextStatus._base.getValue()._max;
-                newValue = status._base.getValue().changeRange(nextMin, nextMax)._value;
-
-                MGSliderMove move = new MGSliderMove(nextStatus, newValue, timing);
-                _parent.addSliderMove(move);
-                if (!_patchTogether) {
-                    message = null;
-                }
-            }
-            if (message != null) {
-                message._timing = timing;
-                startProcess(message);
-
-                bag.addResult(message);
-            }
-        } finally {
-            _parent.endBagging();
         }
+        return message;
     }
 
     MXMessage _poolFor14bit = null;
@@ -680,10 +668,6 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
         if (message == null) {
             return;
         }
-        if (message.isEmpty()) {
-            sendToNext(message);
-            return;
-        }
 
         synchronized (this) {
             if (_finder == null) {
@@ -693,33 +677,63 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
 
         MXMessageBag bag = _parent.startBagging();
         try {
-            bag.addQueue(message);
+            if (message.isEmpty()) {
+                bag.addResult(message);
+                return;
+            }
 
-            while (true) {
-                message = bag.popQueue();
-                if (message == null) {
-                    break;
-                }
-                ArrayList<MGStatus> listStatus = _finder.findCandidate(message);
-                boolean proc = false;
-                if (listStatus != null && listStatus.isEmpty() == false) {
-                    for (MGStatus seek : listStatus) {
-                        if (bag.isInvokedStatus(seek)) {
-                            continue;
-                        }
-                        int x = seek.controlByMessage(message);
-                        if (x >= 0) {
-                            _parent.addSliderMove(seek, x);
-                            proc = true;
-                        }
+            ArrayList<MGStatus> listStatus = _finder.findCandidate(message);
+            boolean proc = false;
+            if (listStatus != null && listStatus.isEmpty() == false) {
+                for (MGStatus seek : listStatus) {
+                    if (bag.isInvokedStatus(seek)) {
+                        continue;
+                    }
+                    int x = seek.controlByMessage(message);
+                    if (x >= 0) {
+                        _parent.addSliderMove(seek, x);
+                        proc = true;
                     }
                 }
-                if (!proc) {
-                    bag.addResult(message);
-                }
+            }
+            if (!proc) {
+                bag.addResult(message);
             }
         } finally {
             _parent.endBagging();
+        }
+    }
+
+    public void highlightPad(MXMessage message) {
+        if (message == null) {
+            return;
+        }
+        synchronized (this) {
+            if (_finder == null) {
+                _finder = new MGStatusFinder(this);
+            }
+        }
+
+        ArrayList<MGStatus> listStatus = _finder.findCandidate(message);
+        if (listStatus != null && listStatus.isEmpty() == false) {
+            for (MGStatus seek : listStatus) {
+                if (seek == null || seek.getComponent() == null) {
+                    continue;
+                }
+                if (seek._uiType == MGStatus.TYPE_DRUMPAD) {
+                    int x = seek.controlByMessage(message);
+                    if (x >= 0) {
+                        MGDrumPad pad = (MGDrumPad)seek.getComponent();
+                        if (seek._drum._strikeZone.contains(x)) {
+                            pad.getStatus()._drum._lastDetected = true;
+                            pad.setDrumActive(true);
+                        }else {
+                            pad.getStatus()._drum._lastDetected = false;
+                            pad.setDrumActive(false);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -775,7 +789,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
             MXJsonValue.HelperForStructure circle = listCircle.getFollowingStructure(x);
             MGStatus status = readJsonSub(circle);
             setStatus(MGStatus.TYPE_CIRCLE, status._row, status._column, status);
-            getCircle(status._row, status._column).publishUI();
+            getCircle(status._row, status._column).publishUI(status.getValue());
         }
 
         MXJsonValue.HelperForArray listSlider = root.getFollowingArray("Slider");
@@ -784,7 +798,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
             MGStatus status = readJsonSub(slider);
 
             setStatus(MGStatus.TYPE_SLIDER, status._row, status._column, status);
-            getSlider(status._row, status._column).publishUI();
+            getSlider(status._row, status._column).publishUI(status.getValue());
         }
 
         MXJsonValue.HelperForArray listPad = root.getFollowingArray("Pad");
