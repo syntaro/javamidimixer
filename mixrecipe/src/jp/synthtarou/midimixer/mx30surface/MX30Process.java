@@ -347,7 +347,6 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
             return false;
         }
         MXJsonValue.HelperForStructure root = value.new HelperForStructure();
-        System.out.println("jsonParser30 " + custom + " = " + root.count());
 
         String circle = root.getFollowingText("ActiveCircle", "");
         if (circle.isBlank()) {

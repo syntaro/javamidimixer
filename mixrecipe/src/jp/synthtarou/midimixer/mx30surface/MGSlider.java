@@ -215,7 +215,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
     public void editContoller() {
         _mixer._view.stopEditing();
         MGStatus status = (MGStatus)getStatus().clone();
-        MGStatusPanel panel = new MGStatusPanel(_mixer, status);
+        MGStatusPanel panel = new MGStatusPanel(_mixer, getStatus());
         MXUtil.showAsDialog(this, panel, "Enter Edit Slider {row:" + _row + ", column:" + _column + "}");
         if (panel._okOption) {
             setStatus(panel._status);

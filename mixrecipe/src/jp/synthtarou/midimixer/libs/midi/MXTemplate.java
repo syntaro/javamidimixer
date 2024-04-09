@@ -702,19 +702,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
         if (_commands == null) {
             return "null";
         } else {
-            StringBuffer str = new StringBuffer();
-            for (int i = 0; i < _commands.length; ++i) {
-                int x = _commands[i];
-                String seg = fromAliasText(x);
-                if (seg == null) {
-                    seg = Integer.toHexString(x);
-                }
-                if (str.length() != 0) {
-                    str.append(", ");
-                }
-                str.append(seg);
-            }
-            return str.toString();
+            return toDText();
         }
     }
 

@@ -24,7 +24,6 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOError;
 import java.util.ArrayList;
 import java.util.IllegalFormatException;
 import java.util.List;
@@ -52,6 +51,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.libs.navigator.legacy.INavigator;
+import jp.synthtarou.midimixer.ccxml.ui.PickerForinstrument;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
@@ -84,7 +84,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
 
     protected MGStatus _status;
 
-    int _skipSwingEvent = 0;
+    int _stopFeedback = 0;
     private ArrayList<String> textValidate = new ArrayList();
 
     JTextField[] _listBindMouse;
@@ -94,7 +94,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
      */
     public MGStatusPanel(MX32MixerProcess process, MGStatus status) {
 
-        _skipSwingEvent ++;
+        _stopFeedback++;
         initComponents();
 
         _process = process;
@@ -138,7 +138,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         jSpinnerDrumOnRangeMax.setModel(new SpinnerNumberModel(127, 0, 127, 1));
         jSpinnerDrumMouseOnValue.setModel(new SpinnerNumberModel(100, 0, 127, 1));
         jSpinnerDrumMouseOffValue.setModel(new SpinnerNumberModel(0, 0, 127, 1));
-        
+
         int height = jSpinnerDrumOnRangeMin.getPreferredSize().height;
         if (height < 17) {
             height = 17;
@@ -165,9 +165,8 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         jLabelBlank6.setText("");
         jLabelBlank7.setText("");
 
-        
         jPanel1.add(new MGCapturePanel(this));
-        
+
         new MXPopupForText(jTextFieldName) {
             @Override
             public void approvedText(String text) {
@@ -176,12 +175,12 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
                 displayStatusToPanelDrum();
             }
         };
-        
+
         int index = _listChannel.indexOfName(jTextFieldName.getText());
         new MXPopupForList<Integer>(jTextFieldChannel, _listChannel) {
             @Override
             public void approvedIndex(int selected) {
-                int channel  = _listChannel.valueOfIndex(selected);
+                int channel = _listChannel.valueOfIndex(selected);
                 _status._base.setChannel(channel);
                 displayStatusToPanelSlider();
                 displayStatusToPanelDrum();
@@ -199,7 +198,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
                         temp[1] = x;
                         MXTemplate template = new MXTemplate(temp);
                         MXMessage newMsg = MXMessageFactory.fromTemplate(
-                                _status._base.getPort(), 
+                                _status._base.getPort(),
                                 template,
                                 _status._base.getChannel(),
                                 MXRangedValue.new7bit(x),
@@ -210,13 +209,49 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
                 displayStatusToPanelSlider();
                 displayStatusToPanelDrum();
             }
-            
+
             @Override
             public MXNamedObjectList<Integer> getList() {
                 if (_status._outGateTable != null) {
                     return _status._outGateTable;
                 }
                 return _currentGateModel;
+            }
+        };
+
+        new MXPopupForList<Integer>(jTextFieldTemplateTextGate, null) {
+            @Override
+            public void approvedIndex(int selected) {
+                try {
+                    int x = getList().valueOfIndex(selected);
+                    _status._drum._customGate = MXRangedValue.new7bit(x);
+                    if ((_status._drum._customTemplate.get(0) & 0xfff0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                        _status._drum._customTemplate = new MXTemplate("@CC " + x + " #VL");
+                    }
+                    displayStatusToPanelSlider();
+                    displayStatusToPanelDrum();
+                }catch(NullPointerException e) {
+                }catch(Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public MXNamedObjectList<Integer> getList() {
+                try {
+                    int command = _status._drum._customTemplate.get(0);
+                    if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF
+                     || command == MXMidi.COMMAND_CH_POLYPRESSURE) {
+                        return MXNamedObjectListFactory.listupNoteNo(true);
+                    }
+                    if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                        return MXNamedObjectListFactory.listupControlChange(true);
+                    }
+                }catch(NullPointerException e) {
+                }catch(Exception e) {
+                    e.printStackTrace();
+                }
+                return MXNamedObjectListFactory.listupGate7Bit();
             }
         };
 
@@ -232,121 +267,23 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         new MXPopup(jTextFieldTemplate) {
             @Override
             public void showPopup(JComponent mouseBase) {
-                JPopupMenu popup = new JPopupMenu();
-                JMenuItem item1 = new JMenuItem("Edit");
-                popup.add(item1);
-                item1.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        startEdit();
-                    }
-                });
-
-                JMenuItem item2 = new JMenuItem("From XML");
-                popup.add(item2);
-                item2.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        startBrowseXML();
-                    }
-                });
-                /*
-                JMenuItem item3 = new JMenuItem("Capture");
-                popup.add(item3);
-                item3.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        startCapture();
-                    }
-                });
-                popup.addSeparator();
-            */
-                JMenuItem item5 = new JMenuItem("Note");
-                item5.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        _status.clearAll();
-                        _status.setBaseMessage("@ON 64 #VL");
-                        _status._name = "note";
-                        displayStatusToPanelSlider();
-                        displayStatusToPanelDrum();
-                    }
-                });
-                popup.add(item5);
-
-                JMenuItem item6 = new JMenuItem("Control Change");
-                item6.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        _status.clearAll();
-                        _status.setBaseMessage("@CC #GL #VL");
-                        displayStatusToPanelSlider();
-                        displayStatusToPanelDrum();
-                    }
-                });
-                popup.add(item6);
-
-                JMenuItem item7 = new JMenuItem("DataEntry RPN");
-                item7.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        _status.clearAll();
-                        _status.setBaseMessage("@RPN 0 0 #VL 0");
-                        displayStatusToPanelSlider();
-                        displayStatusToPanelDrum();
-                    }
-                });
-
-                popup.add(item7);
-
-                JMenuItem item8 = new JMenuItem("DataEntry NRPN");
-                item8.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        _status.clearAll();
-                        _status.setBaseMessage("@NRPN 0 0 #VL 0");
-                        displayStatusToPanelSlider();
-                        displayStatusToPanelDrum();
-                    }
-                });
-                popup.add(item8);
-
-                JMenuItem item9 = new JMenuItem("Program +1");
-                item9.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        _status.setBaseMessage("@PROG_INC");
-                        MGStatusPanel.this.displayStatusToPanelSlider();
-                        displayStatusToPanelSlider();
-                        displayStatusToPanelDrum();
-                    }
-                });
-                popup.add(item9);
-
-                JMenuItem item10 = new JMenuItem("Program -1");
-                item10.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        _status.setBaseMessage("@PROG_DEC");
-                        MGStatusPanel.this.displayStatusToPanelSlider();
-                        displayStatusToPanelSlider();
-                        displayStatusToPanelDrum();
-                    }
-                });
-                popup.add(item10);
-
-                popup.show(mouseBase, 0, mouseBase.getHeight());
+                startEditTemplate();
             }
-
         };
 
+        new MXPopup(jTextFieldTemplateForOut) {
+            @Override
+            public void showPopup(JComponent mouseBase) {
+                startEditTemplateForOut();
+            }
+        };
 
         displayStatusToPanelSlider();
         displayStatusToPanelDrum();
         disableUnusedOnPanel();
         validateStatus();
 
-        _skipSwingEvent --;
+        _stopFeedback--;
     }
 
     MXNamedObjectList<Integer> _listPort = MXNamedObjectListFactory.listupPort("-");
@@ -354,7 +291,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     MXNamedObjectList<Integer> _listChannel = MXNamedObjectListFactory.listupChannel(null);
 
     public void displayStatusToPanelSlider() {
-        _skipSwingEvent ++;
+        _stopFeedback++;
         try {
             if (_channelModel == null) {
                 _channelModel = MXNamedObjectListFactory.listupChannel(null);
@@ -395,13 +332,12 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             jLabelDefaultName.setText("'" + _status._base.toStringForUI() + "' if blank");
 
             MXTemplate temp = _status._base.getTemplate();
-            if (temp.get(1) != MXMidi.CCXML_GL) 
-            {
+            if (temp.get(1) != MXMidi.CCXML_GL) {
                 MXMessage message = _status._base;
                 if (temp.get(0) == MXMidi.COMMAND_CH_NOTEON
-                  ||temp.get(1) == MXMidi.COMMAND_CH_NOTEOFF
-                  ||temp.get(2) == MXMidi.COMMAND_CH_POLYPRESSURE) {
-                    MXTemplate temp2 = new MXTemplate(new int[] {temp.get(0), MXMidi.CCXML_GL, MXMidi.CCXML_VL});
+                        || temp.get(1) == MXMidi.COMMAND_CH_NOTEOFF
+                        || temp.get(2) == MXMidi.COMMAND_CH_POLYPRESSURE) {
+                    MXTemplate temp2 = new MXTemplate(new int[]{temp.get(0), MXMidi.CCXML_GL, MXMidi.CCXML_VL});
                     message = MXMessageFactory.fromTemplate(message.getPort(), temp2, message.getChannel(), message.getGate(), message.getValue());
                     _status.setBaseMessage(message);
                 }
@@ -423,8 +359,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             if (_status._base != null && _status._base.indexOfValueHi() >= 0) {
                 jSpinnerMin.setModel(new SafeSpinnerNumberModel(_status.getValue()._min, 0, 128 * 128 - 1, 1));
                 jSpinnerMax.setModel(new SafeSpinnerNumberModel(_status.getValue()._max, 0, 128 * 128 - 1, 1));
-            }
-            else {
+            } else {
                 jSpinnerMin.setModel(new SafeSpinnerNumberModel(_status.getValue()._min, 0, 128 - 1, 1));
                 jSpinnerMax.setModel(new SafeSpinnerNumberModel(_status.getValue()._max, 0, 128 - 1, 1));
             }
@@ -432,7 +367,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             jCheckBoxCC14bit.setSelected(_status._ccPair14);
             jCheckBoxCustomRange.setSelected(_status.hasCustomRange());
         } finally {
-            _skipSwingEvent --;
+            _stopFeedback--;
         }
 
         disableUnusedOnPanel();
@@ -465,7 +400,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
                 if (message == null) {
                     result.add("TextCommand [" + data._base.getTemplateAsText() + "] is not valid.");
                 } else if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
-                    switch(message.getData1()) {
+                    switch (message.getData1()) {
                         case MXMidi.DATA1_CC_DATAENTRY:
                             result.add("If you need DATAENTRY. try [@RPN/@NRPN msb lsb value 0].");
                             break;
@@ -542,13 +477,13 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             return;
         }
 
-        _skipSwingEvent ++;
+        _stopFeedback++;
 
         try {
             /* Drum */
             jCheckBoxDrumModeToggle.setSelected(_status._drum._modeToggle);
             jCheckBoxDrumOnlySwitch.setSelected(_status._drum._onlySwitched);
-            
+
             textForOffRange();
 
             MXRangedValue range = _status._base.getValue();
@@ -604,12 +539,12 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             _drumOutChannel.writeComboBox(jComboBoxOutChannel, _status._drum._outChannel);
 
             /* Template*/
-            jTextFieldTemplateForOut.setText(_status._drum._customTemplate.toString());
-            jLabelTemplateTextGate.setText(Integer.toString(_status._drum._teplateTextGate));
+            jTextFieldTemplateForOut.setText(_status._drum._customTemplate == null ? ""  : _status._drum._customTemplate.toDText());
+            jTextFieldTemplateTextGate.setText(String.valueOf(_status._drum._customGate._value));
 
             /* Program */
             _switchOutProgramType.writeComboBox(jComboBoxProgram, _status._drum._programType);
-            jSpinnerDrumProgPC.setModel(new SpinnerNumberModel(_status._drum._programType, 0, 127, 1));
+            jSpinnerDrumProgPC.setModel(new SpinnerNumberModel(_status._drum._programNumber, 0, 127, 1));
             jSpinnerDrumProgMSB.setModel(new SpinnerNumberModel(_status._drum._programMSB, 0, 127, 1));
             jSpinnerDrumProgLSB.setModel(new SpinnerNumberModel(_status._drum._programLSB, 0, 127, 1));
 
@@ -668,15 +603,18 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
                     jRadioButtonJumpDec.setSelected(true);
                     break;
             }
-            
+
         } finally {
-            _skipSwingEvent --;
+            _stopFeedback--;
         }
         disableUnusedOnPanel();
         //updateUI();
     }
 
     public void buildStatusFromPanelSlider() {
+        if (_stopFeedback > 0) {
+            return;
+        }
         _status._memo = jTextFieldName.getText();
         String gateName = jTextFieldGate.getText();
         int gate = _currentGateModel.valueOfName(gateName);
@@ -709,6 +647,9 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     }
 
     public void buildStatusFromPanelDrum() {
+        if (_stopFeedback > 0) {
+            return;
+        }
         if (_status._uiType != MGStatus.TYPE_DRUMPAD) {
             return;
         }
@@ -812,7 +753,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             MXFileLogger.getLogger(MGStatusPanel.class).log(Level.WARNING, ex.getMessage(), ex);
             _status._drum._customTemplate = null;
         }
-        _status._drum._teplateTextGate = MXUtil.numberFromText(jLabelTemplateTextGate.getText(), -1);
+        _status._drum._customGate = MXRangedValue.new7bit(MXUtil.numberFromText(jTextFieldTemplateTextGate.getText(), -1));
 
 
         /* Program */
@@ -942,11 +883,9 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         jTextFieldTemplateForOut = new javax.swing.JTextField();
         jLabel16 = new javax.swing.JLabel();
         jLabel18 = new javax.swing.JLabel();
-        jLabelTemplateTextGate = new javax.swing.JLabel();
-        jButtonCCTemplateGate = new javax.swing.JButton();
         jLabelBlank6 = new javax.swing.JLabel();
-        jButtonCCTemplate = new javax.swing.JButton();
         jLabel42 = new javax.swing.JLabel();
+        jTextFieldTemplateTextGate = new javax.swing.JTextField();
         jPanelTabProgram = new javax.swing.JPanel();
         jLabel17 = new javax.swing.JLabel();
         jLabel20 = new javax.swing.JLabel();
@@ -1398,20 +1337,6 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         jPanelTabTemplate.add(jLabel18, gridBagConstraints);
 
-        jLabelTemplateTextGate.setText("jLabel36");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanelTabTemplate.add(jLabelTemplateTextGate, gridBagConstraints);
-
-        jButtonCCTemplateGate.setText("...");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
-        jPanelTabTemplate.add(jButtonCCTemplateGate, gridBagConstraints);
-
         jLabelBlank6.setText("Blank6");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1422,14 +1347,6 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         gridBagConstraints.weighty = 1.0;
         jPanelTabTemplate.add(jLabelBlank6, gridBagConstraints);
 
-        jButtonCCTemplate.setText("...");
-        jButtonCCTemplate.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonCCTemplateActionPerformed(evt);
-            }
-        });
-        jPanelTabTemplate.add(jButtonCCTemplate, new java.awt.GridBagConstraints());
-
         jLabel42.setText(" = See [Output/Output Value/On Value]");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -1437,6 +1354,14 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanelTabTemplate.add(jLabel42, gridBagConstraints);
+
+        jTextFieldTemplateTextGate.setEditable(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelTabTemplate.add(jTextFieldTemplateTextGate, gridBagConstraints);
 
         jTabbedPane2.addTab("Template", jPanelTabTemplate);
 
@@ -1488,6 +1413,11 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         jPanelTabProgram.add(jLabel21, gridBagConstraints);
 
         jButton3.setText("...");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 5;
@@ -2074,7 +2004,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     public void startEdit() {
         String text = _status._base.getTemplateAsText();
         NavigatorForCommandText textNavi = new NavigatorForCommandText(text);
-        MXUtil.showAsDialog(this, textNavi, "Select Template");
+        MXUtil.showAsDialog(this, textNavi, "Edit Template");
         if (textNavi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
             MXMessage message = MXMessageFactory.fromCCXMLText(0, textNavi.getReturnValue(), 0, null, null);
             if (message != null) {
@@ -2091,9 +2021,226 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         }
     }
 
+    public void startEditOut() {
+        String text = _status._drum._customTemplate == null ? "" : _status._drum._customTemplate.toDText();
+        NavigatorForCommandText textNavi = new NavigatorForCommandText(text);
+        MXUtil.showAsDialog(this, textNavi, "Edit Template for CustomOut");
+        if (textNavi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+            MXMessage message = MXMessageFactory.fromCCXMLText(0, textNavi.getReturnValue(), 0, null, null);
+            if (message != null) {
+                if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                    int messageGate = message.getData1();
+                    _status._drum._customTemplate = new MXTemplate("@CC " + message.getData1() + " #VL");
+                    _status._drum._customGate = MXRangedValue.new7bit(messageGate);
+                }
+                else {
+                    _status._drum._customTemplate = message.getTemplate();
+                }
+                displayStatusToPanelSlider();
+                disableUnusedOnPanel();
+            } else {
+                JOptionPane.showMessageDialog(this, "Compile message failed.", "Error", JOptionPane.OK_OPTION);
+            }
+        }
+    }
+
+    public void startEditTemplate() {
+        JPopupMenu popup = new JPopupMenu();
+        JMenuItem item1 = new JMenuItem("Edit");
+        popup.add(item1);
+        item1.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                startEdit();
+            }
+        });
+
+        JMenuItem item2 = new JMenuItem("From XML");
+        popup.add(item2);
+        item2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                startBrowseXML();
+            }
+        });
+
+        JMenuItem item5 = new JMenuItem("Note");
+        item5.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                _status.clearAll();
+                _status.setBaseMessage("@ON 64 #VL");
+                _status._name = "note";
+                displayStatusToPanelSlider();
+                displayStatusToPanelDrum();
+            }
+        });
+        popup.add(item5);
+
+        JMenuItem item6 = new JMenuItem("Control Change");
+        item6.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                _status.clearAll();
+                _status.setBaseMessage("@CC #GL #VL");
+                displayStatusToPanelSlider();
+                displayStatusToPanelDrum();
+            }
+        });
+        popup.add(item6);
+
+        JMenuItem item7 = new JMenuItem("DataEntry RPN");
+        item7.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                _status.clearAll();
+                _status.setBaseMessage("@RPN 0 0 #VH #VL");
+                displayStatusToPanelSlider();
+                displayStatusToPanelDrum();
+            }
+        });
+
+        popup.add(item7);
+
+        JMenuItem item8 = new JMenuItem("DataEntry NRPN");
+        item8.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                _status.clearAll();
+                _status.setBaseMessage("@NRPN 0 0 #VH #VL");
+                displayStatusToPanelSlider();
+                displayStatusToPanelDrum();
+            }
+        });
+        popup.add(item8);
+
+        JMenuItem item9 = new JMenuItem("Program +1");
+        item9.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                _status.setBaseMessage("@PROG_INC");
+                MGStatusPanel.this.displayStatusToPanelSlider();
+                displayStatusToPanelSlider();
+                displayStatusToPanelDrum();
+            }
+        });
+        popup.add(item9);
+
+        JMenuItem item10 = new JMenuItem("Program -1");
+        item10.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                _status.setBaseMessage("@PROG_DEC");
+                MGStatusPanel.this.displayStatusToPanelSlider();
+                displayStatusToPanelSlider();
+                displayStatusToPanelDrum();
+            }
+        });
+        popup.add(item10);
+
+        popup.show(jTextFieldGate, 0, jTextFieldGate.getHeight());
+    }
+
+    public void startEditTemplateForOut() {
+        JPopupMenu popup = new JPopupMenu();
+        JMenuItem item1 = new JMenuItem("Edit");
+        popup.add(item1);
+        item1.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                startEditOut();
+            }
+        });
+
+        JMenuItem item2 = new JMenuItem("From XML");
+        popup.add(item2);
+        item2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                startBrowseXMLOut();
+            }
+        });
+
+        JMenuItem item5 = new JMenuItem("Note");
+        item5.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                _status.clearAll();
+                _status.setBaseMessage("@ON 64 #VL");
+                _status._name = "note";
+                displayStatusToPanelSlider();
+                displayStatusToPanelDrum();
+            }
+        });
+        popup.add(item5);
+
+        JMenuItem item6 = new JMenuItem("Control Change");
+        item6.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                _status.clearAll();
+                _status.setBaseMessage("@CC #GL #VL");
+                displayStatusToPanelSlider();
+                displayStatusToPanelDrum();
+            }
+        });
+        popup.add(item6);
+
+        JMenuItem item7 = new JMenuItem("DataEntry RPN");
+        item7.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                _status.clearAll();
+                _status.setBaseMessage("@RPN 0 0 #VL 0");
+                displayStatusToPanelSlider();
+                displayStatusToPanelDrum();
+            }
+        });
+
+        popup.add(item7);
+
+        JMenuItem item8 = new JMenuItem("DataEntry NRPN");
+        item8.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                _status.clearAll();
+                _status.setBaseMessage("@NRPN 0 0 #VL 0");
+                displayStatusToPanelSlider();
+                displayStatusToPanelDrum();
+            }
+        });
+        popup.add(item8);
+
+        JMenuItem item9 = new JMenuItem("Program +1");
+        item9.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                _status.setBaseMessage("@PROG_INC");
+                MGStatusPanel.this.displayStatusToPanelSlider();
+                displayStatusToPanelSlider();
+                displayStatusToPanelDrum();
+            }
+        });
+        popup.add(item9);
+
+        JMenuItem item10 = new JMenuItem("Program -1");
+        item10.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                _status.setBaseMessage("@PROG_DEC");
+                MGStatusPanel.this.displayStatusToPanelSlider();
+                displayStatusToPanelSlider();
+                displayStatusToPanelDrum();
+            }
+        });
+        popup.add(item10);
+
+        popup.show(jTextFieldTemplateForOut, 0, jTextFieldTemplateForOut.getHeight());
+    }
+
     public void startBrowseXML() {
         PickerForControlChange picker = new PickerForControlChange();
-        MXUtil.showAsDialog(jTextFieldTemplate, picker, "Which You Choose?");
+        MXUtil.showAsDialog(this, picker, "Which You Choose?");
         if (picker.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
             List<InformationForCCM> ccmList = picker.getReturnValue();
             InformationForCCM ccm = null;
@@ -2115,8 +2262,10 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             MXTemplate template = null;
             try {
                 template = new MXTemplate(data);
+
             } catch (IllegalFormatException ex) {
-                MXFileLogger.getLogger(MGStatusPanel.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(MGStatusPanel.class
+                ).log(Level.WARNING, ex.getMessage(), ex);
                 return;
             }
 
@@ -2130,6 +2279,47 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             _status._memo = memo;
             _status._name = name;
             _status._outGateTable = gateTable;
+            displayStatusToPanelSlider();
+            displayStatusToPanelDrum();
+        }
+
+    }
+
+    public void startBrowseXMLOut() {
+        //TODO
+        PickerForControlChange picker = new PickerForControlChange();
+        MXUtil.showAsDialog(this, picker, "Which You Choose?");
+        if (picker.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+            List<InformationForCCM> ccmList = picker.getReturnValue();
+            InformationForCCM ccm = null;
+            if (ccmList != null && ccmList.isEmpty() == false) {
+                ccm = ccmList.getFirst();
+            }
+
+            if (ccm == null) {
+                return;
+            }
+
+            String data = ccm._data;
+            String name = ccm._name;
+            String memo = ccm._memo;
+            MXTemplate template = null;
+            try {
+                template = new MXTemplate(data);
+
+            } catch (IllegalFormatException ex) {
+                MXFileLogger.getLogger(MGStatusPanel.class).log(Level.WARNING, ex.getMessage(), ex);
+                return;
+            }
+            
+            if (template != null && template.size() >= 2 && (template.get(0) & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                int messageGate = template.get(1);
+                if (messageGate != MXMidi.CCXML_GL) {
+                    _status._drum._customGate = MXRangedValue.new7bit(messageGate);
+                    template = new MXTemplate("@CC " + _status._drum._customGate._value +" #VL");
+                }
+            }
+            _status._drum._customTemplate = template;
             displayStatusToPanelSlider();
             displayStatusToPanelDrum();
         }
@@ -2161,12 +2351,12 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             _status.setBaseMessage(base);
             displayStatusToPanelSlider();
             displayStatusToPanelDrum();
-        }catch(Throwable ex) {
+        } catch (Throwable ex) {
             ex.printStackTrace();
         }
     }
 
-/*
+    /*
     MXCaptureProcess _capture = null;
     public void startCapture() {
         _capture = new MXCaptureProcess();
@@ -2219,7 +2409,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             displayStatusToPanelDrum();
         }
     }
-*/
+     */
     public void actionSetValueRange(int min, int max) {
         if (min < 0) {
             min = 0;
@@ -2232,10 +2422,10 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         }
         int x = JOptionPane.showConfirmDialog(this, "Reset Value Range from " + min + " ... " + max, "ok?", JOptionPane.YES_NO_OPTION);
         if (x == JOptionPane.YES_OPTION) {
-            _skipSwingEvent ++;
+            _stopFeedback++;
             jSpinnerMin.setValue(min);
             jSpinnerMax.setValue(max);
-            _skipSwingEvent --;
+            _stopFeedback--;
             _status.setCustomRange(min, max);
         }
     }
@@ -2245,7 +2435,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     }//GEN-LAST:event_jTabbedPane1StateChanged
 
     private void jCheckBoxCC14bitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxCC14bitActionPerformed
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         _status.setCustomRange((int) jSpinnerMin.getValue(), (int) jSpinnerMax.getValue());
@@ -2260,7 +2450,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     }//GEN-LAST:event_jCheckBoxCC14bitActionPerformed
 
     private void jCheckBoxCustomRangeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxCustomRangeActionPerformed
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         boolean sel = jCheckBoxCustomRange.isSelected();
@@ -2287,21 +2477,21 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     }
 
     private void jComboBoxOutChannelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxOutChannelActionPerformed
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         disableUnusedOnPanel();
     }//GEN-LAST:event_jComboBoxOutChannelActionPerformed
 
     private void jRadioButtonDrumTypeSameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonDrumTypeSameActionPerformed
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         buildStatusFromPanelDrum();
     }//GEN-LAST:event_jRadioButtonDrumTypeSameActionPerformed
 
     private void jRadioButtonDrumTypeSequenceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonDrumTypeSequenceActionPerformed
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         buildStatusFromPanelDrum();
@@ -2309,10 +2499,10 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     }//GEN-LAST:event_jRadioButtonDrumTypeSequenceActionPerformed
 
     private void jRadioButtonDrumTypeNotesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonDrumTypeNotesActionPerformed
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
-       buildStatusFromPanelDrum();
+        buildStatusFromPanelDrum();
 
     }//GEN-LAST:event_jRadioButtonDrumTypeNotesActionPerformed
 
@@ -2320,16 +2510,15 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     }//GEN-LAST:event_jCheckBoxDrumModeToggleActionPerformed
 
     private void jButtonSequenceFileBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSequenceFileBrowseActionPerformed
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         String prev = jTextFieldSequenceFile.getText();
         File dir = null;
         try {
             dir = new File(prev).getParentFile();
-        }
-        catch(Exception ex) {
-            
+        } catch (Exception ex) {
+
         }
         if (dir == null) {
             dir = new File("C:/midi");
@@ -2348,7 +2537,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     }//GEN-LAST:event_jButtonSequenceFileBrowseActionPerformed
 
     private void jButtonNotesKeysActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNotesKeysActionPerformed
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         if (_status._drum != null) {
@@ -2364,7 +2553,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     }//GEN-LAST:event_jButtonNotesKeysActionPerformed
 
     private void jButtonResetValueRangeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonResetValueRangeActionPerformed
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         _status.resetCustomRange();;
@@ -2372,11 +2561,8 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         displayStatusToPanelDrum();
     }//GEN-LAST:event_jButtonResetValueRangeActionPerformed
 
-    private void jButtonCCTemplateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCCTemplateActionPerformed
-    }//GEN-LAST:event_jButtonCCTemplateActionPerformed
-
     private void jSpinnerDrumOnRangeMinStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinnerDrumOnRangeMinStateChanged
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         readOffRange(true);
@@ -2385,42 +2571,42 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
 
     private void jSpinnerDrumOnRangeMaxStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinnerDrumOnRangeMaxStateChanged
         readOffRange(false);
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         textForOffRange();
     }//GEN-LAST:event_jSpinnerDrumOnRangeMaxStateChanged
 
     private void jRadioButtonDrumTypeCustomActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonDrumTypeCustomActionPerformed
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         buildStatusFromPanelDrum();
     }//GEN-LAST:event_jRadioButtonDrumTypeCustomActionPerformed
 
     private void jRadioButtonDrumTypeProgramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonDrumTypeProgramActionPerformed
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         buildStatusFromPanelDrum();
     }//GEN-LAST:event_jRadioButtonDrumTypeProgramActionPerformed
 
     private void jRadioButtonDrumTypeLinkSliderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonDrumTypeLinkSliderActionPerformed
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         buildStatusFromPanelDrum();
     }//GEN-LAST:event_jRadioButtonDrumTypeLinkSliderActionPerformed
 
     private void jRadioButtonDrumTypeDontSendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonDrumTypeDontSendActionPerformed
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         buildStatusFromPanelDrum();
     }//GEN-LAST:event_jRadioButtonDrumTypeDontSendActionPerformed
 
     private void jToggleButtonPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButtonPlayActionPerformed
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         if (jToggleButtonPlay.isSelected()) {
@@ -2431,45 +2617,67 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     }//GEN-LAST:event_jToggleButtonPlayActionPerformed
 
     private void jRadioButtonLinkSliderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonLinkSliderActionPerformed
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         buildStatusFromPanelDrum();
     }//GEN-LAST:event_jRadioButtonLinkSliderActionPerformed
 
     private void jRadioButtonLinkKnob1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonLinkKnob1ActionPerformed
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         buildStatusFromPanelDrum();
     }//GEN-LAST:event_jRadioButtonLinkKnob1ActionPerformed
 
     private void jRadioButtonLinkKnob2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonLinkKnob2ActionPerformed
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         buildStatusFromPanelDrum();
     }//GEN-LAST:event_jRadioButtonLinkKnob2ActionPerformed
 
     private void jRadioButtonLinkKnob3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonLinkKnob3ActionPerformed
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         buildStatusFromPanelDrum();
     }//GEN-LAST:event_jRadioButtonLinkKnob3ActionPerformed
 
     private void jRadioButtonLinkKnob4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonLinkKnob4ActionPerformed
-        if (_skipSwingEvent != 0) {
+        if (_stopFeedback != 0) {
             return;
         }
         buildStatusFromPanelDrum();
     }//GEN-LAST:event_jRadioButtonLinkKnob4ActionPerformed
 
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        // TODO add your handling code here:
+        PickerForinstrument inst = new PickerForinstrument();
+        MXUtil.showAsDialog(this, inst, "Select Program");
+
+        String bankMSB = inst._resultBank._listAttributes.valueOfName("MSB");
+        String bankLSB = inst._resultBank._listAttributes.valueOfName("LSB");
+        String bankName = inst._resultBank._listAttributes.valueOfName("NAME");
+
+        int msb = MXUtil.numberFromText(bankMSB, -1);
+        int lsb = MXUtil.numberFromText(bankLSB, -1);
+
+        String pcPC = inst._resultProgram._listAttributes.valueOfName("PC");
+        String pcName = inst._resultProgram._listAttributes.valueOfName("Name");
+
+        int pc = MXUtil.numberFromText(pcPC, -1);
+
+        _stopFeedback ++;
+        jSpinnerDrumProgPC.setValue(pc);
+        jSpinnerDrumProgMSB.setValue(msb);
+        jSpinnerDrumProgLSB.setValue(lsb);
+        _stopFeedback --;
+    }//GEN-LAST:event_jButton3ActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButtonCCTemplate;
-    private javax.swing.JButton jButtonCCTemplateGate;
     private javax.swing.JButton jButtonCancel;
     private javax.swing.JButton jButtonNotesKeys;
     private javax.swing.JButton jButtonOK;
@@ -2538,7 +2746,6 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     private javax.swing.JLabel jLabelInputText;
     private javax.swing.JLabel jLabelOffRange;
     private javax.swing.JLabel jLabelStartWith;
-    private javax.swing.JLabel jLabelTemplateTextGate;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanelOutput;
     private javax.swing.JPanel jPanelPage1;
@@ -2587,6 +2794,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     private javax.swing.JTextField jTextFieldSequenceFile;
     private javax.swing.JTextField jTextFieldTemplate;
     private javax.swing.JTextField jTextFieldTemplateForOut;
+    private javax.swing.JTextField jTextFieldTemplateTextGate;
     private javax.swing.JToggleButton jToggleButtonPlay;
     // End of variables declaration//GEN-END:variables
 
@@ -2620,15 +2828,15 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             if (minChanged) {
                 onRangeMax = onRangeMin;
                 jSpinnerDrumOnRangeMax.setValue(onRangeMax);
-            }else {
+            } else {
                 onRangeMin = onRangeMax;
                 jSpinnerDrumOnRangeMin.setValue(onRangeMin);
             }
         }
-       
+
         _status._drum._strikeZone = new MXRangedValue(_status._drum._strikeZone._value, onRangeMin, onRangeMax);
     }
-    
+
     private void textForOffRange() {
         int onRangeMin = _status._drum._strikeZone._min;
         int onRangeMax = _status._drum._strikeZone._max;
@@ -2652,31 +2860,29 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             }
         }
         if (min.isEmpty() || max.isEmpty()) {
-            jLabelOffRange.setText(min +  max);
-        }
-        else {
+            jLabelOffRange.setText(min + max);
+        } else {
             jLabelOffRange.setText(min + ", " + max);
         }
     }
-        
+
     private void adjustSpinnerSub(JSpinner spinner, MXRangedValue range) {
         SpinnerNumberModel model = null;
         SpinnerModel test = spinner.getModel();
         if (test instanceof SpinnerNumberModel) {
-            model = (SpinnerNumberModel)test;
+            model = (SpinnerNumberModel) test;
         }
         boolean needReset = false;
         if (model == null) {
             needReset = true;
-        }
-        else {
-            if ((Integer)model.getMinimum() != range._min) {
+        } else {
+            if ((Integer) model.getMinimum() != range._min) {
                 needReset = true;
             }
-            if ((Integer)model.getMaximum()!= range._max) {
+            if ((Integer) model.getMaximum() != range._max) {
                 needReset = true;
             }
-            if (range.contains((Integer)model.getValue()) == false) {
+            if (range.contains((Integer) model.getValue()) == false) {
                 needReset = true;
             }
         }

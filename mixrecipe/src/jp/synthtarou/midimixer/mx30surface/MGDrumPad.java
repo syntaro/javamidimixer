@@ -127,7 +127,12 @@ public class MGDrumPad extends javax.swing.JPanel {
             velocity = getStatus()._drum._mouseOffValue;
         }
 
-        getStatus()._drum.updatetingValue(velocity);
+        _mixer._parent.startTransaction();
+        MXMessage message = getStatus()._drum.updatetingValue(velocity);
+        if (message != null) {
+            _mixer._parent._packet.addResult(message);
+        }
+        _mixer._parent.endTransaction();
     }
 
     public void editContoller() {

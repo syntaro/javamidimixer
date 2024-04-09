@@ -314,7 +314,7 @@ public class CXGeneralMidiFile extends CXFile {
 
         int offsetComment = listDataentry.getSize();
         listDataentry.addNameAndValue("PitchBend Range", "@RPN 0 0 #VL 0"); /* 0~24 */
-        listDataentry.addNameAndValue("Fine Tuning", "@RPN 0 #VH #VL"); /* 0000 - 7f7f = -100 ~ 99.99 cent */
+        listDataentry.addNameAndValue("Fine Tuning", "@RPN 0 0 #VH #VL"); /* 0000 - 7f7f = -100 ~ 99.99 cent */
         listDataentry.addNameAndValue("Course Tuning", "@RPN 1 2 #VL 0");   /* 40~88 */
         listDataentry.addNameAndValue("Moduleration Depth Range", "@RPN 1 5 #VH #VL"); /* 0~4, 0~127 */
         

@@ -37,7 +37,7 @@ public class MXNamedObjectListFactory {
         }
         return newList;
     }
-
+    
     public static MXNamedObjectList<Integer> listupGeneralMidi(boolean showNumber) {
         CXGeneralMidiFile gmfile = CXGeneralMidiFile.getInstance();
         MXNamedObjectList<Integer> newList = new MXNamedObjectList<>();

@@ -21,7 +21,6 @@ import java.io.IOException;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.libs.MXRangedValue;
-import jp.synthtarou.libs.MXSafeThread;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -73,7 +72,7 @@ public class MGStatusForDrum implements Cloneable {
     boolean _sequencerSeekStart = true;
     boolean _sequencerSingleTrack = true;
     boolean _sequencerFilterNote = true;
-    SMFSequencer _songFilePlayer = null;
+    SMFSequencer _sequencerPlayer = null;
 
     int _outPort = 0;
     int _outChannel = 0;
@@ -85,9 +84,6 @@ public class MGStatusForDrum implements Cloneable {
 
     public int _mouseOnValue = 127;
     public int _mouseOffValue = 0;
-
-    String _templateText = "";
-    int _teplateTextGate = 0;
 
     int _linkMode = MGStatusForDrum.LINKMODE_VALUE;
     int _linkKontrolType = MGStatus.TYPE_SLIDER;
@@ -149,16 +145,15 @@ public class MGStatusForDrum implements Cloneable {
                 }
             }
         }
-        if (_songFilePlayer != null) {
-            _songFilePlayer.stopPlayer();
-            _songFilePlayer = null;
+        if (_sequencerPlayer != null) {
+            _sequencerPlayer.stopPlayer();
+            _sequencerPlayer = null;
         }
         _sequencerFile = switchSongFile;
-        _songFilePlayer = null;
+        _sequencerPlayer = null;
     }
 
     public void startSongPlayer() {
-        System.out.println("1111");
         int port = _outPort;
         if (port < 0) {
             port = _status._port;
@@ -168,7 +163,7 @@ public class MGStatusForDrum implements Cloneable {
             channel = _status._base.getChannel();
         }
 
-        if (_songFilePlayer == null) {
+        if (_sequencerPlayer == null) {
             try {
                 if (_sequencerFile.isEmpty()) {
                     return;
@@ -177,23 +172,21 @@ public class MGStatusForDrum implements Cloneable {
                 if (f == null || f.exists() == false) {
                     return;
                 }
-                _songFilePlayer = new SMFSequencer(new File(_sequencerFile));
+                _sequencerPlayer = new SMFSequencer(new File(_sequencerFile));
             } catch (IOException ioe) {
                 return;
             }
         }
-        System.out.println("222");
         if (_sequencerSingleTrack) {
-            _songFilePlayer.setForceSingleChannel(_outChannel);
+            _sequencerPlayer.setForceSingleChannel(_outChannel);
         } else {
-            _songFilePlayer.setForceSingleChannel(-1);
+            _sequencerPlayer.setForceSingleChannel(-1);
         }
-        _songFilePlayer.setFilterNoteOnly(_sequencerFilterNote);
-        long seek = _sequencerSeekStart ? _songFilePlayer.getFirstNoteMilliSecond() : 0;
+        _sequencerPlayer.setFilterNoteOnly(_sequencerFilterNote);
+        long seek = _sequencerSeekStart ? _sequencerPlayer.getFirstNoteMilliSecond() : 0;
         final int _port = port;
         final int _channel = channel;
-        System.out.println("3333");
-        _songFilePlayer.startPlayerThread(seek, new SMFCallback() {
+        _sequencerPlayer.startPlayerThread(seek, new SMFCallback() {
             @Override
             public void smfPlayNote(MXTiming timing, SMFMessage e) {
                 e._port = _port;
@@ -219,12 +212,11 @@ public class MGStatusForDrum implements Cloneable {
             public void smfProgress(long pos, long finish) {
             }
         });
-        System.out.println("4444");
     }
 
     public void stopSongPlayer() {
-        if (_songFilePlayer != null) {
-            _songFilePlayer.stopPlayer();
+        if (_sequencerPlayer != null) {
+            _sequencerPlayer.stopPlayer();
         }
     }
 
@@ -290,7 +282,9 @@ public class MGStatusForDrum implements Cloneable {
                     case STYLE_CUSTOM_CC:
                         if (_customTemplate != null) {
                             message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, MXRangedValue.new7bit(velocity));
+                            return message;
                         }
+                        message = null;
                         break;
                     case STYLE_NOTES:
                         int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
@@ -343,8 +337,11 @@ public class MGStatusForDrum implements Cloneable {
                             default:
                                 return null;
                         }
-                        _status._mixer._parent.addSliderMove(status, value);
-                        break;
+                        if (status.getValue()._value != value) {
+                            packet.addSliderMove(new MGSliderMove(status, value));
+                            return null;
+                        }
+                        return null;
                     case STYLE_PROGRAM_CHANGE:
                         switch (_programType) {
                             case PROGRAM_SET:
@@ -360,6 +357,8 @@ public class MGStatusForDrum implements Cloneable {
                                 message = MXMessageFactory.fromTemplate(port,
                                         new MXTemplate(new int[]{MXMidi.COMMAND2_CH_PROGRAM_DEC}),
                                         channel, null, null);
+                                break;
+                            default:
                                 break;
                         }
                         return message;
@@ -384,7 +383,9 @@ public class MGStatusForDrum implements Cloneable {
                     case STYLE_CUSTOM_CC:
                         if (_customTemplate != null) {
                             message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, MXRangedValue.new7bit(velocity));
+                            return message;
                         }
+                        message = null;
                         break;
                     case STYLE_NOTES:
                          int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
@@ -433,12 +434,22 @@ public class MGStatusForDrum implements Cloneable {
 
         drumStatus._harmonyNotes = _harmonyNotes;
 
+        drumStatus._customGate = _customGate;
+        drumStatus._customTemplate = _customTemplate;
+        drumStatus._customOutOnValue = _customOutOnValue;
+        drumStatus._customOutOffValue = _customOutOffValue;
+        
         drumStatus._sequencerFile = _sequencerFile;
         drumStatus._sequencerSeekStart = _sequencerSeekStart;
         drumStatus._sequencerSingleTrack = _sequencerSingleTrack;
         drumStatus._sequencerFilterNote = _sequencerFilterNote;
-        drumStatus._songFilePlayer = _songFilePlayer;
+        ///drumStatus._sequencerPlayer = _sequencerPlayer;
 
+        drumStatus._programLSB = _programLSB;
+        drumStatus._programMSB = _programMSB;
+        drumStatus._programNumber = _programNumber;
+        drumStatus._programType = _programType;
+        
         drumStatus._outPort = _outPort;
         drumStatus._outChannel = _outChannel;
 
@@ -449,9 +460,6 @@ public class MGStatusForDrum implements Cloneable {
 
         drumStatus._mouseOnValue = _mouseOnValue;
         drumStatus._mouseOffValue = _mouseOffValue;
-
-        drumStatus._templateText = _templateText;
-        drumStatus._teplateTextGate = _teplateTextGate;
 
         drumStatus._linkRow = _linkRow;
         drumStatus._linkColumn = _linkColumn;

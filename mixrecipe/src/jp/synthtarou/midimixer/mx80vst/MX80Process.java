@@ -566,8 +566,6 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
                 }
 
                 boolean open = jsonLoad.getFollowingBool("open", false);
-                
-                System.out.println("----2" + open);
 
                 VSTInstance vst = new VSTInstance(false, i);
 
@@ -641,9 +639,6 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
 
                 boolean scanDone = base.getFollowingBool("scanDone", false);
                 String path = base.getFollowingText("path", "");
-                
-                System.out.println("scanDone " + scanDone);
-                System.out.println("path " + path);
                 
                 if (path == null || path.length() == 0) {
                     continue;

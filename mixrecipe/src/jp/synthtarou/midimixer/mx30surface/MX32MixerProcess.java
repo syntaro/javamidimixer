@@ -317,9 +317,15 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
 
                 /* template */
                 String switchTemplateText = node.getSetting("switchTemplateText");
-                drum._templateText = switchTemplateText;
+                try {
+                    drum._customTemplate = null;
+                    drum._customTemplate = new MXTemplate(switchTemplateText);
+                }
+                catch(Exception e) {
+                    
+                }
                 int switchTemplateTextGate = node.getSettingAsInt("switchTemplateTextGate", 0);
-                drum._teplateTextGate = switchTemplateTextGate;
+                drum._customGate = MXRangedValue.new7bit(switchTemplateTextGate);
 
                 /* program */
                 int switchProgramType = node.getSettingAsInt("switchProgramType", MGStatusForDrum.STYLE_PROGRAM_CHANGE);
@@ -452,8 +458,8 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
                 setting.setSetting(prefix + "switchOutValueTypeOff", drum._outValueTypeOff);
 
                 /* template */
-                setting.setSetting(prefix + "switchTemplateText", drum._templateText);
-                setting.setSetting(prefix + "switchTemplateTextGate", drum._teplateTextGate);
+                setting.setSetting(prefix + "switchTemplateText", drum._customTemplate.toDText());
+                setting.setSetting(prefix + "switchTemplateTextGate", drum._customGate._value);
 
                 /* program */
                 setting.setSetting(prefix + "switchProgramType", drum._programType);
@@ -838,10 +844,15 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
                 drum._outValueTypeOff = switchOutValueTypeOff;
 
                 /* template */
-                String switchTemplateText = pad.getFollowingText("switchTemplateText", "");
-                drum._templateText = switchTemplateText;
+                try {
+                    drum._customTemplate = null;
+                    drum._customTemplate = new MXTemplate(pad.getFollowingText("switchTemplateText", ""));
+                }
+                catch(Exception e) {
+                    
+                }
                 int switchTemplateTextGate = pad.getFollowingInt("switchTemplateTextGate", 0);
-                drum._teplateTextGate = switchTemplateTextGate;
+                drum._customGate = MXRangedValue.new7bit(switchTemplateTextGate);
 
                 /* program */
                 int switchProgramType = pad.getFollowingInt("switchProgramType", MGStatusForDrum.STYLE_PROGRAM_CHANGE);
@@ -957,8 +968,8 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
                 pad.setFollowingInt("switchOutValueTypeOff", drum._outValueTypeOff);
 
                 /* template */
-                pad.setFollowingText("switchTemplateText", drum._templateText);
-                pad.setFollowingInt("switchTemplateTextGate", drum._teplateTextGate);
+                pad.setFollowingText("switchTemplateText", drum._customTemplate.toDText());
+                pad.setFollowingInt("switchTemplateTextGate", drum._customGate._value);
 
                 /* program */
                 pad.setFollowingInt("switchProgramType", drum._programType);
