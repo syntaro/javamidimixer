@@ -284,7 +284,6 @@ public class SMFSequencer {
                         }
                     }
                 } catch (InterruptedException ex) {
-                    ex.printStackTrace();
                     break;
                 }
                 elapsed = (System.currentTimeMillis() - launched);

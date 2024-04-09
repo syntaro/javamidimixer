@@ -691,7 +691,6 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
                     }
                     int x = seek.controlByMessage(message);
                     if (x >= 0) {
-                        System.out.println("jp.synthtarou.midimixer.mx30surface.MX32MixerProcess.startProcess(" + x + ")");
                         _parent.addSliderMove(seek, x);
                         proc = true;
                     }
