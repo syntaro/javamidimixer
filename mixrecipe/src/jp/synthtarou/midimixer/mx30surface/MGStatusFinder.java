@@ -56,8 +56,7 @@ public class MGStatusFinder {
 
         for (int row = 0; row < MXConfiguration.DRUM_ROW_COUNT; ++row) {
             for (int column = 0; column < MXConfiguration.SLIDER_COLUMN_COUNT; ++column) {
-                MGStatus status = _mixer.getStatus(MGStatus.TYPE_DRUMPAD, row, column);
-                makeCacheImpl(status);
+                makeCacheImpl(_mixer.getStatus(MGStatus.TYPE_DRUMPAD, row, column));
             }
         }
     }
@@ -69,9 +68,6 @@ public class MGStatusFinder {
 
         MXMessage message = status._base;
         
-        if (message == null) {
-            return;
-        }
         if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
             int data1 = message.getData1();
             if (data1 == MXMidi.DATA1_CC_DATAENTRY || data1 == MXMidi.DATA1_CC_DATAINC || data1 == MXMidi.DATA1_CC_DATADEC) {

@@ -58,13 +58,14 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXINI
     }
 
     private CXXMLManager() {
+        readJSonfile(null);
+
         CXGeneralMidiFile gmfile = CXGeneralMidiFile.getInstance();
         for (CXFile file : _listLoaded) {
             if (file._file.getName().equals(gmfile._file.getName())) {
                 return;
             }
         }
-        readJSonfile(null);
         _listLoaded.add(gmfile);
     }
     

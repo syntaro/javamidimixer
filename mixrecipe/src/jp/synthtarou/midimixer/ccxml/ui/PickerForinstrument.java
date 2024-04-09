@@ -900,6 +900,6 @@ public class PickerForinstrument extends javax.swing.JPanel {
         int state = command + channel;
 
         MXMessage message = MXMessageFactory.fromShortMessage(port, state, data1, data2);
-        MXMain.getMain().messageDispatch(message, receiver);
+        MXReceiver.messageDispatch(message, receiver);
     }
 }

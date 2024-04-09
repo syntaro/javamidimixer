@@ -67,7 +67,7 @@ public class MGDrumPad extends javax.swing.JPanel {
     }
 
     
-    public void setDrumActive(boolean newValue) {
+    public void setDrumLook(boolean newValue) {
         if (newValue) {
             _focusSelected = true;
             _mixer._view._focusGroup.setBackgroundAuto(this);
@@ -80,6 +80,7 @@ public class MGDrumPad extends javax.swing.JPanel {
     public void updateUI() {
         super.updateUI();
         if (jLabel1 != null) {
+            _mixer._finder = null;
             MGStatus status = getStatus();
             if (status._name == null || status._name.length() == 0) {
                 MXMessage message = status._base;

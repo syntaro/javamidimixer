@@ -160,22 +160,22 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
         return _pageProcess[i];
     }
 
-    MXMessageBag _bag = new MXMessageBag();
+    MX30Packet _packet = new MX30Packet();
     int _bagCount = 0;
 
     /*
     static long _debugThrh = 0;
     static long _debugFlush = 0;
      */
-    public MXMessageBag startBagging() {
+    public MX30Packet startTransaction() {
         ++_bagCount;
-        return _bag;
+        return _packet;
     }
 
-    public void endBagging() {
+    public void endTransaction() {
         if (_bagCount-- == 1) {
-            flushSendQueue(_bag);
-            _bag.clearFlags();
+            flushSendQueue(_packet);
+            _packet.clearQueue();
         }
     }
 
@@ -185,15 +185,15 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
     }
 
     void addSliderMove(MGSliderMove move) {
-        MXMessageBag bag = startBagging();
+        MX30Packet bag = startTransaction();
         try {
             bag.addSliderMove(move);
         } finally {
-            endBagging();
+            endTransaction();
         }
     }
 
-    void flushSendQueue(MXMessageBag bag) {
+    void flushSendQueue(MX30Packet packet) {
         int did = 1;
         if (_stopFeedback > 0) {
             return;
@@ -203,7 +203,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
         try {
             while (did >= 1) {
                 did = 0;
-                MGSliderMove move = bag.popSliderMove();
+                MGSliderMove move = packet.popSliderMove();
                 if (move != null) {
                     MGStatus status = move._status;
                     int port = status._port;
@@ -212,7 +212,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
                     if (message != null) {
                         message._timing = move._timing;
 
-                        bag.addQueue(message);
+                        packet.addQueue(message);
 
                         MX36Process mapping = _mappingProcess;
                         if (mapping != null) {
@@ -222,18 +222,18 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
                                 mapping.invokeMapping(status);
                             }
                         }
-                        bag.addResult(message);
+                        packet.addResult(message);
                     }
                     did++;
                 }
-                MXMessage message = bag.popQueue();
+                MXMessage message = packet.popQueue();
                 if (message != null) {
                     processMXMessage(message);
                     did++;
                 }
             }
             while (true) {
-                Runnable run = bag.popResultTask();
+                Runnable run = packet.popResultTask();
                 if (run == null) {
                     break;
                 }
@@ -245,7 +245,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
                 }
             }
             while (true) {
-                MXMessage seek = bag.popResult();
+                MXMessage seek = packet.popResult();
                 if (seek == null) {
                     break;
                 }

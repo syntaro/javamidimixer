@@ -401,58 +401,43 @@ public class MXMIDIIn {
         int port = message.getPort();
         int channel;
         synchronized (MXTiming.mutex) {
-            switch (message.getTemplate().get(0) & 0xff00) {
-                case MXMidi.COMMAND2_CH_RPN:
-                case MXMidi.COMMAND2_CH_NRPN:
-                case MXMidi.COMMAND2_CH_PROGRAM_INC:
-                case MXMidi.COMMAND2_CH_PROGRAM_DEC:
-                    channel = message.getChannel();
-                    MXVisitant visit = _visitant16.get(channel);
-
-                    MXMessage[] ret = visit.preprocess(message, retBuf);
-                    if (ret != null) {
-                        retBuf = ret;
-                        for (int i = 0; i < ret.length; ++i) {
-                            if (ret[i] != null) {
-                                tossToMain(ret[i]);
-                            }
-                        }
-                    }
-                    return;
-                case 0:
-                    break;
-                default:
-                    tossToMain(message);
-                    return;
-            }
+            int command = message.getTemplate().get(0);
             if (!message.isMessageTypeChannel()) {
-                tossToMain(message);
+                MXReceiver.messageDispatch(message, MXMain.getMain().getInputProcess());
                 return;
             }
-            boolean worked = false;
-            int ch = message.getChannel();
-            int status = message.getStatus();
-            int gate = message.getGate()._value;
-
-            int command = status;
-            if (command >= 0x80 && command <= 0xef) {
-                command = command & 0xf0;
+            boolean needProc = false;
+            if ((command & 0xfff0) != 0) {
+                switch(command & 0xfff0) {
+                    case MXMidi.COMMAND2_CH_RPN:
+                    case MXMidi.COMMAND2_CH_NRPN:
+                    case MXMidi.COMMAND2_CH_PROGRAM_INC:
+                    case MXMidi.COMMAND2_CH_PROGRAM_DEC:
+                        needProc = true;
+                        break;
+                    default:
+                        MXReceiver.messageDispatch(message, MXMain.getMain().getInputProcess());
+                        return;
+                }
             }
+            else {
+                needProc = true;
+            }
+            
+            if (needProc) {
+                channel = message.getChannel();
+                MXVisitant visit = _visitant16.get(channel);
 
-            MXVisitant visit = _visitant16.get(ch);
-            MXMessage[] ret = visit.preprocess(message, retBuf);
-             if (ret != null) {
-                retBuf = ret;
-                for (int i = 0; i < ret.length; ++i) {
-                    if (ret[i] != null) {
-                        tossToMain(ret[i]);
+                MXMessage[] ret = visit.preprocess(message, retBuf);
+                if (ret != null) {
+                    retBuf = ret;
+                    for (int i = 0; i < ret.length; ++i) {
+                        if (ret[i] != null) {
+                            MXReceiver.messageDispatch(ret[i], MXMain.getMain().getInputProcess());
+                        }
                     }
                 }
             }
         }
-    }
-
-    private void tossToMain(MXMessage message) {
-        MXMain.getMain().messageDispatch(message, MXMain.getMain().getInputProcess());
     }
 }

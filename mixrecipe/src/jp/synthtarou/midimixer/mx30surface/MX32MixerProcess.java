@@ -670,15 +670,15 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
         }
 
         synchronized (this) {
-            if (_finder == null) {
+            //if (_finder == null) {
                 _finder = new MGStatusFinder(this);
-            }
+            //}
         }
 
-        MXMessageBag bag = _parent.startBagging();
+        MX30Packet packet = _parent.startTransaction();
         try {
             if (message.isEmpty()) {
-                bag.addResult(message);
+                packet.addResult(message);
                 return;
             }
 
@@ -686,21 +686,22 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
             boolean proc = false;
             if (listStatus != null && listStatus.isEmpty() == false) {
                 for (MGStatus seek : listStatus) {
-                    if (bag.isInvokedStatus(seek)) {
+                    if (packet.isInvokedStatus(seek)) {
                         continue;
                     }
                     int x = seek.controlByMessage(message);
                     if (x >= 0) {
+                        System.out.println("jp.synthtarou.midimixer.mx30surface.MX32MixerProcess.startProcess(" + x + ")");
                         _parent.addSliderMove(seek, x);
                         proc = true;
                     }
                 }
             }
             if (!proc) {
-                bag.addResult(message);
+                packet.addResult(message);
             }
         } finally {
-            _parent.endBagging();
+            _parent.endTransaction();
         }
     }
 
@@ -709,9 +710,9 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
             return;
         }
         synchronized (this) {
-            if (_finder == null) {
+            //if (_finder == null) {
                 _finder = new MGStatusFinder(this);
-            }
+            //}
         }
 
         ArrayList<MGStatus> listStatus = _finder.findCandidate(message);
@@ -726,10 +727,10 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
                         MGDrumPad pad = (MGDrumPad)seek.getComponent();
                         if (seek._drum._strikeZone.contains(x)) {
                             pad.getStatus()._drum._lastDetected = true;
-                            pad.setDrumActive(true);
+                            pad.setDrumLook(true);
                         }else {
                             pad.getStatus()._drum._lastDetected = false;
-                            pad.setDrumActive(false);
+                            pad.setDrumLook(false);
                         }
                     }
                 }

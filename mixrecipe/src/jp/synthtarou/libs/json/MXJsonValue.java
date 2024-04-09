@@ -649,6 +649,17 @@ public class MXJsonValue {
             _label = String.valueOf(label);
         }
     }
+    
+    public void setLabelAndText(Number label, String text) {
+        if (label == null) {
+            _label = "null";
+        } else {
+            _label = String.valueOf(label);
+        }
+        
+        MXJsonValue body = new MXJsonValue(text);
+        addToContentsValue(body);
+    }
 
     /**
      * 配列タイプをあつかうヘルパークラス

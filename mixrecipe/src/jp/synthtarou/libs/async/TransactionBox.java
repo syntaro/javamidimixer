@@ -19,7 +19,6 @@ package jp.synthtarou.libs.async;
 import java.util.Comparator;
 import java.util.TreeMap;
 import jp.synthtarou.libs.log.MXFileLogger;
-import jp.synthtarou.midimixer.MXMain;
 
 /**
  *

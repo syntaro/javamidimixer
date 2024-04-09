@@ -210,6 +210,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
                     int row = props.getSettingAsInt("SurfaceRow", 0);
                     int column = props.getSettingAsInt("SurfaceColumn", 0);
                     status.setSurface(port, type, row, column);
+                    status._surfaceReplace = props.getSettingAsBoolean("SurfaceReplace", true);
 
                     status._bind1RCH = props.getSettingAsInt("Bind1RCH1", 0);
                     status._bind2RCH = props.getSettingAsInt("Bind1RCH2", 0);
@@ -281,6 +282,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
                 setting.setSetting(prefix2 + "SurfaceUIType", status.getSurfaceUIType());
                 setting.setSetting(prefix2 + "SurfaceRow", status.getSurfaceRow());
                 setting.setSetting(prefix2 + "SurfaceColumn", status.getSurfaceColumn());
+                setting.setSetting(prefix2 + "SurfaceReplace", status._surfaceReplace);
 
                 setting.setSetting(prefix2 + "Bind1RCH1", status._bind1RCH);
                 setting.setSetting(prefix2 + "Bind1RCH2", status._bind2RCH);
@@ -480,7 +482,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
                     int type = statusNode.getFollowingInt("SurfaceUIType", 0);
                     int row = statusNode.getFollowingInt("SurfaceRow", 0);
                     int column = statusNode.getFollowingInt("SurfaceColumn", 0);
-                    status.setSurface(port, type, row, column);
+                    status._surfaceReplace = statusNode.getFollowingBool("ReplaceOriginal", true);
                     
                     status._bind1RCH = statusNode.getFollowingInt("Bind1RCH1", 0);
                     status._bind2RCH = statusNode.getFollowingInt("Bind1RCH2", 0);
@@ -508,9 +510,78 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
             custom = MXJsonParser.pathOf("CCMapping");
         }
         MXJsonValue value = new MXJsonValue(null);
-
         MXJsonParser parser = new MXJsonParser(custom);
-        parser.setRoot(value);
+        MXJsonValue.HelperForStructure  root = parser.getRoot().new HelperForStructure();
+        MXJsonValue.HelperForArray folderList = root.addFollowingArray("Folder");
+
+        for (MX36Folder folder : _folderList._listFolder) {
+            MXJsonValue.HelperForStructure setting = folderList.addFollowingStructure();
+
+            setting.setFollowingText("Name", folder._folderName);
+            setting.setFollowingBool("Selected", folder.isSelected());
+
+            if (folder == this._folderList._autodetectFolder) {
+                continue;
+            }
+
+            MXJsonValue.HelperForArray statusList = setting.addFollowingArray("Status");
+            
+            for (int statusN = 0; statusN < folder._accordion.getElementCount(); ++statusN) {
+                MX36StatusPanel panel = (MX36StatusPanel) folder._accordion.getElementAt(statusN);
+                MX36Status status = panel._status;
+                MXJsonValue.HelperForStructure node = statusList.addFollowingStructure();
+
+                node.setFollowingText("Name", status._outName);
+                node.setFollowingText("Memo", status._outMemo);
+                node.setFollowingText("DataText", status.getOutDataText());
+                node.setFollowingInt("Port", status._outPort);
+                node.setFollowingInt("Channel", status._outChannel);
+                node.setFollowingText("ValueRange", rangeToString(status._outValueRange));
+                node.setFollowingInt("ValueOffset", status._outValueOffset);
+                if (status._outValueTable != null) {
+                    MXJsonValue.HelperForArray valueTable = node.addFollowingArray("ValueTable");
+                    if (!isSameRangeAndTable(status._outValueRange, status._outValueTable)) {
+                        for (MXNamedObject<Integer> seek : status._outValueTable) {
+                            MXJsonValue adding = new MXJsonValue(null);
+                            adding.setLabelAndText(seek._value, status._outValueTable.nameOfValue(seek._value));
+                            valueTable.toJsonValue().addToContentsArray(adding);
+                        }
+                    }
+                }
+                node.setFollowingText("GateRange", rangeToString(status._outGateRange));
+                node.setFollowingInt("GateOffset", status._outGateOffset);
+                if (status._outGateTable != null) {
+                    MXJsonValue.HelperForArray gateTable = node.addFollowingArray("GateTable");
+                    if (!isSameRangeAndTable(status._outGateRange, status._outGateTable)) {
+                        for (MXNamedObject<Integer> seek : status._outGateTable) {
+                            MXJsonValue adding = new MXJsonValue(null);
+                            adding.setLabelAndText(seek._value, status._outValueTable.nameOfValue(seek._value));
+                            gateTable.toJsonValue().addToContentsArray(adding);
+                        }
+                    }
+                }
+                node.setFollowingBool("GateTypeIsKey", status._outGateTypeKey);
+
+                node.setFollowingInt("SurfacePort", status.getSurfacePort());
+                node.setFollowingInt("SurfaceUIType", status.getSurfaceUIType());
+                node.setFollowingInt("SurfaceRow", status.getSurfaceRow());
+                node.setFollowingInt("SurfaceColumn", status.getSurfaceColumn());
+                node.setFollowingBool("SurfaceReplace", status._surfaceReplace);
+
+                node.setFollowingInt("Bind1RCH1", status._bind1RCH);
+                node.setFollowingInt("Bind1RCH2", status._bind2RCH);
+                node.setFollowingInt("Bind1RCH4", status._bind4RCH);
+
+                node.setFollowingInt("BindRSCTRT1", status._bindRSCTRT1);
+                node.setFollowingInt("BindRSCTRT2", status._bindRSCTRT2);
+                node.setFollowingInt("BindRSCTRT3", status._bindRSCTRT3);
+
+                node.setFollowingInt("BindRSCTPT1", status._bindRSCTPT1);
+                node.setFollowingInt("BindRSCTPT2", status._bindRSCTPT2);
+                node.setFollowingInt("BindRSCTPT3", status._bindRSCTPT3);
+            }
+
+        }
         return parser.writeFile();
     }
 

@@ -59,8 +59,8 @@ public class MXLoopMidiLauncher extends Thread {
 				port.sendCommand( command );
 			}
 		} catch ( TeVirtualMIDIException e ) {
-			MXMain.LogError( "thread aborting: " + e );
-			return;
+			e.printStackTrace();
+            		return;
 		}
 */
 

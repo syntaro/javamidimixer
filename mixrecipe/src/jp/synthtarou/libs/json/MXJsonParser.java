@@ -139,7 +139,7 @@ public class MXJsonParser {
         if (fileName.startsWith(dir)) {
             fileName = "$(APP)" + fileName.substring(dir.length());
         }
-        MXMain.progress("writing " + fileName);
+        MXMain.progressIf("writing " + fileName);
 
         FileOutputStream fout = null;
         try {
@@ -240,7 +240,7 @@ public class MXJsonParser {
             if (fileName.startsWith(dir)) {
                 fileName = "$(APP)" + fileName.substring(dir.length());
             }
-            MXMain.progress("reading " + fileName);
+            MXMain.progressIf("reading " + fileName);
         }
         _parse1 = new ArrayList<>();
         _root = null;

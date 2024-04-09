@@ -161,7 +161,7 @@ public class MXMainWindow extends javax.swing.JFrame {
         jPanelForTab.remove(jButtonDummyTab);;
         jPanelForTab.add(jTabbedPane1);
         jPanelForPiano.remove(jButtonDummyPiano);
-        jPanelForPiano.add(_main.getPianoProcess().getReceiverView());
+        jPanelForPiano.add(_main.getMasterkeyProcess().getReceiverView());
     }
     
     List<MXReceiver> _viewList = null;
@@ -385,7 +385,7 @@ public class MXMainWindow extends javax.swing.JFrame {
                     v36.tabActivated();
                 }
             }
-            MX12Process piano = MXMain.getMain().getPianoProcess();
+            MX12Process piano = MXMain.getMain().getMasterkeyProcess();
             piano.updateViewForSettingChange();
         }
     }

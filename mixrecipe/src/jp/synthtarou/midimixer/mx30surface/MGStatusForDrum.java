@@ -21,6 +21,7 @@ import java.io.IOException;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.libs.MXRangedValue;
+import jp.synthtarou.libs.MXSafeThread;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -29,6 +30,7 @@ import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.libs.smf.SMFCallback;
 import jp.synthtarou.libs.smf.SMFMessage;
 import jp.synthtarou.libs.smf.SMFSequencer;
+import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 
 /**
  *
@@ -156,6 +158,7 @@ public class MGStatusForDrum implements Cloneable {
     }
 
     public void startSongPlayer() {
+        System.out.println("1111");
         int port = _outPort;
         if (port < 0) {
             port = _status._port;
@@ -179,6 +182,7 @@ public class MGStatusForDrum implements Cloneable {
                 return;
             }
         }
+        System.out.println("222");
         if (_sequencerSingleTrack) {
             _songFilePlayer.setForceSingleChannel(_outChannel);
         } else {
@@ -188,6 +192,7 @@ public class MGStatusForDrum implements Cloneable {
         long seek = _sequencerSeekStart ? _songFilePlayer.getFirstNoteMilliSecond() : 0;
         final int _port = port;
         final int _channel = channel;
+        System.out.println("3333");
         _songFilePlayer.startPlayerThread(seek, new SMFCallback() {
             @Override
             public void smfPlayNote(MXTiming timing, SMFMessage e) {
@@ -199,7 +204,7 @@ public class MGStatusForDrum implements Cloneable {
                     }
                 }
                 message._timing = timing;
-                MXMain.getMain().messageDispatch(message, _status._mixer._parent.getNextReceiver());
+                MXReceiver.messageDispatch(message, _status._mixer._parent.getNextReceiver());
             }
 
             @Override
@@ -214,6 +219,7 @@ public class MGStatusForDrum implements Cloneable {
             public void smfProgress(long pos, long finish) {
             }
         });
+        System.out.println("4444");
     }
 
     public void stopSongPlayer() {
@@ -238,15 +244,15 @@ public class MGStatusForDrum implements Cloneable {
             return null;
         }
         _lastDetected = strike;
-        return doAction(strike);
+        return doAction(strike, value);
     }
 
-    MXMessage doAction(boolean flag) {
+    MXMessage doAction(boolean flag,int invalue) {
         MXMessage message = null;
 
-        MXMessageBag bag = _status._mixer._parent.startBagging();
+        MX30Packet packet = _status._mixer._parent.startTransaction();
         try {
-            int velocity = _status.getValue()._value;
+            int velocity = invalue;
 
             MX30Process parentProcess = MXMain.getMain().getKontrolProcess();
             MX32MixerProcess mixer = _status._mixer;
@@ -259,7 +265,7 @@ public class MGStatusForDrum implements Cloneable {
             if (channel < 0) {
                 channel = _status._base.getChannel();
             }
-            pad.setDrumActive(flag);
+            pad.setDrumLook(flag);
             if (_lastSent == flag) {
                 return null;
             }
@@ -267,7 +273,7 @@ public class MGStatusForDrum implements Cloneable {
             if (flag) {
                 switch (_outValueTypeOn) {
                     case VALUETYPE_AS_INPUT:
-                        velocity = _status.getValue()._value;
+                        velocity = invalue;
                         break;
                     case VALUETYPE_AS_MOUSE:
                         velocity = _mouseOnValue;
@@ -275,6 +281,7 @@ public class MGStatusForDrum implements Cloneable {
                     case VALUETYPE_NOTHING:
                         return null;
                 }
+                System.out.println("newVelocity " + velocity);
                 switch (_outStyle) {
                     case STYLE_SAME_CC:
                         message = (MXMessage) _status._base.clone();
@@ -290,10 +297,12 @@ public class MGStatusForDrum implements Cloneable {
                         int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
                         for (int note : noteList) {
                             message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEON + channel, note, velocity);
+                            packet.addResult(message);
                         }
+                        message = null;
                         break;
                     case STYLE_SEQUENCE:
-                        bag.addResultTask(new Runnable() {
+                        packet.addResultTask(new Runnable() {
                             @Override
                             public void run() {
                                 startSongPlayer();
@@ -362,7 +371,7 @@ public class MGStatusForDrum implements Cloneable {
                         // velocity = velocity
                         break;
                     case VALUETYPE_AS_MOUSE:
-                        velocity = _mouseOnValue;
+                        velocity = _mouseOffValue;
                         break;
                     case VALUETYPE_NOTHING:
                         return null;
@@ -379,13 +388,15 @@ public class MGStatusForDrum implements Cloneable {
                         }
                         break;
                     case STYLE_NOTES:
-                        int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
+                         int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
                         for (int note : noteList) {
                             message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + channel, note, 0);
+                            packet.addResult(message);
                         }
+                        message = null;
                         break;
                     case STYLE_SEQUENCE:
-                        bag.addResultTask(new Runnable() {
+                        packet.addResultTask(new Runnable() {
                             @Override
                             public void run() {
                                 stopSongPlayer();
@@ -400,7 +411,7 @@ public class MGStatusForDrum implements Cloneable {
             }
             return message;
         } finally {
-            _status._mixer._parent.endBagging();
+            _status._mixer._parent.endTransaction();
         }
 
     }

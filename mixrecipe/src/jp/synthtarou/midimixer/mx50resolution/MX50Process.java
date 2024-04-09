@@ -23,7 +23,7 @@ import java.util.logging.Level;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.mx30surface.MXMessageBag;
+import jp.synthtarou.midimixer.mx30surface.MX30Packet;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.libs.inifile.MXINIFile;
@@ -62,19 +62,21 @@ public class MX50Process extends MXReceiver<MX50View> implements MXINIFileSuppor
     public int indexOfResolution(MXResolution reso) {
         return  _listResolution.indexOf(reso);
     }
+    
+    MX30Packet _packet = new MX30Packet();
 
     @Override
     public void processMXMessage(MXMessage message) {
-        MXMessageBag result = new MXMessageBag();
         boolean proc = false;
+        _packet.clearQueue();
         for (MXResolution reso : _listResolution) {
-            if (reso.controlByMessage(message, result)) {
+            if (reso.controlByMessage(message, _packet)) {
                 proc = true;
             }
         }
         if (proc) {
             while (true) {
-                MXMessage seek = result.popResult();
+                MXMessage seek = _packet.popResult();
                 if (seek == null) {
                     break;
                 }

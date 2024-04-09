@@ -85,6 +85,7 @@ public class MX36Status {
     private int _surfaceRow;
     private int _surfaceColumn;
     private MGStatus _surfaceobj;
+    boolean _surfaceReplace;
 
     MXRangedValue _surfaceValueRange = new MXRangedValue(0, 0, 127);
     
@@ -157,6 +158,7 @@ public class MX36Status {
         _folder = null;
         _outDataText = null;
         _outChannel = -1;
+        _surfaceReplace = true;
 
         _outGateRange = new MXRangedValue(64, 0, 127);
         _outGateOffset = 0;
@@ -249,7 +251,7 @@ public class MX36Status {
     }
 
     public MXMessage createOutMessage() {
-        if (_folder.isSelected() == false) {
+        if (_folder == null || _folder.isSelected() == false) {
             return null;
         }
         if (_outDataText == null || _outDataText.length() == 0) {

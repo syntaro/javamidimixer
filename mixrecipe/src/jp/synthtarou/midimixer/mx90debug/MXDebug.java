@@ -22,6 +22,7 @@ import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
+import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInForTest;
 
@@ -42,7 +43,7 @@ public abstract class MXDebug {
         _input = new LinkedList<>();
         _input.add(target);
         _test.startTest(target);
-        MXMain.getMain().waitQueueBeenEmpty();;
+        MXReceiver.waitQueueBeenEmpty();;
         checkResult();
         if (_interval >= 1) {
             try {
@@ -60,7 +61,7 @@ public abstract class MXDebug {
             _test.startTest(seek);
         
         }
-        MXMain.getMain().waitQueueBeenEmpty();;
+        MXReceiver.waitQueueBeenEmpty();;
         checkResult();
         if (_interval >= 1) {
             try {

@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.libs.accordionui;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -189,6 +190,9 @@ public class MXAccordion extends javax.swing.JPanel {
         GridBagConstraints con = new java.awt.GridBagConstraints();
         con.gridx = 2;
         con.gridy = 0;
+        con.fill = GridBagConstraints.HORIZONTAL;
+        con.weightx = 1;
+        con.anchor = java.awt.GridBagConstraints.EAST;
         add(compo, con);
     }
 

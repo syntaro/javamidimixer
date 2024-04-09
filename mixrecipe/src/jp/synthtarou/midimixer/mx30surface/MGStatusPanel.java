@@ -23,6 +23,8 @@ import jp.synthtarou.libs.navigator.MXPopup;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOError;
 import java.util.ArrayList;
 import java.util.IllegalFormatException;
 import java.util.List;
@@ -391,6 +393,19 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             jTextFieldChannel.setText(_channelModel.nameOfValue(_status._base.getChannel()));
 
             jLabelDefaultName.setText("'" + _status._base.toStringForUI() + "' if blank");
+
+            MXTemplate temp = _status._base.getTemplate();
+            if (temp.get(1) != MXMidi.CCXML_GL) 
+            {
+                MXMessage message = _status._base;
+                if (temp.get(0) == MXMidi.COMMAND_CH_NOTEON
+                  ||temp.get(1) == MXMidi.COMMAND_CH_NOTEOFF
+                  ||temp.get(2) == MXMidi.COMMAND_CH_POLYPRESSURE) {
+                    MXTemplate temp2 = new MXTemplate(new int[] {temp.get(0), MXMidi.CCXML_GL, MXMidi.CCXML_VL});
+                    message = MXMessageFactory.fromTemplate(message.getPort(), temp2, message.getChannel(), message.getGate(), message.getValue());
+                    _status.setBaseMessage(message);
+                }
+            }
 
             int command = _status._base.getStatus() & 0xf0;
             int gateValue = _status._base.getGate()._value;
@@ -2039,6 +2054,9 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         if (validateStatus() > 0) {
             return;
         }
+        if (_status._drum != null) {
+            _status._drum.stopSongPlayer();
+        }
         _okOption = true;
         MXUtil.getOwnerWindow(this).setVisible(false);
 
@@ -2305,7 +2323,18 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         if (_skipSwingEvent != 0) {
             return;
         }
-        MXFolderBrowser browser = new MXFolderBrowser(null, new FileFilterListExt(".Mid"));
+        String prev = jTextFieldSequenceFile.getText();
+        File dir = null;
+        try {
+            dir = new File(prev).getParentFile();
+        }
+        catch(Exception ex) {
+            
+        }
+        if (dir == null) {
+            dir = new File("C:/midi");
+        }
+        MXFolderBrowser browser = new MXFolderBrowser(dir, new FileFilterListExt(".Mid"));
         MXUtil.showAsDialog(this, browser, "Choose Standard MIDI File");
         if (browser.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
             FileList list = browser.getReturnValue();

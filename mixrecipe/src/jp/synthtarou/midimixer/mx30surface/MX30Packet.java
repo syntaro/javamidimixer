@@ -25,7 +25,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
  *
  * @author Syntarou YOSHIDA
  */
-public class MXMessageBag {
+public class MX30Packet {
     LinkedList<MXMessage> _listQuque = new LinkedList<>();
     LinkedList<MXMessage> _listResult = new LinkedList<>();
     LinkedList<Runnable> _listResultTask = new LinkedList<>();
@@ -35,7 +35,7 @@ public class MXMessageBag {
     TreeSet<MGStatus> _listInvoked = new TreeSet<>();
     TreeMap<MGStatus, MGSliderMove> _listSliderMove = new TreeMap<>();
     
-    public synchronized  void clearFlags() {
+    public synchronized  void clearQueue() {
         /*
         int x = 0;
         x += _listQuque.size();
@@ -56,7 +56,7 @@ public class MXMessageBag {
         _listSliderMove.clear();
     }
 
-    public MXMessageBag() {
+    public MX30Packet() {
     }
     
     public void dumpQueue() {

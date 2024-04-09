@@ -127,7 +127,7 @@ public class MXINIFile {
             if (fileName.startsWith(dir)) {
                 fileName = "$(APP)" + fileName.substring(dir.length());
             }
-            MXMain.progress("reading " + fileName);
+            MXMain.progressIf("reading " + fileName);
             MXLineReader reader = new MXLineReader(fin, "utf-8");
             while (true) {
                 String line = reader.readLine();
@@ -173,7 +173,7 @@ public class MXINIFile {
         if (fileName.startsWith(dir)) {
             fileName = "$(APP)" + fileName.substring(dir.length());
         }
-        MXMain.progress("writing " + fileName);
+        MXMain.progressIf("writing " + fileName);
 
         try {
             writer = new MXLineWriter(temporary, "utf-8");

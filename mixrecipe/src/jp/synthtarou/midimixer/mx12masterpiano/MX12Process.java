@@ -193,7 +193,7 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
         @Override
         public void onNoteOffEvent(MXTiming timing, MXMessage target) {
             target._timing = timing;
-            MXMain.getMain().messageDispatch(target, _receiver);
+            MXReceiver.messageDispatch(target, _receiver);
             _view._piano.noteOff(target.getGate()._value);
         }
     }
@@ -201,12 +201,12 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
     public void processMXMessage(MXMessage message) {
     }
 
-    public void mouseMessage(MXMessage message) {
+    public void sentMessageByMouse(MXMessage message) {
         MXReceiver receiver = getNextReceiver();
         if (receiver == null) {
-            receiver = MXMain.getMain().getActiveSendableReceiver();
+            receiver = MXMain.getMain().getAutoSendableReceiver();
         }
-        MXMain.getMain().messageDispatch(message, receiver);
+        MXReceiver.messageDispatch(message, receiver);
     }
 
     /**

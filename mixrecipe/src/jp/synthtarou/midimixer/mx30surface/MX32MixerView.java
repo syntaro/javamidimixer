@@ -321,28 +321,33 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
             @Override
             public void run() {
                 try {
-                    for (int column = 0; column < MXConfiguration.SLIDER_COLUMN_COUNT; ++column) {
+                    if (_mixer.getCircle(0,0) != null) {
+                        for (int column = 0; column < MXConfiguration.SLIDER_COLUMN_COUNT; ++column) {
+                            for (int row = 0; row < MXConfiguration.CIRCLE_ROW_COUNT; ++row) {
+                                initializeColor(_mixer.getCircle(row, column));
+                                _mixer.getCircle(row, column).updateUI();
+                            }
+                            for (int row = 0; row < MXConfiguration.SLIDER_ROW_COUNT; ++row) {
+                                initializeColor(_mixer.getSlider(row, column));
+                                _mixer.getSlider(row, column).updateUI();
+                            }
+                            for (int row = 0; row < MXConfiguration.DRUM_ROW_COUNT; ++row) {
+                                initializeColor(_mixer.getDrumPad(row, column));
+                                _mixer.getDrumPad(row, column).updateUI();
+                            }
+                        }
+
                         for (int row = 0; row < MXConfiguration.CIRCLE_ROW_COUNT; ++row) {
-                            initializeColor(_mixer.getCircle(row, column));
+                            for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
+                                MGStatus number = _mixer.getStatus(MGStatus.TYPE_CIRCLE, row, col);
+                                _mixer.highlightPad(number._base);
+                            }
                         }
                         for (int row = 0; row < MXConfiguration.SLIDER_ROW_COUNT; ++row) {
-                            initializeColor(_mixer.getSlider(row, column));
-                        }
-                        for (int row = 0; row < MXConfiguration.DRUM_ROW_COUNT; ++row) {
-                            initializeColor(_mixer.getDrumPad(row, column));
-                        }
-                    }
-
-                    for (int row = 0; row < MXConfiguration.CIRCLE_ROW_COUNT; ++row) {
-                        for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
-                            MGStatus number = _mixer.getStatus(MGStatus.TYPE_CIRCLE, row, col);
-                            _mixer.highlightPad(number._base);
-                        }
-                    }
-                    for (int row = 0; row < MXConfiguration.SLIDER_ROW_COUNT; ++row) {
-                        for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
-                            MGStatus number = _mixer.getStatus(MGStatus.TYPE_SLIDER, row, col);
-                            _mixer.highlightPad(number._base);
+                            for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
+                                MGStatus number = _mixer.getStatus(MGStatus.TYPE_SLIDER, row, col);
+                                _mixer.highlightPad(number._base);
+                            }
                         }
                     }
                 } catch (NullPointerException e) {
@@ -399,7 +404,7 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
         MX32MixerProcess mixer = this._mixer;
 
         try {
-            _mixer._parent.startBagging();
+            _mixer._parent.startTransaction();
 
             _focusGroup = new MXFocusGroup(this);
 
@@ -553,8 +558,8 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
 
             jCheckBoxSyncTogether.setSelected(mixer._patchTogether);
         } finally {
-            _mixer._parent._bag.clearFlags();
-            _mixer._parent.endBagging();
+            _mixer._parent._packet.clearQueue();
+            _mixer._parent.endTransaction();
             updateUI();
         }
     }

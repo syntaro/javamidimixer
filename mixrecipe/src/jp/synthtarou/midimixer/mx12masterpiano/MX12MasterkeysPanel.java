@@ -32,14 +32,11 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.libs.accordionui.MXAccordionElement;
-import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
-import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
@@ -64,12 +61,15 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     JButton _jButtonEdit = new JButton("Edit");
     final MX12Process _process;
     MXPianoKeys _piano;
+    /*
     MXNamedObjectList<Integer> _watchPort = MXNamedObjectListFactory.listupPort(null);
     MXNamedObjectList<Integer> _watchChannel = MXNamedObjectListFactory.listupChannel(null);
-    
+*/
     int _sentPitch = 8192;
     int _sentModulation = 0;
     boolean _beforeBuild = true;
+    int _sentCCNumber;
+    int _sentCCValue;
     
     /**
      * Creates new form MX12MasterkeysPanel
@@ -132,12 +132,12 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         _piano.setHandler(new MXPianoKeys.MXMouseHandler() {
             public void noteOn(int note) {
                 MXMessage message = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_NOTEON + _process.getMouseChannel(), note, _process.getMouseVelocity());
-                _process.mouseMessage(message);
+                _process.sentMessageByMouse(message);
             }
 
             public void noteOff(int note) {
                 MXMessage message = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_NOTEOFF + _process.getMouseChannel(), note, 0);
-                _process.mouseMessage(message);
+                _process.sentMessageByMouse(message);
             }
 
             @Override
@@ -162,20 +162,25 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
                 updateViewForSettingChange();
             }
         });
-        
+
         setMinimumSize(new Dimension(150, 150));
+        _labelAfterName = new MX12LabelAfterName(_process);
+        _stopFeedback --;
     }
-    
+
+    MX12LabelAfterName _labelAfterName;
+    int _stopFeedback = 1;
+
     public void scrollToCenter() {
         Dimension scrollSize = jScrollPane1.getSize();
         Dimension pianoSize = _piano.getSize();
         Rectangle rect = new Rectangle((int)(pianoSize.getWidth()-scrollSize.getWidth()) / 2, 0, (int)scrollSize.getWidth(), 50);
         jScrollPane1.getViewport().scrollRectToVisible(rect);
     }
-    
+
     public void updateViewForSettingChange() {
         StringBuffer info = new StringBuffer();
-        MXReceiver autoRec = MXMain.getMain().getActiveSendableReceiver();
+        MXReceiver autoRec = MXMain.getMain().getAutoSendableReceiver();
         if (autoRec != null) {
             String name = "";
             if (_process.getNextReceiver() != null) {
@@ -188,7 +193,9 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             info.append("To " + name + ", ");
             info.append("Port " + MXMidi.nameOfPortInput(_process.getMousePort()) + ", ");
             info.append("Channel " + (_process.getMouseChannel() + 1));
-            _jButtonEdit.setText(info.toString());
+            if (_labelAfterName != null) {
+                _labelAfterName.setButtonText(info.toString());
+            }
         }
     }
     
@@ -204,16 +211,14 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         if (_sentPitch != value) {
             _sentPitch = value;
             jSliderPitch.setValue(value);
-            synchronized(MXTiming.mutex) {            
-                MXMessage msg = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_PITCHWHEEL + _process.getMouseChannel(), 0, 0);
-                if (msg.indexOfValueHi() >= 0) {
-                    msg.setValue(MXRangedValue.new14bit(value));
-                }
-                else {
-                    msg.setValue(MXRangedValue.new7bit(value));
-                }
-                _process.mouseMessage(msg);
-            }         
+            MXMessage msg = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_PITCHWHEEL + _process.getMouseChannel(), 0, 0);
+            if (msg.indexOfValueHi() >= 0) {
+                msg.setValue(MXRangedValue.new14bit(value));
+            }
+            else {
+                msg.setValue(MXRangedValue.new7bit(value));
+            }
+            _process.sentMessageByMouse(msg);
         }
     }
     
@@ -231,11 +236,9 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             jSliderModwheel.setValue(value);
 
             _sentModulation = value;
-            synchronized(MXTiming.mutex) {            
-                MXMessage msg = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_CONTROLCHANGE + _process.getMouseChannel(), MXMidi.DATA1_CC_MODULATION, 0);
-                msg.setValue(MXRangedValue.new7bit(value));
-                _process.mouseMessage(msg);
-            }
+            MXMessage msg = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_CONTROLCHANGE + _process.getMouseChannel(), MXMidi.DATA1_CC_MODULATION, 0);
+            msg.setValue(MXRangedValue.new7bit(value));
+            _process.sentMessageByMouse(msg);
         }
     }
 
@@ -259,7 +262,6 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
 
         jSliderPitch.setOrientation(javax.swing.JSlider.VERTICAL);
         jSliderPitch.setToolTipText("Pitch");
-        jSliderPitch.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         jSliderPitch.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 jSliderPitchStateChanged(evt);
@@ -288,7 +290,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 6;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
@@ -337,6 +339,6 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     }
 
     public JComponent getComponentAfterName() {
-        return _jButtonEdit;
+        return _labelAfterName;
     }
 }

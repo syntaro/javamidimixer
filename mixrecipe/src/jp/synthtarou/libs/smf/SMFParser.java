@@ -34,10 +34,8 @@ import java.util.logging.Level;
 import javax.sound.midi.ShortMessage;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.MXConfiguration;
-import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.libs.SortedArray;
-import jp.synthtarou.libs.inifile.MXINIFileNode;
 
 /**
  *

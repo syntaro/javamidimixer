@@ -260,7 +260,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         jButtonValueDec.setBorder(new EmptyBorder(3, 3, 3, 3));
         new MXAttachSliderLikeEclipse(jSliderValueValue);
         new MXAttachSliderSingleClick(jSliderValueValue);
-        setEnabledRecurs(false);
+        setEnabledRecrursible(false);
     }
 
     public void startBrowseXML() {
@@ -317,7 +317,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         }
     }
 
-    public void setEnabledRecurs(boolean ena) {
+    public void setEnabledRecrursible(boolean ena) {
         ArrayList<Component> list = new ArrayList<>();
         list.add(this);
         while (list.isEmpty() == false) {
@@ -340,7 +340,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
     MXNamedObjectList<Integer> _listChannel = MXNamedObjectListFactory.listupChannel(null);
 
     public void showupStatus(MX36Status status) {
-        setEnabledRecurs(true);
+        setEnabledRecrursible(true);
 
         if (_process._folderList._autodetectFolder == status._folder) {
             if (status.isValidForWork()) {
@@ -357,6 +357,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                 jTextFieldSurfaceTypeAndRow.setText(_listRow.nameOfValue(MX36RowId.find(status.getSurfaceUIType(), status.getSurfaceRow())));
                 jTextFieldSurfaceColumn.setText(_listColumn.nameOfValue(status.getSurfaceColumn()));
                 jLabelSurfaceValueRange.setText(status._surfaceValueRange._min + " ... " + status._surfaceValueRange._max);
+                jCheckBoxSurfaceReplace.setSelected(status._surfaceReplace);
 
                 jTextFieldOutPort.setText(_listOutputPort.nameOfValue(status._outPort));
                 jTextFieldOutChannel.setText(_listChannel.nameOfValue(status._outChannel));
@@ -381,6 +382,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                 jSliderValueValue.setMinimum(status._outValueRange._min);
                 jSliderValueValue.setMaximum(status._outValueRange._max);
                 jSliderValueValue.setValue(status._outValueRange._value);
+
                 if (status._folder != null) {
                     //最初のダミーだけnull
                     status._folder.repaintStatus(status);
@@ -424,6 +426,8 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         jTextFieldSurfacePort = new javax.swing.JTextField();
         jTextFieldSurfaceTypeAndRow = new javax.swing.JTextField();
         jTextFieldSurfaceColumn = new javax.swing.JTextField();
+        jLabel8 = new javax.swing.JLabel();
+        jCheckBoxSurfaceReplace = new javax.swing.JCheckBox();
         jPanel3 = new javax.swing.JPanel();
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
@@ -514,7 +518,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         jLabelEmpty1.setText("-");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.weighty = 1.0;
         jPanel2.add(jLabelEmpty1, gridBagConstraints);
@@ -540,6 +544,26 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         jPanel2.add(jTextFieldSurfaceColumn, gridBagConstraints);
+
+        jLabel8.setText("Replacer");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 10);
+        jPanel2.add(jLabel8, gridBagConstraints);
+
+        jCheckBoxSurfaceReplace.setText("Clear Original");
+        jCheckBoxSurfaceReplace.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxSurfaceReplaceActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanel2.add(jCheckBoxSurfaceReplace, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1138,6 +1162,11 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         navi.showPopup(jButtonNewInFolder);
     }//GEN-LAST:event_jButtonNewInFolderActionPerformed
 
+    private void jCheckBoxSurfaceReplaceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSurfaceReplaceActionPerformed
+        // TODO add your handling code here:
+        _status._surfaceReplace = jCheckBoxSurfaceReplace.isSelected();
+    }//GEN-LAST:event_jCheckBoxSurfaceReplaceActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
@@ -1146,6 +1175,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
     private javax.swing.JButton jButtonOutTextClear;
     private javax.swing.JButton jButtonValueDec;
     private javax.swing.JButton jButtonValueInc;
+    private javax.swing.JCheckBox jCheckBoxSurfaceReplace;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -1165,6 +1195,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabelEmpty1;
     private javax.swing.JLabel jLabelEmpty2;
     private javax.swing.JLabel jLabelEmpty3;

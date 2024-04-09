@@ -18,7 +18,7 @@ package jp.synthtarou.midimixer.mx50resolution;
 
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.mx30surface.MXMessageBag;
+import jp.synthtarou.midimixer.mx30surface.MX30Packet;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
@@ -69,7 +69,7 @@ public class MXResolution implements Cloneable {
         return null;
     }
 
-    public boolean controlByMessage(MXMessage message, MXMessageBag result) {
+    public boolean controlByMessage(MXMessage message, MX30Packet packet) {
         if (_command == null || _command.isEmpty()) {
             return false;
         }
@@ -82,7 +82,7 @@ public class MXResolution implements Cloneable {
             MXMessage translated = updateWithNewResolution(message);
             if (translated != null) {
                _bindedView.updateMonitor(message.getValue()._value, translated.getValue()._value);
-                result.addResult(translated);
+                packet.addResult(translated);
             }
         }
 

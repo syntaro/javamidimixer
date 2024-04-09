@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import jp.synthtarou.midimixer.MXConfiguration;
-import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.libs.MXSafeThread;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -38,11 +37,11 @@ import jp.synthtarou.libs.SortedArray;
 public class SMFSequencer {
 
     static boolean _stopAll = false;
-    
+
     public static void stopAll() {
         _stopAll = true;
     }
-    
+
     private long _startMilliSeconds;
     private long _currentMilliSeconds;
     private File _lastFile;
@@ -116,16 +115,14 @@ public class SMFSequencer {
         _stopPlayer = true;
         if (_isRunning) {
             if (_playerThread != null) {
+                synchronized (_playerThread) {
+                    _playerThread.notifyAll();
+                }
                 try {
                     _playerThread.join();
                 } catch (InterruptedException ex) {
                     //
                 }
-            }
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException ex) {
-                //
             }
         }
     }
@@ -275,14 +272,20 @@ public class SMFSequencer {
                 try {
                     long waiting = nextNote - elapsed - 5;
                     long waiting2 = _nextDraw - elapsed;
-                    if (waiting >= waiting2)  {
+                    if (waiting >= waiting2) {
                         waiting = waiting2;
                     }
                     if (waiting >= 1) {
-                        Thread.sleep(waiting);
+                        synchronized (_playerThread) {
+                            _playerThread.wait(waiting);
+                            if (_stopPlayer) {
+                                break;
+                            }
+                        }
                     }
                 } catch (InterruptedException ex) {
-                    return;
+                    ex.printStackTrace();
+                    break;
                 }
                 elapsed = (System.currentTimeMillis() - launched);
                 nextNote = list.get(pos)._millisecond;
@@ -362,22 +365,17 @@ public class SMFSequencer {
             chFrom = _forceSingleChannel;
             chTo = _forceSingleChannel;
         }
-        synchronized (MXTiming.mutex) {
-            if (timing == null) {
-                timing = new MXTiming();
-            }
-            for (int i = chFrom; i <= chTo; ++i) {
-                SMFMessage message;
-                message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
-                message._port = port;
-                smfPlayNote(timing, message);
-                message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 127);
-                message._port = port;
-                smfPlayNote(timing, message);
-                message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLSOUNDOFF, 127);
-                message._port = port;
-                smfPlayNote(timing, message);
-            }
+        for (int i = chFrom; i <= chTo; ++i) {
+            SMFMessage message;
+            message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
+            message._port = port;
+            smfPlayNote(timing, message);
+            message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 127);
+            message._port = port;
+            smfPlayNote(timing, message);
+            message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLSOUNDOFF, 127);
+            message._port = port;
+            smfPlayNote(timing, message);
         }
     }
 
@@ -408,47 +406,42 @@ public class SMFSequencer {
 
     void smfPlayNote(MXTiming timing, SMFMessage smf) {
         try {
-            synchronized (MXTiming.mutex) {
-                if (timing == null) {
-                    timing = new MXTiming();
-                }
-                if (smf.isBinaryMessage()) {
+            if (smf.isBinaryMessage()) {
+                _callback.smfPlayNote(timing, smf);
+            } else {
+                if (!_noteOnly) {
                     _callback.smfPlayNote(timing, smf);
                 } else {
-                    if (!_noteOnly) {
-                        _callback.smfPlayNote(timing, smf);
-                    } else {
-                        boolean skip = true;
-                        int dword = smf.toDwordMessage();
+                    boolean skip = true;
+                    int dword = smf.toDwordMessage();
 
-                        int status = (dword >> 16) & 0xff;
-                        int data1 = (dword >> 8) & 0xff;
-                        int data2 = (dword) & 0xff;
+                    int status = (dword >> 16) & 0xff;
+                    int data1 = (dword >> 8) & 0xff;
+                    int data2 = (dword) & 0xff;
 
-                        if (_forceSingleChannel >= 0) {
-                            if (status >= 0x80 && status <= 0xef) {
-                                status = status & 0xf0 | _forceSingleChannel;
-                            }
+                    if (_forceSingleChannel >= 0) {
+                        if (status >= 0x80 && status <= 0xef) {
+                            status = status & 0xf0 | _forceSingleChannel;
                         }
+                    }
 
-                        switch (status & 0xf0) {
-                            case MXMidi.COMMAND_CH_NOTEON:
-                            case MXMidi.COMMAND_CH_NOTEOFF:
-                            case MXMidi.COMMAND_CH_PITCHWHEEL:
+                    switch (status & 0xf0) {
+                        case MXMidi.COMMAND_CH_NOTEON:
+                        case MXMidi.COMMAND_CH_NOTEOFF:
+                        case MXMidi.COMMAND_CH_PITCHWHEEL:
+                            skip = false;
+                            break;
+                        case MXMidi.COMMAND_CH_CONTROLCHANGE:
+                            if (data1 == MXMidi.DATA1_CC_DAMPERPEDAL
+                                    || data1 == MXMidi.DATA1_CC_MODULATION
+                                    || data1 == MXMidi.DATA1_CC_ALLNOTEOFF
+                                    || data1 == MXMidi.DATA1_CC_ALLSOUNDOFF) {
                                 skip = false;
-                                break;
-                            case MXMidi.COMMAND_CH_CONTROLCHANGE:
-                                if (data1 == MXMidi.DATA1_CC_DAMPERPEDAL
-                                        || data1 == MXMidi.DATA1_CC_MODULATION
-                                        || data1 == MXMidi.DATA1_CC_ALLNOTEOFF
-                                        || data1 == MXMidi.DATA1_CC_ALLSOUNDOFF) {
-                                    skip = false;
-                                }
-                                break;
-                        }
-                        if (!skip) {
-                            _callback.smfPlayNote(timing, smf);
-                        }
+                            }
+                            break;
+                    }
+                    if (!skip) {
+                        _callback.smfPlayNote(timing, smf);
                     }
                 }
             }

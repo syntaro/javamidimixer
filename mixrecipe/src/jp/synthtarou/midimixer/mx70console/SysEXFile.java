@@ -36,6 +36,7 @@ import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.libs.smf.SMFInputStream;
 import jp.synthtarou.libs.MXLineReader;
 import jp.synthtarou.libs.log.MXFileLogger;
+import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.mx10input.MX10MidiInListPanel;
 
 /**
@@ -302,7 +303,7 @@ public class SysEXFile {
                     ArrayList<byte[]> arrayData = split.splitOrJoin(0 /* splitSize*/);
                     for (byte[] data2 : arrayData) {
                         MXMessage longMessage = MXMessageFactory.fromBinary(port, data2);
-                        MXMain.getMain().messageDispatch(longMessage, out);
+                        MXReceiver.messageDispatch(longMessage, out);
                     }
                     try {
                         Thread.sleep(100);
