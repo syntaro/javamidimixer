@@ -281,7 +281,6 @@ public class MGStatusForDrum implements Cloneable {
                     case VALUETYPE_NOTHING:
                         return null;
                 }
-                System.out.println("newVelocity " + velocity);
                 switch (_outStyle) {
                     case STYLE_SAME_CC:
                         message = (MXMessage) _status._base.clone();
