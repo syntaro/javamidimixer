@@ -71,6 +71,9 @@ public class MXTemplate implements Comparable<MXTemplate> {
     }
 
     public boolean isEmpty() {
+        if (_commands.length == 0) {
+            return true;
+        }
         if (_commands[0] == 0) {
             return true;
         }

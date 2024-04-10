@@ -84,9 +84,6 @@ public abstract class MXDebug {
         if (result.size() != 1) {
             MXFileLogger.getLogger(MXDebug.class).severe("Error output size = " + result.size() + result);
             if (result.size() >= 2 && result.get(0) != result.get(1)) {               
-                for (MXMessage seek: result) {
-                    seek._debug.printStackTrace();;
-                }
                 System.err.println(result.get(0).equals(result.get(1)));
                 System.err.println(result.get(0));
                 System.err.println(result.get(1));

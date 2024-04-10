@@ -42,11 +42,12 @@ public class MXConfiguration {
             return colorSlider2;
         }
     }
+    public static final boolean _DEBUG = false;
     public static final String LOOPMIDI_NAME = "EX MIDIMixer Out";
-    public static final String MX_APPLICATION = "MixRecipe 0.75 beta4";
+    public static final String MX_APPLICATION = "MixRecipe 0.75 beta5" + (_DEBUG ? " **DEBUGMODE" : "(PublicBeta)");
     public static final String MX_EDITING = "*** EDIT CONTROl MODE ***";
     public static final int DRUM_CH = 9;
-    
+
     public static final int TOTAL_PORT_COUNT = 16; // must <= 32 (bit calculation 1 << port should not overflow
 
     public static final int SLIDER_COLUMN_COUNT = 17;

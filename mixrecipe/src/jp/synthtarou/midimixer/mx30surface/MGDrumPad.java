@@ -66,7 +66,6 @@ public class MGDrumPad extends javax.swing.JPanel {
         updateUI();
     }
 
-    
     public void setDrumLook(boolean newValue) {
         if (newValue) {
             _focusSelected = true;
@@ -128,7 +127,8 @@ public class MGDrumPad extends javax.swing.JPanel {
         }
 
         _mixer._parent.startTransaction();
-        MXMessage message = getStatus()._drum.updatetingValue(velocity);
+        MGStatusForDrum drum = getStatus()._drum;
+        MXMessage message = drum.updatingValue(push, velocity);
         if (message != null) {
             _mixer._parent._packet.addResult(message);
         }
@@ -138,7 +138,7 @@ public class MGDrumPad extends javax.swing.JPanel {
     public void editContoller() {
         _mixer._view.stopEditing();
         MGStatus status = (MGStatus) getStatus().clone();
-        MGStatusPanel panel = new MGStatusPanel(_mixer, status);
+        MGStatusPanel2 panel = new MGStatusPanel2(_mixer, status);
         MXUtil.showAsDialog(this, panel, "Enter Edit Pad {row:" + _row + ", column:" + _column + "}");
 
         if (panel._okOption) {

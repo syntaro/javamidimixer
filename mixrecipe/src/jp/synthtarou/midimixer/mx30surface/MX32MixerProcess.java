@@ -35,6 +35,7 @@ import jp.synthtarou.libs.inifile.MXINIFileNode;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
@@ -507,7 +508,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
             circle.publishUI(message.getValue());
         } else {
             MGDrumPad drum = getDrumPad(row, column);
-            message = status._drum.updatetingValue(newValue);
+            message = status._drum.updatingValue(status._drum.isStrike(newValue), newValue);
         }
 
         if (_patchToMixer >= 0) {
@@ -671,14 +672,12 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
     }
 
     public void startProcess(MXMessage message) {
-        if (message == null) {
-            return;
-        }
-
+        boolean created = false;
         synchronized (this) {
-            //if (_finder == null) {
+            if (_finder == null) {
                 _finder = new MGStatusFinder(this);
-            //}
+                created = true;
+            }
         }
 
         MX30Packet packet = _parent.startTransaction();
@@ -689,6 +688,28 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
             }
 
             ArrayList<MGStatus> listStatus = _finder.findCandidate(message);
+            if (MXConfiguration._DEBUG && !created) {
+                ArrayList<MGStatus> debugStatus = new MGStatusFinder(this).findCandidate(message);
+                try{
+                    if (debugStatus != null && listStatus != null) {
+                        for (int i = 0; i < debugStatus.size() && i <listStatus.size(); ++ i) {
+                            MGStatus st1 = debugStatus.get(i);
+                            MGStatus st2 = listStatus.get(i);
+                            if (st1._port != st2._port || st1._row != st2._row || st1._column != st2._column) {
+                                throw new IllegalStateException(st1 + " != " + st2);
+                            }
+                        }
+                        if (debugStatus.size() != listStatus.size()) {
+                            throw new ArrayIndexOutOfBoundsException("error1");
+                        }
+                    }
+                    else if (debugStatus != null || listStatus != null) {
+                        throw new NullPointerException();
+                    }
+                }catch(Exception ex){
+                    ex.printStackTrace();
+                }
+            }
             boolean proc = false;
             if (listStatus != null && listStatus.isEmpty() == false) {
                 for (MGStatus seek : listStatus) {
@@ -711,13 +732,10 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
     }
 
     public void highlightPad(MXMessage message) {
-        if (message == null) {
-            return;
-        }
         synchronized (this) {
-            //if (_finder == null) {
+            if (_finder == null) {
                 _finder = new MGStatusFinder(this);
-            //}
+            }
         }
 
         ArrayList<MGStatus> listStatus = _finder.findCandidate(message);

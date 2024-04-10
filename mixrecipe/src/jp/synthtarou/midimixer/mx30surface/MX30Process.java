@@ -163,10 +163,6 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
     MX30Packet _packet = new MX30Packet();
     int _bagCount = 0;
 
-    /*
-    static long _debugThrh = 0;
-    static long _debugFlush = 0;
-     */
     public MX30Packet startTransaction() {
         ++_bagCount;
         return _packet;

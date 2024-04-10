@@ -108,13 +108,17 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
         g.setColor(background);
         g.fillRect(0,0,getWidth(),getHeight());
         
-        int value = _value._value;
-        int rangeFrom = _value._min;
-        int rangeTo = _value._max;
+        MXRangedValue value = _value;
+        if (value == null) {
+            value = MXRangedValue.ZERO7;
+        }
+        int valueVar = value._value;
+        int rangeFrom = value._min;
+        int rangeTo = value._max;
 
-        double alpha = ((double)value - rangeFrom) / (rangeTo - rangeFrom);
-        if (_value._max < _value._min) { 
-            alpha = ((double)rangeTo - value) / (rangeTo - rangeFrom);
+        double alpha = ((double)valueVar - rangeFrom) / (rangeTo - rangeFrom);
+        if (value._max < value._min) { 
+            alpha = ((double)rangeTo - valueVar) / (rangeTo - rangeFrom);
         }
         double angleRad = _minAngleRad + alpha * (_maxAngleRad - _minAngleRad);
 
@@ -178,7 +182,7 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
         g.setColor(background);
         g.fill(b1inner);
 
-        String str = String.valueOf(_value._value);
+        String str = String.valueOf(value._value);
         if (ThemeManager.getInstance().isColorfulMetalTheme()) {        
             g.setColor(MXUtil.mixtureColor(Color.red, 70, Color.yellow, 30));
         }
@@ -307,6 +311,9 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
     }
     
     public synchronized void vokeListenerList() {
+        if (_value == null) {
+            return;
+        }
         ChangeEvent evt = new ChangeEvent(this);
         for (int i = 0; i < listenerList.size(); ++ i) {
             listenerList.get(i).stateChanged(evt);

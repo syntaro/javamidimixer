@@ -112,19 +112,24 @@ public class SMFSequencer {
     }
 
     public void stopPlayer() {
-        _stopPlayer = true;
-        if (_isRunning) {
-            if (_playerThread != null) {
-                synchronized (_playerThread) {
-                    _playerThread.notifyAll();
-                }
-                try {
-                    _playerThread.join();
-                } catch (InterruptedException ex) {
-                    //
+        new MXSafeThread("PlayerStop" , new Runnable() {
+            @Override
+            public void run() {
+                _stopPlayer = true;
+                if (_isRunning) {
+                    if (_playerThread != null) {
+                        synchronized (_playerThread) {
+                            _playerThread.notifyAll();
+                        }
+                        try {
+                            _playerThread.join();
+                        } catch (InterruptedException ex) {
+                            //
+                        }
+                    }
                 }
             }
-        }
+        }).start();
     }
 
     SMFMessage[] _firstNote = null;
@@ -347,6 +352,11 @@ public class SMFSequencer {
                     message._port = port;
                     smfPlayNote(timing, message);
                 }
+                byte vl = (byte)0x7f;
+                byte vh = (byte)0x7f;
+                byte[] reset = { (byte)0xF0, (byte)0x7F, (byte)0x7F, (byte)0x04, (byte)0x01, vl, vh, (byte)0xF7 };
+                SMFMessage mesasge = new SMFMessage(0, reset);
+                smfPlayNote(timing, mesasge);
             }
         }
     }

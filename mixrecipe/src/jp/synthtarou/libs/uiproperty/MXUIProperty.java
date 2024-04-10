@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.libs.uitester;
+package jp.synthtarou.libs.uiproperty;
 
 import jp.synthtarou.libs.MainThreadTask;
 import java.awt.Toolkit;
@@ -50,16 +50,15 @@ import javax.swing.event.DocumentListener;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXRangedValue;
 import static jp.synthtarou.libs.MainThreadTask.NOTHING;
-import jp.synthtarou.libs.smf.SMFParser;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MXComponentController {
+public class MXUIProperty {
 
     public static void main(String[] args) {
-        MXComponentControllerDemo.main(args);
+        MXUIPropertyDemo.main(args);
     }
 
     protected static final int TYPE_UNKNOWN = 0;
@@ -80,21 +79,21 @@ public class MXComponentController {
     protected boolean _varAsBoolean;
     protected int _varAsNumeric;
     protected int _selfLock = 0;
-    protected ArrayList<MXComponentControllerListener> _listListener = new ArrayList();
+    protected ArrayList<MXUIPropertyListener> _listListener = new ArrayList();
 
-    protected MXComponentController(JComponent component, int type) {
+    protected MXUIProperty(JComponent component, int type) {
         _component = component;
         _supportedType = type;
         uiToInternal();
         installClipboard();
     }
 
-    public MXComponentController(JComponent component, MXComponentControllerListener listener) {
+    public MXUIProperty(JComponent component, MXUIPropertyListener listener) {
         this(component);
         addChangeListener(listener);
     }
 
-    public MXComponentController(JComponent component) {
+    public MXUIProperty(JComponent component) {
         _component = component;
         if (component instanceof JLabel) {
             _supportedType = TYPE_LABEL;
@@ -226,7 +225,7 @@ public class MXComponentController {
             _supportedType = TYPE_BUTTON;
             JButton button = (JButton) component;
         } else {
-            MXFileLogger.getLogger(MXComponentController.class).severe("Component " + component + " class = " + component.getClass() + " is not supported.");
+            MXFileLogger.getLogger(MXUIProperty.class).severe("Component " + component + " class = " + component.getClass() + " is not supported.");
             _supportedType = TYPE_UNKNOWN;
         }
         //init var fields
@@ -234,7 +233,7 @@ public class MXComponentController {
         installClipboard();
     }
 
-    public void copyVarFrom(MXComponentController from) {
+    public void copyVarFrom(MXUIProperty from) {
         synchronized (this) {
             _varAsObject = from._varAsObject;
             _varAsNumeric = from._varAsNumeric;
@@ -370,9 +369,9 @@ public class MXComponentController {
                     _varAsObject = parsedObject;
                     _varAsText = parsedText;
                     internalToUI();
-                    MXComponentControllerEvent evt = new MXComponentControllerEvent(_component, MXComponentController.this);
-                    for (MXComponentControllerListener l : _listListener) {
-                        l.mxValueChanged(evt);
+                    MXUIPropertyEvent evt = new MXUIPropertyEvent(_component, MXUIProperty.this);
+                    for (MXUIPropertyListener l : _listListener) {
+                        l.uiProperityValueChanged(evt);
                     }
                 }
                 return NOTHING;
@@ -434,7 +433,7 @@ public class MXComponentController {
                             break;
                     }
                 } catch (Throwable ex) {
-                    MXFileLogger.getLogger(MXComponentController.class).log(Level.WARNING, ex.getMessage(), ex);
+                    MXFileLogger.getLogger(MXUIProperty.class).log(Level.WARNING, ex.getMessage(), ex);
                 } finally {
                     _selfLock--;
                 }
@@ -541,12 +540,12 @@ public class MXComponentController {
             return data.toString();
 
         } catch (UnsupportedFlavorException ex) {
-            MXFileLogger.getLogger(MXComponentController.class
+            MXFileLogger.getLogger(MXUIProperty.class
             ).log(Level.INFO, ex.getMessage(), ex);
             return null;
 
         } catch (IOException ex) {
-            MXFileLogger.getLogger(MXComponentController.class
+            MXFileLogger.getLogger(MXUIProperty.class
             ).log(Level.INFO, ex.getMessage(), ex);
             return null;
         }
@@ -764,7 +763,7 @@ public class MXComponentController {
                                     l.actionPerformed(evt);
 
                                 } catch (Throwable ex) {
-                                    MXFileLogger.getLogger(MXComponentController.class
+                                    MXFileLogger.getLogger(MXUIProperty.class
                                     ).log(Level.SEVERE, ex.getMessage(), ex);
 
                                 }
@@ -772,27 +771,27 @@ public class MXComponentController {
                         }
 
                     } catch (RuntimeException ex) {
-                        MXFileLogger.getLogger(MXComponentController.class
+                        MXFileLogger.getLogger(MXUIProperty.class
                         ).log(Level.SEVERE, ex.getMessage(), ex);
 
                     } catch (Error er) {
-                        MXFileLogger.getLogger(MXComponentController.class
+                        MXFileLogger.getLogger(MXUIProperty.class
                         ).log(Level.SEVERE, er.getMessage(), er);
                     }
                 }
             });
         } catch (InvocationTargetException ex) {
-            MXFileLogger.getLogger(MXComponentController.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(MXUIProperty.class).log(Level.WARNING, ex.getMessage(), ex);
         } catch (InterruptedException ex) {
-            MXFileLogger.getLogger(MXComponentController.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(MXUIProperty.class).log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 
-    public synchronized void addChangeListener(MXComponentControllerListener listener) {
+    public synchronized void addChangeListener(MXUIPropertyListener listener) {
         _listListener.add(listener);
     }
 
-    public synchronized void removeChangeListener(MXComponentControllerListener listener) {
+    public synchronized void removeChangeListener(MXUIPropertyListener listener) {
         _listListener.remove(listener);
     }
 

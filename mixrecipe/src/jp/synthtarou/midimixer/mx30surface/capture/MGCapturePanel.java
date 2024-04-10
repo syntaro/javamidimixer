@@ -87,6 +87,7 @@ public class MGCapturePanel extends javax.swing.JPanel {
         });
 
         updateListModel();
+        jCheckBoxCapture.setSelected(true);
     }
 
     public void updateListModel() {
@@ -232,6 +233,10 @@ public class MGCapturePanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jCheckBoxCaptureActionPerformed
 
+    public void stopCapture() {
+        _pool.stopCapture();
+    }
+    
     public void showCapture() {
         try {
             ArrayList<MXMessage> pooled = _pool.getLastTime(5000);

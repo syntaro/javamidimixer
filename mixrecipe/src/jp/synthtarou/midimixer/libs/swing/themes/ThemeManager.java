@@ -151,9 +151,10 @@ public class ThemeManager implements MXINIFileSupport, MXJsonSupport {
         Window[] win = Window.getWindows();
         for (int i = 0; i < win.length; ++i) {
             updateComponentTreeUI(win[i]);
+            /*
             if (win[i] instanceof JDialog) {
-                //win[i].pack();
-            }
+                win[i].pack();
+            }*/
         }
     }
 

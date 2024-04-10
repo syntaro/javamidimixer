@@ -338,7 +338,10 @@ public class MX32MixerInitializer {
     
     public void fillMaxOfSlider(MGStatus status, int column) {
         MGStatus sliderStatus = _mixer._matrixSliderStatus[0].get(column);
-        MXMessage base = (MXMessage)sliderStatus._base.clone();
+        MXMessage base = sliderStatus._base;
+        if (base != null) {
+            base = (MXMessage)base.clone();
+        }
 
         int x = sliderStatus.getValue()._max;
         MXRangedValue hit = new MXRangedValue(x, x, x);
@@ -357,7 +360,10 @@ public class MX32MixerInitializer {
 
     public void fillMiddleOfSlider(MGStatus status, int column) {
         MGStatus sliderStatus = _mixer._matrixSliderStatus[0].get(column);
-        MXMessage base = (MXMessage)sliderStatus._base.clone();
+        MXMessage base = sliderStatus._base;
+        if (base != null) {
+            base = (MXMessage)base.clone();
+        }
 
         int x = (int)Math.round((sliderStatus.getValue()._max + sliderStatus.getValue()._min) /2.0);
         MXRangedValue hit = new MXRangedValue(x, x, x);
@@ -376,7 +382,10 @@ public class MX32MixerInitializer {
 
     public void fillMinOfSlider(MGStatus status, int column) {
         MGStatus sliderStatus = _mixer._matrixSliderStatus[0].get(column);
-        MXMessage base = (MXMessage)sliderStatus._base.clone();
+        MXMessage base = sliderStatus._base;
+        if (base != null) {
+            base = (MXMessage)base.clone();
+        }
 
         int x = sliderStatus.getValue()._min;
         MXRangedValue hit = new MXRangedValue(x, x, x);

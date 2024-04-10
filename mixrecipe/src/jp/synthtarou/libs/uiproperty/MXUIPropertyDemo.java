@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.libs.uitester;
+package jp.synthtarou.libs.uiproperty;
 
 import java.util.logging.Level;
 import javax.swing.SpinnerNumberModel;
@@ -28,56 +28,56 @@ import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
  *
  * @author Syntarou YOSHIDA
  */
-public class MXComponentControllerDemo extends javax.swing.JPanel {
+public class MXUIPropertyDemo extends javax.swing.JPanel {
 
     public static void main(String[] args) {
-        MXComponentControllerDemo demo = new MXComponentControllerDemo();
+        MXUIPropertyDemo demo = new MXUIPropertyDemo();
         MXUtil.showAsDialog(null, demo, "demo");
         System.exit(0);
     }
 
-    class ViewModel implements MXComponentControllerListener {
+    class ViewModel implements MXUIPropertyListener {
 
-        MXComponentController bindSpinner;
-        MXComponentController bindTextArea;
-        MXComponentController bindTextField;
-        MXComponentController bindLabel;
-        MXComponentController bindSlider;
+        MXUIProperty bindSpinner;
+        MXUIProperty bindTextArea;
+        MXUIProperty bindTextField;
+        MXUIProperty bindLabel;
+        MXUIProperty bindSlider;
 
-        MXComponentController[] bindTenkey;
-        MXComponentController bindBack;
-        MXComponentController bindCler;
-        MXComponentController bindTo100;
+        MXUIProperty[] bindTenkey;
+        MXUIProperty bindBack;
+        MXUIProperty bindCler;
+        MXUIProperty bindTo100;
 
         boolean inConstruction = true;
 
         public ViewModel() {
-            bindSpinner = new MXComponentController(jSpinner1, this);
-            bindTextArea = new MXComponentController(jTextArea1, this);
-            bindTextField = new MXComponentController(jTextField1, this);
-            bindSlider = new MXComponentController(jSlider1, this);
-            bindLabel = new MXComponentController(jLabel1);
+            bindSpinner = new MXUIProperty(jSpinner1, this);
+            bindTextArea = new MXUIProperty(jTextArea1, this);
+            bindTextField = new MXUIProperty(jTextField1, this);
+            bindSlider = new MXUIProperty(jSlider1, this);
+            bindLabel = new MXUIProperty(jLabel1);
 
-            bindTenkey = new MXComponentController[]{
-                new MXComponentController(jButton0),
-                new MXComponentController(jButton1),
-                new MXComponentController(jButton2),
-                new MXComponentController(jButton3),
-                new MXComponentController(jButton4),
-                new MXComponentController(jButton5),
-                new MXComponentController(jButton6),
-                new MXComponentController(jButton7),
-                new MXComponentController(jButton8),
-                new MXComponentController(jButton9)};
+            bindTenkey = new MXUIProperty[]{
+                new MXUIProperty(jButton0),
+                new MXUIProperty(jButton1),
+                new MXUIProperty(jButton2),
+                new MXUIProperty(jButton3),
+                new MXUIProperty(jButton4),
+                new MXUIProperty(jButton5),
+                new MXUIProperty(jButton6),
+                new MXUIProperty(jButton7),
+                new MXUIProperty(jButton8),
+                new MXUIProperty(jButton9)};
 
-            bindBack = new MXComponentController(jButtonBack);
-            bindCler = new MXComponentController(jButtonClear);
-            bindTo100 = new MXComponentController(jButtonto100);
+            bindBack = new MXUIProperty(jButtonBack);
+            bindCler = new MXUIProperty(jButtonClear);
+            bindTo100 = new MXUIProperty(jButtonto100);
 
             inConstruction = false;
         }
 
-        public void mxValueChanged(MXComponentControllerEvent evt) {
+        public void uiProperityValueChanged(MXUIPropertyEvent evt) {
             if (inConstruction) {
                 return;
             }
@@ -101,7 +101,7 @@ public class MXComponentControllerDemo extends javax.swing.JPanel {
     /**
      * Creates new form MXControllerDemo
      */
-    public MXComponentControllerDemo() {
+    public MXUIPropertyDemo() {
         initComponents();
         new MXAttachSliderSingleClick(jSlider1);
         new MXAttachSliderLikeEclipse(jSlider1);
@@ -147,7 +147,7 @@ public class MXComponentControllerDemo extends javax.swing.JPanel {
                     Thread.sleep(1000);
                     _vm.bindTenkey[7].doClickAction();
                 } catch (InterruptedException ex) {
-                    MXFileLogger.getLogger(MXComponentControllerDemo.class).log(Level.WARNING, ex.getMessage(), ex);
+                    MXFileLogger.getLogger(MXUIPropertyDemo.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
         }).start();

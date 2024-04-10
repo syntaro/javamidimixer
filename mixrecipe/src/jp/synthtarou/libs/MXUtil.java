@@ -661,4 +661,16 @@ public class MXUtil {
         return null;
     }
 
+    public static void recursibleEnable(Component c, boolean enable) { 
+        if (c instanceof Container) {
+            Container parent = (Container)c;
+            int count = parent.getComponentCount();
+            for (int x = 0; x < count; ++ x) {
+                recursibleEnable(parent.getComponent(x), enable);
+            }
+        }
+        if (c instanceof JComponent) {
+            ((JComponent)c).setEnabled(enable);
+        }
+    }
 }

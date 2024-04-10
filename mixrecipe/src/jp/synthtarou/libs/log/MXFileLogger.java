@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.logging.*;
 import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.midimixer.MXConfiguration;
 
 /**
  *
@@ -121,13 +122,11 @@ public class MXFileLogger {
         _cache.put(name, newLogger);
         return newLogger;
     }
-
-    static final boolean _DEBUG = true;
     
     public class AutoFlushHandler extends StreamHandler {
         public AutoFlushHandler(OutputStream stream) {
             setOutputStream(stream);
-            if (_DEBUG) {
+            if (MXConfiguration._DEBUG) {
                 setLevel(Level.ALL);
             }else {
                 setLevel(Level.WARNING);

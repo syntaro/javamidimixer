@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer;
 
+import java.awt.Color;
 import jp.synthtarou.midimixer.progress.MXProgressDialog;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import java.awt.Component;
@@ -29,6 +30,7 @@ import javax.swing.Box;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.themes.ThemeManagerDialog;
@@ -55,9 +57,11 @@ public class MXMainWindow extends javax.swing.JFrame {
         _main = main;
         initComponents();
         jMenuBar1.add(Box.createHorizontalGlue());
-        JMenu helpParent = new JMenu("Help");
-        jMenuBar1.add(helpParent);
+        JMenu appMenu = new JMenu(MXConfiguration.MX_APPLICATION);
+        jMenuBar1.add(appMenu);
 
+        appMenu.setForeground(new Color(0, 102, 102));
+       
         jTabbedPane1 = new javax.swing.JTabbedPane();
 
         JMenuItem helpMenu = new JMenuItem("HomePage/サイト");
@@ -72,7 +76,7 @@ public class MXMainWindow extends javax.swing.JFrame {
                 }
             }
         });
-        helpParent.add(helpMenu);
+        appMenu.add(helpMenu);
 
         JMenuItem helpMenu2 = new JMenuItem("Manual PDF");
         helpMenu2.addActionListener(new ActionListener() {
@@ -86,7 +90,7 @@ public class MXMainWindow extends javax.swing.JFrame {
                 }
             }
         });
-        helpParent.add(helpMenu2);
+        appMenu.add(helpMenu2);
 
         JMenuItem helpMenu3 = new JMenuItem("Issue/問題");
         helpMenu3.addActionListener(new ActionListener() {
@@ -100,10 +104,9 @@ public class MXMainWindow extends javax.swing.JFrame {
                 }
             }
         });
-        helpParent.add(helpMenu3);
-
-        JMenu appMenu = new JMenu(MXConfiguration.MX_APPLICATION);
-        jMenuBar1.add(appMenu);
+        appMenu.add(helpMenu3);
+        
+        appMenu.add(new JSeparator());
 
         JMenuItem themeMenu = new JMenuItem("Theme");
         appMenu.add(themeMenu);

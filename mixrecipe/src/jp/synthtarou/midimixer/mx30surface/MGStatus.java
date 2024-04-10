@@ -58,8 +58,8 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         return _name;
     }
 
-    MXMessage _base = MXMessageFactory.fromTemplate(0, new MXTemplate(""), 0, null, null);
-
+    MXMessage _base = MXMessageFactory.createDummy();
+    
     boolean _ccPair14 = false;
 
     MGStatusForDrum _drum = null;
@@ -112,7 +112,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     }
 
     public void setBaseMessage(String text) {
-        _base = null;
+        _base = MXMessageFactory.createDummy();
         if (text != null) {
             try {
                 if (text == null || text.isBlank()) {
@@ -135,7 +135,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     }
     
     public void setBaseMessage(MXMessage base) {
-        _base = null;
+        _base = MXMessageFactory.createDummy();
         _base = (MXMessage)base.clone();
     }
 
@@ -159,11 +159,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         }
         String name;
         if (_name == null || _name.length() == 0) {
-            if (message == null) {
-                name = "null";
-            } else {
-                name = message.toStringForUI();
-            }
+            name = message.toStringForUI();
         } else {
             name = _name;
         }
@@ -173,10 +169,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     }
 
     public int controlByMessage(MXMessage message) {
-        if (message.isEmpty()) {
-            return -1;
-        }
-        if (_base.isEmpty()) {
+        if (message.isEmpty() || _base.isEmpty()) {
             return -1;
         }
 

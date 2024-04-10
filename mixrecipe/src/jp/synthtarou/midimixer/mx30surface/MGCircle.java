@@ -67,11 +67,7 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
 
             if (status._name == null || status._name.length() == 0) {
                 MXMessage message = status._base;
-                if (message == null) {
-                    jLabel1.setText("?");
-                } else {
-                    jLabel1.setText(message.toStringForUI());
-                }
+                jLabel1.setText(message.toStringForUI());
             } else {
                 jLabel1.setText(status._name);
             }
@@ -175,7 +171,7 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
     public void editContoller() {
         _mixer._view.stopEditing();
         MGStatus status = (MGStatus) getStatus().clone();
-        MGStatusPanel panel = new MGStatusPanel(_mixer, status);
+        MGStatusPanel2 panel = new MGStatusPanel2(_mixer, status);
         MXUtil.showAsDialog(this, panel, "Enter Edit Circle {row:" + _row + ", column:" + _column + "}");
         if (panel._okOption) {
             setStatus(panel._status);

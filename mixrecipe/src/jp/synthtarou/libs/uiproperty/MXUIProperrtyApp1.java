@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.libs.uitester;
+package jp.synthtarou.libs.uiproperty;
 
 import jp.synthtarou.libs.MainThreadTask;
 import javax.swing.SwingUtilities;
@@ -25,15 +25,15 @@ import jp.synthtarou.midimixer.mx30surface.MGSlider;
  *
  * @author Syntarou YOSHIDA
  */
-public class MXComponentController2 extends  MXComponentController {
+public class MXUIProperrtyApp1 extends  MXUIProperty {
     protected static final int TYPE_MGSLIDER = 100;
     protected static final int TYPE_MGCIRCLE = 101;
 
-    public MXComponentController2(MGSlider component) {
+    public MXUIProperrtyApp1(MGSlider component) {
         super(component, TYPE_MGSLIDER);
     }
 
-    public MXComponentController2(MGCircle component) {
+    public MXUIProperrtyApp1(MGCircle component) {
         super(component, TYPE_MGCIRCLE);
     }
 
@@ -44,7 +44,7 @@ public class MXComponentController2 extends  MXComponentController {
             public Object runTask() {
                 _selfLock ++;
                 try {
-                    synchronized(MXComponentController2.this) {
+                    synchronized(MXUIProperrtyApp1.this) {
                         switch (_supportedType) {
                             case TYPE_MGSLIDER:
                                 MGSlider slider = (MGSlider)_component;

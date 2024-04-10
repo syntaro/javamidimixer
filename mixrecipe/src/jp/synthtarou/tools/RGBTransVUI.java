@@ -23,9 +23,9 @@ import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
-import jp.synthtarou.libs.uitester.MXComponentController;
-import jp.synthtarou.libs.uitester.MXComponentControllerEvent;
-import jp.synthtarou.libs.uitester.MXComponentControllerListener;
+import jp.synthtarou.libs.uiproperty.MXUIProperty;
+import jp.synthtarou.libs.uiproperty.MXUIPropertyEvent;
+import jp.synthtarou.libs.uiproperty.MXUIPropertyListener;
 
 /**
  *
@@ -33,24 +33,24 @@ import jp.synthtarou.libs.uitester.MXComponentControllerListener;
  */
 public class RGBTransVUI extends javax.swing.JPanel {
 
-    public class ViewModel implements MXComponentControllerListener {
+    public class ViewModel implements MXUIPropertyListener {
 
-        public final MXComponentController _spinnerRed, _spinnerGreen, _spinnerBlue;
-        public final MXComponentController _sliderRed, _sliderGreen, _sliderBlue;
-        public final MXComponentController _textHex, _textDec;
+        public final MXUIProperty _spinnerRed, _spinnerGreen, _spinnerBlue;
+        public final MXUIProperty _sliderRed, _sliderGreen, _sliderBlue;
+        public final MXUIProperty _textHex, _textDec;
 
         boolean _construction = true;
         ViewModel() {
-            _spinnerRed = new MXComponentController(jSpinnerRed, this);
-            _spinnerGreen = new MXComponentController(jSpinnerGreen, this);
-            _spinnerBlue = new MXComponentController(jSpinnerBlue, this);
+            _spinnerRed = new MXUIProperty(jSpinnerRed, this);
+            _spinnerGreen = new MXUIProperty(jSpinnerGreen, this);
+            _spinnerBlue = new MXUIProperty(jSpinnerBlue, this);
 
-            _sliderRed = new MXComponentController(jSliderRed, this);
-            _sliderGreen = new MXComponentController(jSliderGreen, this);
-            _sliderBlue = new MXComponentController(jSliderBlue, this);
+            _sliderRed = new MXUIProperty(jSliderRed, this);
+            _sliderGreen = new MXUIProperty(jSliderGreen, this);
+            _sliderBlue = new MXUIProperty(jSliderBlue, this);
 
-            _textDec = new MXComponentController(jTextField10);
-            _textHex = new MXComponentController(jTextField16);
+            _textDec = new MXUIProperty(jTextField10);
+            _textHex = new MXUIProperty(jTextField16);
             
             _textDec.addChangeListener(this);
             _textHex.addChangeListener(this);
@@ -59,14 +59,14 @@ public class RGBTransVUI extends javax.swing.JPanel {
         }
 
         @Override
-        public void mxValueChanged(MXComponentControllerEvent evt) {
+        public void uiProperityValueChanged(MXUIPropertyEvent evt) {
             if (_underFlushing) {
                 return;
             }
             if (_construction) {
                 return;
             }
-            MXComponentController control = evt.getMXContoller();
+            MXUIProperty control = evt.getMXContoller();
             if (control == _spinnerRed
                     || control == _spinnerGreen
                     || control == _spinnerBlue) {

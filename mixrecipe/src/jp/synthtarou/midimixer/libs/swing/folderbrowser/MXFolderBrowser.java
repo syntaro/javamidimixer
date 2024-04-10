@@ -25,8 +25,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.TreeSet;
 import java.util.logging.Level;
@@ -43,7 +41,6 @@ import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.navigator.legacy.INavigator;
 import jp.synthtarou.libs.MainThreadTask;
-import jp.synthtarou.libs.uitester.MXComponentControllerDemo;
 
 /**
  *

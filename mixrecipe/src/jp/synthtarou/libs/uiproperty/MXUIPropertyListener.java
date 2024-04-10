@@ -14,29 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.libs.uitester;
-
-import java.util.EventObject;
+package jp.synthtarou.libs.uiproperty;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MXComponentControllerEvent extends EventObject {
-    private MXComponentController _mxcontrol;
-    
-    public MXComponentControllerEvent(Object component, MXComponentController mxcontrol) {
-        super(component);
-        _mxcontrol = mxcontrol;
-    }
-    
-    public MXComponentController getMXContoller() {
-        return _mxcontrol;
-    }
-
-    public String toString() {
-        String name = _mxcontrol._component.getUIClassID();
-        Object value = _mxcontrol.get();
-        return name + " = " + value;
-    }
+public interface  MXUIPropertyListener {
+    public void uiProperityValueChanged(MXUIPropertyEvent evt);
 }

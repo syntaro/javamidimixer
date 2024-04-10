@@ -80,9 +80,6 @@ public class MX30Packet {
     }
     
     public synchronized void addResult(MXMessage message) {
-        if (message == null) {
-            return;
-        }
         if (_alreadyResult.contains(message)) {
             return ;
         }

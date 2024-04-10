@@ -1059,7 +1059,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         }
         _process.setUsingThisRecipe(jCheckBoxUseLayer.isSelected());
         
-        recursibleEnable(this, jCheckBoxUseLayer.isSelected());
+        MXUtil.recursibleEnable(this, jCheckBoxUseLayer.isSelected());
         jCheckBoxUseLayer.setEnabled(true); // This controller must be enabled always
     }//GEN-LAST:event_jCheckBoxUseLayerActionPerformed
 
@@ -1456,18 +1456,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         }  
     }
 
-    public void recursibleEnable(Component c, boolean enable) { 
-        if (c instanceof Container) {
-            Container parent = (Container)c;
-            int count = parent.getComponentCount();
-            for (int x = 0; x < count; ++ x) {
-                recursibleEnable(parent.getComponent(x), enable);
-            }
-        }
-        if (c instanceof JComponent) {
-            ((JComponent)c).setEnabled(enable);
-        }
-    }
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonApplyGroup;

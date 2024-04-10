@@ -223,7 +223,7 @@ public class MXJsonParser {
     }
 
     ArrayList<String> _parse1 = null; //デバッグ用に保持したままとする
-    static boolean g_dodebug = true;
+    static boolean g_dodebug = false;
 
     /**
      * MXJsonParsersReaderを指定してオブジェクト化する

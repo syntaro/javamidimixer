@@ -38,7 +38,6 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
     boolean _stopFeedback = true;
 
     public MGStatus getStatus() {
-        if (_mixer == null) return null;
         return _mixer.getStatus(MGStatus.TYPE_SLIDER, _row, _column);
     }
     
@@ -62,6 +61,9 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
     }
     
     public void updateUI() {
+        if (_mixer== null) {
+            return;
+        }
         super.updateUI();
         MGStatus status = getStatus();
         if (status != null) {
@@ -69,7 +71,11 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
             if (ThemeManager.getInstance().isColorfulMetalTheme()) {        
                 col = MXUtil.mixtureColor(Color.red, 30, Color.yellow, 70);
             }
-            MXRangedValue value = status._base.getValue();
+            MXRangedValue value = null;
+            if (status._base != null) 
+            {
+                value = status._base.getValue();
+            }
             jLabelValue.setForeground(col);
             jLabelMin.setText(String.valueOf(value._min));
             jLabelMax.setText(String.valueOf(value._max));
@@ -215,7 +221,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
     public void editContoller() {
         _mixer._view.stopEditing();
         MGStatus status = (MGStatus)getStatus().clone();
-        MGStatusPanel panel = new MGStatusPanel(_mixer, getStatus());
+        MGStatusPanel2 panel = new MGStatusPanel2(_mixer, getStatus());
         MXUtil.showAsDialog(this, panel, "Enter Edit Slider {row:" + _row + ", column:" + _column + "}");
         if (panel._okOption) {
             setStatus(panel._status);
