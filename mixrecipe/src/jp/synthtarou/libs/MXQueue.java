@@ -19,6 +19,7 @@ package jp.synthtarou.libs;
 import jp.synthtarou.libs.log.MXFileLogger;
 import java.util.LinkedList;
 import java.util.logging.Level;
+import jp.synthtarou.midimixer.libs.midi.MXTiming;
 
 /**
  *
@@ -47,7 +48,7 @@ public class MXQueue<T> {
         while(true) {
             while (_queue.isEmpty() && !_quit) {
                 try {
-                    wait(1000);
+                    wait(100);
                 }catch(InterruptedException ex) {
                     return null;
                 }
@@ -56,6 +57,7 @@ public class MXQueue<T> {
                 T value = _queue.removeFirst();
                 return value;
             }
+            notifyAll();
             if (_quit) {
                 return null;
             }

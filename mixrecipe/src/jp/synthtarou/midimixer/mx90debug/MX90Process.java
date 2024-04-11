@@ -90,6 +90,15 @@ public class MX90Process extends MXReceiver<MX90View> {
                 new MXDebugSame(noteOff);
             }
         }
+        MXFileLogger.getLogger(MX90Process.class).info("Testing Data Entry1");
+        for (int msb = 0; msb < 128; msb += random(20)) {
+            for (int lsb = 0; lsb < 128; lsb += random(20)) {
+                int varMSB = random(127);
+                int varLSB = random(127);
+                new MXDebugDataEntry(true, msb, lsb, (varMSB << 7) | varLSB);
+                new MXDebugDataEntry(false, msb, lsb, (varMSB << 7) | varLSB);
+            }
+        }
         MXFileLogger.getLogger(MX90Process.class).info("Testing Sysex");
         for (int value = 0; value < 128; value += random(20)) {
             for (int gate = 0; gate < 128; gate += random(20)) {
@@ -138,15 +147,6 @@ public class MX90Process extends MXReceiver<MX90View> {
                 MXMessage message2 = MXMessageFactory.fromTemplate(0, temp2, 0, null, null);
                 new MXDebugSame(message2);
 
-            }
-        }
-        MXFileLogger.getLogger(MX90Process.class).info("Testing Data Entry1");
-        for (int msb = 0; msb < 128; msb += random(20)) {
-            for (int lsb = 0; lsb < 128; lsb += random(20)) {
-                int varMSB = random(127);
-                int varLSB = random(127);
-                new MXDebugDataEntry(true, msb, lsb, (varMSB << 7) | varLSB);
-                new MXDebugDataEntry(false, msb, lsb, (varMSB << 7) | varLSB);
             }
         }
         

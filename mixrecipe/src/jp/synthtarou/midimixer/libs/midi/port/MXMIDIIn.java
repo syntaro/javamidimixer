@@ -493,11 +493,11 @@ public class MXMIDIIn {
     public static void queueMustEmpty() {
         try {
             while (true) {
-                synchronized (MXTiming.mutex) {
-                    Thread.sleep(10);
-                    if (_messageQueue.isEmpty()) {
-                        return;
-                    }
+                synchronized (_messageQueue) {
+                    _messageQueue.wait(10);
+                }
+                if (_messageQueue.isEmpty()) {
+                    return;
                 }
             }
         } catch (InterruptedException ex) {

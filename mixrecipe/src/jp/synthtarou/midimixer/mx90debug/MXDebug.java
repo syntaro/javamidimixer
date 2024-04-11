@@ -46,12 +46,13 @@ public abstract class MXDebug {
         _test.startTest(target);
         MXMIDIIn.queueMustEmpty();
         checkResult();
+        /*
         if (_interval >= 1) {
             try {
                 Thread.sleep(_interval);
             } catch (InterruptedException ex) {
             }
-        }
+        }*/
     }
 
     public MXDebug(List<MXMessage> target) {

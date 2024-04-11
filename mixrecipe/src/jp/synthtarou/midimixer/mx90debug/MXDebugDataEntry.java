@@ -93,11 +93,11 @@ public class MXDebugDataEntry extends MXDebug {
         else {
             MXFileLogger.getLogger(MXDebugDataEntry.class).severe("Size error in (" + in.size() + " is not 4)" + in);
         }
-        if (out.size() == 1) {
-            
-        }
-        else {
-            MXFileLogger.getLogger(MXDebugDataEntry.class).severe("Size error out (" +out.size() + " is not 1)" + out);
+        if (out.size() != 1) {
+            MXFileLogger.getLogger(MXDebugDataEntry.class).severe("Size error out (" +out.size() + " is not 1)");
+            for (int i = 0; i < out.size(); ++ i) {
+                System.out.println(out.get(i));
+            }
         }
     }
 }

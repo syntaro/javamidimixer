@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.libs.midi.visitant;
 
-import java.util.Collection;
 import java.util.logging.Level;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.libs.MXUtil;
@@ -386,22 +385,22 @@ public class MXVisitant implements Cloneable {
                     proc = prepareFetchingDataentry();
                     proc.setIsRPN(MXDataentry.TYPE_RPN);
                     proc.setDataroomMSB(value);
-                    return null;
+                    return ret;
                 } else if (gate == MXMidi.DATA1_CC_RPN_LSB) {
                     proc = prepareFetchingDataentry();
                     proc.setIsRPN(MXDataentry.TYPE_RPN);
                     proc.setDataroomLSB(value);
-                    return null;
+                    return ret;
                 } else if (gate == MXMidi.DATA1_CC_NRPN_MSB) {
                     proc = prepareFetchingDataentry();
                     proc.setIsRPN(MXDataentry.TYPE_NRPN);
                     proc.setDataroomMSB(value);
-                    return null;
+                    return ret;
                 } else if (gate == MXMidi.DATA1_CC_NRPN_LSB) {
                     proc = prepareFetchingDataentry();
                     proc.setIsRPN(MXDataentry.TYPE_NRPN);
                     proc.setDataroomLSB(value);
-                    return null;
+                    return ret;
                 }
             }
             MXFileLogger.getLogger(MXVisitant.class).severe("Invalid Process Route");
