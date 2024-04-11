@@ -685,7 +685,6 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     }//GEN-LAST:event_ｊButtonPauseActionPerformed
 
     private void jButtonPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPlayActionPerformed
-        _player.stopSequencer(0);
         turnOnMusic(_selectedItem, 0);
     }//GEN-LAST:event_jButtonPlayActionPerformed
 
@@ -921,6 +920,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                     SwingUtilities.invokeLater(new Runnable() {
                         @Override
                         public void run() {
+                            _player.stopSequencer(0);
                             turnOnMusic(file, pos);
                         }
                     });

@@ -82,15 +82,15 @@ public class SMFSequencer {
     Thread _playerThread;
 
     public void startPlayerThread(long position, SMFCallback callback) {
-        if (isRunning()) {
-            stopPlayer();
-        }
-        _callback = callback;
-        _playerThread = null;
-        _playerThread = new MXSafeThread("SMFPlayer", new Runnable() {
+        Thread t = new MXSafeThread("SMFPlayer", new Runnable() {
             @Override
             public void run() {
+                stopPlayerAsyncAndWait();
+                _callback = callback;
+                _playerThread = Thread.currentThread();
+                _isRunning = true;
                 _callback.smfStarted();
+                _playerThread = Thread.currentThread();
                 try {
                     playWithMilliSeconds(position);
                 } catch (RuntimeException ex) {
@@ -106,30 +106,32 @@ public class SMFSequencer {
                 }
             }
         });
-        _playerThread.setDaemon(true);
-        _playerThread.start();
-        _isRunning = true;
+        t.setDaemon(true);
+        t.start();;
     }
 
-    public void stopPlayer() {
-        new MXSafeThread("PlayerStop" , new Runnable() {
-            @Override
-            public void run() {
-                _stopPlayer = true;
-                if (_isRunning) {
-                    if (_playerThread != null) {
-                        synchronized (_playerThread) {
-                            _playerThread.notifyAll();
-                        }
-                        try {
-                            _playerThread.join();
-                        } catch (InterruptedException ex) {
-                            //
-                        }
-                    }
+    public void stopPlayerAsync() {
+        _stopPlayer = true;
+        if (_isRunning) {
+            synchronized (this) {
+                if (_playerThread != null) {
+                    notifyAll();
                 }
             }
-        }).start();
+        }
+    }
+    
+    public void stopPlayerAsyncAndWait() {
+        stopPlayerAsync();
+        while (isRunning()) {
+            synchronized (SMFSequencer.this) {
+                try {
+                    SMFSequencer.this.wait(500);
+                }catch(InterruptedException ex) {
+
+                }
+            }
+        }
     }
 
     SMFMessage[] _firstNote = null;

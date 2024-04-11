@@ -127,10 +127,6 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
     }
 
     public synchronized void startSequencer(SMFCallback parent, long position) {
-        if (_sequencer != null) {
-            _sequencer.stopPlayer();
-        }
-        
         _gotBreak = false;
         _sequencer.startPlayerThread(position, new SMFCallback() {
             @Override
@@ -174,7 +170,7 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
     
     public synchronized void stopSequencer(int port) {
         if (_sequencer != null) {
-            _sequencer.stopPlayer();
+            _sequencer.stopPlayerAsync();
             allNoteOffToPort(port);
         }
     }

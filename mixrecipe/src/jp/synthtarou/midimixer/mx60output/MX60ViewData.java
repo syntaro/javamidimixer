@@ -150,7 +150,7 @@ public class MX60ViewData extends MX10ViewData {
             return;
         }
         if (_playingTrack.isRunning()) {
-            _playingTrack.stopPlayer();
+            _playingTrack.stopPlayerAsync();
         }
         _playingTrack = null;
     }
