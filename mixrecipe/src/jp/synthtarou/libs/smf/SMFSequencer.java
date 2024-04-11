@@ -80,8 +80,14 @@ public class SMFSequencer {
 
     boolean _stopPlayer;
     Thread _playerThread;
+    int asyncLock = 0;
 
     public void startPlayerThread(long position, SMFCallback callback) {
+        if (asyncLock > 0) {
+            System.out.println("locked");
+            return;
+        }
+        asyncLock ++;
         Thread t = new MXSafeThread("SMFPlayer", new Runnable() {
             @Override
             public void run() {
@@ -92,6 +98,7 @@ public class SMFSequencer {
                 _callback.smfStarted();
                 _playerThread = Thread.currentThread();
                 try {
+                    asyncLock --;
                     playWithMilliSeconds(position);
                 } catch (RuntimeException ex) {
                     MXFileLogger.getLogger(SMFSequencer.class).log(Level.WARNING, ex.getMessage(), ex);
@@ -120,6 +127,7 @@ public class SMFSequencer {
             }
         }
     }
+    
     
     public void stopPlayerAsyncAndWait() {
         stopPlayerAsync();
