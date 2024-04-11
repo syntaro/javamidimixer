@@ -21,6 +21,7 @@ import jp.synthtarou.libs.navigator.MXPopupForList;
 import jp.synthtarou.libs.navigator.MXPopupForText;
 import jp.synthtarou.libs.navigator.MXPopup;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -32,9 +33,12 @@ import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.JViewport;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import jp.synthtarou.midimixer.MXConfiguration;
@@ -166,9 +170,6 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         jLabelBlank6.setText("");
         jLabelBlank7.setText("");
 
-        _capturePanel = new MGCapturePanel(this);
-        jPanel1.add(_capturePanel);
-
         new MXPopupForText(jTextFieldName) {
             @Override
             public void approvedText(String text) {
@@ -232,8 +233,8 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
                     }
                     displayStatusToPanelSlider();
                     displayStatusToPanelDrum();
-                }catch(NullPointerException e) {
-                }catch(Exception e) {
+                } catch (NullPointerException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -243,14 +244,14 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
                 try {
                     int command = _status._drum._customTemplate.get(0);
                     if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF
-                     || command == MXMidi.COMMAND_CH_POLYPRESSURE) {
+                            || command == MXMidi.COMMAND_CH_POLYPRESSURE) {
                         return MXNamedObjectListFactory.listupNoteNo(true);
                     }
                     if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
                         return MXNamedObjectListFactory.listupControlChange(true);
                     }
-                }catch(NullPointerException e) {
-                }catch(Exception e) {
+                } catch (NullPointerException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 return MXNamedObjectListFactory.listupGate7Bit();
@@ -285,6 +286,9 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         disableUnusedOnPanel();
         validateStatus();
 
+        _capturePanel = new MGCapturePanel(this);
+        _capturePanel.startCapture();
+        jPanel1.add(_capturePanel);
         _stopFeedback--;
     }
 
@@ -471,6 +475,38 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     MXNamedObjectList<Integer> _drumOutChannel;
     MXNamedObjectList<Integer> _drumOutPort;
 
+    public void scrollPanelAsVisible(JScrollPane scroll, JPanel panel) {
+        JViewport view = scroll.getViewport();
+        JPanel base = (JPanel) view.getComponent(0);
+        
+        System.out.println("NULL "+  panel);
+
+        if (panel != null) {
+            Point p = new Point(panel.getX(), panel.getY());
+            int y = p.y;
+            int height = panel.getHeight();
+
+            int maxy = scroll.getVerticalScrollBar().getMaximum();
+            int viewHeight = view.getHeight();
+
+            int pos = y;
+
+            if (pos + height >= maxy) {
+                pos = maxy - height;
+            }
+
+            scroll.getVerticalScrollBar().setValue(pos);
+        }
+        for (int i = 0; i < base.getComponentCount(); ++i) {
+            JComponent c = (JComponent) base.getComponent(i);
+            if (c == panel) {
+                MXUtil.recursibleEnable(c, true);
+            } else {
+                MXUtil.recursibleEnable(c, false);
+            }
+        }
+    }
+
     public void displayStatusToPanelDrum() {
         if (_status._uiType != MGStatus.TYPE_DRUMPAD) {
             return;
@@ -504,34 +540,34 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             /* Drum Output */
             switch (_status._drum._outStyle) {
                 case MGStatusForDrum.STYLE_SAME_CC:
+                    scrollPanelAsVisible(jScrollPane1, jPanelTabTemplate);
                     jRadioButtonDrumTypeSame.setSelected(true);
-                    jTabbedPane2.setSelectedIndex(0);
                     break;
                 case MGStatusForDrum.STYLE_CUSTOM_CC:
+                    scrollPanelAsVisible(jScrollPane1, jPanelTabTemplate);
                     jRadioButtonDrumTypeCustom.setSelected(true);
-                    jTabbedPane2.setSelectedIndex(0);
                     break;
                 case MGStatusForDrum.STYLE_PROGRAM_CHANGE:
+                    scrollPanelAsVisible(jScrollPane1, jPanelTabProgram);
                     jRadioButtonDrumTypeProgram.setSelected(true);
-                    jTabbedPane2.setSelectedIndex(1);
                     break;
                 case MGStatusForDrum.STYLE_NOTES:
+                    scrollPanelAsVisible(jScrollPane1, jPanelTabNotes);
                     jRadioButtonDrumTypeNotes.setSelected(true);
-                    jTabbedPane2.setSelectedIndex(2);
                     break;
                 case MGStatusForDrum.STYLE_SEQUENCE:
+                    scrollPanelAsVisible(jScrollPane1, jPanelTabSequener);
                     jRadioButtonDrumTypeSequence.setSelected(true);
-                    jTabbedPane2.setSelectedIndex(3);
                     break;
                 case MGStatusForDrum.STYLE_LINK_SLIDER:
+                    scrollPanelAsVisible(jScrollPane1, jPanelTabLink);
                     jRadioButtonDrumTypeLinkSlider.setSelected(true);
-                    jTabbedPane2.setSelectedIndex(4);
                     break;
                 case MGStatusForDrum.STYLE_DONT_SEND:
+                    scrollPanelAsVisible(jScrollPane1, null);
                     jRadioButtonDrumTypeDontSend.setSelected(true);
                     break;
                 default:
-                    jRadioButtonDrumTypeSame.setSelected(true);
                     break;
             }
             _switchOutTypeOn.writeComboBox(jComboBoxOutTypeOn, _status._drum._outValueTypeOn);
@@ -541,7 +577,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             _drumOutChannel.writeComboBox(jComboBoxOutChannel, _status._drum._outChannel);
 
             /* Template*/
-            jTextFieldTemplateForOut.setText(_status._drum._customTemplate == null ? ""  : _status._drum._customTemplate.toDText());
+            jTextFieldTemplateForOut.setText(_status._drum._customTemplate == null ? "" : _status._drum._customTemplate.toDText());
             jTextFieldTemplateTextGate.setText(String.valueOf(_status._drum._customGate._value));
 
             /* Program */
@@ -711,34 +747,34 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         _status._drum._outStyle = x;
         switch (_status._drum._outStyle) {
             case MGStatusForDrum.STYLE_SAME_CC:
+                scrollPanelAsVisible(jScrollPane1, jPanelTabTemplate);
                 jRadioButtonDrumTypeSame.setSelected(true);
-                jTabbedPane2.setSelectedIndex(0);
                 break;
             case MGStatusForDrum.STYLE_CUSTOM_CC:
+                scrollPanelAsVisible(jScrollPane1, jPanelTabTemplate);
                 jRadioButtonDrumTypeCustom.setSelected(true);
-                jTabbedPane2.setSelectedIndex(0);
                 break;
             case MGStatusForDrum.STYLE_PROGRAM_CHANGE:
+                scrollPanelAsVisible(jScrollPane1, jPanelTabProgram);
                 jRadioButtonDrumTypeProgram.setSelected(true);
-                jTabbedPane2.setSelectedIndex(1);
                 break;
             case MGStatusForDrum.STYLE_NOTES:
+                scrollPanelAsVisible(jScrollPane1, jPanelTabNotes);
                 jRadioButtonDrumTypeNotes.setSelected(true);
-                jTabbedPane2.setSelectedIndex(2);
                 break;
             case MGStatusForDrum.STYLE_SEQUENCE:
+                scrollPanelAsVisible(jScrollPane1, jPanelTabSequener);
                 jRadioButtonDrumTypeSequence.setSelected(true);
-                jTabbedPane2.setSelectedIndex(3);
                 break;
             case MGStatusForDrum.STYLE_LINK_SLIDER:
+                scrollPanelAsVisible(jScrollPane1, jPanelTabLink);
                 jRadioButtonDrumTypeLinkSlider.setSelected(true);
-                jTabbedPane2.setSelectedIndex(4);
                 break;
             case MGStatusForDrum.STYLE_DONT_SEND:
+                scrollPanelAsVisible(jScrollPane1, null);
                 jRadioButtonDrumTypeDontSend.setSelected(true);
                 break;
             default:
-                jRadioButtonDrumTypeSame.setSelected(true);
                 break;
         }
 
@@ -873,13 +909,31 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         jLabel11 = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
         jSpinnerDrumOnRangeMin = new javax.swing.JSpinner();
-        jLabel19 = new javax.swing.JLabel();
         jLabel25 = new javax.swing.JLabel();
         jLabel39 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
         jLabel12 = new javax.swing.JLabel();
         jLabelOffRange = new javax.swing.JLabel();
-        jTabbedPane2 = new javax.swing.JTabbedPane();
+        jPanelOutput = new javax.swing.JPanel();
+        jRadioButtonDrumTypeNotes = new javax.swing.JRadioButton();
+        jRadioButtonDrumTypeProgram = new javax.swing.JRadioButton();
+        jRadioButtonDrumTypeSequence = new javax.swing.JRadioButton();
+        jRadioButtonDrumTypeCustom = new javax.swing.JRadioButton();
+        jRadioButtonDrumTypeSame = new javax.swing.JRadioButton();
+        jRadioButtonDrumTypeDontSend = new javax.swing.JRadioButton();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel26 = new javax.swing.JLabel();
+        jComboBoxOutPort = new javax.swing.JComboBox<>();
+        jComboBoxOutChannel = new javax.swing.JComboBox<>();
+        jRadioButtonDrumTypeLinkSlider = new javax.swing.JRadioButton();
+        jLabel35 = new javax.swing.JLabel();
+        jComboBoxOutTypeOn = new javax.swing.JComboBox<>();
+        jComboBoxOutTypeOff = new javax.swing.JComboBox<>();
+        jLabelBlank7 = new javax.swing.JLabel();
+        jLabel19 = new javax.swing.JLabel();
+        jLabel33 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jPanel2 = new javax.swing.JPanel();
         jPanelTabTemplate = new javax.swing.JPanel();
         jLabel8 = new javax.swing.JLabel();
         jTextFieldTemplateForOut = new javax.swing.JTextField();
@@ -937,22 +991,6 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         jRadioButtonJumpMax = new javax.swing.JRadioButton();
         jRadioButtonJumpMin = new javax.swing.JRadioButton();
         jRadioButtonJumpMiddle = new javax.swing.JRadioButton();
-        jPanelOutput = new javax.swing.JPanel();
-        jRadioButtonDrumTypeNotes = new javax.swing.JRadioButton();
-        jRadioButtonDrumTypeProgram = new javax.swing.JRadioButton();
-        jRadioButtonDrumTypeSequence = new javax.swing.JRadioButton();
-        jRadioButtonDrumTypeCustom = new javax.swing.JRadioButton();
-        jRadioButtonDrumTypeSame = new javax.swing.JRadioButton();
-        jRadioButtonDrumTypeDontSend = new javax.swing.JRadioButton();
-        jLabel6 = new javax.swing.JLabel();
-        jLabel26 = new javax.swing.JLabel();
-        jComboBoxOutPort = new javax.swing.JComboBox<>();
-        jComboBoxOutChannel = new javax.swing.JComboBox<>();
-        jRadioButtonDrumTypeLinkSlider = new javax.swing.JRadioButton();
-        jLabel35 = new javax.swing.JLabel();
-        jLabelBlank7 = new javax.swing.JLabel();
-        jComboBoxOutTypeOn = new javax.swing.JComboBox<>();
-        jComboBoxOutTypeOff = new javax.swing.JComboBox<>();
         jButtonCancel = new javax.swing.JButton();
         jButtonOK = new javax.swing.JButton();
 
@@ -1188,7 +1226,6 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         gridBagConstraints.weightx = 1.0;
         jPanelValue.add(jCheckBoxDrumModeToggle, gridBagConstraints);
 
-        jCheckBoxDrumOnlySwitch.setSelected(true);
         jCheckBoxDrumOnlySwitch.setText("Detect Only Turning ON/OFF");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -1231,7 +1268,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanelValue.add(jSpinnerDrumMouseOnValue, gridBagConstraints);
 
-        jLabel11.setText("Mouse");
+        jLabel11.setText("Mouse-(ON)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
@@ -1257,14 +1294,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         gridBagConstraints.gridy = 1;
         jPanelValue.add(jSpinnerDrumOnRangeMin, gridBagConstraints);
 
-        jLabel19.setText("Click(ON)");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanelValue.add(jLabel19, gridBagConstraints);
-
-        jLabel25.setText("Release(OFF)");
+        jLabel25.setText("    (OFF =Release)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
@@ -1279,14 +1309,15 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         jPanelValue.add(jLabel39, gridBagConstraints);
 
-        jLabel10.setText("Detect");
+        jLabel10.setForeground(new java.awt.Color(255, 0, 51));
+        jLabel10.setText("Only Switched");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanelValue.add(jLabel10, gridBagConstraints);
 
-        jLabel12.setText("     (OFF)");
+        jLabel12.setText("   (OFF INFO)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -1307,6 +1338,184 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanelPage2.add(jPanelValue, gridBagConstraints);
+
+        jPanelOutput.setBorder(javax.swing.BorderFactory.createTitledBorder("Output"));
+        jPanelOutput.setLayout(new java.awt.GridBagLayout());
+
+        jRadioButtonDrumTypeNotes.setText("Notes");
+        jRadioButtonDrumTypeNotes.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jRadioButtonDrumTypeNotesActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jRadioButtonDrumTypeNotes, gridBagConstraints);
+
+        jRadioButtonDrumTypeProgram.setText("Program");
+        jRadioButtonDrumTypeProgram.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jRadioButtonDrumTypeProgramActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jRadioButtonDrumTypeProgram, gridBagConstraints);
+
+        jRadioButtonDrumTypeSequence.setText("Sequence");
+        jRadioButtonDrumTypeSequence.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jRadioButtonDrumTypeSequenceActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jRadioButtonDrumTypeSequence, gridBagConstraints);
+
+        jRadioButtonDrumTypeCustom.setText("Custom Template");
+        jRadioButtonDrumTypeCustom.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jRadioButtonDrumTypeCustomActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jRadioButtonDrumTypeCustom, gridBagConstraints);
+
+        jRadioButtonDrumTypeSame.setText("Same Template As Input");
+        jRadioButtonDrumTypeSame.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jRadioButtonDrumTypeSameActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jRadioButtonDrumTypeSame, gridBagConstraints);
+
+        jRadioButtonDrumTypeDontSend.setText("Don't Send");
+        jRadioButtonDrumTypeDontSend.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jRadioButtonDrumTypeDontSendActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jRadioButtonDrumTypeDontSend, gridBagConstraints);
+
+        jLabel6.setText("Type");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jLabel6, gridBagConstraints);
+
+        jLabel26.setText("Port / Channel");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jLabel26, gridBagConstraints);
+
+        jComboBoxOutPort.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "As Input", "A", "B", "C", "D", "..." }));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jComboBoxOutPort, gridBagConstraints);
+
+        jComboBoxOutChannel.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "As Input", "1", "2", "3", "4", "5", "..", "16" }));
+        jComboBoxOutChannel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxOutChannelActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jComboBoxOutChannel, gridBagConstraints);
+
+        jRadioButtonDrumTypeLinkSlider.setText("Link Slider/Knob");
+        jRadioButtonDrumTypeLinkSlider.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jRadioButtonDrumTypeLinkSliderActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jRadioButtonDrumTypeLinkSlider, gridBagConstraints);
+
+        jLabel35.setText("Output ON");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jLabel35, gridBagConstraints);
+
+        jComboBoxOutTypeOn.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "On Value As Input", "On Value As [Mouse Click]" }));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jComboBoxOutTypeOn, gridBagConstraints);
+
+        jComboBoxOutTypeOff.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Off Value As Input", "Off Value As [Mouse Release]", "Off Value is Notihng to Send" }));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jComboBoxOutTypeOff, gridBagConstraints);
+
+        jLabelBlank7.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weighty = 1.0;
+        jPanelOutput.add(jLabelBlank7, gridBagConstraints);
+
+        jLabel19.setForeground(new java.awt.Color(255, 0, 51));
+        jLabel19.setText("Output OFF*");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanelOutput.add(jLabel19, gridBagConstraints);
+
+        jLabel33.setForeground(new java.awt.Color(255, 0, 51));
+        jLabel33.setText("Maked Red > Warning");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridwidth = 4;
+        jPanelOutput.add(jLabel33, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        jPanelPage2.add(jPanelOutput, gridBagConstraints);
+
+        jScrollPane1.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
+        jScrollPane1.setViewportBorder(javax.swing.BorderFactory.createTitledBorder("Output"));
+
+        jPanel2.setLayout(new javax.swing.BoxLayout(jPanel2, javax.swing.BoxLayout.Y_AXIS));
 
         jPanelTabTemplate.setBorder(javax.swing.BorderFactory.createTitledBorder("Output Template"));
         jPanelTabTemplate.setLayout(new java.awt.GridBagLayout());
@@ -1365,7 +1574,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         jPanelTabTemplate.add(jTextFieldTemplateTextGate, gridBagConstraints);
 
-        jTabbedPane2.addTab("Template", jPanelTabTemplate);
+        jPanel2.add(jPanelTabTemplate);
 
         jPanelTabProgram.setBorder(javax.swing.BorderFactory.createTitledBorder("Output - Program"));
         jPanelTabProgram.setLayout(new java.awt.GridBagLayout());
@@ -1473,7 +1682,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         jPanelTabProgram.add(jLabel41, gridBagConstraints);
 
-        jTabbedPane2.addTab("Program", jPanelTabProgram);
+        jPanel2.add(jPanelTabProgram);
 
         jPanelTabNotes.setBorder(javax.swing.BorderFactory.createTitledBorder("Output Notess"));
         jPanelTabNotes.setLayout(new java.awt.GridBagLayout());
@@ -1531,7 +1740,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         gridBagConstraints.weighty = 1.0;
         jPanelTabNotes.add(jLabelBlank2, gridBagConstraints);
 
-        jTabbedPane2.addTab("Notes", jPanelTabNotes);
+        jPanel2.add(jPanelTabNotes);
 
         jPanelTabSequener.setBorder(javax.swing.BorderFactory.createTitledBorder("Output Sequencer"));
         jPanelTabSequener.setLayout(new java.awt.GridBagLayout());
@@ -1566,6 +1775,11 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         jPanelTabSequener.add(jButtonSequenceFileBrowse, gridBagConstraints);
 
         jCheckBoxSequencerSeekStart.setText("Play Start Timing = 1st Note");
+        jCheckBoxSequencerSeekStart.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxSequencerSeekStartActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
@@ -1574,6 +1788,11 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         jPanelTabSequener.add(jCheckBoxSequencerSeekStart, gridBagConstraints);
 
         jCheckBoxSequencerSingleTrack.setText("Play in Single Channel (Port / Ch = Output Section)");
+        jCheckBoxSequencerSingleTrack.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxSequencerSingleTrackActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
@@ -1582,6 +1801,11 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         jPanelTabSequener.add(jCheckBoxSequencerSingleTrack, gridBagConstraints);
 
         jCheckBoxSequencerFilterNote.setText("Only Play Note+Pitch+Wheel (IgnoreCC)");
+        jCheckBoxSequencerFilterNote.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxSequencerFilterNoteActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
@@ -1627,7 +1851,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         jPanelTabSequener.add(jLabel23, gridBagConstraints);
 
-        jTabbedPane2.addTab("Sequencer", jPanelTabSequener);
+        jPanel2.add(jPanelTabSequener);
 
         jPanelTabLink.setBorder(javax.swing.BorderFactory.createTitledBorder("Output - Link Slider / Knob"));
         jPanelTabLink.setLayout(new java.awt.GridBagLayout());
@@ -1774,175 +1998,19 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanelTabLink.add(jRadioButtonJumpMiddle, gridBagConstraints);
 
-        jTabbedPane2.addTab("Link Slider / Knob", jPanelTabLink);
+        jPanel2.add(jPanelTabLink);
+
+        jScrollPane1.setViewportView(jPanel2);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        jPanelPage2.add(jTabbedPane2, gridBagConstraints);
-
-        jPanelOutput.setBorder(javax.swing.BorderFactory.createTitledBorder("Output"));
-        jPanelOutput.setLayout(new java.awt.GridBagLayout());
-
-        jRadioButtonDrumTypeNotes.setText("Notes");
-        jRadioButtonDrumTypeNotes.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonDrumTypeNotesActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanelOutput.add(jRadioButtonDrumTypeNotes, gridBagConstraints);
-
-        jRadioButtonDrumTypeProgram.setText("Program");
-        jRadioButtonDrumTypeProgram.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonDrumTypeProgramActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanelOutput.add(jRadioButtonDrumTypeProgram, gridBagConstraints);
-
-        jRadioButtonDrumTypeSequence.setText("Sequence");
-        jRadioButtonDrumTypeSequence.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonDrumTypeSequenceActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanelOutput.add(jRadioButtonDrumTypeSequence, gridBagConstraints);
-
-        jRadioButtonDrumTypeCustom.setText("Custom Template");
-        jRadioButtonDrumTypeCustom.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonDrumTypeCustomActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanelOutput.add(jRadioButtonDrumTypeCustom, gridBagConstraints);
-
-        jRadioButtonDrumTypeSame.setText("Same Template As Input");
-        jRadioButtonDrumTypeSame.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonDrumTypeSameActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanelOutput.add(jRadioButtonDrumTypeSame, gridBagConstraints);
-
-        jRadioButtonDrumTypeDontSend.setText("Don't Send");
-        jRadioButtonDrumTypeDontSend.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonDrumTypeDontSendActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanelOutput.add(jRadioButtonDrumTypeDontSend, gridBagConstraints);
-
-        jLabel6.setText("Type");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanelOutput.add(jLabel6, gridBagConstraints);
-
-        jLabel26.setText("Port / Channel");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanelOutput.add(jLabel26, gridBagConstraints);
-
-        jComboBoxOutPort.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "As Input", "A", "B", "C", "D", "..." }));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanelOutput.add(jComboBoxOutPort, gridBagConstraints);
-
-        jComboBoxOutChannel.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "As Input", "1", "2", "3", "4", "5", "..", "16" }));
-        jComboBoxOutChannel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBoxOutChannelActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanelOutput.add(jComboBoxOutChannel, gridBagConstraints);
-
-        jRadioButtonDrumTypeLinkSlider.setText("Link Slider/Knob");
-        jRadioButtonDrumTypeLinkSlider.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButtonDrumTypeLinkSliderActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanelOutput.add(jRadioButtonDrumTypeLinkSlider, gridBagConstraints);
-
-        jLabel35.setText("Output Value");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanelOutput.add(jLabel35, gridBagConstraints);
-
-        jLabelBlank7.setText("Blank7");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        jPanelOutput.add(jLabelBlank7, gridBagConstraints);
-
-        jComboBoxOutTypeOn.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "On Value As Input", "On Value As [Mouse Click]" }));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanelOutput.add(jComboBoxOutTypeOn, gridBagConstraints);
-
-        jComboBoxOutTypeOff.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Off Value As Input", "Off Value As [Mouse Release]", "Off Value is Notihng to Send" }));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanelOutput.add(jComboBoxOutTypeOff, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        jPanelPage2.add(jPanelOutput, gridBagConstraints);
+        jPanelPage2.add(jScrollPane1, gridBagConstraints);
 
         jTabbedPane1.addTab("Drum Transform", jPanelPage2);
 
@@ -2040,8 +2108,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
                     int messageGate = message.getData1();
                     _status._drum._customTemplate = new MXTemplate("@CC " + message.getData1() + " #VL");
                     _status._drum._customGate = MXRangedValue.new7bit(messageGate);
-                }
-                else {
+                } else {
                     _status._drum._customTemplate = message.getTemplate();
                 }
                 displayStatusToPanelSlider();
@@ -2102,7 +2169,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             @Override
             public void actionPerformed(ActionEvent e) {
                 _status.clearAll();
-                _status.setBaseMessage("@RPN 0 0 #VH #VL");
+                _status.setBaseMessage("@RPN 0 0 #VL");
                 displayStatusToPanelSlider();
                 displayStatusToPanelDrum();
             }
@@ -2115,7 +2182,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             @Override
             public void actionPerformed(ActionEvent e) {
                 _status.clearAll();
-                _status.setBaseMessage("@NRPN 0 0 #VH #VL");
+                _status.setBaseMessage("@NRPN 0 0 #VL");
                 displayStatusToPanelSlider();
                 displayStatusToPanelDrum();
             }
@@ -2146,7 +2213,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         });
         popup.add(item10);
 
-        popup.show(jTextFieldGate, 0, jTextFieldGate.getHeight());
+        popup.show(jTextFieldTemplate, 0, jTextFieldTemplate.getHeight());
     }
 
     public void startEditTemplateForOut() {
@@ -2319,12 +2386,12 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
                 MXFileLogger.getLogger(MGStatusPanel.class).log(Level.WARNING, ex.getMessage(), ex);
                 return;
             }
-            
+
             if (template != null && template.size() >= 2 && (template.get(0) & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
                 int messageGate = template.get(1);
                 if (messageGate != MXMidi.CCXML_GL) {
                     _status._drum._customGate = MXRangedValue.new7bit(messageGate);
-                    template = new MXTemplate("@CC " + _status._drum._customGate._value +" #VL");
+                    template = new MXTemplate("@CC " + _status._drum._customGate._value + " #VL");
                 }
             }
             _status._drum._customTemplate = template;
@@ -2676,12 +2743,33 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
 
         int pc = MXUtil.numberFromText(pcPC, -1);
 
-        _stopFeedback ++;
+        _stopFeedback++;
         jSpinnerDrumProgPC.setValue(pc);
         jSpinnerDrumProgMSB.setValue(msb);
         jSpinnerDrumProgLSB.setValue(lsb);
-        _stopFeedback --;
+        _stopFeedback--;
     }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jCheckBoxSequencerSeekStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSequencerSeekStartActionPerformed
+        if (_stopFeedback != 0) {
+            return;
+        }
+        buildStatusFromPanelDrum();
+    }//GEN-LAST:event_jCheckBoxSequencerSeekStartActionPerformed
+
+    private void jCheckBoxSequencerSingleTrackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSequencerSingleTrackActionPerformed
+        if (_stopFeedback != 0) {
+            return;
+        }
+        buildStatusFromPanelDrum();
+    }//GEN-LAST:event_jCheckBoxSequencerSingleTrackActionPerformed
+
+    private void jCheckBoxSequencerFilterNoteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSequencerFilterNoteActionPerformed
+        if (_stopFeedback != 0) {
+            return;
+        }
+        buildStatusFromPanelDrum();
+    }//GEN-LAST:event_jCheckBoxSequencerFilterNoteActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -2730,6 +2818,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     private javax.swing.JLabel jLabel30;
     private javax.swing.JLabel jLabel31;
     private javax.swing.JLabel jLabel32;
+    private javax.swing.JLabel jLabel33;
     private javax.swing.JLabel jLabel34;
     private javax.swing.JLabel jLabel35;
     private javax.swing.JLabel jLabel37;
@@ -2755,6 +2844,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     private javax.swing.JLabel jLabelOffRange;
     private javax.swing.JLabel jLabelStartWith;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanelOutput;
     private javax.swing.JPanel jPanelPage1;
     private javax.swing.JPanel jPanelPage2;
@@ -2782,6 +2872,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     private javax.swing.JRadioButton jRadioButtonLinkKnob3;
     private javax.swing.JRadioButton jRadioButtonLinkKnob4;
     private javax.swing.JRadioButton jRadioButtonLinkSlider;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator5;
     private javax.swing.JSpinner jSpinnerDrumMouseOffValue;
     private javax.swing.JSpinner jSpinnerDrumMouseOnValue;
@@ -2793,7 +2884,6 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     private javax.swing.JSpinner jSpinnerMax;
     private javax.swing.JSpinner jSpinnerMin;
     private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JTabbedPane jTabbedPane2;
     private javax.swing.JTextField jTextFieldChannel;
     private javax.swing.JTextField jTextFieldGate;
     private javax.swing.JTextField jTextFieldHarmonyNoteList;

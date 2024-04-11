@@ -156,11 +156,11 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jSliderValueStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderValueStateChanged
+        int newValue = jSliderValue.getValue();
+        jLabelValue.setText(String.valueOf(newValue));
         if (_stopFeedback) {
             return;
         }
-        int newValue = jSliderValue.getValue();
-        jLabelValue.setText(String.valueOf(newValue));
         _mixer._parent.addSliderMove(getStatus(), newValue);
     }//GEN-LAST:event_jSliderValueStateChanged
 
@@ -221,7 +221,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
     public void editContoller() {
         _mixer._view.stopEditing();
         MGStatus status = (MGStatus)getStatus().clone();
-        MGStatusPanel2 panel = new MGStatusPanel2(_mixer, getStatus());
+        MGStatusPanel panel = new MGStatusPanel(_mixer, getStatus());
         MXUtil.showAsDialog(this, panel, "Enter Edit Slider {row:" + _row + ", column:" + _column + "}");
         if (panel._okOption) {
             setStatus(panel._status);

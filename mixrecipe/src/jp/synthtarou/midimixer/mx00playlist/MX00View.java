@@ -832,7 +832,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     PlayListElement _lastPlayed = null;
 
     @Override
-    public void smfPlayNote(MXTiming timing, SMFMessage e) {
+    public void smfPlayNote(SMFMessage e) {
         updatePianoDX(e.toDwordMessage());
     }
 

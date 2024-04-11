@@ -24,7 +24,6 @@ import java.util.Date;
 import java.util.logging.Level;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_PlayList;
 import jp.synthtarou.libs.smf.SMFMessage;
 import jp.synthtarou.libs.smf.SMFSequencer;
@@ -135,15 +134,15 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
         _gotBreak = false;
         _sequencer.startPlayerThread(position, new SMFCallback() {
             @Override
-            public void smfPlayNote(MXTiming timing, SMFMessage smf) {
+            public void smfPlayNote(SMFMessage smf) {
                  try {
                     if (smf.isBinaryMessage()) {
-                        receiveLongMessage(timing, smf.getBinary());
+                        receiveLongMessage(smf.getBinary());
                     }else {
                         int dword = smf.toDwordMessage();
-                        receiveShortMessage(timing, dword);
+                        receiveShortMessage(dword);
                     }
-                     parent.smfPlayNote(timing, smf);
+                     parent.smfPlayNote(smf);
                 }catch(RuntimeException ex) {
                     MXFileLogger.getLogger(MXMIDIInForPlayer.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
@@ -176,7 +175,7 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
     public synchronized void stopSequencer(int port) {
         if (_sequencer != null) {
             _sequencer.stopPlayer();
-            allNoteOffToPort(null, port);
+            allNoteOffToPort(port);
         }
     }
 }

@@ -122,8 +122,8 @@ public class MXDataentry implements Cloneable, Comparable<MXDataentry>{
     }
 
     public boolean havePartOfDataentry() {
-        if (_dataentryMSB >=0 && _dataentryLSB >= 0) {
-            if (_dataentryMSB < 0 && _dataentryLSB < 0) {
+        if (_dataentryMSB >=0 || _dataentryLSB >= 0) {
+            if (_dataentryMSB < 0 || _dataentryLSB < 0) {
                 return true;
             }
         }

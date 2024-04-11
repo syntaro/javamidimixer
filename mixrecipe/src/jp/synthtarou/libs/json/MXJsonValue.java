@@ -1011,7 +1011,6 @@ public class MXJsonValue {
             try {
                 int x = indexOfUnescapedLabel(label);
                 if (x < 0) {
-                    System.out.println("label " + label + "-1");
                     return defvalue;
                 }
                 MXJsonValue var = getContentsAt(x);

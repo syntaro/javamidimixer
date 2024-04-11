@@ -206,7 +206,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
                     if (newAssign >= 0) {
                         if (output.isPortAssigned(newAssign)) {
                             synchronized(MXTiming.mutex) {
-                                output.allNoteOffFromPort(null, newAssign);
+                                output.allNoteOffFromPort(newAssign);
                             }
                         }
                         output.setPortAssigned(newAssign, !output.isPortAssigned(newAssign));

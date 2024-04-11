@@ -130,13 +130,13 @@ public class MXMidi {
     public static final int COMMAND_ACTIVESENSING = 0xfe;
     public static final int COMMAND_META_OR_RESET = 0xff;
 
-    public static final int COMMAND2_NONE = 0x5400; /* no param */
+    public static final int COMMAND2_NONE = 0x0000; /* no param */
     public static final int COMMAND2_CH_RPN = 0x5500; /* msb lsb datamsb datalsb */
     public static final int COMMAND2_CH_NRPN = 0x5600; /* msb lsb datamsb datalsb */
     public static final int COMMAND2_CH_PROGRAM_INC = 0x6000; /* no param */
     public static final int COMMAND2_CH_PROGRAM_DEC = 0x6100; /* no param */
-    public static final int COMMAND2_META = 0x6500; /* ff --- */
-    public static final int COMMAND2_SYSTEM = 0x6600; /* f0~fe nn nn */
+    //public static final int COMMAND2_META = 0x6500; /* ff --- */
+    //public static final int COMMAND2_SYSTEM = 0x6600; /* f0~fe nn nn */
     
     public static final int CCXML_NONE = 0x100;
     public static final int CCXML_VL = 0x200;

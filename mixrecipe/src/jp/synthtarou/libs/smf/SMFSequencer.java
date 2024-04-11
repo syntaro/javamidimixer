@@ -169,21 +169,18 @@ public class SMFSequencer {
 
         boolean didProgramChange = false;
 
-        synchronized (MXTiming.mutex) {
-            MXTiming timing = new MXTiming();
-            for (int ch = 0; ch < 16; ++ch) {
-                if (firstBank0[ch] != null) {
-                    smfPlayNote(timing, firstBank0[ch]);
-                    didProgramChange = true;
-                }
-                if (firstBank32[ch] != null) {
-                    smfPlayNote(timing, firstBank32[ch]);
-                    didProgramChange = true;
-                }
-                if (firstProgram[ch] != null) {
-                    smfPlayNote(timing, firstProgram[ch]);
-                    didProgramChange = true;
-                }
+        for (int ch = 0; ch < 16; ++ch) {
+            if (firstBank0[ch] != null) {
+                smfPlayNote(firstBank0[ch]);
+                didProgramChange = true;
+            }
+            if (firstBank32[ch] != null) {
+                smfPlayNote(firstBank32[ch]);
+                didProgramChange = true;
+            }
+            if (firstProgram[ch] != null) {
+                smfPlayNote(firstProgram[ch]);
+                didProgramChange = true;
             }
         }
 
@@ -303,7 +300,7 @@ public class SMFSequencer {
             while (!_stopAll && !_stopPlayer && list.get(pos)._millisecond <= elapsed) {
                 SMFMessage currentEvent = list.get(pos++);
 
-                smfPlayNote(null, currentEvent);
+                smfPlayNote(currentEvent);
                 if (pos >= list.size()) {
                     break;
                 }
@@ -341,22 +338,22 @@ public class SMFSequencer {
                 for (int i = start; i <= end; ++i) {
                     SMFMessage message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
                     message._port = port;
-                    smfPlayNote(timing, message);
+                    smfPlayNote(message);
                     message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 127);
                     message._port = port;
-                    smfPlayNote(timing, message);
+                    smfPlayNote(message);
                     message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_EXPRESSION, 127);
                     message._port = port;
-                    smfPlayNote(timing, message);
+                    smfPlayNote(message);
                     message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_CHANNEL_VOLUME, 127);
                     message._port = port;
-                    smfPlayNote(timing, message);
+                    smfPlayNote(message);
                 }
                 byte vl = (byte)0x7f;
                 byte vh = (byte)0x7f;
                 byte[] reset = { (byte)0xF0, (byte)0x7F, (byte)0x7F, (byte)0x04, (byte)0x01, vl, vh, (byte)0xF7 };
                 SMFMessage mesasge = new SMFMessage(0, reset);
-                smfPlayNote(timing, mesasge);
+                smfPlayNote(mesasge);
             }
         }
     }
@@ -378,13 +375,13 @@ public class SMFSequencer {
             SMFMessage message;
             message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
             message._port = port;
-            smfPlayNote(timing, message);
+            smfPlayNote(message);
             message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 127);
             message._port = port;
-            smfPlayNote(timing, message);
+            smfPlayNote(message);
             message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLSOUNDOFF, 127);
             message._port = port;
-            smfPlayNote(timing, message);
+            smfPlayNote(message);
         }
     }
 
@@ -413,13 +410,13 @@ public class SMFSequencer {
     int _forceSingleChannel = -1;
     SMFCallback _callback;
 
-    void smfPlayNote(MXTiming timing, SMFMessage smf) {
+    void smfPlayNote(SMFMessage smf) {
         try {
             if (smf.isBinaryMessage()) {
-                _callback.smfPlayNote(timing, smf);
+                _callback.smfPlayNote(smf);
             } else {
                 if (!_noteOnly) {
-                    _callback.smfPlayNote(timing, smf);
+                    _callback.smfPlayNote( smf);
                 } else {
                     boolean skip = true;
                     int dword = smf.toDwordMessage();
@@ -450,7 +447,7 @@ public class SMFSequencer {
                             break;
                     }
                     if (!skip) {
-                        _callback.smfPlayNote(timing, smf);
+                        _callback.smfPlayNote(smf);
                     }
                 }
             }
@@ -492,7 +489,7 @@ public class SMFSequencer {
         if (_recording == false) {
             return;
         }
-        long timing = message._timing._clock;
+        long timing = message._timing;
         if (_startRecord < 0) {
             _startRecord = timing;
         }

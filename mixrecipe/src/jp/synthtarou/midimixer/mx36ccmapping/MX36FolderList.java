@@ -44,8 +44,6 @@ public class MX36FolderList {
         _autodetectFolder = newFolder(Integer.MAX_VALUE, "*NoSave(AutoDetected)");
         _primalFolder = newFolder("*Primal");
         _trashedFolder = newFolder(Integer.MAX_VALUE - 1, "*Trash");
-        
-        System.out.println("LIST " + _listFolder);
     }
     
     int _orderNext = 1;

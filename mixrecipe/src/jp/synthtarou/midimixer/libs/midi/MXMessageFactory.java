@@ -102,7 +102,7 @@ public class MXMessageFactory {
             return msg;
         } catch (RuntimeException ex) {
             MXFileLogger.getLogger(MXMessageFactory.class).log(Level.WARNING, ex.getMessage(), ex);
-            return MXMessageFactory.createDummy();
+            return null;
         }
     }
 

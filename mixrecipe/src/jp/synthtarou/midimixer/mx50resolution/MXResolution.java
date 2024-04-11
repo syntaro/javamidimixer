@@ -21,7 +21,6 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.mx30surface.MX30Packet;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
-import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 
 /**
  *
@@ -33,7 +32,6 @@ public class MXResolution implements Cloneable {
     int _channel;
     int _gate;
     int _resolution;
-    MXNamedObjectList<Integer> _gateTable;
     
     final MX50Process _process;
     MXResolutionView _bindedView;   

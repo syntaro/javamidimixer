@@ -91,7 +91,6 @@ public class MX50View extends javax.swing.JPanel {
         MXResolution reso = _process.createNewResolution();
         addToScrollPanel(reso._bindedView);
     }//GEN-LAST:event_jButton1ActionPerformed
-
     
     JLabel blankLabel = new JLabel("");
 

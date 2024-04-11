@@ -20,10 +20,10 @@ import java.util.LinkedList;
 import java.util.List;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.log.MXFileLogger;
-import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
+import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInForTest;
 
 /**
@@ -31,24 +31,25 @@ import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInForTest;
  * @author Syntarou YOSHIDA
  */
 public abstract class MXDebug {
+
     static int _interval = 3;
 
     static FinalMIDIOut _final = FinalMIDIOut.getInstance();
 
     LinkedList<MXMessage> _input;
     MXMIDIInForTest _test = new MXMIDIInForTest();
-    
+
     public MXDebug(MXMessage target) {
         _final.startTestSignal(-1);
         _input = new LinkedList<>();
         _input.add(target);
         _test.startTest(target);
-        MXReceiver.waitQueueBeenEmpty();;
+        MXMIDIIn.queueMustEmpty();
         checkResult();
         if (_interval >= 1) {
             try {
                 Thread.sleep(_interval);
-            }catch(InterruptedException ex) {
+            } catch (InterruptedException ex) {
             }
         }
     }
@@ -59,21 +60,21 @@ public abstract class MXDebug {
         for (MXMessage seek : target) {
             _input.add(seek);
             _test.startTest(seek);
-        
+
         }
-        MXReceiver.waitQueueBeenEmpty();;
+        MXMIDIIn.queueMustEmpty();;
         checkResult();
         if (_interval >= 1) {
             try {
                 Thread.sleep(_interval);
-            }catch(InterruptedException ex) {
+            } catch (InterruptedException ex) {
             }
         }
     }
 
     // overrider it
     public abstract void checkResult();
-    
+
     public void checkResultSame() {
         if (_input.size() != 1) {
             MXFileLogger.getLogger(MXDebug.class).severe(
@@ -83,43 +84,43 @@ public abstract class MXDebug {
         LinkedList<MXMessage> result = _final.getTestResult();
         if (result.size() != 1) {
             MXFileLogger.getLogger(MXDebug.class).severe("Error output size = " + result.size() + result);
-            if (result.size() >= 2 && result.get(0) != result.get(1)) {               
+            if (result.size() >= 2 && result.get(0) != result.get(1)) {
                 System.err.println(result.get(0).equals(result.get(1)));
                 System.err.println(result.get(0));
                 System.err.println(result.get(1));
             }
-        }
-        MXMessage message2 =  result.get(0);
-        
-        if (message1 == message2) {
-            return;
-        }
-        
-        if (message1.getPort() != message2.getPort()) {
-            MXFileLogger.getLogger(MXDebug.class).severe("Error output port = " + message2.getPort()
-                  + ", input port = " + message1.getPort());
-        }
-        
-        if (message1.getDwordCount() != message2.getDwordCount())  {
-            MXFileLogger.getLogger(MXDebug.class).severe("Error output dword length = " + message2.getDwordCount()
-                  + ", input dword length = " + message1.getDwordCount());
-        }
-        else if (message1.getDwordCount() >= 1) {
-            for (int i = 0; i < message1.getDwordCount(); ++ i) {
-                int d1 = message1.getAsDword(i);
-                int d2 = message2.getAsDword(i);
-                if (d1 != d2)  {
-                    MXFileLogger.getLogger(MXDebug.class).severe("Error output dword[" + i + "] = " + MXUtil.dumpDword(d2)
-                         + ", input dword[" +  i +  "] = " + MXUtil.dumpDword(d1));
-                }
+        } else {
+            MXMessage message2 = result.get(0);
+
+            if (message1 == message2) {
+                return;
             }
-        }else {
-            byte[] data1 = message1.getBinary();
-            byte[] data2 = message1.getBinary();
-            for (int i = 0; i <data1.length; ++ i) {
-                if (data1[i] != data2[i]) {
-                MXFileLogger.getLogger(MXDebug.class).severe("Error output dump[" + MXUtil.dumpHex(data2) + "]"
-                          + ", input dump[" + MXUtil.dumpHex(data1) + "]");
+
+            if (message1.getPort() != message2.getPort()) {
+                MXFileLogger.getLogger(MXDebug.class).severe("Error output port = " + message2.getPort()
+                        + ", input port = " + message1.getPort());
+            }
+
+            if (message1.getDwordCount() != message2.getDwordCount()) {
+                MXFileLogger.getLogger(MXDebug.class).severe("Error output dword length = " + message2.getDwordCount()
+                        + ", input dword length = " + message1.getDwordCount());
+            } else if (message1.getDwordCount() >= 1) {
+                for (int i = 0; i < message1.getDwordCount(); ++i) {
+                    int d1 = message1.getAsDword(i);
+                    int d2 = message2.getAsDword(i);
+                    if (d1 != d2) {
+                        MXFileLogger.getLogger(MXDebug.class).severe("Error output dword[" + i + "] = " + MXUtil.dumpDword(d2)
+                                + ", input dword[" + i + "] = " + MXUtil.dumpDword(d1));
+                    }
+                }
+            } else {
+                byte[] data1 = message1.getBinary();
+                byte[] data2 = message1.getBinary();
+                for (int i = 0; i < data1.length; ++i) {
+                    if (data1[i] != data2[i]) {
+                        MXFileLogger.getLogger(MXDebug.class).severe("Error output dump[" + MXUtil.dumpHex(data2) + "]"
+                                + ", input dump[" + MXUtil.dumpHex(data1) + "]");
+                    }
                 }
             }
         }

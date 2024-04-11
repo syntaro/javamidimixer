@@ -283,16 +283,9 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         if (index != null & index.length >= 1) {
             for (int i = 0; i < index.length; ++ i) {
                 MXMidiConsoleElement e = _list.getConsoleElement(index[i]);
-                switch (e.getType()) {
-                    case MXMidiConsoleElement.CONSOLE_DATA:
-                        byte[] data = e.getData();
-                        _file.add(data, jTextArea1);
-                        break;
-                    case MXMidiConsoleElement.CONSOLE_MESSAGE:
-                        byte[] data2 =  e.getMessage().getBinary();
-                        _file.add(data2, jTextArea1);
-                        break;
-                }
+                byte[] data2 =  e.getMessage().getBinary();
+                _file.add(data2, jTextArea1);
+                break;
             }
             _file.bind(jTextArea1);
         }

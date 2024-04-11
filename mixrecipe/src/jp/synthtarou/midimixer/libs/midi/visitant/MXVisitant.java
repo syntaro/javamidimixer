@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi.visitant;
 
+import java.util.Collection;
 import java.util.logging.Level;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.libs.MXUtil;
@@ -30,21 +31,18 @@ import jp.synthtarou.midimixer.libs.midi.MXTemplate;
  * @author Syntarou YOSHIDA
  */
 public class MXVisitant implements Cloneable {
-    int _lastChannel = -1;
+    int _channel = -1;
     int _program = -1;
     int _bankMSB = -1;
     int _bankLSB = -1;
-
     int[] _valueCC = new int[128];
+    int _haveDataentryLSB = -1;
 
-    public MXVisitant() {
+    public MXVisitant(int channel) {
         for (int i = 0; i < _valueCC.length; ++i) {
             _valueCC[i] = -1;
         }
-    }
-
-    protected MXVisitant(int[] oldValueCC) {
-        _valueCC = (int[]) oldValueCC.clone();
+        _channel = channel;
     }
 
     public boolean isCCSet(int cc) {
@@ -120,8 +118,8 @@ public class MXVisitant implements Cloneable {
     }
 
     public boolean isIncompleteBankInfo() {
-        if (_bankLSB >= 0 || _bankLSB >= 0) {
-            if (_bankLSB < 0 || _bankLSB < 0) {
+        if (_bankLSB >= 0 || _bankMSB >= 0) {
+            if (_bankLSB < 0 || _bankMSB < 0) {
                 return true;
             }
         }
@@ -165,8 +163,9 @@ public class MXVisitant implements Cloneable {
     }
 
     public MXVisitant clone() {
-        MXVisitant obj = new MXVisitant(_valueCC);
-
+        MXVisitant obj = new MXVisitant(_channel);
+        
+        obj._valueCC = _valueCC.clone();
         obj._program = _program;
         obj._bankMSB = _bankMSB;
         obj._bankLSB = _bankLSB;
@@ -213,21 +212,25 @@ public class MXVisitant implements Cloneable {
 
     int _currentAge = 0;
     public int _currentCCAge = 0;
-    MXVisitant _lastSnapShort = null;
+    MXVisitant _lastSnapShot = null;
     boolean _isLocked = false;
 
     public synchronized MXVisitant getSnapShot() {
-        if (_lastSnapShort == null || _lastSnapShort._currentAge != _currentAge) {
-            _lastSnapShort = clone();
-            _lastSnapShort._currentAge = _currentAge;
-            _lastSnapShort._isLocked = true;
+        if (_lastSnapShot == null || _lastSnapShot._currentAge != _currentAge) {
+            _lastSnapShot = clone();
+            _lastSnapShot._currentAge = _currentAge;
+            _lastSnapShot._isLocked = true;
         }
-        return _lastSnapShort;
+        return _lastSnapShot;
     }
 
     public MXDataentry prepareFetchingDataentry() {
         if (_fetching == null) {
-            _fetching = new MXDataentry(this, MXDataentry.TYPE_RPN, -1, -1);
+            if (_flushed != null) {
+                _fetching = new MXDataentry(this, MXDataentry.TYPE_RPN, _flushed.getDataroomMSB(), _flushed.getDataroomLSB());
+            }else {
+                _fetching = new MXDataentry(this, MXDataentry.TYPE_RPN, -1, -1);
+            }
         }
         return _fetching;
     }
@@ -324,6 +327,7 @@ public class MXVisitant implements Cloneable {
                         if (proc.getDataentryMSB() >= 0) {
                             ret[wx ++] = flushDataentry(message.getPort());
                             proc = prepareFetchingDataentry();
+                            _haveDataentryLSB = 0;
                         }
                         proc.setDataentryMSB(value);
                     } else {
@@ -332,15 +336,20 @@ public class MXVisitant implements Cloneable {
                             proc = prepareFetchingDataentry();
                         }
                         proc.setDataentryLSB(value);
+                        _haveDataentryLSB = 1;
                     }
-                    if (proc.getDataentryMSB() >= 0 && proc.getDataentryLSB() >= 0) {
+                    if (proc.getDataentryMSB() >= 0 && (_haveDataentryLSB == 0 || proc.getDataentryLSB() >= 0)) {
                         MXMessage message2 = flushDataentry(message.getPort());
                         ret[wx ++] = message2;
+                        if (_haveDataentryLSB != -1) {
+                            proc.setDataentryMSB(-1);
+                            proc.setDataentryLSB(-1);
+                        }
                     }
                     if (wx >0) {
                         return ret;
                     }
-                    return null;
+                    return ret;//empty , not null
                 } else if (gate == MXMidi.DATA1_CC_DATAINC || gate == MXMidi.DATA1_CC_DATADEC) {
                     if (_flushed == null) {
                         MXFileLogger.getLogger(MXVisitant.class).severe("DATAENTRY INC/DEC without anyflush before");
@@ -423,19 +432,18 @@ public class MXVisitant implements Cloneable {
             MXTemplate temp = new MXTemplate(new int[]{ isRPN, 
                 fetching.getDataroomMSB(), fetching.getDataroomLSB(),
                 fetching.getDataentryMSB(), fetching.getDataentryLSB()});
-            MXMessage message2 = MXMessageFactory.fromTemplate(port, temp, _lastChannel, MXRangedValue.ZERO7, MXRangedValue.ZERO7);
+            MXMessage message2 = MXMessageFactory.fromTemplate(port, temp, _channel, MXRangedValue.ZERO7, MXRangedValue.ZERO7);
             _flushed = (MXDataentry)fetching.clone();
             _fetching = null;
             message2.setVisitant(getSnapShot());
-            //System.out.println("flush dataentry " + message2.getTemplateAsText() +" (" + message2.getVisitant() + ")");
             return message2;
         }
         return null;
     }
     
     public synchronized MXMessage[] preprocess(MXMessage message, MXMessage[] ret) {
-        if (ret == null || ret.length < 2) {
-            ret = new MXMessage[2];
+        if (ret == null || ret.length < 3) {
+            ret = new MXMessage[3];
         }
         else {
             for (int i = 0; i < ret.length; ++ i) {
@@ -443,20 +451,22 @@ public class MXVisitant implements Cloneable {
             }
         }
         if (message.isMessageTypeChannel()) {
-            if (_lastChannel < 0) {
-                _lastChannel = message.getChannel();
+            if (_channel != message.getChannel()) {
+                MXFileLogger.getLogger(MXVisitant.class).log(Level.SEVERE, "invalid channel", new Exception());
             }
-            else if (_lastChannel != message.getChannel()) {
-                MXFileLogger.getLogger(MXVisitant.class).severe("invalid channel");
-                _lastChannel = message.getChannel();
-            }
+        }else {
+            return null;
         }
 
         int wx = 0;
         if (isDataentryEntry(message)) {
-            return preprocessDataentry(message, ret);
+            MXMessage[] var = preprocessDataentry(message, ret);
+            return var;
         }
         else if (havePartOfDataentry()) {
+            if (_fetching.getDataentryLSB() < 0) {
+                _haveDataentryLSB = 0;
+            }
             ret[wx ++ ] = flushDataentry(message.getPort());
         }
         int widerStatus = message.getTemplate().get(0);

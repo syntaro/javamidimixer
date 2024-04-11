@@ -173,8 +173,8 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
             return -1;
         }
 
-        if ((_base.getStatus() & 0xf0) == MXMidi.COMMAND_CH_NOTEON) {
-            if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_NOTEOFF) {
+        if ((_base.getTemplate().get(0) & 0xfff0) == MXMidi.COMMAND_CH_NOTEON) {
+            if ((message.getTemplate().get(0) & 0xfff0) == MXMidi.COMMAND_CH_NOTEOFF) {
                 message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_NOTEON + message.getChannel(), message.getData1(), 0);
             }
         }

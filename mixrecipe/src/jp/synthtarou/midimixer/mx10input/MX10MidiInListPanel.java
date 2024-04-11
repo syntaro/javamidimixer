@@ -214,7 +214,7 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
                             return;
                         }
                         if (input.isPortAssigned(newAssign)) {
-                            input.allNoteOffToPort(null, newAssign);
+                            input.allNoteOffToPort(newAssign);
                         }
                         input.setPortAssigned(newAssign, !input.isPortAssigned(newAssign));
                     }else {

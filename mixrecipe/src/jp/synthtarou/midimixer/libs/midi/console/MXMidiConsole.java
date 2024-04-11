@@ -25,13 +25,11 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import jp.synthtarou.libs.MXCountdownTimer;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
-import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.libs.MainThreadTask;
@@ -51,7 +49,7 @@ public class MXMidiConsole implements ListModel<String> {
     LinkedList<MXMidiConsoleElement> _queue = new LinkedList();
 
     JList _refList;
-    MXTiming _selectedTiming = null;
+    long _selectedTiming = 0;
     public boolean _showAllLine = false;
     public boolean _globalSelection = true;
 
@@ -66,26 +64,26 @@ public class MXMidiConsole implements ListModel<String> {
                 boolean prevSele = isSelected;
                 cellHasFocus = false;
                 isSelected = false;
-                Color back = null;
+                Color back = Color.white;
                 boolean gray = false;
 
                 if (value == null) {
                     if (_globalSelection) {
-                        if (_selectedTiming == null) {
+                        if (_selectedTiming == 0) {
                             isSelected = prevSele;
-                            back = null;
+                            //back = null;
                             gray = true;
                         }
                     }
                     var = "-";
                 } else {
-                    if (_selectedTiming == value.getTiming()) {
-                        back = Color.red;
+                    if (_selectedTiming == value.getMessage()._timing) {
+                        //back = Color.red;
                         isSelected = true;
-                        if (_selectedTiming != null) {
-                            back = Color.cyan;
+                        if (_selectedTiming != 0) {
+                            //back = Color.cyan;
                         } else {
-                            back = Color.gray;
+                            //back = Color.gray;
                         }
                         if (_refList.hasFocus()) {
                             cellHasFocus = true;
@@ -94,12 +92,14 @@ public class MXMidiConsole implements ListModel<String> {
                 }
                 Component c = null;
                 c = _def.getListCellRendererComponent(list, var, index, isSelected, cellHasFocus);
+                /*
                 if (gray) {
                     back = c.getBackground();
                     if (back != null) {
                         back = MXUtil.mixtureColor(back, 20, Color.white, 80);
                     }
                 }
+                */
                 if (back != null) {
                     c.setBackground(back);
                 }
@@ -149,10 +149,6 @@ public class MXMidiConsole implements ListModel<String> {
         if (false) {
             addImpl(e);
         } else if (true) {
-            if (e.getTiming() == null) {
-                Exception ex = new Exception("null timing" + e.formatMessageLong());
-                MXFileLogger.getLogger(MXMidiConsole.class).log(Level.WARNING, ex.getMessage(), ex);
-            }
             synchronized (_queue) {
                 _queue.add(e);
             }
@@ -181,43 +177,15 @@ public class MXMidiConsole implements ListModel<String> {
     private synchronized void addImpl(MXMidiConsoleElement e) {
         /* Ignore */
         if (_recordClock == false) {
-            switch (e.getType()) {
-                case MXMidiConsoleElement.CONSOLE_DWORD: {
-                    int dword = e.getDword();
-                    int status = (dword >> 16) & 0xff;
-                    int data1 = (dword >> 8) & 0xff;
-                    int data2 = (dword) & 0xff;
-                    if (status == MXMidi.COMMAND_ACTIVESENSING
-                            || status == MXMidi.COMMAND_MIDICLOCK
-                            || status == MXMidi.COMMAND_MIDITIMECODE) {
-                        return;
-                    }
-                    break;
-                }
-                case MXMidiConsoleElement.CONSOLE_DATA: {
-                    byte[] data = e.getData();
-                    if (data.length > 0) {
-                        int status = data[0] & 0xff;
-                        if (status == MXMidi.COMMAND_ACTIVESENSING
-                                || status == MXMidi.COMMAND_MIDICLOCK
-                                || status == MXMidi.COMMAND_MIDITIMECODE) {
-                            return;
-                        }
-                    }
-                    break;
-                }
-                case MXMidiConsoleElement.CONSOLE_MESSAGE: {
-                    int status = e.getMessage().getStatus();
-                    if (status == MXMidi.COMMAND_ACTIVESENSING
-                            || status == MXMidi.COMMAND_MIDICLOCK
-                            || status == MXMidi.COMMAND_MIDITIMECODE) {
-                        return;
-                    }
-                    break;
-                }
+            int status = e.getMessage().getStatus();
+            if (status == MXMidi.COMMAND_ACTIVESENSING
+                    || status == MXMidi.COMMAND_MIDICLOCK
+                    || status == MXMidi.COMMAND_MIDITIMECODE) {
+                return;
             }
         }
         _list.add(e);
+        /*
         if (_list.size() >= 2) {
             MXMidiConsoleElement prevE = _list.get(_list.size() - 1);
             if (prevE != null) {
@@ -227,7 +195,8 @@ public class MXMidiConsole implements ListModel<String> {
                     MXFileLogger.getLogger(MXMessage.class).warning("This " + e.formatMessageLong() + "\n" + "Before " + prevE.formatMessageLong());
                 }
             }
-        }
+        }*/
+        
         countDown();
     }
 
@@ -303,7 +272,7 @@ public class MXMidiConsole implements ListModel<String> {
     public void removeListDataListener(ListDataListener l) {
         _listener.remove(l);
     }
-
+/*
     public void setSelectedTiming(MXTiming selection) {
         new MainThreadTask() {
             @Override
@@ -315,7 +284,7 @@ public class MXMidiConsole implements ListModel<String> {
                         if (elem == null) {
                             continue;
                         }
-                        if (elem.getTiming() == selection) {
+                        if (elem.getMessage()._timing == selection) {
                             int start = _refList.getFirstVisibleIndex();
                             int fin = start + _refList.getVisibleRowCount() - 1;
                             if (start <= i && i <= fin) {
@@ -332,7 +301,7 @@ public class MXMidiConsole implements ListModel<String> {
             }
         };
     }
-
+*/
     public synchronized void clear() {
         _list.clear();
         _queue = new LinkedList();

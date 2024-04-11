@@ -17,7 +17,6 @@
 package jp.synthtarou.midimixer.libs.midi;
 
 import java.util.ArrayList;
-import java.util.IllegalFormatException;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.libs.MXRangedValue;
@@ -80,7 +79,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
         return false;
     }
 
-    public MXTemplate(String text) throws IllegalFormatException {
+    public MXTemplate(String text) throws IllegalArgumentException {
         while (text.startsWith(" ")) {
             text = text.substring(1);
         }
@@ -531,19 +530,16 @@ public class MXTemplate implements Comparable<MXTemplate> {
                     data[wrote++] = _commands[2];
                     data[wrote++] = _commands[3];
                     data[wrote++] = _commands[4];
-                    if (_commands[4] < 0) {
-                        throw new Error();
-                    }
                     return data;
 
                 case MXMidi.COMMAND2_NONE:
                 case MXMidi.COMMAND2_CH_PROGRAM_INC:
                 case MXMidi.COMMAND2_CH_PROGRAM_DEC:
                     return data;
-                    
+                    /*
                 case MXMidi.COMMAND2_SYSTEM:
                 case MXMidi.COMMAND2_META:
-                    break;
+                    break;*/
 
                 case MXMidi.COMMAND_CH_PITCHWHEEL:
                     data[wrote ++] = MXMidi.CCXML_VH;
@@ -780,12 +776,13 @@ public class MXTemplate implements Comparable<MXTemplate> {
                 return null;
             case MXMidi.COMMAND2_CH_PROGRAM_DEC:
                 return null;
+            /*
             case MXMidi.COMMAND2_META:
                 checkMatch = true;
                 break;
             case MXMidi.COMMAND2_SYSTEM:
                 checkMatch = true;
-                break;
+                break;*/
             default: //Command1 
                 checkMatch = true;
                 break;

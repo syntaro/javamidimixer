@@ -21,6 +21,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 
 /**
  *
@@ -131,6 +132,10 @@ public class MGDrumPad extends javax.swing.JPanel {
         MXMessage message = drum.updatingValue(push, velocity);
         if (message != null) {
             _mixer._parent._packet.addResult(message);
+            if (message.getTemplate().get(0) == MXMidi.COMMAND2_CH_RPN ||
+                    message.getTemplate().get(0) == MXMidi.COMMAND2_CH_NRPN) {
+                new Throwable().printStackTrace();
+            }
         }
         _mixer._parent.endTransaction();
     }
@@ -138,7 +143,7 @@ public class MGDrumPad extends javax.swing.JPanel {
     public void editContoller() {
         _mixer._view.stopEditing();
         MGStatus status = (MGStatus) getStatus().clone();
-        MGStatusPanel2 panel = new MGStatusPanel2(_mixer, status);
+        MGStatusPanel panel = new MGStatusPanel(_mixer, status);
         MXUtil.showAsDialog(this, panel, "Enter Edit Pad {row:" + _row + ", column:" + _column + "}");
 
         if (panel._okOption) {

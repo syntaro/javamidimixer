@@ -219,7 +219,7 @@ public class MX40Layer {
         int data2_trans = data2;
 
         if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-            if (_noteOff.raiseHandler(port, message._timing, channel, data1)) {
+            if (_noteOff.raiseHandler(port, channel, data1)) {
                 return true;
             }
         }
@@ -253,8 +253,7 @@ public class MX40Layer {
             MXMessage target = MXMessageFactory.fromShortMessage(port_trans, MXMidi.COMMAND_CH_NOTEOFF + channel_trans, data1_trans, 0);
             target._timing = message._timing;
             _noteOff.setHandler(message, target, new MXNoteOffWatcher.Handler() {
-                public void onNoteOffEvent(MXTiming timing, MXMessage target) {
-                    target._timing = timing;
+                public void onNoteOffEvent(MXMessage target) {
                     _process.sendToNext(target);
                 }
             });

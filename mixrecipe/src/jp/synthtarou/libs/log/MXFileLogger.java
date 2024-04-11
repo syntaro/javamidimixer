@@ -129,7 +129,7 @@ public class MXFileLogger {
             if (MXConfiguration._DEBUG) {
                 setLevel(Level.ALL);
             }else {
-                setLevel(Level.WARNING);
+                setLevel(Level.ALL);
             }
         }
         

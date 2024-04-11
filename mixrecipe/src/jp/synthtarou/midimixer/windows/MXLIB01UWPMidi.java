@@ -73,12 +73,12 @@ public class MXLIB01UWPMidi {
 
     static private void cbCallShortMessage(int device, int message) {
         MXDriver_UWP uwp = MXDriver_UWP._instance;
-        uwp.findInputCatalog(device).receiveShortMessage(new MXTiming(), message);
+        uwp.findInputCatalog(device).receiveShortMessage(message);
     }
 
     static private void cbCallLongMessage(int device, byte[] data) {
         MXDriver_UWP uwp = MXDriver_UWP._instance;
-        uwp.findInputCatalog(device).receiveLongMessage(new MXTiming(), data);
+        uwp.findInputCatalog(device).receiveLongMessage(data);
     }
     
     static private void cbDeviceListed() {

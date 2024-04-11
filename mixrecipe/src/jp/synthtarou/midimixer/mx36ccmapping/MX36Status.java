@@ -282,7 +282,7 @@ public class MX36Status {
         _outCachedMessage.setChannel(channel);
         _outCachedMessage.setValue(_outValueRange.changeRange(_outCachedMessage.getValue()._min, _outCachedMessage.getValue()._max));
         _outCachedMessage.setGate(_outGateRange);
-        _outCachedMessage._timing = null;
+        //_outCachedMessage._timing = null;
 
         return (MXMessage)_outCachedMessage.clone();
     }

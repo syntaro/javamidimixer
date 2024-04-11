@@ -17,10 +17,12 @@
 package jp.synthtarou.midimixer.mx30surface.capture;
 
 import java.util.TreeMap;
+import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 
 /**
  *
@@ -51,15 +53,55 @@ public class MGCapture {
     }
     
     public void record(MXMessage message) {
+        try {
+            //modify
+            MXTemplate temp = message.getTemplate();
+            if (temp.get(0) == MXMidi.COMMAND2_CH_RPN
+              || temp.get(0) == MXMidi.COMMAND2_CH_NRPN) {
+                int room1 = temp.get(1);
+                int room2 = temp.get(2);
+                int value1 = temp.get(3);
+                int value2 = temp.size() > 4 ? temp.get(4) : 0xffff;
+                boolean changed = false;
+                
+                if ((value2 & 0xff00) == 0xff00) {
+                    value2 = 0;
+                    if ((value1 & 0xff00) == 0) {
+                        message.setValue(value1);
+                        value1 = MXMidi.CCXML_VL;
+                        changed = true;
+                    }
+                }
+                else {
+                    if ((value1 & 0xff00) == 0 && (value2 & 0xff00) == 0) {
+                        message.setValue(MXRangedValue.new14bit(value1 << 7 | value2));
+                        value1 = MXMidi.CCXML_VH;
+                        value2 = MXMidi.CCXML_VL;
+                        changed = true;
+                    }
+                }
+                
+                if (changed) {
+                    temp = new MXTemplate(new int[] { 
+                       temp.get(0), room1, room2, value1, value2
+                   });
+                }
+                message = MXMessageFactory.fromTemplate(
+                        message.getPort(), temp, 
+                        message.getChannel(), message.getGate(), message.getValue());
+            }
+        }catch(Throwable e) {
+            e.printStackTrace();
+        }
         String strCommand = message.getTemplateAsText();
         int command = message.getStatus() & 0xf0;
         int gate = message.getGate()._value;
         int value = message.getValue()._value;
-        CaptureCommand capCommand = _listCommand.get(strCommand);
+        CaptureCommand capCommand = _listCommand.get(command);
         
         if (capCommand == null) {
             capCommand = new CaptureCommand(message.getChannel(), strCommand);
-            _listCommand.put(capCommand.toString(), capCommand);
+            _listCommand.put(command, capCommand);
         }
         
         CaptureGate capGate = capCommand._listGate.get(gate);
@@ -74,9 +116,9 @@ public class MGCapture {
     
     public MXNamedObjectList<CaptureCommand> listCommand() {
         MXNamedObjectList<CaptureCommand> ret = new MXNamedObjectList<>();
-        for (String key : _listCommand.keySet()) {
+        for (Integer key : _listCommand.keySet()) {
             CaptureCommand value = _listCommand.get(key);
-            ret.addNameAndValue(key, value);
+            ret.addNameAndValue(value.toString(), value);
         }
         return ret;
     }
@@ -90,7 +132,7 @@ public class MGCapture {
         return ret;
     }
 
-    TreeMap<String, CaptureCommand> _listCommand = new TreeMap<>();
+    TreeMap<Integer, CaptureCommand> _listCommand = new TreeMap<>();
 
     public synchronized MXNamedObjectList<CaptureCommand> createCommandListModel() {
         MXNamedObjectList<CaptureCommand> list = new MXNamedObjectList<>();
@@ -133,7 +175,12 @@ public class MGCapture {
             temp.record(128 -1);
             list.addNameAndValue(temp.toString(), temp);
         }
-        list.addNameAndValue("detected " + gate._value.toString(), gate._value);
+        if (true) {
+            CaptureValue temp = new CaptureValue();
+            temp.record(gate._value._minValue);
+            temp.record(gate._value._maxValue);
+            list.addNameAndValue("detected " + temp.toString(), temp);
+        }
 
         return list;
     }

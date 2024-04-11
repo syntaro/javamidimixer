@@ -29,7 +29,7 @@ public class MXVisitant16 {
     public MXVisitant16() {
         _array = new MXVisitant[16];
         for(int i = 0; i < _array.length; ++ i) {
-            _array[i] = new MXVisitant();
+            _array[i] = new MXVisitant(i);
         }
     }
 

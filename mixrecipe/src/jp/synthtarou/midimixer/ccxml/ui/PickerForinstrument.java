@@ -28,7 +28,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.ccxml.rules.CCValueRule;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObject;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
@@ -40,6 +39,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
+import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
 import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
@@ -900,6 +900,6 @@ public class PickerForinstrument extends javax.swing.JPanel {
         int state = command + channel;
 
         MXMessage message = MXMessageFactory.fromShortMessage(port, state, data1, data2);
-        MXReceiver.messageDispatch(message, receiver);
+        MXMIDIIn.messageToReceiverThreaded(message, receiver);
     }
 }

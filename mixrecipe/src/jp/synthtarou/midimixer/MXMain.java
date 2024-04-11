@@ -195,10 +195,16 @@ public class MXMain {
 
         _mx10inputProcess.setNextReceiver(_mx30kontrolProcess);
 
-        _mx30kontrolProcess.setNextReceiver(_mx40layerProcess);
-        _mx30kontrolProcess.setMappingProcess(_mx36ccmappingProcess);
-        _mx36ccmappingProcess.setNextReceiver(_mx40layerProcess);
-        _mx40layerProcess.setNextReceiver(_mx50resolutionProcess);
+        if (false) {
+            _mx30kontrolProcess.setNextReceiver(_mx50resolutionProcess);
+            _mx30kontrolProcess.setMappingProcess(_mx36ccmappingProcess);
+            _mx36ccmappingProcess.setNextReceiver(_mx50resolutionProcess);
+        } else {
+            _mx30kontrolProcess.setNextReceiver(_mx40layerProcess);
+            _mx30kontrolProcess.setMappingProcess(_mx36ccmappingProcess);
+            _mx36ccmappingProcess.setNextReceiver(_mx40layerProcess);
+            _mx40layerProcess.setNextReceiver(_mx50resolutionProcess);
+        }
         _mx50resolutionProcess.setNextReceiver(_mx60outputProcess);
         _mx60outputProcess.setNextReceiver(FinalMIDIOut.getInstance());
 
@@ -378,9 +384,9 @@ public class MXMain {
             return _mx60outputProcess;
         }
         if (receiver == _mx00playlistProcess
-         || receiver == _mxXMLManager
-         || receiver == null
-         || receiver == _mx90Debugger) {
+                || receiver == _mxXMLManager
+                || receiver == null
+                || receiver == _mx90Debugger) {
             return _mx10inputProcess;
         }
         return receiver;

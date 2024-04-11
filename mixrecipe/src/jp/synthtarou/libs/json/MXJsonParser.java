@@ -107,7 +107,6 @@ public class MXJsonParser {
         for (MXJsonSupport seek : _listAutosave) {
             try {
                 boolean done = seek.writeJsonFile(null);
-                System.out.println("tried write json = " + done + "@ " + seek.getClass());
             }catch(Throwable ex) {
                 MXFileLogger.getLogger(MXJsonParser.class).log(Level.SEVERE, ex.getMessage(), ex);
             }

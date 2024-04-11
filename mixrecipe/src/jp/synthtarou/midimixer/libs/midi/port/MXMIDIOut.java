@@ -84,7 +84,7 @@ public class MXMIDIOut {
         synchronized (MXTiming.mutex) {
             if (_assigned[port] != flag) {
                 if (!flag) {
-                    _myNoteOff.allNoteFromPort(new MXTiming(), port);
+                    _myNoteOff.allNoteFromPort(port);
                 }
                 _assigned[port] = flag;
                 int x = 0;
@@ -171,14 +171,14 @@ public class MXMIDIOut {
                 return;
             }
 
-            MXMain.addInsideOutput(message);
-
             MXVisitant portVisitant = _visitantOut16.get(message.getChannel());
 
             long timeStamp = getTimestamp();
             long recTime = 0;
 
-            if (message.isMessageTypeChannel()) {
+            if (message.isMessageTypeChannel() == false) {
+                finalOut(message);
+            } else {
                 MXVisitant msgVisitant = message.getVisitant();
                 int status = message.getStatus();
                 int channel = message.getChannel();
@@ -253,64 +253,12 @@ public class MXMIDIOut {
                         }
                     }
                 }
-            }
-            MXMessage[] ret = portVisitant.preprocess(message, retBuf);
-            if (ret != null) {
-                retBuf = ret;
-                for (int i = 0; i < ret.length; ++i) {
-                    message = ret[i];
-                    if (message == null) {
-                        continue;
-                    }
-
-                    /*
-                    if (message.isCommand(MXMidi.COMMAND2_CH_RPN)) {
-                        System.out.println("RPN " + message);
-                    }
-                    if (message.isCommand(MXMidi.COMMAND2_CH_NRPN)) {
-                        System.out.println("NRPN " + message);
-                    }*/
-
-                    if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
-                        _myNoteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
-                            @Override
-                            public void onNoteOffEvent(MXTiming timing, MXMessage target) {
-                                target._timing = timing;
-                                int dword = target.getAsDword(0);
-                                _driver.OutputShortMessage(_driverOrder, dword);
-                                MXMain.addOutsideOutput(new MXMidiConsoleElement(target._timing, target.getPort(), dword));
-                            }
-                        });
-                        int dword = message.getAsDword(0);
-                        _driver.OutputShortMessage(_driverOrder, dword);
-                        MXMain.addOutsideOutput(new MXMidiConsoleElement(message._timing, message.getPort(), dword));
-                        return;
-                    } else if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
-                        if (_myNoteOff.raiseHandler(message)) {
-                            return;
-                        }
-                    } else if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)
-                            && message.getData1() == MXMidi.DATA1_CC_ALLNOTEOFF) {
-                        allNoteOff(message._timing);
-                    }
-
-                    int col = message.getDwordCount();
-                    if (col == 0) {
-                        byte[] data = message.getBinary();
-                        _driver.OutputLongMessage(_driverOrder, data);
-                        MXMain.addOutsideOutput(new MXMidiConsoleElement(message._timing, message.getPort(), data));
-                    } else {
-                        for (int j = 0; j < col; ++ j) {
-                            int dword = message.getAsDword(j);
-                            if (dword == 0) {
-                                //MidiINでまとめるのに失敗して次のデータによりフラッシュされたケース
-                                if (j != 3) {
-                                    MXFileLogger.getLogger(MXMIDIOut.class).warning("input dataentry [" + j + "] was solo(not pair) " + message);
-                                }
-                            } else {
-                                _driver.OutputShortMessage(_driverOrder, dword);
-                                MXMain.addOutsideOutput(new MXMidiConsoleElement(message._timing, message.getPort(), dword));
-                            }
+                MXMessage[] ret = portVisitant.preprocess(message, retBuf);
+                if (ret != null) {
+                    retBuf = ret;
+                    for (int i = 0; i < ret.length; ++i) {
+                        if (ret[i] != null) {
+                            finalOut(ret[i]);
                         }
                     }
                 }
@@ -318,12 +266,64 @@ public class MXMIDIOut {
         }
     }
 
-    public void allNoteOff(MXTiming timing) {
-        _myNoteOff.allNoteOff(timing);
+    public void finalOut(MXMessage message) {
+        if (message == null) {
+            return;
+        }
+
+        if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
+            _myNoteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
+                @Override
+                public void onNoteOffEvent(MXMessage target) {
+                    int dword = target.getAsDword(0);
+                    _driver.OutputShortMessage(_driverOrder, dword);
+                    MXMain.addOutsideOutput(new MXMidiConsoleElement(target));
+                }
+            });
+            int dword = message.getAsDword(0);
+            _driver.OutputShortMessage(_driverOrder, dword);
+            MXMain.addOutsideOutput(new MXMidiConsoleElement(message));
+            return;
+        } else if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
+            if (_myNoteOff.raiseHandler(message)) {
+                return;
+            }
+        } else if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)
+                && message.getData1() == MXMidi.DATA1_CC_ALLNOTEOFF) {
+            allNoteOff();
+        }
+
+        int col = message.getDwordCount();
+        if (col == 0) {
+            byte[] data = message.getBinary();
+            _driver.OutputLongMessage(_driverOrder, data);
+            MXMain.addOutsideOutput(new MXMidiConsoleElement(message));
+        } else {
+            for (int j = 0; j < col; ++j) {
+                int dword = message.getAsDword(j);
+                if (dword == 0) {
+                    //MidiINでまとめるのに失敗して次のデータによりフラッシュされたケース
+                    if (j != 3) {
+                        MXFileLogger.getLogger(MXMIDIOut.class).warning("input dataentry [" + j + "] was solo(not pair) " + message);
+                    }
+                } else {
+                    _driver.OutputShortMessage(_driverOrder, dword);
+                    int status = (dword >> 16) & 0xff;
+                    int data1 = (dword >> 8) & 0xff;
+                    int data2 = (dword) & 0xff;
+                    MXMessage message2 = MXMessageFactory.fromShortMessage(message.getPort(), status, data1, data2);
+                    MXMain.addOutsideOutput(new MXMidiConsoleElement(message2));
+                }
+            }
+        }
     }
 
-    public void allNoteOffFromPort(MXTiming timing, int port) {
-        _myNoteOff.allNoteFromPort(timing, port);
+    public void allNoteOff() {
+        _myNoteOff.allNoteOff();
+    }
+
+    public void allNoteOffFromPort(int port) {
+        _myNoteOff.allNoteFromPort(port);
     }
 
     public boolean openOutput(long timeout) {
@@ -342,9 +342,8 @@ public class MXMIDIOut {
         MXMIDIOutManager manager = MXMIDIOutManager.getManager();
         synchronized (MXTiming.mutex) {
             if (isOpen()) {
-                allNoteOff(null);
+                allNoteOff();
                 if (_name.equals("Gervill")) {
-                    allNoteOff(null);
                     manager.onClose(this);
                     _driver.OutputDeviceClose(_driverOrder);
                 } else {

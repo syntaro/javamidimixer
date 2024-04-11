@@ -91,8 +91,8 @@ public class ListModelOutputStream extends OutputStream {
                                 }
                             }
                         }
+                        _lagPool.clear();
                     }
-                    _lagPool.clear();
                     if (_installed != null) {
                         _installed.setValueIsAdjusting(false);
                     }

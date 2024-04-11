@@ -18,7 +18,6 @@ package jp.synthtarou.midimixer.libs.midi.visitant;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
-import javax.security.auth.Refreshable;
 import javax.swing.SwingUtilities;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -26,9 +25,7 @@ import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 
 /**
  *
@@ -53,29 +50,13 @@ public class MXVisitant16TableModel implements TableModel {
     }
     
     
-    MXMessage[] retBuf = new MXMessage[4];
-    
-    int bufLen() {
-        int x = 0;
-        while(retBuf[x] != null) {
-            x ++;
-        }
-        return x;
-    }
-    
     public MXMessage[] preprocess16ForVisitant(MXMessage message, MXMessage[] ret) {
         MXVisitant visitant = _element.get(message.getPort()).get(message.getChannel());
-        ret = visitant.preprocess(message, ret);
-        if (ret == null) {
+        MXMessage[] ret2 = visitant.preprocess(message, ret);
+        if (ret2 == null) {
             return null;
         }
-        retBuf = ret;
-        if (bufLen() == 1) {
-            if (message.equals(retBuf[0])) {
-                return ret;
-            }
-        }
-        return ret;
+        return ret2;
     }
 
     public boolean mergeVisitant16WithVisitant(MXMessage message) {

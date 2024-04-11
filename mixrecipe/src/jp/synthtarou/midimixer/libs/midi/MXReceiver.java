@@ -23,6 +23,7 @@ import jp.synthtarou.libs.MXSafeThread;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.MXMain;
 import static jp.synthtarou.midimixer.MXMain._capture;
+import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 
 /**
  *
@@ -48,7 +49,7 @@ public abstract class MXReceiver<T extends JPanel> {
 
     public void sendToNext(MXMessage message) {
         if (_nextReceiver != null) {
-            messageDispatch(message, _nextReceiver);
+            MXMIDIIn.messageToReceiverThreaded(message, _nextReceiver);
         } else {
             MXFileLogger.getLogger(MXReceiver.class).warning("receiver not set " + message);
         }
@@ -63,87 +64,4 @@ public abstract class MXReceiver<T extends JPanel> {
     public void setUsingThisRecipe(boolean usingThis) {
         _usingThis = usingThis;
     }
-
-    static MXQueue<MessageQueueElement> _messageQueue = new MXQueue<>();
-    static MXSafeThread _messageThread = null;
-
-    static {
-        _messageThread
-                = new MXSafeThread("MessageProcess", new Runnable() {
-                    @Override
-                    public void run() {
-                        while (true) {
-                            MessageQueueElement e = _messageQueue.pop();
-                            if (e == null) {
-                                break;
-                            }
-                            MXMessage message = e._message;
-                            MXReceiver receiver = e._receiver;
-                            messageDispatchBody(message, receiver);
-                        }
-                    }
-                });
-        _messageThread.setPriority(Thread.MAX_PRIORITY);
-        _messageThread.setDaemon(true);
-        _messageThread.start();
-    }
-
-    public static void waitQueueBeenEmpty() {
-        try {
-            while (true) {
-                Thread.sleep(1);
-                synchronized (MXTiming.mutex) {
-                    if (_messageQueue.isEmpty()) {
-                        return;
-                    }
-                }
-            }
-        } catch (InterruptedException ex) {
-        }
-    }
-
-    static class MessageQueueElement {
-
-        public MessageQueueElement(MXMessage message, MXReceiver receiver) {
-            _message = message;
-            _receiver = receiver;
-        }
-
-        MXMessage _message;
-        MXReceiver _receiver;
-    }
-
-    public static void messageDispatch(MXMessage message, MXReceiver receiver) {
-        if (Thread.currentThread() == _messageThread) {
-            messageDispatchBody(message, receiver);
-        } else {
-            _messageQueue.push(new MessageQueueElement(message, receiver));
-        }
-    }
-
-    static void messageDispatchBody(MXMessage message, MXReceiver receiver) {
-        try {
-            synchronized (MXTiming.mutex) {
-                try {
-                    if (message._timing == null) {
-                        message._timing = new MXTiming();
-                    }
-                    if (receiver == MXMain.getMain().getInputProcess()) {
-                        MXMain.addInsideInput(message);
-                        if (_capture != null) {
-                            _capture.processMXMessage(message);
-                        }
-                    }
-                    if (receiver != null) {
-                        receiver.processMXMessage(message);
-                    }
-                } catch (RuntimeException ex) {
-                    MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
-                }
-            }
-        } catch (Throwable ex) {
-            MXFileLogger.getLogger(MXMain.class).log(Level.SEVERE, ex.getMessage(), ex);
-        }
-    }
-
 }

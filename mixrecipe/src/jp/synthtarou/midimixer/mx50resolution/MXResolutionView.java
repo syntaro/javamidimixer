@@ -68,17 +68,12 @@ public class MXResolutionView extends javax.swing.JPanel {
         } else {
             _currentGateModel = _normalGateModel;
         }
-        MXNamedObjectList<Integer> gateTable = _resolution._gateTable;
-        if (gateTable == null) {
-            gateTable = _currentGateModel;
-        }
-        String gateText = gateTable.nameOfValue(_resolution._gate);
         if (_resolution._command == null) {
             jTextFieldCommand.setText("");
         } else {
             jTextFieldCommand.setText(_resolution._command.toDText());
         }
-        jTextFieldGate.setText(gateText);
+        jTextFieldGate.setText(_currentGateModel.nameOfValue(_resolution._gate));
         jTextFieldPort.setText(_listPort.nameOfValue(_resolution._port));
         jTextFieldChannel.setText(_listChannel.nameOfValue(_resolution._channel));
         jTextFieldResolution.setText(_listResolution.nameOfValue(_resolution._resolution));
@@ -142,7 +137,7 @@ public class MXResolutionView extends javax.swing.JPanel {
         new MXPopup(jTextFieldGate) {
             @Override
             public void showPopup(JComponent mouseBase) {
-                MXNamedObjectList<Integer> gateTable = _resolution._gateTable == null ? _currentGateModel : _resolution._gateTable;
+                MXNamedObjectList<Integer> gateTable =  _currentGateModel;
                 if (gateTable != null) {
                     MXPopupForList<Integer> popup = new MXPopupForList(null, gateTable) {
                         @Override
@@ -349,8 +344,7 @@ public class MXResolutionView extends javax.swing.JPanel {
             try {
                 _resolution._command = new MXTemplate(ccm._data);
                 _resolution._gate = ccm.getParsedGate()._value;
-                _resolution._gateTable = ccm.getParsedGateTable();
-                
+
                 if (_resolution._command.get(0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
                     int gate = _resolution._command.get(1);
                     if (gate != MXMidi.CCXML_GL) {

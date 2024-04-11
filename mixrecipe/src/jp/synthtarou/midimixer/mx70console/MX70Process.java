@@ -49,13 +49,13 @@ public class MX70Process {
 
     public void addOutsideInput(MXMidiConsoleElement e) {
         _outsideInput.add(e);
-        e.getTiming().recordWrap(0);
+        //e.getTiming().recordWrap(0);
     }
 
     public void addInsideInput(MXMessage msg) {
         MXMidiConsoleElement e = new MXMidiConsoleElement(msg);
         _insideInput.add(e);
-        e.getTiming().recordWrap(1);
+        //e.getTiming().recordWrap(1);
         if (msg.isBinaryMessage()) {
             _listBinary.add(e);
         }
@@ -65,7 +65,7 @@ public class MX70Process {
         MXMidiConsoleElement e = new MXMidiConsoleElement(msg);
         _insideOutput.add(e);
         try {
-            e.getTiming().recordWrap(2);
+            //e.getTiming().recordWrap(2);
         }catch(RuntimeException ex) {
             MXFileLogger.getLogger(MX70Process.class).log(Level.WARNING, ex.getMessage(), ex);
         }
@@ -73,7 +73,7 @@ public class MX70Process {
 
     public void addOutsideOutput(MXMidiConsoleElement e) {
         _outsideOutput.add(e);
-        e.getTiming().recordWrap(3);
+        //e.getTiming().recordWrap(3);
     }
     
     MX70SysexPanel _sysex;

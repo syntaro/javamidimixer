@@ -27,14 +27,12 @@ import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.libs.inifile.MXINIFileNode;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.json.MXJsonValue;
-import jp.synthtarou.midimixer.mx30surface.MX32MixerView;
 
 /**
  *
@@ -56,10 +54,19 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
         _view = new MX40View(this);
     }
 
-    MXMessage[] buf = new MXMessage[2];
+    MXMessage[] _buf = new MXMessage[2];
 
     public void sendToNext(MXMessage message) {
-        buf = _outputInfo.preprocess16ForVisitant(message, buf);
+        MXMessage[] buf = _outputInfo.preprocess16ForVisitant(message, _buf);
+        if (buf != null) {
+            _buf = buf;
+        } else {
+            buf = _buf;
+            buf[0] = message;
+            for (int i = 1; i < buf.length; ++i) {
+                buf[i] = null;
+            }
+        }
         for (int i = 0; i < buf.length; ++i) {
             if (buf[i] == null) {
                 continue;
@@ -73,103 +80,114 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
 
     @Override
     public void processMXMessage(MXMessage message) {
-        buf = _inputInfo.preprocess16ForVisitant(message, buf);
-        if (buf == null) {
+        if (isUsingThisRecipe() == false) {
+            sendToNext(message);
             return;
         }
-        for (int mi = 0; mi < buf.length; ++mi) {
-            message = buf[mi];
-            if (message == null) {
-                continue;
-            }
 
-            _inputInfo.mergeVisitant16WithVisitant(message);
-            MXTiming timing = message._timing;
+        try {
 
-            if (message.isBinaryMessage()) {
-                sendToNext(message);
-                return;
-            }
-
-            if (isUsingThisRecipe() == false) {
-                sendToNext(message);
-                return;
-            }
-
-            int port = message.getPort();
-            int status = message.getStatus();
-            int channel = message.getChannel();
-            int command = status;
-            if (command >= 0x80 && command <= 0xef) {
-                command &= 0xf0;
-            }
-
-            int first = message.getTemplate().get(0);
-
-            if (first == MXMidi.COMMAND2_CH_PROGRAM_INC) {
-                int x = message.getVisitant().getProgram() + 1;
-                if (x >= 128) {
-                    x = 127;
-                }
-                message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_PROGRAMCHANGE + message.getChannel(), x, 0);
-                message._timing = timing;
-                command = MXMidi.COMMAND_CH_PROGRAMCHANGE;
-            }
-            if (first == MXMidi.COMMAND2_CH_PROGRAM_DEC) {
-                int x = message.getVisitant().getProgram() - 1;
-                if (x < 0) {
-                    x = 0;
-                }
-                message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_PROGRAMCHANGE + message.getChannel(), x, 0);
-                message._timing = timing;
-                command = MXMidi.COMMAND_CH_PROGRAMCHANGE;
-            }
-
-            if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-                if (_noteOff.raiseHandler(port, message._timing, channel, message.getGate()._value)) {
-                    return;
+            MXMessage[] buf = _inputInfo.preprocess16ForVisitant(message, _buf);
+            if (buf != null) {
+                _buf = buf;
+            } else {
+                buf = _buf;
+                buf[0] = message;
+                for (int i = 1; i < buf.length; ++i) {
+                    buf[i] = null;
                 }
             }
+            for (int mi = 0; mi < _buf.length; ++mi) {
+                message = _buf[mi];
+                if (message !=  null) {
+                    sendToNext(message);
+                    message = null;
+                    continue;
+                }
+                if (message == null) {
+                    continue;
+                }
+                _inputInfo.mergeVisitant16WithVisitant(message);
+                
+                if (message.isBinaryMessage()) {
+                    sendToNext(message);
+                    continue;
+                }
 
-            boolean dispatched = false;
+                int port = message.getPort();
+                int status = message.getStatus();
+                int channel = message.getChannel();
+                int command = status;
+                if (command >= 0x80 && command <= 0xef) {
+                    command &= 0xf0;
+                }
 
-            if (message.isMessageTypeChannel()) {
-                for (int i = 0; i < _groupList.size(); ++i) {
-                    final MX40Group col = _groupList.get(i);
-                    if (col.processByGroup(message)) {
-                        if (command == MXMidi.COMMAND_CH_NOTEON) {
-                            _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
-                                public void onNoteOffEvent(MXTiming timing, MXMessage target) {
-                                    MXMessage msg = MXMessageFactory.fromShortMessage(target.getPort(),
-                                            MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(),
-                                            target.getGate()._value, 0);
-                                    msg._timing = timing;
-                                    col.processByGroup(msg);
-                                }
-                            });
-                        }
-                        dispatched = true;
-                        break;
+                int first = message.getTemplate().get(0);
+
+                if (first == MXMidi.COMMAND2_CH_PROGRAM_INC) {
+                    int x = message.getVisitant().getProgram() + 1;
+                    if (x >= 128) {
+                        x = 127;
+                    }
+                    message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_PROGRAMCHANGE + message.getChannel(), x, 0);
+                    command = MXMidi.COMMAND_CH_PROGRAMCHANGE;
+                }
+                if (first == MXMidi.COMMAND2_CH_PROGRAM_DEC) {
+                    int x = message.getVisitant().getProgram() - 1;
+                    if (x < 0) {
+                        x = 0;
+                    }
+                    message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_PROGRAMCHANGE + message.getChannel(), x, 0);
+                    command = MXMidi.COMMAND_CH_PROGRAMCHANGE;
+                }
+
+                if (command == MXMidi.COMMAND_CH_NOTEOFF) {
+                    if (_noteOff.raiseHandler(port, channel, message.getGate()._value)) {
+                        continue;
                     }
                 }
-            }
-            if (!dispatched) {
-                if (command == MXMidi.COMMAND_CH_NOTEON) {
-                    _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
-                        public void onNoteOffEvent(MXTiming timing, MXMessage target) {
-                            MXMessage msg = MXMessageFactory.fromShortMessage(target.getPort(),
-                                    MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(),
-                                    target.getGate()._value, 0);
-                            msg._timing = timing;
-                            sendToNext(msg);
+
+                boolean dispatched = false;
+
+                if (message.isMessageTypeChannel()) {
+                    for (int i = 0; i < _groupList.size(); ++i) {
+                        final MX40Group col = _groupList.get(i);
+                        if (col.processByGroup(message)) {
+                            if (command == MXMidi.COMMAND_CH_NOTEON) {
+                                _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
+                                    public void onNoteOffEvent(MXMessage target) {
+                                        MXMessage msg = MXMessageFactory.fromShortMessage(target.getPort(),
+                                                MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(),
+                                                target.getGate()._value, 0);
+                                        col.processByGroup(msg);
+                                    }
+                                });
+                            }
+                            dispatched = true;
+                            break;
                         }
-                    });
+                    }
                 }
-                if (message.isCommand(MXMidi.COMMAND_CH_PROGRAMCHANGE) && message.getGate()._value < 0) {
-                    return;
+                if (!dispatched) {
+                    if (command == MXMidi.COMMAND_CH_NOTEON) {
+                        _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
+                            public void onNoteOffEvent(MXMessage target) {
+                                MXMessage msg = MXMessageFactory.fromShortMessage(target.getPort(),
+                                        MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(),
+                                        target.getGate()._value, 0);
+                                //msg._timing = timing;
+                                sendToNext(msg);
+                            }
+                        });
+                    }
+                    if (message.isCommand(MXMidi.COMMAND_CH_PROGRAMCHANGE) && message.getGate()._value < 0) {
+                        continue;
+                    }
+                    sendToNext(message);
                 }
-                sendToNext(message);
             }
+        } catch (Throwable e) {
+            e.printStackTrace();;
         }
 
     }

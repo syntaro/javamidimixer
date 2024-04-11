@@ -21,13 +21,12 @@ import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import javax.swing.JPanel;
+import jp.synthtarou.libs.MXQueue;
+import jp.synthtarou.libs.MXSafeThread;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXConfiguration;
-import jp.synthtarou.libs.MXSafeThread;
-import jp.synthtarou.libs.log.MXFileLogger;
-import jp.synthtarou.libs.MXQueue;
 import jp.synthtarou.libs.MXUtil;
-import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -73,7 +72,14 @@ public class MXMIDIIn {
     private boolean[] _assigned;
     private int _assignCount = 0;
     private boolean[] _toMaster = new boolean[16];
-    private MXVisitant16 _visitant16 = new MXVisitant16();
+    private MXVisitant16[] _visitant16 = new MXVisitant16[MXConfiguration.TOTAL_PORT_COUNT];
+    
+    public synchronized MXVisitant getVisitant(int port, int channel) {
+        if (_visitant16[port] == null) {
+            _visitant16[port] = new MXVisitant16();
+        }
+        return _visitant16[port].get(channel);
+    }
 
     public boolean isOpen() {
         if (this instanceof MXMIDIInForPlayer) {
@@ -124,7 +130,7 @@ public class MXMIDIIn {
         synchronized (MXTiming.mutex) {
             if (_assigned[port] != flag) {
                 if (!flag) {
-                    _myNoteOff.allNoteOffToPort(null, port);
+                    _myNoteOff.allNoteOffToPort(port);
                 }
                 _assigned[port] = flag;
                 int x = 0;
@@ -206,19 +212,19 @@ public class MXMIDIIn {
             if (timing == null) {
                 timing = new MXTiming();
             }
-            _myNoteOff.allNoteOff(timing);
+            _myNoteOff.allNoteOff();
             for (int ch = 0; ch < 16; ++ch) {
                 int status = MXMidi.COMMAND_CH_CONTROLCHANGE | ch;
                 int data1 = MXMidi.DATA1_CC_ALLNOTEOFF;
-                receiveShortMessage(timing, (status << 16) | (data1 << 8));
+                receiveShortMessage((status << 16) | (data1 << 8));
                 data1 = MXMidi.DATA1_CC_ALLSOUNDOFF;
-                receiveShortMessage(timing, (status << 16) | (data1 << 8));
+                receiveShortMessage((status << 16) | (data1 << 8));
             }
         }
     }
 
-    public void allNoteOffToPort(MXTiming timing, int target) {
-        _myNoteOff.allNoteOffToPort(timing, target);
+    public void allNoteOffToPort(int target) {
+        _myNoteOff.allNoteOffToPort(target);
     }
 
     public boolean openInput(long timeout) {
@@ -306,58 +312,57 @@ public class MXMIDIIn {
         @Override
         public void processMXMessage(MXMessage message) {
             MXTiming timing = new MXTiming();
-            MXNamedObjectList<MXMIDIIn> list = MXMIDIInManager.getManager().listAllInput();
-            for (int x = 0; x < list.size(); ++x) {
-                MXMIDIIn input = list.valueOfIndex(x);
-                for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
-                    if (input.isPortAssigned(port) == false) {
-                        continue;
-                    }
-                    MXMessage ported = MXMessageFactory.fromClone(message);
-                    ported.setPort(port);
-                    input.dispatchToPort(ported);
-                }
+            synchronized (MXTiming.mutex) {
+                messageToReceiverThreaded(message, MXMain.getMain().getInputProcess());
             }
         }
     };
 
-    public void receiveShortMessage(MXTiming timing, int dword) {
-        startMainPath(timing, dword, null);
+    public final void receiveShortMessage(int dword) {
+        int status = (dword >> 16) & 0xff;
+        int data1 = (dword >> 8) & 0xff;
+        int data2 = (dword) & 0xff;
+
+        int command = status & 0xf0;
+        int channel = status & 0x0f;
+
+        if (command == MXMidi.COMMAND_CH_NOTEON) {
+            if (data2 == 0) {
+                command = MXMidi.COMMAND_CH_NOTEOFF;
+                status = command | channel;
+                dword = (status << 16) | (data1 << 8) | data2;
+            }
+        }
+        if (command == MXMidi.COMMAND_CH_NOTEOFF) {
+            if (_myNoteOff.raiseHandler(0, status & 0xf, data1)) {
+                return;
+            }
+        } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_ALLNOTEOFF) {
+            _myNoteOff.allNoteOff();
+        } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_ALLSOUNDOFF) {
+            _myNoteOff.allNoteOff();
+        }
+
+        try {
+            synchronized (MXTiming.mutex) {
+                for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
+                    if (isPortAssigned(port) == false) {
+                        continue;
+                    }
+                    if (dword != 0) {
+                        MXMessage message = MXMessageFactory.fromShortMessage(port, status, data1, data2);
+                        MXMain.addOutsideInput(message);
+                        preprocessMessageAndToReceiverThread(message, MXMain.getMain().getInputProcess());
+                    }
+                }
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 
-    public void receiveLongMessage(MXTiming timing, byte[] data) {
-        startMainPath(timing, -1, data);
-    }
-
-    private void startMainPath(MXTiming timing, int dword, byte[] data) {
+    public void receiveLongMessage(byte[] data) {
         synchronized (MXTiming.mutex) {
-            if (timing == null) {
-                timing = new MXTiming();
-            }
-            int status = (dword >> 16) & 0xff;
-            int data1 = (dword >> 8) & 0xff;
-            int data2 = (dword) & 0xff;
-
-            int command = status & 0xf0;
-            int channel = status & 0x0f;
-
-            if (command == MXMidi.COMMAND_CH_NOTEON) {
-                if (data2 == 0) {
-                    command = MXMidi.COMMAND_CH_NOTEOFF;
-                    status = command | channel;
-                    dword = (status << 16) | (data1 << 8) | data2;
-                }
-            }
-            if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-                if (_myNoteOff.raiseHandler(0, timing, status & 0xf, data1)) {
-                    return;
-                }
-            } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_ALLNOTEOFF) {
-                _myNoteOff.allNoteOff(timing);
-            } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_ALLSOUNDOFF) {
-                _myNoteOff.allNoteOff(timing);
-            }
-
             for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
                 if (isPortAssigned(port) == false) {
                     continue;
@@ -365,50 +370,95 @@ public class MXMIDIIn {
                 MXMessage message = null;
                 if (data != null) {
                     message = MXMessageFactory.fromBinary(port, data);
-                } else {
-                    message = MXMessageFactory.fromShortMessage(port, status, data1, data2);
-                    if ((status & 0xf0) == MXMidi.COMMAND_CH_NOTEON) {
-                        MXMessage noteon = MXMessageFactory.fromShortMessage(0, status, data1, data2);
-                        noteon._timing = timing;
-                        MXMessage noteoff = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + message.getChannel(), data1, 0);
-                        _myNoteOff.setHandler(noteon, noteoff, new MXNoteOffWatcher.Handler() {
-                            @Override
-                            public void onNoteOffEvent(MXTiming timing, MXMessage target) {
-                                target._timing = timing;
-                                MXMain.addOutsideInput(target);
-                                dispatchToPort(target);
-                            }
-                        });
-                    }
-                }
-                if (message != null) {
-                    message._timing = timing;
                     MXMain.addOutsideInput(message);
-                    dispatchToPort(message);
+                    messageToReceiverThreaded(message, MXMain.getMain().getInputProcess());
                 }
             }
         }
     }
 
+    static class MessageQueueElement {
+
+        public MessageQueueElement(MXMessage message, MXReceiver receiver) {
+            _message = message;
+            _receiver = receiver;
+        }
+
+        MXMessage _message;
+        MXReceiver _receiver;
+    }
+
+    static MXQueue<MessageQueueElement> _messageQueue = new MXQueue<>();
+    static MXSafeThread _messageThread = null;
+
+    static {
+        _messageThread
+                = new MXSafeThread("MessageProcess", new Runnable() {
+                    @Override
+                    public void run() {
+                        while (true) {
+                            MessageQueueElement e = _messageQueue.pop();
+                            if (e == null) {
+                                break;
+                            }
+                            MXMessage message = e._message;
+                            MXReceiver receiver = e._receiver;
+                            try {
+                                messageToReceiver(message, receiver);
+                            } catch (Throwable ex) {
+                                ex.printStackTrace();;
+                            }
+                        }
+                    }
+                });
+        _messageThread.setPriority(Thread.MAX_PRIORITY);
+        _messageThread.setDaemon(true);
+        _messageThread.start();
+    }
+
+    public static void messageToReceiverThreaded(MXMessage message, MXReceiver receiver) {
+        if (MXConfiguration._DEBUG || Thread.currentThread() == _messageThread) {
+            messageToReceiver(message, receiver);
+        } else {
+            _messageQueue.push(new MessageQueueElement(message, receiver));
+        }
+    }
+
     MXMessage[] retBuf = new MXMessage[3];
 
-    protected void dispatchToPort(MXMessage message) {
-        /*
-        if (message.isMessageTypeChannel()) {
-            MXVisitant visit = _visitant16.get(message.getChannel());
-            message.setVisitant(visit.getSnapShot());
-        }*/
-        int port = message.getPort();
-        int channel;
+    void preprocessMessageAndToReceiverThread(MXMessage message, MXReceiver receiver) {
+        if (message.isBinaryMessage()) {
+            messageToReceiverThreaded(message, MXMain.getMain().getInputProcess());
+            return;
+        }
+
+        int status = message.getTemplate().get(0);
+        int data1 = message.getData1();
+        int data2 = message.getData2();
+
+        int command = status & 0xfff0;
+        int channel = status & 0x0f;
+
+        if ((status & 0xf0) == MXMidi.COMMAND_CH_NOTEON) {
+            MXMessage noteon = MXMessageFactory.fromShortMessage(message.getPort(), status, data1, data2);
+            MXMessage noteoff = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_NOTEOFF + message.getChannel(), data1, 0);
+            _myNoteOff.setHandler(noteon, noteoff, new MXNoteOffWatcher.Handler() {
+                @Override
+                public void onNoteOffEvent(MXMessage target) {
+                    messageToReceiverThreaded(target, MXMain.getMain().getInputProcess());
+                }
+            });
+            //continue seek
+        }
+
         synchronized (MXTiming.mutex) {
-            int command = message.getTemplate().get(0);
             if (!message.isMessageTypeChannel()) {
-                MXReceiver.messageDispatch(message, MXMain.getMain().getInputProcess());
+                messageToReceiverThreaded(message, MXMain.getMain().getInputProcess());
                 return;
             }
             boolean needProc = false;
-            if ((command & 0xfff0) != 0) {
-                switch(command & 0xfff0) {
+            if (command >= 0x100) {
+                switch (command) {
                     case MXMidi.COMMAND2_CH_RPN:
                     case MXMidi.COMMAND2_CH_NRPN:
                     case MXMidi.COMMAND2_CH_PROGRAM_INC:
@@ -416,28 +466,61 @@ public class MXMIDIIn {
                         needProc = true;
                         break;
                     default:
-                        MXReceiver.messageDispatch(message, MXMain.getMain().getInputProcess());
+                        messageToReceiverThreaded(message, MXMain.getMain().getInputProcess());
                         return;
                 }
-            }
-            else {
+            } else {
                 needProc = true;
             }
-            
-            if (needProc) {
-                channel = message.getChannel();
-                MXVisitant visit = _visitant16.get(channel);
 
+            if (needProc) {
+
+                channel = message.getChannel();
+                MXVisitant visit = getVisitant(message.getPort(), channel);
                 MXMessage[] ret = visit.preprocess(message, retBuf);
                 if (ret != null) {
                     retBuf = ret;
                     for (int i = 0; i < ret.length; ++i) {
                         if (ret[i] != null) {
-                            MXReceiver.messageDispatch(ret[i], MXMain.getMain().getInputProcess());
+                            messageToReceiverThreaded(ret[i], MXMain.getMain().getInputProcess());
                         }
                     }
                 }
             }
+        }
+    }
+
+    public static void queueMustEmpty() {
+        try {
+            while (true) {
+                synchronized (MXTiming.mutex) {
+                    Thread.sleep(10);
+                    if (_messageQueue.isEmpty()) {
+                        return;
+                    }
+                }
+            }
+        } catch (InterruptedException ex) {
+        }
+    }
+
+    private static void messageToReceiver(MXMessage message, MXReceiver receiver) {
+        try {
+            try {
+                if (receiver == MXMain.getMain().getInputProcess()) {
+                    MXMain.addInsideInput(message);
+                    if (MXMain._capture != null) {
+                        MXMain._capture.processMXMessage(message);
+                    }
+                }
+                if (receiver != null) {
+                    receiver.processMXMessage(message);
+                }
+            } catch (RuntimeException ex) {
+                MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
+            }
+        } catch (Throwable ex) {
+            MXFileLogger.getLogger(MXMain.class).log(Level.SEVERE, ex.getMessage(), ex);
         }
     }
 }

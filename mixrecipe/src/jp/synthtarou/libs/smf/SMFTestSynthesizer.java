@@ -63,7 +63,7 @@ public class SMFTestSynthesizer implements SMFCallback {
     }
 
     @Override
-    public void smfPlayNote(MXTiming timing, SMFMessage smf) {
+    public void smfPlayNote(SMFMessage smf) {
         try {
             if (smf.isBinaryMessage() == false) {
                 int status = smf.getStatus();

@@ -24,8 +24,8 @@ import java.util.TreeMap;
  */
 public class CaptureValue {
     public CaptureValue() {
-        _minValue = Integer.MAX_VALUE;
-        _maxValue = Integer.MIN_VALUE;
+        _minValue = 0x10000;
+        _maxValue = -1;
         _count = new TreeMap<>();
     }
     

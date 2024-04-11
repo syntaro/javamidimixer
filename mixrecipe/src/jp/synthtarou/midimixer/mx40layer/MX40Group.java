@@ -140,7 +140,7 @@ public class MX40Group {
         int channel = message.getChannel();
         
         if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-            if (_noteOff.raiseHandler(port, message._timing, channel, message.getGate()._value)) {
+            if (_noteOff.raiseHandler(port, channel, message.getGate()._value)) {
                 return true;
             }
         }
@@ -231,8 +231,7 @@ public class MX40Group {
         }
 
         @Override
-        public void onNoteOffEvent(MXTiming timing, MXMessage target) {
-            target._timing = timing;
+        public void onNoteOffEvent(MXMessage target) {
             _layer.processByLayer(target);
             if (_rotatePos >= 0) {
                 _rotateCount[_rotatePos] --;

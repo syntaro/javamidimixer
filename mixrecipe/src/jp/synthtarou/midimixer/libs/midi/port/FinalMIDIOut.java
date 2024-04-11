@@ -19,6 +19,7 @@ package jp.synthtarou.midimixer.libs.midi.port;
 import java.util.LinkedList;
 import javax.swing.JPanel;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 
@@ -47,6 +48,8 @@ public class FinalMIDIOut extends MXReceiver {
         return _listTestResult;
     }
 
+    static MXMessage _last = null;
+    
     @Override
     public void processMXMessage(MXMessage message) {
         if (_listTestResult != null) {
@@ -57,6 +60,7 @@ public class FinalMIDIOut extends MXReceiver {
                 _listTestResult.add(message);
             }
         }
+        MXMain.addInsideOutput(message);
         MXNamedObjectList<MXMIDIOut> listOut = MXMIDIOutManager.getManager().listAllOutput();
         for (int i = 0; i < listOut.getSize(); ++ i) {
             MXMIDIOut out = listOut.valueOfIndex(i);
@@ -64,6 +68,7 @@ public class FinalMIDIOut extends MXReceiver {
                 out.processMidiOut(message);   
             }
         }
+        _last = message;
     }
 
     @Override

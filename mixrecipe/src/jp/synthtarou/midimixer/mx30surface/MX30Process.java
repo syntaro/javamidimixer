@@ -160,7 +160,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
         return _pageProcess[i];
     }
 
-    MX30Packet _packet = new MX30Packet();
+    final MX30Packet _packet = new MX30Packet();
     int _bagCount = 0;
 
     public MX30Packet startTransaction() {
@@ -170,7 +170,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
 
     public void endTransaction() {
         if (_bagCount-- == 1) {
-            flushSendQueue(_packet);
+            flushSendQueue();
             _packet.clearQueue();
         }
     }
@@ -189,12 +189,13 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
         }
     }
 
-    void flushSendQueue(MX30Packet packet) {
+    void flushSendQueue() {
         int did = 1;
         if (_stopFeedback > 0) {
             return;
         }
-
+        
+        MX30Packet packet = _packet;
         ++_bagCount;
         try {
             while (did >= 1) {
@@ -206,7 +207,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
                     MXMessage message = _pageProcess[port].updateUIStatusAndGetResult(status, move._newValue, move._timing);
 
                     if (message != null) {
-                        message._timing = move._timing;
+                        //message._timing = move._timing;
 
                         packet.addQueue(message);
 
@@ -260,7 +261,12 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
         }
 
         int port = message.getPort();
-        _pageProcess[port].processMXMessage(message);
+        startTransaction();
+        try {
+            _pageProcess[port].processMXMessage(message);
+        }finally {            
+            endTransaction();
+        }
     }
 
     @Override

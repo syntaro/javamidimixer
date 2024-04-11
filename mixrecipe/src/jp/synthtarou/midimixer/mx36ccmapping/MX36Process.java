@@ -63,6 +63,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
 
     @Override
     public void processMXMessage(MXMessage message) {
+        System.out.println("36->input->" + message);
         sendToNext(message);
     }
 

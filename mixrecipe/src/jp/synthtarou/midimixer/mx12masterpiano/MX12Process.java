@@ -28,6 +28,7 @@ import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
+import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 
 /**
  *
@@ -191,9 +192,8 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
         }
 
         @Override
-        public void onNoteOffEvent(MXTiming timing, MXMessage target) {
-            target._timing = timing;
-            MXReceiver.messageDispatch(target, _receiver);
+        public void onNoteOffEvent(MXMessage target) {
+            MXMIDIIn.messageToReceiverThreaded(target, _receiver);
             _view._piano.noteOff(target.getGate()._value);
         }
     }
@@ -206,7 +206,7 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
         if (receiver == null) {
             receiver = MXMain.getMain().getAutoSendableReceiver();
         }
-        MXReceiver.messageDispatch(message, receiver);
+        MXMIDIIn.messageToReceiverThreaded(message, receiver);
     }
 
     /**

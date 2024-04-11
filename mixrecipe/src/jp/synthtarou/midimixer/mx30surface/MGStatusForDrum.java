@@ -25,11 +25,10 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.libs.smf.SMFCallback;
 import jp.synthtarou.libs.smf.SMFMessage;
 import jp.synthtarou.libs.smf.SMFSequencer;
-import jp.synthtarou.midimixer.libs.midi.MXReceiver;
+import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 
 /**
  *
@@ -74,8 +73,8 @@ public class MGStatusForDrum implements Cloneable {
     boolean _sequencerFilterNote = true;
     SMFSequencer _sequencerPlayer = null;
 
-    int _outPort = 0;
-    int _outChannel = 0;
+    int _outPort = -1;
+    int _outChannel = -1;
 
     boolean _currentSwitch = false;
     boolean _modeToggle = false;
@@ -176,7 +175,7 @@ public class MGStatusForDrum implements Cloneable {
                 return;
             }
         }
-        if (_sequencerSingleTrack) {
+        if (_sequencerSingleTrack && _outChannel >= 0) {
             _sequencerPlayer.setForceSingleChannel(_outChannel);
         } else {
             _sequencerPlayer.setForceSingleChannel(-1);
@@ -187,7 +186,7 @@ public class MGStatusForDrum implements Cloneable {
         final int _channel = channel;
         _sequencerPlayer.startPlayerThread(seek, new SMFCallback() {
             @Override
-            public void smfPlayNote(MXTiming timing, SMFMessage e) {
+            public void smfPlayNote(SMFMessage e) {
                 e._port = _port;
                 MXMessage message = e.fromSMFtoMX();
                 if (_sequencerSingleTrack) {
@@ -195,8 +194,7 @@ public class MGStatusForDrum implements Cloneable {
                         message.setChannel(_channel);
                     }
                 }
-                message._timing = timing;
-                MXReceiver.messageDispatch(message, _status._mixer._parent.getNextReceiver());
+                MXMIDIIn.messageToReceiverThreaded(message, _status._mixer._parent.getNextReceiver());
             }
 
             @Override
@@ -318,7 +316,7 @@ public class MGStatusForDrum implements Cloneable {
                             column = pad._column;
                         }
 
-                        MGStatus status = mixer._parent.getPage(_status._drum._outPort).getStatus(type, row, column);
+                        MGStatus status = mixer._parent.getPage(port).getStatus(type, row, column);
                         int value = 0;
                         switch (_status._drum._linkMode) {
                             case MGStatusForDrum.LINKMODE_VALUE:

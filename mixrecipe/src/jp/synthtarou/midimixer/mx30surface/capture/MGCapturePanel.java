@@ -17,15 +17,18 @@
 package jp.synthtarou.midimixer.mx30surface.capture;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.mx30surface.MGStatusPanel;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 
 /**
  *
@@ -218,8 +221,6 @@ public class MGCapturePanel extends javax.swing.JPanel {
         CaptureGate gate = this.listGateModel.valueOfIndex(x2);
         CaptureValue value = this.listValueModel.valueOfIndex(x3);
 
-        String str = command.toString() + "(gate=" + gate.toString() + ")" + value;
-        
         _cb.captureCallback(command._channel, command._command, gate._gate, value._minValue, value._maxValue);
 
     }//GEN-LAST:event_jButton3ActionPerformed
@@ -233,13 +234,23 @@ public class MGCapturePanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jCheckBoxCaptureActionPerformed
 
+    public void startCapture() {
+        _pool.startCapture();
+        setTimer(1000);
+    }
     public void stopCapture() {
         _pool.stopCapture();
     }
     
+    ArrayList <MXMessage> _lastChecked = null;
+    
     public void showCapture() {
         try {
-            ArrayList<MXMessage> pooled = _pool.getLastTime(5000);
+            ArrayList<MXMessage> pooled = _pool.getLastTime(30000);
+            if (_lastChecked != null && _lastChecked.equals(pooled)) {
+                return;
+            }
+            _lastChecked = pooled;
             MGCapture capture = new MGCapture();
             for (MXMessage seek : pooled) {
                 capture.record(seek);

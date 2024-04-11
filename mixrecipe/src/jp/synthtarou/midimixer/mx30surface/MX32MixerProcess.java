@@ -688,28 +688,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
             }
 
             ArrayList<MGStatus> listStatus = _finder.findCandidate(message);
-            if (MXConfiguration._DEBUG && !created) {
-                ArrayList<MGStatus> debugStatus = new MGStatusFinder(this).findCandidate(message);
-                try{
-                    if (debugStatus != null && listStatus != null) {
-                        for (int i = 0; i < debugStatus.size() && i <listStatus.size(); ++ i) {
-                            MGStatus st1 = debugStatus.get(i);
-                            MGStatus st2 = listStatus.get(i);
-                            if (st1._port != st2._port || st1._row != st2._row || st1._column != st2._column) {
-                                throw new IllegalStateException(st1 + " != " + st2);
-                            }
-                        }
-                        if (debugStatus.size() != listStatus.size()) {
-                            throw new ArrayIndexOutOfBoundsException("error1");
-                        }
-                    }
-                    else if (debugStatus != null || listStatus != null) {
-                        throw new NullPointerException();
-                    }
-                }catch(Exception ex){
-                    ex.printStackTrace();
-                }
-            }
+
             boolean proc = false;
             if (listStatus != null && listStatus.isEmpty() == false) {
                 for (MGStatus seek : listStatus) {
@@ -746,15 +725,13 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
                 }
                 if (seek._uiType == MGStatus.TYPE_DRUMPAD) {
                     int x = seek.controlByMessage(message);
-                    if (x >= 0) {
-                        MGDrumPad pad = (MGDrumPad)seek.getComponent();
-                        if (seek._drum._strikeZone.contains(x)) {
-                            pad.getStatus()._drum._lastDetected = true;
-                            pad.setDrumLook(true);
-                        }else {
-                            pad.getStatus()._drum._lastDetected = false;
-                            pad.setDrumLook(false);
-                        }
+                    MGDrumPad pad = (MGDrumPad)seek.getComponent();
+                    if (seek._drum._strikeZone.contains(x)) {
+                        pad.getStatus()._drum._lastDetected = true;
+                        pad.setDrumLook(true);
+                    }else {
+                        pad.getStatus()._drum._lastDetected = false;
+                        pad.setDrumLook(false);
                     }
                 }
             }

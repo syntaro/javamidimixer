@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi.port;
 
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Tester;
 
@@ -31,6 +32,6 @@ public class MXMIDIInForTest extends MXMIDIIn {
     }
     
     public void startTest(MXMessage message) {
-        super.dispatchToPort(message);
+        super.messageToReceiverThreaded(message, MXMain.getMain().getInputProcess());
     }
 }
