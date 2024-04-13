@@ -162,9 +162,13 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
 
     final MX30Packet _packet = new MX30Packet();
     int _bagCount = 0;
+    MXMessage _parent;
 
-    public MX30Packet startTransaction() {
+    public MX30Packet startTransaction(MXMessage parent) {
         ++_bagCount;
+        if (_parent != null) {
+            _parent = parent;
+        }
         return _packet;
     }
 
@@ -172,6 +176,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
         if (_bagCount-- == 1) {
             flushSendQueue();
             _packet.clearQueue();
+            _parent = null;
         }
     }
 
@@ -181,7 +186,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
     }
 
     void addSliderMove(MGSliderMove move) {
-        MX30Packet bag = startTransaction();
+        MX30Packet bag = startTransaction(null);
         try {
             bag.addSliderMove(move);
         } finally {
@@ -204,7 +209,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
                 if (move != null) {
                     MGStatus status = move._status;
                     int port = status._port;
-                    MXMessage message = _pageProcess[port].updateUIStatusAndGetResult(status, move._newValue, move._timing);
+                    MXMessage message = _pageProcess[port].updateUIStatusAndGetResult(_parent, status, move._newValue, move._timing);
 
                     if (message != null) {
                         //message._timing = move._timing;
@@ -261,7 +266,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
         }
 
         int port = message.getPort();
-        startTransaction();
+        startTransaction(message);
         try {
             _pageProcess[port].processMXMessage(message);
         }finally {            

@@ -16,12 +16,12 @@
  */
 package jp.synthtarou.midimixer.mx90debug;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInForTest;
@@ -40,7 +40,7 @@ public abstract class MXDebug {
     MXMIDIInForTest _test = new MXMIDIInForTest();
 
     public MXDebug(MXMessage target) {
-        _final.startTestSignal(-1);
+        _final.startTestSignal(null, -1);
         _input = new LinkedList<>();
         _input.add(target);
         _test.startTest(target);
@@ -56,7 +56,7 @@ public abstract class MXDebug {
     }
 
     public MXDebug(List<MXMessage> target) {
-        _final.startTestSignal(-1);
+        _final.startTestSignal(null, -1);
         _input = new LinkedList<>();
         for (MXMessage seek : target) {
             _input.add(seek);
@@ -82,7 +82,7 @@ public abstract class MXDebug {
                     "Test must process as 1 on 1 (for this checkResult, otherwise please override ::checkResult)");
         }
         MXMessage message1 = _input.get(0);
-        LinkedList<MXMessage> result = _final.getTestResult();
+        ArrayList<MXMessage> result = _final.getTestResult();
         if (result.size() != 1) {
             MXFileLogger.getLogger(MXDebug.class).severe("Error output size = " + result.size() + result);
             if (result.size() >= 2 && result.get(0) != result.get(1)) {

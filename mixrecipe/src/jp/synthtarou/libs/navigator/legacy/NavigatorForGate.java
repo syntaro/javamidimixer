@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.libs.navigator.legacy;
 
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import javax.swing.JPanel;
@@ -29,10 +30,10 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
  *
  * @author Syntarou YOSHIDA
  */
-public class NavigatorForMidiGate extends javax.swing.JPanel implements INavigator<Integer>{
+public class NavigatorForGate extends javax.swing.JPanel implements INavigator<Integer>{
     
     public static void main(String[] args) {
-        NavigatorForMidiGate navi = new NavigatorForMidiGate(MXMidi.COMMAND_CH_CONTROLCHANGE, 7);
+        NavigatorForGate navi = new NavigatorForGate(MXMidi.COMMAND_CH_CONTROLCHANGE, 7);
         navi.simpleAsk(null);
         System.out.println(navi.getReturnStatus() + " = " + navi.getReturnValue());
     }
@@ -48,35 +49,45 @@ public class NavigatorForMidiGate extends javax.swing.JPanel implements INavigat
     }
 
     MXNamedObjectList<Integer> _modelCC = MXNamedObjectListFactory.listupControlChange(true);
-    MXNamedObjectList<Integer> _modelNote = MXNamedObjectListFactory.listupControlChange(true);
-    MXNamedObjectList<Integer> _modelNumber = MXNamedObjectListFactory.listupControlChange(true);
+    MXNamedObjectList<Integer> _modelNote = MXNamedObjectListFactory.listupNoteNo(true);
+    MXNamedObjectList<Integer> _modelNumber = MXNamedObjectListFactory.listupGate7Bit();
+    MXNamedObjectList<Integer> _modelPC = MXNamedObjectListFactory.listupGeneralMidi(true);
     MXNamedObjectList<Integer> _current = null;
 
     /**
      * Creates new form NavigatorForList
      */
-    public NavigatorForMidiGate(int command, int selected) {
+    public NavigatorForGate(int command, int selected) {
         initComponents();
         buttonGroup1.add(jRadioButtonNumber);
         buttonGroup1.add(jRadioButtonControlChange);
         buttonGroup1.add(jRadioButtonNote);
+        buttonGroup1.add(jRadioButtonPC);
         setPreferredSize(new Dimension(400, 600));
         if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
             _current = _modelCC;
+            jRadioButtonControlChange.setSelected(true);
         }
         else if (command == MXMidi.COMMAND_CH_NOTEON
              || command == MXMidi.COMMAND_CH_NOTEOFF
              || command == MXMidi.COMMAND_CH_POLYPRESSURE) {
             _current = _modelNote;
+            jRadioButtonNote.setSelected(true);
+        }
+        else if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
+            _current = _modelPC;
+            jRadioButtonPC.setSelected(true);
         }
         else {
             _current = _modelNumber;
+            jRadioButtonNumber.setSelected(true);
         }
         _returnValue = selected;
         
         jListChoise.setModel(_current);
-        jListChoise.setSelectedIndex(_current.indexOfValue(_returnValue));
-        
+        int index = _current.indexOfValue(_returnValue);
+        jListChoise.setSelectedIndex(index);
+        jListChoise.ensureIndexIsVisible(index);
         _stopFeedback --;
 
     }
@@ -101,6 +112,7 @@ public class NavigatorForMidiGate extends javax.swing.JPanel implements INavigat
         jRadioButtonNote = new javax.swing.JRadioButton();
         jLabelSelection = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
+        jRadioButtonPC = new javax.swing.JRadioButton();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -114,7 +126,7 @@ public class NavigatorForMidiGate extends javax.swing.JPanel implements INavigat
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.gridwidth = 5;
         gridBagConstraints.gridheight = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
@@ -130,7 +142,7 @@ public class NavigatorForMidiGate extends javax.swing.JPanel implements INavigat
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         add(jButtonCancel, gridBagConstraints);
 
@@ -143,10 +155,16 @@ public class NavigatorForMidiGate extends javax.swing.JPanel implements INavigat
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         add(jButtonOK, gridBagConstraints);
 
         jRadioButtonNumber.setText("number");
+        jRadioButtonNumber.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jRadioButtonNumberActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
@@ -154,6 +172,11 @@ public class NavigatorForMidiGate extends javax.swing.JPanel implements INavigat
         add(jRadioButtonNumber, gridBagConstraints);
 
         jRadioButtonControlChange.setText("control change");
+        jRadioButtonControlChange.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jRadioButtonControlChangeActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
@@ -161,6 +184,11 @@ public class NavigatorForMidiGate extends javax.swing.JPanel implements INavigat
         add(jRadioButtonControlChange, gridBagConstraints);
 
         jRadioButtonNote.setText("key note");
+        jRadioButtonNote.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jRadioButtonNoteActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
@@ -181,6 +209,18 @@ public class NavigatorForMidiGate extends javax.swing.JPanel implements INavigat
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         add(jLabel1, gridBagConstraints);
+
+        jRadioButtonPC.setText("GM prog");
+        jRadioButtonPC.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jRadioButtonPCActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(jRadioButtonPC, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelActionPerformed
@@ -204,11 +244,92 @@ public class NavigatorForMidiGate extends javax.swing.JPanel implements INavigat
         if (_stopFeedback > 0) {
             return;
         }
-        int debugSel = jListChoise.getSelectedIndex();
-        String name = _current.nameOfIndex(debugSel);
-        _returnValue = _current.valueOfIndex(debugSel);
+        int index = jListChoise.getSelectedIndex();
+        String name = _current.nameOfIndex(index);
+        _returnValue = _current.valueOfIndex(index);
         jLabelSelection.setText(_returnValue + " = \"" + name + "\"");
     }//GEN-LAST:event_jListChoiseValueChanged
+
+    private void jRadioButtonControlChangeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonControlChangeActionPerformed
+        if (_stopFeedback > 0) {
+            return;
+        }
+        _stopFeedback ++;
+        try {           
+            if (jListChoise.getModel() != _modelCC) {
+                int index = jListChoise.getSelectedIndex();
+                String name = _current.nameOfIndex(index);
+                _returnValue = _current.valueOfIndex(index);
+                _current = _modelCC;
+                jListChoise.setValueIsAdjusting(true);
+                jListChoise.setModel(_current);
+                jListChoise.setSelectedIndex(_current.indexOfValue(_returnValue));
+            }
+        }finally {
+            _stopFeedback --;
+        }
+    }//GEN-LAST:event_jRadioButtonControlChangeActionPerformed
+
+    private void jRadioButtonNumberActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonNumberActionPerformed
+        if (_stopFeedback > 0) {
+            return;
+        }
+        _stopFeedback ++;
+        try {           
+            if (jListChoise.getModel() != _modelNumber) {
+                int index = jListChoise.getSelectedIndex();
+                String name = _current.nameOfIndex(index);
+                _returnValue = _current.valueOfIndex(index);
+                _current = _modelNumber;
+                jListChoise.setValueIsAdjusting(true);
+                jListChoise.setModel(_current);
+                jListChoise.setSelectedIndex(_current.indexOfValue(_returnValue));
+            }
+        }finally {
+            _stopFeedback --;
+        }
+    }//GEN-LAST:event_jRadioButtonNumberActionPerformed
+
+    private void jRadioButtonNoteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonNoteActionPerformed
+        if (_stopFeedback > 0) {
+            return;
+        }
+        _stopFeedback ++;
+        try {           
+            if (jListChoise.getModel() != _modelNote) {
+                int index = jListChoise.getSelectedIndex();
+                String name = _current.nameOfIndex(index);
+                _returnValue = _current.valueOfIndex(index);
+                _current = _modelNote;
+                jListChoise.setValueIsAdjusting(true);
+                jListChoise.setModel(_current);
+                jListChoise.setSelectedIndex(_current.indexOfValue(_returnValue));
+            }
+        }finally {
+            _stopFeedback --;
+        }
+    }//GEN-LAST:event_jRadioButtonNoteActionPerformed
+
+    private void jRadioButtonPCActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonPCActionPerformed
+        if (_stopFeedback > 0) {
+            return;
+        }
+        _stopFeedback ++;
+        try {           
+            if (jListChoise.getModel() != _modelPC) {
+                int index = jListChoise.getSelectedIndex();
+                String name = _current.nameOfIndex(index);
+                _returnValue = _current.valueOfIndex(index);
+                _current = _modelPC;
+                jListChoise.setValueIsAdjusting(true);
+                jListChoise.setModel(_current);
+                jListChoise.setSelectedIndex(_current.indexOfValue(_returnValue));
+            }
+        }finally {
+            _stopFeedback --;
+        }
+
+    }//GEN-LAST:event_jRadioButtonPCActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
@@ -220,6 +341,7 @@ public class NavigatorForMidiGate extends javax.swing.JPanel implements INavigat
     private javax.swing.JRadioButton jRadioButtonControlChange;
     private javax.swing.JRadioButton jRadioButtonNote;
     private javax.swing.JRadioButton jRadioButtonNumber;
+    private javax.swing.JRadioButton jRadioButtonPC;
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
 

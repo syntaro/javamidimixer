@@ -45,24 +45,6 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         initComponents();
         _list = sysex;
         _list.bind(jListScan); // 更新も自動
-        _list._globalSelection = false;
-        _list.addListDataListener(new ListDataListener() {
-            @Override
-            public void intervalAdded(ListDataEvent e) {
-                jListScan.repaint();
-            }
-
-            @Override
-            public void intervalRemoved(ListDataEvent e) {
-                jListScan.repaint();
-            }
-
-            @Override
-            public void contentsChanged(ListDataEvent e) {
-                jListScan.repaint();
-            }
-        }
-        );
         
         _file = new SysEXFile();
         _file.bind(jTextArea1);
@@ -100,6 +82,11 @@ public class MX70SysexPanel extends javax.swing.JPanel {
 
         setLayout(new java.awt.GridBagLayout());
 
+        jListScan.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                jListScanValueChanged(evt);
+            }
+        });
         jScrollPane1.setViewportView(jListScan);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -347,6 +334,16 @@ public class MX70SysexPanel extends javax.swing.JPanel {
     private void jButtonClearFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonClearFileActionPerformed
         _file.clear(jTextArea1);
     }//GEN-LAST:event_jButtonClearFileActionPerformed
+
+    private void jListScanValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListScanValueChanged
+        int index = jListScan.getSelectedIndex();
+        if (index >= 0) {
+            MXMidiConsoleElement seek =_list.getConsoleElement(index);
+            if (seek != null) {
+                _list.setMarked(seek.getMessage());
+            }
+        }
+    }//GEN-LAST:event_jListScanValueChanged
 
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

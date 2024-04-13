@@ -16,17 +16,13 @@
  */
 package jp.synthtarou.midimixer.mx40layer;
 
-import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant16TableModel;
 import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant;
 import java.util.ArrayList;
 import jp.synthtarou.libs.log.MXFileLogger;
-import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
-import jp.synthtarou.midimixer.mx10input.MX10MidiInListPanel;
 
 /**
  *
@@ -140,7 +136,7 @@ public class MX40Group {
         int channel = message.getChannel();
         
         if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-            if (_noteOff.raiseHandler(port, channel, message.getGate()._value)) {
+            if (_noteOff.raiseHandler(message, port, channel, message.getGate()._value)) {
                 return true;
             }
         }
@@ -202,14 +198,16 @@ public class MX40Group {
             MX40Layer layer = _listLayer.get(found);
             proced = layer.processByLayer(message);
 
-            MXMessage msg2 = MXMessageFactory.fromNoteoff(port, channel, message.getGate()._value);
-            _noteOff.setHandler(message, msg2,  new NoteOffWatcher2(layer, found));
+            MXMessage noteOff = MXMessageFactory.fromNoteoff(port, channel, message.getGate()._value);
+            noteOff._owner = message;
+            _noteOff.setHandler(message, noteOff,  new NoteOffWatcher2(layer, found));
         }else {
             for (MX40Layer layer: _listLayer) {
                 layer.processByLayer(message);
                 if (command == MXMidi.COMMAND_CH_NOTEON) {
-                    MXMessage msg2 = MXMessageFactory.fromNoteoff(port, channel, message.getGate()._value);
-                    _noteOff.setHandler(message, msg2,  new NoteOffWatcher2(layer, -1));
+                    MXMessage noteOff = MXMessageFactory.fromNoteoff(port, channel, message.getGate()._value);
+                    noteOff._owner = message;
+                    _noteOff.setHandler(message, noteOff,  new NoteOffWatcher2(layer, -1));
                 }
                 proced = true;
             }

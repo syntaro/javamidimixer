@@ -43,12 +43,20 @@ import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
 import jp.synthtarou.libs.navigator.legacy.INavigator;
+import jp.synthtarou.libs.navigator.legacy.NavigatorForGate;
+import jp.synthtarou.libs.navigator.legacy.NavigatorForText;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
 import jp.synthtarou.midimixer.ccxml.ui.NavigatorForCCXMLCC;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
+import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
+import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
+import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
+import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
@@ -75,9 +83,6 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     MXPianoKeys _piano;
     int _sentPitch = 8192;
     int _sentModulation = 0;
-    boolean _beforeBuild = true;
-    int _sentCCNumber;
-    int _sentCCValue;
     MXNamedObjectList<Integer> _listCC = MXNamedObjectListFactory.listupControlChange(true);
 
     /**
@@ -132,8 +137,8 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         _piano = new MXPianoKeys();
 
         _piano.setNoteRange(0, 11);
-        _piano.setMinimumSize(new Dimension(9 * 200, 1));
-        _piano.setPreferredSize(new Dimension(9 * 200, 120));
+        _piano.setMinimumSize(new Dimension(9 * 200, 100));
+        _piano.setPreferredSize(new Dimension(9 * 200, 150));
 
         jScrollPane1.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
         jScrollPane1.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -158,12 +163,15 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         final String title = "Select Output to Connect.";
         new MXAttachSliderSingleClick(jSliderModwheel);
 
-        _beforeBuild = false;
-
         setMinimumSize(new Dimension(150, 200));
         _labelAfterName = new MX12LabelAfterName(_process);
-        jButtonHelp.setBackground(Color.orange);
-        jButtonHelp.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+
+        jButtonHelp.setBackground(Color.white);
+        jButtonHelp.setBorder(BorderFactory.createLineBorder(Color.black));
+        jButtonHelp.setMinimumSize(new Dimension(20, jButtonHelp.getMinimumSize().height));
+        jButtonBrowseCC.setBackground(Color.white);
+        jButtonBrowseCC.setBorder(BorderFactory.createLineBorder(Color.black));
+        jButtonBrowseCC.setMinimumSize(new Dimension(20, jButtonHelp.getMinimumSize().height));
 
         jSpinnerCCValue.setModel(new SpinnerNumberModel(0, 0, 127, 1));
         addComponentListener(new ComponentAdapter() {
@@ -186,8 +194,18 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             }
         });
 
+        _baseMessage = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_NOTEON, 64, 0);
+
+        scrollToCenter();
+        _input.bind(jListInput);
+        _output.bind(jListOutput);
+
+        showAll();
         _stopFeedback--;
     }
+
+    MXMidiConsole _input = new MXMidiConsole();
+    MXMidiConsole _output = new MXMidiConsole();
 
     MX12LabelAfterName _labelAfterName;
     int _stopFeedback = 1;
@@ -249,6 +267,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
 
         buttonGroup1 = new javax.swing.ButtonGroup();
         buttonGroup2 = new javax.swing.ButtonGroup();
+        jLabel1 = new javax.swing.JLabel();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jPanel1 = new javax.swing.JPanel();
         jSliderPitch = new javax.swing.JSlider();
@@ -265,12 +284,15 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         jLabel5 = new javax.swing.JLabel();
         jSplitPane1 = new javax.swing.JSplitPane();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList<>();
+        jListOutput = new javax.swing.JList<>();
         jScrollPane3 = new javax.swing.JScrollPane();
-        jList2 = new javax.swing.JList<>();
+        jListInput = new javax.swing.JList<>();
         jButtonHelp = new javax.swing.JButton();
         jButton1 = new javax.swing.JButton();
         jButtonBrowseCC = new javax.swing.JButton();
+        jLabelMean = new javax.swing.JLabel();
+
+        jLabel1.setText("jLabel1");
 
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
 
@@ -329,8 +351,8 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 7;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 6;
         jPanel2.add(jSpinnerCCValue, gridBagConstraints);
 
         jButtonSendCCNow.setText("SendNow");
@@ -340,8 +362,8 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 9;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridx = 8;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         jPanel2.add(jButtonSendCCNow, gridBagConstraints);
 
@@ -352,14 +374,14 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 8;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridx = 7;
+        gridBagConstraints.gridy = 6;
         jPanel2.add(jCheckBox14bit, gridBagConstraints);
 
         jLabel3.setText("CC Command");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 5;
         jPanel2.add(jLabel3, gridBagConstraints);
 
         jTextFieldCCCommand.setEditable(false);
@@ -369,8 +391,8 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         jPanel2.add(jTextFieldCCCommand, gridBagConstraints);
@@ -378,7 +400,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         jLabel4.setText("Gate");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 5;
         jPanel2.add(jLabel4, gridBagConstraints);
 
         jTextFieldGate.setEditable(false);
@@ -389,42 +411,43 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         jPanel2.add(jTextFieldGate, gridBagConstraints);
 
         jLabel5.setText("Value");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 6;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 6;
         jPanel2.add(jLabel5, gridBagConstraints);
 
         jSplitPane1.setDividerLocation(200);
 
-        jList1.setBorder(javax.swing.BorderFactory.createTitledBorder("Result"));
-        jList1.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
+        jListOutput.setBorder(javax.swing.BorderFactory.createTitledBorder("Result"));
+        jListOutput.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                jListOutputValueChanged(evt);
+            }
         });
-        jScrollPane2.setViewportView(jList1);
+        jScrollPane2.setViewportView(jListOutput);
 
         jSplitPane1.setRightComponent(jScrollPane2);
 
-        jList2.setBorder(javax.swing.BorderFactory.createTitledBorder("History"));
-        jList2.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
+        jListInput.setBorder(javax.swing.BorderFactory.createTitledBorder("History"));
+        jListInput.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                jListInputValueChanged(evt);
+            }
         });
-        jScrollPane3.setViewportView(jList2);
+        jScrollPane3.setViewportView(jListInput);
 
         jSplitPane1.setLeftComponent(jScrollPane3);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 9;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 8;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
@@ -437,19 +460,19 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
         jPanel2.add(jButtonHelp, gridBagConstraints);
 
         jButton1.setText("fromHistory");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 9;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 8;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         jPanel2.add(jButton1, gridBagConstraints);
 
-        jButtonBrowseCC.setText("Browse");
+        jButtonBrowseCC.setText("...");
         jButtonBrowseCC.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonBrowseCCActionPerformed(evt);
@@ -457,8 +480,16 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 5;
         jPanel2.add(jButtonBrowseCC, gridBagConstraints);
+
+        jLabelMean.setText(" =");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(jLabelMean, gridBagConstraints);
 
         jTabbedPane1.addTab("Messanger", jPanel2);
 
@@ -466,7 +497,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     }// </editor-fold>//GEN-END:initComponents
 
     private void jSliderModwheelStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderModwheelStateChanged
-        if (_beforeBuild) {
+        if (_stopFeedback > 0) {
             return;
         }
         int value = jSliderModwheel.getValue();
@@ -474,7 +505,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     }//GEN-LAST:event_jSliderModwheelStateChanged
 
     private void jSliderPitchStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSliderPitchStateChanged
-        if (_beforeBuild) {
+        if (_stopFeedback > 0) {
             return;
         }
         int value = jSliderPitch.getValue();
@@ -482,7 +513,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     }//GEN-LAST:event_jSliderPitchStateChanged
 
     public void changed14Bit(boolean new14bit) {
-        if (_stopFeedback >= 1) {
+        if (_stopFeedback > 0) {
             return;
         }
         _stopFeedback++;
@@ -495,21 +526,22 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
                 int adjustValue = MXRangedValue.new14bit(ccValue).changeRange(0, 127)._value;
                 jSpinnerCCValue.setModel(new SpinnerNumberModel(adjustValue, 0, 128 - 1, 1));
             }
-            viewMeanOfCC();
         } finally {
             _stopFeedback--;
         }
     }
 
-    public void viewMeanOfCC() {
-        if (_stopFeedback >= 1) {
-            return;
-        }
+    public void showAll() {
         _stopFeedback++;
         try {
             String text;
-
-            boolean new14Bit = false; //ccNumber >= 0 && ccNumber <= 31;
+            
+            boolean new14Bit = false;
+            if (_baseMessage.getTemplate().get(0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                if (_baseMessage.getGate()._value >=0 && _baseMessage.getGate()._value <= 31) {
+                    new14Bit = true;
+                }
+            }
 
             if (new14Bit) {
                 jCheckBox14bit.setEnabled(true);
@@ -520,26 +552,47 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
                 }
                 jCheckBox14bit.setSelected(false);
             }
+            
+            jLabelMean.setText(" mean = " + _baseMessage.toStringHeader());
 
+            jTextFieldCCCommand.setText(_baseMessage.getTemplateAsText());
+            jTextFieldGate.setText(String.valueOf(_baseMessage.getGate()._value));
+            jSpinnerCCValue.setValue(_baseMessage.getValue()._value);
         } finally {
             _stopFeedback--;
         }
     }
-
-    public void sendCC() {
+    
+    public void sendCC(MXMessage message) {
+        MXReceiver receiver = _process.getNextReceiver();
+        if (receiver == null) {
+            receiver = MXMain.getMain().getAutoSendableReceiver();
+        }
+        FinalMIDIOut.getInstance().startTestSignal(message, -1);
+        MXMIDIIn.messageToReceiverThreaded(message, receiver);
+        MXMIDIIn.queueMustEmpty();
+        List<MXMessage> result = FinalMIDIOut.getInstance().getTestResult();
+        
+        _input.add(new MXMidiConsoleElement(message));
+        for (MXMessage seek : result) {
+            _output.add(new MXMidiConsoleElement(seek));
+        }
     }
-
+    
     private void jSpinnerCCValueStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinnerCCValueStateChanged
-        viewMeanOfCC();
+        _baseMessage.setValue((int)jSpinnerCCValue.getValue());
+        showAll();
     }//GEN-LAST:event_jSpinnerCCValueStateChanged
 
     private void jButtonSendCCNowActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSendCCNowActionPerformed
-        sendCC();
+        MXMessage message = (MXMessage)_baseMessage.clone();
+        sendCC(message);
     }//GEN-LAST:event_jButtonSendCCNowActionPerformed
 
     private void jCheckBox14bitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox14bitActionPerformed
         // TODO add your handling code here:
         changed14Bit(jCheckBox14bit.isSelected());
+        showAll();
     }//GEN-LAST:event_jCheckBox14bitActionPerformed
 
     private void jButtonHelpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonHelpActionPerformed
@@ -555,12 +608,11 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     }//GEN-LAST:event_jTabbedPane1StateChanged
 
     private void jTextFieldGateMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextFieldGateMousePressed
-
-        //TOOD
         startEditGate();
+        showAll();
     }//GEN-LAST:event_jTextFieldGateMousePressed
 
-    MXMessage _baseMessage = null;
+    MXMessage _baseMessage;
 
     public void startBrowseXML() {
         NavigatorForCCXMLCC navi = new NavigatorForCCXMLCC();
@@ -604,27 +656,105 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
 
             MXMessage message = MXMessageFactory.fromTemplate(0, template, 0, gate, value);
             message.setGate(gate);
-            message.setValue(value);
+            message.setValue(_baseMessage.getValue());
             _baseMessage = message;
             jTextFieldCCCommand.setText(message.getTemplateAsText());
             jTextFieldGate.setText(String.valueOf(message.getGate()._value));
+            jSpinnerCCValue.setValue(_baseMessage.getValue()._value);
         }
     }
 
     private void jButtonBrowseCCActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonBrowseCCActionPerformed
         startBrowseXML();
+        showAll();
     }//GEN-LAST:event_jButtonBrowseCCActionPerformed
 
     private void jTextFieldCCCommandMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextFieldCCCommandMousePressed
         startEditCommand();
+        showAll();
     }//GEN-LAST:event_jTextFieldCCCommandMousePressed
 
+    private void jListInputValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListInputValueChanged
+        int index = jListInput.getSelectedIndex();
+        if (index >= 0) {
+            MXMidiConsoleElement e = _input.getConsoleElement(index);
+            if (e != null) {
+                MXMessage message = e.getMessage();
+                _input.setMarked(message);
+                _output.setMarked(message);
+            }
+        }
+    }//GEN-LAST:event_jListInputValueChanged
+
+    private void jListOutputValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListOutputValueChanged
+        int index = jListOutput.getSelectedIndex();
+        if (index >= 0) {
+            MXMidiConsoleElement e = _output.getConsoleElement(index);
+            if (e != null) {
+                MXMessage message = e.getMessage();
+                _input.setMarked(message);
+                _output.setMarked(message);
+            }
+        }
+    }//GEN-LAST:event_jListOutputValueChanged
+
     public void startEditCommand() {
-        //TODO
+        NavigatorForText navi = new NavigatorForText(jTextFieldCCCommand.getText()) {
+            @Override
+            public boolean validateWithNavigator(String result) {
+                try {
+                    MXTemplate temp = new MXTemplate(result);
+                    return true;
+                }catch(Throwable ex) {
+                    JOptionPane.showMessageDialog(this, ex.getMessage());
+                }
+                return false;
+            }
+        }; 
+        if (navi.simpleAsk(this)) {
+            try {
+                String text = navi.getReturnValue();
+                MXTemplate template = new MXTemplate(text);
+                if (template.size() >= 2) {
+                    int command = template.get(0);
+                    int gate = template.get(1);
+                    if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && gate != MXMidi.CCXML_GL) {
+                        int[] newTemplate = new int[template.size()];
+                        for (int i = 0; i < newTemplate.length; ++ i) {
+                            newTemplate[i] = template.get(i);
+                        }
+                        newTemplate[1] = gate;
+                        template = new MXTemplate(newTemplate);
+                        _baseMessage = MXMessageFactory.fromTemplate(0, template, 0, new MXRangedValue(gate, 0, 128), MXRangedValue.ZERO7);
+                        _baseMessage.setGate(MXRangedValue.new7bit(gate));
+                        jTextFieldCCCommand.setText(_baseMessage.getTemplateAsText());
+                    }
+                    else {
+                        _baseMessage = MXMessageFactory.fromTemplate(0, template, 0, MXRangedValue.ZERO7, MXRangedValue.ZERO7);
+                        jTextFieldCCCommand.setText(_baseMessage.getTemplateAsText());
+                    }
+                    showAll();
+                }
+            }catch(Throwable ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage());
+            }
+        }
     }
 
     public void startEditGate() {
-        //TODO
+        int command = 0;
+        int gate = 0;
+        if (_baseMessage != null) {
+            command = _baseMessage.getStatus() & 0xf0;
+            gate = _baseMessage.getGate()._value;
+        }
+        NavigatorForGate navi = new NavigatorForGate(command, gate);
+        if (navi.simpleAsk(this)) {
+            int x = navi.getReturnValue();
+            _baseMessage.setGate(x);
+            jTextFieldGate.setText(String.valueOf(x));
+            showAll();
+        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -635,11 +765,13 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     private javax.swing.JButton jButtonHelp;
     private javax.swing.JButton jButtonSendCCNow;
     private javax.swing.JCheckBox jCheckBox14bit;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JList<String> jList1;
-    private javax.swing.JList<String> jList2;
+    private javax.swing.JLabel jLabelMean;
+    private javax.swing.JList<String> jListInput;
+    private javax.swing.JList<String> jListOutput;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;

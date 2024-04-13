@@ -29,11 +29,10 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import jp.synthtarou.libs.MXCountdownTimer;
 import jp.synthtarou.libs.log.MXFileLogger;
-import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.libs.MainThreadTask;
 import static jp.synthtarou.libs.MainThreadTask.NOTHING;
+import jp.synthtarou.midimixer.libs.midi.MXMessage;
 
 /**
  *
@@ -49,67 +48,38 @@ public class MXMidiConsole implements ListModel<String> {
     LinkedList<MXMidiConsoleElement> _queue = new LinkedList();
 
     JList _refList;
-    long _selectedTiming = 0;
-    public boolean _showAllLine = false;
-    public boolean _globalSelection = true;
+    MXMessage _selectedTiming = null;
 
     ListCellRenderer<Object> _renderer = new ListCellRenderer<Object>() {
         DefaultListCellRenderer _def = new DefaultListCellRenderer();
 
         public Component getListCellRendererComponent(JList list, Object var, int index, boolean isSelected, boolean cellHasFocus) {
-
             MXMidiConsoleElement value = _list.get(index);
-
-            if (_globalSelection) {
-                boolean prevSele = isSelected;
-                cellHasFocus = false;
-                isSelected = false;
-                Color back = Color.white;
-                boolean gray = false;
-
-                if (value == null) {
-                    if (_globalSelection) {
-                        if (_selectedTiming == 0) {
-                            isSelected = prevSele;
-                            //back = null;
-                            gray = true;
-                        }
-                    }
-                    var = "-";
-                } else {
-                    /*
-                    if (_selectedTiming == value.getMessage()._timing) {
-                        //back = Color.red;
-                        isSelected = true;
-                        if (_selectedTiming != 0) {
-                            //back = Color.cyan;
-                        } else {
-                            //back = Color.gray;
-                        }
-                        if (_refList.hasFocus()) {
-                            cellHasFocus = true;
-                        }
-                    }*/
-                }
-                Component c = null;
-                c = _def.getListCellRendererComponent(list, var, index, isSelected, cellHasFocus);
-                /*
-                if (gray) {
-                    back = c.getBackground();
-                    if (back != null) {
-                        back = MXUtil.mixtureColor(back, 20, Color.white, 80);
-                    }
-                }
-                */
-                if (back != null) {
-                    c.setBackground(back);
-                }
-                return c;
-            } else {
-                Component c = null;
-                c = _def.getListCellRendererComponent(list, var, index, isSelected, cellHasFocus);
-                return c;
+            if (value == null) {
+                var = "-";
+                return _def.getListCellRendererComponent(list, var, index, isSelected, cellHasFocus);
             }
+            MXMessage message = value.getMessage();
+
+            boolean prevSele = isSelected;
+            cellHasFocus = false;
+            isSelected = false;
+            Color back = Color.white;
+            boolean gray = false;
+
+            if (message.getRealOwner() == _selectedTiming) {
+                isSelected = true;
+                if (_refList.hasFocus()) {
+                    cellHasFocus = true;
+                }
+                back = Color.orange;
+            }
+            Component c = null;
+            c = _def.getListCellRendererComponent(list, var, index, isSelected, cellHasFocus);
+            if (back != null) {
+                c.setBackground(back);
+            }
+            return c;
         }
     };
 
@@ -268,36 +238,14 @@ public class MXMidiConsole implements ListModel<String> {
     public void removeListDataListener(ListDataListener l) {
         _listener.remove(l);
     }
-/*
-    public void setSelectedTiming(MXTiming selection) {
-        new MainThreadTask() {
-            @Override
-            public Object runTask() {
-                synchronized (_list) {
-                    _selectedTiming = selection;
-                    for (int i = 0; i < getSize(); ++i) {
-                        MXMidiConsoleElement elem = _list.get(i);
-                        if (elem == null) {
-                            continue;
-                        }
-                        if (elem.getMessage()._timing == selection) {
-                            int start = _refList.getFirstVisibleIndex();
-                            int fin = start + _refList.getVisibleRowCount() - 1;
-                            if (start <= i && i <= fin) {
-                                return NOTHING;
-                            } else {
-                                _refList.ensureIndexIsVisible(i);
-                            }
-                            return NOTHING;
-                        }
-                    }
-                    _refList.invalidate();
-                }
-                return NOTHING;
-            }
-        };
+
+    public void setMarked(MXMessage selection) {
+        if (selection != null) {
+           _selectedTiming = selection.getRealOwner();
+            _refList.repaint();
+        }
     }
-*/
+
     public synchronized void clear() {
         _list.clear();
         _queue = new LinkedList();

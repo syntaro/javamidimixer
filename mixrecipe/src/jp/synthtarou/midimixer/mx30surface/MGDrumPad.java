@@ -53,7 +53,7 @@ public class MGDrumPad extends javax.swing.JPanel {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     return;
                 }
-                mouseDetected(true);
+                mouseDetected(null, true);
             }
 
             @Override
@@ -61,7 +61,7 @@ public class MGDrumPad extends javax.swing.JPanel {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     return;
                 }
-                mouseDetected(false);
+                mouseDetected(null, false);
             }
         });
         updateUI();
@@ -119,7 +119,7 @@ public class MGDrumPad extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
 
-    void mouseDetected(boolean push) {
+    void mouseDetected(MXMessage parent, boolean push) {
         int velocity;
         if (push) {
             velocity = getStatus()._drum._mouseOnValue;
@@ -127,9 +127,9 @@ public class MGDrumPad extends javax.swing.JPanel {
             velocity = getStatus()._drum._mouseOffValue;
         }
 
-        _mixer._parent.startTransaction();
+        _mixer._parent.startTransaction(parent);
         MGStatusForDrum drum = getStatus()._drum;
-        MXMessage message = drum.updatingValue(push, velocity);
+        MXMessage message = drum.updatingValue(parent, push, velocity);
         if (message != null) {
             _mixer._parent._packet.addResult(message);
             if (message.getTemplate().get(0) == MXMidi.COMMAND2_CH_RPN ||

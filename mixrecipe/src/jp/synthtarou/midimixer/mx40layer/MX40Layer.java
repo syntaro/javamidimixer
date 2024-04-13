@@ -23,7 +23,6 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 
 /**
  *
@@ -219,7 +218,7 @@ public class MX40Layer {
         int data2_trans = data2;
 
         if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-            if (_noteOff.raiseHandler(port, channel, data1)) {
+            if (_noteOff.raiseHandler(message, port, channel, data1)) {
                 return true;
             }
         }
@@ -294,6 +293,7 @@ public class MX40Layer {
 
         if (changed) {
             MXMessage message_trans = MXMessageFactory.fromShortMessage(port_trans, channel_trans + command, data1_trans, data2_trans);
+            message_trans._owner = message;
             message = message_trans;
         }
 
@@ -326,12 +326,14 @@ public class MX40Layer {
         if (_modBank == MOD_ASFROM) {
             if (bankMSB >= 0 && bankLSB >= 0) {
                 MXMessage bank = MXMessageFactory.fromControlChange14(port, channel, MXMidi.DATA1_CC_BANKSELECT, bankMSB, bankLSB);
+                bank._owner = message;
                 _process.sendToNext(bank);
                 proc = true;
             }
         }else if (_modBank == MOD_FIXED) {
             if (_fixedBankMSB >= 0 && _fixedBankLSB >= 0) {
                 MXMessage bank = MXMessageFactory.fromControlChange14(port, channel, MXMidi.DATA1_CC_BANKSELECT, _fixedBankMSB, _fixedBankLSB);
+                bank._owner = message;
                 _process.sendToNext(bank);
                 proc = true;
             }
@@ -340,8 +342,9 @@ public class MX40Layer {
         if (_modProgram == MOD_ASFROM) {
             //program = message.getGate();
             if (program >= 0) {
-                MXMessage message2 = MXMessageFactory.fromProgramChange(port, channel, program);
-                _process.sendToNext(message2);
+                MXMessage newMessage = MXMessageFactory.fromProgramChange(port, channel, program);
+                newMessage._owner = message;
+                _process.sendToNext(newMessage);
                 proc = true;
                 //System.out.println("Program Change +" + message);
             }else {
@@ -349,8 +352,9 @@ public class MX40Layer {
             }
         }else if (_modProgram == MOD_FIXED) {
             if (_fixedProgram >= 0) {
-                MXMessage message2 = MXMessageFactory.fromProgramChange(port, channel, _fixedProgram);
-                _process.sendToNext(message2);
+                MXMessage newMessage = MXMessageFactory.fromProgramChange(port, channel, _fixedProgram);
+                newMessage._owner = message;
+                _process.sendToNext(newMessage);
                 proc = true;
             }
         }
@@ -363,8 +367,9 @@ public class MX40Layer {
             int data1_cc = MXMidi.DATA1_CC_EXPRESSION;
             if (data2_exp < 0) data2_exp = 0;
             if (data2_exp > 127) data2_exp = 127;
-            MXMessage message2 = MXMessageFactory.fromControlChange(port, channel, data1_cc, data2_exp);
-            _process.sendToNext(message2);
+            MXMessage newMessage = MXMessageFactory.fromControlChange(port, channel, data1_cc, data2_exp);
+            newMessage._owner = message;
+            _process.sendToNext(newMessage);
 
             org = info.getCCValue(MXMidi.DATA1_CC_PANPOT);
             int data2_value = org;
@@ -373,8 +378,9 @@ public class MX40Layer {
             }
             if (data2_value < 0) data2_value = 0;
             if (data2_value > 127) data2_value = 127;
-            message2 = MXMessageFactory.fromControlChange(port, channel, MXMidi.DATA1_CC_PANPOT, data2_value);
-            _process.sendToNext(message2);
+            newMessage = MXMessageFactory.fromControlChange(port, channel, MXMidi.DATA1_CC_PANPOT, data2_value);
+            newMessage._owner = message;
+            _process.sendToNext(newMessage);
         }
     }
     

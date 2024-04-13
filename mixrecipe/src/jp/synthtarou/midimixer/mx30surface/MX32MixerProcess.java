@@ -491,7 +491,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
         return setting.writeINIFile();
     }
 
-    MXMessage updateUIStatusAndGetResult(MGStatus status, int newValue, MXTiming timing) {
+    MXMessage updateUIStatusAndGetResult(MXMessage parent, MGStatus status, int newValue, MXTiming timing) {
         MXMessage message = null;
         int row = status._row, column = status._column;
         int uiType = status._uiType;
@@ -508,7 +508,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
             circle.publishUI(message.getValue());
         } else {
             MGDrumPad drum = getDrumPad(row, column);
-            message = status._drum.updatingValue(status._drum.isStrike(newValue), newValue);
+            message = status._drum.updatingValue(parent, status._drum.isStrike(newValue), newValue);
         }
 
         if (_patchToMixer >= 0) {
@@ -617,7 +617,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
             }
         }
 
-        MX30Packet packet = _parent.startTransaction();
+        MX30Packet packet = _parent.startTransaction(message);
         try {
             if (message.isEmpty()) {
                 packet.addResult(message);

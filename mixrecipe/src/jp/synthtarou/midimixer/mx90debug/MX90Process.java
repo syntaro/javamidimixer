@@ -84,9 +84,9 @@ public class MX90Process extends MXReceiver<MX90View> {
                 int channel = random(16);
                 int note = random(50) + 50;
 
-                MXMessage noteOn = MXMessageFactory.fromShortMessage(port, channel, note, 100);
+                MXMessage noteOn = MXMessageFactory.fromNoteon(port, channel, note, 100);
                 new MXDebugSame(noteOn);
-                MXMessage noteOff = MXMessageFactory.fromShortMessage(port,channel, note, 0);
+                MXMessage noteOff = MXMessageFactory.fromNoteoff(port, channel, note);
                 new MXDebugSame(noteOff);
             }
         }
@@ -144,8 +144,8 @@ public class MX90Process extends MXReceiver<MX90View> {
 
                 String textNRPN = "@NRPN " + msb + " " + lsb + " " + varMSB + " " + varLSB;
                 MXTemplate temp2 = new MXTemplate(textNRPN);
-                MXMessage message2 = MXMessageFactory.fromTemplate(0, temp2, 0, null, null);
-                new MXDebugSame(message2);
+                MXMessage newMessage = MXMessageFactory.fromTemplate(0, temp2, 0, null, null);
+                new MXDebugSame(newMessage);
 
             }
         }

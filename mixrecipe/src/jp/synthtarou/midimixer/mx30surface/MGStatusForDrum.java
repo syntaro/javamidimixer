@@ -221,7 +221,7 @@ public class MGStatusForDrum implements Cloneable {
         return _strikeZone.contains(value);
     }
 
-    MXMessage updatingValue(boolean strike, int value) {
+    MXMessage updatingValue(MXMessage parent, boolean strike, int value) {
         if (strike) {
             if (_modeToggle) {
                 _lastToggled = !_lastToggled;
@@ -238,13 +238,13 @@ public class MGStatusForDrum implements Cloneable {
             }
         }
         _lastDetected = strike;
-        return doAction(strike, value);
+        return doAction(parent, strike, value);
     }
 
-    MXMessage doAction(boolean flag, int invalue) {
+    MXMessage doAction(MXMessage parent, boolean flag, int invalue) {
         MXMessage message = null;
 
-        MX30Packet packet = _status._mixer._parent.startTransaction();
+        MX30Packet packet = _status._mixer._parent.startTransaction(parent);
         try {
             int velocity = invalue;
 
@@ -286,6 +286,7 @@ public class MGStatusForDrum implements Cloneable {
                     case STYLE_CUSTOM_CC:
                         if (_customTemplate != null) {
                             message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, MXRangedValue.new7bit(velocity));
+                            message._owner = parent;
                             packet.addResult(message);
                         }
                         message = null;
@@ -294,6 +295,7 @@ public class MGStatusForDrum implements Cloneable {
                         int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
                         for (int note : noteList) {
                             message = MXMessageFactory.fromNoteon(port, channel, note, velocity);
+                            message._owner = parent;
                             packet.addResult(message);
                         }
                         message = null;
@@ -363,6 +365,7 @@ public class MGStatusForDrum implements Cloneable {
                             default:
                                 break;
                         }
+                        message._owner = parent;
                         packet.addResult(message);
                         message = null;
                 }
@@ -381,11 +384,13 @@ public class MGStatusForDrum implements Cloneable {
                     case STYLE_SAME_CC:
                         message = (MXMessage) _status._base.clone();
                         message.setValue(velocity);
+                        message._owner = parent;
                         break;
 
                     case STYLE_CUSTOM_CC:
                         if (_customTemplate != null) {
                             message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, MXRangedValue.new7bit(velocity));
+                            message._owner = parent;
                             packet.addResult(message);
                         }
                         message = null;
@@ -394,6 +399,7 @@ public class MGStatusForDrum implements Cloneable {
                         int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
                         for (int note : noteList) {
                             message = MXMessageFactory.fromNoteoff(port, channel, note);
+                            message._owner = parent;
                             packet.addResult(message);
                         }
                         message = null;

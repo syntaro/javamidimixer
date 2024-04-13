@@ -102,7 +102,7 @@ public class MX60ViewData extends MX10ViewData {
                         message = MXMessageFactory.fromNoteoff(message.getPort(),  message.getChannel(), message.getData1());
                     }
                     if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
-                        if (_noteOff.raiseHandler(message.getPort(), message.getChannel(), message.getData1())) {
+                        if (_noteOff.raiseHandler(message, message.getPort(), message.getChannel(), message.getData1())) {
                             return;
                         }
                     }
@@ -114,6 +114,7 @@ public class MX60ViewData extends MX10ViewData {
                                         target.getPort(), 
                                         target.getChannel(), 
                                         target.getData1());
+                                noteOff._owner = target;
                                 _process.sendToNext(target);
                             }
                         });
@@ -133,7 +134,7 @@ public class MX60ViewData extends MX10ViewData {
 
             @Override
             public void smfStoped(boolean fineFinish) {
-                _noteOff.allNoteOff();
+                _noteOff.allNoteOff(null);
                 _process.getReceiverView().progressFinish(fineFinish);
             }
 

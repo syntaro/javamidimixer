@@ -50,6 +50,7 @@ public class MX11Process extends MXReceiver<MX11View> {
                 int channel = message.getChannel();
                 int note = message.getGate()._value;
                 MXMessage newMessage = MXMessageFactory.fromNoteon(port, channel, note, newVelocity);
+                newMessage._owner = message;
                 sendToNext(newMessage);
             }
         }else {

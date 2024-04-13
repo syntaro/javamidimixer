@@ -401,7 +401,7 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
         MX32MixerProcess mixer = this._mixer;
 
         try {
-            _mixer._parent.startTransaction();
+            _mixer._parent.startTransaction(null);
 
             _focusGroup = new MXFocusGroup(this);
 
@@ -793,10 +793,10 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
                             MGDrumPad drum = _mixer.getDrumPad(row, column);
                             switch (keyCode) {
                                 case ' ':
-                                    drum.mouseDetected(true);
+                                    drum.mouseDetected(null, true);
                                     break;
                                 case '\b':
-                                    drum.mouseDetected(false);
+                                    drum.mouseDetected(null, false);
                                     break;
                                 case '\n':
                                     drum.editContoller();

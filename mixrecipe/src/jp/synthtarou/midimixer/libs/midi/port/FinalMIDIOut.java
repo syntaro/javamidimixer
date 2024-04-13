@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi.port;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import javax.swing.JPanel;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
@@ -38,14 +39,28 @@ public class FinalMIDIOut extends MXReceiver {
     
     LinkedList<MXMessage> _listTestResult = null;
     int _testPort = -1;
+    MXMessage _testBase = null;
     
-    public void startTestSignal(int port) {
+    public void startTestSignal(MXMessage testBase, int port) {
         _listTestResult = new LinkedList();
         _testPort = port;
+        _testBase = testBase != null ? testBase.getRealOwner() : null;
     }
     
-    public LinkedList<MXMessage> getTestResult() {
-        return _listTestResult;
+    public ArrayList<MXMessage> getTestResult() {
+        ArrayList<MXMessage> result = new ArrayList<>();
+        for (MXMessage seek : _listTestResult) {
+            if (seek == null) {
+                continue;
+            }
+            if (_testBase == null) {
+                result.add(seek);
+            }
+            else if (seek.getRealOwner() == _testBase) {
+                result.add(seek);
+            }
+        }
+        return result;
     }
 
     static MXMessage _last = null;

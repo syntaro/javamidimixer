@@ -338,8 +338,8 @@ public class MXVisitant implements Cloneable {
                         _haveDataentryLSB = 1;
                     }
                     if (proc.getDataentryMSB() >= 0 && (_haveDataentryLSB == 0 || proc.getDataentryLSB() >= 0)) {
-                        MXMessage message2 = flushDataentry(message.getPort());
-                        ret[wx ++] = message2;
+                        MXMessage newMessage = flushDataentry(message.getPort());
+                        ret[wx ++] = newMessage;
                         if (_haveDataentryLSB != -1) {
                             proc.setDataentryMSB(-1);
                             proc.setDataentryLSB(-1);
@@ -377,9 +377,10 @@ public class MXVisitant implements Cloneable {
                         proc.isRPN() == MXDataentry.TYPE_RPN ? MXMidi.COMMAND2_CH_RPN : MXMidi.COMMAND2_CH_NRPN,
                         proc.getDataroomMSB(), proc.getDataroomLSB(),
                         proc.getDataentryMSB(), proc.getDataentryMSB()});
-                    MXMessage message2 = MXMessageFactory.fromTemplate(message.getPort(), temp, message.getChannel(), MXRangedValue.ZERO7, MXRangedValue.ZERO7);
-                    message2.setVisitant(getSnapShot());
-                    ret[wx ++] = message2;
+                    MXMessage newMessage = MXMessageFactory.fromTemplate(message.getPort(), temp, message.getChannel(), MXRangedValue.ZERO7, MXRangedValue.ZERO7);
+                    newMessage._owner = message;
+                    newMessage.setVisitant(getSnapShot());
+                    ret[wx ++] = newMessage;
                     return ret;
                 } else if (gate == MXMidi.DATA1_CC_RPN_MSB) {
                     proc = prepareFetchingDataentry();
@@ -431,11 +432,11 @@ public class MXVisitant implements Cloneable {
             MXTemplate temp = new MXTemplate(new int[]{ isRPN, 
                 fetching.getDataroomMSB(), fetching.getDataroomLSB(),
                 fetching.getDataentryMSB(), fetching.getDataentryLSB()});
-            MXMessage message2 = MXMessageFactory.fromTemplate(port, temp, _channel, MXRangedValue.ZERO7, MXRangedValue.ZERO7);
+            MXMessage message = MXMessageFactory.fromTemplate(port, temp, _channel, MXRangedValue.ZERO7, MXRangedValue.ZERO7);
             _flushed = (MXDataentry)fetching.clone();
             _fetching = null;
-            message2.setVisitant(getSnapShot());
-            return message2;
+            message.setVisitant(getSnapShot());
+            return message;
         }
         return null;
     }
@@ -477,8 +478,9 @@ public class MXVisitant implements Cloneable {
                     int progDec = isHavingProgram() ? getProgram() - 1 : 0;
                     if (progDec >= 0) {
                         setProgram(progDec);
-                        message = MXMessageFactory.fromProgramChange(port, channel, progDec);
-                        ret[wx ++ ] = message;
+                        MXMessage newMessage = MXMessageFactory.fromProgramChange(port, channel, progDec);
+                        newMessage._owner = message;
+                        ret[wx ++ ] = newMessage;
                     }else {
                         MXFileLogger.getLogger(MXVisitant.class).severe("@PROG_DEC got less than 0");
                     }
@@ -490,8 +492,9 @@ public class MXVisitant implements Cloneable {
                     int progInc = isHavingProgram() ? getProgram() + 1 : 0;
                     if (progInc <= 127) {
                         setProgram(progInc);
-                        message = MXMessageFactory.fromProgramChange(port, channel, progInc);
-                        ret[wx ++ ] = message; 
+                        MXMessage newMesage = MXMessageFactory.fromProgramChange(port, channel, progInc);
+                        newMesage._owner = message;
+                        ret[wx ++ ] = newMesage;
                     }  else {
                         MXFileLogger.getLogger(MXVisitant.class).severe("@PROG_INC got biggger than 127");
                     }

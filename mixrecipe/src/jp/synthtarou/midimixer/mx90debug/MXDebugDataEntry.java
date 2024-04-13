@@ -34,10 +34,15 @@ public class MXDebugDataEntry extends MXDebug {
     static List<MXMessage> createRPN(int msb, int lsb, int data) {
         int high = (data >> 7) & 0x7f;
         int low = data & 0x7f;
+        MXMessage parent = (MXMessage)MXMessageFactory.createDummy().clone();
         MXMessage message100 = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_RPN_LSB, lsb);
         MXMessage message101 = MXMessageFactory.fromShortMessage(0, 0, MXMidi.DATA1_CC_RPN_MSB, msb);
         MXMessage messageMSB = MXMessageFactory.fromShortMessage(0, 0, MXMidi.DATA1_CC_DATAENTRY, high);
         MXMessage messageLSB = MXMessageFactory.fromShortMessage(0, 0, MXMidi.DATA1_CC_DATAENTRY + 32, low);
+        message100._owner = parent;
+        message101._owner = parent;
+        messageMSB._owner = parent;
+        messageLSB._owner = parent;
         ArrayList<MXMessage> list = new ArrayList();
         list.add(message101);
         list.add(message100);
@@ -49,10 +54,15 @@ public class MXDebugDataEntry extends MXDebug {
     static List<MXMessage> createNRPN(int msb, int lsb, int data) {
         int high = (data >> 7) & 0x7f;
         int low = data & 0x7f;
+        MXMessage parent = (MXMessage)MXMessageFactory.createDummy().clone();
         MXMessage message98 = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_NRPN_LSB, lsb);
         MXMessage message99 = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_NRPN_MSB, msb);
         MXMessage messageMSB = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_DATAENTRY, high);
         MXMessage messageLSB = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_DATAENTRY + 32, low);
+        message98._owner = parent;
+        message99._owner = parent;
+        messageMSB._owner = parent;
+        messageLSB._owner = parent;
         ArrayList<MXMessage> list = new ArrayList();
         list.add(message99);
         list.add(message98);

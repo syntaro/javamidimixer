@@ -86,9 +86,11 @@ public class MGCapture {
                        temp.get(0), room1, room2, value1, value2
                    });
                 }
-                message = MXMessageFactory.fromTemplate(
+                MXMessage newMessage = MXMessageFactory.fromTemplate(
                         message.getPort(), temp, 
                         message.getChannel(), message.getGate(), message.getValue());
+                newMessage._owner = message;
+                message = newMessage;
             }
         }catch(Throwable e) {
             e.printStackTrace();

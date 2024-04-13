@@ -309,7 +309,6 @@ public class MXMainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuSaveNowActionPerformed
 
     private void jMenuExitWithoutSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuExitWithoutSaveActionPerformed
-        // TODO add your handling code here:
         _main.exitWithoutSave();
     }//GEN-LAST:event_jMenuExitWithoutSaveActionPerformed
 

@@ -129,7 +129,9 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                     if (x >= 128) {
                         x = 127;
                     }
-                    message = MXMessageFactory.fromProgramChange(message.getPort(), message.getChannel(), x);
+                    MXMessage newMessage = MXMessageFactory.fromProgramChange(message.getPort(), message.getChannel(), x);
+                    newMessage._owner = message;
+                    message = newMessage;
                     command = MXMidi.COMMAND_CH_PROGRAMCHANGE;
                 }
                 if (first == MXMidi.COMMAND2_CH_PROGRAM_DEC) {
@@ -137,12 +139,14 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                     if (x < 0) {
                         x = 0;
                     }
-                    message = MXMessageFactory.fromProgramChange(message.getPort(), message.getChannel(), x);
+                    MXMessage newMessage = MXMessageFactory.fromProgramChange(message.getPort(), message.getChannel(), x);
+                    newMessage._owner = message;
+                    message = newMessage;
                     command = MXMidi.COMMAND_CH_PROGRAMCHANGE;
                 }
 
                 if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-                    if (_noteOff.raiseHandler(port, channel, message.getGate()._value)) {
+                    if (_noteOff.raiseHandler(message, port, channel, message.getGate()._value)) {
                         continue;
                     }
                 }
@@ -160,6 +164,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                                                 target.getPort(), 
                                                 target.getChannel(), 
                                                 target.getGate()._value);
+                                        msg._owner = target;
                                         col.processByGroup(msg);
                                     }
                                 });
@@ -176,7 +181,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                                 MXMessage msg = MXMessageFactory.fromNoteoff(target.getPort(),
                                         target.getChannel(),
                                         target.getGate()._value);
-                                //msg._timing = timing;
+                                msg._owner = target;
                                 sendToNext(msg);
                             }
                         });

@@ -48,6 +48,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
     private MXRangedValue _value = MXRangedValue.ZERO7;
     private MXRangedValue _gate = MXRangedValue.ZERO7;
     private int _channel = 0;
+    public MXMessage _owner;
 
     private byte[] _dataBytes = null;
 
@@ -55,6 +56,14 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
    
     public boolean isEmpty() {
         return _template.isEmpty();
+    }
+
+    public MXMessage getRealOwner() {
+        MXMessage seek = this;
+        while (seek._owner != null) {
+            seek = seek._owner;
+        }
+        return seek;
     }
 
     public boolean isBinaryMessage() {
@@ -453,16 +462,16 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         MXMessage message2 = MXMessageFactory.fromControlChange(0, 1, MXMidi.DATA1_CC_CHANNEL_VOLUME, 127);
         output.println(message2);
         String dtext2 = message2._template.toDText();
-        MXMessage msg2 = MXMessageFactory.fromTemplate(message2.getPort(), new MXTemplate(dtext2), message2.getChannel(), message2.getGate(), message2.getValue());
+        MXMessage message3 = MXMessageFactory.fromTemplate(message2.getPort(), new MXTemplate(dtext2), message2.getChannel(), message2.getGate(), message2.getValue());
 
         output.println(dtext2);
-        output.println(msg2);
+        output.println(message3);
 
-        msg2.setPort(6);
-        msg2.setChannel(2);
-        msg2.setValue(MXRangedValue.new7bit(100));
+        message3.setPort(6);
+        message3.setChannel(2);
+        message3.setValue(MXRangedValue.new7bit(100));
 
-        output.println(msg2);
+        output.println(message3);
         output.println("----------------");
     }
 

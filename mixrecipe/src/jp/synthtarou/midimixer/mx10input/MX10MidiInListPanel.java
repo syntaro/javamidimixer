@@ -18,7 +18,6 @@ package jp.synthtarou.midimixer.mx10input;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.logging.Level;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -26,15 +25,12 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXConfiguration;
-import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
-import jp.synthtarou.midimixer.libs.vst.VSTFolder;
-import jp.synthtarou.midimixer.mx00playlist.PlayListDX;
 
 /**
  *
@@ -210,7 +206,7 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
                             return;
                         }
                         if (input.isPortAssigned(newAssign)) {
-                            input.allNoteOffToPort(newAssign);
+                            input.allNoteOffToPort(null, newAssign);
                         }
                         input.setPortAssigned(newAssign, !input.isPortAssigned(newAssign));
                     }else {
