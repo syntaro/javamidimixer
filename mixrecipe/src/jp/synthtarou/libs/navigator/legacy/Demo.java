@@ -160,24 +160,21 @@ public class Demo extends javax.swing.JPanel {
             x = -1;
         }
         NavigatorFor1ColumnList<Integer> navi = new NavigatorFor1ColumnList(list, x);
-        MXUtil.showAsDialog(this, navi, INavigator.DEFAULT_TITLE);
-        if (navi._returnStatus == INavigator.RETURN_STATUS_APPROVED) {
+        if (navi.simpleAsk(this)) {
             jTextArea1.setText(String.valueOf(navi._returnValue));
         }
     }//GEN-LAST:event_jButtonListActionPerformed
 
     private void jButtonTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonTextActionPerformed
         NavigatorForText navi = new NavigatorForText("Default");
-        MXUtil.showAsDialog(this, navi, INavigator.DEFAULT_TITLE);
-        if (navi._returnStatus == INavigator.RETURN_STATUS_APPROVED) {
+        if (navi.simpleAsk(this)) {
             jTextArea1.setText(String.valueOf(navi._returnValue));
         }
     }//GEN-LAST:event_jButtonTextActionPerformed
 
     private void jButtonNumberActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNumberActionPerformed
         NavigatorForNumber navi = new NavigatorForNumber(MXRangedValue.ZERO7);
-        MXUtil.showAsDialog(this, navi, INavigator.DEFAULT_TITLE);
-        if (navi._returnStatus == INavigator.RETURN_STATUS_APPROVED) {
+        if (navi.simpleAsk(this)) {
             jTextArea1.setText(String.valueOf(navi._returnValue));
         }
     }//GEN-LAST:event_jButtonNumberActionPerformed
@@ -186,8 +183,7 @@ public class Demo extends javax.swing.JPanel {
         CXGeneralMidiFile file = CXGeneralMidiFile.getInstance();
         CXNode node = file.simpleFindProgram(80);
         NavigatorForNodeAttribute navi = new NavigatorForNodeAttribute(node, "Name");
-        MXUtil.showAsDialog(this, navi, INavigator.DEFAULT_TITLE);
-        if (navi._returnStatus == INavigator.RETURN_STATUS_APPROVED) {
+        if (navi.simpleAsk(this)) {
             jTextArea1.setText(String.valueOf(navi._returnValue._name + " = " + navi._returnValue._value));
         }
     }//GEN-LAST:event_jButtonAttribActionPerformed
@@ -202,8 +198,7 @@ public class Demo extends javax.swing.JPanel {
             x = -1;
         }
         NavigatorFor2ColumnList navi = new NavigatorFor2ColumnList(list, x);
-        MXUtil.showAsDialog(this, navi, INavigator.DEFAULT_TITLE);
-        if (navi._returnStatus == INavigator.RETURN_STATUS_APPROVED) {
+        if (navi.simpleAsk(this)) {
             jTextArea1.setText(String.valueOf(navi._returnValue));
         }
     }//GEN-LAST:event_jButton1ActionPerformed

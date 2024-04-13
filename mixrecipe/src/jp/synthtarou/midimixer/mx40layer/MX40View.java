@@ -36,10 +36,11 @@ import jp.synthtarou.libs.MXCountdownTimer;
 import jp.synthtarou.libs.namedobject.MXNamedObject;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.ccxml.ui.PickerForinstrument;
+import jp.synthtarou.midimixer.ccxml.ui.NavigatorForCCXMLInst;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
+import jp.synthtarou.midimixer.ccxml.ui.CCXMLInst;
 import jp.synthtarou.midimixer.libs.swing.MXFileChooser;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
@@ -1152,13 +1153,13 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         }
         MX40Group group = new MX40Group(null);
         readGroupFromPanel(group);
-        PickerForinstrument picker = new PickerForinstrument();
-        picker.scan(0, group._watchingProgram, group._watchingBankMSB, group._watchingBankLSB);
-        MXUtil.showAsDialog(this, picker, "Select Program");
-        if (picker._resultProgram != null && picker._resultBank != null) {
-            jSpinnerWatchProgram.setValue(picker._resultProgram._listAttributes.numberOfName("PC", -1));
-            jSpinnerWatchBankMSB.setValue(picker._resultBank._listAttributes.numberOfName("MSB", -1));
-            jSpinnerWatchBankLSB.setValue(picker._resultBank._listAttributes.numberOfName("LSB", -1));
+        NavigatorForCCXMLInst navi = new NavigatorForCCXMLInst();
+        navi.scan(0, group._watchingProgram, group._watchingBankMSB, group._watchingBankLSB);
+        if (navi.simpleAsk(this)) {
+            CCXMLInst ret = navi.getReturnValue();
+            jSpinnerSendProgram.setValue(ret._progranNumber);
+            jSpinnerSendBankMSB.setValue(ret._bankMSB);
+            jSpinnerSendBankLSB.setValue(ret._bankLSB);
             JOptionPane.showMessageDialog(this, "Push [Save Group] Please");
         }
     }//GEN-LAST:event_jButtonGroupProgramActionPerformed
@@ -1169,13 +1170,13 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         }
         MX40Layer layer = new MX40Layer(null, null);
         readLayerFromPanel(layer);
-        PickerForinstrument picker = new PickerForinstrument();
-        picker.scan(0, layer._fixedProgram, layer._fixedBankMSB, layer._fixedBankLSB);
-        MXUtil.showAsDialog(this, picker, "Select Program");
-        if (picker._resultProgram != null) {
-            jSpinnerSendProgram.setValue(picker._resultProgram._listAttributes.numberOfName("PC", -1));
-            jSpinnerSendBankMSB.setValue(picker._resultBank._listAttributes.numberOfName("MSB", -1));
-            jSpinnerSendBankLSB.setValue(picker._resultBank._listAttributes.numberOfName("LSB", -1));
+        NavigatorForCCXMLInst navi = new NavigatorForCCXMLInst();
+        navi.scan(0, layer._fixedProgram, layer._fixedBankMSB, layer._fixedBankLSB);
+        if (navi.simpleAsk(this)) {
+            CCXMLInst ret = navi.getReturnValue();
+            jSpinnerSendProgram.setValue(ret._progranNumber);
+            jSpinnerSendBankMSB.setValue(ret._bankMSB);
+            jSpinnerSendBankLSB.setValue(ret._bankLSB);
             JOptionPane.showMessageDialog(this, "Push [Save Layer] Please");
         }
     }//GEN-LAST:event_jButtonLayerProgramActionPerformed
@@ -1433,11 +1434,8 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
             if (_process.readINIFile(file)) {
                 _process.resendProgramChange();
                 justRefreshViewListAndPanel();
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        JOptionPane.showMessageDialog(MX40View.this, "Succeed Import [" + file + "]");
-                    }
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(MX40View.this, "Succeed Import [" + file + "]");
                 });
             }
         }
@@ -1903,22 +1901,18 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
     @Override
     public void tableChanged(TableModelEvent e) {
         updateRequest = true;
-        MXCountdownTimer.letsCountdown(500, new Runnable() { 
-            public void run() {
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        if (updateRequest) {
-                            updateRequest = false;
-                        }
-                        /*
-                        jTable1.setModel(_process._inputInfo);
-                        jTable2.setModel(_process._outputInfo);
-                        */
-                        jTable1.invalidate();
-                        jTable2.invalidate();
-                    }
-                });
-            }
+        MXCountdownTimer.letsCountdown(500, () -> {
+            SwingUtilities.invokeLater(() -> {
+                if (updateRequest) {
+                    updateRequest = false;
+                }
+                /*
+                jTable1.setModel(_process._inputInfo);
+                jTable2.setModel(_process._outputInfo);
+                */
+                jTable1.invalidate();
+                jTable2.invalidate();
+            });
         });
     }
 }

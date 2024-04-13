@@ -93,7 +93,7 @@ public class MX32MixerInitializer {
                     status._base = base;
                     status.setMessageValue(MXRangedValue.new14bit(128 * 128 - 1));
                 } else {
-                    MXMessage base = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_CONTROLCHANGE + slider.size(), MXMidi.DATA1_CC_CHANNEL_VOLUME, 128 - 1);
+                    MXMessage base = MXMessageFactory.fromControlChange(port, slider.size(), MXMidi.DATA1_CC_CHANNEL_VOLUME, 128 - 1);
                     status = new MGStatus(_mixer,  MGStatus.TYPE_SLIDER, row, slider.size());
                     status._base = base;
                 }
@@ -121,7 +121,7 @@ public class MX32MixerInitializer {
                     circle.add(status);
                 } else {
                     status = new MGStatus(_mixer,  MGStatus.TYPE_CIRCLE, row, circle.size());
-                    message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_CONTROLCHANGE + circle.size(), ccCode[row], 64);
+                    message = MXMessageFactory.fromControlChange(port, circle.size(), ccCode[row], 64);
                     status._base = message;
                     circle.add(status);
                 }
@@ -155,7 +155,7 @@ public class MX32MixerInitializer {
             for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
                 status = _mixer.getStatus(MGStatus.TYPE_SLIDER, row, col);
                 if (col < cclist.length) {
-                    message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_CONTROLCHANGE + row, cclist[col], 128 - 1);
+                    message = MXMessageFactory.fromControlChange(_port, row, cclist[col], 128 - 1);
                 } else {
                     message = MXMessageFactory.createDummy();
                 }
@@ -167,7 +167,7 @@ public class MX32MixerInitializer {
             for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
                 status = _mixer.getStatus(MGStatus.TYPE_CIRCLE, row, col);
                 if (col < cclist2.length) {
-                    message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_CONTROLCHANGE + row, cclist2[col], 128 - 1);
+                    message = MXMessageFactory.fromControlChange(_port, row, cclist2[col], 128 - 1);
                     status._base = message;
                 }
             }
@@ -236,7 +236,7 @@ public class MX32MixerInitializer {
             for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
                 status = _mixer.getStatus(MGStatus.TYPE_SLIDER, row, col);
                 if (col < cclist.length) {
-                    message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_CONTROLCHANGE + row, cclist[col], 128 - 1);
+                    message = MXMessageFactory.fromControlChange(_port, row, cclist[col], 128 - 1);
                 } else {
                     message = MXMessageFactory.createDummy();
                 }
@@ -248,7 +248,7 @@ public class MX32MixerInitializer {
             for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
                 status = _mixer.getStatus(MGStatus.TYPE_CIRCLE, row, col);
                 if (col < cclist2.length) {
-                    message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_CONTROLCHANGE + row, cclist2[col], 128 - 1);
+                    message = MXMessageFactory.fromControlChange(_port, row, cclist2[col], 128 - 1);
                 } else {
                     message = MXMessageFactory.createDummy();
                 }
@@ -275,7 +275,7 @@ public class MX32MixerInitializer {
                     String text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
                     message = MXMessageFactory.fromCCXMLText(_port, text, 0);
                 } else {
-                    message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_CONTROLCHANGE + col, MXMidi.DATA1_CC_EXPRESSION, 128 - 1);
+                    message = MXMessageFactory.fromControlChange(_port, col, MXMidi.DATA1_CC_EXPRESSION, 128 - 1);
                 }
                 status._base = message;
             }
@@ -293,7 +293,7 @@ public class MX32MixerInitializer {
                     String text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
                     message = MXMessageFactory.fromCCXMLText(_port, text, 0, MXRangedValue.ZERO7, MXRangedValue.new14bit(0));
                 } else {
-                    message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_CONTROLCHANGE + col, ccCode[row], 64);
+                    message = MXMessageFactory.fromControlChange(_port, col, ccCode[row], 64);
                 }
                 status._base = message;
             }
@@ -310,23 +310,23 @@ public class MX32MixerInitializer {
                 switch (row) {
                     case 0:
                         if (prog < 0) {
-                            message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_CONTROLCHANGE + 0, MXMidi.DATA1_CC_MODULATION, 127);
+                            message = MXMessageFactory.fromControlChange(_port, 0, MXMidi.DATA1_CC_MODULATION, 127);
                         } else {
-                            message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_PROGRAMCHANGE + 0, prog, 0);
+                            message = MXMessageFactory.fromProgramChange(_port, 0, prog);
                         }
                         break;
                     case 1:
                         if (prog < 0) {
-                            message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_CONTROLCHANGE + 0, MXMidi.DATA1_CC_MODULATION, 64);
+                            message = MXMessageFactory.fromControlChange(_port, 0, MXMidi.DATA1_CC_MODULATION, 64);
                         } else {
-                            message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_PROGRAMCHANGE + 1, prog, 0);
+                            message = MXMessageFactory.fromProgramChange(_port, 1, prog);
                         }
                         break;
                     case 2:
                         if (prog < 0) {
-                            message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_CONTROLCHANGE + 0, MXMidi.DATA1_CC_MODULATION, 0);
+                            message = MXMessageFactory.fromControlChange(_port, 0, MXMidi.DATA1_CC_MODULATION, 0);
                         } else {
-                            message = MXMessageFactory.fromShortMessage(_port, MXMidi.COMMAND_CH_PROGRAMCHANGE + 2, prog, 0);
+                            message = MXMessageFactory.fromProgramChange(_port, 2, prog);
                         }
                         break;
                 }

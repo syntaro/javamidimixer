@@ -74,12 +74,7 @@ public class MX36StatusPanel extends javax.swing.JPanel implements MXAccordionEl
     
     public void repaintAccordion() {
         if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    repaintAccordion();
-                }
-            });
+            SwingUtilities.invokeLater(this::repaintAccordion);
             return;
         }
         jLabelSurface.setText(_status.toSurfaceText());

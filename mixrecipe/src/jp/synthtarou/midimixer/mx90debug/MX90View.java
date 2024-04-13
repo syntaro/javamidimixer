@@ -100,12 +100,9 @@ public class MX90View extends javax.swing.JPanel {
             return;
         }
         _testing = true; 
-        new MXSafeThread("TestLoop", new Runnable() {
-            @Override
-            public void run() {
-                _process.doAllTest();
-               _testing = false;
-            }
+        new MXSafeThread("TestLoop", () -> {
+            _process.doAllTest();
+            _testing = false;
         }).start();
     }//GEN-LAST:event_jButton1ActionPerformed
 

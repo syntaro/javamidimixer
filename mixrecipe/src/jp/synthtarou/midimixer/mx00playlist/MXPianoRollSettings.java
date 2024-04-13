@@ -118,17 +118,14 @@ public class MXPianoRollSettings extends javax.swing.JPanel {
     }
 
     public void showDataFirst() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                jTextFieldColor.setText(listColor.nameOfValue(_process._viewData._focusChannel));
-                jTextFieldMargin.setText(listMagin.nameOfValue((int)_process._viewData._soundMargin));
-                jTextFieldSpan.setText(listSpan.nameOfValue((int)_process._viewData._soundSpan));
-                jTextFieldHighlightTiming.setText(listTiming.nameOfValue(Integer.valueOf(_process._viewData._highlightTiming ? 1 : 0)));
-                _process._view._pianoRollRoll._highlightTiming = _process._viewData._highlightTiming;
-                _process._view._pianoRollRoll._soundMargin = _process._viewData._soundMargin;
-                _process._view._pianoRollRoll.setSoundSpan(_process._viewData._soundSpan);
-            }
+        SwingUtilities.invokeLater(() -> {
+            jTextFieldColor.setText(listColor.nameOfValue(_process._viewData._focusChannel));
+            jTextFieldMargin.setText(listMagin.nameOfValue((int)_process._viewData._soundMargin));
+            jTextFieldSpan.setText(listSpan.nameOfValue((int)_process._viewData._soundSpan));
+            jTextFieldHighlightTiming.setText(listTiming.nameOfValue(Integer.valueOf(_process._viewData._highlightTiming ? 1 : 0)));
+            _process._view._pianoRollRoll._highlightTiming = _process._viewData._highlightTiming;
+            _process._view._pianoRollRoll._soundMargin = _process._viewData._soundMargin;
+            _process._view._pianoRollRoll.setSoundSpan(_process._viewData._soundSpan);
         });
     }
 

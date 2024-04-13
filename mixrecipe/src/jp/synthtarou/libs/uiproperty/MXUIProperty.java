@@ -105,11 +105,7 @@ public class MXUIProperty {
                 public void insertUpdate(DocumentEvent e) {
                     if (0 == _selfLock) {
                         // getTextが問題なくなるにはこのタイミングより遅らせる
-                        SwingUtilities.invokeLater(new Runnable() {
-                            public void run() {
-                                uiToInternal();
-                            }
-                        });
+                        SwingUtilities.invokeLater(MXUIProperty.this::uiToInternal);
                     }
                 }
 
@@ -117,11 +113,7 @@ public class MXUIProperty {
                 public void removeUpdate(DocumentEvent e) {
                     if (0 == _selfLock) {
                         // getTextが問題なくなるにはこのタイミングより遅らせる
-                        SwingUtilities.invokeLater(new Runnable() {
-                            public void run() {
-                                uiToInternal();
-                            }
-                        });
+                        SwingUtilities.invokeLater(MXUIProperty.this::uiToInternal);
                     }
                 }
 
@@ -129,11 +121,7 @@ public class MXUIProperty {
                 public void changedUpdate(DocumentEvent e) {
                     if (0 == _selfLock) {
                         // getTextが問題なくなるにはこのタイミングより遅らせる
-                        SwingUtilities.invokeLater(new Runnable() {
-                            public void run() {
-                                uiToInternal();
-                            }
-                        });
+                        SwingUtilities.invokeLater(MXUIProperty.this::uiToInternal);
                     }
                 }
             });
@@ -145,11 +133,7 @@ public class MXUIProperty {
                 public void insertUpdate(DocumentEvent e) {
                     if (0 == _selfLock) {
                         // getTextが問題なくなるにはこのタイミングより遅らせる
-                        SwingUtilities.invokeLater(new Runnable() {
-                            public void run() {
-                                uiToInternal();
-                            }
-                        });
+                        SwingUtilities.invokeLater(MXUIProperty.this::uiToInternal);
                     }
                 }
 
@@ -157,11 +141,7 @@ public class MXUIProperty {
                 public void removeUpdate(DocumentEvent e) {
                     if (0 == _selfLock) {
                         // getTextが問題なくなるにはこのタイミングより遅らせる
-                        SwingUtilities.invokeLater(new Runnable() {
-                            public void run() {
-                                uiToInternal();
-                            }
-                        });
+                        SwingUtilities.invokeLater(MXUIProperty.this::uiToInternal);
                     }
                 }
 
@@ -169,11 +149,7 @@ public class MXUIProperty {
                 public void changedUpdate(DocumentEvent e) {
                     if (0 == _selfLock) {
                         // getTextが問題なくなるにはこのタイミングより遅らせる
-                        SwingUtilities.invokeLater(new Runnable() {
-                            public void run() {
-                                uiToInternal();
-                            }
-                        });
+                        SwingUtilities.invokeLater(MXUIProperty.this::uiToInternal);
                     }
                 }
             });
@@ -734,50 +710,47 @@ public class MXUIProperty {
 
     public void doClickAction() {
         try {
-            SwingUtilities.invokeAndWait(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        String command = null;
-                        ActionListener[] listListener;
-
-                        if (_supportedType == TYPE_BUTTON) {
-                            JButton button = (JButton) _component;
-                            command = button.getActionCommand();
-                            listListener = button.getActionListeners();
-                        } else {
-                            return;
-                        }
-
-                        if (listListener != null) {
-                            long tick = System.currentTimeMillis();
-                            while (tick <= _lastUnique) {
-                                tick++;
-                            }
-                            _lastUnique = tick;
-
-                            ActionEvent evt = new ActionEvent(_component, (int) tick, command);
-
-                            for (ActionListener l : listListener) {
-                                try {
-                                    l.actionPerformed(evt);
-
-                                } catch (Throwable ex) {
-                                    MXFileLogger.getLogger(MXUIProperty.class
-                                    ).log(Level.SEVERE, ex.getMessage(), ex);
-
-                                }
-                            }
-                        }
-
-                    } catch (RuntimeException ex) {
-                        MXFileLogger.getLogger(MXUIProperty.class
-                        ).log(Level.SEVERE, ex.getMessage(), ex);
-
-                    } catch (Error er) {
-                        MXFileLogger.getLogger(MXUIProperty.class
-                        ).log(Level.SEVERE, er.getMessage(), er);
+            SwingUtilities.invokeAndWait(() -> {
+                try {
+                    String command = null;
+                    ActionListener[] listListener;
+                    
+                    if (_supportedType == TYPE_BUTTON) {
+                        JButton button = (JButton) _component;
+                        command = button.getActionCommand();
+                        listListener = button.getActionListeners();
+                    } else {
+                        return;
                     }
+                    
+                    if (listListener != null) {
+                        long tick = System.currentTimeMillis();
+                        while (tick <= _lastUnique) {
+                            tick++;
+                        }
+                        _lastUnique = tick;
+                        
+                        ActionEvent evt = new ActionEvent(_component, (int) tick, command);
+                        
+                        for (ActionListener l : listListener) {
+                            try {
+                                l.actionPerformed(evt);
+                                
+                            } catch (Throwable ex) {
+                                MXFileLogger.getLogger(MXUIProperty.class
+                                ).log(Level.SEVERE, ex.getMessage(), ex);
+                                
+                            }
+                        }
+                    }
+                    
+                } catch (RuntimeException ex) {
+                    MXFileLogger.getLogger(MXUIProperty.class
+                    ).log(Level.SEVERE, ex.getMessage(), ex);
+                    
+                } catch (Error er) {
+                    MXFileLogger.getLogger(MXUIProperty.class
+                    ).log(Level.SEVERE, er.getMessage(), er);
                 }
             });
         } catch (InvocationTargetException ex) {

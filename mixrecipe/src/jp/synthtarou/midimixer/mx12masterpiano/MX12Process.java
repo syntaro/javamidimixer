@@ -23,7 +23,6 @@ import jp.synthtarou.libs.json.MXJsonValue;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
@@ -40,26 +39,25 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
     MXAccordion _accordion;
     MXNoteOffWatcher _noteOff;
     
-    private int _mousePort = 0;
-    private int _mouseChannel = 0;
-    private boolean _overwriteInputChannel;
-    private int _mouseVelocity = 100;
+    int _mousePort = 0;
+    int _mouseChannel = 0;
+    boolean _overwriteInputChannel;
+    int _mouseVelocity = 100;
 
-    boolean _construction;
+    int _construction = 1;
     
     private boolean _acceptThisPageSignal;
     private boolean _acceptInputPanelSignal;
     
     public MX12Process() {
-        _construction = true;
         _noteOff = new MXNoteOffWatcher();
         _overwriteInputChannel = false;
-        _construction = false;
         _view = new MX12MasterkeysPanel(this);
         _accordion = new MXAccordion(null, "Virtual Key", true);
         _accordion.openAccordion(false);
         _accordion.insertElement(0, _view);
         _accordion.setLabelAfterName(_view.getComponentAfterName());
+        _construction --;
     }
 
     @Override
@@ -91,10 +89,10 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
                 setNextReceiver(MXMain.getMain().getReceiverList().get(x)._value);
             }
         }
-        setOverwriteInputChannel(setting.getSettingAsInt("overwriteControllerChannel", 0) != 0);        
-        setMousePort(setting.getSettingAsInt("outputPort", 0));
-        setMouseChannel(setting.getSettingAsInt("outputChannel", 0));
-        setMouseVelocity(setting.getSettingAsInt("outputVelocity", 100));
+        _overwriteInputChannel = setting.getSettingAsInt("overwriteControllerChannel", 0) != 0;
+        _mousePort = setting.getSettingAsInt("outputPort", 0);
+        _mouseChannel = setting.getSettingAsInt("outputChannel", 0);
+        _mouseVelocity = setting.getSettingAsInt("outputVelocity", 100);
         _acceptThisPageSignal = setting.getSettingAsBoolean("acceptThisPanelSignal", true);
         _acceptInputPanelSignal = setting.getSettingAsBoolean("acceptInputPanelSignal", true);
         _view.updateViewForSettingChange();
@@ -109,10 +107,10 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
         }else {
             setting.setSetting("outputReceiver", getNextReceiver().getReceiverName());
         }   
-        setting.setSetting("outputPort", getMousePort());
-        setting.setSetting("outputChannel", getMouseChannel());
-        setting.setSetting("overwriteControllerChannel", isOverwriteInputChannel());
-        setting.setSetting("outputVelocity", getMouseVelocity());
+        setting.setSetting("outputPort", _mousePort);
+        setting.setSetting("outputChannel", _mouseChannel);
+        setting.setSetting("overwriteControllerChannel", _overwriteInputChannel);
+        setting.setSetting("outputVelocity", _mouseVelocity);
         setting.setSetting("acceptThisPanelSignal", _acceptThisPageSignal);
         setting.setSetting("acceptInputPanelSignal", _acceptInputPanelSignal);
         return setting.writeINIFile();
@@ -147,10 +145,10 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
                 setNextReceiver(MXMain.getMain().getReceiverList().get(x)._value);
             }
         }
-        setOverwriteInputChannel(root.getFollowingInt("overwriteControllerChannel", 0) != 0);        
-        setMousePort(root.getFollowingInt("outputPort", 0));
-        setMouseChannel(root.getFollowingInt("outputChannel", 0));
-        setMouseVelocity(root.getFollowingInt("outputVelocity", 100));
+        _overwriteInputChannel = root.getFollowingInt("overwriteControllerChannel", 0) != 0;        
+        _mousePort = root.getFollowingInt("outputPort", 0);
+        _mouseChannel = root.getFollowingInt("outputChannel", 0);
+        _mouseVelocity = root.getFollowingInt("outputVelocity", 100);
         _acceptThisPageSignal = root.getFollowingBool("acceptThisPanelSignal", true);
         _acceptInputPanelSignal = root.getFollowingBool("acceptInputPanelSignal", true);
         _view.updateViewForSettingChange();
@@ -170,10 +168,10 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
         }else {
             root.setFollowingText("outputReceiver", getNextReceiver().getReceiverName());
         }   
-        root.setFollowingInt("outputPort", getMousePort());
-        root.setFollowingInt("outputChannel", getMouseChannel());
-        root.setFollowingBool("overwriteControllerChannel", isOverwriteInputChannel());
-        root.setFollowingInt("outputVelocity", getMouseVelocity());
+        root.setFollowingInt("outputPort", _mousePort);
+        root.setFollowingInt("outputChannel", _mouseChannel);
+        root.setFollowingBool("overwriteControllerChannel", _overwriteInputChannel);
+        root.setFollowingInt("outputVelocity", _mouseVelocity);
         root.setFollowingBool("acceptThisPanelSignal", _acceptThisPageSignal);
         root.setFollowingBool("acceptInputPanelSignal", _acceptInputPanelSignal);
 
@@ -182,6 +180,7 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
 
     @Override
     public void resetSetting() {
+        _view.updateViewForSettingChange();
     }
 
     public class MyNoteOffHandler implements MXNoteOffWatcher.Handler {
@@ -201,99 +200,14 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
     public void processMXMessage(MXMessage message) {
     }
 
-    public void sentMessageByMouse(MXMessage message) {
+    public void sendMessageByMouse(MXMessage message) {
         MXReceiver receiver = getNextReceiver();
         if (receiver == null) {
             receiver = MXMain.getMain().getAutoSendableReceiver();
         }
         MXMIDIIn.messageToReceiverThreaded(message, receiver);
     }
-
-    /**
-     * @return the acceptThisPageSignal
-     */
-    public boolean isAcceptThisPageSignal() {
-        return _acceptThisPageSignal;
-    }
-
-    /**
-     * @param acceptThisPageSignal the acceptThisPageSignal to set
-     */
-    public void setAcceptThisPageSignal(boolean acceptThisPageSignal) {
-        this._acceptThisPageSignal = acceptThisPageSignal;
-    }
-
-    /**
-     * @return the acceptInputPanelSignal
-     */
-    public boolean isAcceptInputPanelSignal() {
-        return _acceptInputPanelSignal;
-    }
-
-    /**
-     * @param acceptInputPanelSignal the acceptInputPanelSignal to set
-     */
-    public void setAcceptInputPanelSignal(boolean acceptInputPanelSignal) {
-        this._acceptInputPanelSignal = acceptInputPanelSignal;
-    }
-
-    /**
-     * @return the _mousePort
-     */
-    public int getMousePort() {
-        return _mousePort;
-    }
-
-    /**
-     * @param _mousePort the _mousePort to set
-     */
-    public void setMousePort(int _mousePort) {
-        this._mousePort = _mousePort;
-    }
-
-    /**
-     * @return the _mouseChannel
-     */
-    public int getMouseChannel() {
-        return _mouseChannel;
-    }
-
-    /**
-     * @param _mouseChannel the _mouseChannel to set
-     */
-    public void setMouseChannel(int _mouseChannel) {
-        this._mouseChannel = _mouseChannel;
-    }
-
-    /**
-     * @return the overwriteInputChannel
-     */
-    public boolean isOverwriteInputChannel() {
-        return _overwriteInputChannel;
-    }
-
-    /**
-     * @param overwriteInputChannel the overwriteInputChannel to set
-     */
-    public void setOverwriteInputChannel(boolean overwriteInputChannel) {
-        this._overwriteInputChannel = overwriteInputChannel;
-    }
-
-    /**
-     * @return the _mouseVelocity
-     */
-    public int getMouseVelocity() {
-        return _mouseVelocity;
-    }
-
-    /**
-     * @param _mouseVelocity the _mouseVelocity to set
-     */
-    public void setMouseVelocity(int _mouseVelocity) {
-        this._mouseVelocity = _mouseVelocity;
-    }
     
-
     public void updateViewForSettingChange() {
         _view.updateViewForSettingChange();
     }

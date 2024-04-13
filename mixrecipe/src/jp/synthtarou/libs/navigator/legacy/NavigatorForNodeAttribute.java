@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.libs.navigator.legacy;
 
+import java.awt.Container;
 import jp.synthtarou.midimixer.ccxml.rules.CCValueRule;
 import java.awt.Dimension;
 import java.util.List;
@@ -32,6 +33,14 @@ import jp.synthtarou.libs.namedobject.MXNamedObjectList;
  * @author Syntarou YOSHIDA
  */
 public class NavigatorForNodeAttribute extends javax.swing.JPanel implements INavigator <MXNamedObject<String>> {
+
+    public boolean simpleAsk(Container parent) {
+        MXUtil.showAsDialog(parent, this, INavigator.DEFAULT_TITLE);
+        if (getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+            return true;
+        }
+        return false;
+    }
 
     CXNode _node;
     String _editingName;

@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.ccxml.ui;
 
+import java.awt.Container;
 import jp.synthtarou.midimixer.ccxml.xml.CXXMLManager;
 import jp.synthtarou.midimixer.ccxml.xml.CXNode;
 import jp.synthtarou.midimixer.ccxml.xml.CXFile;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import javax.swing.ButtonGroup;
+import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import jp.synthtarou.midimixer.MXMain;
@@ -38,6 +40,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
+import jp.synthtarou.libs.navigator.legacy.INavigator;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
@@ -48,24 +51,31 @@ import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
  *
  * @author Syntarou YOSHIDA
  */
-public class PickerForinstrument extends javax.swing.JPanel {
+public class NavigatorForCCXMLInst extends javax.swing.JPanel implements INavigator<CCXMLInst>{
 
     public static void main(String[] args) {
-        PickerForinstrument editor = new PickerForinstrument();
+        NavigatorForCCXMLInst editor = new NavigatorForCCXMLInst();
         MXUtil.showAsDialog(null, editor, "Test");
-        MXMIDIInManager.getManager().readINIFile(null);
-        MXMIDIOutManager.getManager().readINIFile(null);
+        MXMIDIInManager.getManager().readJSonfile(null);
+        MXMIDIOutManager.getManager().readJSonfile(null);
         System.exit(0);
     }
 
+    public boolean simpleAsk(Container parent) {
+        MXUtil.showAsDialog(parent, this, INavigator.DEFAULT_TITLE);
+        if (getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+            return true;
+        }
+        return false;
+    }
     /**
-     * Creates new form EditorForInstrument
+     * Creates new form NavigatorForCCXMLInst
      */
-    public PickerForinstrument() {
+    public NavigatorForCCXMLInst() {
         this(null);
     }
 
-    public PickerForinstrument(CXFile file) {
+    public NavigatorForCCXMLInst(CXFile file) {
         initComponents();
 
         jComboBoxTestPort.setModel(MXNamedObjectListFactory.listupPort(null));
@@ -132,6 +142,9 @@ public class PickerForinstrument extends javax.swing.JPanel {
         return 127;
     }
 
+    int _returnStatus;
+    CCXMLInst _returnValue;
+    
     ButtonGroup _group1;
 
     int _testPort;
@@ -165,17 +178,52 @@ public class PickerForinstrument extends javax.swing.JPanel {
     int _scanBankLSB = -1;
     /* 0-FF */
     String _scanText = "";
+    
+    @Override
+    public int getNavigatorType() {
+        return INavigator.TYPE_EDITOR;
+    }
+
+    @Override
+    public int getReturnStatus() {
+        return _returnStatus;
+    }
+
+    @Override
+    public CCXMLInst getReturnValue() {
+        return _returnValue;
+    }
+
+    @Override
+    public boolean isNavigatorRemovable() {
+        return false;
+    }
+
+    @Override
+    public boolean validateWithNavigator(CCXMLInst result) {
+        return true;
+    }
+
+    @Override
+    public JPanel getNavigatorPanel() {
+        return this;
+    }
 
     class MyHandler implements MXPianoKeys.MXMouseHandler {
 
         @Override
         public void noteOn(int note) {
-            sendMessageToReceiver(MXMidi.COMMAND_CH_NOTEON, note, getVelocity());
+            int data1 = note;
+            int data2 = getVelocity();
+            MXMessage message = MXMessageFactory.fromNoteon(getPort(), getChannel(), data1, data2);
+            MXMIDIIn.messageToReceiverThreaded(message, getReceiver());
         }
 
         @Override
         public void noteOff(int note) {
-            sendMessageToReceiver(MXMidi.COMMAND_CH_NOTEOFF, note, 0);
+            int data1 = note;
+            MXMessage message = MXMessageFactory.fromNoteoff(getPort(), getChannel(), data1);
+            MXMIDIIn.messageToReceiverThreaded(message, getReceiver());
         }
 
         @Override
@@ -187,13 +235,11 @@ public class PickerForinstrument extends javax.swing.JPanel {
 
     public void textChanged() {
         _timeToSearch = System.currentTimeMillis() + 300;
-        MXCountdownTimer.letsCountdown(300, new Runnable() {
-            public void run() {
-                if (System.currentTimeMillis() >= _timeToSearch) {
-                    _scanText = jTextFieldSearch.getText();
-                    _scanMap = null;
-                    updateXMLFileView();
-                }
+        MXCountdownTimer.letsCountdown(300, () -> {
+            if (System.currentTimeMillis() >= _timeToSearch) {
+                _scanText = jTextFieldSearch.getText();
+                _scanMap = null;
+                updateXMLFileView();
             }
         });
     }
@@ -564,6 +610,14 @@ public class PickerForinstrument extends javax.swing.JPanel {
     }//GEN-LAST:event_jListProgramValueChanged
 
     private void jListBankValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListBankValueChanged
+        _returnValue = new CCXMLInst();
+        
+        _returnValue._bankMSB = MXUtil.numberFromText(_resultBank._listAttributes.valueOfName("MSB"), -1);
+        _returnValue._bankLSB = MXUtil.numberFromText(_resultBank._listAttributes.valueOfName("LSB"), -1);
+        _returnValue._bankName = _resultBank._listAttributes.valueOfName("NAME");
+        _returnValue._programName = _resultProgram._listAttributes.valueOfName("Name");
+        _returnValue._progranNumber = MXUtil.numberFromText(_resultProgram._listAttributes.valueOfName("PC"), -1);
+
         sendProgramChange();
     }//GEN-LAST:event_jListBankValueChanged
 
@@ -571,6 +625,10 @@ public class PickerForinstrument extends javax.swing.JPanel {
     }//GEN-LAST:event_jComboBoxTestPortActionPerformed
 
     private void jButtonCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCloseActionPerformed
+        _returnStatus =  INavigator.RETURN_STATUS_NOTSET;
+        if (_returnValue != null) {
+            _returnStatus =  INavigator.RETURN_STATUS_APPROVED;
+        }
         MXUtil.getOwnerWindow(this).setVisible(false);
     }//GEN-LAST:event_jButtonCloseActionPerformed
 
@@ -633,7 +691,7 @@ public class PickerForinstrument extends javax.swing.JPanel {
     boolean _internalChange = false;
 
     public void updateXMLFileView() {
-        MXFileLogger.getLogger(PickerForinstrument.class).info("scanXMLFile = " + _scanXMLFile);
+        MXFileLogger.getLogger(NavigatorForCCXMLInst.class).info("scanXMLFile = " + _scanXMLFile);
         /* XML一覧を更新し、_scanXMLFileを選択する */
         _modelListXML = new MXNamedObjectList();
         if (_resultXMLFile != _scanXMLFile || _modelListXML == null) {
@@ -664,7 +722,7 @@ public class PickerForinstrument extends javax.swing.JPanel {
     }
 
     public void updateModuleView() {
-        MXFileLogger.getLogger(PickerForinstrument.class).info("scanModule = " + _scanModule);
+        MXFileLogger.getLogger(NavigatorForCCXMLInst.class).info("scanModule = " + _scanModule);
         /* MAP一覧を更新し、_scanMapを選択する */
         if (_resultModule != _scanModule || _scanText.equals(_resultText) == false || _modelListModule == null) {
             _resultModule = _scanModule;
@@ -855,51 +913,56 @@ public class PickerForinstrument extends javax.swing.JPanel {
         if (index < 0) {
             return;
         }
-
-        if (_resultBank == null) {
+        
+        if (_returnValue == null) {
             return;
         }
 
-        String bankMSB = _resultBank._listAttributes.valueOfName("MSB");
-        String bankLSB = _resultBank._listAttributes.valueOfName("LSB");
-        String bankName = _resultBank._listAttributes.valueOfName("NAME");
-
-        int msb = MXUtil.numberFromText(bankMSB, -1);
-        int lsb = MXUtil.numberFromText(bankLSB, -1);
+        int msb = _returnValue._bankMSB;
+        int lsb = _returnValue._bankLSB;
 
         if (msb > 0 && lsb > 0) {
-            sendMessageToReceiver(MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_BANKSELECT, msb);
-            sendMessageToReceiver(MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_BANKSELECT + 32, lsb);
+            int command  = MXMidi.COMMAND_CH_NOTEON;
+            int data1 = MXMidi.DATA1_CC_BANKSELECT;
+            int data2 = getVelocity();
+            MXMessage message = MXMessageFactory.fromControlChange14(getPort(), command + getChannel(), data1, msb, lsb);
+            MXMIDIIn.messageToReceiverThreaded(message, getReceiver());
+
             try {
                 Thread.sleep(500);
             } catch (Exception ex) {
-                MXFileLogger.getLogger(PickerForinstrument.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(NavigatorForCCXMLInst.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
 
-        String pcPC = _resultProgram._listAttributes.valueOfName("PC");
-        String pcName = _resultProgram._listAttributes.valueOfName("Name");
 
-        int pc = MXUtil.numberFromText(pcPC, -1);
-
+        int pc = _returnValue._progranNumber;
+        
         if (pc >= 1 && pc <= 128) {
-            jLabelBankProgram.setText(pcPC + ": " + pcName);
-            sendMessageToReceiver(MXMidi.COMMAND_CH_PROGRAMCHANGE, pc - 1, 0);
+            jLabelBankProgram.setText(pc + ": " + _returnValue._programName);
+
+            int data1 = pc-1;
+            MXMessage message = MXMessageFactory.fromProgramChange(getPort(), getChannel(), data1);
+            System.out.println("sending " + message + " to " + getReceiver());
+            MXMIDIIn.messageToReceiverThreaded(message, getReceiver());
         }
     }
 
-    public void sendMessageToReceiver(int command, int data1, int data2) {
-        MXNamedObject<MXReceiver> receiverObj = (MXNamedObject) jComboBoxTestReceiver.getSelectedItem();
+    int getPort() {
         MXNamedObject<Integer> portObj = (MXNamedObject) jComboBoxTestPort.getSelectedItem();
-        MXNamedObject<Integer> channelObj = (MXNamedObject) jComboBoxTestChannel.getSelectedItem();
-
-        MXReceiver receiver = _listReceiver.readComboBox(jComboBoxTestReceiver);
         int port = portObj._value;
+        return  port;
+    }
+
+    int getChannel() {
+        MXNamedObject<Integer> channelObj = (MXNamedObject) jComboBoxTestChannel.getSelectedItem();
         int channel = channelObj._value;
-
-        int state = command + channel;
-
-        MXMessage message = MXMessageFactory.fromShortMessage(port, state, data1, data2);
-        MXMIDIIn.messageToReceiverThreaded(message, receiver);
+        return channel;
+    }
+    
+    MXReceiver getReceiver() {
+        MXNamedObject<MXReceiver> receiverObj = (MXNamedObject) jComboBoxTestReceiver.getSelectedItem();
+        MXReceiver receiver = _listReceiver.readComboBox(jComboBoxTestReceiver);
+        return receiver;
     }
 }

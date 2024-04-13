@@ -34,11 +34,7 @@ public class MXLoopMidiLauncher extends Thread {
 
 //		port = new TeVirtualMIDI(MXConfig.LOOPMIDI_NAME);
 
-                Runtime.getRuntime().addShutdownHook(new Thread( new Runnable() {
-                    public void run() {
-                        closePort();
-                    }
-                }));
+                Runtime.getRuntime().addShutdownHook(new Thread( this::closePort));
                 start();
         }
 

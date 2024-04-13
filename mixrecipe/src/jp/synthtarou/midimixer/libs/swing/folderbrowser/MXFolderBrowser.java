@@ -111,10 +111,8 @@ public class MXFolderBrowser extends javax.swing.JPanel implements INavigator<Fi
             if (_disableThreading) {
                 launchStay(file);
             } else {
-                Runnable run = new Runnable() {
-                    public void run() {
-                        launchStay(file);
-                    }
+                Runnable run = () -> {
+                    launchStay(file);
                 };
                 if (_disableThreading) {
                     run.run();
@@ -131,10 +129,8 @@ public class MXFolderBrowser extends javax.swing.JPanel implements INavigator<Fi
                 process(file);
             } else {
                 try {
-                    SwingUtilities.invokeAndWait(new Runnable() {
-                        public void run() {
-                            process(file);
-                        }
+                    SwingUtilities.invokeAndWait(() -> {
+                        process(file);
                     });
                 } catch (InterruptedException ex) {
                     MXFileLogger.getLogger(MXFolderBrowser.class).log(Level.WARNING, ex.getMessage(), ex);

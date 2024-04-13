@@ -16,13 +16,8 @@
  */
 package jp.synthtarou.midimixer.libs.midi;
 
-import java.util.logging.Level;
 import javax.swing.JPanel;
-import jp.synthtarou.libs.MXQueue;
-import jp.synthtarou.libs.MXSafeThread;
 import jp.synthtarou.libs.log.MXFileLogger;
-import jp.synthtarou.midimixer.MXMain;
-import static jp.synthtarou.midimixer.MXMain._capture;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 
 /**

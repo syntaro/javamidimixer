@@ -21,7 +21,6 @@ import jp.synthtarou.libs.navigator.legacy.NavigatorForNumber;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 import jp.synthtarou.libs.MXRangedValue;
-import jp.synthtarou.libs.MXUtil;
 
 /**
  *
@@ -46,19 +45,18 @@ public abstract class MXPopupForNumber extends MXPopup {
     MXRangedValue _base;
 
     @Override
-    public void showPopup(JComponent mouseBase) {
+    public void simpleAskAsync(JComponent mouseBase) {
         int x = 0;
         try {
             x = Integer.parseInt(_target.getText());
         }catch(Exception e) {
         }
         NavigatorForNumber navi = new NavigatorForNumber(_base);
-        MXUtil.showAsDialog(mouseBase, navi, _dialogTitle);
-        if (navi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+        if (navi.simpleAsk(_target)) {
             int result = navi.getReturnValue()._value;
             approvedValue(result);
         }
-        popupHiddenAndGoNext();
+        hideMenuAndResponse();
     }
 
     public abstract void approvedValue(int selectedValue);

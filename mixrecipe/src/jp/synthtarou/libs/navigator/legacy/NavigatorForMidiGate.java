@@ -21,52 +21,64 @@ import java.awt.Dimension;
 import javax.swing.JPanel;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
+
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class NavigatorFor1ColumnList<T> extends javax.swing.JPanel implements INavigator<T>{
+public class NavigatorForMidiGate extends javax.swing.JPanel implements INavigator<Integer>{
     
     public static void main(String[] args) {
-        MXNamedObjectList<String> model = new MXNamedObjectList<>();
-        model.addNameAndValue("ABC", "abcdefg");
-        model.addNameAndValue("HIJ", "hijklmn");
-        model.addNameAndValue("OPQ", "opqrstu");
-        model.addNameAndValue("VWX", "vwxyz");
-        
-        NavigatorFor1ColumnList<String> navi = new NavigatorFor1ColumnList<>(model, 2);
-        if (navi.simpleAsk(null)) {
-        }
+        NavigatorForMidiGate navi = new NavigatorForMidiGate(MXMidi.COMMAND_CH_CONTROLCHANGE, 7);
+        navi.simpleAsk(null);
         System.out.println(navi.getReturnStatus() + " = " + navi.getReturnValue());
     }
+ 
+    int _stopFeedback = 1;
     
-    MXNamedObjectList<T> _listChoise;
-    boolean _initDone = false;
-
     public boolean simpleAsk(Container parent) {
         MXUtil.showAsDialog(parent, this, INavigator.DEFAULT_TITLE);
-        if (getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+        if (this.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
             return true;
         }
         return false;
     }
 
+    MXNamedObjectList<Integer> _modelCC = MXNamedObjectListFactory.listupControlChange(true);
+    MXNamedObjectList<Integer> _modelNote = MXNamedObjectListFactory.listupControlChange(true);
+    MXNamedObjectList<Integer> _modelNumber = MXNamedObjectListFactory.listupControlChange(true);
+    MXNamedObjectList<Integer> _current = null;
+
     /**
      * Creates new form NavigatorForList
      */
-    public NavigatorFor1ColumnList(MXNamedObjectList<T> choise, int selectedIndex) {
+    public NavigatorForMidiGate(int command, int selected) {
         initComponents();
-        _listChoise = choise;
-        int sel = selectedIndex;
-        jListChoise.setModel(_listChoise);
-        if (sel >= 0) {
-           jListChoise.setSelectedIndex(selectedIndex);
-           jListChoise.scrollRectToVisible(jListChoise.getCellBounds(sel, sel));
-        }
-        _initDone = true;
-
+        buttonGroup1.add(jRadioButtonNumber);
+        buttonGroup1.add(jRadioButtonControlChange);
+        buttonGroup1.add(jRadioButtonNote);
         setPreferredSize(new Dimension(400, 600));
+        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+            _current = _modelCC;
+        }
+        else if (command == MXMidi.COMMAND_CH_NOTEON
+             || command == MXMidi.COMMAND_CH_NOTEOFF
+             || command == MXMidi.COMMAND_CH_POLYPRESSURE) {
+            _current = _modelNote;
+        }
+        else {
+            _current = _modelNumber;
+        }
+        _returnValue = selected;
+        
+        jListChoise.setModel(_current);
+        jListChoise.setSelectedIndex(_current.indexOfValue(_returnValue));
+        
+        _stopFeedback --;
+
     }
 
     /**
@@ -79,11 +91,16 @@ public class NavigatorFor1ColumnList<T> extends javax.swing.JPanel implements IN
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
+        buttonGroup1 = new javax.swing.ButtonGroup();
         jScrollPane1 = new javax.swing.JScrollPane();
         jListChoise = new javax.swing.JList<>();
         jButtonCancel = new javax.swing.JButton();
         jButtonOK = new javax.swing.JButton();
+        jRadioButtonNumber = new javax.swing.JRadioButton();
+        jRadioButtonControlChange = new javax.swing.JRadioButton();
+        jRadioButtonNote = new javax.swing.JRadioButton();
         jLabelSelection = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -96,8 +113,8 @@ public class NavigatorFor1ColumnList<T> extends javax.swing.JPanel implements IN
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.gridheight = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
@@ -112,7 +129,8 @@ public class NavigatorFor1ColumnList<T> extends javax.swing.JPanel implements IN
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         add(jButtonCancel, gridBagConstraints);
 
@@ -123,23 +141,49 @@ public class NavigatorFor1ColumnList<T> extends javax.swing.JPanel implements IN
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         add(jButtonOK, gridBagConstraints);
 
-        jLabelSelection.setText("-");
+        jRadioButtonNumber.setText("number");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(jRadioButtonNumber, gridBagConstraints);
+
+        jRadioButtonControlChange.setText("control change");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(jRadioButtonControlChange, gridBagConstraints);
+
+        jRadioButtonNote.setText("key note");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(jRadioButtonNote, gridBagConstraints);
+
+        jLabelSelection.setText("Selected: -");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
         add(jLabelSelection, gridBagConstraints);
+
+        jLabel1.setText("Type");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(jLabel1, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelActionPerformed
-        if (!_initDone) {
-            return;
-        }
         _returnStatus = INavigator.RETURN_STATUS_CANCELED;
         _returnValue = null;
         _returnIndex = -1;
@@ -147,34 +191,35 @@ public class NavigatorFor1ColumnList<T> extends javax.swing.JPanel implements IN
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
     private void jButtonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOKActionPerformed
-        if (!_initDone) {
-            return;
-        }
         int sel = jListChoise.getSelectedIndex();
         if (sel >= 0) {
             _returnIndex = sel;
-            _returnValue = _listChoise.valueOfIndex(sel);
+            _returnValue = _current.valueOfIndex(sel);
             _returnStatus = INavigator.RETURN_STATUS_APPROVED;
             MXUtil.getOwnerWindow(this).setVisible(false);
         }
     }//GEN-LAST:event_jButtonOKActionPerformed
 
     private void jListChoiseValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListChoiseValueChanged
-        if (!_initDone) {
+        if (_stopFeedback > 0) {
             return;
         }
         int debugSel = jListChoise.getSelectedIndex();
-        String name = _listChoise.nameOfIndex(debugSel);
-        T value = _listChoise.valueOfIndex(debugSel);
-        
-        jLabelSelection.setText(value + " = \"" + name + "\"");
+        String name = _current.nameOfIndex(debugSel);
+        _returnValue = _current.valueOfIndex(debugSel);
+        jLabelSelection.setText(_returnValue + " = \"" + name + "\"");
     }//GEN-LAST:event_jListChoiseValueChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton jButtonCancel;
     private javax.swing.JButton jButtonOK;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabelSelection;
     private javax.swing.JList<String> jListChoise;
+    private javax.swing.JRadioButton jRadioButtonControlChange;
+    private javax.swing.JRadioButton jRadioButtonNote;
+    private javax.swing.JRadioButton jRadioButtonNumber;
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
 
@@ -194,7 +239,7 @@ public class NavigatorFor1ColumnList<T> extends javax.swing.JPanel implements IN
     }
 
     @Override
-    public boolean validateWithNavigator(T result) {
+    public boolean validateWithNavigator(Integer result) {
         return true;
     }
 
@@ -204,7 +249,7 @@ public class NavigatorFor1ColumnList<T> extends javax.swing.JPanel implements IN
     }
 
     @Override
-    public T getReturnValue() {
+    public Integer getReturnValue() {
         return _returnValue;
     }
 
@@ -213,6 +258,6 @@ public class NavigatorFor1ColumnList<T> extends javax.swing.JPanel implements IN
     }
 
     int _returnStatus = INavigator.RETURN_STATUS_NOTSET;
-    T _returnValue = null;
+    Integer _returnValue = null;
     int _returnIndex = -1;
 }

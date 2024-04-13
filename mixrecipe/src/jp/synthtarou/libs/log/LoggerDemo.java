@@ -153,29 +153,20 @@ public class LoggerDemo extends javax.swing.JPanel {
     }
 
     private void jButton100ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton100ActionPerformed
-        new MXSafeThread("1", new Runnable() {
-            @Override
-            public void run() {
-                fillLogLine(100, 199, 100);
-            }
+        new MXSafeThread("1", () -> {
+            fillLogLine(100, 199, 100);
         }).start();
     }//GEN-LAST:event_jButton100ActionPerformed
 
     private void jButton200ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton200ActionPerformed
-        new MXSafeThread("1", new Runnable() {
-            @Override
-            public void run() {
-                fillLogLine(200, 299, 200);
-            }
+        new MXSafeThread("1", () -> {
+            fillLogLine(200, 299, 200);
         }).start();
     }//GEN-LAST:event_jButton200ActionPerformed
 
     private void jButton300ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton300ActionPerformed
-        new MXSafeThread("1", new Runnable() {
-            @Override
-            public void run() {
-                fillLogLine(300, 399, 300);
-            }
+        new MXSafeThread("1", () -> {
+            fillLogLine(300, 399, 300);
         }).start();
     }//GEN-LAST:event_jButton300ActionPerformed
 

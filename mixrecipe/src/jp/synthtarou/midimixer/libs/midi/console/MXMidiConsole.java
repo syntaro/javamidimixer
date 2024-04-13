@@ -77,6 +77,7 @@ public class MXMidiConsole implements ListModel<String> {
                     }
                     var = "-";
                 } else {
+                    /*
                     if (_selectedTiming == value.getMessage()._timing) {
                         //back = Color.red;
                         isSelected = true;
@@ -88,7 +89,7 @@ public class MXMidiConsole implements ListModel<String> {
                         if (_refList.hasFocus()) {
                             cellHasFocus = true;
                         }
-                    }
+                    }*/
                 }
                 Component c = null;
                 c = _def.getListCellRendererComponent(list, var, index, isSelected, cellHasFocus);
@@ -215,12 +216,7 @@ public class MXMidiConsole implements ListModel<String> {
             invokeFire();
         } else {
             _repainReserved = true;
-            MXCountdownTimer.letsCountdown(_timer - (tickNow - _repaintLastTick), new Runnable() {
-                @Override
-                public void run() {
-                    invokeFire();
-                }
-            });
+            MXCountdownTimer.letsCountdown(_timer - (tickNow - _repaintLastTick), this::invokeFire);
         }
     }
 

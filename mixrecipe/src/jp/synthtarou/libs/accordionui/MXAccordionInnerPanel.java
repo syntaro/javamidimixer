@@ -78,78 +78,72 @@ public class MXAccordionInnerPanel {
     public void openWithAnimation(boolean open, boolean invert) {
         _doingAnimation = true;
         if (open) {
-            new MXSafeThread("Accordion1", new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        _animationPanel.setVisible(true);
-                        _animationPanel.setBackground(null);
-                        revalidateASAP();
-                    }catch(RuntimeException ex) {
-                        MXFileLogger.getLogger(MXAccordionInnerPanel.class).log(Level.WARNING, ex.getMessage(), ex);
-                    }
-                    if (invert) {
-                        for (int p = 200; p > 100; p -= 5) {
-                            _animationPanel.setScrollPercent(p);
-                            try {
-                                Thread.sleep(10);
-                            } catch (InterruptedException ex) {
-                                break;
-                            }
-                        }
-                    }
-                    else {
-                        for (int p = 0; p < 100; p += 5) {
-                            _animationPanel.setScrollPercent(p);
-                            try {
-                                Thread.sleep(10);
-                            } catch (InterruptedException ex) {
-                                break;
-                            }
-                        }
-                    }
-                    _animationPanel.setScrollPercent(100);
-                    _doingAnimation = false;
+            new MXSafeThread("Accordion1", () -> {
+                try {
+                    _animationPanel.setVisible(true);
+                    _animationPanel.setBackground(null);
                     revalidateASAP();
+                }catch(RuntimeException ex) {
+                    MXFileLogger.getLogger(MXAccordionInnerPanel.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
+                if (invert) {
+                    for (int p = 200; p > 100; p -= 5) {
+                        _animationPanel.setScrollPercent(p);
+                        try {
+                            Thread.sleep(10);
+                        } catch (InterruptedException ex) {
+                            break;
+                        }
+                    }
+                }
+                else {
+                    for (int p = 0; p < 100; p += 5) {
+                        _animationPanel.setScrollPercent(p);
+                        try {
+                            Thread.sleep(10);
+                        } catch (InterruptedException ex) {
+                            break;
+                        }
+                    }
+                }
+                _animationPanel.setScrollPercent(100);
+                _doingAnimation = false;
+                revalidateASAP();
             }).start();
         } else {
-            new MXSafeThread("Accordion2", new Runnable() {
-                @Override
-                public void run() {
-                    if (invert) {
-                        for (int p = 100; p <= 200; p += 5) {
-                            _animationPanel.setScrollPercent(p);
-                            try {
-                                if (p != 0) {
-                                    Thread.sleep(10);
-                                }
-                            } catch (InterruptedException ex) {
-                                break;
+            new MXSafeThread("Accordion2", () -> {
+                if (invert) {
+                    for (int p = 100; p <= 200; p += 5) {
+                        _animationPanel.setScrollPercent(p);
+                        try {
+                            if (p != 0) {
+                                Thread.sleep(10);
                             }
+                        } catch (InterruptedException ex) {
+                            break;
                         }
                     }
-                    else {
-                        for (int p = 100; p >= 0; p -= 5) {
-                            _animationPanel.setScrollPercent(p);
-                            try {
-                                if (p != 0) {
-                                    Thread.sleep(10);
-                                }
-                            } catch (InterruptedException ex) {
-                                break;
-                            }
-                        }
-                    }
-                    new MainThreadTask() {
-                        public Object runTask() {
-                            _animationPanel.setVisible(false);
-                            _doingAnimation = false;
-                            revalidateASAP();
-                            return null;
-                        }
-                    };
                 }
+                else {
+                    for (int p = 100; p >= 0; p -= 5) {
+                        _animationPanel.setScrollPercent(p);
+                        try {
+                            if (p != 0) {
+                                Thread.sleep(10);
+                            }
+                        } catch (InterruptedException ex) {
+                            break;
+                        }
+                    }
+                }
+                new MainThreadTask() {
+                    public Object runTask() {
+                        _animationPanel.setVisible(false);
+                        _doingAnimation = false;
+                        revalidateASAP();
+                        return null;
+                    }
+                };
             }).start();
         }
     }

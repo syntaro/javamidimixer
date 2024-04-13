@@ -39,12 +39,7 @@ public abstract class MainThreadTask<T> {
     
     public MainThreadTask(boolean forceInvokeLater) {
         if (forceInvokeLater || SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    callerForTask();
-                }
-            });
+            SwingUtilities.invokeLater(this::callerForTask);
         }else {
             callerForTask();
         }

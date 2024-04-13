@@ -381,11 +381,8 @@ public class MX60View extends javax.swing.JPanel {
     
     public void setSongLengthDX(int recorder, long count) {
         if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    setSongLengthDX(recorder, count);
-                }
+            SwingUtilities.invokeLater(() -> {
+                setSongLengthDX(recorder, count);
             });
             return;
         }
@@ -482,11 +479,8 @@ public class MX60View extends javax.swing.JPanel {
 
     public void setViewData(MX60ViewData viewData) {
         if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    setViewData(viewData);
-                }
+            SwingUtilities.invokeLater(() -> {
+                setViewData(viewData);
             });
             return;
         }

@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.libs.navigator.legacy;
 
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import javax.swing.JPanel;
@@ -34,8 +35,16 @@ public class NavigatorForNote extends javax.swing.JPanel implements  INavigator<
     public static void main(String[] args) {
         NavigatorForNote piano = new NavigatorForNote();
         piano.setAllowMultiSelect(true);
-        MXUtil.showAsDialog(null, piano, "Note Picker");
+        piano.simpleAsk(null);
         System.exit(0);
+    }
+
+    public boolean simpleAsk(Container parent) {
+        MXUtil.showAsDialog(parent, this, INavigator.DEFAULT_TITLE);
+        if (this.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+            return true;
+        }
+        return false;
     }
 
     MXPianoKeys _piano;
@@ -52,7 +61,7 @@ public class NavigatorForNote extends javax.swing.JPanel implements  INavigator<
     }
     
     /**
-     * Creates new form MXNotePicker
+     * Creates new form NavigatorForNote
      */
     public NavigatorForNote() {
         initComponents();

@@ -43,7 +43,7 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
-import jp.synthtarou.midimixer.ccxml.ui.PickerForControlChange;
+import jp.synthtarou.midimixer.ccxml.ui.NavigatorForCCXMLCC;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
@@ -55,7 +55,8 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.libs.navigator.legacy.INavigator;
-import jp.synthtarou.midimixer.ccxml.ui.PickerForinstrument;
+import jp.synthtarou.midimixer.ccxml.ui.CCXMLInst;
+import jp.synthtarou.midimixer.ccxml.ui.NavigatorForCCXMLInst;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
@@ -269,14 +270,14 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
 
         new MXPopup(jTextFieldTemplate) {
             @Override
-            public void showPopup(JComponent mouseBase) {
+            public void simpleAskAsync(JComponent mouseBase) {
                 startEditTemplate();
             }
         };
 
         new MXPopup(jTextFieldTemplateForOut) {
             @Override
-            public void showPopup(JComponent mouseBase) {
+            public void simpleAskAsync(JComponent mouseBase) {
                 startEditTemplateForOut();
             }
         };
@@ -352,7 +353,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             int command = _status._base.getStatus() & 0xf0;
             int gateValue = _status._base.getGate()._value;
 
-            if (command == MXMidi.COMMAND_CH_CHANNELPRESSURE || command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF) {
+            if (command == MXMidi.COMMAND_CH_POLYPRESSURE || command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF) {
                 _currentGateModel = _keyGateModel;
             } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
                 _currentGateModel = _ccGateModel;
@@ -2080,8 +2081,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     public void startEdit() {
         String text = _status._base.getTemplateAsText();
         NavigatorForCommandText textNavi = new NavigatorForCommandText(text);
-        MXUtil.showAsDialog(this, textNavi, "Edit Template");
-        if (textNavi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+        if (textNavi.simpleAsk(this)) {
             MXMessage message = MXMessageFactory.fromCCXMLText(0, textNavi.getReturnValue(), 0, null, null);
             if (message != null) {
                 if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
@@ -2100,8 +2100,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     public void startEditOut() {
         String text = _status._drum._customTemplate == null ? "" : _status._drum._customTemplate.toDText();
         NavigatorForCommandText textNavi = new NavigatorForCommandText(text);
-        MXUtil.showAsDialog(this, textNavi, "Edit Template for CustomOut");
-        if (textNavi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+        if (textNavi.simpleAsk(this)) {
             MXMessage message = MXMessageFactory.fromCCXMLText(0, textNavi.getReturnValue(), 0, null, null);
             if (message != null) {
                 if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
@@ -2314,10 +2313,10 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     }
 
     public void startBrowseXML() {
-        PickerForControlChange picker = new PickerForControlChange();
-        MXUtil.showAsDialog(this, picker, "Which You Choose?");
-        if (picker.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-            List<InformationForCCM> ccmList = picker.getReturnValue();
+        NavigatorForCCXMLCC navi = new NavigatorForCCXMLCC();
+        MXUtil.showAsDialog(this, navi, "Which You Choose?");
+        if (navi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+            List<InformationForCCM> ccmList = navi.getReturnValue();
             InformationForCCM ccm = null;
             if (ccmList != null && ccmList.isEmpty() == false) {
                 ccm = ccmList.getFirst();
@@ -2362,10 +2361,10 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
 
     public void startBrowseXMLOut() {
         //TODO
-        PickerForControlChange picker = new PickerForControlChange();
-        MXUtil.showAsDialog(this, picker, "Which You Choose?");
-        if (picker.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-            List<InformationForCCM> ccmList = picker.getReturnValue();
+        NavigatorForCCXMLCC navi = new NavigatorForCCXMLCC();
+        MXUtil.showAsDialog(this, navi, "Which You Choose?");
+        if (navi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+            List<InformationForCCM> ccmList = navi.getReturnValue();
             InformationForCCM ccm = null;
             if (ccmList != null && ccmList.isEmpty() == false) {
                 ccm = ccmList.getFirst();
@@ -2453,7 +2452,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
                         "Offer (adjust value range)",
                         JOptionPane.YES_NO_OPTION);
                 if (z == JOptionPane.YES_OPTION) {
-                    message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_NOTEON + message.getChannel(), message.getData1(), 127);
+                    message = MXMessageFactory.fromNoteOn(message.getPort(), message.getChannel(), message.getData1(), 127);
                     _status.setBaseMessage(message);
                 }
             } else {
@@ -2616,12 +2615,11 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             return;
         }
         if (_status._drum != null) {
-            NavigatorForNote picker = new NavigatorForNote();
-            picker.setAllowMultiSelect(true);
-            picker.setSelectedNoteList(_status._drum.getHarmonyNotesAsArray());
-            MXUtil.showAsDialog(this, picker, "NoteNumbers");
-            if (picker.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-                _status._drum.setHarmoyNotesAsArray(picker.getReturnValue());
+            NavigatorForNote navi = new NavigatorForNote();
+            navi.setAllowMultiSelect(true);
+            navi.setSelectedNoteList(_status._drum.getHarmonyNotesAsArray());
+            if (navi.simpleAsk(this)) {
+                _status._drum.setHarmoyNotesAsArray(navi.getReturnValue());
                 jTextFieldHarmonyNoteList.setText(_status._drum._harmonyNotes);
             }
         }
@@ -2728,26 +2726,17 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // TODO add your handling code here:
-        PickerForinstrument inst = new PickerForinstrument();
-        MXUtil.showAsDialog(this, inst, "Select Program");
+        NavigatorForCCXMLInst navi = new NavigatorForCCXMLInst();
+        if (navi.simpleAsk(this)) {
+            CCXMLInst ret = navi.getReturnValue();
+            _stopFeedback++;
+            jSpinnerDrumProgPC.setValue(ret._progranNumber);
+            jSpinnerDrumProgMSB.setValue(ret._bankMSB);
+            jSpinnerDrumProgLSB.setValue(ret._bankLSB);
+            _stopFeedback--;
+        }
 
-        String bankMSB = inst._resultBank._listAttributes.valueOfName("MSB");
-        String bankLSB = inst._resultBank._listAttributes.valueOfName("LSB");
-        String bankName = inst._resultBank._listAttributes.valueOfName("NAME");
 
-        int msb = MXUtil.numberFromText(bankMSB, -1);
-        int lsb = MXUtil.numberFromText(bankLSB, -1);
-
-        String pcPC = inst._resultProgram._listAttributes.valueOfName("PC");
-        String pcName = inst._resultProgram._listAttributes.valueOfName("Name");
-
-        int pc = MXUtil.numberFromText(pcPC, -1);
-
-        _stopFeedback++;
-        jSpinnerDrumProgPC.setValue(pc);
-        jSpinnerDrumProgMSB.setValue(msb);
-        jSpinnerDrumProgLSB.setValue(lsb);
-        _stopFeedback--;
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jCheckBoxSequencerSeekStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSequencerSeekStartActionPerformed

@@ -33,17 +33,16 @@ public abstract class MXPopupForText extends MXPopup {
     }
 
     @Override
-    public void showPopup(JComponent mouseBase) {
+    public void simpleAskAsync(JComponent mouseBase) {
         String previous = "";
         if (_target != null) {
             previous = _target.getText();
         }
         NavigatorForText text = new NavigatorForText(previous);
-        MXUtil.showAsDialog(mouseBase, text, _dialogTitle);
-        if (text.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+        if (text.simpleAsk(mouseBase)) {
             approvedText(text.getReturnValue());
         }
-        popupHiddenAndGoNext();
+        hideMenuAndResponse();
     }
     
     public void setDialogTitle(String title) {

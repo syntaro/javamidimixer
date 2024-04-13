@@ -332,12 +332,9 @@ public class MX70SysexPanel extends javax.swing.JPanel {
     private void jButtonDumpSysexActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDumpSysexActionPerformed
         Integer port  = _listPort.readComboBox(jComboBoxPort);
         if (port != null) {
-            _file.sendSysexTo(port, new SysexProgress() {
-                @Override
-                public void progress(int pos, int total) {
-                    jProgressBar1.setMaximum(total);
-                    jProgressBar1.setValue(pos);
-                }
+            _file.sendSysexTo(port, (int pos, int total) -> {
+                jProgressBar1.setMaximum(total);
+                jProgressBar1.setValue(pos);
             }, (int)jSpinner1.getValue());
         }
     }//GEN-LAST:event_jButtonDumpSysexActionPerformed

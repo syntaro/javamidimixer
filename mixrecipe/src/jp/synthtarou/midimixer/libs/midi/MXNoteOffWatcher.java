@@ -68,7 +68,7 @@ public class MXNoteOffWatcher {
         synchronized(MXTiming.mutex) {
             for (Element e : _list) {
                 MXMessage base = e.sendSide;
-                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_CH_NOTEOFF + base.getChannel(), base.getGate()._value, 0);
+                MXMessage msg = MXMessageFactory.fromNoteoff(base.getPort(), base.getChannel(), base.getGate()._value);
                 e.listener.onNoteOffEvent(msg);
             }
             _list.clear();
@@ -85,7 +85,7 @@ public class MXNoteOffWatcher {
                 }
                 it.remove();
                 MXMessage base = e.sendSide;
-                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_CH_NOTEOFF + base.getChannel(), base.getGate()._value, 0);
+                MXMessage msg = MXMessageFactory.fromNoteoff(base.getPort(), base.getChannel(), base.getGate()._value);
                 e.listener.onNoteOffEvent(msg);
             }
             //_list.clear();
@@ -102,7 +102,7 @@ public class MXNoteOffWatcher {
                 }
                 it.remove();
                 MXMessage base = e.sendSide;
-                MXMessage msg = MXMessageFactory.fromShortMessage(base.getPort(), MXMidi.COMMAND_CH_NOTEOFF + base.getChannel(), base.getGate()._value, 0);
+                MXMessage msg = MXMessageFactory.fromNoteoff(base.getPort(), base.getChannel(), base.getGate()._value);
                 e.listener.onNoteOffEvent(msg);
             }
             //_list.clear();
@@ -122,10 +122,10 @@ public class MXNoteOffWatcher {
                 if (e.catchSide.getPort() == port
                  && e.catchSide.getChannel() == ch
                  && e.catchSide.getData1()== note) {
-                    MXMessage noteOff = MXMessageFactory.fromShortMessage(
+                    MXMessage noteOff = MXMessageFactory.fromNoteoff(
                             e.sendSide.getPort(), 
-                            MXMidi.COMMAND_CH_NOTEOFF + e.sendSide.getChannel(), 
-                            e.sendSide.getData1(), 0);
+                            e.sendSide.getChannel(), 
+                            e.sendSide.getData1());
                     e.listener.onNoteOffEvent(noteOff);
                     it.remove();
                     proc ++;

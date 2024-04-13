@@ -202,15 +202,13 @@ public class MX40Group {
             MX40Layer layer = _listLayer.get(found);
             proced = layer.processByLayer(message);
 
-            MXMessage msg2 = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + channel, message.getGate()._value, 0);
-            msg2._timing = message._timing;
+            MXMessage msg2 = MXMessageFactory.fromNoteoff(port, channel, message.getGate()._value);
             _noteOff.setHandler(message, msg2,  new NoteOffWatcher2(layer, found));
         }else {
             for (MX40Layer layer: _listLayer) {
                 layer.processByLayer(message);
                 if (command == MXMidi.COMMAND_CH_NOTEON) {
-                    MXMessage msg2 = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + channel, message.getGate()._value, 0);
-                    msg2._timing = message._timing;
+                    MXMessage msg2 = MXMessageFactory.fromNoteoff(port, channel, message.getGate()._value);
                     _noteOff.setHandler(message, msg2,  new NoteOffWatcher2(layer, -1));
                 }
                 proced = true;

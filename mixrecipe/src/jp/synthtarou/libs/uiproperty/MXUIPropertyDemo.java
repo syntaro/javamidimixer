@@ -117,38 +117,35 @@ public class MXUIPropertyDemo extends javax.swing.JPanel {
         _vm.bindTenkey[6].doClickAction();
         _vm.bindTenkey[3].doClickAction();
         _vm.bindTenkey[9].doClickAction();
-        new MXSafeThread("MXComponentControllerDemo", new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(1000);
-                    for (int i = 0; i < 5; ++i) {
-                        _vm.bindBack.doClickAction();
-                        Thread.sleep(500);
-                        _vm.bindBack.doClickAction();
-                        Thread.sleep(500);
-                        _vm.bindBack.doClickAction();
-                        Thread.sleep(500);
-                        _vm.bindTenkey[(int) (Math.random() * 9) + 1].doClickAction();
-                        Thread.sleep(500);
-                        _vm.bindTenkey[(int) (Math.random() * 9) + 1].doClickAction();
-                        Thread.sleep(500);
-                        _vm.bindTenkey[(int) (Math.random() * 9) + 1].doClickAction();
-                        Thread.sleep(500);
-                    }
+        new MXSafeThread("MXComponentControllerDemo", () -> {
+            try {
+                Thread.sleep(1000);
+                for (int i = 0; i < 5; ++i) {
+                    _vm.bindBack.doClickAction();
                     Thread.sleep(500);
                     _vm.bindBack.doClickAction();
+                    Thread.sleep(500);
                     _vm.bindBack.doClickAction();
-                    _vm.bindBack.doClickAction();
-                    Thread.sleep(1000);
-                    _vm.bindTenkey[7].doClickAction();
-                    Thread.sleep(1000);
-                    _vm.bindTenkey[7].doClickAction();
-                    Thread.sleep(1000);
-                    _vm.bindTenkey[7].doClickAction();
-                } catch (InterruptedException ex) {
-                    MXFileLogger.getLogger(MXUIPropertyDemo.class).log(Level.WARNING, ex.getMessage(), ex);
+                    Thread.sleep(500);
+                    _vm.bindTenkey[(int) (Math.random() * 9) + 1].doClickAction();
+                    Thread.sleep(500);
+                    _vm.bindTenkey[(int) (Math.random() * 9) + 1].doClickAction();
+                    Thread.sleep(500);
+                    _vm.bindTenkey[(int) (Math.random() * 9) + 1].doClickAction();
+                    Thread.sleep(500);
                 }
+                Thread.sleep(500);
+                _vm.bindBack.doClickAction();
+                _vm.bindBack.doClickAction();
+                _vm.bindBack.doClickAction();
+                Thread.sleep(1000);
+                _vm.bindTenkey[7].doClickAction();
+                Thread.sleep(1000);
+                _vm.bindTenkey[7].doClickAction();
+                Thread.sleep(1000);
+                _vm.bindTenkey[7].doClickAction();
+            } catch (InterruptedException ex) {
+                MXFileLogger.getLogger(MXUIPropertyDemo.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }).start();
     }
@@ -449,16 +446,13 @@ public class MXUIPropertyDemo extends javax.swing.JPanel {
         for (int i = 0; i <= 100; ++i) {
             _vm.bindSpinner.set(i);
         }
-        new MXSafeThread("Button", new Runnable() {
-            @Override
-            public void run() {
-                for (int i = 0; i <= 100; ++i) {
-                    _vm.bindSpinner.set(i);
-                    try {
-                        Thread.sleep(10);
-                    } catch (Exception e) {
-
-                    }
+        new MXSafeThread("Button", () -> {
+            for (int i = 0; i <= 100; ++i) {
+                _vm.bindSpinner.set(i);
+                try {
+                    Thread.sleep(10);
+                } catch (Exception e) {
+                    
                 }
             }
         }).start();;

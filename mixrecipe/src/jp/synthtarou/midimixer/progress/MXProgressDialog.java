@@ -100,6 +100,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
         _stream.addLine("V0.71a json not save file for now. plz wait");
         _stream.addLine("V0.75beta fix freeze when doing toomany zoom pianoroll, layer import/export fix");
         _stream.addLine("V0.75beta6 fix drum surface etc");
+        _stream.addLine("V0.77 14bit controllable");
 
         _stream.addLine("It is beta release, please send me issue / problem / wish,\n");
         _stream.addLine("Im waiting for public relesae timing.\n\n");
@@ -135,51 +136,49 @@ public class MXProgressDialog extends javax.swing.JDialog {
         _piano.setPreferredSize(new Dimension(480, 120));
         jPanelPiano.add(_piano);
 
-        Thread pianoColor = new MXSafeThread("*PianoColor", new Runnable() {
-            public void run() {
-                int x = 0;
-                int last = -1;
-                while (true) {
-                    try {
-                        Thread.sleep(8);
-                    } catch (InterruptedException e) {
-                        return;
+        Thread pianoColor = new MXSafeThread("*PianoColor", () -> {
+            int x1 = 0;
+            int last = -1;
+            while (true) {
+                try {
+                    Thread.sleep(8);
+                } catch (InterruptedException e) {
+                    return;
+                }
+                x1 += 1;
+                if (x1 >= 0 && x1 <= 36) {
+                    if (last >= 0) {
+                        _piano.noteOff(last);
                     }
-                    x += 1;
-                    if (x >= 0 && x <= 36) {
-                        if (last >= 0) {
-                            _piano.noteOff(last);
-                        }
-                        last = x;
-                        _piano.noteOn(x);
-                    } else if (x >= 37 && x <= 72) {
-                        int y = 72 - x;
-                        if (last >= 0) {
-                            _piano.noteOff(last);
-                        }
-                        last = y;
-                        _piano.noteOn(y);
-                    } else {
-                        x = 0;
+                    last = x1;
+                    _piano.noteOn(x1);
+                } else if (x1 >= 37 && x1 <= 72) {
+                    int y1 = 72 - x1;
+                    if (last >= 0) {
+                        _piano.noteOff(last);
                     }
-                    if (_pianoStop) {
-                        if (last >= 0) {
-                            _piano.noteOff(last);
-                        }
-                        last = 40;
-                        _piano.noteOn(40);
+                    last = y1;
+                    _piano.noteOn(y1);
+                } else {
+                    x1 = 0;
+                }
+                if (_pianoStop) {
+                    if (last >= 0) {
+                        _piano.noteOff(last);
                     }
-                    new MainThreadTask() {
-                        @Override
-                        public Object runTask() {
-                            _piano.invalidate();
-                            _piano.repaint();
-                            return null;
-                        }
-                    };
-                    if (_pianoStop) {
-                        break;
+                    last = 40;
+                    _piano.noteOn(40);
+                }
+                new MainThreadTask() {
+                    @Override
+                    public Object runTask() {
+                        _piano.invalidate();
+                        _piano.repaint();
+                        return null;
                     }
+                };
+                if (_pianoStop) {
+                    break;
                 }
             }
         });

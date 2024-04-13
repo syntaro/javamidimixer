@@ -84,16 +84,13 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     }
 
     public void showDataFirst() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                MX00ViewData data = _process._viewData;
-                jListPlayList.setModel(data._playListModel);
-                jCheckBoxChain.setSelected(data._playAsChained);
-                jCheckBoxRepeat.setSelected(data._playAsRepeated);
-                if (_pianoRollSettings != null) {
-                    _pianoRollSettings.showDataFirst();
-                }
+        SwingUtilities.invokeLater(() -> {
+            MX00ViewData data = _process._viewData;
+            jListPlayList.setModel(data._playListModel);
+            jCheckBoxChain.setSelected(data._playAsChained);
+            jCheckBoxRepeat.setSelected(data._playAsRepeated);
+            if (_pianoRollSettings != null) {
+                _pianoRollSettings.showDataFirst();
             }
         });
     }
@@ -412,10 +409,8 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
 
     public void createPianoControls(int noteLowest, int octaveRange, boolean[] activeChannels, int[] listPrograms, List<Integer> drumProgs) {
         if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    createPianoControls(noteLowest, octaveRange, activeChannels, listPrograms, drumProgs);
-                }
+            SwingUtilities.invokeLater(() -> {
+                createPianoControls(noteLowest, octaveRange, activeChannels, listPrograms, drumProgs);
             });
             return;
         }
@@ -521,11 +516,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
 
     public void autoResizePiano() {
         if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    autoResizePiano();
-                }
-            });
+            SwingUtilities.invokeLater(this::autoResizePiano);
             return;
         }
         for (int ch = 0; ch < 16; ++ch) {
@@ -543,8 +534,6 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         if (_drumPanel != null) {
             _drumPanel.setPreferredSize(new Dimension(jPanelRight.getWidth() - 70, 350));
             _drumPanel.updateUI();
-            /*SwingUtilities.invokeLater(new Runnable(){
-                public void run() {*/
             int maxHeight = 0;
             for (JToggleButton c : _drumPanel.listDrums) {
                 if (c != null) {
@@ -726,10 +715,8 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
 
     public void updatePianoDX(int dword) {
         if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    updatePianoDX(dword);
-                }
+            SwingUtilities.invokeLater(() -> {
+                updatePianoDX(dword);
             });
             return;
         }
@@ -846,11 +833,8 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         }
 
         if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    smfStoped(fineFinish);
-                }
+            SwingUtilities.invokeLater(() -> {
+                smfStoped(fineFinish);
             });
             return;
         }
@@ -917,12 +901,9 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
             new MainThreadTask(true) {
                 @Override
                 public Object runTask() {
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            _player.stopSequencer(0);
-                            turnOnMusic(file, pos);
-                        }
+                    SwingUtilities.invokeLater(() -> {
+                        _player.stopSequencer(0);
+                        turnOnMusic(file, pos);
                     });
                     return NOTHING;
                 }

@@ -317,42 +317,39 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
         if (_mixer == null) {
             return;
         }
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (_mixer.getCircle(0,0) != null) {
-                        for (int column = 0; column < MXConfiguration.SLIDER_COLUMN_COUNT; ++column) {
-                            for (int row = 0; row < MXConfiguration.CIRCLE_ROW_COUNT; ++row) {
-                                initializeColor(_mixer.getCircle(row, column));
-                                _mixer.getCircle(row, column).updateUI();
-                            }
-                            for (int row = 0; row < MXConfiguration.SLIDER_ROW_COUNT; ++row) {
-                                initializeColor(_mixer.getSlider(row, column));
-                                _mixer.getSlider(row, column).updateUI();
-                            }
-                            for (int row = 0; row < MXConfiguration.DRUM_ROW_COUNT; ++row) {
-                                initializeColor(_mixer.getDrumPad(row, column));
-                                _mixer.getDrumPad(row, column).updateUI();
-                            }
-                        }
-
+        SwingUtilities.invokeLater(() -> {
+            try {
+                if (_mixer.getCircle(0,0) != null) {
+                    for (int column = 0; column < MXConfiguration.SLIDER_COLUMN_COUNT; ++column) {
                         for (int row = 0; row < MXConfiguration.CIRCLE_ROW_COUNT; ++row) {
-                            for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
-                                MGStatus number = _mixer.getStatus(MGStatus.TYPE_CIRCLE, row, col);
-                                _mixer.highlightPad(number._base);
-                            }
+                            initializeColor(_mixer.getCircle(row, column));
+                            _mixer.getCircle(row, column).updateUI();
                         }
                         for (int row = 0; row < MXConfiguration.SLIDER_ROW_COUNT; ++row) {
-                            for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
-                                MGStatus number = _mixer.getStatus(MGStatus.TYPE_SLIDER, row, col);
-                                _mixer.highlightPad(number._base);
-                            }
+                            initializeColor(_mixer.getSlider(row, column));
+                            _mixer.getSlider(row, column).updateUI();
+                        }
+                        for (int row = 0; row < MXConfiguration.DRUM_ROW_COUNT; ++row) {
+                            initializeColor(_mixer.getDrumPad(row, column));
+                            _mixer.getDrumPad(row, column).updateUI();
                         }
                     }
-                } catch (NullPointerException e) {
-                    e.printStackTrace();
+                    
+                    for (int row = 0; row < MXConfiguration.CIRCLE_ROW_COUNT; ++row) {
+                        for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
+                            MGStatus number = _mixer.getStatus(MGStatus.TYPE_CIRCLE, row, col);
+                            _mixer.highlightPad(number._base);
+                        }
+                    }
+                    for (int row = 0; row < MXConfiguration.SLIDER_ROW_COUNT; ++row) {
+                        for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
+                            MGStatus number = _mixer.getStatus(MGStatus.TYPE_SLIDER, row, col);
+                            _mixer.highlightPad(number._base);
+                        }
+                    }
                 }
+            } catch (NullPointerException e) {
+                e.printStackTrace();
             }
         });
     }
@@ -668,10 +665,8 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
             return;
         }
         if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    goNextFocus(keyCode);
-                }
+            SwingUtilities.invokeLater(() -> {
+                goNextFocus(keyCode);
             });
             return;
         }

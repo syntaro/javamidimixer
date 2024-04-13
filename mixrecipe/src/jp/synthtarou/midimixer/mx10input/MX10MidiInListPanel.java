@@ -102,11 +102,7 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
 
     public void refreshList() {
         if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable(){
-                public void run() {
-                    refreshList();
-                }
-            });
+            SwingUtilities.invokeLater(this::refreshList);
             return;
         }
         MXMIDIInManager manager = MXMIDIInManager.getManager();

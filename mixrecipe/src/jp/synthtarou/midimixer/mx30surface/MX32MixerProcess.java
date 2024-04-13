@@ -528,69 +528,6 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
         return message;
     }
 
-    MXMessage _poolFor14bit = null;
-    int _gotValue14bit = 0;
-
-    public boolean isPairToPooled14bit(MXMessage message) {
-        if (_poolFor14bit != null) {
-            if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
-                int gate = message.getGate()._value;
-                if (gate >= 0 && gate < 32) {
-                    if (gate + 32 == _poolFor14bit.getGate()._value) {
-                        return true;
-                    }
-                } else if (gate >= 32 && gate < 64) {
-                    if (gate == _poolFor14bit.getGate()._value + 32) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    public int valueForPair(MXMessage message) {
-        if (isPairToPooled14bit(message)) {
-            if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
-                int gate = message.getGate()._value;
-                if (gate >= 0 && gate < 32) {
-                    if (gate + 32 == _poolFor14bit.getGate()._value) {
-                        return message.getValue()._value * 128 + _poolFor14bit.getValue()._value;
-                    }
-                } else if (gate >= 32 && message.getChannel() <= 64) {
-                    if (gate == _poolFor14bit.getGate()._value + 32) {
-                        return message.getValue()._value + _poolFor14bit.getValue()._value * 128;
-                    }
-                }
-            }
-        }
-        throw new IllegalStateException("valueForPair not work at the moment");
-    }
-
-    public boolean isSameToPooled14bit(MXMessage message) {
-        if (_poolFor14bit != null) {
-            if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
-                if (message.getGate()._value == _poolFor14bit.getGate()._value) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    long lastTick = 0;
-
-    public void clearPoolImpl() {
-        if (lastTick + 400 < System.currentTimeMillis()) {
-            if (_poolFor14bit != null) {
-                MXMessage prev = _poolFor14bit;
-                _poolFor14bit = null;
-                prev.setPairedWith14(true);
-                sendToNext(prev);
-            }
-        }
-    }
-
     public void notifyCacheBroken() {
         synchronized (this) {
             _finder = null;

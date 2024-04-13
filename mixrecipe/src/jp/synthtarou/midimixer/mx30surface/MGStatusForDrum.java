@@ -188,7 +188,7 @@ public class MGStatusForDrum implements Cloneable {
             @Override
             public void smfPlayNote(SMFMessage e) {
                 e._port = _port;
-                MXMessage message = e.fromSMFtoMX();
+                MXMessage message = e.toMXMessage();
                 if (_sequencerSingleTrack) {
                     if (_channel >= 0) {
                         message.setChannel(_channel);
@@ -220,7 +220,7 @@ public class MGStatusForDrum implements Cloneable {
     boolean isStrike(int value) {
         return _strikeZone.contains(value);
     }
-    
+
     MXMessage updatingValue(boolean strike, int value) {
         if (strike) {
             if (_modeToggle) {
@@ -234,7 +234,7 @@ public class MGStatusForDrum implements Cloneable {
         }
         if (strike == _lastDetected) {
             if (_onlySwitched) {
-                return null;                
+                return null;
             }
         }
         _lastDetected = strike;
@@ -262,7 +262,7 @@ public class MGStatusForDrum implements Cloneable {
             pad.setDrumLook(flag);
             if (_lastSent == flag) {
                 if (_onlySwitched) {
-                    return null;                
+                    return null;
                 }
             }
             _lastSent = flag;
@@ -293,18 +293,15 @@ public class MGStatusForDrum implements Cloneable {
                     case STYLE_NOTES:
                         int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
                         for (int note : noteList) {
-                            message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEON + channel, note, velocity);
+                            message = MXMessageFactory.fromNoteon(port, channel, note, velocity);
                             packet.addResult(message);
                         }
                         message = null;
                         break;
                     case STYLE_SEQUENCE:
-                        packet.addResultTask(new Runnable() {
-                            @Override
-                            public void run() {
-                                stopSongPlayer();
-                                startSongPlayer();
-                            }
+                        packet.addResultTask(() -> {
+                            stopSongPlayer();
+                            startSongPlayer();
                         });
                         break;
                     case STYLE_LINK_SLIDER:
@@ -343,14 +340,14 @@ public class MGStatusForDrum implements Cloneable {
                                 return null;
                         }
                         if (status.getValue()._value == value && _onlySwitched) {
-                        }else {
+                        } else {
                             packet.addSliderMove(new MGSliderMove(status, value));
                         }
                         return null;
                     case STYLE_PROGRAM_CHANGE:
                         switch (_programType) {
                             case PROGRAM_SET:
-                                message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, _programNumber, 0);
+                                message = MXMessageFactory.fromProgramChange(port, channel, _programNumber);
                                 message.setProgramBank(_programMSB, _programLSB);
                                 break;
                             case PROGRAM_INC:
@@ -396,18 +393,13 @@ public class MGStatusForDrum implements Cloneable {
                     case STYLE_NOTES:
                         int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
                         for (int note : noteList) {
-                            message = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + channel, note, 0);
+                            message = MXMessageFactory.fromNoteoff(port, channel, note);
                             packet.addResult(message);
                         }
                         message = null;
                         break;
                     case STYLE_SEQUENCE:
-                        packet.addResultTask(new Runnable() {
-                            @Override
-                            public void run() {
-                                stopSongPlayer();
-                            }
-                        });
+                        packet.addResultTask(this::stopSongPlayer);
                         break;
                     case STYLE_LINK_SLIDER:
                         break;

@@ -46,7 +46,7 @@ public abstract class MXPopupForList<T> extends MXPopup {
         install();
     }
 
-    public void showPopup(JComponent mouseBase) {
+    public void simpleAskAsync(JComponent mouseBase) {
         MXNamedObjectList<T> list = getList();
 
         if (_target != null) {
@@ -67,20 +67,18 @@ public abstract class MXPopupForList<T> extends MXPopup {
             }
             if (found) {
                 NavigatorFor2ColumnList navi = new NavigatorFor2ColumnList(list, _selectedIndex);
-                MXUtil.showAsDialog(_target, navi, _dialogTitle);
-                if (navi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+                if (navi.simpleAsk(_target)) {
                     _selectedIndex = navi.getReturnIndex();
                     approvedIndex(_selectedIndex);
                 }
             }else {
                 NavigatorFor1ColumnList navi = new NavigatorFor1ColumnList(list, _selectedIndex);
-                MXUtil.showAsDialog(_target, navi, _dialogTitle);
-                if (navi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+                if (navi.simpleAsk(_target)) {
                     _selectedIndex = navi.getReturnIndex();
                     approvedIndex(_selectedIndex);
                 }
             }
-            popupHiddenAndGoNext();
+            hideMenuAndResponse();
         } else {
             _menu = new JPopupMenu();
             for (int i = 0; i < list.size(); ++i) {
@@ -110,12 +108,12 @@ public abstract class MXPopupForList<T> extends MXPopup {
 
                 @Override
                 public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-                    popupHiddenAndGoNext();
+                    hideMenuAndResponse();
                 }
 
                 @Override
                 public void popupMenuCanceled(PopupMenuEvent e) {
-                    popupHiddenAndGoNext();
+                    hideMenuAndResponse();
                 }
             });
         }

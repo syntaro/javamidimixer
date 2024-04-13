@@ -59,15 +59,12 @@ public class MX70View extends javax.swing.JPanel {
         
         new MXAttachCopyAndPaste(jTextFieldDump);
 
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                _process._outsideInput.bind(jListOutsideInput);
-                _process._insideInput.bind(jListInsideInput);
-                _process._insideOutput.bind(jListInsideOutput);
-                _process._outsideOutput.bind(jListOutsideOutput);
-                showTimeSpend();
-            }
+        SwingUtilities.invokeLater(() -> {
+            _process._outsideInput.bind(jListOutsideInput);
+            _process._insideInput.bind(jListInsideInput);
+            _process._insideOutput.bind(jListInsideOutput);
+            _process._outsideOutput.bind(jListOutsideOutput);
+            showTimeSpend();
         });
     }
 
@@ -541,59 +538,54 @@ public class MX70View extends javax.swing.JPanel {
     NumberFormat formatter3 = new DecimalFormat("0.000");
 
     public void showTimeSpend() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    for (int i = 0; i < 4; ++i) {
-                        long count = MXTiming.totalCount(i);
-                        long spend = MXTiming.totalWrap(i);
-                        long bottom = MXTiming.totalBottom(i);
-
-                        String div = formatter3.format(1.0 * spend / count);
-
-                        String text = "<html>" + spend + "ms/" + count + "=" + div + "<br> bottom" + bottom + "ms</html>";
-                        switch (i) {
-                            case 0:
-                                jLabelOutsideInput.setText(text);
-                                break;
-                            case 1:
-                                jLabelInsideInput.setText(text);
-                                break;
-                            case 2:
-                                jLabelInsideOutput.setText(text);
-                                break;
-                            case 3:
-                                jLabelOutsideOutput.setText(text);
-                                break;
-                        }
+        SwingUtilities.invokeLater(() -> {
+            try {
+                for (int i = 0; i < 4; ++i) {
+                    long count = MXTiming.totalCount(i);
+                    long spend = MXTiming.totalWrap(i);
+                    long bottom = MXTiming.totalBottom(i);
+                    
+                    String div = formatter3.format(1.0 * spend / count);
+                    
+                    String text = "<html>" + spend + "ms/" + count + "=" + div + "<br> bottom" + bottom + "ms</html>";
+                    switch (i) {
+                        case 0:
+                            jLabelOutsideInput.setText(text);
+                            break;
+                        case 1:
+                            jLabelInsideInput.setText(text);
+                            break;
+                        case 2:
+                            jLabelInsideOutput.setText(text);
+                            break;
+                        case 3:
+                            jLabelOutsideOutput.setText(text);
+                            break;
                     }
-                    jLabelMemory.setText(getMemoryInfo());
-                } catch (RuntimeException ex) {
-                    MXFileLogger.getLogger(MX70View.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
-                Container parent = getParent();
-                while (parent != null) {
-                    if (parent instanceof Window) {
-                        Window w = (Window) parent;
-                        if (w.isVisible() == false) {
-                            return;
-                        }
-                    }
-                    if (parent instanceof Dialog) {
-                        Dialog d = (Dialog) parent;
-                        if (d.isVisible() == false) {
-                            return;
-                        }
-                    }
-                    parent = parent.getParent();
-                }
-                MXCountdownTimer.letsCountdown(1000, new Runnable() {
-                    public void run() {
-                        showTimeSpend();
-                    }
-                });
+                jLabelMemory.setText(getMemoryInfo());
+            } catch (RuntimeException ex) {
+                MXFileLogger.getLogger(MX70View.class).log(Level.WARNING, ex.getMessage(), ex);
             }
+            Container parent1 = getParent();
+            while (parent1 != null) {
+                if (parent1 instanceof Window) {
+                    Window w = (Window) parent1;
+                    if (w.isVisible() == false) {
+                        return;
+                    }
+                }
+                if (parent1 instanceof Dialog) {
+                    Dialog d = (Dialog) parent1;
+                    if (d.isVisible() == false) {
+                        return;
+                    }
+                }
+                parent1 = parent1.getParent();
+            }
+            MXCountdownTimer.letsCountdown(1000, () -> {
+                showTimeSpend();
+            });
         });
     }
 
@@ -608,21 +600,18 @@ public class MX70View extends javax.swing.JPanel {
         MXUtil.centerWindow(newFrame);
         newFrame.setVisible(true);
 
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                if (_process._outsideInput.getSize() >= 1) {
-                    jListOutsideInput.ensureIndexIsVisible(_process._outsideInput.getSize() - 1);
-                }
-                if (_process._insideInput.getSize() >= 1) {
-                    jListInsideInput.ensureIndexIsVisible(_process._insideInput.getSize()- 1);
-                }
-                if (_process._insideOutput.getSize() >= 1) {
-                    jListInsideOutput.ensureIndexIsVisible(_process._insideOutput.getSize() - 1);
-                }
-                if (_process._outsideOutput.getSize() >= 1) {
-                    jListOutsideOutput.ensureIndexIsVisible(_process._outsideOutput.getSize()-1);
-                }
+        SwingUtilities.invokeLater(() -> {
+            if (_process._outsideInput.getSize() >= 1) {
+                jListOutsideInput.ensureIndexIsVisible(_process._outsideInput.getSize() - 1);
+            }
+            if (_process._insideInput.getSize() >= 1) {
+                jListInsideInput.ensureIndexIsVisible(_process._insideInput.getSize()- 1);
+            }
+            if (_process._insideOutput.getSize() >= 1) {
+                jListInsideOutput.ensureIndexIsVisible(_process._insideOutput.getSize() - 1);
+            }
+            if (_process._outsideOutput.getSize() >= 1) {
+                jListOutsideOutput.ensureIndexIsVisible(_process._outsideOutput.getSize()-1);
             }
         });
     }

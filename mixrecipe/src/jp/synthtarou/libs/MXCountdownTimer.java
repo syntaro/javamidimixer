@@ -25,45 +25,45 @@ import java.util.logging.Level;
  * @author Syntarou YOSHIDA
  */
 public class MXCountdownTimer {
+
     static class Item {
+
         long tick;
         Runnable action;
     }
-    
+
     ArrayList<Item> _pending;
-    
+
     public static MXCountdownTimer _timer;
-    
+
     static {
         _timer = new MXCountdownTimer();
-        Thread t = new MXSafeThread("MXCountdownTimer", new Runnable() {
-            public void run() {
-                _timer.mysticLoop();
-            }
+        Thread t = new MXSafeThread("MXCountdownTimer", () -> {
+            _timer.mysticLoop();
         });
         t.start();
     }
-    
+
     protected MXCountdownTimer() {
         _pending = new ArrayList<Item>();
     }
-    
+
     public static void letsCountdown(long time, Runnable action) {
         Item i = new Item();
         i.tick = System.currentTimeMillis() + time;
         i.action = action;
-        synchronized(_timer._pending) {
+        synchronized (_timer._pending) {
             _timer._pending.add(i);
             _timer._pending.notify();
         }
     }
-    
+
     public void mysticLoop() {
-        while(true) {
+        while (true) {
             Item pop = null;
             long current = System.currentTimeMillis();
             long nextTick = 60 * 1000 + current;
-            synchronized(_pending) {
+            synchronized (_pending) {
                 for (Item i : _pending) {
                     if (i.tick <= current) {
                         pop = i;
@@ -79,7 +79,7 @@ public class MXCountdownTimer {
                 if (pop == null) {
                     try {
                         _pending.wait(nextTick - current);
-                    }catch(InterruptedException e) {
+                    } catch (InterruptedException e) {
                         break;
                     }
                 }
@@ -87,10 +87,10 @@ public class MXCountdownTimer {
             if (pop != null) {
                 try {
                     pop.action.run();
-                }catch(RuntimeException ex) {
+                } catch (RuntimeException ex) {
                     MXFileLogger.getLogger(MXCountdownTimer.class).log(Level.WARNING, ex.getMessage(), ex);
-                }            
+                }
             }
         }
     }
-}            
+}

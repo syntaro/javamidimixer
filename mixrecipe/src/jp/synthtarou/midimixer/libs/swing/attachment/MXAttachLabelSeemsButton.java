@@ -92,11 +92,9 @@ public class MXAttachLabelSeemsButton {
         if (push) {
             _toInstall.setIcon(new SelectedButtonIcon(_title));
             timer = System.currentTimeMillis();
-            MXCountdownTimer.letsCountdown(100, new Runnable() {
-                public void run() {
-                    if (timer + 100 >= System.currentTimeMillis()) {
-                        _toInstall.setIcon(new ButtonIcon(_title));
-                    }
+            MXCountdownTimer.letsCountdown(100, () -> {
+                if (timer + 100 >= System.currentTimeMillis()) {
+                    _toInstall.setIcon(new ButtonIcon(_title));
                 }
             });
         }else {
@@ -104,11 +102,9 @@ public class MXAttachLabelSeemsButton {
                 _toInstall.setIcon(new ButtonIcon(_title));
             }
             timer = System.currentTimeMillis();
-            MXCountdownTimer.letsCountdown(100, new Runnable() {
-                public void run() {
-                    if (timer + 100 >= System.currentTimeMillis()) {
-                        _toInstall.setIcon(new ButtonIcon(_title));
-                    }
+            MXCountdownTimer.letsCountdown(100, () -> {
+                if (timer + 100 >= System.currentTimeMillis()) {
+                    _toInstall.setIcon(new ButtonIcon(_title));
                 }
             });
         }

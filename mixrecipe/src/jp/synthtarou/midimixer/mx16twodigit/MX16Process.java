@@ -14,8 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.mx11vcurve;
+package jp.synthtarou.midimixer.mx16twodigit;
 
+import jp.synthtarou.midimixer.mx11vcurve.*;
 import javax.swing.JPanel;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
@@ -26,13 +27,13 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
  *
  * @author Syntarou YOSHIDA
  */
-public class MX11Process extends MXReceiver<MX11View> {
-    MX11ViewData _viewData;
+public class MX16Process extends MXReceiver<MX11View> {
+    MX16ViewData _viewData;
     MX11View _view;
     int _type;
 
-    public MX11Process() {
-        _viewData = new MX11ViewData();
+    public MX16Process() {
+        _viewData = new MX16ViewData();
         _view = new MX11View(this);
     }
     

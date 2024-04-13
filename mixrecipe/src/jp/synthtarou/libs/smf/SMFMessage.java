@@ -184,7 +184,7 @@ public class SMFMessage implements Comparable<SMFMessage> {
         return str.toString();
     }
 
-    public MXMessage fromSMFtoMX() {
+    public MXMessage toMXMessage() {
         MXMessage message = null;
         int status = getStatus();
 
@@ -237,7 +237,7 @@ public class SMFMessage implements Comparable<SMFMessage> {
         boolean isProg2 = (o2.getStatus() & 0xf0) == MXMidi.COMMAND_CH_PROGRAMCHANGE;
         boolean isBank1 = (o1.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE && (o1.getData1() == 0 || o1.getData1() == 32);
         boolean isBank2 = (o2.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE && (o2.getData1() == 0 || o2.getData1() == 32);
-
+        
         /* リセットとバンクとプログラムは早めに送信する */
         if (isReset1 && !isReset2) {
             return -1;
@@ -259,7 +259,7 @@ public class SMFMessage implements Comparable<SMFMessage> {
         if (!isBank1 && isBank2) {
             return 1;
         }
-
+        
         int len = o1.getBinary().length - o2.getBinary().length;
         if (len != 0) {
             return len;

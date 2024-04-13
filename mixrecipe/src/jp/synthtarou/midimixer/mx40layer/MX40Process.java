@@ -129,7 +129,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                     if (x >= 128) {
                         x = 127;
                     }
-                    message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_PROGRAMCHANGE + message.getChannel(), x, 0);
+                    message = MXMessageFactory.fromProgramChange(message.getPort(), message.getChannel(), x);
                     command = MXMidi.COMMAND_CH_PROGRAMCHANGE;
                 }
                 if (first == MXMidi.COMMAND2_CH_PROGRAM_DEC) {
@@ -137,7 +137,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                     if (x < 0) {
                         x = 0;
                     }
-                    message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_PROGRAMCHANGE + message.getChannel(), x, 0);
+                    message = MXMessageFactory.fromProgramChange(message.getPort(), message.getChannel(), x);
                     command = MXMidi.COMMAND_CH_PROGRAMCHANGE;
                 }
 
@@ -156,9 +156,10 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                             if (command == MXMidi.COMMAND_CH_NOTEON) {
                                 _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
                                     public void onNoteOffEvent(MXMessage target) {
-                                        MXMessage msg = MXMessageFactory.fromShortMessage(target.getPort(),
-                                                MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(),
-                                                target.getGate()._value, 0);
+                                        MXMessage msg = MXMessageFactory.fromNoteoff(
+                                                target.getPort(), 
+                                                target.getChannel(), 
+                                                target.getGate()._value);
                                         col.processByGroup(msg);
                                     }
                                 });
@@ -172,9 +173,9 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                     if (command == MXMidi.COMMAND_CH_NOTEON) {
                         _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
                             public void onNoteOffEvent(MXMessage target) {
-                                MXMessage msg = MXMessageFactory.fromShortMessage(target.getPort(),
-                                        MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(),
-                                        target.getGate()._value, 0);
+                                MXMessage msg = MXMessageFactory.fromNoteoff(target.getPort(),
+                                        target.getChannel(),
+                                        target.getGate()._value);
                                 //msg._timing = timing;
                                 sendToNext(msg);
                             }
@@ -207,15 +208,12 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
             for (int channel = 0; channel < 16; ++channel) {
                 MXVisitant info = _inputInfo.getVisitant(port, channel);
                 if (info.isHavingProgram()) {
-                    MXMessage programChange = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, info.getProgram(), 0);
+                    MXMessage programChange = MXMessageFactory.fromProgramChange(port, channel, info.getProgram());
                     processMXMessage(programChange);
                 } else {
                     //Tricky way to set Gate -1
                     //TODO Magic Number 
                     /*
-                    MXMessage programChange = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, 0, 0);
-                    programChange.setGate(null);
-                    processMXMessage(programChange);
                      */
                 }
             }

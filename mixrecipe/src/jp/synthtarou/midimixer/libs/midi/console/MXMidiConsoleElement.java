@@ -70,13 +70,9 @@ public class MXMidiConsoleElement{
                     ret.append("|");
                 }
             }
-            if (col == 1) {
-                return "Port: " + port + ", Dump:"+ dump  +" Format:"+ ret;
-            }else {
-                return "Port: " + port + ", Dump:"+ dump  +" Format:"+ ret;
-            }
+            return "Port: " + port+" "+ ret + "[" + dump +"]";
         }else {
-            return "Port: " + port + ", Dump:"+ dump;
+            return "Port: " + port + "["+ dump + "]";
         }
     }
 

@@ -57,7 +57,7 @@ public abstract class MXPopup {
                         return;
                     }
                     setupColor(true);
-                    showPopup(_target);
+                    simpleAskAsync(_target);
                 }catch(RuntimeException ex) {
                     MXFileLogger.getLogger(MXPopup.class).log(Level.WARNING, ex.getMessage(), ex);
                 }finally {
@@ -74,7 +74,7 @@ public abstract class MXPopup {
                 if (e.getKeyCode() == KeyEvent.VK_SPACE || e.getKeyCode() == KeyEvent.VK_ENTER) {
                     try {
                         setupColor(true);
-                        showPopup(_target);
+                        simpleAskAsync(_target);
                     }catch(RuntimeException ex) {
                         MXFileLogger.getLogger(MXPopup.class).log(Level.WARNING, ex.getMessage(), ex);
                     }finally {
@@ -117,11 +117,11 @@ public abstract class MXPopup {
         }
     }
 
-    public abstract void showPopup(JComponent mouseBase);
+    public abstract void simpleAskAsync(JComponent mouseBase);
     
     boolean _hidden = false;
     
-    public synchronized  void popupHiddenAndGoNext() {
+    public synchronized  void hideMenuAndResponse() {
         _hidden = true;
         notifyAll();
     }

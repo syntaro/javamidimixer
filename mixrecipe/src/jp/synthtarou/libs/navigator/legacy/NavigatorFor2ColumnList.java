@@ -18,6 +18,7 @@ package jp.synthtarou.libs.navigator.legacy;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import javax.swing.JCheckBox;
@@ -46,6 +47,13 @@ public class NavigatorFor2ColumnList<T> extends javax.swing.JPanel implements IN
 
     MXNamedObjectList<T> _list;
 
+    public boolean simpleAsk(Container parent) {
+        MXUtil.showAsDialog(parent, this, INavigator.DEFAULT_TITLE);
+        if (getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+            return true;
+        }
+        return false;
+    }
     /**
      * Creates new form NavigatorFor2ColumnList
      */

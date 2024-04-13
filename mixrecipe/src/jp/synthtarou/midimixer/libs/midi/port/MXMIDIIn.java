@@ -73,7 +73,7 @@ public class MXMIDIIn {
     private int _assignCount = 0;
     private boolean[] _toMaster = new boolean[16];
     private MXVisitant16[] _visitant16 = new MXVisitant16[MXConfiguration.TOTAL_PORT_COUNT];
-    
+
     public synchronized MXVisitant getVisitant(int port, int channel) {
         if (_visitant16[port] == null) {
             _visitant16[port] = new MXVisitant16();
@@ -392,25 +392,21 @@ public class MXMIDIIn {
     static MXSafeThread _messageThread = null;
 
     static {
-        _messageThread
-                = new MXSafeThread("MessageProcess", new Runnable() {
-                    @Override
-                    public void run() {
-                        while (true) {
-                            MessageQueueElement e = _messageQueue.pop();
-                            if (e == null) {
-                                break;
-                            }
-                            MXMessage message = e._message;
-                            MXReceiver receiver = e._receiver;
-                            try {
-                                messageToReceiver(message, receiver);
-                            } catch (Throwable ex) {
-                                ex.printStackTrace();;
-                            }
-                        }
-                    }
-                });
+        _messageThread = new MXSafeThread("MessageProcess", () -> {
+            while (true) {
+                MessageQueueElement e = _messageQueue.pop();
+                if (e == null) {
+                    break;
+                }
+                MXMessage message = e._message;
+                MXReceiver receiver = e._receiver;
+                try {
+                    messageToReceiver(message, receiver);
+                } catch (Throwable ex) {
+                    ex.printStackTrace();;
+                }
+            }
+        });
         _messageThread.setPriority(Thread.MAX_PRIORITY);
         _messageThread.setDaemon(true);
         _messageThread.start();
@@ -440,8 +436,8 @@ public class MXMIDIIn {
         int channel = status & 0x0f;
 
         if ((status & 0xf0) == MXMidi.COMMAND_CH_NOTEON) {
-            MXMessage noteon = MXMessageFactory.fromShortMessage(message.getPort(), status, data1, data2);
-            MXMessage noteoff = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_NOTEOFF + message.getChannel(), data1, 0);
+            MXMessage noteon = MXMessageFactory.fromNoteon(message.getPort(), message.getChannel(), data1, 0);
+            MXMessage noteoff = MXMessageFactory.fromNoteoff(message.getPort(), message.getChannel(), data1);
             _myNoteOff.setHandler(noteon, noteoff, new MXNoteOffWatcher.Handler() {
                 @Override
                 public void onNoteOffEvent(MXMessage target) {

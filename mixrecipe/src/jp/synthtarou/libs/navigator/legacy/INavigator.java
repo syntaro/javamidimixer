@@ -23,13 +23,13 @@ import javax.swing.JPanel;
  * @author Syntarou YOSHIDA
  */
 public interface INavigator<T> {
-    public static String DEFAULT_TITLE = "Which is your Choice?";
+    public static String DEFAULT_TITLE = "Plesae Select";
     public static int TYPE_VIEWER = 1;
     public static int TYPE_SELECTOR = 2;
     public static int TYPE_EDITOR = 3;
 
     public int getNavigatorType();
-
+    
     public static int RETURN_STATUS_NOTSET = -1;
     public static int RETURN_STATUS_APPROVED = 5;
     public static int RETURN_STATUS_CANCELED = 6;

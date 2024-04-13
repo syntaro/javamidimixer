@@ -19,7 +19,6 @@ package jp.synthtarou.midimixer.libs.midi;
 import java.util.logging.Level;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXRangedValue;
-import jp.synthtarou.libs.async.Transaction;
 
 /**
  *
@@ -35,7 +34,7 @@ public class MXMessageFactory {
     public MXTemplate[] _cacheCommand = new MXTemplate[256];
     public MXTemplate[] _cacheControlChange = new MXTemplate[256];
     
-    synchronized MXMessage fromDword2(int port, int dword) {
+    synchronized MXMessage fromCached(int port, int dword) {
         int status = (dword >> 16) & 0xff;
         int data1 = (dword >> 8) & 0xff;
         int data2 = dword & 0xff;
@@ -48,13 +47,13 @@ public class MXMessageFactory {
             
             if (command == 0xB0) { //ControlChange
                 if (_cacheControlChange[data1] == null) {
-                    _cacheControlChange[data1] = MXTemplate.fromDword1(dword);
+                    _cacheControlChange[data1] = fromDword1(dword);
                 }
                 found = _cacheControlChange[data1];
             }
             else {
                 if (_cacheCommand[command] == null) {
-                    _cacheCommand[command] = MXTemplate.fromDword1(dword);
+                    _cacheCommand[command] = fromDword1(dword);
                 }
                 found = _cacheCommand[command];
             }
@@ -64,7 +63,7 @@ public class MXMessageFactory {
             int command = status;
             
             if (_cacheCommand[command] == null) {
-                _cacheCommand[command] = MXTemplate.fromDword1(dword);
+                _cacheCommand[command] = fromDword1(dword);
             }
             found = _cacheCommand[command];
         }
@@ -82,6 +81,50 @@ public class MXMessageFactory {
             message = new MXMessage(port, found);
         }
         return message;
+    }
+    
+
+    public static MXTemplate fromDword1(int dword) {
+        int status = (dword >> 16) & 0xff;
+        int data1 = (dword >> 8) & 0xff;
+        int data2 = dword & 0xff;
+        int[] template = null;
+
+        if (status >= 0x80 && status <= 0xef) {
+            status = status & 0xf0;
+            switch (status) {
+                case MXMidi.COMMAND_CH_PITCHWHEEL:
+                    template = new int[]{MXMidi.COMMAND_CH_PITCHWHEEL, MXMidi.CCXML_VL, MXMidi.CCXML_VH};
+                    break;
+                case MXMidi.COMMAND_CH_CHANNELPRESSURE:
+                    template = new int[]{MXMidi.COMMAND_CH_CHANNELPRESSURE, MXMidi.CCXML_VL};
+                    break;
+                case MXMidi.COMMAND_CH_POLYPRESSURE:
+                    template = new int[]{MXMidi.COMMAND_CH_POLYPRESSURE, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
+                    break;
+                case MXMidi.COMMAND_CH_CONTROLCHANGE:
+                    template = new int[]{MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
+                    break;
+                case MXMidi.COMMAND_CH_NOTEON:
+                    template = new int[]{MXMidi.COMMAND_CH_NOTEON, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
+                    break;
+                case MXMidi.COMMAND_CH_NOTEOFF:
+                    template = new int[]{MXMidi.COMMAND_CH_NOTEOFF, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
+                    break;
+                case MXMidi.COMMAND_CH_PROGRAMCHANGE:
+                    template = new int[]{MXMidi.COMMAND_CH_PROGRAMCHANGE, MXMidi.CCXML_GL};
+                    break;
+            }
+        } else {
+            switch (status) {
+                case MXMidi.COMMAND_SYSEX: //sysex
+            }
+        }
+
+        if (template == null) {
+            return null;
+        }
+        return new MXTemplate(template);
     }
     
     static final MXTemplate ZERO = new MXTemplate(new int[]{ MXMidi.COMMAND2_NONE, 0, 0 });
@@ -106,7 +149,7 @@ public class MXMessageFactory {
         }
     }
 
-    public static synchronized MXMessage fromBinary(int port, byte[] data) {
+    public static MXMessage fromBinary(int port, byte[] data) {
         if (data == null || data.length == 0 || data[0] == 0) {
             return null;
         }
@@ -151,6 +194,47 @@ public class MXMessageFactory {
 
     public static MXMessage fromShortMessage(int port, int status, int data1, int data2) {
         int dword = (status << 16) | (data1 << 8) | data2;
-        return _instance.fromDword2(port, dword);
+        return _instance.fromCached(port, dword);
+    }
+
+    static final int [] _cc7bit_int = new int[]{MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
+    static final MXTemplate _cc7bit = new MXTemplate(_cc7bit_int);
+
+    public static MXMessage fromControlChange(int port, int channel, int data1, int data2) {
+        MXMessage message = new MXMessage(port, _cc7bit, channel, MXRangedValue.new7bit(data1), MXRangedValue.new7bit(data2));
+        return message;
+    }
+
+    static final int [] _cc14bit_int = new int[]{MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.CCXML_GL, MXMidi.CCXML_VH, MXMidi.CCXML_VL};
+    static final MXTemplate _cc14bit = new MXTemplate(_cc14bit_int);
+    
+    public static MXMessage fromControlChange14(int port, int channel, int data1, int msb, int lsb) {
+        int data2 = (msb << 7) | lsb;
+        MXMessage message = new MXMessage(port, _cc14bit, channel, MXRangedValue.new7bit(data1), MXRangedValue.new14bit(data2));
+        return message;
+    }
+
+    static final int [] _noteon_int = new int[]{MXMidi.COMMAND_CH_NOTEON, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
+    static final MXTemplate _noteon = new MXTemplate(_noteon_int);
+
+    public static MXMessage fromNoteon(int port, int channel, int note, int velocity) {
+        MXMessage message = new MXMessage(port, _noteon, channel, MXRangedValue.new7bit(note), MXRangedValue.new7bit(velocity));
+        return message;
+    }
+
+    static final int [] _noteoff_int = new int[]{MXMidi.COMMAND_CH_NOTEOFF, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
+    static final MXTemplate _noteoff = new MXTemplate(_noteoff_int);
+
+    public static MXMessage fromNoteoff(int port, int channel, int note) {
+        MXMessage message = new MXMessage(port, _noteoff, channel, MXRangedValue.new7bit(note), MXRangedValue.ZERO7);
+        return message;
+    }
+
+    static final int [] _programchange_int = new int[]{MXMidi.COMMAND_CH_PROGRAMCHANGE, MXMidi.CCXML_GL, 0 };
+    static final MXTemplate _programchange = new MXTemplate(_programchange_int);
+
+    public static MXMessage fromProgramChange(int port, int channel, int program) {
+        MXMessage message = new MXMessage(port, _programchange, channel, MXRangedValue.new7bit(program), MXRangedValue.ZERO7);
+        return message;
     }
 }

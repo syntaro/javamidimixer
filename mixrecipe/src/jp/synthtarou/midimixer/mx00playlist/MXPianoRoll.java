@@ -47,13 +47,10 @@ public class MXPianoRoll extends JComponent {
     boolean _doingPaint = true;
 
     public void setDoingPaint(boolean flag) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                _doingPaint = flag;
-                if (_doingPaint != flag && flag) {
-                    setPosition(_position, true);
-                }
+        SwingUtilities.invokeLater(() -> {
+            _doingPaint = flag;
+            if (_doingPaint != flag && flag) {
+                setPosition(_position, true);
             }
         });
     }
@@ -92,19 +89,15 @@ public class MXPianoRoll extends JComponent {
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        setPosition(_position, true);
-                    }
+                SwingUtilities.invokeLater(() -> {
+                    setPosition(_position, true);
                 });
             }
 
             @Override
             public void componentShown(ComponentEvent e) {
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        setPosition(_position, true);
-                    }
+                SwingUtilities.invokeLater(() -> {
+                    setPosition(_position, true);
                 });
             }
         });
@@ -525,10 +518,8 @@ public class MXPianoRoll extends JComponent {
 
     public void setPosition(long elapsed, boolean clearCache) {
         if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    setPosition(elapsed, clearCache);
-                }
+            SwingUtilities.invokeLater(() -> {
+                setPosition(elapsed, clearCache);
             });
             return;
         }

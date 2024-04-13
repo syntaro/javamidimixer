@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.libs.navigator.legacy;
 
+import java.awt.Container;
 import java.awt.Dimension;
 import javax.swing.JPanel;
 import jp.synthtarou.libs.MXUtil;
@@ -25,6 +26,13 @@ import jp.synthtarou.libs.MXUtil;
  * @author Syntarou YOSHIDA
  */
 public class NavigatorForText extends javax.swing.JPanel implements INavigator<String> {
+    public boolean simpleAsk(Container parent) {
+        MXUtil.showAsDialog(parent, this, INavigator.DEFAULT_TITLE);
+        if (this.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+            return true;
+        }
+        return false;
+    }
     /*
      * Creates new form NavigatorForText
      */

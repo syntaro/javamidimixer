@@ -30,7 +30,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
-import jp.synthtarou.midimixer.ccxml.ui.PickerForControlChange;
+import jp.synthtarou.midimixer.ccxml.ui.NavigatorForCCXMLCC;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.libs.MXUtil;
@@ -138,7 +138,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
 
         new MXPopup(jTextFieldOutData) {
             @Override
-            public void showPopup(JComponent mouseBase) {
+            public void simpleAskAsync(JComponent mouseBase) {
                 startBrowseXML();
             }
         };
@@ -152,13 +152,12 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         };
         new MXPopup(jTextFieldOutGate) {
             @Override
-            public void showPopup(JComponent mouseBase) {
+            public void simpleAskAsync(JComponent mouseBase) {
                 if (_status._outGateTypeKey) {
-                    NavigatorForNote picker = new NavigatorForNote();
-                    picker.setSelectedNoteList(new int[]{_status._outGateRange._value});
-                    MXUtil.showAsDialog(mouseBase, picker, "Note Number");
-                    if (picker.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-                        int[] ret = picker.getReturnValue();
+                    NavigatorForNote navi = new NavigatorForNote();
+                    navi.setSelectedNoteList(new int[]{_status._outGateRange._value});
+                    if (navi.simpleAsk(MX36StatusDetailPanel.this)) {
+                        int[] ret = navi.getReturnValue();
                         if (ret != null && ret.length == 1) {
                             _status._outGateRange = _status._outGateRange.changeValue(ret[0]);
                             showupStatus(_status);
@@ -173,7 +172,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                             showupStatus(_status);
                         }
                     };
-                    sub.showPopup(mouseBase);
+                    sub.simpleAskAsync(mouseBase);
                 }
             }
         };
@@ -264,11 +263,11 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
     }
 
     public void startBrowseXML() {
-        PickerForControlChange picker = new PickerForControlChange();
-        picker.setAllowMultiSelect(true);
-        MXUtil.showAsDialog(this, picker, "Which You Choose? (Multi OK)");
-        if (picker.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-            List<InformationForCCM> ccmList = picker.getReturnValue();
+        NavigatorForCCXMLCC navi = new NavigatorForCCXMLCC();
+        navi.setAllowMultiSelect(true);
+        MXUtil.showAsDialog(this, navi, "Which You Choose? (Multi OK)");
+        if (navi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+            List<InformationForCCM> ccmList = navi.getReturnValue();
             if (ccmList == null) {
                 return;
             }
@@ -1056,7 +1055,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                 jTextFieldValueValue.setText(Integer.toString(value));
             }
 
-        }.showPopup(jTextFieldValueValue);
+        }.simpleAskAsync(jTextFieldValueValue);
     }//GEN-LAST:event_jTextFieldValueValueMousePressed
 
     private void jButtonOutTextClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOutTextClearActionPerformed
@@ -1106,7 +1105,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
             }
         };
         navi.setDialogTitle("Input Folder Name");
-        navi.showPopup(button);
+        navi.simpleAskAsync(button);
         navi.waitForPopupClose();;
         return _newFolderResult;
     }
@@ -1133,7 +1132,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
             }
         };
 
-        navi.showPopup(jButtonMoveFolder);
+        navi.simpleAskAsync(jButtonMoveFolder);
     }//GEN-LAST:event_jButtonMoveFolderActionPerformed
 
     private void jButtonNewInFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNewInFolderActionPerformed
@@ -1159,7 +1158,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
                 showupStatus(_status);
             }
         };
-        navi.showPopup(jButtonNewInFolder);
+        navi.simpleAskAsync(jButtonNewInFolder);
     }//GEN-LAST:event_jButtonNewInFolderActionPerformed
 
     private void jCheckBoxSurfaceReplaceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSurfaceReplaceActionPerformed

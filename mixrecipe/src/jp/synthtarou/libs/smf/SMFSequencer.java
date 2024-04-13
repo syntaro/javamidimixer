@@ -88,29 +88,26 @@ public class SMFSequencer {
             return;
         }
         asyncLock ++;
-        Thread t = new MXSafeThread("SMFPlayer", new Runnable() {
-            @Override
-            public void run() {
-                stopPlayerAsyncAndWait();
-                _callback = callback;
-                _playerThread = Thread.currentThread();
-                _isRunning = true;
-                _callback.smfStarted();
-                _playerThread = Thread.currentThread();
-                try {
-                    asyncLock --;
-                    playWithMilliSeconds(position);
-                } catch (RuntimeException ex) {
-                    MXFileLogger.getLogger(SMFSequencer.class).log(Level.WARNING, ex.getMessage(), ex);
-                } finally {
-                    _isRunning = false;
-                }
-                _callback.smfStoped(_stopPlayer ? false : true);
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    _stopPlayer = true;
-                }
+        Thread t = new MXSafeThread("SMFPlayer", () -> {
+            stopPlayerAsyncAndWait();
+            _callback = callback;
+            _playerThread = Thread.currentThread();
+            _isRunning = true;
+            _callback.smfStarted();
+            _playerThread = Thread.currentThread();
+            try {
+                asyncLock --;
+                playWithMilliSeconds(position);
+            } catch (RuntimeException ex) {
+                MXFileLogger.getLogger(SMFSequencer.class).log(Level.WARNING, ex.getMessage(), ex);
+            } finally {
+                _isRunning = false;
+            }
+            _callback.smfStoped(_stopPlayer ? false : true);
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                _stopPlayer = true;
             }
         });
         t.setDaemon(true);
@@ -499,7 +496,7 @@ public class SMFSequencer {
         if (_recording == false) {
             return;
         }
-        long timing = message._timing;
+        long timing = System.currentTimeMillis();
         if (_startRecord < 0) {
             _startRecord = timing;
         }

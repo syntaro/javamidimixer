@@ -168,13 +168,10 @@ public class MXVisitant16TableModel implements TableModel {
     }
 
     public void invokeListener(Object message) {
-        SwingUtilities.invokeLater(new Runnable(){
-            @Override
-            public void run() {
-                for (TableModelListener l : _listeners) {
-                    TableModelEvent e = new TableModelEvent(MXVisitant16TableModel.this, 0, getRowCount());
-                    l.tableChanged(e);
-                }
+        SwingUtilities.invokeLater(() -> {
+            for (TableModelListener l : _listeners) {
+                TableModelEvent e = new TableModelEvent(MXVisitant16TableModel.this, 0, getRowCount());
+                l.tableChanged(e);
             }
         });
     }

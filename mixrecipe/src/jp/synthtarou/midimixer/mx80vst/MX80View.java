@@ -124,25 +124,22 @@ public class MX80View extends javax.swing.JPanel {
         new MXAttachSliderLikeEclipse(jSliderMasterVolume);
         _initDone = true;
 
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                Container cont = MXUtil.getOwnerWindow(MX80View.this);
-                if (cont != null && cont instanceof JDialog) {
-                    JDialog frame = (JDialog) cont;
-                    frame.addWindowListener(new WindowAdapter() {
-                        @Override
-                        public void windowClosing(WindowEvent e) {
-                            for (VSTInstance vst : MX80Process.getInstance()._listInstrument) {
-                                vst.postCloseVST(null).awaitResult();
-                            }
+        SwingUtilities.invokeLater(() -> {
+            Container cont = MXUtil.getOwnerWindow(MX80View.this);
+            if (cont != null && cont instanceof JDialog) {
+                JDialog frame = (JDialog) cont;
+                frame.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosing(WindowEvent e) {
+                        for (VSTInstance vst : MX80Process.getInstance()._listInstrument) {
+                            vst.postCloseVST(null).awaitResult();
                         }
-
-                        @Override
-                        public void windowClosed(WindowEvent e) {
-                        }
-                    });
-                }
+                    }
+                    
+                    @Override
+                    public void windowClosed(WindowEvent e) {
+                    }
+                });
             }
         });
     }
@@ -767,7 +764,7 @@ public class MX80View extends javax.swing.JPanel {
         updateMainTree();
     }
 
-    MX80Process.Callback _callback = new MX80Process.Callback() {
+    MX80Process.VSTScanCallback _callback = new MX80Process.VSTScanCallback() {
         @Override
         public void vstScanProgress(String text, long hit, long total) {
             jLabelDirectory.setText("Scan " + text + ", " + hit + " / " + total);
@@ -868,29 +865,25 @@ public class MX80View extends javax.swing.JPanel {
     }
 
     public void updateMainTree() {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                TreeModel newModel = MX80View.this.createFolderTreeModel();
-                jTreeMain.setModel(newModel);
-                jTreeMain.setRootVisible(false);
-                jTreeMain.setCellRenderer(new SystemFilRenderer());
-
-                DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) newModel.getRoot();
-                for (int i = 0; i < rootNode.getChildCount(); ++i) {
-                    Object second = rootNode.getChildAt(i);
-                    TreePath path = new TreePath(new Object[]{rootNode, second});
-                    jTreeMain.expandPath(path);
-                }
+        SwingUtilities.invokeLater(() -> {
+            TreeModel newModel = MX80View.this.createFolderTreeModel();
+            jTreeMain.setModel(newModel);
+            jTreeMain.setRootVisible(false);
+            jTreeMain.setCellRenderer(new SystemFilRenderer());
+            
+            DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) newModel.getRoot();
+            for (int i = 0; i < rootNode.getChildCount(); ++i) {
+                Object second = rootNode.getChildAt(i);
+                TreePath path = new TreePath(new Object[]{rootNode, second});
+                jTreeMain.expandPath(path);
             }
         });
     }
 
     public void updateSkipList() {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                ListModel list = MX80View.this.createSkipListModel();
-                jListSkip.setModel(list);
-            }
+        SwingUtilities.invokeLater(() -> {
+            ListModel list = MX80View.this.createSkipListModel();
+            jListSkip.setModel(list);
         });
     }
 
@@ -904,11 +897,8 @@ public class MX80View extends javax.swing.JPanel {
 
     public void updateLoadList() {
         if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    updateLoadList();
-                }
+            SwingUtilities.invokeLater(() -> {
+                updateLoadList();
             });
             return;
         }
@@ -934,11 +924,8 @@ public class MX80View extends javax.swing.JPanel {
 
     public void updateEffectList() {
         if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    updateEffectList();
-                }
+            SwingUtilities.invokeLater(() -> {
+                updateEffectList();
             });
             return;
         }

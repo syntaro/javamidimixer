@@ -286,31 +286,28 @@ public class SysEXFile {
     }
     
     public void sendSysexTo(int port, SysexProgress progress, int splitSize) {
-        new MXSafeThread("SysEXFile", new Runnable() {
-            @Override
-            public void run() {
-                int count = _contents.size();
-                int x = 0;
-                FinalMIDIOut out = FinalMIDIOut.getInstance();
-
-                for (byte[] data : _contents) {
-                    progress.progress(x ++ , count);
-
-                    SysexSplitter split = new SysexSplitter();
-                    split.append(data);
-                    ArrayList<byte[]> arrayData = split.splitOrJoin(0 /* splitSize*/);
-                    for (byte[] data2 : arrayData) {
-                        MXMessage longMessage = MXMessageFactory.fromBinary(port, data2);
-                        MXMIDIIn.messageToReceiverThreaded(longMessage, out);
-                    }
-                    try {
-                        Thread.sleep(100);
-                    }catch(Exception e) {
-
-                    }
+        new MXSafeThread("SysEXFile", () -> {
+            int count = _contents.size();
+            int x = 0;
+            FinalMIDIOut out = FinalMIDIOut.getInstance();
+            
+            for (byte[] data : _contents) {
+                progress.progress(x ++ , count);
+                
+                SysexSplitter split = new SysexSplitter();
+                split.append(data);
+                ArrayList<byte[]> arrayData = split.splitOrJoin(0 /* splitSize*/);
+                for (byte[] data2 : arrayData) {
+                    MXMessage longMessage = MXMessageFactory.fromBinary(port, data2);
+                    MXMIDIIn.messageToReceiverThreaded(longMessage, out);
                 }
-                progress.progress(x, count);
+                try {
+                    Thread.sleep(100);
+                }catch(Exception e) {
+                    
+                }
             }
+            progress.progress(x, count);
         }).start();;
     }
 }

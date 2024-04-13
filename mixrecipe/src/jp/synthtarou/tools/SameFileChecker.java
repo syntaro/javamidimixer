@@ -113,11 +113,8 @@ public class SameFileChecker extends javax.swing.JPanel {
     
     protected void autoAdjust() {
         if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    autoAdjust();;
-                }
+            SwingUtilities.invokeLater(() -> {
+                autoAdjust();;
             });
             return;
         }
@@ -341,49 +338,40 @@ public class SameFileChecker extends javax.swing.JPanel {
         
         File file = new File(jTextFieldRootFolder.getText());
         if (file.isDirectory()) {
-            _thread = new MXSafeThread("FolderScanner", new Runnable() {
-                @Override
-                public void run() {
-                    _cancel = false;
-                    _model = new DefaultListModel<>();
-                    jList1.setModel(_model);
-                    jButtonScan.setText("Stop");
-                    SwingUtilities.invokeLater(new Runnable() {
-                        public void run() {
-                            jProgressBar1.setIndeterminate(true);
+            _thread = new MXSafeThread("FolderScanner", () -> {
+                _cancel = false;
+                _model = new DefaultListModel<>();
+                jList1.setModel(_model);
+                jButtonScan.setText("Stop");
+                SwingUtilities.invokeLater(() -> {
+                    jProgressBar1.setIndeterminate(true);
+                });
+                try {
+                    Scanner scanner = new Scanner(new Scanner.Callback() {
+                        @Override
+                        public boolean progress(long seeked, long queue, long hit, String message) {
+                            long tick = System.currentTimeMillis();
+                            if (tick - dispCounter >= 500) {
+                                dispCounter = tick;
+                                SwingUtilities.invokeLater(() -> {
+                                    jLabel1.setText("seeked: " + seeked + ", hit: " + hit + ", remain: " + queue  + ", seeking: "+ message);
+                                });
+                            }
+                            return _cancel == false;
                         }
                     });
-                    try {
-                        Scanner scanner = new Scanner(new Scanner.Callback() {
-                            @Override
-                            public boolean progress(long seeked, long queue, long hit, String message) {
-                                long tick = System.currentTimeMillis();
-                                if (tick - dispCounter >= 500) {
-                                    dispCounter = tick;
-                                    SwingUtilities.invokeLater(new Runnable() {
-                                        public void run() {
-                                            jLabel1.setText("seeked: " + seeked + ", hit: " + hit + ", remain: " + queue  + ", seeking: "+ message);
-                                        }
-                                    });
-                                }
-                                return _cancel == false;
-                            }
-                        });
-                        scanner.scan(file);
-                    } catch (InterruptedException ex) {
-                        ex.printStackTrace();
-                    } catch (Throwable ex) {
-                        ex.printStackTrace();
-                    } finally {
-                        SwingUtilities.invokeLater(new Runnable() {
-                            public void run() {
-                                jProgressBar1.setIndeterminate(false);
-                                jLabel1.setText("Done");
-                            }
-                        });
-                        _thread = null;
-                        jButtonScan.setText("Scan");
-                    }
+                    scanner.scan(file);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                } catch (Throwable ex) {
+                    ex.printStackTrace();
+                } finally {
+                    SwingUtilities.invokeLater(() -> {
+                        jProgressBar1.setIndeterminate(false);
+                        jLabel1.setText("Done");
+                    });
+                    _thread = null;
+                    jButtonScan.setText("Scan");
                 }
             });
             _thread.start();
@@ -411,8 +399,7 @@ public class SameFileChecker extends javax.swing.JPanel {
         String selected = (String)model.getSelectedItem();
         if (selected.equals(CUSTOM_FIELD)) {
             NavigatorForText text = new NavigatorForText("Input New Type (, seprated)");
-            MXUtil.showAsDialog(jComboBoxFileType, text, "Input New Type");
-            if (text.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+            if (text.simpleAsk(this)) {
                 model.addElement(text.getReturnValue());
                 jComboBoxFileType.setSelectedIndex(model.getSize() - 1);
             }

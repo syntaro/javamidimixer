@@ -134,11 +134,8 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
     public void publishUI(MXRangedValue newValue) {
         MGStatus status = getStatus();
         if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    publishUI(newValue);
-                }
+            SwingUtilities.invokeLater(() -> {
+                publishUI(newValue);
             });
             return;
         }

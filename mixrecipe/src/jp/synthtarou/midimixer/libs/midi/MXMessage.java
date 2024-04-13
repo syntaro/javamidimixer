@@ -42,18 +42,17 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         _progBankLSB = lsb;
     }
 
-    public long _timing = System.currentTimeMillis();
+    public MXMessage _caught;
+    
     private int _port;
-
     private MXRangedValue _value = MXRangedValue.ZERO7;
     private MXRangedValue _gate = MXRangedValue.ZERO7;
     private int _channel = 0;
 
-    protected byte[] _dataBytes = null;
-    private boolean _pairedWith14;
+    private byte[] _dataBytes = null;
 
     private final MXTemplate _template;
-
+   
     public boolean isEmpty() {
         return _template.isEmpty();
     }
@@ -65,10 +64,6 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
             case MXMidi.COMMAND_SYSEX_END:
             case MXMidi.COMMAND_META_OR_RESET:
                 return true;
-            /*
-            case MXMidi.COMMAND2_META:
-            case MXMidi.COMMAND2_SYSTEM:
-                return true;*/
 
             case MXMidi.COMMAND2_CH_RPN:
             case MXMidi.COMMAND2_CH_NRPN:
@@ -79,29 +74,11 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         return false;
     }
 
-    //Utilitie
-    public boolean isPairAbleCC14() {
+    public boolean isPairedWith14() {
         if (isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
-            int cc = getGate()._value;
-            if (cc >= 0 && cc <= 31) {
-                return true;
-            }
+            return (indexOfValueHi() >= 0);
         }
         return false;
-    }
-
-    /**
-     * @return the it14bitCC
-     */
-    public boolean isPairedWith14() {
-        return _pairedWith14;
-    }
-
-    /**
-     * @param value14bit the it14bitCC to set
-     */
-    public void setPairedWith14(boolean value14bit) {
-        this._pairedWith14 = value14bit;
     }
 
     private MXVisitant _visitant;
@@ -115,8 +92,10 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         _dataBytes = null;
     }
 
-    private byte[] createBytes() {
-        _dataBytes = _template.makeBytes(_dataBytes, this);
+    private synchronized byte[] createBytes() {
+        if (_dataBytes == null) {
+            _dataBytes = _template.makeBytes(_dataBytes, this);
+        }
         return _dataBytes;
     }
 
@@ -138,13 +117,14 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         return _port;
     }
 
-    public void setPort(int port) {
+    public synchronized void setPort(int port) {
         if (_port != port) {
             _port = port;
+            _dataBytes = null;
         }
     }
 
-    public int getStatus() {
+    public synchronized int getStatus() {
         if (createBytes() == null) {
             return 0;
         }
@@ -154,22 +134,20 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
 
     public boolean isCommand(int command) {
         int status = getTemplate().get(0);
-        if (status >= 0x80 && status <= 0xef) {
-            if ((status & 0xf0) == command) {
-                return true;
-            }
+        if ((status & 0xf0) == command) {
+            return true;
         }
         return false;
     }
 
-    public void setChannel(int channel) {
+    public synchronized void setChannel(int channel) {
         if (_channel != channel) {
             _dataBytes = null;
             _channel = channel;
         }
     }
 
-    public int getData1() {
+    public synchronized int getData1() {
         if (createBytes() == null) {
             return 0;
         }
@@ -179,7 +157,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         return 0;
     }
 
-    public int getData2() {
+    public synchronized int getData2() {
         if (createBytes() == null) {
             return 0;
         }
@@ -200,7 +178,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         return _value;
     }
 
-    public boolean setValue(MXRangedValue value) {
+    public synchronized boolean setValue(MXRangedValue value) {
         if (_value != null) {
             if (_value.equals(value)) {
                 return false;
@@ -211,7 +189,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         return true;
     }
 
-    public void setValue(int value) {
+    public synchronized void setValue(int value) {
         if (_value._value == value) {
             return;
         }
@@ -223,7 +201,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         return _gate;
     }
 
-    public void setGate(MXRangedValue gate) {
+    public synchronized void setGate(MXRangedValue gate) {
         if (_gate.equals(gate)) {
             return;
         }
@@ -231,7 +209,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         _dataBytes = null;
     }
 
-    public void setGate(int gate) {
+    public synchronized void setGate(int gate) {
         if (_gate._value == gate) {
             return;
         }
@@ -322,14 +300,6 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
             if (code >= 0x80 && code <= 0xef) {
                 return true;
             }
-        }
-        return false;
-    }
-
-    public boolean isDataentryBy2() {
-        if (_template.get(0) == MXMidi.COMMAND2_CH_RPN
-                || _template.get(0) == MXMidi.COMMAND2_CH_NRPN) {
-            return true;
         }
         return false;
     }
@@ -463,7 +433,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
     }
 
     public static void main(String[] args) {
-        MXMessage message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_NOTEON + 0, 64, 127);
+        MXMessage message = MXMessageFactory.fromNoteon(0, 0, 64, 127);
         String dtext = message._template.toDText();
         MXMessage msg = MXMessageFactory.fromTemplate(message.getPort(), new MXTemplate(dtext), message.getChannel(), message.getGate(), message.getValue());
 
@@ -480,7 +450,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         output.println(msg);
         output.println("----------------");
 
-        MXMessage message2 = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + 1, MXMidi.DATA1_CC_CHANNEL_VOLUME, 127);
+        MXMessage message2 = MXMessageFactory.fromControlChange(0, 1, MXMidi.DATA1_CC_CHANNEL_VOLUME, 127);
         output.println(message2);
         String dtext2 = message2._template.toDText();
         MXMessage msg2 = MXMessageFactory.fromTemplate(message2.getPort(), new MXTemplate(dtext2), message2.getChannel(), message2.getGate(), message2.getValue());
@@ -535,25 +505,21 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         if (_template.size() == 0) {
             return 0;
         }
-        if (_template.get(0) == MXMidi.COMMAND2_CH_RPN
-                || _template.get(0) == MXMidi.COMMAND2_CH_NRPN) {
+        int command = _template.get(0) & 0xfff0;
+        if (command  == MXMidi.COMMAND2_CH_RPN || command == MXMidi.COMMAND2_CH_NRPN) {
             return 4;
         }
-        if ((getStatus() & 0xf0) == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
-            if (_progBankLSB >= 0 & _progBankMSB >= 0) {
+        if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
+            if (_progBankLSB >= 0 && _progBankMSB >= 0) {
                 return 3;
             }
         }
-        /*
-        if (isDataentryByCC()) {
-            MXVisitant visit = getVisitant();
-            if (visit != null) {
-                if (visit.getFlushedDataentry() != null) {
-                    return 4;
-                }
+        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+            if (indexOfValueHi() >= 0) {
+                return 2;
             }
-            return -1;
-        }*/
+            return 1;
+        }
         if (isBinaryMessage()) {
             return 0;
         }
@@ -564,7 +530,8 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
     }
 
     public int getAsDword(int column) {
-        if (isDataentryBy2()) {
+        int command = _template.get(0) & 0xfff0;
+        if (command  == MXMidi.COMMAND2_CH_RPN || command  == MXMidi.COMMAND2_CH_NRPN) {
             switch (column) {
                 case 0:
                     return toDataroomMSB1();
@@ -577,7 +544,24 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
             }
             return 0;
         }
-        if ((getStatus() & 0xf0) == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
+        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+            if (indexOfValueHi() >= 0) {
+                if (column == 0) {
+                    int status = getStatus();
+                    int data1 = getData1();
+                    int data2 = getValue()._value >> 7;
+                    return (status << 16) | (data1 << 8) | data2;
+                }
+                else {
+                    int status = getStatus();
+                    int data1 = getData1() + 0x20;
+                    int data2 = getValue()._value & 0x7f;
+                    return (status << 16) | (data1 << 8) | data2;
+                }
+            }
+            return 1;
+        }
+        if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
             if (_progBankLSB >= 0 & _progBankMSB >= 0) {
                 if (column == 0) {
                     int status = getStatus();
@@ -781,16 +765,16 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         MXMessage message;
         message = new MXMessage(_port, _template, _channel, _gate, _value);
 
-        message._timing = _timing;
-
         message._visitant = _visitant;
-        message._pairedWith14 = _pairedWith14;
 
         return message;
     }
 
     public MXMessage refillGate() {
         MXTemplate temp = _template;
+        int command = temp.get(0) & 0xff80;
+        int channel = temp.get(0) & 0x0f;
+        
         switch (temp.get(0)) {
             case MXMidi.COMMAND_CH_NOTEON: // noteon
             case MXMidi.COMMAND_CH_NOTEOFF: // noteoff
@@ -799,18 +783,15 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
             case MXMidi.COMMAND_CH_PROGRAMCHANGE: // progrramChange
                 if ((temp.get(1) & 0xff00) == 0) {
                     int[] newTemplate = new int[]{
-                        temp.get(0),
+                        command,
                         MXMidi.CCXML_GL,
                         temp.get(2)
                     };
                     int newGate = temp.get(1);
                     MXTemplate newTemp = new MXTemplate(newTemplate);
                     MXMessage message = new MXMessage(_port, newTemp, _channel, MXRangedValue.new7bit(newGate), _value);
-
-                    message._timing = this._timing;
-
                     message.setVisitant(getVisitant());
-                    message.setPairedWith14(isPairedWith14());
+                    message.setChannel(getChannel());
 
                     return message;
                 }

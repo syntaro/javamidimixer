@@ -41,11 +41,8 @@ public class VSTFolder {
         
     }
     
-    private Callback _callback = new Callback() {
-        @Override
-        public void seekingCallback(String text, long hit, long total) {
-            System.out.println(hit + " / " + total + " = " + text);
-        }
+    private Callback _callback = (String text, long hit, long total) -> {
+        System.out.println(hit + " / " + total + " = " + text);
     };
     
     public static void main(String args[]) {

@@ -26,7 +26,7 @@ import java.util.logging.Level;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
-import jp.synthtarou.midimixer.ccxml.ui.PickerForControlChange;
+import jp.synthtarou.midimixer.ccxml.ui.NavigatorForCCXMLCC;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -61,7 +61,7 @@ public class MXResolutionView extends javax.swing.JPanel {
         } catch (Exception e) {
         }
 
-        if (command == MXMidi.COMMAND_CH_CHANNELPRESSURE || command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF) {
+        if (command == MXMidi.COMMAND_CH_POLYPRESSURE || command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF) {
             _currentGateModel = _keyGateModel;
         } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
             _currentGateModel = _ccGateModel;
@@ -93,7 +93,7 @@ public class MXResolutionView extends javax.swing.JPanel {
 
         new MXPopup(jTextFieldCommand) {
             @Override
-            public void showPopup(JComponent mouseBase) {
+            public void simpleAskAsync(JComponent mouseBase) {
                 startEditCommand();
                 displayResolutionToPanel();
             }
@@ -136,7 +136,7 @@ public class MXResolutionView extends javax.swing.JPanel {
         };
         new MXPopup(jTextFieldGate) {
             @Override
-            public void showPopup(JComponent mouseBase) {
+            public void simpleAskAsync(JComponent mouseBase) {
                 MXNamedObjectList<Integer> gateTable =  _currentGateModel;
                 if (gateTable != null) {
                     MXPopupForList<Integer> popup = new MXPopupForList(null, gateTable) {
@@ -156,7 +156,7 @@ public class MXResolutionView extends javax.swing.JPanel {
                         }
                     };
                     popup.setSelectedIndex(gateTable.indexOfValue(_resolution._gate));
-                    popup.showPopup(mouseBase);
+                    popup.simpleAskAsync(mouseBase);
                 }
             }
         };
@@ -329,13 +329,13 @@ public class MXResolutionView extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonRemoveActionPerformed
 
     public void startEditCommand() {
-        PickerForControlChange picker = new PickerForControlChange();
-        MXUtil.showAsDialog(this, picker, "Picker");
-        if (picker.getReturnStatus() != INavigator.RETURN_STATUS_APPROVED) {
+        NavigatorForCCXMLCC navi = new NavigatorForCCXMLCC();
+        MXUtil.showAsDialog(this, navi, "Picker");
+        if (navi.getReturnStatus() != INavigator.RETURN_STATUS_APPROVED) {
             return;
         }
 
-        List<InformationForCCM> ccmList = picker.getReturnValue();
+        List<InformationForCCM> ccmList = navi.getReturnValue();
         InformationForCCM ccm = null;
         if (ccmList != null && ccmList.isEmpty() == false) {
             ccm = ccmList.getFirst();
@@ -376,11 +376,8 @@ public class MXResolutionView extends javax.swing.JPanel {
 
     public void updateMonitor(int original, int translated) {
         if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    updateMonitor(original, translated);
-                }
+            SwingUtilities.invokeLater(() -> {
+                updateMonitor(original, translated);
             });
             return;
         }

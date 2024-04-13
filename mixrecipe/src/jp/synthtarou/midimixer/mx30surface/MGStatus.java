@@ -175,7 +175,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
 
         if ((_base.getTemplate().get(0) & 0xfff0) == MXMidi.COMMAND_CH_NOTEON) {
             if ((message.getTemplate().get(0) & 0xfff0) == MXMidi.COMMAND_CH_NOTEOFF) {
-                message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_NOTEON + message.getChannel(), message.getData1(), 0);
+                message = MXMessageFactory.fromNoteon(message.getPort(), message.getChannel(), message.getData1(), 0);
             }
         }
         MXRangedValue value = _base.catchValue(message);

@@ -20,7 +20,7 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
-import jp.synthtarou.midimixer.ccxml.ui.PickerForControlChange;
+import jp.synthtarou.midimixer.ccxml.ui.NavigatorForCCXMLCC;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.navigator.legacy.INavigator;
 
@@ -29,24 +29,23 @@ import jp.synthtarou.libs.navigator.legacy.INavigator;
  * @author Syntarou YOSHIDA
  */
 public abstract class MXPopupForCCFromXML extends  MXPopup {
-    PickerForControlChange _picker; 
+    NavigatorForCCXMLCC _navi; 
     
     public MXPopupForCCFromXML(JTextField target) {
         super(target);
     }
 
     @Override
-    public void showPopup(JComponent mouseBase) {
-        _picker = new PickerForControlChange();
-        _picker.setAllowMultiSelect(false);
-        MXUtil.showAsDialog(mouseBase, _picker, _dialogTitle);
-        if (_picker.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
-            List<InformationForCCM> parser = _picker.getReturnValue();
+    public void simpleAskAsync(JComponent mouseBase) {
+        _navi = new NavigatorForCCXMLCC();
+        MXUtil.showAsDialog(mouseBase, _navi, _dialogTitle);
+        if (_navi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+            List<InformationForCCM> parser = _navi.getReturnValue();
             if (parser.isEmpty() == false) {
                 approvedCC(parser.get(0));
             }
         }
-        popupHiddenAndGoNext();
+        hideMenuAndResponse();
     }
     
     public abstract void approvedCC(InformationForCCM parser);

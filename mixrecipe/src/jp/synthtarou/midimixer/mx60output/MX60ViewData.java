@@ -93,13 +93,13 @@ public class MX60ViewData extends MX10ViewData {
 
             @Override
             public void smfPlayNote(SMFMessage e) {
-                MXMessage message = e.fromSMFtoMX();
+                MXMessage message = e.toMXMessage();
                 if (message == null) {
                     return;
                 }
                 synchronized (MXTiming.mutex) {
                     if (message.isCommand(MXMidi.COMMAND_CH_NOTEON) && message.getData2() == 0) {
-                        message = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_NOTEOFF + message.getChannel(), message.getData1(), 0);
+                        message = MXMessageFactory.fromNoteoff(message.getPort(),  message.getChannel(), message.getData1());
                     }
                     if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
                         if (_noteOff.raiseHandler(message.getPort(), message.getChannel(), message.getData1())) {
@@ -110,11 +110,10 @@ public class MX60ViewData extends MX10ViewData {
                         _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
                             @Override
                             public void onNoteOffEvent(MXMessage target) {
-                                MXMessage noteOff = MXMessageFactory.fromShortMessage(
+                                MXMessage noteOff = MXMessageFactory.fromNoteoff(
                                         target.getPort(), 
-                                        MXMidi.COMMAND_CH_NOTEOFF + target.getChannel(), 
-                                        target.getData1(), 
-                                        0);
+                                        target.getChannel(), 
+                                        target.getData1());
                                 _process.sendToNext(target);
                             }
                         });

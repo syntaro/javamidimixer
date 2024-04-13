@@ -705,49 +705,6 @@ public class MXTemplate implements Comparable<MXTemplate> {
         }
     }
 
-    public static MXTemplate fromDword1(int dword) {
-        int status = (dword >> 16) & 0xff;
-        int data1 = (dword >> 8) & 0xff;
-        int data2 = dword & 0xff;
-        int[] template = null;
-
-        if (status >= 0x80 && status <= 0xef) {
-            status = status & 0xf0;
-            switch (status) {
-                case MXMidi.COMMAND_CH_PITCHWHEEL:
-                    template = new int[]{MXMidi.COMMAND_CH_PITCHWHEEL, MXMidi.CCXML_VL, MXMidi.CCXML_VH};
-                    break;
-                case MXMidi.COMMAND_CH_CHANNELPRESSURE:
-                    template = new int[]{MXMidi.COMMAND_CH_CHANNELPRESSURE, MXMidi.CCXML_VL};
-                    break;
-                case MXMidi.COMMAND_CH_POLYPRESSURE:
-                    template = new int[]{MXMidi.COMMAND_CH_POLYPRESSURE, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
-                    break;
-                case MXMidi.COMMAND_CH_CONTROLCHANGE:
-                    template = new int[]{MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
-                    break;
-                case MXMidi.COMMAND_CH_NOTEON:
-                    template = new int[]{MXMidi.COMMAND_CH_NOTEON, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
-                    break;
-                case MXMidi.COMMAND_CH_NOTEOFF:
-                    template = new int[]{MXMidi.COMMAND_CH_NOTEOFF, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
-                    break;
-                case MXMidi.COMMAND_CH_PROGRAMCHANGE:
-                    template = new int[]{MXMidi.COMMAND_CH_PROGRAMCHANGE, MXMidi.CCXML_GL};
-                    break;
-            }
-        } else {
-            switch (status) {
-                case MXMidi.COMMAND_SYSEX: //sysex
-            }
-        }
-
-        if (template == null) {
-            return null;
-        }
-        return new MXTemplate(template);
-    }
-
     /**
      * dataを読み込んでメッセージ型に、ch, gate, valueをセットして返す
      * @param port

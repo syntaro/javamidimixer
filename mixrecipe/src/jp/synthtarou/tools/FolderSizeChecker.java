@@ -348,44 +348,37 @@ public class FolderSizeChecker extends javax.swing.JPanel {
         }
         File file = new File(jTextFieldRootFolder.getText());
         if (file.isDirectory()) {
-            _thread = new MXSafeThread("FolderScanner", new Runnable() {
-                @Override
-                public void run() {
-                    _cancel = false;
-                    _model = new DefaultTreeModel(new DefaultMutableTreeNode(null));
-                    jTreeFiles.setModel(_model);
-                    jButtonScan.setText("Stop");
-                    SwingUtilities.invokeLater(new Runnable() {
-                        public void run() {
-                            jProgressBar1.setIndeterminate(true);
+            _thread = new MXSafeThread("FolderScanner", () -> {
+                _cancel = false;
+                _model = new DefaultTreeModel(new DefaultMutableTreeNode(null));
+                jTreeFiles.setModel(_model);
+                jButtonScan.setText("Stop");
+                SwingUtilities.invokeLater(() -> {
+                    jProgressBar1.setIndeterminate(true);
+                });
+                try {
+                    Scanner scanner = new Scanner(new Scanner.Callback() {
+                        @Override
+                        public boolean addEntry(File file, long size) {
+                            SwingUtilities.invokeLater(new Runnable() {
+                                public void run() {
+                                    addToTree(file, size);
+                                }
+                            });
+                            return _cancel == false;
                         }
                     });
-                    try {
-                        Scanner scanner = new Scanner(new Scanner.Callback() {
-                            @Override
-                            public boolean addEntry(File file, long size) {
-                                SwingUtilities.invokeLater(new Runnable() {
-                                    public void run() {
-                                        addToTree(file, size);
-                                    }
-                                });
-                                return _cancel == false;
-                            }
-                        });
-                        scanner.scan(file);
-                    } catch (InterruptedException ex) {
-                        ex.printStackTrace();
-                    } catch (Throwable ex) {
-                        ex.printStackTrace();
-                    } finally {
-                        SwingUtilities.invokeLater(new Runnable() {
-                            public void run() {
-                                jProgressBar1.setIndeterminate(false);
-                            }
-                        });
-                        _thread = null;
-                        jButtonScan.setText("Scan");
-                    }
+                    scanner.scan(file);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                } catch (Throwable ex) {
+                    ex.printStackTrace();
+                } finally {
+                    SwingUtilities.invokeLater(() -> {
+                        jProgressBar1.setIndeterminate(false);
+                    });
+                    _thread = null;
+                    jButtonScan.setText("Scan");
                 }
             });
             _thread.start();

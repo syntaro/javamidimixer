@@ -327,17 +327,14 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
         if (status._folder.isSelected() == false) {
             return null;
         }
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                if (_view._detailPanel._status == status) {
-                    _view._detailPanel.repaintDetailSliderStatus();
-                }
-                if (status._folder != null) {
-                    status._folder.repaintStatus(status);
-                }
-                //_view.tabActivated();
+        SwingUtilities.invokeLater(() -> {
+            if (_view._detailPanel._status == status) {
+                _view._detailPanel.repaintDetailSliderStatus();
             }
+            if (status._folder != null) {
+                status._folder.repaintStatus(status);
+            }
+            //_view.tabActivated();
         });
         status._outValueRange = value;
         return status.createOutMessage();

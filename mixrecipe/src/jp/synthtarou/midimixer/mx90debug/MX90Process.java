@@ -59,13 +59,13 @@ public class MX90Process extends MXReceiver<MX90View> {
         MXFileLogger.getLogger(MX90Process.class).info("Testing Program Change");
         for (int ch = 0; ch < 16; ++ch) {
             int pg = random(128);
-            MXMessage program = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_PROGRAMCHANGE + ch, pg, 0);
+            MXMessage program = MXMessageFactory.fromProgramChange(0, ch, pg);
             new MXDebugSame(program);
         }
         MXFileLogger.getLogger(MX90Process.class).info("Testing Volume");
         for (int ch = 0; ch < 16; ++ch) {
             int vol = random(128);
-            MXMessage volume = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + ch, MXMidi.DATA1_CC_CHANNEL_VOLUME, vol);
+            MXMessage volume = MXMessageFactory.fromControlChange(0,  ch, MXMidi.DATA1_CC_CHANNEL_VOLUME, vol);
             new MXDebugSame(volume);
         }
         MXFileLogger.getLogger(MX90Process.class).info("Testing Note 2");
@@ -73,9 +73,9 @@ public class MX90Process extends MXReceiver<MX90View> {
             int port = 0;
             int channel = random(16);
 
-            MXMessage noteOn = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEON + channel, i, 100);
+            MXMessage noteOn = MXMessageFactory.fromNoteon(port, channel, i, 100);
             new MXDebugSame(noteOn);
-            MXMessage noteOff = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + channel, i, 0);
+            MXMessage noteOff = MXMessageFactory.fromNoteoff(port, channel, i);
             new MXDebugSame(noteOff);
         }
         MXFileLogger.getLogger(MX90Process.class).info("Testing Random Note");
@@ -84,9 +84,9 @@ public class MX90Process extends MXReceiver<MX90View> {
                 int channel = random(16);
                 int note = random(50) + 50;
 
-                MXMessage noteOn = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEON + channel, note, 100);
+                MXMessage noteOn = MXMessageFactory.fromShortMessage(port, channel, note, 100);
                 new MXDebugSame(noteOn);
-                MXMessage noteOff = MXMessageFactory.fromShortMessage(port, MXMidi.COMMAND_CH_NOTEOFF + channel, note, 0);
+                MXMessage noteOff = MXMessageFactory.fromShortMessage(port,channel, note, 0);
                 new MXDebugSame(noteOff);
             }
         }

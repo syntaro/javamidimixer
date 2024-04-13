@@ -29,7 +29,7 @@ public class MXQueue<T> {
 
     LinkedList<T> _queue;
     boolean _quit;
-    
+
     public MXQueue() {
         _queue = new LinkedList<T>();
         _quit = false;
@@ -39,17 +39,17 @@ public class MXQueue<T> {
         _queue.add(obj);
         notifyAll();
     }
-    
+
     public synchronized boolean isEmpty() {
         return _queue.isEmpty();
     }
-    
+
     public synchronized T pop() {
-        while(true) {
+        while (true) {
             while (_queue.isEmpty() && !_quit) {
                 try {
                     wait(100);
-                }catch(InterruptedException ex) {
+                } catch (InterruptedException ex) {
                     return null;
                 }
             }
@@ -63,57 +63,53 @@ public class MXQueue<T> {
             }
         }
     }
-    
+
     public synchronized void quit() {
         _quit = true;
         notifyAll();
     }
-    
+
     public static void main(String[] args) {
         final MXQueue<Integer> que = new MXQueue<Integer>();
-        new MXSafeThread("MXQueue1", new Runnable() {
-            public void run() {
-                while(true) {
-                    try {
-                        Integer value = que.pop();
-                        if (value == null) {
-                           System.out.println("Thread burn!");
-                           que.quit();
-                           break;
-                        }
-                        System.out.println("Thread got " + value);
-                        if (value == 100) {
-                           System.out.println("Thread bingo!");
-                           que.quit();
-                           break;
-                        }
-                        try {
-                            Thread.sleep(70);
-                        } catch (InterruptedException ex) {
-                            MXFileLogger.getLogger(MXQueue.class).log(Level.WARNING, ex.getMessage(), ex);
-                            break;
-                        }
-                    }catch(RuntimeException ex) {
-                        MXFileLogger.getLogger(MXQueue.class).log(Level.WARNING, ex.getMessage(), ex);
+        new MXSafeThread("MXQueue1", () -> {
+            while (true) {
+                try {
+                    Integer value = que.pop();
+                    if (value == null) {
+                        System.out.println("Thread burn!");
+                        que.quit();
+                        break;
                     }
-                }
-            }
-        }).start();
-        new MXSafeThread("MXQuque1-1", new Runnable() {
-            public void run() {
-                for (int i = 0; i <= 100; ++ i) {
-                    que.push(i);
+                    System.out.println("Thread got " + value);
+                    if (value == 100) {
+                        System.out.println("Thread bingo!");
+                        que.quit();
+                        break;
+                    }
                     try {
-                        Thread.sleep(60);
+                        Thread.sleep(70);
                     } catch (InterruptedException ex) {
                         MXFileLogger.getLogger(MXQueue.class).log(Level.WARNING, ex.getMessage(), ex);
                         break;
                     }
+                } catch (RuntimeException ex) {
+                    MXFileLogger.getLogger(MXQueue.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
         }).start();
-        
-        while(true) {
+        new MXSafeThread("MXQuque1-1", () -> {
+            for (int i = 0; i <= 100; ++i) {
+                que.push(i);
+                try {
+                    Thread.sleep(60);
+                } catch (InterruptedException ex) {
+                    MXFileLogger.getLogger(MXQueue.class).log(Level.WARNING, ex.getMessage(), ex);
+                    break;
+                }
+            }
+        }).start();
+
+        while (true) {
             Integer value = que.pop();
             if (value == null) {
                 System.out.println("Main burn!");

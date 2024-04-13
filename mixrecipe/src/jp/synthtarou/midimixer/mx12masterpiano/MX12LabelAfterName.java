@@ -17,11 +17,10 @@
 package jp.synthtarou.midimixer.mx12masterpiano;
 
 import javax.swing.SpinnerNumberModel;
-import jp.synthtarou.libs.MXUtil;
-import jp.synthtarou.midimixer.MXConfiguration;
-import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
+import jp.synthtarou.midimixer.MXMain;
+import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 
 /**
  *
@@ -30,16 +29,20 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
 public class MX12LabelAfterName extends javax.swing.JPanel {
 
     MX12Process _process;
-    
+    int _stopFeedback = 1;
+
+    MXNamedObjectList<MXReceiver> _modelReceiver;
+    MXNamedObjectList<Integer> _modelPort;
+    MXNamedObjectList<Integer> _modelChannel;
+
     /**
      * Creates new form MX12LabelAfterName
      */
     public MX12LabelAfterName(MX12Process process) {
         initComponents();
         _process = process;
-        jSpinnerCCNumber.setModel(new SpinnerNumberModel(7, 0, 127, 1));
-        jSpinnerCCValue.setModel(new SpinnerNumberModel(127, 0, 127, 1));
-         viewMeanOfCC();        
+
+        _stopFeedback--;
     }
 
     /**
@@ -53,125 +56,173 @@ public class MX12LabelAfterName extends javax.swing.JPanel {
         java.awt.GridBagConstraints gridBagConstraints;
 
         jLabel1 = new javax.swing.JLabel();
+        jComboBoxReciever = new javax.swing.JComboBox<>();
+        jComboBoxPort = new javax.swing.JComboBox<>();
+        jLabel3 = new javax.swing.JLabel();
+        jComboBoxChannel = new javax.swing.JComboBox<>();
+        jLabel4 = new javax.swing.JLabel();
+        jSpinnerMouseVelocity = new javax.swing.JSpinner();
         jLabel2 = new javax.swing.JLabel();
-        jSpinnerCCNumber = new javax.swing.JSpinner();
-        jSpinnerCCValue = new javax.swing.JSpinner();
-        jLabelCCMean = new javax.swing.JLabel();
-        jButtonSendCCNow = new javax.swing.JButton();
-        jButtonEdit = new javax.swing.JButton();
+        jLabelAuto = new javax.swing.JLabel();
 
         setLayout(new java.awt.GridBagLayout());
 
-        jLabel1.setText("Send Custom CC");
+        jLabel1.setText("Receiver");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         add(jLabel1, gridBagConstraints);
 
-        jLabel2.setText("Value");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 0;
-        add(jLabel2, gridBagConstraints);
-
-        jSpinnerCCNumber.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                jSpinnerCCNumberStateChanged(evt);
+        jComboBoxReciever.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxRecieverActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
-        add(jSpinnerCCNumber, gridBagConstraints);
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(jComboBoxReciever, gridBagConstraints);
 
-        jSpinnerCCValue.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                jSpinnerCCValueStateChanged(evt);
+        jComboBoxPort.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxPortActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
         gridBagConstraints.gridy = 0;
-        add(jSpinnerCCValue, gridBagConstraints);
-
-        jLabelCCMean.setText("=");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 7;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        add(jLabelCCMean, gridBagConstraints);
+        add(jComboBoxPort, gridBagConstraints);
 
-        jButtonSendCCNow.setText("SendNow");
-        jButtonSendCCNow.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonSendCCNowActionPerformed(evt);
-            }
-        });
+        jLabel3.setText("Channel");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 6;
         gridBagConstraints.gridy = 0;
-        add(jButtonSendCCNow, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(jLabel3, gridBagConstraints);
 
-        jButtonEdit.setText("Customize");
-        jButtonEdit.addActionListener(new java.awt.event.ActionListener() {
+        jComboBoxChannel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonEditActionPerformed(evt);
+                jComboBoxChannelActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 7;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(jComboBoxChannel, gridBagConstraints);
+
+        jLabel4.setText("Velocity(Mouse)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 8;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        add(jButtonEdit, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(jLabel4, gridBagConstraints);
+
+        jSpinnerMouseVelocity.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                jSpinnerMouseVelocityStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 9;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        add(jSpinnerMouseVelocity, gridBagConstraints);
+
+        jLabel2.setText("Port");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(jLabel2, gridBagConstraints);
+
+        jLabelAuto.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        add(jLabelAuto, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jSpinnerCCNumberStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinnerCCNumberStateChanged
-        viewMeanOfCC();
-    }//GEN-LAST:event_jSpinnerCCNumberStateChanged
+    private void jComboBoxRecieverActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxRecieverActionPerformed
+        if (_stopFeedback > 0) {
+            return;
+        }
+        int index = jComboBoxReciever.getSelectedIndex();
+        MXReceiver receiver = _modelReceiver.valueOfIndex(index);
+        _process.setNextReceiver(receiver);
+        updateReceiverName();
+    }//GEN-LAST:event_jComboBoxRecieverActionPerformed
 
-    private void jSpinnerCCValueStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinnerCCValueStateChanged
-        viewMeanOfCC();
-    }//GEN-LAST:event_jSpinnerCCValueStateChanged
+    private void jComboBoxPortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxPortActionPerformed
+        if (_stopFeedback > 0) {
+            return;
+        }
+        int index = jComboBoxPort.getSelectedIndex();
+        int port = _modelPort.valueOfIndex(index);
+        _process._mousePort = port;
+    }//GEN-LAST:event_jComboBoxPortActionPerformed
 
-    private void jButtonSendCCNowActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSendCCNowActionPerformed
-        sendCC();
-    }//GEN-LAST:event_jButtonSendCCNowActionPerformed
+    private void jComboBoxChannelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxChannelActionPerformed
+        if (_stopFeedback > 0) {
+            return;
+        }
+        int index = jComboBoxChannel.getSelectedIndex();
+        int channel = _modelChannel.valueOfIndex(index);
+        _process._mouseChannel = channel;
+     }//GEN-LAST:event_jComboBoxChannelActionPerformed
 
-    private void jButtonEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEditActionPerformed
-        // TODO add your handling code here:
-        MX12MasterPanelEditor editor = new MX12MasterPanelEditor(_process);
-        MXUtil.showAsDialog(this, editor, MXConfiguration.MX_APPLICATION);
-    }//GEN-LAST:event_jButtonEditActionPerformed
+    private void jSpinnerMouseVelocityStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinnerMouseVelocityStateChanged
+        if (_stopFeedback > 0) {
+            return;
+        }
+        int velocity = (int)jSpinnerMouseVelocity.getValue();
+        _process._mouseVelocity = velocity;
+     }//GEN-LAST:event_jSpinnerMouseVelocityStateChanged
 
-    public void viewMeanOfCC() {
-        int ccNumber = (Integer)jSpinnerCCNumber.getValue();
-        int ccValue = (Integer)jSpinnerCCValue.getValue();
-        String name = MXMidi.nameOfControlChange(ccNumber);
-        String text = "CC#" + ccNumber + "[" + name + "] = "+ ccValue;
-        jLabelCCMean.setText(text);
+    public void updateReceiverName() {
+        StringBuffer info = new StringBuffer();
+        if (_process.getNextReceiver() != null) {
+            jLabelAuto.setText("");
+        } else {
+            MXReceiver autoRec = MXMain.getMain().getAutoSendableReceiver();
+            String name = "(auto=" + autoRec.getReceiverName() + ")";
+            jLabelAuto.setText(name);
+        }
     }
-
-    public void sendCC() {
-        int ccNumber = (Integer)jSpinnerCCNumber.getValue();
-        int ccValue = (Integer)jSpinnerCCValue.getValue();
-        MXMessage mesasge = MXMessageFactory.fromShortMessage(_process.getMousePort(), MXMidi.COMMAND_CH_CONTROLCHANGE + _process.getMouseChannel(), ccNumber, ccValue);
-        _process.sentMessageByMouse(mesasge);
-    }
-
-    public void setButtonText(String text) {
-        jButtonEdit.setText(text);
+    
+    public void reloadSetting() {
+        _stopFeedback ++;
+        try {
+            updateReceiverName();
+            
+            _modelReceiver = MXMain.getMain().listSendableReceiver();
+            _modelPort = MXNamedObjectListFactory.listupPort(null);
+            _modelChannel= MXNamedObjectListFactory.listupChannel(null);
+            
+            jComboBoxPort.setModel(_modelPort);
+            jComboBoxPort.setSelectedIndex(_modelPort.indexOfValue(_process._mousePort));
+            jComboBoxChannel.setModel(_modelChannel);
+            jComboBoxChannel.setSelectedIndex(_modelChannel.indexOfValue(_process._mouseChannel));
+            jComboBoxReciever.setModel(_modelReceiver);
+            jComboBoxReciever.setSelectedIndex(_modelReceiver.indexOfValue(_process.getNextReceiver()));
+            jSpinnerMouseVelocity.setModel(new SpinnerNumberModel(_process._mouseVelocity, 0, 127, 1));
+        }
+        finally {
+            _stopFeedback --;
+        }
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButtonEdit;
-    private javax.swing.JButton jButtonSendCCNow;
+    private javax.swing.JComboBox<String> jComboBoxChannel;
+    private javax.swing.JComboBox<String> jComboBoxPort;
+    private javax.swing.JComboBox<String> jComboBoxReciever;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabelCCMean;
-    private javax.swing.JSpinner jSpinnerCCNumber;
-    private javax.swing.JSpinner jSpinnerCCValue;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabelAuto;
+    private javax.swing.JSpinner jSpinnerMouseVelocity;
     // End of variables declaration//GEN-END:variables
 }

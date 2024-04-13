@@ -20,6 +20,7 @@ import jp.synthtarou.midimixer.ccxml.xml.CXXMLManager;
 import jp.synthtarou.midimixer.ccxml.xml.CXNode;
 import jp.synthtarou.midimixer.ccxml.xml.CXFile;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,18 +42,27 @@ import jp.synthtarou.libs.navigator.legacy.INavigator;
  *
  * @author Syntarou YOSHIDA
  */
-public class PickerForControlChange extends javax.swing.JPanel implements INavigator<List<InformationForCCM>> {
+public class NavigatorForCCXMLCC extends javax.swing.JPanel implements INavigator<List<InformationForCCM>> {
     ArrayList<CXFile> _listXMLFile = CXXMLManager.getInstance().listLoaded();
     boolean _wideScan;
     CXFile _selectedFile;
 
     TreeCellRenderer _rendererBase;
 
-    public PickerForControlChange() {
-        this(null);
+    public boolean simpleAsk(Container parent) {
+        MXUtil.showAsDialog(parent, this, INavigator.DEFAULT_TITLE);
+        if (getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+            return true;
+        }
+        return false;
     }
 
-    public PickerForControlChange(CXFile file) {
+    public NavigatorForCCXMLCC() {
+        this(null);
+        setAllowMultiSelect(false);
+    }
+
+    public NavigatorForCCXMLCC(CXFile file) {
         initComponents();
 
         _selectedFile = file;

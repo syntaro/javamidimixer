@@ -108,12 +108,8 @@ public class MX00DrumPadPanel extends javax.swing.JPanel {
             if (timer == 0) {
                 btn.setSelected(false);
             }
-            MXCountdownTimer.letsCountdown(100, new Runnable() {
-                public void run() {
-                    //if (timer + 100 >= System.currentTimeMillis()) {
-                        btn.setSelected(false);
-                    //}
-                }
+            MXCountdownTimer.letsCountdown(100, () -> {
+                btn.setSelected(false);
             });
         }
     }

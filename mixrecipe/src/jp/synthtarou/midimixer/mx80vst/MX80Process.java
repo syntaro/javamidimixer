@@ -46,7 +46,7 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
     }
     
     ArrayList<VSTFolder> _listFolder = new ArrayList();
-    Callback _callback;
+    VSTScanCallback _callback;
     Thread _thread = null;
 
     ArrayList<VSTInstance> _listInstrument = new ArrayList();
@@ -814,7 +814,7 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
     public void resetSetting() {
     }
 
-    public interface Callback {
+    public interface VSTScanCallback {
         public void vstScanProgress(String text, long hit, long total);
         public void vstScanCanceled();
         public void vstScanFinished();
@@ -822,37 +822,35 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
     
     public void startScan(boolean quick) {
         cleanCancelFlag();
-        _thread = new MXSafeThread("MX80Process", new Runnable() {
-            public void run() {
-                _scanRealTotal = 0;
-                ArrayList<VSTFolder> copy = new ArrayList<>(_listFolder);
-                for(VSTFolder filter : copy) {
-                    filter._cancelOperation = false;
-                }
-                for(VSTFolder filter : copy) {
-                    if (filter.isScanDone()) {
-                        if (quick) {
-                            continue;
-                        }
-                    }
-                    if (filter._cancelOperation || _isThreadCancelling) {
-                        _isThreadCancelling = true;
+        _thread = new MXSafeThread("MX80Process", () -> {
+            _scanRealTotal = 0;
+            ArrayList<VSTFolder> copy = new ArrayList<>(_listFolder);
+            for(VSTFolder filter : copy) {
+                filter._cancelOperation = false;
+            }
+            for(VSTFolder filter : copy) {
+                if (filter.isScanDone()) {
+                    if (quick) {
                         continue;
                     }
-                    final String base = filter._rootDirectory.getPath();
-                    filter.setCallback(new VSTFolder.Callback() {
-                        @Override
-                        public void seekingCallback(String text, long hit, long total) {
-                            _callback.vstScanProgress(base, hit, total);
-                        }
-                    });
-                    filter.scan(_listSkip); 
                 }
-                if (_isThreadCancelling) {
-                    _callback.vstScanCanceled();
-                }else {
-                    _callback.vstScanFinished();;
+                if (filter._cancelOperation || _isThreadCancelling) {
+                    _isThreadCancelling = true;
+                    continue;
                 }
+                final String base = filter._rootDirectory.getPath();
+                filter.setCallback(new VSTFolder.Callback() {
+                    @Override
+                    public void seekingCallback(String text, long hit, long total) {
+                        _callback.vstScanProgress(base, hit, total);
+                    }
+                });
+                filter.scan(_listSkip);
+            }
+            if (_isThreadCancelling) {
+                _callback.vstScanCanceled();
+            }else {
+                _callback.vstScanFinished();;
             }
         });
         _thread.start();

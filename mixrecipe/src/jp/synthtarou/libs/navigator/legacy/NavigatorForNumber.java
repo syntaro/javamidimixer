@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.libs.navigator.legacy;
 
+import java.awt.Container;
 import java.awt.Dimension;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
@@ -29,6 +30,14 @@ import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
  * @author Syntarou YOSHIDA
  */
 public class NavigatorForNumber extends javax.swing.JPanel implements INavigator<MXRangedValue> {
+
+    public boolean simpleAsk(Container parent) {
+        MXUtil.showAsDialog(parent, this, INavigator.DEFAULT_TITLE);
+        if (this.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+            return true;
+        }
+        return false;
+    }
     /*
      * Creates new form NavigatorForText
      */

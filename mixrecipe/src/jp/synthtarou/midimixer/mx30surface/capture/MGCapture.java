@@ -30,9 +30,9 @@ import jp.synthtarou.midimixer.libs.midi.MXTemplate;
  */
 public class MGCapture {
     public static void main(String[] args) {
-        MXMessage msg1 = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + 1, 10, 10);
-        MXMessage msg2 = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_NOTEON + 2, 20, 20);
-        MXMessage msg3 = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_PROGRAMCHANGE + 3, 30, 30);
+        MXMessage msg1 = MXMessageFactory.fromControlChange(0, 1, 10, 10);
+        MXMessage msg2 = MXMessageFactory.fromNoteon(0, 2, 20, 20);
+        MXMessage msg3 = MXMessageFactory.fromProgramChange(0, 3, 30);
         MGCapture cap = new MGCapture();
         System.out.println("1");
         cap.record(msg1);

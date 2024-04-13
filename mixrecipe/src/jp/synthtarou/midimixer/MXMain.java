@@ -110,7 +110,7 @@ public class MXMain {
 
     private MX10Process _mx10inputProcess;
     private MX00Process _mx00playlistProcess;
-    private MX12Process _mx12pianoProcess;
+    private MX12Process _mx12SoftKeyboardProcess;
     private MX30Process _mx30kontrolProcess;
     private MX36Process _mx36ccmappingProcess;
     private MX40Process _mx40layerProcess;
@@ -171,7 +171,7 @@ public class MXMain {
 
         _mx00playlistProcess = new MX00Process();
         _mx10inputProcess = new MX10Process();
-        _mx12pianoProcess = new MX12Process();
+        _mx12SoftKeyboardProcess = new MX12Process();
         _mx30kontrolProcess = new MX30Process();
         _mx36ccmappingProcess = new MX36Process();
         _mx40layerProcess = new MX40Process();
@@ -211,7 +211,7 @@ public class MXMain {
         initProcessWithSetting(_mx30kontrolProcess);
         initProcessWithSetting(_mx00playlistProcess);
         initProcessWithSetting(_mx10inputProcess);
-        initProcessWithSetting(_mx12pianoProcess);
+        initProcessWithSetting(_mx12SoftKeyboardProcess);
         initProcessWithSetting(_mx36ccmappingProcess);
         initProcessWithSetting(_mx60outputProcess);
         initProcessWithSetting(_mx40layerProcess);
@@ -313,36 +313,33 @@ public class MXMain {
         _progress = new MXProgressDialog(_mainWindow, false);
         _progress.setMessageAsExit();
         _progress.setVisible(true);
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if (save) {
-                    try {
-                        saveEverySettingToFile();
-                    } catch (RuntimeException ex) {
-                        MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
-                    }
-                }
-
+        Thread t = new Thread(() -> {
+            if (save) {
                 try {
-                    VSTStream.getInstance().postCloseStream(null);
-                } catch (Throwable ex) {
-                    MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
-                }
-
-                try {
-                    SMFSequencer.stopAll();
-                    MXMIDIInManager.getManager().closeAll();
-                    MXMIDIOutManager.getManager().closeAll();
-                    MXSafeThread.exitAll();
+                    saveEverySettingToFile();
                 } catch (RuntimeException ex) {
                     MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
-                MXFileLogger.getLogger(MXMain.class).info("stopping vst");
-                VSTInstance.stopEngine(null);
-                MXFileLogger.getLogger(MXMain.class).info("stopped vst");
-                System.exit(0);
             }
+            
+            try {
+                VSTStream.getInstance().postCloseStream(null);
+            } catch (Throwable ex) {
+                MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
+            }
+            
+            try {
+                SMFSequencer.stopAll();
+                MXMIDIInManager.getManager().closeAll();
+                MXMIDIOutManager.getManager().closeAll();
+                MXSafeThread.exitAll();
+            } catch (RuntimeException ex) {
+                MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
+            }
+            MXFileLogger.getLogger(MXMain.class).info("stopping vst");
+            VSTInstance.stopEngine(null);
+            MXFileLogger.getLogger(MXMain.class).info("stopped vst");
+            System.exit(0);
         });
         t.start();
     }
@@ -368,11 +365,31 @@ public class MXMain {
     }
 
     public MX12Process getMasterkeyProcess() {
-        return _mx12pianoProcess;
+        return _mx12SoftKeyboardProcess;
     }
 
     public CXXMLManager getXMLManager() {
         return _mxXMLManager;
+    }
+    
+    public MXNamedObjectList<MXReceiver> listSendableReceiver()
+    {
+        MXNamedObjectList<MXReceiver> ret = new MXNamedObjectList<>();
+        ret.addNameAndValue("Auto", null);
+
+        MXReceiver[] list = {
+            _mx10inputProcess,
+            _mx30kontrolProcess,
+            _mx36ccmappingProcess,
+            _mx40layerProcess,
+            _mx50resolutionProcess,
+            _mx60outputProcess,
+        };
+        
+        for (MXReceiver seek : list) {
+            ret.addNameAndValue(seek.getReceiverName(), seek);
+        }
+        return ret;
     }
 
     public MXReceiver getAutoSendableReceiver() {

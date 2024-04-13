@@ -74,54 +74,43 @@ public class ListModelOutputStream extends OutputStream {
         }
         long spent = System.currentTimeMillis() - _lastAdded;
         if (spent >= 500) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    if (_installed != null) {
-                        _installed.setValueIsAdjusting(true);
-                    }
-                    synchronized (ListModelOutputStream.this) {
-                        while (_lagPool.isEmpty() == false) {
-                            String str = _lagPool.removeFirst();
-                            for (int i = _lines.size() - 1; i >= 0; i--) {
-                                MyModel m = _lines.get(i);
-                                m.addElement(str);
-                                while (m.size() >= 500) {
-                                    m.removeElementAt(0);
-                                }
+            SwingUtilities.invokeLater(() -> {
+                if (_installed != null) {
+                    _installed.setValueIsAdjusting(true);
+                }
+                synchronized (ListModelOutputStream.this) {
+                    while (_lagPool.isEmpty() == false) {
+                        String str = _lagPool.removeFirst();
+                        for (int i = _lines.size() - 1; i >= 0; i--) {
+                            MyModel m = _lines.get(i);
+                            m.addElement(str);
+                            while (m.size() >= 500) {
+                                m.removeElementAt(0);
                             }
                         }
-                        _lagPool.clear();
                     }
-                    if (_installed != null) {
-                        _installed.setValueIsAdjusting(false);
-                    }
-                    for (int i = _lines.size() - 1; i >= 0; i--) {
-                        synchronized (ListModelOutputStream.this) {
-                            MyModel m = _lines.get(i);
-                            m._list.ensureIndexIsVisible(m.getSize() - 1);
-                        }
+                    _lagPool.clear();
+                }
+                if (_installed != null) {
+                    _installed.setValueIsAdjusting(false);
+                }
+                for (int i = _lines.size() - 1; i >= 0; i--) {
+                    synchronized (ListModelOutputStream.this) {
+                        MyModel m = _lines.get(i);
+                        m._list.ensureIndexIsVisible(m.getSize() - 1);
                     }
                 }
             });
         } else {
-            MXCountdownTimer.letsCountdown(500 - spent, new Runnable() {
-                @Override
-                public void run() {
-                    checkLag();
-                }
-            });
+            MXCountdownTimer.letsCountdown(500 - spent, this::checkLag);
         }
     }
 
     public synchronized void clearLogLine() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                for (int i = _lines.size() - 1; i >= 0; i--) {
-                    MyModel m = _lines.get(i);
-                    m.removeAllElements();
-                }
+        SwingUtilities.invokeLater(() -> {
+            for (int i = _lines.size() - 1; i >= 0; i--) {
+                MyModel m = _lines.get(i);
+                m.removeAllElements();
             }
         });
     }

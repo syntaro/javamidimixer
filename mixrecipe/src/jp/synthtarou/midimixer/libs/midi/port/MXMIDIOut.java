@@ -195,8 +195,7 @@ public class MXMIDIOut {
                             int old = portVisitant.getProgram();
                             if (portVisitant.isHavingProgram() == false || portVisitant.getProgram() != must) {
                                 portVisitant.setProgram(must);
-                                MXMessage newMessage = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_PROGRAMCHANGE + channel, must, 0);
-                                newMessage._timing = message._timing;
+                                MXMessage newMessage = MXMessageFactory.fromProgramChange(message.getPort(), channel, must);
                                 newMessage.setVisitant(portVisitant.getSnapShot());
                                 processMidiOutInternal(newMessage);
                                 //System.out.println("need Fix ProgramChange"+ " @" + channel + " from " + old + " to " + must);
@@ -212,11 +211,8 @@ public class MXMIDIOut {
                                 portVisitant.setBankLSB(msgVisitant.getBankMSB());
                                 portVisitant.setBankLSB(msgVisitant.getBankLSB());
 
-                                MXMessage newMessage1 = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_CONTROLCHANGE + channel, MXMidi.DATA1_CC_BANKSELECT, mustMSB);
-                                MXMessage newMessage2 = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_CONTROLCHANGE + channel, MXMidi.DATA1_CC_BANKSELECT + 32, mustLSB);
-
-                                newMessage1._timing = message._timing;
-                                newMessage2._timing = message._timing;
+                                MXMessage newMessage1 = MXMessageFactory.fromControlChange(message.getPort(), channel, MXMidi.DATA1_CC_BANKSELECT, mustMSB);
+                                MXMessage newMessage2 = MXMessageFactory.fromControlChange(message.getPort(), channel, MXMidi.DATA1_CC_BANKSELECT + 32, mustLSB);
                                 newMessage1.setVisitant(portVisitant.getSnapShot());
                                 newMessage2.setVisitant(portVisitant.getSnapShot());
 
@@ -239,9 +235,8 @@ public class MXMIDIOut {
                                         did++;
                                         portVisitant.setCCValue(code, must);
 
-                                        MXMessage newMessage = MXMessageFactory.fromShortMessage(message.getPort(), MXMidi.COMMAND_CH_CONTROLCHANGE + channel, code, must);
+                                        MXMessage newMessage = MXMessageFactory.fromControlChange(message.getPort(),channel, code, must);
 
-                                        newMessage._timing = message._timing;
                                         newMessage.setVisitant(portVisitant.getSnapShot());
 
                                         processMidiOutInternal(newMessage);

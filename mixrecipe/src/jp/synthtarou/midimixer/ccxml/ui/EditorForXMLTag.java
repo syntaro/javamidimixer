@@ -29,7 +29,6 @@ import jp.synthtarou.libs.navigator.legacy.NavigatorForText;
 import jp.synthtarou.libs.navigator.legacy.NavigatorForNodeAttribute;
 import jp.synthtarou.libs.namedobject.MXNamedObject;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
-import jp.synthtarou.libs.navigator.legacy.INavigator;
 
 /**
  *
@@ -92,11 +91,8 @@ public class EditorForXMLTag extends javax.swing.JPanel {
     
     void fillTreeSub(InformationForModule module) {
         _treeModel = new CXTreeModel(module);
-        _treeModel.attachTreeView(jTree1, new Runnable() {
-            @Override
-            public void run() {
-                fillInputFields(_treeModel.getSelection());
-            }
+        _treeModel.attachTreeView(jTree1, () -> {
+            fillInputFields(_treeModel.getSelection());
         });
         jTree1.setModel(_treeModel);
         fillInputFields(module._node);
@@ -404,8 +400,7 @@ public class EditorForXMLTag extends javax.swing.JPanel {
             return;
         }
         NavigatorForText prompt = new NavigatorForText(_selection.getTextContent());
-        MXUtil.showAsDialog(this, prompt, "Text For Tag");
-        if (prompt.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+        if (prompt.simpleAsk(this)) {
             String result = prompt.getReturnValue();
             if (result != null) {
                 _selection.setTextContent(result);
@@ -420,8 +415,7 @@ public class EditorForXMLTag extends javax.swing.JPanel {
         }
 
         NavigatorForNodeAttribute prompt = new NavigatorForNodeAttribute(_selection, null);
-        MXUtil.showAsDialog(this, prompt, "Attribute");
-        if (prompt.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+        if (prompt.simpleAsk(this)) {
             MXNamedObject<String> result = prompt.getReturnValue();
             if (result == null) {
                 return;
@@ -476,8 +470,7 @@ public class EditorForXMLTag extends javax.swing.JPanel {
         String name = (String) model.getValueAt(row, 0);
 
         NavigatorForNodeAttribute prompt = new NavigatorForNodeAttribute(_selection, name);
-        MXUtil.showAsDialog(this, prompt, "Attritutes");
-        if (prompt.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
+        if (prompt.simpleAsk(this)) {
             MXNamedObject<String> result = prompt.getReturnValue();
             if (result != null) {
                 if (result._name == null || result._name.length() == 0) {
@@ -516,12 +509,12 @@ public class EditorForXMLTag extends javax.swing.JPanel {
     }//GEN-LAST:event_jList1ValueChanged
 
     private void jButtonEditInstActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEditInstActionPerformed
-        PickerForinstrument inst = new PickerForinstrument(_file);
+        NavigatorForCCXMLInst inst = new NavigatorForCCXMLInst(_file);
         MXUtil.showAsDialog(this, inst, "Edit Instruments");        
     }//GEN-LAST:event_jButtonEditInstActionPerformed
 
     private void jButtonEditCCActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEditCCActionPerformed
-        PickerForControlChange inst = new PickerForControlChange(_file);
+        NavigatorForCCXMLCC inst = new NavigatorForCCXMLCC(_file);
         MXUtil.showAsDialog(this, inst, "Edit ControlChange");        
     }//GEN-LAST:event_jButtonEditCCActionPerformed
 

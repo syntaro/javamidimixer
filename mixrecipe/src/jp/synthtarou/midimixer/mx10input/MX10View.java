@@ -88,11 +88,8 @@ public class MX10View extends javax.swing.JPanel {
     
     public void setSkipDX(int row, int column, boolean skip) {
         if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    setSkipDX(row, column, skip);
-                }
+            SwingUtilities.invokeLater(() -> {
+                setSkipDX(row, column, skip);
             });
             return;
         }
@@ -217,11 +214,8 @@ public class MX10View extends javax.swing.JPanel {
 
     public void setViewData(MX10ViewData viewData) {
         if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    setViewData(viewData);
-                }
+            SwingUtilities.invokeLater(() -> {
+                setViewData(viewData);
             });
             return;
         }
