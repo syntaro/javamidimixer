@@ -60,9 +60,10 @@ public class MXResolution implements Cloneable {
 
         if (_lastSent != newValue) {
             _lastSent = newValue;
-            message = (MXMessage)message.clone();
-            message.setValue(newValue);
-            return message;
+            MXMessage newMessage = (MXMessage)message.clone();
+            newMessage.setValue(newValue);
+            newMessage._owner = message;
+            return newMessage;
         }
         return null;
     }

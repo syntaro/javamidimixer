@@ -241,10 +241,10 @@ public class MGStatusForDrum implements Cloneable {
         return doAction(parent, strike, value);
     }
 
-    MXMessage doAction(MXMessage parent, boolean flag, int invalue) {
+    MXMessage doAction(MXMessage owner, boolean flag, int invalue) {
         MXMessage message = null;
 
-        MX30Packet packet = _status._mixer._parent.startTransaction(parent);
+        MX30Packet packet = _status._mixer._parent.startTransaction(owner);
         try {
             int velocity = invalue;
 
@@ -280,13 +280,14 @@ public class MGStatusForDrum implements Cloneable {
                 switch (_outStyle) {
                     case STYLE_SAME_CC:
                         message = (MXMessage) _status._base.clone();
+                        message._owner = owner;
                         message.setValue(velocity);
                         break;
 
                     case STYLE_CUSTOM_CC:
                         if (_customTemplate != null) {
                             message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, MXRangedValue.new7bit(velocity));
-                            message._owner = parent;
+                            message._owner = owner;
                             packet.addResult(message);
                         }
                         message = null;
@@ -295,7 +296,7 @@ public class MGStatusForDrum implements Cloneable {
                         int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
                         for (int note : noteList) {
                             message = MXMessageFactory.fromNoteon(port, channel, note, velocity);
-                            message._owner = parent;
+                            message._owner = owner;
                             packet.addResult(message);
                         }
                         message = null;
@@ -343,7 +344,7 @@ public class MGStatusForDrum implements Cloneable {
                         }
                         if (status.getValue()._value == value && _onlySwitched) {
                         } else {
-                            packet.addSliderMove(new MGSliderMove(status, value));
+                            packet.addSliderMove(new MGSliderMove(owner, status, value));
                         }
                         return null;
                     case STYLE_PROGRAM_CHANGE:
@@ -365,7 +366,7 @@ public class MGStatusForDrum implements Cloneable {
                             default:
                                 break;
                         }
-                        message._owner = parent;
+                        message._owner = owner;
                         packet.addResult(message);
                         message = null;
                 }
@@ -382,15 +383,15 @@ public class MGStatusForDrum implements Cloneable {
                 }
                 switch (_outStyle) {
                     case STYLE_SAME_CC:
-                        message = (MXMessage) _status._base.clone();
+                        message = MXMessageFactory.fromClone(_status._base);
                         message.setValue(velocity);
-                        message._owner = parent;
+                        message._owner = owner;
                         break;
 
                     case STYLE_CUSTOM_CC:
                         if (_customTemplate != null) {
                             message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, MXRangedValue.new7bit(velocity));
-                            message._owner = parent;
+                            message._owner = owner;
                             packet.addResult(message);
                         }
                         message = null;
@@ -399,7 +400,7 @@ public class MGStatusForDrum implements Cloneable {
                         int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
                         for (int note : noteList) {
                             message = MXMessageFactory.fromNoteoff(port, channel, note);
-                            message._owner = parent;
+                            message._owner = owner;
                             packet.addResult(message);
                         }
                         message = null;

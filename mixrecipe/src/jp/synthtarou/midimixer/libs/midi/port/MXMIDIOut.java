@@ -81,10 +81,9 @@ public class MXMIDIOut {
     }
 
     public void setPortAssigned(int port, boolean flag) {
-        MXMessage root = (MXMessage) MXMessageFactory.createDummy().clone();
         if (_assigned[port] != flag) {
             if (!flag) {
-                _myNoteOff.allNoteFromPort(root, port);
+                _myNoteOff.allNoteFromPort(null, port);
             }
             _assigned[port] = flag;
             int x = 0;
@@ -173,11 +172,11 @@ public class MXMIDIOut {
             long timeStamp = getTimestamp();
             long recTime = 0;
 
-            if (message.isMessageTypeChannel() == false) {
+            if (message.isChannelMessage2() == false) {
                 finalOut(message);
             } else {
                 MXVisitant msgVisitant = message.getVisitant();
-                int status = message.getStatus();
+                int status = message.getTemplate().get(0);
                 int channel = message.getChannel();
                 int gate = message.getGate()._value;
                 int command = status;
@@ -286,8 +285,8 @@ public class MXMIDIOut {
                     return;
                 }
             } else if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)
-                    && message.getData1() == MXMidi.DATA1_CC_ALLNOTEOFF) {
-                allNoteOff();
+                    && message.getCompiled(1) == MXMidi.DATA1_CC_ALLNOTEOFF) {
+                allNoteOff(message);
             }
 
             int col = message.getDwordCount();
@@ -317,15 +316,15 @@ public class MXMIDIOut {
         }
     }
 
-    public void allNoteOff() {
+    public void allNoteOff(MXMessage owner) {
         synchronized (MXTiming.mutex) {
-            _myNoteOff.allNoteOff(null);
+            _myNoteOff.allNoteOff(owner);
         }
     }
 
-    public void allNoteOffFromPort(int port) {
+    public void allNoteOffFromPort(MXMessage owner, int port) {
         synchronized (MXTiming.mutex) {
-            _myNoteOff.allNoteFromPort(null, port);
+            _myNoteOff.allNoteFromPort(owner, port);
         }
     }
 
@@ -345,7 +344,7 @@ public class MXMIDIOut {
         MXMIDIOutManager manager = MXMIDIOutManager.getManager();
         synchronized (MXTiming.mutex) {
             if (isOpen()) {
-                allNoteOff();
+                allNoteOff(null);
                 if (_name.equals("Gervill")) {
                     manager.onClose(this);
                     _driver.OutputDeviceClose(_driverOrder);

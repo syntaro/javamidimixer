@@ -157,7 +157,7 @@ public class MX32MixerInitializer {
                 if (col < cclist.length) {
                     message = MXMessageFactory.fromControlChange(_port, row, cclist[col], 128 - 1);
                 } else {
-                    message = MXMessageFactory.createDummy();
+                    message = MXMessageFactory.newEmpty(_port);
                 }
                 status._base = message;
             }
@@ -238,7 +238,7 @@ public class MX32MixerInitializer {
                 if (col < cclist.length) {
                     message = MXMessageFactory.fromControlChange(_port, row, cclist[col], 128 - 1);
                 } else {
-                    message = MXMessageFactory.createDummy();
+                    message = MXMessageFactory.newEmpty(_port);
                 }
                 status._base = message;
             }
@@ -250,7 +250,7 @@ public class MX32MixerInitializer {
                 if (col < cclist2.length) {
                     message = MXMessageFactory.fromControlChange(_port, row, cclist2[col], 128 - 1);
                 } else {
-                    message = MXMessageFactory.createDummy();
+                    message = MXMessageFactory.newEmpty(_port);
                 }
                 status._base = message;
             }

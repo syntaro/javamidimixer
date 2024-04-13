@@ -21,10 +21,10 @@ import java.util.LinkedList;
 import java.util.List;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.log.MXFileLogger;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
-import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInForTest;
+import jp.synthtarou.midimixer.mx12masterpiano.MX12Process;
 
 /**
  *
@@ -34,41 +34,31 @@ public abstract class MXDebug {
 
     static int _interval = 3;
 
-    static FinalMIDIOut _final = FinalMIDIOut.getInstance();
-
-    LinkedList<MXMessage> _input;
+    LinkedList<MXMessage> _input = new LinkedList();
+    ArrayList<MXMessage> _result = new ArrayList<>();
     MXMIDIInForTest _test = new MXMIDIInForTest();
 
     public MXDebug(MXMessage target) {
-        _final.startTestSignal(null, -1);
-        _input = new LinkedList<>();
+        MX12Process process = MXMain.getMain().getMasterkeyProcess();
+        process.startDebug(_result);
         _input.add(target);
-        _test.startTest(target);
-        MXMIDIIn.queueMustEmpty();
+        MXMain.getMain().getMasterkeyProcess().sendCCAndGetResult(target, MXMain.getMain().getInputProcess());
         checkResult();
-        /*
-        if (_interval >= 1) {
-            try {
-                Thread.sleep(_interval);
-            } catch (InterruptedException ex) {
-            }
-        }*/
     }
 
     public MXDebug(List<MXMessage> target) {
-        _final.startTestSignal(null, -1);
-        _input = new LinkedList<>();
+        MX12Process process = MXMain.getMain().getMasterkeyProcess();
+        process.startDebug(_result);
         for (MXMessage seek : target) {
             _input.add(seek);
-            _test.startTest(seek);
-
+            MXMain.getMain().getMasterkeyProcess().sendCCAndGetResult(seek, MXMain.getMain().getInputProcess());
         }
-        MXMIDIIn.queueMustEmpty();;
         checkResult();
         if (_interval >= 1) {
             try {
                 Thread.sleep(_interval);
             } catch (InterruptedException ex) {
+                ex.printStackTrace();;
             }
         }
     }
@@ -82,8 +72,10 @@ public abstract class MXDebug {
                     "Test must process as 1 on 1 (for this checkResult, otherwise please override ::checkResult)");
         }
         MXMessage message1 = _input.get(0);
-        ArrayList<MXMessage> result = _final.getTestResult();
+        List<MXMessage> result = _result;
         if (result.size() != 1) {
+            System.err.println(_input);
+            System.err.println(_result);
             MXFileLogger.getLogger(MXDebug.class).severe("Error output size = " + result.size() + result);
             if (result.size() >= 2 && result.get(0) != result.get(1)) {
                 System.err.println(result.get(0).equals(result.get(1)));

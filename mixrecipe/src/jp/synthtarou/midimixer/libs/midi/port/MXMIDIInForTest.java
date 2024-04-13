@@ -32,6 +32,6 @@ public class MXMIDIInForTest extends MXMIDIIn {
     }
     
     public void startTest(MXMessage message) {
-        super.messageToReceiverThreaded(message, MXMain.getMain().getInputProcess());
+        MXMain.getMain().getMasterkeyProcess().sendCCAndGetResult(message, MXMain.getMain().getInputProcess());
     }
 }

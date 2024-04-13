@@ -43,6 +43,10 @@ public class MXQueue<T> {
     public synchronized boolean isEmpty() {
         return _queue.isEmpty();
     }
+    
+    public synchronized  int size() {
+        return _queue.size();
+    }
 
     public synchronized T pop() {
         while (true) {

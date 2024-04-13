@@ -84,7 +84,7 @@ public class MGDrumPad extends javax.swing.JPanel {
             MGStatus status = getStatus();
             if (status._name == null || status._name.length() == 0) {
                 MXMessage message = status._base;
-                jLabel1.setText(message.toStringForUI());
+                jLabel1.setText(message.toStringMessageInfo(1));
             } else {
                 jLabel1.setText(status._name);
             }

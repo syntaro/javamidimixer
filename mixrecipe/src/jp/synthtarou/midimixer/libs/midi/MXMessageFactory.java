@@ -175,9 +175,11 @@ public class MXMessageFactory {
         }
         return fromTemplate(port, new MXTemplate(template), 0, null, null);
     }
+    
+    static MXTemplate _empty = new MXTemplate((int[])null);
 
-    public static MXMessage createDummy() {
-        return _instance.fromDWordMessage(0, 0);
+    public static MXMessage newEmpty(int port) {
+        return new MXMessage(port, _empty);
     }
 
     public static MXMessage fromClone(MXMessage old) {

@@ -34,7 +34,7 @@ public class MXDebugDataEntry extends MXDebug {
     static List<MXMessage> createRPN(int msb, int lsb, int data) {
         int high = (data >> 7) & 0x7f;
         int low = data & 0x7f;
-        MXMessage parent = (MXMessage)MXMessageFactory.createDummy().clone();
+        MXMessage parent = MXMessageFactory.newEmpty(0);
         MXMessage message100 = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_RPN_LSB, lsb);
         MXMessage message101 = MXMessageFactory.fromShortMessage(0, 0, MXMidi.DATA1_CC_RPN_MSB, msb);
         MXMessage messageMSB = MXMessageFactory.fromShortMessage(0, 0, MXMidi.DATA1_CC_DATAENTRY, high);
@@ -54,7 +54,7 @@ public class MXDebugDataEntry extends MXDebug {
     static List<MXMessage> createNRPN(int msb, int lsb, int data) {
         int high = (data >> 7) & 0x7f;
         int low = data & 0x7f;
-        MXMessage parent = (MXMessage)MXMessageFactory.createDummy().clone();
+        MXMessage parent = MXMessageFactory.newEmpty(0);
         MXMessage message98 = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_NRPN_LSB, lsb);
         MXMessage message99 = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_NRPN_MSB, msb);
         MXMessage messageMSB = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_DATAENTRY, high);
@@ -77,17 +77,14 @@ public class MXDebugDataEntry extends MXDebug {
 
     @Override
     public void checkResult() {
-        List<MXMessage> in = _input;
-        List<MXMessage> out = MXDebug._final.getTestResult();
-        
-        if (in.size() == 4) {
-            int x1 = in.get(0).getAsDword(0);
-            int x2 = in.get(1).getAsDword(0);
-            int x3 = in.get(2).getAsDword(0);
-            int x4 = in.get(3).getAsDword(0);
+        if (_input.size() == 4) {
+            int x1 = _input.get(0).getAsDword(0);
+            int x2 = _input.get(1).getAsDword(0);
+            int x3 = _input.get(2).getAsDword(0);
+            int x4 = _input.get(3).getAsDword(0);
             
-            if (out.size() == 1) {
-                MXMessage message = out.get(0);
+            if (_result.size() == 1) {
+                MXMessage message = _result.get(0);
                 int y1 = message.getAsDword(0);
                 int y2 = message.getAsDword(1);
                 int y3 = message.getAsDword(2);
@@ -101,12 +98,12 @@ public class MXDebugDataEntry extends MXDebug {
             }
         }
         else {
-            MXFileLogger.getLogger(MXDebugDataEntry.class).severe("Size error in (" + in.size() + " is not 4)" + in);
+            MXFileLogger.getLogger(MXDebugDataEntry.class).severe("Size error in (" + _input.size() + " is not 4)" + _input);
         }
-        if (out.size() != 1) {
-            MXFileLogger.getLogger(MXDebugDataEntry.class).severe("Size error out (" +out.size() + " is not 1)");
-            for (int i = 0; i < out.size(); ++ i) {
-                System.out.println(out.get(i));
+        if (_result.size() != 1) {
+            MXFileLogger.getLogger(MXDebugDataEntry.class).severe("Size error out (" +_result.size() + " is not 1)");
+            for (int i = 0; i < _result.size(); ++ i) {
+                System.out.println(_result.get(i));
             }
         }
     }

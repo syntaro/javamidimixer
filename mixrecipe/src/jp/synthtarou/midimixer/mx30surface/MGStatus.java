@@ -53,12 +53,12 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     
     public String getAsName() {
         if (_name == null || _name.isBlank()) {
-            return _base.toStringForUI();
+            return _base.toStringMessageInfo(1);
         }
         return _name;
     }
 
-    MXMessage _base = MXMessageFactory.createDummy();
+    MXMessage _base = null;
     
     boolean _ccPair14 = false;
 
@@ -93,10 +93,11 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         return null;
     }
 
+    @Override
     public Object clone() {
         MGStatus status = new MGStatus(_mixer, _uiType, _row, _column);
 
-        status._base = (MXMessage)_base.clone();
+        status._base = _base == null ? null : (MXMessage)_base.clone();
 
         status._name = _name;
         status._memo = _memo;
@@ -112,7 +113,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     }
 
     public void setBaseMessage(String text) {
-        _base = MXMessageFactory.createDummy();
+        _base = null;
         if (text != null) {
             try {
                 if (text == null || text.isBlank()) {
@@ -135,12 +136,19 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     }
     
     public void setBaseMessage(MXMessage base) {
-        _base = MXMessageFactory.createDummy();
-        _base = (MXMessage)base.clone();
+        if (base == null) {
+            _base = null;
+        }else {
+            _base = (MXMessage)base.clone();
+            _base._owner = base;
+        }
     }
 
     public String toString() {
         MXMessage message = _base;
+        if (message == null) {
+           return "NULL";
+        }
         String text;
         switch (_uiType) {
             case TYPE_CIRCLE:
@@ -159,23 +167,26 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         }
         String name;
         if (_name == null || _name.length() == 0) {
-            name = message.toStringForUI();
+            name = message.toStringMessageInfo(2);
         } else {
             name = _name;
         }
         return name + " (" + _memo + ")" + ", "
                 + text + "[row " + (_row + 1) + ", col " + (_column + 1) + "], "
-                + message.toString() + (message.isPairedWith14() ? " (=14bit)" : "");
+                + (message.indexOfValueHi() >= 0 ? " (=14bit)" : "");
     }
 
     public int controlByMessage(MXMessage message) {
+        if (_base == null || message == null) {
+            return -1;
+        }
         if (message.isEmpty() || _base.isEmpty()) {
             return -1;
         }
 
         if ((_base.getTemplate().get(0) & 0xfff0) == MXMidi.COMMAND_CH_NOTEON) {
             if ((message.getTemplate().get(0) & 0xfff0) == MXMidi.COMMAND_CH_NOTEOFF) {
-                MXMessage newMessage = MXMessageFactory.fromNoteon(message.getPort(), message.getChannel(), message.getData1(), 0);
+                MXMessage newMessage = MXMessageFactory.fromNoteon(message.getPort(), message.getChannel(), message.getCompiled(1), 0);
                 newMessage._owner = message;
                 message = newMessage;
             }
@@ -198,18 +209,30 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     }
 
     public MXRangedValue getValue() {
+        if (_base == null) {
+            return MXRangedValue.ZERO7;
+        }
         return _base.getValue();
     }
 
     public boolean setMessageValue(MXRangedValue value) {
+        if (_base == null) {
+            return false;
+        }
         return _base.setValue(value);
     }
 
     public boolean setMessageValue(int value) {
+        if (_base == null) {
+            return false;
+        }
         return _base.setValue(_base.getValue().changeValue(value));
     }
 
     public boolean hasCustomRange() {
+        if (_base == null) {
+            return false;
+        }
         int wishMax = _base.indexOfValueHi() >= 0 ? (128 * 128 - 1) : 127;
 
         if (_ccPair14) {
@@ -225,23 +248,37 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     }
 
     public void resetCustomRange() {
-        if (hasCustomRange()) {
-            
+        if (_base == null) {
+            return;
         }
-        if (_base.indexOfValueHi() >= 0) {
-            setMessageValue(_base.getValue().changeRange(0, 128 * 128 - 1));
-        } else if (_ccPair14) {
-            setMessageValue(_base.getValue().changeRange(0, 128 * 128 - 1));
-        } else {
-            setMessageValue(_base.getValue().changeRange(0, 128 - 1));
+        if (hasCustomRange()) {
+            if (_base.indexOfValueHi() >= 0) {
+                setMessageValue(_base.getValue().changeRange(0, 128 * 128 - 1));
+            } else if (_ccPair14) {
+                setMessageValue(_base.getValue().changeRange(0, 128 * 128 - 1));
+            } else {
+                setMessageValue(_base.getValue().changeRange(0, 128 - 1));
+            }
         }
     }
 
     public void setCustomRange(int min, int max) {
+        if (_base == null) {
+            return;
+        }
         setMessageValue(_base.getValue().changeRange(min, max));
     }
 
     public int compareTo(MGStatus another) {
+        if (_base == null) {
+            if (another._base == null) {
+                return 0;
+            }
+            return 1;
+        }
+        else if (another._base == null) {
+            return 1;
+        }
         if (this == another) {
             return 0;
         }

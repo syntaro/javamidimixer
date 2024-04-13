@@ -86,7 +86,6 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
         }
 
         try {
-
             MXMessage[] buf = _inputInfo.preprocess16ForVisitant(message, _buf);
             if (buf != null) {
                 _buf = buf;
@@ -115,16 +114,14 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                 }
 
                 int port = message.getPort();
-                int status = message.getStatus();
+                int status = message.getTemplate().get(0);
                 int channel = message.getChannel();
                 int command = status;
-                if (command >= 0x80 && command <= 0xef) {
-                    command &= 0xf0;
+                if (message.isChannelMessage2()) {
+                    command &= 0xfff0;
                 }
 
-                int first = message.getTemplate().get(0);
-
-                if (first == MXMidi.COMMAND2_CH_PROGRAM_INC) {
+                if (command == MXMidi.COMMAND2_CH_PROGRAM_INC) {
                     int x = message.getVisitant().getProgram() + 1;
                     if (x >= 128) {
                         x = 127;
@@ -134,7 +131,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                     message = newMessage;
                     command = MXMidi.COMMAND_CH_PROGRAMCHANGE;
                 }
-                if (first == MXMidi.COMMAND2_CH_PROGRAM_DEC) {
+                if (command == MXMidi.COMMAND2_CH_PROGRAM_DEC) {
                     int x = message.getVisitant().getProgram() - 1;
                     if (x < 0) {
                         x = 0;
@@ -146,14 +143,14 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                 }
 
                 if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-                    if (_noteOff.raiseHandler(message, port, channel, message.getGate()._value)) {
+                    if (_noteOff.raiseHandler(message, port, channel, message.getCompiled(1))) {
                         continue;
                     }
                 }
 
                 boolean dispatched = false;
 
-                if (message.isMessageTypeChannel()) {
+                if (message.isChannelMessage2()) {
                     for (int i = 0; i < _groupList.size(); ++i) {
                         final MX40Group col = _groupList.get(i);
                         if (col.processByGroup(message)) {
@@ -163,7 +160,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                                         MXMessage msg = MXMessageFactory.fromNoteoff(
                                                 target.getPort(), 
                                                 target.getChannel(), 
-                                                target.getGate()._value);
+                                                target.getCompiled(1));
                                         msg._owner = target;
                                         col.processByGroup(msg);
                                     }
@@ -180,7 +177,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                             public void onNoteOffEvent(MXMessage target) {
                                 MXMessage msg = MXMessageFactory.fromNoteoff(target.getPort(),
                                         target.getChannel(),
-                                        target.getGate()._value);
+                                        target.getCompiled(1));
                                 msg._owner = target;
                                 sendToNext(msg);
                             }

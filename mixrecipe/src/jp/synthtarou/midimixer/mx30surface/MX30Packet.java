@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.mx30surface;
 
+import com.sun.source.tree.ContinueTree;
 import java.util.LinkedList;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -80,6 +81,9 @@ public class MX30Packet {
     }
     
     public synchronized void addResult(MXMessage message) {
+        if (message == null || message.isEmpty())  {
+            return;
+        }
         if (_alreadyResult.contains(message)) {
             return ;
         }

@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.mx10input;
 
-import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -62,8 +61,8 @@ public class MX10ViewData {
         }
         int port = message.getPort();
         int command = message.getStatus();
-        if (command >= 0x80 && command <= 0xef) {
-            command &= 0xf0;
+        if (message.isChannelMessage2()) {
+            command &= 0xfff0;
         }
 
         if (isSkip(port, TYPE_ALL)) {

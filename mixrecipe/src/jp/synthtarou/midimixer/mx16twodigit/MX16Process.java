@@ -41,13 +41,13 @@ public class MX16Process extends MXReceiver<MX11View> {
 
         if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
             int port = message.getPort();
-            int velocity = message.getGate()._value;
+            int velocity = message.getCompiled(2);
             int newVelocity = _viewData.transform(port, velocity);
             if (velocity == newVelocity) {
                 sendToNext(message);
             }else {
                 int channel = message.getChannel();
-                int note = message.getGate()._value;
+                int note = message.getCompiled(1);
                 MXMessage newMessage = MXMessageFactory.fromNoteon(port, channel, note, newVelocity);
                 newMessage._owner = message;
                 sendToNext(newMessage);

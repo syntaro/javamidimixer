@@ -67,7 +67,7 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
 
             if (status._name == null || status._name.length() == 0) {
                 MXMessage message = status._base;
-                jLabel1.setText(message.toStringForUI());
+                jLabel1.setText(message.toStringMessageInfo(1));
             } else {
                 jLabel1.setText(status._name);
             }
@@ -126,7 +126,7 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
         }
         int newValue = jCircleValue.getValue();
         jLabel1.setText(String.valueOf(newValue));
-        _mixer._parent.addSliderMove(getStatus(), newValue);
+        _mixer._parent.addSliderMove(null, getStatus(), newValue);
     }
 
     MXTiming _trackNumer;
@@ -149,19 +149,19 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
     private CurvedSlider jCircleValue;
     // End of variables declaration                   
 
-    public void increment() {
+    public void increment(MXMessage owner) {
         MGStatus status = getStatus();
         if (status.getValue().incrementable()) {
             MXRangedValue var = status.getValue().increment();
-            _mixer._parent.addSliderMove(status, var._value);
+            _mixer._parent.addSliderMove(owner, status, var._value);
         }
     }
 
-    public void decriment() {
+    public void decriment(MXMessage owner) {
         MGStatus status = getStatus();
         if (status.getValue().decrementable()) {            
             MXRangedValue var = status.getValue().decrement();
-            _mixer._parent.addSliderMove(status, var._value);
+            _mixer._parent.addSliderMove(owner, status, var._value);
         }
     }
 
@@ -182,9 +182,9 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
     public void mouseWheelMoved(MouseWheelEvent e) {
         int d = e.getUnitsToScroll();
         if (d > 0) {
-            this.decriment();
+            this.decriment(null);
         } else {
-            this.increment();
+            this.increment(null);
         }
     }
 }

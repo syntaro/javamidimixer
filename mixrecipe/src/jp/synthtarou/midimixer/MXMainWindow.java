@@ -40,6 +40,7 @@ import jp.synthtarou.midimixer.mx12masterpiano.MX12Process;
 import jp.synthtarou.midimixer.mx36ccmapping.MX36View;
 import jp.synthtarou.midimixer.mx60output.MX60View;
 import jp.synthtarou.midimixer.mx80vst.MX80View;
+import jp.synthtarou.midimixer.mx90debug.MX90View;
 
 /**
  *
@@ -381,6 +382,10 @@ public class MXMainWindow extends javax.swing.JFrame {
                 if (view instanceof MX80View) {
                     MX80View v80 = (MX80View) view;
                     v80.tabActivated();
+                }
+                if (view instanceof MX90View) {
+                    MX90View v90 = (MX90View) view;
+                    _main.getMasterkeyProcess().openAccordionDebugMode();
                 }
                 if (view instanceof MX36View) {
                     MX36View v36 = (MX36View) view;

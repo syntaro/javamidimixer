@@ -765,10 +765,10 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
                             MGSlider slider = _mixer.getSlider(row, column);
                             switch (keyCode) {
                                 case ' ':
-                                    slider.increment();
+                                    slider.increment(null);
                                     break;
                                 case '\b':
-                                    slider.decriment();
+                                    slider.decriment(null);
                                     break;
                                 case '\n':
                                     slider.editContoller();
@@ -779,10 +779,10 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
                             MGCircle circle = _mixer.getCircle(row, column);
                             switch (keyCode) {
                                 case ' ':
-                                    circle.increment();
+                                    circle.increment(null);
                                     break;
                                 case '\b':
-                                    circle.decriment();
+                                    circle.decriment(null);
                                     break;
                                 case '\n':
                                     circle.editContoller();

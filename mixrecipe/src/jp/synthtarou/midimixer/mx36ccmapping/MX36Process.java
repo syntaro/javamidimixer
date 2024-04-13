@@ -63,7 +63,6 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
 
     @Override
     public void processMXMessage(MXMessage message) {
-        System.out.println("36->input->" + message);
         sendToNext(message);
     }
 
@@ -302,25 +301,25 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
         return setting.writeINIFile();
     }
 
-    MXMessage updateSurfaceValue(MX36Status status, int value) {
-        return updateSurfaceValue(status, status._surfaceValueRange.changeValue(value));
+    MXMessage updateSurfaceValue(MXMessage owner, MX36Status status, int value) {
+        return updateSurfaceValue(owner, status, status._surfaceValueRange.changeValue(value));
     }
 
-    MXMessage updateSurfaceValue(MX36Status status, MXRangedValue value) {
+    MXMessage updateSurfaceValue(MXMessage owner, MX36Status status, MXRangedValue value) {
         if (status._surfaceValueRange.equals(value)) {
             return null;
         }
         if (status._folder.isSelected()) {
-            return updateOutputValue(status, value.changeRange(status._outValueRange._min, status._outValueRange._max));
+            return updateOutputValue(owner,status, value.changeRange(status._outValueRange._min, status._outValueRange._max));
         }
         return null;
     }
 
-    MXMessage updateOutputValue(MX36Status status, int value) {
-        return updateOutputValue(status, status._outValueRange.changeValue(value));
+    MXMessage updateOutputValue(MXMessage owner, MX36Status status, int value) {
+        return updateOutputValue(owner, status, status._outValueRange.changeValue(value));
     }
 
-    MXMessage updateOutputValue(MX36Status status, MXRangedValue value) {
+    MXMessage updateOutputValue(MXMessage owner, MX36Status status, MXRangedValue value) {
         if (status._outValueRange.equals(value)) {
             return null;
         }
@@ -337,7 +336,9 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
             //_view.tabActivated();
         });
         status._outValueRange = value;
-        return status.createOutMessage();
+        MXMessage message = status.createOutMessage();
+        message._owner = owner;
+        return message;
     }
 
     public void moveFolder(MX36Folder folder, MX36Status status) {
@@ -604,7 +605,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
         }
     }
 
-    public boolean invokeMapping(MGStatus status) {
+    public boolean invokeMapping(MXMessage owner, MGStatus status) {
         LinkedList<MX36Status> list = status.getLinked36();
         if (status._uiType == MGStatus.TYPE_DRUMPAD) {
             return false;
@@ -623,7 +624,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
                 }
             }
             if (folder.isSelected()) {
-                MXMessage msg = updateSurfaceValue(seek, status.getValue());
+                MXMessage msg = updateSurfaceValue(owner, seek, status.getValue());
                 if (msg != null) {
                     sendToNext(msg);
                     folder.repaintStatus(seek);

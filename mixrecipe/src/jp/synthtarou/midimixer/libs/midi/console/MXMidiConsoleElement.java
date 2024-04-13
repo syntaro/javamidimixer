@@ -18,15 +18,15 @@ package jp.synthtarou.midimixer.libs.midi.console;
 
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MXMidiConsoleElement{
+public class MXMidiConsoleElement {
+
     private MXMessage _message;
-    
+
     public MXMidiConsoleElement(MXMessage message) {
         _message = message;
     }
@@ -34,103 +34,28 @@ public class MXMidiConsoleElement{
     public MXMessage getMessage() {
         return _message;
     }
-    
+
     public String formatMessageDump() {
         String exString = "";
         if (_message.getDwordCount() >= 1) {
             StringBuffer str = new StringBuffer();
-            for (int i = 0; i < _message.getDwordCount(); ++ i) {
+            for (int i = 0; i < _message.getDwordCount(); ++i) {
                 int dword = _message.getAsDword(i);
                 int status = (dword >> 16) & 0xff;
                 int data1 = (dword >> 8) & 0xff;
                 int data2 = (dword) & 0xff;
                 str.append("[");
-                str.append(MXUtil.toHexFF(status) +" " + MXUtil.toHexFF(data1) + " " + MXUtil.toHexFF(data2));
+                str.append(MXUtil.toHexFF(status) + " " + MXUtil.toHexFF(data1) + " " + MXUtil.toHexFF(data2));
                 str.append("]");
             }
             return str.toString();
-        }else {
+        } else {
             byte[] data = _message.getBinary();
             return MXUtil.dumpHex(data);
         }
     }
-    
+
     public String formatMessageLong() {
-        String port = Character.toString((char)('A'+ _message.getPort())) + ")";
-        String dump = formatMessageDump() + "  ";
-        String exString = "";
-        if(_message.getDwordCount() > 0) {
-            int col = _message.getDwordCount();
-            StringBuffer ret = new StringBuffer();
-            for (int i = 0 ; i < col; ++ i) {
-                int dword = _message.getAsDword(i);
-                String str = toSegmentText(dword);
-                ret.append(str);
-                if (i + 1 <  col) {
-                    ret.append("|");
-                }
-            }
-            return "Port: " + port+" "+ ret + "[" + dump +"]";
-        }else {
-            return "Port: " + port + "["+ dump + "]";
-        }
-    }
-
-    public static String toSegmentText(byte[] data) {
-        return "[" + MXUtil.dumpHex(data) + "]]";
-    }
-
-    public static String toSegmentText(int dword) {
-        int extra = (dword >> 24) & 0xff;
-        int status = (dword >> 16) & 0xff;
-        int data1 = (dword >> 8) & 0xff;
-        int data2 = dword & 0xff;
-        String channel;
-        
-        int command;
-
-        if (status >= 0x80 && status <= 0xf0) {
-            command = status & 0xf0;
-            channel = Integer.toString(status & 0x0f);
-        }else {
-            command = status;
-            channel = "";
-        }
-
-        if (command == MXMidi.COMMAND_CH_NOTEON) {
-            return  "[On ch:" + channel + ":" + MXMidi.nameOfNote(data1) + "=" + data2 + "]";
-        }
-        if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-            return  "[Off ch:" + channel + ":" + MXMidi.nameOfNote(data1) + "=" + data2 + "]";
-        }
-        if (command == MXMidi.COMMAND_CH_POLYPRESSURE) {
-            return  "[PolyPress ch:" + channel + " Note:" + MXMidi.nameOfNote(data1) + " Val:" + data2 + "]";
-        }
-        if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
-            return  "[Program ch:" + channel + ":" + data1 + "]";
-        }
-        if (command == MXMidi.COMMAND_CH_CHANNELPRESSURE) {
-            return  "[ChannelPress ch:" + channel + ":" + data1 + "]";
-        }
-        if (command == MXMidi.COMMAND_CH_PITCHWHEEL) {
-            return  "[Pitch Ch:" + channel + " Hex:" + MXUtil.toHexFF(data1) + MXUtil.toHexFF(data2) +" Deci:" + ((data1 << 7) + data2) + "]";
-        }
-        if (command == MXMidi.COMMAND_SONGPOSITION) {
-            return  "[SongPos " + data1 + "]";
-        }
-        if (command == MXMidi.COMMAND_SONGSELECT) {
-            return  "[SongSel " + data1 + "]";
-        }
-        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
-            String ccname = MXMidi.nameOfControlChange(data1);
-            return  "[CC-" + ccname + " Ch:" + channel + " Val:" + MXUtil.toHexFF(data2) + "]";
-        }
-        
-        if (extra != 0) {
-            return "[Extra"+ MXUtil.toHexFF(extra) + "]";
-        }
-        
-        return "****" + MXUtil.toHexFF(status) + MXUtil.toHexFF(data1) + MXUtil.toHexFF(data2);
-        //return  "[" + MXMidi.nameOfMessage(status, data1, data2) + " " + channel + "]";
+        return _message.toString() + formatMessageDump();
     }
 }

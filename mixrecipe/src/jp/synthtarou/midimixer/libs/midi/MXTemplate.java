@@ -80,11 +80,13 @@ public class MXTemplate implements Comparable<MXTemplate> {
     }
 
     public MXTemplate(String text) throws IllegalArgumentException {
-        while (text.startsWith(" ")) {
-            text = text.substring(1);
-        }
-        while (text.endsWith(" ")) {
-            text = text.substring(0, text.length() - 1);
+        if (text != null) {
+            while (text.startsWith(" ")) {
+                text = text.substring(1);
+            }
+            while (text.endsWith(" ")) {
+                text = text.substring(0, text.length() - 1);
+            }
         }
 
         if (text == null || text.length() == 0) {
@@ -536,10 +538,6 @@ public class MXTemplate implements Comparable<MXTemplate> {
                 case MXMidi.COMMAND2_CH_PROGRAM_INC:
                 case MXMidi.COMMAND2_CH_PROGRAM_DEC:
                     return data;
-                    /*
-                case MXMidi.COMMAND2_SYSTEM:
-                case MXMidi.COMMAND2_META:
-                    break;*/
 
                 case MXMidi.COMMAND_CH_PITCHWHEEL:
                     data[wrote ++] = MXMidi.CCXML_VH;
@@ -572,7 +570,10 @@ public class MXTemplate implements Comparable<MXTemplate> {
             }
 
             if (i == 0 && code >= 0x80 && code <= 0xef) {
-                code &= 0xf0;
+                code &= 0xfff0;
+            }
+            if (i == 0 && code >= 0x100 && code != MXMidi.COMMAND2_NONE) {
+                code &= 0xfff0;
             }
             if (code == MXMidi.CCXML_CHECKSUM_END) {
                 data[wrote ++] = MXMidi.CCXML_CHECKSUM_END;

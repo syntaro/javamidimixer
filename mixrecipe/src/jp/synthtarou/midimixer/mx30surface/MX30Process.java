@@ -180,8 +180,8 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
         }
     }
 
-    void addSliderMove(MGStatus status, int newValue) {
-        MGSliderMove move = new MGSliderMove(status, newValue);
+    void addSliderMove(MXMessage owner, MGStatus status, int newValue) {
+        MGSliderMove move = new MGSliderMove(owner, status, newValue);
         addSliderMove(move);
     }
 
@@ -210,10 +210,9 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
                     MGStatus status = move._status;
                     int port = status._port;
                     MXMessage message = _pageProcess[port].updateUIStatusAndGetResult(_parent, status, move._newValue, move._timing);
-
+                    
                     if (message != null) {
-                        //message._timing = move._timing;
-
+                        message._owner = move._owner;
                         packet.addQueue(message);
 
                         MX36Process mapping = _mappingProcess;
@@ -221,7 +220,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
                             if (mapping.isNotLinked(status)) {
                                 mapping.addToAutoDetected(status);
                             } else {
-                                mapping.invokeMapping(status);
+                                mapping.invokeMapping(message, status);
                             }
                         }
                         packet.addResult(message);

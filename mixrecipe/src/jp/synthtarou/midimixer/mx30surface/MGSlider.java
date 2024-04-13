@@ -86,7 +86,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
             jLabelValue.setText(String.valueOf(value._value));
             if (status._name == null || status._name.length() == 0) {
                 MXMessage message = status._base;
-                jLabelName.setText(message.toStringForUI());
+                jLabelName.setText(message.toStringMessageInfo(1));
             }else {
                 jLabelName.setText(status._name);
             }
@@ -161,7 +161,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
         if (_stopFeedback) {
             return;
         }
-        _mixer._parent.addSliderMove(getStatus(), newValue);
+        _mixer._parent.addSliderMove(null, getStatus(), newValue);
     }//GEN-LAST:event_jSliderValueStateChanged
 
     public void publishUI(MXRangedValue newValue) {
@@ -199,19 +199,19 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
     private javax.swing.JSlider jSliderValue;
     // End of variables declaration//GEN-END:variables
 
-    public void increment() {
+    public void increment(MXMessage owner) {
         MGStatus status = getStatus();
         if (status.getValue().incrementable()) {
             MXRangedValue var = status.getValue().increment();
-            _mixer._parent.addSliderMove(status, var._value);
+            _mixer._parent.addSliderMove(owner, status, var._value);
         }
     }
 
-    public void decriment() {
+    public void decriment(MXMessage owner) {
         MGStatus status = getStatus();
         if (status.getValue().decrementable()) {
             MXRangedValue var = status.getValue().decrement();
-            _mixer._parent.addSliderMove(status, var._value);
+            _mixer._parent.addSliderMove(owner, status, var._value);
         }
     }
 
@@ -232,9 +232,9 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
     public void mouseWheelMoved(MouseWheelEvent e) {
         int d = e.getUnitsToScroll();
         if (d > 0) {
-            decriment();
+            decriment(null);
         }else {
-            increment();
+            increment(null);
         }
     }
 

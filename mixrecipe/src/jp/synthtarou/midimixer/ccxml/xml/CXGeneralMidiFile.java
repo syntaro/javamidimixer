@@ -224,7 +224,7 @@ public class CXGeneralMidiFile extends CXFile {
             CXNode valueTag = ccmTag.newTag("Value", true);
             valueTag.setTextContent("");
             CXNode gateTag = ccmTag.newTag("Gate", true);
-            gateTag.setTextContent("" + message.getGate()._value);
+            gateTag.setTextContent("" + message.getCompiled(1));
             switch (message.getStatus() & 0xf0) {
                 case MXMidi.COMMAND_CH_POLYPRESSURE:
                 case MXMidi.COMMAND_CH_NOTEON:
@@ -261,7 +261,7 @@ public class CXGeneralMidiFile extends CXFile {
             CXNode valueTag = ccmTag.newTag("Value", true);
             valueTag.setTextContent("");
             CXNode gateTag = ccmTag.newTag("Gate", true);
-            gateTag.setTextContent("" + message.getGate()._value);
+            gateTag.setTextContent("" + message.getCompiled(1));
             switch(message.getStatus() & 0xf0) {
                 case MXMidi.COMMAND_CH_POLYPRESSURE:
                 case MXMidi.COMMAND_CH_NOTEON:

@@ -130,7 +130,7 @@ public class MXMIDIIn {
         synchronized (MXTiming.mutex) {
             if (_assigned[port] != flag) {
                 if (!flag) {
-                    _myNoteOff.allNoteOffToPort((MXMessage)MXMessageFactory.createDummy().clone(), port);
+                    _myNoteOff.allNoteOffToPort(null, port);
                 }
                 _assigned[port] = flag;
                 int x = 0;
@@ -370,9 +370,8 @@ public class MXMIDIIn {
         }
     }
 
-    static class MessageQueueElement {
-
-        public MessageQueueElement(MXMessage message, MXReceiver receiver) {
+    public static class MessageQueueElement {
+        MessageQueueElement(MXMessage message, MXReceiver receiver) {
             _message = message;
             _receiver = receiver;
         }
@@ -383,16 +382,18 @@ public class MXMIDIIn {
 
     static MXQueue<MessageQueueElement> _messageQueue = new MXQueue<>();
     static MXSafeThread _messageThread = null;
+    static MessageQueueElement _messageProcessing = null;
 
     static {
         _messageThread = new MXSafeThread("MessageProcess", () -> {
             while (true) {
-                MessageQueueElement e = _messageQueue.pop();
-                if (e == null) {
+                _messageProcessing = null;
+                _messageProcessing = _messageQueue.pop();
+                if (_messageProcessing == null) {
                     break;
                 }
-                MXMessage message = e._message;
-                MXReceiver receiver = e._receiver;
+                MXMessage message = _messageProcessing._message;
+                MXReceiver receiver = _messageProcessing._receiver;
                 try {
                     messageToReceiver(message, receiver);
                 } catch (Throwable ex) {
@@ -422,8 +423,8 @@ public class MXMIDIIn {
         }
 
         int status = message.getTemplate().get(0);
-        int data1 = message.getData1();
-        int data2 = message.getData2();
+        int data1 = message.getCompiled(1);
+        int data2 = message.getCompiled(2);
 
         int command = status & 0xfff0;
         int channel = status & 0x0f;
@@ -443,7 +444,7 @@ public class MXMIDIIn {
         }
 
         synchronized (MXTiming.mutex) {
-            if (!message.isMessageTypeChannel()) {
+            if (!message.isChannelMessage1()) {
                 messageToReceiverThreaded(message, MXMain.getMain().getInputProcess());
                 return;
             }
@@ -484,11 +485,13 @@ public class MXMIDIIn {
     public static void queueMustEmpty() {
         try {
             while (true) {
-                synchronized (_messageQueue) {
-                    _messageQueue.wait(10);
-                }
                 if (_messageQueue.isEmpty()) {
-                    return;
+                    if (_messageProcessing == null) {
+                        return;
+                    }
+                }
+                synchronized (_messageQueue) {                        
+                    _messageQueue.wait(10);
                 }
             }
         } catch (InterruptedException ex) {

@@ -24,7 +24,6 @@ import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.MXRangedValue;
 import static jp.synthtarou.midimixer.libs.midi.MXTemplate.parseDAlias;
 import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant;
-import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.visitant.MXDataentry;
 
 /**
@@ -134,11 +133,10 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
     }
 
     public synchronized int getStatus() {
-        if (createBytes() == null) {
+        if (_template.size() == 0) {
             return 0;
         }
-        int status = _dataBytes[0] & 0xff;
-        return status;
+        return _template.get(0);
     }
 
     public boolean isCommand(int command) {
@@ -156,22 +154,12 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         }
     }
 
-    public synchronized int getData1() {
+    public synchronized int getCompiled(int x) {
         if (createBytes() == null) {
             return 0;
         }
-        if (_dataBytes.length > 1) {
-            return _dataBytes[1] & 0xff;
-        }
-        return 0;
-    }
-
-    public synchronized int getData2() {
-        if (createBytes() == null) {
-            return 0;
-        }
-        if (_dataBytes.length > 2) {
-            return _dataBytes[2] & 0xff;
+        if (_dataBytes.length > x) {
+            return _dataBytes[x] & 0xff;
         }
         return 0;
     }
@@ -237,14 +225,16 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
     }
 
     public int getMetaType() {
-        if (_template.get(0) == 0xff) {
-            return _template.get(1);
+        if (_template.size() >= 2) {
+            if (_template.get(0) == 0xff) {
+                return _template.get(1);
+            }
         }
         return -1;
     }
 
     public String getMetaText() {
-        if (_template.get(0) == 0xff) {
+        if (getStatus() == 0xff) {
             String text = "";
             byte[] data = getBinary();
             try {
@@ -303,94 +293,104 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         return _dataBytes;        //SYSEXの場合１バイト目は、STATUSに入る
     }
 
-    public boolean isMessageTypeChannel() {
-        if (_template.size() > 0) {
-            int code = _template.get(0);
-            if (code >= 0x80 && code <= 0xef) {
-                return true;
-            }
+    public boolean isChannelMessage1() {
+        int code = getStatus();
+        if (code >= 0x80 && code <= 0xef) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isChannelMessage2() {
+        int code = getStatus();
+        if (code >= 0x80 && code <= 0xef) {
+            return true;
+        }
+        if (code >= 0x100 && code != MXMidi.COMMAND2_NONE) {
+            return true;
         }
         return false;
     }
 
     public String toString() {
-        String str = toStringHeader();
-        if (isCommand(MXMidi.COMMAND_CH_PROGRAMCHANGE)) {
-            return "Port" + Character.toString((char) ('A' + _port)) + " Channel" + (_channel + 1) + ":" + str + "(" + getGate() + ")";
-        } else {
-            return "Port" + Character.toString((char) ('A' + _port)) + " Channel" + (_channel + 1) + ":" + str + "(" + getValue() + ")";
+        String str0 = toStringMessageInfo(1);
+        String str1 = Character.toString((char) ('A' + _port)) + ":";
+        String str2 = toStringGateValue();
+        if (str2.length() > 0) {
+            return str1 + "(" + str0 + "," + str2 + ")";
         }
+        return str1 + "{" + str0 + "}";
     }
 
-    public String toStringHeader(int min, int max) {
-        String str = toStringHeader();
-        if (min != max) {
-            return str + "= Range" + min + " to " + max;
-        } else {
-            return str + "= " + max;
-        }
-    }
-
-    public String toStringHeader() {
-        if (createBytes() == null) {
+    private String toStringGateValue() {
+        if (getTemplate().size() == 0) {
             return "";
         }
-
-        int port = getPort();
-
-        switch ((int) _dataBytes[0]) {
-            case 0xff:
-                return "Meta [" + getMetaType() + ":" + getMetaText() + "]";
-            case 0xf0:
-                return "Sysex [" + MXUtil.dumpHex(getBinary()) + "]";
-            case 0xf7:
-                return "SysexSpecial [" + MXUtil.dumpHex(getBinary()) + "]";
+        int command = getTemplate().get(0);
+        if (command == 0) {
+            return "";
         }
-        if (getDwordCount() >= 1) {
-            StringBuffer str = new StringBuffer();
-            for (int i = 0; i < getDwordCount(); ++i) {
-                try {
-                    int dword = getAsDword(i);
-                    if (i != 0) {
-                        str.append(", ");
-                    }
-                    str.append(MXMidiConsoleElement.toSegmentText(dword));
-                } catch (NullPointerException ex) {
-                    ex.printStackTrace();
-                    str.append(", null");
-                }
+        //
+        if (isChannelMessage2()) {
+            command = command & 0xfff0;
+        }
+        String gate = null, value = null;
+        if (indexOfGateLow() >= 0 || indexOfGateHi() >= 0) {
+            int num = getGate()._value;
+            gate = String.valueOf(num);
+            if (indexOfGateHi() >= 0) {
+                gate = "(" + MXUtil.toHexFF(num >> 7) + MXUtil.toHexFF(num & 0x7f) +")";
             }
-            return str.toString();
-        } else if (isBinaryMessage()) {
-            return "Binary[" + MXUtil.dumpHex(getBinary()) + "]";
-        } else {
-            return "*Nan[Template " + getTemplateAsText() + "] =" + MXUtil.toHexFF(getStatus()) + "," + MXUtil.toHexFF(getData1()) + ")*";
+            else {
+                gate = "(" + MXUtil.toHexFF(num & 0x7f) + ")";
+            }
         }
+        if (indexOfValueLow() >= 0 || indexOfValueHi() >= 0) {
+            value = String.valueOf(getValue()._value);
+        }
+        if (gate == null && value == null) {
+            return "";
+        }
+        if (gate != null && value == null) {
+            return gate + "=" + value;
+        }
+        if (value != null) {
+            return value;
+        }
+        return "Gate=" + gate;
     }
 
-    public String toStringForUI() {
+    public String toStringMessageInfo(int showChannel) {
         if (createBytes() == null) {
             return "";
         }
 
-        String chname;
-        if (isMessageTypeChannel()) {
+        String chname = "";
+        if (isChannelMessage1()) {
             int channel = getChannel();
-            chname = "" + (channel + 1);
-        } else {
-            chname = "";
+            if (showChannel == 1) {
+                chname = "" + (channel + 1);
+            }
+            else if (showChannel == 0) {
+                chname = "";
+            }
+            else {
+                chname = "Ch" + (channel + 1) + ":";
+            }
         }
 
         switch ((int) _dataBytes[0]) {
+            case 0:
+                return "Null";
             case 0xf0:
-                return "Sys";
+                return "Syx";
             case 0xf7:
-                return "Sys2";
+                return "Syx2";
             case 0xff:
                 return "Meta";
         }
         if (isBinaryMessage()) {
-            return "???";
+            return "Bin";
         }
 
         int status = getStatus();
@@ -400,25 +400,25 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         }
 
         if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
-            int data1 = getData1();
+            int data1 = getCompiled(1);
             return chname + MXMidi.nameOfControlChange(data1);
         } else if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-            int note = getGate()._value;
+            int note = getCompiled(1);
             int velocity = getValue()._value;
             return chname + MXMidi.nameOfNote(note) + "-";
         }
         if (command == MXMidi.COMMAND_CH_NOTEON) {
-            int note = getGate()._value;
+            int note = getCompiled(1);
             int velocity = getValue()._value;
             return chname + MXMidi.nameOfNote(note);
         }
         if (command == MXMidi.COMMAND_CH_POLYPRESSURE) {
-            int note = getGate()._value;
+            int note = getCompiled(1);
             int velocity = getValue()._value;
             return chname + "Prs";
         }
         if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
-            int program = getGate()._value;
+            int program = getCompiled(1);
             return chname + "Pg" + program;
         }
         if (command == MXMidi.COMMAND_CH_CHANNELPRESSURE) {
@@ -434,10 +434,10 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
             return chname + "Song";
         }
 
-        if (isMessageTypeChannel()) {
-            return chname + MXMidi.nameOfMessage(getStatus(), getData1(), getData2());
+        if (isChannelMessage1()) {
+            return chname + MXMidi.nameOfMessage(getStatus(), getCompiled(1), getCompiled(2));
         } else {
-            return MXMidi.nameOfMessage(getStatus(), getData1(), getData2());
+            return MXMidi.nameOfMessage(getStatus(), getCompiled(1), getCompiled(2));
         }
     }
 
@@ -495,7 +495,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         createBytes();
 
         String chname;
-        if (isMessageTypeChannel()) {
+        if (isChannelMessage1()) {
             int channel = getChannel();
             chname = Integer.toString(channel + 1);
         } else {
@@ -514,9 +514,12 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         if (_template.size() == 0) {
             return 0;
         }
-        int command = _template.get(0) & 0xfff0;
+        int command = getStatus() & 0xfff0;
         if (command  == MXMidi.COMMAND2_CH_RPN || command == MXMidi.COMMAND2_CH_NRPN) {
-            return 4;
+            if (indexOfValueHi() >= 0) {
+                return 4;
+            }
+            return 3;
         }
         if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
             if (_progBankLSB >= 0 && _progBankMSB >= 0) {
@@ -539,7 +542,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
     }
 
     public int getAsDword(int column) {
-        int command = _template.get(0) & 0xfff0;
+        int command = getStatus() & 0xfff0;
         if (command  == MXMidi.COMMAND2_CH_RPN || command  == MXMidi.COMMAND2_CH_NRPN) {
             switch (column) {
                 case 0:
@@ -557,25 +560,28 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
             if (indexOfValueHi() >= 0) {
                 if (column == 0) {
                     int status = getStatus();
-                    int data1 = getData1();
+                    int data1 = getCompiled(1);
                     int data2 = getValue()._value >> 7;
                     return (status << 16) | (data1 << 8) | data2;
                 }
                 else {
                     int status = getStatus();
-                    int data1 = getData1() + 0x20;
+                    int data1 = getCompiled(1) + 0x20;
                     int data2 = getValue()._value & 0x7f;
                     return (status << 16) | (data1 << 8) | data2;
                 }
             }
-            return 1;
+            int status = getStatus();
+            int data1 = getCompiled(1);
+            int data2 = getValue()._value & 0x7f;
+            return (status << 16) | (data1 << 8) | data2;
         }
         if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
             if (_progBankLSB >= 0 & _progBankMSB >= 0) {
                 if (column == 0) {
                     int status = getStatus();
-                    int data1 = getData1();
-                    int data2 = getData2();
+                    int data1 = getCompiled(1);
+                    int data2 = getCompiled(2);
                     return (status << 16) | (data1 << 8) | data2;
                 } else if (column == 1) {
                     int status = MXMidi.COMMAND_CH_CONTROLCHANGE + getChannel();
@@ -592,8 +598,8 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         }
         if (isBinaryMessage() == false) {
             int status = getStatus();
-            int data1 = getData1();
-            int data2 = getData2();
+            int data1 = getCompiled(1);
+            int data2 = getCompiled(2);
             if ((getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE && isPairedWith14()) {
                 if (column == 0) {
                     data2 = (getValue()._value >> 7) & 0x7f;

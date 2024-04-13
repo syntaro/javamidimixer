@@ -450,12 +450,11 @@ public class MXVisitant implements Cloneable {
                 ret[i] = null;
             }
         }
-        if (message.isMessageTypeChannel()) {
-            if (_channel != message.getChannel()) {
-                MXFileLogger.getLogger(MXVisitant.class).log(Level.SEVERE, "invalid channel", new Exception());
-            }
-        }else {
+        if (!message.isChannelMessage2()) {
             return null;
+        }
+        if (_channel != message.getChannel()) {
+            MXFileLogger.getLogger(MXVisitant.class).log(Level.SEVERE, "invalid channel", new Exception());
         }
 
         int wx = 0;
@@ -505,7 +504,7 @@ public class MXVisitant implements Cloneable {
             }
             ret[wx ++ ] = message;
             return ret;
-        } else if (message.isMessageTypeChannel()) {
+        } else if (message.isChannelMessage1()) {
             int gate = message.getGate()._value;
             int value = message.getValue()._value;
             int status = message.getStatus() & 0xf0;
@@ -526,8 +525,8 @@ public class MXVisitant implements Cloneable {
             }
             if (status == MXMidi.COMMAND_CH_CONTROLCHANGE) {
                 MXDataentry proc;
-                setCCValue(message.getData1(), value);
-                switch (message.getData1()) {
+                setCCValue(message.getCompiled(1), value);
+                switch (message.getCompiled(1)) {
 
                     case MXMidi.DATA1_CC_BANKSELECT:
                         setBankMSB(value);

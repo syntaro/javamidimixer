@@ -123,20 +123,20 @@ public class MX40Group {
     }
     
     public boolean processByGroup(MXMessage message) {
-        if (message.isMessageTypeChannel() == false) {
+        if (message.isChannelMessage1() == false) {
             return false;
         }
 
         int port = message.getPort();
         int status = message.getStatus();
         int command = status;
-        if (message.isMessageTypeChannel()) {
-            command &= 0xf0;
+        if (message.isChannelMessage2()) {
+            command &= 0xfff0;
         }
         int channel = message.getChannel();
         
         if (command == MXMidi.COMMAND_CH_NOTEOFF) {
-            if (_noteOff.raiseHandler(message, port, channel, message.getGate()._value)) {
+            if (_noteOff.raiseHandler(message, port, channel, message.getCompiled(1))) {
                 return true;
             }
         }
@@ -198,14 +198,14 @@ public class MX40Group {
             MX40Layer layer = _listLayer.get(found);
             proced = layer.processByLayer(message);
 
-            MXMessage noteOff = MXMessageFactory.fromNoteoff(port, channel, message.getGate()._value);
+            MXMessage noteOff = MXMessageFactory.fromNoteoff(port, channel, message.getCompiled(1));
             noteOff._owner = message;
             _noteOff.setHandler(message, noteOff,  new NoteOffWatcher2(layer, found));
         }else {
             for (MX40Layer layer: _listLayer) {
                 layer.processByLayer(message);
                 if (command == MXMidi.COMMAND_CH_NOTEON) {
-                    MXMessage noteOff = MXMessageFactory.fromNoteoff(port, channel, message.getGate()._value);
+                    MXMessage noteOff = MXMessageFactory.fromNoteoff(port, channel, message.getCompiled(1));
                     noteOff._owner = message;
                     _noteOff.setHandler(message, noteOff,  new NoteOffWatcher2(layer, -1));
                 }

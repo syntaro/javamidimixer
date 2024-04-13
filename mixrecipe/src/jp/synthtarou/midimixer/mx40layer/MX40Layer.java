@@ -189,7 +189,7 @@ public class MX40Layer {
     }
 
     public boolean processByLayer(MXMessage message) {
-        if (message.isMessageTypeChannel() == false) {
+        if (message.isChannelMessage2()) {
             _process.sendToNext(message);
             return true;
         }
@@ -198,13 +198,10 @@ public class MX40Layer {
         
         int port = message.getPort();
         int status = message.getStatus();
-        int command = status;
-        if (message.isMessageTypeChannel()) {
-            command &= 0xf0;
-        }
+        int command = status &= 0xffff0;
         int channel = message.getChannel();
-        int data1 = message.getData1();
-        int data2 = message.getData2();
+        int data1 = message.getCompiled(1);
+        int data2 = message.getCompiled(2);
         
         if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
             processProgramChange(message);
@@ -270,7 +267,7 @@ public class MX40Layer {
            if (data2_trans > getAcceptVelocityHighest()) return true;
         }
 
-        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && message.getGate()._value == MXMidi.DATA1_CC_EXPRESSION) {
+        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && message.getCompiled(1) == MXMidi.DATA1_CC_EXPRESSION) {
             if (_adjustExpression != 100) {
                 double exp = message.getValue()._value;
                 exp = exp * _adjustExpression;
@@ -282,7 +279,7 @@ public class MX40Layer {
                 changed = true;
             }
         }
-        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && message.getGate()._value == MXMidi.DATA1_CC_PANPOT) {
+        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && message.getCompiled(1) == MXMidi.DATA1_CC_PANPOT) {
             if (_modPan == MOD_FIXED) {
                 //int x = message.getValue();
                 int y = _fixedPan;

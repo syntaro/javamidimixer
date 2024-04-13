@@ -98,11 +98,11 @@ public class MX60ViewData extends MX10ViewData {
                     return;
                 }
                 synchronized (MXTiming.mutex) {
-                    if (message.isCommand(MXMidi.COMMAND_CH_NOTEON) && message.getData2() == 0) {
-                        message = MXMessageFactory.fromNoteoff(message.getPort(),  message.getChannel(), message.getData1());
+                    if (message.isCommand(MXMidi.COMMAND_CH_NOTEON) && message.getCompiled(2)== 0) {
+                        message = MXMessageFactory.fromNoteoff(message.getPort(),  message.getChannel(), message.getCompiled(1));
                     }
                     if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
-                        if (_noteOff.raiseHandler(message, message.getPort(), message.getChannel(), message.getData1())) {
+                        if (_noteOff.raiseHandler(message, message.getPort(), message.getChannel(), message.getCompiled(1))) {
                             return;
                         }
                     }
@@ -113,7 +113,7 @@ public class MX60ViewData extends MX10ViewData {
                                 MXMessage noteOff = MXMessageFactory.fromNoteoff(
                                         target.getPort(), 
                                         target.getChannel(), 
-                                        target.getData1());
+                                        target.getCompiled(1));
                                 noteOff._owner = target;
                                 _process.sendToNext(target);
                             }

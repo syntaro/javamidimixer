@@ -17,6 +17,8 @@
 package jp.synthtarou.midimixer.mx12masterpiano;
 
 import java.io.File;
+import java.util.List;
+import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.libs.accordionui.MXAccordion;
 import jp.synthtarou.libs.json.MXJsonValue;
@@ -27,6 +29,8 @@ import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
+import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
+import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 
 /**
@@ -193,22 +197,49 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
         @Override
         public void onNoteOffEvent(MXMessage target) {
             MXMIDIIn.messageToReceiverThreaded(target, _receiver);
-            _view._piano.noteOff(target.getGate()._value);
+            _view._piano.noteOff(target.getCompiled(1));
         }
     }
 
     public void processMXMessage(MXMessage message) {
     }
 
-    public void sendMessageByMouse(MXMessage message) {
-        MXReceiver receiver = getNextReceiver();
+    List<MXMessage> _debugResult = null;
+
+    public void sendCCAndGetResult(MXMessage message, MXReceiver receiver) {
         if (receiver == null) {
-            receiver = MXMain.getMain().getAutoSendableReceiver();
+            receiver = getNextReceiver();
+            if (receiver == null) {
+                receiver = MXMain.getMain().getAutoSendableReceiver();
+            }
         }
+        FinalMIDIOut.getInstance().startTestSignal(message, -1);
         MXMIDIIn.messageToReceiverThreaded(message, receiver);
+        MXMIDIIn.queueMustEmpty();
+        List<MXMessage> result = FinalMIDIOut.getInstance().getTestResult();
+        if (_debugResult != null) {
+            _debugResult.addAll(result);
+        }
+        
+        SwingUtilities.invokeLater(() -> {
+            _view._input.add(new MXMidiConsoleElement(message));
+            for (MXMessage seek : result) {
+                _view._output.add(new MXMidiConsoleElement(seek));
+            }
+        });
+    }
+    
+    public void startDebug(List<MXMessage> result) {
+        _debugResult = result;
     }
     
     public void updateViewForSettingChange() {
         _view.updateViewForSettingChange();
     }
+
+    public void openAccordionDebugMode() {
+        _view.setDebugMode(true);
+        _accordion.openAccordion(true);
+    }
 }
+ 

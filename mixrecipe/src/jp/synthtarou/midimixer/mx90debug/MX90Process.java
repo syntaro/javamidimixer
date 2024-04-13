@@ -21,6 +21,7 @@ import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.log.MXFileLogger;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -61,12 +62,18 @@ public class MX90Process extends MXReceiver<MX90View> {
             int pg = random(128);
             MXMessage program = MXMessageFactory.fromProgramChange(0, ch, pg);
             new MXDebugSame(program);
+            if (Thread.interrupted()) {
+                return;
+            }
         }
         MXFileLogger.getLogger(MX90Process.class).info("Testing Volume");
         for (int ch = 0; ch < 16; ++ch) {
             int vol = random(128);
-            MXMessage volume = MXMessageFactory.fromControlChange(0,  ch, MXMidi.DATA1_CC_CHANNEL_VOLUME, vol);
+            MXMessage volume = MXMessageFactory.fromControlChange(0, ch, MXMidi.DATA1_CC_CHANNEL_VOLUME, vol);
             new MXDebugSame(volume);
+            if (Thread.interrupted()) {
+                return;
+            }
         }
         MXFileLogger.getLogger(MX90Process.class).info("Testing Note 2");
         for (int i = 0; i < 127; ++i) {
@@ -77,6 +84,9 @@ public class MX90Process extends MXReceiver<MX90View> {
             new MXDebugSame(noteOn);
             MXMessage noteOff = MXMessageFactory.fromNoteoff(port, channel, i);
             new MXDebugSame(noteOff);
+            if (Thread.interrupted()) {
+                return;
+            }
         }
         MXFileLogger.getLogger(MX90Process.class).info("Testing Random Note");
         for (int x = 0; x < 50; ++x) {
@@ -88,8 +98,12 @@ public class MX90Process extends MXReceiver<MX90View> {
                 new MXDebugSame(noteOn);
                 MXMessage noteOff = MXMessageFactory.fromNoteoff(port, channel, note);
                 new MXDebugSame(noteOff);
+                if (Thread.interrupted()) {
+                    return;
+                }
             }
         }
+        /*
         MXFileLogger.getLogger(MX90Process.class).info("Testing Data Entry1");
         for (int msb = 0; msb < 128; msb += random(20)) {
             for (int lsb = 0; lsb < 128; lsb += random(20)) {
@@ -98,7 +112,7 @@ public class MX90Process extends MXReceiver<MX90View> {
                 new MXDebugDataEntry(true, msb, lsb, (varMSB << 7) | varLSB);
                 new MXDebugDataEntry(false, msb, lsb, (varMSB << 7) | varLSB);
             }
-        }
+        }*/
         MXFileLogger.getLogger(MX90Process.class).info("Testing Sysex");
         for (int value = 0; value < 128; value += random(20)) {
             for (int gate = 0; gate < 128; gate += random(20)) {
@@ -128,6 +142,9 @@ public class MX90Process extends MXReceiver<MX90View> {
                 }
                 new MXDebugSame(message3);
                 new MXDebugSame(message4);
+                if (Thread.interrupted()) {
+                    return;
+                }
             }
         }
 
@@ -146,10 +163,14 @@ public class MX90Process extends MXReceiver<MX90View> {
                 MXTemplate temp2 = new MXTemplate(textNRPN);
                 MXMessage newMessage = MXMessageFactory.fromTemplate(0, temp2, 0, null, null);
                 new MXDebugSame(newMessage);
+                if (Thread.interrupted()) {
+                    return;
+                }
 
             }
         }
-        
+
+        MXMain.getMain().getMasterkeyProcess().startDebug(null);
         MXFileLogger.getLogger(MX90Process.class).info("Finished All Tests");
         JOptionPane.showMessageDialog(_view, "Finished All Tests", "Done.", JOptionPane.OK_OPTION);
     }

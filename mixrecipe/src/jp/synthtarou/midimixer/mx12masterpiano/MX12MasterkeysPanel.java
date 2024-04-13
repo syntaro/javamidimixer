@@ -51,12 +51,9 @@ import jp.synthtarou.midimixer.ccxml.ui.NavigatorForCCXMLCC;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
-import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
-import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
@@ -147,12 +144,12 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         _piano.setHandler(new MXPianoKeys.MXMouseHandler() {
             public void noteOn(int note) {
                 MXMessage message = MXMessageFactory.fromNoteon(_process._mousePort, _process._mouseChannel, note, _process._mouseVelocity);
-                _process.sendMessageByMouse(message);
+                _process.sendCCAndGetResult(message, MXMain.getMain().getInputProcess());
             }
 
             public void noteOff(int note) {
                 MXMessage message = MXMessageFactory.fromNoteoff(_process._mousePort, _process._mouseChannel, note);
-                _process.sendMessageByMouse(message);
+                _process.sendCCAndGetResult(message, MXMain.getMain().getInputProcess());
             }
 
             @Override
@@ -233,7 +230,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             } else {
                 msg.setValue(MXRangedValue.new7bit(value));
             }
-            _process.sendMessageByMouse(msg);
+            _process.sendCCAndGetResult(msg, MXMain.getMain().getInputProcess());
         }
     }
 
@@ -251,7 +248,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             _sentModulation = value;
             MXMessage msg = MXMessageFactory.fromControlChange(_process._mousePort, _process._mouseChannel, MXMidi.DATA1_CC_MODULATION, 0);
             msg.setValue(MXRangedValue.new7bit(value));
-            _process.sendMessageByMouse(msg);
+            _process.sendCCAndGetResult(msg, MXMain.getMain().getInputProcess());
         }
     }
 
@@ -538,7 +535,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             
             boolean new14Bit = false;
             if (_baseMessage.getTemplate().get(0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
-                if (_baseMessage.getGate()._value >=0 && _baseMessage.getGate()._value <= 31) {
+                if (_baseMessage.getCompiled(1)>=0 && _baseMessage.getCompiled(1) <= 31) {
                     new14Bit = true;
                 }
             }
@@ -553,29 +550,13 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
                 jCheckBox14bit.setSelected(false);
             }
             
-            jLabelMean.setText(" mean = " + _baseMessage.toStringHeader());
+            jLabelMean.setText(" mean = " + _baseMessage.toString());
 
             jTextFieldCCCommand.setText(_baseMessage.getTemplateAsText());
             jTextFieldGate.setText(String.valueOf(_baseMessage.getGate()._value));
             jSpinnerCCValue.setValue(_baseMessage.getValue()._value);
         } finally {
             _stopFeedback--;
-        }
-    }
-    
-    public void sendCC(MXMessage message) {
-        MXReceiver receiver = _process.getNextReceiver();
-        if (receiver == null) {
-            receiver = MXMain.getMain().getAutoSendableReceiver();
-        }
-        FinalMIDIOut.getInstance().startTestSignal(message, -1);
-        MXMIDIIn.messageToReceiverThreaded(message, receiver);
-        MXMIDIIn.queueMustEmpty();
-        List<MXMessage> result = FinalMIDIOut.getInstance().getTestResult();
-        
-        _input.add(new MXMidiConsoleElement(message));
-        for (MXMessage seek : result) {
-            _output.add(new MXMidiConsoleElement(seek));
         }
     }
     
@@ -586,7 +567,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
 
     private void jButtonSendCCNowActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSendCCNowActionPerformed
         MXMessage message = (MXMessage)_baseMessage.clone();
-        sendCC(message);
+        _process.sendCCAndGetResult(message, MXMain.getMain().getInputProcess());
     }//GEN-LAST:event_jButtonSendCCNowActionPerformed
 
     private void jCheckBox14bitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox14bitActionPerformed
@@ -716,7 +697,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
                 String text = navi.getReturnValue();
                 MXTemplate template = new MXTemplate(text);
                 if (template.size() >= 2) {
-                    int command = template.get(0);
+                    int command = template.get(0) & 0xfff0;
                     int gate = template.get(1);
                     if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && gate != MXMidi.CCXML_GL) {
                         int[] newTemplate = new int[template.size()];
@@ -810,5 +791,9 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         if (_labelAfterName != null) {
             _labelAfterName.reloadSetting();
         }
+    }
+    
+    public void setDebugMode(boolean mode) {
+        jTabbedPane1.setSelectedIndex(mode ? 1 : 0);
     }
 }

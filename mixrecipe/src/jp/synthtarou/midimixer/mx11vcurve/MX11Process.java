@@ -42,7 +42,7 @@ public class MX11Process extends MXReceiver<MX11View> {
 
         if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
             int port = message.getPort();
-            int velocity = message.getGate()._value;
+            int velocity = message.getCompiled(1);
             int newVelocity = _viewData.transform(port, velocity);
             if (velocity == newVelocity) {
                 sendToNext(message);

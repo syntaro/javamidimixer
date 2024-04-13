@@ -18,6 +18,7 @@ package jp.synthtarou.midimixer.libs.midi;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import javax.swing.text.StyleConstants;
 import jp.synthtarou.libs.log.MXFileLogger;
 
 /**
@@ -69,7 +70,8 @@ public class MXNoteOffWatcher {
         synchronized (MXTiming.mutex) {
             for (Element e : _list) {
                 MXMessage base = e.sendSide;
-                MXMessage msg = MXMessageFactory.fromNoteoff(base.getPort(), base.getChannel(), base.getGate()._value);
+                MXMessage msg = MXMessageFactory.fromNoteoff(base.getPort(), base.getChannel(), base.getCompiled(1));
+                msg._owner = parent;
                 e.listener.onNoteOffEvent(msg);
             }
             _list.clear();
@@ -86,7 +88,8 @@ public class MXNoteOffWatcher {
                 }
                 it.remove();
                 MXMessage base = e.sendSide;
-                MXMessage msg = MXMessageFactory.fromNoteoff(base.getPort(), base.getChannel(), base.getGate()._value);
+                MXMessage msg = MXMessageFactory.fromNoteoff(base.getPort(), base.getChannel(), base.getCompiled(1));
+                msg._owner = parent;
                 e.listener.onNoteOffEvent(msg);
             }
             //_list.clear();
@@ -95,9 +98,6 @@ public class MXNoteOffWatcher {
 
     public void allNoteFromPort(MXMessage parent, int from) {
         synchronized (MXTiming.mutex) {
-            if (parent == null) {
-                parent = (MXMessage) MXMessageFactory.createDummy().clone();
-            }
             Iterator<Element> it = _list.iterator();
             while (it.hasNext()) {
                 Element e = it.next();
@@ -106,7 +106,8 @@ public class MXNoteOffWatcher {
                 }
                 it.remove();
                 MXMessage base = e.sendSide;
-                MXMessage msg = MXMessageFactory.fromNoteoff(base.getPort(), base.getChannel(), base.getGate()._value);
+                MXMessage msg = MXMessageFactory.fromNoteoff(base.getPort(), base.getChannel(), base.getCompiled(1));
+                msg._owner = parent;
                 e.listener.onNoteOffEvent(msg);
             }
             //_list.clear();
@@ -114,25 +115,23 @@ public class MXNoteOffWatcher {
     }
 
     public boolean raiseHandler(MXMessage target) {
-        return raiseHandler(target, target.getPort(), target.getChannel(), target.getData1());
+        return raiseHandler(target, target.getPort(), target.getChannel(), target.getCompiled(1));
     }
 
     public boolean raiseHandler(MXMessage parent, int port, int ch, int note) {
         synchronized (MXTiming.mutex) {
             int proc = 0;
-            if (parent == null) {
-                parent = (MXMessage) MXMessageFactory.createDummy().clone();
-            }
             Iterator<Element> it = _list.iterator();
             while (it.hasNext()) {
                 Element e = it.next();
                 if (e.catchSide.getPort() == port
                         && e.catchSide.getChannel() == ch
-                        && e.catchSide.getData1() == note) {
+                        && e.catchSide.getCompiled(1) == note) {
                     MXMessage noteOff = MXMessageFactory.fromNoteoff(
                             e.sendSide.getPort(),
                             e.sendSide.getChannel(),
-                            e.sendSide.getData1());
+                            e.sendSide.getCompiled(1));
+                    noteOff._owner = parent;
                     e.listener.onNoteOffEvent(noteOff);
                     it.remove();
                     proc++;

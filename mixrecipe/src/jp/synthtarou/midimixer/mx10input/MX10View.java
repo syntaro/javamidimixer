@@ -16,6 +16,11 @@
  */
 package jp.synthtarou.midimixer.mx10input;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.util.TreeMap;
 import java.util.Vector;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
@@ -65,6 +70,22 @@ public class MX10View extends javax.swing.JPanel {
             TableColumn col = _jTableSkip.getColumnModel().getColumn(i);
             col.setCellRenderer(tableCellRenderer);
         }
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                splitAuto();
+            }
+
+            @Override
+            public void componentShown(ComponentEvent e) {
+                splitAuto();
+            }
+
+        });
+    }
+    
+    public void splitAuto() {
+        jSplitPane1.setDividerLocation(Math.max(jSplitPane1.getWidth() / 2, jSplitPane1.getWidth() - 350));
     }
     
     private void jTableSkip_MouseClicked(java.awt.event.MouseEvent evt) {                                     
@@ -117,13 +138,18 @@ public class MX10View extends javax.swing.JPanel {
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
+        jSplitPane1 = new javax.swing.JSplitPane();
         jSplitPane2 = new javax.swing.JSplitPane();
         jPanelSkip = new javax.swing.JPanel();
         jCheckBoxUseSkip = new javax.swing.JCheckBox();
         jPanel1 = new javax.swing.JPanel();
         jPanelInputSelect = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jPanelPreprocessor = new javax.swing.JPanel();
 
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
+
+        jSplitPane1.setDividerLocation(400);
 
         jSplitPane2.setDividerLocation(240);
         jSplitPane2.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
@@ -152,13 +178,21 @@ public class MX10View extends javax.swing.JPanel {
         gridBagConstraints.weighty = 1.0;
         jPanelSkip.add(jPanel1, gridBagConstraints);
 
-        jSplitPane2.setRightComponent(jPanelSkip);
+        jSplitPane2.setBottomComponent(jPanelSkip);
 
         jPanelInputSelect.setBorder(javax.swing.BorderFactory.createTitledBorder("1.Input Assign"));
         jPanelInputSelect.setLayout(new javax.swing.BoxLayout(jPanelInputSelect, javax.swing.BoxLayout.LINE_AXIS));
-        jSplitPane2.setLeftComponent(jPanelInputSelect);
+        jSplitPane2.setTopComponent(jPanelInputSelect);
 
-        add(jSplitPane2);
+        jSplitPane1.setLeftComponent(jSplitPane2);
+
+        jPanelPreprocessor.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jPanelPreprocessor.setLayout(new java.awt.GridBagLayout());
+        jScrollPane1.setViewportView(jPanelPreprocessor);
+
+        jSplitPane1.setRightComponent(jScrollPane1);
+
+        add(jSplitPane1);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jCheckBoxUseSkipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxUseSkipActionPerformed
@@ -208,7 +242,10 @@ public class MX10View extends javax.swing.JPanel {
     private javax.swing.JCheckBox jCheckBoxUseSkip;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanelInputSelect;
+    private javax.swing.JPanel jPanelPreprocessor;
     private javax.swing.JPanel jPanelSkip;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSplitPane jSplitPane2;
     // End of variables declaration//GEN-END:variables
 
@@ -250,4 +287,37 @@ public class MX10View extends javax.swing.JPanel {
         
     };
 
+    public void addPreprocessor(TreeMap<Integer, MX10Preprocessor> prepro) {
+        if (SwingUtilities.isEventDispatchThread() == false) {
+            SwingUtilities.invokeLater(() -> {
+                addPreprocessor(prepro);
+            });
+            return;
+        }
+        jPanelPreprocessor.removeAll();
+        jPanelPreprocessor.setLayout(new GridBagLayout());
+        int y = 0;
+        GridBagConstraints gc;
+        for (Integer seek : prepro.keySet()) {
+            MX10Preprocessor seek2 = prepro.get(seek);
+            gc = new java.awt.GridBagConstraints();
+            gc.gridx = 0;
+            gc.gridy = y ++;
+            gc.fill = java.awt.GridBagConstraints.BOTH;
+            gc.weightx = 1.0;
+            gc.weighty = 0;
+            jPanelPreprocessor.add(seek2.getReceiverView(), gc);
+        }
+        JLabel label = new JLabel(" ");
+        gc = new java.awt.GridBagConstraints();
+        gc.gridx = 0;
+        gc.gridy = y ++;
+        gc.fill = java.awt.GridBagConstraints.BOTH;
+        gc.weightx = 0;
+        gc.weighty = 1.0;
+        jPanelPreprocessor.add(label, gc);
+
+        jPanelPreprocessor.invalidate();
+        jPanelPreprocessor.repaint();
+    }
 }

@@ -1019,7 +1019,7 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
         String name = _status.safeValueTable().nameOfValue(value);
         jTextFieldValueValue.setText(name);
         if (_status != null) {
-            MXMessage message = _process.updateOutputValue(_status, value);
+            MXMessage message = _process.updateOutputValue(null, _status, value);
             if (message != null) {
                 _process.sendToNext(message);
             }
