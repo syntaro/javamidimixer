@@ -110,11 +110,11 @@ public class MX60ViewData extends MX10ViewData {
                         _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
                             @Override
                             public void onNoteOffEvent(MXMessage target) {
-                                MXMessage noteOff = MXMessageFactory.fromNoteoff(
+                                MXMessage newMessage = MXMessageFactory.fromNoteoff(
                                         target.getPort(), 
                                         target.getChannel(), 
                                         target.getCompiled(1));
-                                noteOff._owner = target;
+                                newMessage._owner = target;
                                 _process.sendToNext(target);
                             }
                         });

@@ -291,7 +291,7 @@ public class MX32MixerInitializer {
                 status = _mixer.getStatus(MGStatus.TYPE_CIRCLE, row, col);
                 if (col >= 16) {
                     String text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
-                    message = MXMessageFactory.fromCCXMLText(_port, text, 0, MXRangedValue.ZERO7, MXRangedValue.new14bit(0));
+                    message = MXMessageFactory.fromCCXMLText(_port, text, 0, MXRangedValue.ZERO7, MXRangedValue.ZERO14);
                 } else {
                     message = MXMessageFactory.fromControlChange(_port, col, ccCode[row], 64);
                 }

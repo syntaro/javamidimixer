@@ -36,6 +36,7 @@ public class MXRangedValue implements Comparable<MXRangedValue>{
     }
 
     public static final MXRangedValue ZERO7 = _cache128[0];
+    public static final MXRangedValue ZERO14 = MXRangedValue.new14bit(0);
 
     public static final MXRangedValue new7bit(int x) {
         if (x < 0 || x >= 128)  {
@@ -342,5 +343,11 @@ public class MXRangedValue implements Comparable<MXRangedValue>{
         if (x < 0) return -1;
         if (x > 0) return 1;
         return 0;
+    }
+    
+    public String toStringHex14() {
+        int msb = (_value >> 7) & 0x7f;
+        int lsb = _value & 0x7f;
+        return MXUtil.toHexFF(msb) + "." + MXUtil.toHexFF(lsb);
     }
 }

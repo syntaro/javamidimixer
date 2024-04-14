@@ -71,7 +71,7 @@ public class ThemeManagerDialog extends javax.swing.JDialog {
         
         setPreferredSize(new Dimension(400, 400));
         CurvedSlider curve = new CurvedSlider(35);
-        curve.setValue(MXRangedValue.new7bit(0));
+        curve.setValue(MXRangedValue.ZERO7);
 
         jLabelFill.setText("");
         jCheckBox1.setSelected(CurvedSlider.isMouseCircleIsCircle());

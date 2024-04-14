@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.mx10input;
+package jp.synthtarou.midimixer.libs.midi.port;
 
 import javax.swing.DefaultListModel;
 import javax.swing.SwingUtilities;
@@ -25,17 +25,16 @@ import jp.synthtarou.midimixer.libs.midi.MXReceiver;
  *
  * @author Syntarou YOSHIDA
  */
-public class MX10Preprocessor extends MXReceiver<MX10PreprocessorView>{
-    int _port;
-    MX10Process _parent;
-    MX10PreprocessorView _view;
-    MX10Diagnostics[] listAnalyzer = null;
-    DefaultListModel<String> _console = new DefaultListModel<>();
+public class MXPreprocess extends MXReceiver<MXPreprocessView> {
 
-    public MX10Preprocessor(int port, MX10Process parent) {
-        _parent = parent;
-        _port = port;
+    MXPreprocessView _view;
+    MXPreprocessDiagnostics[] listAnalyzer = null;
+    DefaultListModel<String> _console = new DefaultListModel<>();
+    MXMIDIIn _inputPort;
+
+    public MXPreprocess(MXMIDIIn inputPort) {
         _view = null;
+        _inputPort = inputPort;
     }
 
     @Override
@@ -44,7 +43,7 @@ public class MX10Preprocessor extends MXReceiver<MX10PreprocessorView>{
     }
 
     public void addText(String text) {
-        if (_view != null) {            
+        if (_view != null) {
             if (SwingUtilities.isEventDispatchThread() == false) {
                 SwingUtilities.invokeLater(() -> {
                     addText(text);
@@ -55,21 +54,21 @@ public class MX10Preprocessor extends MXReceiver<MX10PreprocessorView>{
             _view.reloadList();
         }
     }
-    
+
     @Override
-    public synchronized  MX10PreprocessorView getReceiverView() {
+    public synchronized MXPreprocessView getReceiverView() {
         if (_view == null) {
-            _view = new MX10PreprocessorView(this);
+            _view = new MXPreprocessView(this);
         }
         return _view;
     }
-    
-    public synchronized MX10Diagnostics getAnalyzer(int ch) {
+
+    public synchronized MXPreprocessDiagnostics getAnalyzer(int ch) {
         if (listAnalyzer == null) {
-            listAnalyzer = new MX10Diagnostics[16];
+            listAnalyzer = new MXPreprocessDiagnostics[16];
         }
         if (listAnalyzer[ch] == null) {
-            listAnalyzer[ch] = new MX10Diagnostics(this, ch);
+            listAnalyzer[ch] = new MXPreprocessDiagnostics(this, ch);
         }
         return listAnalyzer[ch];
     }
@@ -77,33 +76,40 @@ public class MX10Preprocessor extends MXReceiver<MX10PreprocessorView>{
     @Override
     public void processMXMessage(MXMessage message) {
         if (message.isChannelMessage2()) {
-            MX10Diagnostics diag = getAnalyzer(message.getChannel());
+            MXPreprocessDiagnostics diag = getAnalyzer(message.getChannel());
             diag.record(message);
             while (true) {
                 MXMessage seek = diag.popResult();
                 if (seek == null) {
                     break;
                 }
-                seek._owner = message;
-                _parent.sendToNext(seek);
+                if (message == seek) {
+                    //LAUGH
+                } else {
+                    seek._owner = message;
+                }
+                sendToNext(seek);
             }
             return;
-        }
-        else {
-            for (int i = 0; i < 16; ++ i) {
-                MX10Diagnostics diag = getAnalyzer(i);
+        } else {
+            for (int i = 0; i < 16; ++i) {
+                MXPreprocessDiagnostics diag = getAnalyzer(i);
                 diag.flushPool();
                 while (true) {
                     MXMessage seek = diag.popResult();
                     if (seek == null) {
                         break;
                     }
-                    seek._owner = message;
-                    _parent.sendToNext(seek);
+                    if (message == seek) {
+                        //LAUGH
+                    } else {
+                        seek._owner = message;
+                    }
+                    sendToNext(seek);
                 }
             }
         }
-        
-        _parent.sendToNext(message);
+
+        sendToNext(message);
     }
 }

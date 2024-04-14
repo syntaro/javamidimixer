@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.mx10input;
 
+import jp.synthtarou.midimixer.libs.midi.port.MXPreprocess;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ComponentAdapter;
@@ -287,7 +288,7 @@ public class MX10View extends javax.swing.JPanel {
         
     };
 
-    public void addPreprocessor(TreeMap<Integer, MX10Preprocessor> prepro) {
+    public void addPreprocessor(TreeMap<Integer, MXPreprocess> prepro) {
         if (SwingUtilities.isEventDispatchThread() == false) {
             SwingUtilities.invokeLater(() -> {
                 addPreprocessor(prepro);
@@ -299,7 +300,7 @@ public class MX10View extends javax.swing.JPanel {
         int y = 0;
         GridBagConstraints gc;
         for (Integer seek : prepro.keySet()) {
-            MX10Preprocessor seek2 = prepro.get(seek);
+            MXPreprocess seek2 = prepro.get(seek);
             gc = new java.awt.GridBagConstraints();
             gc.gridx = 0;
             gc.gridy = y ++;

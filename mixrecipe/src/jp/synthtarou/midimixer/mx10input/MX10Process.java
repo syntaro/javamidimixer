@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.mx10input;
 
+import jp.synthtarou.midimixer.libs.midi.port.MXPreprocess;
 import java.io.File;
 import java.util.TreeMap;
 import jp.synthtarou.midimixer.MXConfiguration;
@@ -36,23 +37,10 @@ public class MX10Process extends MXReceiver<MX10View> implements MXINIFileSuppor
     MX10View _view;
     MXINIFile _setting;
     MX10ViewData _viewData;
-    TreeMap<Integer, MX10Preprocessor> _prepro = new TreeMap<>();
 
     public MX10Process() {
         _view = new MX10View();
         _viewData = new MX10ViewData();
-        cretaePreprocessor(0);
-    }
-    
-    public MX10Preprocessor cretaePreprocessor(int port) {
-        MX10Preprocessor seek = _prepro.get(port);
-        if (seek != null) {
-            return seek;
-        }
-        seek = new MX10Preprocessor(port, this);
-        _prepro.put(port, seek);
-        _view.addPreprocessor(_prepro);
-        return seek;
     }
 
     @Override
@@ -72,13 +60,7 @@ public class MX10Process extends MXReceiver<MX10View> implements MXINIFileSuppor
                 return;
             }
         }
-        MX10Preprocessor process = cretaePreprocessor(message.getPort());
-        if (message.isChannelMessage2()) {
-            process.processMXMessage(message);
-        }
-        else {
-            sendToNext(message);
-        }
+        sendToNext(message);
     }
 
     @Override

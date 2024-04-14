@@ -1162,7 +1162,6 @@ public class MX36StatusDetailPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonNewInFolderActionPerformed
 
     private void jCheckBoxSurfaceReplaceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSurfaceReplaceActionPerformed
-        // TODO add your handling code here:
         _status._surfaceReplace = jCheckBoxSurfaceReplace.isSelected();
     }//GEN-LAST:event_jCheckBoxSurfaceReplaceActionPerformed
 

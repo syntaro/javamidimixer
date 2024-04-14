@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.midimixer.mx10input;
+package jp.synthtarou.midimixer.libs.midi.port;
 
 import javax.swing.BorderFactory;
 
@@ -22,18 +22,18 @@ import javax.swing.BorderFactory;
  *
  * @author Syntarou YOSHIDA
  */
-public class MX10PreprocessorView extends javax.swing.JPanel {
-    MX10Preprocessor _process;
+public class MXPreprocessView extends javax.swing.JPanel {
+    MXPreprocess _process;
    
     /**
      * Creates new form PreprocessorPanel
      */
-    public MX10PreprocessorView(MX10Preprocessor process) {
+    public MXPreprocessView(MXPreprocess process) {
         initComponents();
         _process = process;
         jList1.setModel(_process._console);
 
-        String title = "Port "  + Character.toString('A' + process._port);
+        String title = process._inputPort.getName();
         
         
         setBorder(BorderFactory.createTitledBorder(title));

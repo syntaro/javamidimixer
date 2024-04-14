@@ -16,8 +16,6 @@
  */
 package jp.synthtarou.midimixer.mx70console;
 
-import java.util.logging.Level;
-import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -49,13 +47,11 @@ public class MX70Process {
 
     public void addOutsideInput(MXMidiConsoleElement e) {
         _outsideInput.add(e);
-        //e.getTiming().recordWrap(0);
     }
 
     public void addInsideInput(MXMessage msg) {
         MXMidiConsoleElement e = new MXMidiConsoleElement(msg);
         _insideInput.add(e);
-        //e.getTiming().recordWrap(1);
         if (msg.isBinaryMessage()) {
             _listBinary.add(e);
         }
@@ -64,16 +60,10 @@ public class MX70Process {
     public void addInsideOutput(MXMessage msg) {
         MXMidiConsoleElement e = new MXMidiConsoleElement(msg);
         _insideOutput.add(e);
-        try {
-            //e.getTiming().recordWrap(2);
-        }catch(RuntimeException ex) {
-            MXFileLogger.getLogger(MX70Process.class).log(Level.WARNING, ex.getMessage(), ex);
-        }
     }
 
     public void addOutsideOutput(MXMidiConsoleElement e) {
         _outsideOutput.add(e);
-        //e.getTiming().recordWrap(3);
     }
     
     MX70SysexPanel _sysex;

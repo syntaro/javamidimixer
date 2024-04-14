@@ -679,29 +679,19 @@ public class MX70View extends javax.swing.JPanel {
     }
 
     public void showAsWindow() {
+        System.out.println("111111111");
         JFrame newFrame = new JFrame();
         newFrame.setTitle("Free Consone / SysEX(" + MXConfiguration.MX_APPLICATION + ")");
+        System.out.println("222222222");
         //dialog.setAlwaysOnTop(modal ? true : false);
         newFrame.pack();
         newFrame.getContentPane().add(this);
+        System.out.println("333333333");
         setPreferredSize(new Dimension(800, 600));
         newFrame.pack();
         MXUtil.centerWindow(newFrame);
+        System.out.println("444444444");
         newFrame.setVisible(true);
-
-        SwingUtilities.invokeLater(() -> {
-            if (_process._outsideInput.getSize() >= 1) {
-                jListOutsideInput.ensureIndexIsVisible(_process._outsideInput.getSize() - 1);
-            }
-            if (_process._insideInput.getSize() >= 1) {
-                jListInsideInput.ensureIndexIsVisible(_process._insideInput.getSize() - 1);
-            }
-            if (_process._insideOutput.getSize() >= 1) {
-                jListInsideOutput.ensureIndexIsVisible(_process._insideOutput.getSize() - 1);
-            }
-            if (_process._outsideOutput.getSize() >= 1) {
-                jListOutsideOutput.ensureIndexIsVisible(_process._outsideOutput.getSize() - 1);
-            }
-        });
+        System.out.println("555555555");
     }
 }

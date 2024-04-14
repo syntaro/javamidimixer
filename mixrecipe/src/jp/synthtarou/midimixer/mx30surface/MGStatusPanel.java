@@ -2343,7 +2343,6 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     }
 
     public void startBrowseXMLOut() {
-        //TODO
         NavigatorForCCXMLCC navi = new NavigatorForCCXMLCC();
         MXUtil.showAsDialog(this, navi, "Which You Choose?");
         if (navi.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {
@@ -2711,7 +2710,6 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     }//GEN-LAST:event_jRadioButtonLinkKnob4ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        // TODO add your handling code here:
         NavigatorForCCXMLInst navi = new NavigatorForCCXMLInst();
         if (navi.simpleAsk(this)) {
             CCXMLInst ret = navi.getReturnValue();
@@ -2721,8 +2719,6 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             jSpinnerDrumProgLSB.setValue(ret._bankLSB);
             _stopFeedback--;
         }
-
-
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jCheckBoxSequencerSeekStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSequencerSeekStartActionPerformed

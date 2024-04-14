@@ -116,15 +116,11 @@ public class MXMidiConsole implements ListModel<String> {
         return e.formatMessageLong();
     }
 
-    public synchronized void add(MXMidiConsoleElement e) {
-        if (false) {
-            addImpl(e);
-        } else if (true) {
-            synchronized (_queue) {
-                _queue.add(e);
-            }
-            countDown();
+    public void add(MXMidiConsoleElement e) {
+        synchronized (_queue) {
+            _queue.add(e);
         }
+        countDown();
     }
 
     boolean _switchPause = false;
@@ -146,29 +142,19 @@ public class MXMidiConsole implements ListModel<String> {
     }
 
     private synchronized void addImpl(MXMidiConsoleElement e) {
-        /* Ignore */
-        if (_recordClock == false) {
-            int status = e.getMessage().getStatus();
-            if (status == MXMidi.COMMAND_ACTIVESENSING
-                    || status == MXMidi.COMMAND_MIDICLOCK
-                    || status == MXMidi.COMMAND_MIDITIMECODE) {
-                return;
-            }
-        }
-        _list.add(e);
-        /*
-        if (_list.size() >= 2) {
-            MXMidiConsoleElement prevE = _list.get(_list.size() - 1);
-            if (prevE != null) {
-                MXTiming prevNumber = prevE.getTiming();
-                int comp = prevNumber.compareTo(e.getTiming());
-                if (comp > 0) {
-                    MXFileLogger.getLogger(MXMessage.class).warning("This " + e.formatMessageLong() + "\n" + "Before " + prevE.formatMessageLong());
+        synchronized (_queue) {
+            if (_recordClock == false) {
+                int status = e.getMessage().getStatus();
+                if (status == MXMidi.COMMAND_ACTIVESENSING
+                        || status == MXMidi.COMMAND_MIDICLOCK
+                        || status == MXMidi.COMMAND_MIDITIMECODE) {
+                    return;
                 }
             }
-        }*/
-        
-        countDown();
+            _list.add(e);
+
+            countDown();
+        }
     }
 
     long _repaintLastTick = 0;
@@ -210,8 +196,6 @@ public class MXMidiConsole implements ListModel<String> {
         synchronized (_queue) {
             pop = _queue;
             _queue = new LinkedList<>();
-        }
-        synchronized (this) {
             for (MXMidiConsoleElement e : pop) {
                 addImpl(e);
             }
@@ -246,12 +230,14 @@ public class MXMidiConsole implements ListModel<String> {
         }
     }
 
-    public synchronized void clear() {
-        _list.clear();
-        _queue = new LinkedList();
-        final ListDataEvent e = new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 0, _list.size());
-        for (ListDataListener listener : _listener) {
-            listener.contentsChanged(e);
+    public void clear() {
+        synchronized (_queue) {
+            _list.clear();
+            _queue.clear();
+            final ListDataEvent e = new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 0, _list.size());
+            for (ListDataListener listener : _listener) {
+                listener.contentsChanged(e);
+            }
         }
     }
 }

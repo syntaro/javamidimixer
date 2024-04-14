@@ -336,7 +336,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
         return data;
     }
 
-    static int parseDAlias(int alias, MXMessage message) {
+    public static int parseDAlias(int alias, MXMessage message) {
         int gate = message.getGate()._value;
         int value = message.getValue()._value;
         int channel = message.getChannel();

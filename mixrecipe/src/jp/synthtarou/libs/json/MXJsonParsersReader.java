@@ -81,7 +81,7 @@ public class MXJsonParsersReader {
                 }
             }
             if (nonZero >= 1 && (nonZero - zero0 - zero1) >= -5 && (nonZero - zero0 - zero1) <= 5) {
-                System.out.println("******************RELOADED***************");
+                MXFileLogger.getLogger(MXJsonParsersReader.class).info("RELOADED");
                 if (zero0 > zero1) {
                     _data = readFileImpl(file, "UTF-16BE");
                 }else {

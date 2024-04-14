@@ -663,6 +663,8 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
                 MXMessage message = e.getMessage();
                 _input.setMarked(message);
                 _output.setMarked(message);
+                jListInput.ensureIndexIsVisible(index);
+                jListOutput.ensureIndexIsVisible(index);
             }
         }
     }//GEN-LAST:event_jListInputValueChanged
@@ -675,6 +677,8 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
                 MXMessage message = e.getMessage();
                 _input.setMarked(message);
                 _output.setMarked(message);
+                jListInput.ensureIndexIsVisible(index);
+                jListOutput.ensureIndexIsVisible(index);
             }
         }
     }//GEN-LAST:event_jListOutputValueChanged

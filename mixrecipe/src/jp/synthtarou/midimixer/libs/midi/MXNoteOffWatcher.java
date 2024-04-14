@@ -18,7 +18,6 @@ package jp.synthtarou.midimixer.libs.midi;
 
 import java.util.Iterator;
 import java.util.LinkedList;
-import javax.swing.text.StyleConstants;
 import jp.synthtarou.libs.log.MXFileLogger;
 
 /**

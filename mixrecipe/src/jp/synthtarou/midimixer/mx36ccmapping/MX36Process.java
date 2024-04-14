@@ -414,7 +414,6 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
         }
 
         MXJsonValue.HelperForStructure root = value.new HelperForStructure();
-        //TODO
         MXJsonValue.HelperForArray listFolder = root.getFollowingArray("Folder");
         for (int i = 0; i < listFolder.count(); ++i) {
             MXJsonValue.HelperForStructure folderNode = listFolder.getFollowingStructure(i);

@@ -176,12 +176,12 @@ public class MXMIDIOut {
                 finalOut(message);
             } else {
                 MXVisitant msgVisitant = message.getVisitant();
-                int status = message.getTemplate().get(0);
+                int status = message.getCompiled(0);
                 int channel = message.getChannel();
                 int gate = message.getGate()._value;
                 int command = status;
                 if (status >= 0x80 && status <= 0xef) {
-                    command = status & 0xf0;
+                    command = status & 0xffff0;
                 }
                 if (msgVisitant == null) {
                 } else {
@@ -195,7 +195,7 @@ public class MXMIDIOut {
                                 newMessage._owner = message;
                                 newMessage.setVisitant(portVisitant.getSnapShot());
                                 processMidiOutInternal(newMessage);
-                                //System.out.println("need Fix ProgramChange"+ " @" + channel + " from " + old + " to " + must);
+                                System.out.println("need Fix ProgramChange"+ " @" + channel + " from " + old + " to " + must);
                             }
                         }
                     }
@@ -217,7 +217,7 @@ public class MXMIDIOut {
 
                                 processMidiOutInternal(newMessage1);
                                 processMidiOutInternal(newMessage2);
-                                //System.out.println("need Fix BankSelect"+ " @" + channel);
+                                System.out.println("need Fix BankSelect"+ " @" + channel);
                             }
                         }
                     }
@@ -240,7 +240,7 @@ public class MXMIDIOut {
                                         newMessage.setVisitant(portVisitant.getSnapShot());
 
                                         processMidiOutInternal(newMessage);
-                                        //System.out.println("need Fix CC " + code+ " @" + channel+ " from " + old + " to " + must);
+                                        System.out.println("need Fix CC " + code+ " @" + channel+ " from " + old + " to " + must);
                                     }
                                 }
                             }
@@ -248,14 +248,10 @@ public class MXMIDIOut {
                         }
                     }
                 }
-                MXMessage[] ret = portVisitant.preprocess(message, retBuf);
+
+                MXMessage ret = portVisitant.catchTheVisitant(message);
                 if (ret != null) {
-                    retBuf = ret;
-                    for (int i = 0; i < ret.length; ++i) {
-                        if (ret[i] != null) {
-                            finalOut(ret[i]);
-                        }
-                    }
+                    finalOut(ret);
                 }
             }
         }
@@ -298,11 +294,8 @@ public class MXMIDIOut {
                 for (int j = 0; j < col; ++j) {
                     int dword = message.getAsDword(j);
                     if (dword == 0) {
-                        //MidiINでまとめるのに失敗して次のデータによりフラッシュされたケース
-                        if (j != 3) {
-                            MXFileLogger.getLogger(MXMIDIOut.class).warning("input dataentry [" + j + "] was solo(not pair) " + message);
-                        }
-                    } else {
+
+                    }else {
                         _driver.OutputShortMessage(_driverOrder, dword);
                         int status = (dword >> 16) & 0xff;
                         int data1 = (dword >> 8) & 0xff;

@@ -45,7 +45,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     public final int _row;
     public final int _column;
 
-    public MXNamedObjectList<Integer> _outValueTable; //TODO
+    public MXNamedObjectList<Integer> _outValueTable;
     public MXNamedObjectList<Integer> _outGateTable;
 
     String _name = "";

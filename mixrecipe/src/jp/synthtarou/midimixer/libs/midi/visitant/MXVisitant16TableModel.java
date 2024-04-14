@@ -50,9 +50,9 @@ public class MXVisitant16TableModel implements TableModel {
     }
     
     
-    public MXMessage[] preprocess16ForVisitant(MXMessage message, MXMessage[] ret) {
+    public MXMessage preprocess16ForVisitant(MXMessage message) {
         MXVisitant visitant = _element.get(message.getPort()).get(message.getChannel());
-        MXMessage[] ret2 = visitant.preprocess(message, ret);
+        MXMessage ret2 = visitant.catchTheVisitant(message);
         if (ret2 == null) {
             return null;
         }
@@ -70,7 +70,7 @@ public class MXVisitant16TableModel implements TableModel {
 
 
     String[] tableColumns =  {
-        "Port/Ch", "Bank", "Prog-1", "Vol",  "Exp", "Pan", "Data"
+        "Port/Ch", "Bank", "Prog-1", "Vol",  "Exp", "Pan"
     };
     @Override
     public int getRowCount() {
@@ -130,16 +130,6 @@ public class MXVisitant16TableModel implements TableModel {
             case 5:
                 if (info.isCCSet(MXMidi.DATA1_CC_PANPOT)) {                    
                     return Integer.toString(info.getCCValue(MXMidi.DATA1_CC_PANPOT));
-                }
-                break;
-            case 6:
-                MXDataentry dataentry = info.getFlushedDataentry();
-                if (dataentry != null) {                    
-                    if (dataentry.isRPN() == MXDataentry.TYPE_RPN) {
-                        return "R(" + MXUtil.toHexFF(dataentry.getDataroomMSB()) + ":" + MXUtil.toHexFF(dataentry.getDataroomLSB()) + ")=" + dataentry.getDataentryValue14();
-                    }else if (dataentry.isRPN() == MXDataentry.TYPE_NRPN) {
-                        return "N(" + MXUtil.toHexFF(dataentry.getDataroomMSB()) + ":" + MXUtil.toHexFF(dataentry.getDataroomLSB()) + ")=" + dataentry.getDataentryValue14();
-                    }
                 }
                 break;
         }
