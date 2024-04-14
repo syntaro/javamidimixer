@@ -24,7 +24,12 @@ import java.util.logging.Level;
  * @author Syntarou YOSHIDA
  */
 public class MXSafeThread extends Thread {
-    static ThreadGroup _group = new ThreadGroup("SynthTAROU");
+    static ThreadGroup _group = new ThreadGroup("SynthTAROU") {
+        @Override
+        public void uncaughtException(Thread t, Throwable e) {
+            e.printStackTrace();
+        }        
+    };
     Runnable _run;
     
     public MXSafeThread(String name, Runnable run) {
@@ -63,6 +68,7 @@ public class MXSafeThread extends Thread {
                     t.join();
                 } catch (InterruptedException ex) {
                     MXFileLogger.getLogger(MXSafeThread.class).log(Level.SEVERE, null, ex);
+                    break;
                 }
             }
         }

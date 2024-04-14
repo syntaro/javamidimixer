@@ -59,7 +59,10 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         while (seek._owner != null) {
             seek = seek._owner;
             if (seek._owner == seek) {
-                new Throwable().printStackTrace();
+                if (seek._owner._owner != null && seek._owner._owner != seek) {
+                    seek = seek._owner._owner;
+                    return seek;
+                }
                 return seek;
             }
         }

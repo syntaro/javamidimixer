@@ -22,7 +22,6 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.libs.smf.SMFCallback;
 import jp.synthtarou.libs.smf.SMFMessage;
 import jp.synthtarou.libs.smf.SMFSequencer;
@@ -33,11 +32,12 @@ import jp.synthtarou.midimixer.mx10input.MX10ViewData;
  * @author Syntarou YOSHIDA
  */
 public class MX60ViewData extends MX10ViewData {
+
     SMFSequencer[] _listRecorder;
     int _recordingTrack = -1;
     SMFSequencer _playingTrack;
     final MX60Process _process;
-    
+
     public MX60ViewData(MX60Process process) {
         super();
 
@@ -45,7 +45,7 @@ public class MX60ViewData extends MX10ViewData {
         _listRecorder = new SMFSequencer[5];
         _playingTrack = null;
     }
-    
+
     public synchronized void record(MXMessage message) {
         SMFSequencer recorder = _listRecorder[_recordingTrack];
         recorder.record(message);
@@ -64,11 +64,10 @@ public class MX60ViewData extends MX10ViewData {
         return folder;
     }
 
-
     public long getSongLength(int track) {
         return _listRecorder[_recordingTrack].getSongLength();
     }
-    
+
     public synchronized void startRecording(int x) {
         _recordingTrack = x;
         _listRecorder[x] = new SMFSequencer();
@@ -97,33 +96,30 @@ public class MX60ViewData extends MX10ViewData {
                 if (message == null) {
                     return;
                 }
-                synchronized (MXTiming.mutex) {
-                    if (message.isCommand(MXMidi.COMMAND_CH_NOTEON) && message.getCompiled(2)== 0) {
-                        message = MXMessageFactory.fromNoteoff(message.getPort(),  message.getChannel(), message.getCompiled(1));
+                if (message.isCommand(MXMidi.COMMAND_CH_NOTEON) && message.getCompiled(2) == 0) {
+                    message = MXMessageFactory.fromNoteoff(message.getPort(), message.getChannel(), message.getCompiled(1));
+                }
+                if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
+                    if (_noteOff.raiseHandler(message, message.getPort(), message.getChannel(), message.getCompiled(1))) {
+                        return;
                     }
-                    if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
-                        if (_noteOff.raiseHandler(message, message.getPort(), message.getChannel(), message.getCompiled(1))) {
-                            return;
+                }
+                if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
+                    _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
+                        @Override
+                        public void onNoteOffEvent(MXMessage target) {
+                            MXMessage newMessage = MXMessageFactory.fromNoteoff(
+                                    target.getPort(),
+                                    target.getChannel(),
+                                    target.getCompiled(1));
+                            newMessage._owner = target;
+                            _process.sendToNext(target);
                         }
-                    }
-                    if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
-                        _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
-                            @Override
-                            public void onNoteOffEvent(MXMessage target) {
-                                MXMessage newMessage = MXMessageFactory.fromNoteoff(
-                                        target.getPort(), 
-                                        target.getChannel(), 
-                                        target.getCompiled(1));
-                                newMessage._owner = target;
-                                _process.sendToNext(target);
-                            }
-                        });
-                    }
-                    if (_process.isUsingThisRecipe() && isMessageForSkip(message)) {
-                    }
-                    else {
-                        _process.sendToNext(message);
-                    }
+                    });
+                }
+                if (_process.isUsingThisRecipe() && isMessageForSkip(message)) {
+                } else {
+                    _process.sendToNext(message);
                 }
             }
 
@@ -144,7 +140,7 @@ public class MX60ViewData extends MX10ViewData {
             }
         });
     }
-    
+
     public synchronized void stopPlaying() {
         if (_playingTrack == null) {
             return;
@@ -154,11 +150,11 @@ public class MX60ViewData extends MX10ViewData {
         }
         _playingTrack = null;
     }
-    
+
     public synchronized boolean isPlaying() {
         return _playingTrack != null && _playingTrack.isRunning();
     }
-    
+
     public boolean hasRecorning(int x) {
         if (_listRecorder == null) {
             //startup
@@ -171,7 +167,7 @@ public class MX60ViewData extends MX10ViewData {
     }
 
     public void loadSequenceData() {
-        for (int i = 0; i < _listRecorder.length; ++ i) {
+        for (int i = 0; i < _listRecorder.length; ++i) {
             _listRecorder[i] = new SMFSequencer();
             File seq = getSequenceDirectory(i);
             if (seq != null) {
@@ -183,7 +179,7 @@ public class MX60ViewData extends MX10ViewData {
 
     public boolean saveSequenceData() {
         boolean error = false;
-        for (int i = 0; i < _listRecorder.length; ++ i) {
+        for (int i = 0; i < _listRecorder.length; ++i) {
             File seq = getSequenceDirectory(i);
             if (seq != null) {
                 if (_listRecorder[i]._updateFlag) {
@@ -192,8 +188,7 @@ public class MX60ViewData extends MX10ViewData {
                     }
                     _listRecorder[i]._updateFlag = false;
                 }
-            }
-            else {
+            } else {
                 error = true;
             }
         }

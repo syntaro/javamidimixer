@@ -25,7 +25,8 @@ import jp.synthtarou.midimixer.mx30surface.MGSlider;
  *
  * @author Syntarou YOSHIDA
  */
-public class MXUIProperrtyApp1 extends  MXUIProperty {
+public class MXUIProperrtyApp1 extends MXUIProperty {
+
     protected static final int TYPE_MGSLIDER = 100;
     protected static final int TYPE_MGCIRCLE = 101;
 
@@ -39,42 +40,38 @@ public class MXUIProperrtyApp1 extends  MXUIProperty {
 
     @Override
     public void internalToUI() {
-        new MainThreadTask() {
-            @Override
-            public Object runTask() {
-                _selfLock ++;
-                try {
-                    synchronized(MXUIProperrtyApp1.this) {
-                        switch (_supportedType) {
-                            case TYPE_MGSLIDER:
-                                MGSlider slider = (MGSlider)_component;
-                                slider.getStatus().setMessageValue(_varAsNumeric);
-                                slider.publishUI(slider.getStatus().getValue());
-                                break;
-                            case TYPE_MGCIRCLE:
-                                MGCircle circle = (MGCircle)_component;
-                                circle.getStatus().setMessageValue(_varAsNumeric);
-                                circle.publishUI(circle.getStatus().getValue());
-                                break;
-                        }
+        new MainThreadTask(() -> {
+            _selfLock++;
+            try {
+                synchronized (MXUIProperrtyApp1.this) {
+                    switch (_supportedType) {
+                        case TYPE_MGSLIDER:
+                            MGSlider slider = (MGSlider) _component;
+                            slider.getStatus().setMessageValue(_varAsNumeric);
+                            slider.publishUI(slider.getStatus().getValue());
+                            break;
+                        case TYPE_MGCIRCLE:
+                            MGCircle circle = (MGCircle) _component;
+                            circle.getStatus().setMessageValue(_varAsNumeric);
+                            circle.publishUI(circle.getStatus().getValue());
+                            break;
                     }
-                }finally {
-                    _selfLock --;                 
                 }
-                return NOTHING;
+            } finally {
+                _selfLock--;
             }
-        };
+        });
     }
-    
+
     @Override
     public void uiToInternal() {
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             throw new IllegalStateException("not from ui thread");
         }
         int var;
         switch (_supportedType) {
             case TYPE_MGSLIDER:
-                MGSlider slider = (MGSlider)_component;
+                MGSlider slider = (MGSlider) _component;
                 var = slider.getStatus().getValue()._value;
                 _varAsObject = var;
                 _varAsBoolean = (var > 0) ? true : false;
@@ -82,7 +79,7 @@ public class MXUIProperrtyApp1 extends  MXUIProperty {
                 _varAsText = Integer.toString(_varAsNumeric);
                 break;
             case TYPE_MGCIRCLE:
-                MGCircle circle = (MGCircle)_component;
+                MGCircle circle = (MGCircle) _component;
                 var = circle.getStatus().getValue()._value;
                 _varAsObject = var;
                 _varAsBoolean = (var > 0) ? true : false;

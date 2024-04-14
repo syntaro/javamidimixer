@@ -419,16 +419,15 @@ public class MXPianoKeys extends JComponent {
     public boolean isNoteOn(int note) {
         return _sequenceNoteOn[note];
     }
-    
-    
+
     boolean _lockRedraw = false;
+
     public void setOnlyBuffer(boolean lockDraw) {
         if (lockDraw) {
             _lockRedraw = true;
             return;
-        }
-        else {
-           if (_lockRedraw && !lockDraw) {
+        } else {
+            if (_lockRedraw && !lockDraw) {
                 _lockRedraw = lockDraw;
                 orderRedrawNote(-1);
             }
@@ -449,7 +448,7 @@ public class MXPianoKeys extends JComponent {
         if (_sequenceNoteOn[note]) {
             _sequenceNoteOn[note] = false;
             orderRedrawNote(note);
-        }        
+        }
     }
 
     public void allNoteOff() {
@@ -602,22 +601,19 @@ public class MXPianoKeys extends JComponent {
         if (!_doingPaint) {
             return;
         }
-        new MainThreadTask() {
-            @Override
-            public Object runTask() {
-                if (note >= 0) {
-                    MXPianoKeys.KeyRect key = findRectByNote(note);
-                    if (key != null && key.isValid()) {
-                        paintOnBuffer(key._rect);
-                        repaint(key._rect);
-                    }
-                } else {
-                    paintOnBuffer(null);
-                    repaint();
+        new MainThreadTask(() -> {
+            if (note >= 0) {
+                MXPianoKeys.KeyRect key = findRectByNote(note);
+                if (key != null && key.isValid()) {
+                    paintOnBuffer(key._rect);
+                    repaint(key._rect);
                 }
-                return NOTHING;
+            } else {
+                paintOnBuffer(null);
+                repaint();
             }
-        };
+
+        });
     }
 
     public static void main(String[] args) {

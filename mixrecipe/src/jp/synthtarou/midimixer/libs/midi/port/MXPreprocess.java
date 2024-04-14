@@ -44,7 +44,7 @@ public class MXPreprocess extends MXReceiver<MXPreprocessView> {
 
     public void addText(String text) {
         if (_view != null) {
-            if (SwingUtilities.isEventDispatchThread() == false) {
+            if (!SwingUtilities.isEventDispatchThread()) {
                 SwingUtilities.invokeLater(() -> {
                     addText(text);
                 });

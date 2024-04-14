@@ -215,7 +215,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     }
 
     public void setPitchBendDX(int value) {
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> {
                 setPitchBendDX(value);
             });
@@ -235,7 +235,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     }
 
     public void setModulatoinWheelDX(int value) {
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> {
                 setModulatoinWheelDX(value);
             });
@@ -571,13 +571,13 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     }//GEN-LAST:event_jButtonSendCCNowActionPerformed
 
     private void jCheckBox14bitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox14bitActionPerformed
-        // TODO add your handling code here:
+        // TODO addThreaded your handling code here:
         changed14Bit(jCheckBox14bit.isSelected());
         showAll();
     }//GEN-LAST:event_jCheckBox14bitActionPerformed
 
     private void jButtonHelpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonHelpActionPerformed
-        // TODO add your handling code here:
+        // TODO addThreaded your handling code here:
         MX12HelpPanel panel = new MX12HelpPanel();
         MXUtil.showAsDialog(null, panel, "Text Command Memo");
     }//GEN-LAST:event_jButtonHelpActionPerformed
@@ -658,7 +658,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     private void jListInputValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListInputValueChanged
         int index = jListInput.getSelectedIndex();
         if (index >= 0) {
-            MXMidiConsoleElement e = _input.getConsoleElement(index);
+            MXMidiConsoleElement e = _input.elementAt(index);
             if (e != null) {
                 MXMessage message = e.getMessage();
                 _input.setMarked(message);
@@ -672,7 +672,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     private void jListOutputValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListOutputValueChanged
         int index = jListOutput.getSelectedIndex();
         if (index >= 0) {
-            MXMidiConsoleElement e = _output.getConsoleElement(index);
+            MXMidiConsoleElement e = _output.elementAt(index);
             if (e != null) {
                 MXMessage message = e.getMessage();
                 _input.setMarked(message);

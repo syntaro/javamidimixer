@@ -108,7 +108,7 @@ public class MXPianoRoll extends JComponent {
         if (!_doingPaint) {
             return;
         }
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             throw new IllegalStateException();
         }
         int widthAll = getWidth();
@@ -144,7 +144,7 @@ public class MXPianoRoll extends JComponent {
         if (!_doingPaint) {
             return;
         }
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             throw new IllegalStateException();
         }
         int widthAll = getWidth();
@@ -327,7 +327,7 @@ public class MXPianoRoll extends JComponent {
         if (_keys == null) {
             return;
         }
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             throw new IllegalStateException();
         }
         boolean lockBuffered = false;

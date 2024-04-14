@@ -20,30 +20,45 @@ import java.awt.Color;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.logging.Level;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
-import javax.swing.ListModel;
-import javax.swing.event.ListDataEvent;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataListener;
-import jp.synthtarou.libs.MXCountdownTimer;
-import jp.synthtarou.libs.log.MXFileLogger;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.libs.MainThreadTask;
-import static jp.synthtarou.libs.MainThreadTask.NOTHING;
+import jp.synthtarou.libs.MXSafeThread;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MXMidiConsole implements ListModel<String> {
+public class MXMidiConsole extends DefaultListModel<MXMidiConsoleElement> {
 
-    static final int _capacity = 500;
-    static final int _timer = 500;
+    boolean done = false;
 
-    public final ShiftableList<MXMidiConsoleElement> _list = new ShiftableList(_capacity);
+    public MXMidiConsole() {
+        MXSafeThread t = new MXSafeThread("ListUpdate", new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    while (!done) {
+                        Thread.sleep(1000);
+                        commitQueue();
+                    }
+                } catch (Throwable e) {
+                    e.printStackTrace();;
+                    done = true;
+                }
+            }
+        });
+
+        t.setDaemon(true);
+        t.start();
+    }
+
+    static final int _timer = 1000;
+
     ArrayList<ListDataListener> _listener = new ArrayList();
     LinkedList<MXMidiConsoleElement> _queue = new LinkedList();
 
@@ -54,84 +69,89 @@ public class MXMidiConsole implements ListModel<String> {
         DefaultListCellRenderer _def = new DefaultListCellRenderer();
 
         public Component getListCellRendererComponent(JList list, Object var, int index, boolean isSelected, boolean cellHasFocus) {
-            MXMidiConsoleElement value = _list.get(index);
-            if (value == null) {
+            if (var == null) {
                 var = "-";
                 return _def.getListCellRendererComponent(list, var, index, isSelected, cellHasFocus);
             }
-            MXMessage message = value.getMessage();
+            try {
+                MXMidiConsoleElement value = (MXMidiConsoleElement) var;
+                MXMessage message = value.getMessage();
 
-            boolean prevSele = isSelected;
-            cellHasFocus = false;
-            isSelected = false;
-            Color back = Color.white;
-            boolean gray = false;
+                var = message.toStringMessageInfo(2) + message.toStringGateValue();
+                boolean prevSele = isSelected;
+                cellHasFocus = false;
+                isSelected = false;
+                Color back = Color.white;
+                boolean gray = false;
 
-            if (message.getRealOwner() == _selectedTiming) {
-                isSelected = true;
-                if (_refList.hasFocus()) {
-                    cellHasFocus = true;
+                if (message.getRealOwner() == _selectedTiming) {
+                    isSelected = true;
+                    if (_refList.hasFocus()) {
+                        cellHasFocus = true;
+                    }
+                    back = Color.orange;
                 }
-                back = Color.orange;
+                Component c = null;
+                c = _def.getListCellRendererComponent(list, var, index, isSelected, cellHasFocus);
+                if (back != null) {
+                    c.setBackground(back);
+                }
+                return c;
             }
-            Component c = null;
-            c = _def.getListCellRendererComponent(list, var, index, isSelected, cellHasFocus);
-            if (back != null) {
-                c.setBackground(back);
+            catch (Throwable e) {
+                return _def.getListCellRendererComponent(list, var, index, isSelected, cellHasFocus);
             }
-            return c;
         }
     };
 
     public void bind(JList list) {
-        list.setModel(this);
+       list.setModel(this);
         list.setCellRenderer(_renderer);
         _refList = list;
     }
 
-    public void unbind(JList list) {
-        //nothing
-        _refList = null;
-    }
-
-    public static int getGlobalCapacity() {
-        return _capacity;
-    }
-
-    @Override
-    public int getSize() {
-        return _list.size();
-    }
-
-    public MXMidiConsoleElement getConsoleElement(int index) {
-        return _list.get(index);
-    }
-
-    @Override
-    public String getElementAt(int index) {
-        MXMidiConsoleElement e = _list.get(index);
-        if (e == null) {
-            return "";
+    public void addElement2(MXMidiConsoleElement e) {
+        if (true) {
+            synchronized (this) {
+                _queue.add(e);
+            }
+        } else {
+            super.addElement(e);
         }
-        return e.formatMessageLong();
     }
 
-    public void add(MXMidiConsoleElement e) {
-        synchronized (_queue) {
-            _queue.add(e);
-        }
-        countDown();
+    public void commitQueue() {
+        SwingUtilities.invokeLater(() -> {
+            if (_refList == null) {
+                return;
+            }
+            if (_switchPause) {
+                return;
+            }
+            LinkedList<MXMidiConsoleElement> list;
+            synchronized (MXMidiConsole.this) {
+                list = _queue;
+                _queue = new LinkedList<>();
+            }
+            _refList.setValueIsAdjusting(true);
+            for (MXMidiConsoleElement seek : list) {
+                addElement(seek);
+                if (size() >= 500) {
+                    removeElementAt(0);
+                }
+            }
+            _refList.setValueIsAdjusting(false);
+            _refList.repaint();;
+        });
     }
 
     boolean _switchPause = false;
 
     public void switchPause(boolean pause) {
         if (pause) {
-            invokeFire();
             _switchPause = pause;
         } else {
             _switchPause = pause;
-            invokeFire();
         }
     }
 
@@ -141,103 +161,21 @@ public class MXMidiConsole implements ListModel<String> {
         _recordClock = record;
     }
 
-    private synchronized void addImpl(MXMidiConsoleElement e) {
-        synchronized (_queue) {
-            if (_recordClock == false) {
-                int status = e.getMessage().getStatus();
-                if (status == MXMidi.COMMAND_ACTIVESENSING
-                        || status == MXMidi.COMMAND_MIDICLOCK
-                        || status == MXMidi.COMMAND_MIDITIMECODE) {
-                    return;
-                }
-            }
-            _list.add(e);
-
-            countDown();
-        }
-    }
-
-    long _repaintLastTick = 0;
-    boolean _repainReserved = false;
-
-    private void countDown() {
-        long tickNow = System.currentTimeMillis();
-        if (_switchPause) {
-            return;
-        }
-        if (_repainReserved) {
-            return;
-        }
-        if (tickNow - _repaintLastTick >= _timer) {
-            invokeFire();
-        } else {
-            _repainReserved = true;
-            MXCountdownTimer.letsCountdown(_timer - (tickNow - _repaintLastTick), this::invokeFire);
-        }
-    }
-
-    private void invokeFire() {
-        new MainThreadTask() {
-            @Override
-            public Object runTask() {
-                implFire();
-                return NOTHING;
-            }
-        };
-    }
-
-    private void implFire() {
-        if (_switchPause) {
-            return;
-        }
-        _repainReserved = false;
-        _repaintLastTick = System.currentTimeMillis();
-        LinkedList<MXMidiConsoleElement> pop;
-        synchronized (_queue) {
-            pop = _queue;
-            _queue = new LinkedList<>();
-            for (MXMidiConsoleElement e : pop) {
-                addImpl(e);
-            }
-            final ListDataEvent e = new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 0, _list.size());
-            for (ListDataListener listener : _listener) {
-                try {
-                    listener.contentsChanged(e);
-                } catch (RuntimeException ex) {
-                    MXFileLogger.getLogger(MXMidiConsole.class).log(Level.WARNING, ex.getMessage(), ex);
-                }
-            }
-            if (_refList != null) {
-                _refList.ensureIndexIsVisible(_list.size() - 1);
-            }
-        }
-    }
-
-    @Override
-    public void addListDataListener(ListDataListener l) {
-        _listener.add(l);
-    }
-
-    @Override
-    public void removeListDataListener(ListDataListener l) {
-        _listener.remove(l);
-    }
-
     public void setMarked(MXMessage selection) {
         if (selection != null) {
-           _selectedTiming = selection.getRealOwner();
+            _selectedTiming = selection.getRealOwner();
             _refList.repaint();
         }
     }
 
     public void clear() {
-        synchronized (_queue) {
-            _list.clear();
-            _queue.clear();
-            final ListDataEvent e = new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 0, _list.size());
-            for (ListDataListener listener : _listener) {
-                listener.contentsChanged(e);
-            }
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(() -> {
+                clear();
+            });
+            return;
         }
+
+        clear();;
     }
 }

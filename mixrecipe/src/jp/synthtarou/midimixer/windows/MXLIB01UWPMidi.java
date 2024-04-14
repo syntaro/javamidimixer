@@ -16,12 +16,8 @@
  */
 package jp.synthtarou.midimixer.windows;
 
-import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.log.MXFileLogger;
-import jp.synthtarou.midimixer.MXMain;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
-import jp.synthtarou.midimixer.mx70console.SysEXFile;
 
 /**
  *\

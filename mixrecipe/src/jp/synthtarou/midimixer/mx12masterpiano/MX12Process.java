@@ -222,9 +222,9 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
         }
         
         SwingUtilities.invokeLater(() -> {
-            _view._input.add(new MXMidiConsoleElement(message));
+            _view._input.addElement2(new MXMidiConsoleElement(message));
             for (MXMessage seek : result) {
-                _view._output.add(new MXMidiConsoleElement(seek));
+                _view._output.addElement2(new MXMidiConsoleElement(seek));
             }
         });
     }

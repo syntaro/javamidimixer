@@ -49,22 +49,17 @@ public class MXAnimationPanel extends JPanel {
         Dimension d = super.getPreferredSize();
         if (isVisible()) {
             return d;
-        }
-        else {
+        } else {
             Dimension newsize = new Dimension(d.width, 0);
             return newsize;
         }
     }
-    
+
     public void setScrollPercent(int x) {
-        new MainThreadTask<Object>() {
-            @Override
-            public Object runTask() {
-                _percent = x;
-                repaint();
-                return null;
-            }
-        };
+        new MainThreadTask(() -> {
+            _percent = x;
+            repaint();
+        });
     }
 
     @Override
@@ -82,7 +77,7 @@ public class MXAnimationPanel extends JPanel {
                 _bufferedImageGraphics = null;
             }
         }
-        
+
         if (_bufferedImage == null) {
             _bufferedImage = new BufferedImage(widthAll, heightAll, BufferedImage.TYPE_3BYTE_BGR);
             _bufferedImageGraphics = _bufferedImage.getGraphics();
@@ -91,17 +86,17 @@ public class MXAnimationPanel extends JPanel {
         paintOnBuffer(rect);
 
         if (_percent == 100) {
-            g.drawImage(_bufferedImage, 
-                    rect.x, rect.y, rect.x + rect.width, rect.y + rect.height, 
+            g.drawImage(_bufferedImage,
+                    rect.x, rect.y, rect.x + rect.width, rect.y + rect.height,
                     rect.x, rect.y, rect.x + rect.width, rect.y + rect.height, this);
             return;
         }
 
         g.setColor(Color.gray);
         g.fillRect(0, 0, rect.width, rect.height);
-        int dy = heightAll * (100-_percent) / 100;
+        int dy = heightAll * (100 - _percent) / 100;
 
-        g.drawImage(_bufferedImage, 0, 0, widthAll, heightAll, 0,dy, widthAll, heightAll + dy , this);
+        g.drawImage(_bufferedImage, 0, 0, widthAll, heightAll, 0, dy, widthAll, heightAll + dy, this);
     }
 
     private void paintOnBuffer(Rectangle rect) {

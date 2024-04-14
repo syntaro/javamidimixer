@@ -49,7 +49,7 @@ public class ListDataListenerForTextArea implements ListDataListener {
     }
     
     public void updateTextArea(ListModel model) {
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> {
                 updateTextArea(model);
             });

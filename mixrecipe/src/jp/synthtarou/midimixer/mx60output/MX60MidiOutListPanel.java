@@ -18,7 +18,6 @@ package jp.synthtarou.midimixer.mx60output;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -27,26 +26,24 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.MXConfiguration;
-import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_NotFound;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
-import jp.synthtarou.midimixer.libs.vst.MXPresetPanel;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MX60MidiOutListPanel extends javax.swing.JPanel {
+
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JTable jTableDevice;
 
-    static MX60MidiOutListPanel _lastInstance; 
+    static MX60MidiOutListPanel _lastInstance;
 
     public static MX60MidiOutListPanel getLastInstance() {
         return _lastInstance;
@@ -54,7 +51,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
 
     public MX60MidiOutListPanel() {
         initComponents();
-        
+
         _lastInstance = this;
 
         /*
@@ -66,7 +63,6 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
         jTableInputs.getActionMap().put("MY_CUSTOM_ACTION", action);
         jTableInputs.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), "MY_CUSTOM_ACTION");
         jTableInputs.getColumnModel().getColumn(0).setMinWidth(150);*/
-
         MXMIDIInManager manager = MXMIDIInManager.getManager();
 
         jTableDevice = new javax.swing.JTable();
@@ -84,7 +80,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
         });
         this.add(jScrollPane4);
         new MXAttachTableResize(jTableDevice);
-        
+
         refreshList();
     }
 
@@ -101,7 +97,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     public void refreshList() {
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(this::refreshList);
             return;
         }
@@ -112,10 +108,9 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
         jTableDevice.getColumnModel().getColumn(0).setWidth(400);
         jTableDevice.getColumnModel().getColumn(1).setWidth(400);
     }
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables
-
     public TableModel createDeviceModel() {
         MXNamedObjectList<MXMIDIOut> allOutput = MXMIDIOutManager.getManager().listAllOutput();
         MXMIDIOutManager manager = MXMIDIOutManager.getManager();
@@ -134,33 +129,32 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
             if (output.getDriver() instanceof MXDriver_NotFound) {
                 prefix = "*";
             }
-            tableModel.addRow(new Object[] { 
+            tableModel.addRow(new Object[]{
                 prefix + output.getName(),
                 output.getPortAssignedAsText(),
-                output.isOpen() ? "o" : "-",
-            });
+                output.isOpen() ? "o" : "-",});
         }
 
         return tableModel;
     }
 
     public void updateDeviceTable() {
-        DefaultTableModel model = (DefaultTableModel)jTableDevice.getModel();
+        DefaultTableModel model = (DefaultTableModel) jTableDevice.getModel();
         TableModel newModel = createDeviceModel();
-        for (int i = 0; i < model.getRowCount(); ++ i) {
-            String name = (String)model.getValueAt(i, 0);
-            String asssign = (String)model.getValueAt(i, 1);
-            String open = (String)model.getValueAt(i, 2);
-            
-            String newName = (String)newModel.getValueAt(i, 0);
-            String newAssign = (String)newModel.getValueAt(i, 1);
-            String newOpen = (String)newModel.getValueAt(i, 2);
-            
+        for (int i = 0; i < model.getRowCount(); ++i) {
+            String name = (String) model.getValueAt(i, 0);
+            String asssign = (String) model.getValueAt(i, 1);
+            String open = (String) model.getValueAt(i, 2);
+
+            String newName = (String) newModel.getValueAt(i, 0);
+            String newAssign = (String) newModel.getValueAt(i, 1);
+            String newOpen = (String) newModel.getValueAt(i, 2);
+
             if (name.equals(newName) == false) {
                 MXFileLogger.getLogger(MX60MidiOutListPanel.class).warning("any trouble?");
                 break;
             }
-            
+
             model.setValueAt(newAssign, i, 1);
             model.setValueAt(newOpen, i, 2);
         }
@@ -173,40 +167,38 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
 
     public JPopupMenu createPopupMenuForPort(final int row) {
         JPopupMenu popup = new JPopupMenu();
-        
-        for (int i = -1; i < MXConfiguration.TOTAL_PORT_COUNT; ++ i) {
+
+        for (int i = -1; i < MXConfiguration.TOTAL_PORT_COUNT; ++i) {
             JMenuItem item;
             if (i < 0) {
                 item = popup.add("(none)");
-            }else {
+            } else {
                 item = popup.add(MXMidi.nameOfPortShort(i));
             }
             item.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent arg0) {
-                    JMenuItem item = (JMenuItem)arg0.getSource();
+                    JMenuItem item = (JMenuItem) arg0.getSource();
                     String itemText = item.getText();
                     int newAssign;
                     if (itemText.startsWith("(none")) {
                         newAssign = -1;
-                    }else {
+                    } else {
                         newAssign = MXMidi.valueOfPortName(itemText);
                     }
                     MXMIDIOutManager manager = MXMIDIOutManager.getManager();
-                    
+
                     DefaultTableModel model = null;
-                    model = (DefaultTableModel)jTableDevice.getModel();
-                    String text = (String)model.getValueAt(row, 0);
+                    model = (DefaultTableModel) jTableDevice.getModel();
+                    String text = (String) model.getValueAt(row, 0);
                     MXMIDIOut output = manager.listAllOutput().valueOfName(text);
 
                     if (newAssign >= 0) {
                         if (output.isPortAssigned(newAssign)) {
-                            synchronized(MXTiming.mutex) {
-                                output.allNoteOffFromPort(null, newAssign);
-                            }
+                            output.allNoteOffFromPort(null, newAssign);
                         }
                         output.setPortAssigned(newAssign, !output.isPortAssigned(newAssign));
-                    }else if (output != null) {
+                    } else if (output != null) {
                         output.resetPortAssigned();
                     }
                     if (newAssign >= 0 && output.openOutput(0) == false) {
@@ -219,27 +211,27 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
         return popup;
     }
 
-    private void jTableDeviceKeyPressed(java.awt.event.KeyEvent evt) {                                         
-        if (evt.getKeyChar() == ' ' || evt.getKeyChar() == '\n') {            
+    private void jTableDeviceKeyPressed(java.awt.event.KeyEvent evt) {
+        if (evt.getKeyChar() == ' ' || evt.getKeyChar() == '\n') {
             popupOutputPortSelect(jTableDevice.getSelectedRow());
         }
-    }                                        
+    }
 
-    private void jTableDeviceMousePressed(java.awt.event.MouseEvent evt) {                                           
+    private void jTableDeviceMousePressed(java.awt.event.MouseEvent evt) {
         int row = jTableDevice.rowAtPoint(evt.getPoint());
         int col = jTableDevice.columnAtPoint(evt.getPoint());
         if (col == 1) {
             popupOutputPortSelect(row);
         }
         if (col == 2) {
-            DefaultTableModel tableModel = (DefaultTableModel)jTableDevice.getModel();
-            String name = (String)tableModel.getValueAt(row, 0);
+            DefaultTableModel tableModel = (DefaultTableModel) jTableDevice.getModel();
+            String name = (String) tableModel.getValueAt(row, 0);
             MXNamedObjectList<MXMIDIOut> allOutput = MXMIDIOutManager.getManager().listAllOutput();
             for (MXMIDIOut output : allOutput.valueList()) {
                 if (output.getName().equals(name)) {
                     if (output.isOpen()) {
                         output.close();
-                    }else {
+                    } else {
                         if (output.openOutput(5) == false) {
                             JOptionPane.showMessageDialog(this, "Can't open " + output.getName());
                         }
@@ -248,6 +240,6 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
                 }
             }
             updateDeviceTable();
-        }       
-    }    
+        }
+    }
 }

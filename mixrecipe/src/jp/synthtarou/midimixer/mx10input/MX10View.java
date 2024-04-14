@@ -289,7 +289,7 @@ public class MX10View extends javax.swing.JPanel {
     };
 
     public void addPreprocessor(TreeMap<Integer, MXPreprocess> prepro) {
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> {
                 addPreprocessor(prepro);
             });

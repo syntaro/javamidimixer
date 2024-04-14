@@ -50,67 +50,58 @@ public class MXNoteOffWatcher {
     Handler _lastHandler;
 
     public boolean setHandler(MXMessage noteOn, MXMessage noteOff, Handler listener) {
-        synchronized (MXTiming.mutex) {
-            if (noteOn.isCommand(MXMidi.COMMAND_CH_NOTEON) == false) {
-                MXFileLogger.getLogger(MXMessage.class).severe("Its not note on " + noteOn);
-                return false;
-            }
-            _lastHandler = listener;
-            Element e = new Element();
-            e.catchSide = noteOn;
-            e.sendSide = noteOff;
-            e.listener = listener;
-            _list.add(e);
-            return true;
+        if (noteOn.isCommand(MXMidi.COMMAND_CH_NOTEON) == false) {
+            MXFileLogger.getLogger(MXMessage.class).severe("Its not note on " + noteOn);
+            return false;
         }
+        _lastHandler = listener;
+        Element e = new Element();
+        e.catchSide = noteOn;
+        e.sendSide = noteOff;
+        e.listener = listener;
+        _list.add(e);
+        return true;
     }
 
     public void allNoteOff(MXMessage parent) {
-        synchronized (MXTiming.mutex) {
-            for (Element e : _list) {
-                MXMessage base = e.sendSide;
-                MXMessage msg = MXMessageFactory.fromNoteoff(base.getPort(), base.getChannel(), base.getCompiled(1));
-                msg._owner = parent;
-                e.listener.onNoteOffEvent(msg);
-            }
-            _list.clear();
+        for (Element e : _list) {
+            MXMessage base = e.sendSide;
+            MXMessage msg = MXMessageFactory.fromNoteoff(base.getPort(), base.getChannel(), base.getCompiled(1));
+            msg._owner = parent;
+            e.listener.onNoteOffEvent(msg);
         }
+        _list.clear();
     }
 
     public void allNoteOffToPort(MXMessage parent, int to) {
-        synchronized (MXTiming.mutex) {
-            Iterator<Element> it = _list.iterator();
-            while (it.hasNext()) {
-                Element e = it.next();
-                if (e.sendSide.getPort() != to) {
-                    continue;
-                }
-                it.remove();
-                MXMessage base = e.sendSide;
-                MXMessage msg = MXMessageFactory.fromNoteoff(base.getPort(), base.getChannel(), base.getCompiled(1));
-                msg._owner = parent;
-                e.listener.onNoteOffEvent(msg);
+        Iterator<Element> it = _list.iterator();
+        while (it.hasNext()) {
+            Element e = it.next();
+            if (e.sendSide.getPort() != to) {
+                continue;
             }
-            //_list.clear();
+            it.remove();
+            MXMessage base = e.sendSide;
+            MXMessage msg = MXMessageFactory.fromNoteoff(base.getPort(), base.getChannel(), base.getCompiled(1));
+            msg._owner = parent;
+            e.listener.onNoteOffEvent(msg);
         }
     }
 
     public void allNoteFromPort(MXMessage parent, int from) {
-        synchronized (MXTiming.mutex) {
-            Iterator<Element> it = _list.iterator();
-            while (it.hasNext()) {
-                Element e = it.next();
-                if (e.catchSide.getPort() != from) {
-                    continue;
-                }
-                it.remove();
-                MXMessage base = e.sendSide;
-                MXMessage msg = MXMessageFactory.fromNoteoff(base.getPort(), base.getChannel(), base.getCompiled(1));
-                msg._owner = parent;
-                e.listener.onNoteOffEvent(msg);
+        Iterator<Element> it = _list.iterator();
+        while (it.hasNext()) {
+            Element e = it.next();
+            if (e.catchSide.getPort() != from) {
+                continue;
             }
-            //_list.clear();
+            it.remove();
+            MXMessage base = e.sendSide;
+            MXMessage msg = MXMessageFactory.fromNoteoff(base.getPort(), base.getChannel(), base.getCompiled(1));
+            msg._owner = parent;
+            e.listener.onNoteOffEvent(msg);
         }
+        //_list.clear();
     }
 
     public boolean raiseHandler(MXMessage target) {
@@ -118,25 +109,23 @@ public class MXNoteOffWatcher {
     }
 
     public boolean raiseHandler(MXMessage parent, int port, int ch, int note) {
-        synchronized (MXTiming.mutex) {
-            int proc = 0;
-            Iterator<Element> it = _list.iterator();
-            while (it.hasNext()) {
-                Element e = it.next();
-                if (e.catchSide.getPort() == port
-                        && e.catchSide.getChannel() == ch
-                        && e.catchSide.getCompiled(1) == note) {
-                    MXMessage noteOff = MXMessageFactory.fromNoteoff(
-                            e.sendSide.getPort(),
-                            e.sendSide.getChannel(),
-                            e.sendSide.getCompiled(1));
-                    noteOff._owner = parent;
-                    e.listener.onNoteOffEvent(noteOff);
-                    it.remove();
-                    proc++;
-                }
+        int proc = 0;
+        Iterator<Element> it = _list.iterator();
+        while (it.hasNext()) {
+            Element e = it.next();
+            if (e.catchSide.getPort() == port
+                    && e.catchSide.getChannel() == ch
+                    && e.catchSide.getCompiled(1) == note) {
+                MXMessage noteOff = MXMessageFactory.fromNoteoff(
+                        e.sendSide.getPort(),
+                        e.sendSide.getChannel(),
+                        e.sendSide.getCompiled(1));
+                noteOff._owner = parent;
+                e.listener.onNoteOffEvent(noteOff);
+                it.remove();
+                proc++;
             }
-            return proc > 0 ? true : false;
         }
+        return proc > 0 ? true : false;
     }
 }

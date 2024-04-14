@@ -37,6 +37,7 @@ public class PlayListDX extends DefaultListModel<PlayListElement> {
             try {
                 SwingUtilities.invokeAndWait(this::orderCommit);
             } catch (InterruptedException ex) {
+                MXFileLogger.getLogger(PlayListDX.class).log(Level.WARNING, ex.getMessage(), ex);
             } catch (InvocationTargetException ex) {
                 MXFileLogger.getLogger(PlayListDX.class).log(Level.WARNING, ex.getMessage(), ex);
             }

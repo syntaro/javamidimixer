@@ -189,16 +189,6 @@ public class MXMainWindow extends javax.swing.JFrame {
             count++;
             jMenuWindow.add(menu);
         }
-        {
-            JMenuItem menu = new JMenuItem("Free Console / SysEX");
-            menu.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    MXMain.getMain().openFreeConsole();
-                }
-            });
-            jMenuWindow.add(menu);
-        }
         jTabbedPane1.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 tabPanelStateChanged(evt);

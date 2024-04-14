@@ -73,7 +73,7 @@ public class MX36StatusPanel extends javax.swing.JPanel implements MXAccordionEl
     }
     
     public void repaintAccordion() {
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(this::repaintAccordion);
             return;
         }

@@ -664,7 +664,7 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
         if (info== null) {
             return;
         }
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> {
                 goNextFocus(keyCode);
             });

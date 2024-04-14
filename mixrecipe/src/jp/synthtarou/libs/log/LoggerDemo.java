@@ -147,7 +147,7 @@ public class LoggerDemo extends javax.swing.JPanel {
             try {
                 Thread.sleep(span);
             } catch (InterruptedException ex) {
-
+                break;
             }
         }
     }

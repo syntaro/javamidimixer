@@ -17,7 +17,6 @@
 package jp.synthtarou.midimixer.mx30surface;
 
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 
 /**
  *
@@ -27,19 +26,10 @@ public class MGSliderMove {
     MXMessage _owner;
     MGStatus _status;
     int _newValue;
-    MXTiming _timing;
     
-    public MGSliderMove(MXMessage owner, MGStatus slider, int newValue, MXTiming timing) {
-        _owner = owner;
-        _status = slider;
-        _newValue = newValue;
-        _timing = timing;
-    }
-
     public MGSliderMove(MXMessage owner, MGStatus slider, int newValue) {
         _owner = owner;
         _status = slider;
         _newValue = newValue;
-        _timing = null;
     }
 }

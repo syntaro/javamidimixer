@@ -112,7 +112,7 @@ public class SameFileChecker extends javax.swing.JPanel {
     }
     
     protected void autoAdjust() {
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> {
                 autoAdjust();;
             });
@@ -707,7 +707,7 @@ public class SameFileChecker extends javax.swing.JPanel {
 
         public void makePair(Entry e1, Entry e2) {
 
-            if (SwingUtilities.isEventDispatchThread() == false) {
+            if (!SwingUtilities.isEventDispatchThread()) {
                 SwingUtilities.invokeLater(new Runnable() {
                     @Override
                     public void run() {

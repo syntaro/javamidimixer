@@ -34,7 +34,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import jp.synthtarou.libs.MXUtil;
-import jp.synthtarou.libs.MainThreadTask;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 import jp.synthtarou.libs.namedobject.MXNamedObject;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
@@ -54,6 +53,7 @@ public class NavigatorFor2ColumnList<T> extends javax.swing.JPanel implements IN
         }
         return false;
     }
+
     /**
      * Creates new form NavigatorFor2ColumnList
      */
@@ -137,7 +137,7 @@ public class NavigatorFor2ColumnList<T> extends javax.swing.JPanel implements IN
             jTable1.setModel(model);
         }
 
-        for (int i = 0; i < jTable1.getColumnCount(); ++ i) {
+        for (int i = 0; i < jTable1.getColumnCount(); ++i) {
             TableColumn target = jTable1.getColumnModel().getColumn(i);
             target.setCellRenderer(new DefaultRowCellRenderer(selectedIndex));
             target.setCellEditor(null);
@@ -155,7 +155,7 @@ public class NavigatorFor2ColumnList<T> extends javax.swing.JPanel implements IN
                     _returnIndex = row;
                     _returnValue = _list.valueOfIndex(row);
                     MXUtil.getOwnerWindow(NavigatorFor2ColumnList.this).setVisible(false);
-               }
+                }
             }
 
             @Override
@@ -166,15 +166,12 @@ public class NavigatorFor2ColumnList<T> extends javax.swing.JPanel implements IN
             jTable1.setRowSelectionInterval(selectedIndex, selectedIndex);
             jTable1.scrollRectToVisible(jTable1.getCellRect(selectedIndex, 0, true));
         }
-        new MainThreadTask(true) {
-            @Override
-            public Object runTask() {
-                jTable1.requestFocus();
-                new MXAttachTableResize(jTable1);
-                return true;
-            }
-        };
+        SwingUtilities.invokeLater(() -> {
+            jTable1.requestFocus();
+            new MXAttachTableResize(jTable1);
+        });
     }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -300,6 +297,7 @@ public class NavigatorFor2ColumnList<T> extends javax.swing.JPanel implements IN
     // End of variables declaration//GEN-END:variables
 
     static class CheckBoxCellRenderer implements TableCellRenderer {
+
         public CheckBoxCellRenderer() {
             _base = new DefaultTableCellRenderer();
         }
@@ -318,6 +316,7 @@ public class NavigatorFor2ColumnList<T> extends javax.swing.JPanel implements IN
     }
 
     static class DefaultRowCellRenderer implements TableCellRenderer {
+
         public DefaultRowCellRenderer(int defaultRow) {
             _base = new DefaultTableCellRenderer();
             _defaultRow = defaultRow;
@@ -333,7 +332,7 @@ public class NavigatorFor2ColumnList<T> extends javax.swing.JPanel implements IN
             Component order = _base.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             if (_defaultRow == row) {
                 order.setForeground(Color.green);
-            }else {
+            } else {
                 order.setForeground(_baseTextColor);
             }
             return order;

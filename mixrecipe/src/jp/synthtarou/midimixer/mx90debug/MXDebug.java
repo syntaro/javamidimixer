@@ -56,7 +56,9 @@ public abstract class MXDebug {
         checkResult();
         if (_interval >= 1) {
             try {
-                Thread.sleep(_interval);
+                synchronized (this) {
+                    wait(_interval);
+                }
             } catch (InterruptedException ex) {
                 ex.printStackTrace();;
             }

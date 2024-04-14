@@ -27,7 +27,6 @@ import jp.synthtarou.libs.MXSafeThread;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.libs.SortedArray;
 
 /**
@@ -87,7 +86,7 @@ public class SMFSequencer {
             System.out.println("locked");
             return;
         }
-        asyncLock ++;
+        asyncLock++;
         Thread t = new MXSafeThread("SMFPlayer", () -> {
             stopPlayerAsyncAndWait();
             _callback = callback;
@@ -96,7 +95,7 @@ public class SMFSequencer {
             _callback.smfStarted();
             _playerThread = Thread.currentThread();
             try {
-                asyncLock --;
+                asyncLock--;
                 playWithMilliSeconds(position);
             } catch (RuntimeException ex) {
                 MXFileLogger.getLogger(SMFSequencer.class).log(Level.WARNING, ex.getMessage(), ex);
@@ -105,9 +104,12 @@ public class SMFSequencer {
             }
             _callback.smfStoped(_stopPlayer ? false : true);
             try {
-                Thread.sleep(500);
+                synchronized (this) {
+                    wait(500);
+                }
             } catch (InterruptedException e) {
                 _stopPlayer = true;
+                return;
             }
         });
         t.setDaemon(true);
@@ -124,16 +126,15 @@ public class SMFSequencer {
             }
         }
     }
-    
-    
+
     public void stopPlayerAsyncAndWait() {
         stopPlayerAsync();
         while (isRunning()) {
-            synchronized (SMFSequencer.this) {
+            synchronized (this) {
                 try {
-                    SMFSequencer.this.wait(500);
-                }catch(InterruptedException ex) {
-
+                    wait(500);
+                } catch (InterruptedException ex) {
+                    break;
                 }
             }
         }
@@ -285,8 +286,8 @@ public class SMFSequencer {
                         waiting = waiting2;
                     }
                     if (waiting >= 1) {
-                        synchronized (_playerThread) {
-                            _playerThread.wait(waiting);
+                        synchronized (this) {
+                            wait(waiting);
                             if (_stopPlayer) {
                                 break;
                             }
@@ -326,7 +327,7 @@ public class SMFSequencer {
 
         for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++i) {
             if (reset[i]) {
-                allNoteOff(null, i);
+                allNoteOff(i);
             }
         }
     }
@@ -340,8 +341,7 @@ public class SMFSequencer {
                 start = _forceSingleChannel;
                 end = _forceSingleChannel;
             }
-            synchronized (MXTiming.mutex) {
-                MXTiming timing = new MXTiming();
+            synchronized (SMFSequencer.this) {
                 for (int i = start; i <= end; ++i) {
                     SMFMessage message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
                     message._port = port;
@@ -356,9 +356,9 @@ public class SMFSequencer {
                     message._port = port;
                     smfPlayNote(message);
                 }
-                byte vl = (byte)0x7f;
-                byte vh = (byte)0x7f;
-                byte[] reset = { (byte)0xF0, (byte)0x7F, (byte)0x7F, (byte)0x04, (byte)0x01, vl, vh, (byte)0xF7 };
+                byte vl = (byte) 0x7f;
+                byte vh = (byte) 0x7f;
+                byte[] reset = {(byte) 0xF0, (byte) 0x7F, (byte) 0x7F, (byte) 0x04, (byte) 0x01, vl, vh, (byte) 0xF7};
                 SMFMessage mesasge = new SMFMessage(0, reset);
                 smfPlayNote(mesasge);
             }
@@ -369,7 +369,7 @@ public class SMFSequencer {
         return _parser._listMessage.size();
     }
 
-    public void allNoteOff(MXTiming timing, int port) {
+    public void allNoteOff(int port) {
         if (_paraPlay) {
             return;
         }
@@ -423,7 +423,7 @@ public class SMFSequencer {
                 _callback.smfPlayNote(smf);
             } else {
                 if (!_noteOnly) {
-                    _callback.smfPlayNote( smf);
+                    _callback.smfPlayNote(smf);
                 } else {
                     boolean skip = true;
                     int dword = smf.toDwordMessage();

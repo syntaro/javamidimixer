@@ -896,7 +896,7 @@ public class MX80View extends javax.swing.JPanel {
     }
 
     public void updateLoadList() {
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> {
                 updateLoadList();
             });
@@ -923,7 +923,7 @@ public class MX80View extends javax.swing.JPanel {
     }
 
     public void updateEffectList() {
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> {
                 updateEffectList();
             });

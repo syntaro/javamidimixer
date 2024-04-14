@@ -29,13 +29,11 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.libs.inifile.MXINIFileNode;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
-import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
@@ -491,7 +489,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
         return setting.writeINIFile();
     }
 
-    MXMessage updateUIStatusAndGetResult(MXMessage owner, MGStatus status, int newValue, MXTiming timing) {
+    MXMessage updateUIStatusAndGetResult(MXMessage owner, MGStatus status, int newValue) {
         MXMessage message = null;
         int row = status._row, column = status._column;
         int uiType = status._uiType;
@@ -519,7 +517,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
             int nextMax = nextStatus._base.getValue()._max;
             newValue = status._base.getValue().changeRange(nextMin, nextMax)._value;
 
-            MGSliderMove move = new MGSliderMove(owner, nextStatus, newValue, timing);
+            MGSliderMove move = new MGSliderMove(owner, nextStatus, newValue);
             _parent.addSliderMove(move);
             if (!_patchTogether) {
                 message = null;

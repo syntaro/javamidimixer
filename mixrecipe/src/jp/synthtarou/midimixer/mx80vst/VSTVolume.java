@@ -92,13 +92,9 @@ public class VSTVolume extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     public void reload() {
-        new MainThreadTask() {
-            @Override
-            public Object runTask() {
-                _slider.setValue(MXRangedValue.new7bit(_instance.getBusVolume(_bus)));
-                return NOTHING;
-            }
-        };
+        new MainThreadTask(() -> {
+            _slider.setValue(MXRangedValue.new7bit(_instance.getBusVolume(_bus)));
+        });
     }
     
 

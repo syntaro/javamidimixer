@@ -34,13 +34,13 @@ public class MXCountdownTimer {
 
     ArrayList<Item> _pending;
 
-    public static MXCountdownTimer _timer;
+    private static final MXCountdownTimer _timer = new MXCountdownTimer();
 
     static {
-        _timer = new MXCountdownTimer();
         Thread t = new MXSafeThread("MXCountdownTimer", () -> {
             _timer.mysticLoop();
         });
+        t.setDaemon(true);
         t.start();
     }
 
@@ -48,14 +48,18 @@ public class MXCountdownTimer {
         _pending = new ArrayList<Item>();
     }
 
-    public static void letsCountdown(long time, Runnable action) {
+    static public void letsCountdown(long time, Runnable action) {
+       _timer.startCountdown(time, action);
+    }
+    
+    private void startCountdown(long time, Runnable action) {
         Item i = new Item();
         i.tick = System.currentTimeMillis() + time;
         i.action = action;
-        synchronized (_timer._pending) {
-            _timer._pending.add(i);
-            _timer._pending.notify();
-        }
+        synchronized (this) {
+            _pending.add(i);
+            _timer.notifyAll();            
+        };
     }
 
     public void mysticLoop() {
@@ -63,7 +67,7 @@ public class MXCountdownTimer {
             Item pop = null;
             long current = System.currentTimeMillis();
             long nextTick = 60 * 1000 + current;
-            synchronized (_pending) {
+            synchronized (this) {
                 for (Item i : _pending) {
                     if (i.tick <= current) {
                         pop = i;
@@ -78,7 +82,7 @@ public class MXCountdownTimer {
                 }
                 if (pop == null) {
                     try {
-                        _pending.wait(nextTick - current);
+                        wait(nextTick - current);
                     } catch (InterruptedException e) {
                         break;
                     }

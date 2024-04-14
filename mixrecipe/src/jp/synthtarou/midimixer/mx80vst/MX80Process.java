@@ -137,6 +137,7 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
                 try {
                     _thread.join();
                 } catch (InterruptedException ex) {
+                    ex.printStackTrace();
                 }
             }
         }

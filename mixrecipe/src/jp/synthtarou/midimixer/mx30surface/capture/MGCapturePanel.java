@@ -94,7 +94,7 @@ public class MGCapturePanel extends javax.swing.JPanel {
     }
 
     public void updateListModel() {
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(this::updateListModel);
             return;
         }

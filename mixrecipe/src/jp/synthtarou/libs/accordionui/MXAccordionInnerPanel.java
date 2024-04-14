@@ -28,9 +28,10 @@ import jp.synthtarou.libs.MainThreadTask;
  * @author Syntarou YOSHIDA
  */
 public class MXAccordionInnerPanel {
+
     private MXAnimationPanel _animationPanel;
     ArrayList<MXAccordionElement> _listElement;
-    
+
     public MXAccordionInnerPanel() {
         _animationPanel = new MXAnimationPanel();
         _listElement = new ArrayList<>();
@@ -41,28 +42,28 @@ public class MXAccordionInnerPanel {
     }
 
     public void removeAt(int i) {
-       MXAccordionElement element = _listElement.get(i);
+        MXAccordionElement element = _listElement.get(i);
         _listElement.remove(i);
         _animationPanel.remove(element.getAccordionView());
     }
 
     public void remove(MXAccordionElement element) {
-        for (int i = 0; i < _listElement.size(); ++ i) {
+        for (int i = 0; i < _listElement.size(); ++i) {
             if (element == _listElement.get(i)) {
                 _listElement.remove(i);
                 _animationPanel.remove(element.getAccordionView());
             }
         }
     }
-    
+
     public void removeAll() {
         _listElement.clear();
         _animationPanel.removeAll();
     }
-    
+
     boolean _doingAnimation = false;
-    
-    public void add(MXAccordionElement child,int index) {
+
+    public void add(MXAccordionElement child, int index) {
         _listElement.add(index, child);
         _animationPanel.add(child.getAccordionView(), index);
     }
@@ -70,11 +71,11 @@ public class MXAccordionInnerPanel {
     public int count() {
         return _listElement.size();
     }
-    
+
     public MXAccordionElement get(int x) {
         return _listElement.get(x);
     }
-    
+
     public void openWithAnimation(boolean open, boolean invert) {
         _doingAnimation = true;
         if (open) {
@@ -83,7 +84,7 @@ public class MXAccordionInnerPanel {
                     _animationPanel.setVisible(true);
                     _animationPanel.setBackground(null);
                     revalidateASAP();
-                }catch(RuntimeException ex) {
+                } catch (RuntimeException ex) {
                     MXFileLogger.getLogger(MXAccordionInnerPanel.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
                 if (invert) {
@@ -95,8 +96,7 @@ public class MXAccordionInnerPanel {
                             break;
                         }
                     }
-                }
-                else {
+                } else {
                     for (int p = 0; p < 100; p += 5) {
                         _animationPanel.setScrollPercent(p);
                         try {
@@ -123,8 +123,7 @@ public class MXAccordionInnerPanel {
                             break;
                         }
                     }
-                }
-                else {
+                } else {
                     for (int p = 100; p >= 0; p -= 5) {
                         _animationPanel.setScrollPercent(p);
                         try {
@@ -136,23 +135,20 @@ public class MXAccordionInnerPanel {
                         }
                     }
                 }
-                new MainThreadTask() {
-                    public Object runTask() {
-                        _animationPanel.setVisible(false);
-                        _doingAnimation = false;
-                        revalidateASAP();
-                        return null;
-                    }
-                };
+                new MainThreadTask(() -> {
+                    _animationPanel.setVisible(false);
+                    _doingAnimation = false;
+                    revalidateASAP();
+                });
             }).start();
         }
     }
 
     public void revalidateASAP() {
         Component c = _animationPanel;
-        while(c != null) {
+        while (c != null) {
             if (c instanceof MXAccordion) {
-                MXAccordion panel = (MXAccordion)c;
+                MXAccordion panel = (MXAccordion) c;
                 panel.revalidate();
                 return;
             }

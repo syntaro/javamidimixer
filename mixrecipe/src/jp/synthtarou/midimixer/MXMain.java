@@ -43,7 +43,6 @@ import jp.synthtarou.midimixer.mx30surface.MX30Process;
 import jp.synthtarou.midimixer.mx40layer.MX40Process;
 import jp.synthtarou.midimixer.mx60output.MX60Process;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.libs.smf.SMFSequencer;
 import jp.synthtarou.libs.MainThreadTask;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
@@ -240,49 +239,38 @@ public class MXMain {
         reList.add(_mx80VstRack);
         reList.add(_mxXMLManager);
         reList.add(_mx90Debugger);
+        reList.add(_mx70CosoleProcess);
 
-        new MainThreadTask() {
-            @Override
-            public Object runTask() {
-                _mainWindow.initLatebind(reList);
+        new MainThreadTask(() -> {
+            _mainWindow.initLatebind(reList);
 
-                if (_progress != null) {
-                    _progress.setVisible(false);
-                    _progress = null;
-                }
-                _mainWindow.setVisible(true);
-
-                Runnable run;
-                while ((run = getNextLaunchSequence()) != null) {
-                    run.run();
-                }
-
-                _mainWindow.setEnabled(true);
-                Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
-                return null;
+            if (_progress != null) {
+                _progress.setVisible(false);
+                _progress = null;
             }
-        };
+            _mainWindow.setVisible(true);
+
+            Runnable run;
+            while ((run = getNextLaunchSequence()) != null) {
+                run.run();
+            }
+
+            _mainWindow.setEnabled(true);
+            Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+        });
     }
 
     LinkedList<Runnable> _startQueue = new LinkedList();
 
     public void addLaunchSequence(Runnable run) {
-        synchronized (MXTiming.mutex) {
-            _startQueue.add(run);
-        }
+        _startQueue.add(run);
     }
 
     public Runnable getNextLaunchSequence() {
-        synchronized (MXTiming.mutex) {
-            if (_startQueue.isEmpty()) {
-                return null;
-            }
-            return _startQueue.removeFirst();
+        if (_startQueue.isEmpty()) {
+            return null;
         }
-    }
-
-    public void openFreeConsole() {
-        _mx70CosoleProcess.createWindow();
+        return _startQueue.removeFirst();
     }
 
     private MXNamedObjectList<MXReceiver> _masterToList = new MXNamedObjectList();
@@ -321,13 +309,13 @@ public class MXMain {
                     MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
                 }
             }
-            
+
             try {
                 VSTStream.getInstance().postCloseStream(null);
             } catch (Throwable ex) {
                 MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
             }
-            
+
             try {
                 SMFSequencer.stopAll();
                 MXMIDIInManager.getManager().closeAll();
@@ -371,9 +359,8 @@ public class MXMain {
     public CXXMLManager getXMLManager() {
         return _mxXMLManager;
     }
-    
-    public MXNamedObjectList<MXReceiver> listSendableReceiver()
-    {
+
+    public MXNamedObjectList<MXReceiver> listSendableReceiver() {
         MXNamedObjectList<MXReceiver> ret = new MXNamedObjectList<>();
         ret.addNameAndValue("Auto", null);
 
@@ -383,9 +370,8 @@ public class MXMain {
             _mx36ccmappingProcess,
             _mx40layerProcess,
             _mx50resolutionProcess,
-            _mx60outputProcess,
-        };
-        
+            _mx60outputProcess,};
+
         for (MXReceiver seek : list) {
             ret.addNameAndValue(seek.getReceiverName(), seek);
         }
@@ -403,7 +389,8 @@ public class MXMain {
         if (receiver == _mx00playlistProcess
                 || receiver == _mxXMLManager
                 || receiver == null
-                || receiver == _mx90Debugger) {
+                || receiver == _mx90Debugger
+                || receiver == _mx70CosoleProcess) {
             return _mx10inputProcess;
         }
         return receiver;

@@ -49,7 +49,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXRangedValue;
-import static jp.synthtarou.libs.MainThreadTask.NOTHING;
 
 /**
  *
@@ -286,136 +285,128 @@ public class MXUIProperty {
     }
 
     public synchronized void fireUpdate(Object parsedObject, String parsedText, int parsedNumeric, boolean parsedBoolean) {
-        new MainThreadTask() {
-            @Override
-            public Object runTask() {
-                String needFire = null;
-                if (_supportedType == TYPE_SPINNER) {
-                    JSpinner spinner = (JSpinner) _component;
-                    SpinnerNumberModel model = (SpinnerNumberModel) spinner.getModel();
-                    int min = (Integer) model.getMinimum();
-                    int max = (Integer) model.getMaximum();
-                    if (min <= parsedNumeric && parsedNumeric <= max) {
-                    } else {
-                        return NOTHING;
-                    }
+        new MainThreadTask(() -> {
+            String needFire = null;
+            if (_supportedType == TYPE_SPINNER) {
+                JSpinner spinner = (JSpinner) _component;
+                SpinnerNumberModel model = (SpinnerNumberModel) spinner.getModel();
+                int min = (Integer) model.getMinimum();
+                int max = (Integer) model.getMaximum();
+                if (min <= parsedNumeric && parsedNumeric <= max) {
+                } else {
+                    return;
                 }
-                if (parsedObject == null && _varAsObject != null) {
-                    needFire = "object null balanec";
-                } else if (parsedObject != null && _varAsObject == null) {
-                    needFire = "object null balanec";
-                } else if (parsedObject != null && _varAsObject != null) {
+            }
+            if (parsedObject == null && _varAsObject != null) {
+                needFire = "object null balanec";
+            } else if (parsedObject != null && _varAsObject == null) {
+                needFire = "object null balanec";
+            } else if (parsedObject != null && _varAsObject != null) {
+                try {
+                    if (parsedObject.equals(_varAsObject) == false) {
+                        needFire = "object not equals";
+                    }
+                } catch (Throwable ex) {
+                    needFire = "object equals thrown exception";
+                }
+            }
+
+            if (needFire == null) {
+                if (parsedText == null && _varAsText != null) {
+                    needFire = "text null balance";
+                } else if (parsedText != null && _varAsText == null) {
+                    needFire = "text null balance";
+                } else if (parsedText != null && _varAsText != null) {
                     try {
-                        if (parsedObject.equals(_varAsObject) == false) {
-                            needFire = "object not equals";
+                        if (parsedText.equals(_varAsText) == false) {
+                            needFire = "text null equals";
                         }
                     } catch (Throwable ex) {
-                        needFire = "object equals thrown exception";
+                        needFire = "text equals thrown exception";
                     }
                 }
-
-                if (needFire == null) {
-                    if (parsedText == null && _varAsText != null) {
-                        needFire = "text null balance";
-                    } else if (parsedText != null && _varAsText == null) {
-                        needFire = "text null balance";
-                    } else if (parsedText != null && _varAsText != null) {
-                        try {
-                            if (parsedText.equals(_varAsText) == false) {
-                                needFire = "text null equals";
-                            }
-                        } catch (Throwable ex) {
-                            needFire = "text equals thrown exception";
-                        }
-                    }
-                }
-
-                if (needFire == null) {
-                    if (parsedBoolean != _varAsBoolean) {
-                        needFire = "boolean not equals";
-                    }
-                    if (parsedNumeric != _varAsNumeric) {
-                        needFire = "numeric not equals";
-                    }
-                }
-
-                if (needFire != null) {
-                    _varAsBoolean = parsedBoolean;
-                    _varAsNumeric = parsedNumeric;
-                    _varAsObject = parsedObject;
-                    _varAsText = parsedText;
-                    internalToUI();
-                    MXUIPropertyEvent evt = new MXUIPropertyEvent(_component, MXUIProperty.this);
-                    for (MXUIPropertyListener l : _listListener) {
-                        l.uiProperityValueChanged(evt);
-                    }
-                }
-                return NOTHING;
             }
-        };
+
+            if (needFire == null) {
+                if (parsedBoolean != _varAsBoolean) {
+                    needFire = "boolean not equals";
+                }
+                if (parsedNumeric != _varAsNumeric) {
+                    needFire = "numeric not equals";
+                }
+            }
+
+            if (needFire != null) {
+                _varAsBoolean = parsedBoolean;
+                _varAsNumeric = parsedNumeric;
+                _varAsObject = parsedObject;
+                _varAsText = parsedText;
+                internalToUI();
+                MXUIPropertyEvent evt = new MXUIPropertyEvent(_component, MXUIProperty.this);
+                for (MXUIPropertyListener l : _listListener) {
+                    l.uiProperityValueChanged(evt);
+                }
+            }
+        });
     }
 
     public void internalToUI() {
-        new MainThreadTask() {
-            @Override
-            public Object runTask() {
-                _selfLock++;
-                try {
-                    switch (_supportedType) {
-                        case TYPE_LABEL:
-                            JLabel label = (JLabel) _component;
-                            if (label.getText().equals(_varAsText) == false) {
-                                label.setText(_varAsText);
-                            }
-                            break;
-                        case TYPE_TEXTAREA:
-                            JTextArea textArea = (JTextArea) _component;
-                            if (textArea.getText().equals(_varAsText) == false) {
-                                textArea.setText(_varAsText);
-                            }
-                            break;
-                        case TYPE_TEXTFIELD:
-                            JTextField textField = (JTextField) _component;
-                            if (textField.getText().equals(_varAsText) == false) {
-                                textField.setText(_varAsText);
-                            }
-                            break;
-                        case TYPE_CHECKBOX:
-                            JCheckBox checkBox = (JCheckBox) _component;
-                            if (checkBox.isSelected() != _varAsBoolean) {
-                                checkBox.setSelected(_varAsBoolean);
-                            }
-                            break;
-                        case TYPE_SLIDER:
-                            JSlider slider = (JSlider) _component;
-                            if (slider.getValue() != _varAsNumeric) {
-                                slider.setValue(_varAsNumeric);
-                            }
-                            break;
-                        case TYPE_SPINNER:
-                            JSpinner spinner = (JSpinner) _component;
-                            int x1 = (Integer) spinner.getValue();
-                            if (x1 != _varAsNumeric) {
-                                spinner.setValue(_varAsNumeric);
-                            }
-                            break;
-                        case TYPE_TOGGLEBUTTON:
-                            JToggleButton toggleButton = (JToggleButton) _component;
-                            if (toggleButton.isSelected() != _varAsBoolean) {
-                                toggleButton.setSelected(_varAsBoolean);
-                            }
-                            break;
-                        case TYPE_UNKNOWN:
-                            break;
-                    }
-                } catch (Throwable ex) {
-                    MXFileLogger.getLogger(MXUIProperty.class).log(Level.WARNING, ex.getMessage(), ex);
-                } finally {
-                    _selfLock--;
+        new MainThreadTask(() -> {
+            _selfLock++;
+            try {
+                switch (_supportedType) {
+                    case TYPE_LABEL:
+                        JLabel label = (JLabel) _component;
+                        if (label.getText().equals(_varAsText) == false) {
+                            label.setText(_varAsText);
+                        }
+                        break;
+                    case TYPE_TEXTAREA:
+                        JTextArea textArea = (JTextArea) _component;
+                        if (textArea.getText().equals(_varAsText) == false) {
+                            textArea.setText(_varAsText);
+                        }
+                        break;
+                    case TYPE_TEXTFIELD:
+                        JTextField textField = (JTextField) _component;
+                        if (textField.getText().equals(_varAsText) == false) {
+                            textField.setText(_varAsText);
+                        }
+                        break;
+                    case TYPE_CHECKBOX:
+                        JCheckBox checkBox = (JCheckBox) _component;
+                        if (checkBox.isSelected() != _varAsBoolean) {
+                            checkBox.setSelected(_varAsBoolean);
+                        }
+                        break;
+                    case TYPE_SLIDER:
+                        JSlider slider = (JSlider) _component;
+                        if (slider.getValue() != _varAsNumeric) {
+                            slider.setValue(_varAsNumeric);
+                        }
+                        break;
+                    case TYPE_SPINNER:
+                        JSpinner spinner = (JSpinner) _component;
+                        int x1 = (Integer) spinner.getValue();
+                        if (x1 != _varAsNumeric) {
+                            spinner.setValue(_varAsNumeric);
+                        }
+                        break;
+                    case TYPE_TOGGLEBUTTON:
+                        JToggleButton toggleButton = (JToggleButton) _component;
+                        if (toggleButton.isSelected() != _varAsBoolean) {
+                            toggleButton.setSelected(_varAsBoolean);
+                        }
+                        break;
+                    case TYPE_UNKNOWN:
+                        break;
                 }
-                return NOTHING;
+            } catch (Throwable ex) {
+                MXFileLogger.getLogger(MXUIProperty.class).log(Level.WARNING, ex.getMessage(), ex);
+            } finally {
+                _selfLock--;
             }
-        }.waitResult();
+        }).join();
     }
 
     public void set(boolean var) {
@@ -709,54 +700,58 @@ public class MXUIProperty {
     }
 
     public void doClickAction() {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            try {
+                SwingUtilities.invokeAndWait(() -> {
+                    doClickAction();
+                });
+            } catch (InvocationTargetException ex) {
+                MXFileLogger.getLogger(MXUIProperty.class).log(Level.WARNING, ex.getMessage(), ex);
+            } catch (InterruptedException ex) {
+                MXFileLogger.getLogger(MXUIProperty.class).log(Level.WARNING, ex.getMessage(), ex);
+            }
+            return;
+        }
         try {
-            SwingUtilities.invokeAndWait(() -> {
-                try {
-                    String command = null;
-                    ActionListener[] listListener;
-                    
-                    if (_supportedType == TYPE_BUTTON) {
-                        JButton button = (JButton) _component;
-                        command = button.getActionCommand();
-                        listListener = button.getActionListeners();
-                    } else {
-                        return;
-                    }
-                    
-                    if (listListener != null) {
-                        long tick = System.currentTimeMillis();
-                        while (tick <= _lastUnique) {
-                            tick++;
-                        }
-                        _lastUnique = tick;
-                        
-                        ActionEvent evt = new ActionEvent(_component, (int) tick, command);
-                        
-                        for (ActionListener l : listListener) {
-                            try {
-                                l.actionPerformed(evt);
-                                
-                            } catch (Throwable ex) {
-                                MXFileLogger.getLogger(MXUIProperty.class
-                                ).log(Level.SEVERE, ex.getMessage(), ex);
-                                
-                            }
-                        }
-                    }
-                    
-                } catch (RuntimeException ex) {
-                    MXFileLogger.getLogger(MXUIProperty.class
-                    ).log(Level.SEVERE, ex.getMessage(), ex);
-                    
-                } catch (Error er) {
-                    MXFileLogger.getLogger(MXUIProperty.class
-                    ).log(Level.SEVERE, er.getMessage(), er);
+            String command = null;
+            ActionListener[] listListener;
+
+            if (_supportedType == TYPE_BUTTON) {
+                JButton button = (JButton) _component;
+                command = button.getActionCommand();
+                listListener = button.getActionListeners();
+            } else {
+                return;
+            }
+
+            if (listListener != null) {
+                long tick = System.currentTimeMillis();
+                while (tick <= _lastUnique) {
+                    tick++;
                 }
-            });
-        } catch (InvocationTargetException ex) {
-            MXFileLogger.getLogger(MXUIProperty.class).log(Level.WARNING, ex.getMessage(), ex);
-        } catch (InterruptedException ex) {
-            MXFileLogger.getLogger(MXUIProperty.class).log(Level.WARNING, ex.getMessage(), ex);
+                _lastUnique = tick;
+
+                ActionEvent evt = new ActionEvent(_component, (int) tick, command);
+
+                for (ActionListener l : listListener) {
+                    try {
+                        l.actionPerformed(evt);
+
+                    } catch (Throwable ex) {
+                        MXFileLogger.getLogger(MXUIProperty.class
+                        ).log(Level.SEVERE, ex.getMessage(), ex);
+
+                    }
+                }
+            }
+
+        } catch (RuntimeException ex) {
+            MXFileLogger.getLogger(MXUIProperty.class
+            ).log(Level.SEVERE, ex.getMessage(), ex);
+
+        } catch (Error er) {
+            MXFileLogger.getLogger(MXUIProperty.class
+            ).log(Level.SEVERE, er.getMessage(), er);
         }
     }
 

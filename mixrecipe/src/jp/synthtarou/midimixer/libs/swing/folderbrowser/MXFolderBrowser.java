@@ -501,18 +501,15 @@ public class MXFolderBrowser extends javax.swing.JPanel implements INavigator<Fi
 
     public void ensureNodeToVisible(FileSystemCache.Element node) {
         if (node != null) {
-            new MainThreadTask() {
-                @Override
-                public Object runTask() {
-                    TreePath path = new TreePath(node._pairNode.getPath());
-                    jTree1.expandPath(path);
-                    jTree1.setSelectionPath(path);
+            new MainThreadTask(() -> {
+                TreePath path = new TreePath(node._pairNode.getPath());
+                jTree1.expandPath(path);
+                jTree1.setSelectionPath(path);
 
-                    jTree1.scrollPathToVisible(path);
-                    jTree1.paintImmediately(jTree1.getVisibleRect());
-                    return NOTHING;
-                }
-            };
+                jTree1.scrollPathToVisible(path);
+                jTree1.paintImmediately(jTree1.getVisibleRect());
+            });
+
         }
     }
 
@@ -560,14 +557,10 @@ public class MXFolderBrowser extends javax.swing.JPanel implements INavigator<Fi
     }
 
     public void progress(String text) {
-        new MainThreadTask() {
-            @Override
-            public Object runTask() {
-                jLabelScan.setText(text);
-                jLabelScan.paintImmediately(jLabelScan.getVisibleRect());
-                return NOTHING;
-            }
-        };
+        new MainThreadTask(() -> {
+            jLabelScan.setText(text);
+            jLabelScan.paintImmediately(jLabelScan.getVisibleRect());
+        });
     }
 
     /**

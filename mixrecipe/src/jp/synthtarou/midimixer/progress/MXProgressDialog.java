@@ -33,9 +33,10 @@ import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
  * @author Syntarou YOSHIDA
  */
 public class MXProgressDialog extends javax.swing.JDialog {
+
     MXPianoKeys _piano;
     ListModelOutputStream _stream = MXFileLogger.getListStream();
-    
+
     public void setMessageAsStartUP() {
         _stream.clearLogLine();
         _stream.addLine("Compiled with OpenJDK 22 + NetBeans IDE19\n");
@@ -127,7 +128,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
         setSize(500, 400);
         MXUtil.centerWindow(this);
         _stream.attachListForLogging(jList1);
-        
+
         jLabelVersion.setText(MXConfiguration.MX_APPLICATION);
 
         _piano = new MXPianoKeys();
@@ -169,14 +170,10 @@ public class MXProgressDialog extends javax.swing.JDialog {
                     last = 40;
                     _piano.noteOn(40);
                 }
-                new MainThreadTask() {
-                    @Override
-                    public Object runTask() {
-                        _piano.invalidate();
-                        _piano.repaint();
-                        return null;
-                    }
-                };
+                new MainThreadTask(() -> {
+                    _piano.invalidate();
+                    _piano.repaint();
+                });
                 if (_pianoStop) {
                     break;
                 }

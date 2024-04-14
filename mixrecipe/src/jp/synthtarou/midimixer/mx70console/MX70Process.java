@@ -16,15 +16,17 @@
  */
 package jp.synthtarou.midimixer.mx70console;
 
+import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
+import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX70Process {
+public class MX70Process extends MXReceiver<MX70View>{
     MX70View _view;
     MXMidiConsole _outsideInput = new MXMidiConsole();
     MXMidiConsole _insideInput = new MXMidiConsole();
@@ -35,35 +37,25 @@ public class MX70Process {
     public MX70Process() {
     }
 
-    public void createWindow() {
-        if (_view != null) {
-            if (_view.isOwnerWindowVisible()) { 
-                return;
-            }
-        }
-        _view = new MX70View(this);
-        _view.showAsWindow();
-    }
-
     public void addOutsideInput(MXMidiConsoleElement e) {
-        _outsideInput.add(e);
+        _outsideInput.addElement2(e);
     }
 
     public void addInsideInput(MXMessage msg) {
         MXMidiConsoleElement e = new MXMidiConsoleElement(msg);
-        _insideInput.add(e);
+        _insideInput.addElement2(e);
         if (msg.isBinaryMessage()) {
-            _listBinary.add(e);
+            _listBinary.addElement2(e);
         }
     }
 
     public void addInsideOutput(MXMessage msg) {
         MXMidiConsoleElement e = new MXMidiConsoleElement(msg);
-        _insideOutput.add(e);
+        _insideOutput.addElement2(e);
     }
 
     public void addOutsideOutput(MXMidiConsoleElement e) {
-        _outsideOutput.add(e);
+        _outsideOutput.addElement2(e);
     }
     
     MX70SysexPanel _sysex;
@@ -73,5 +65,23 @@ public class MX70Process {
             _sysex = new MX70SysexPanel(_listBinary);
         }
         return _sysex;
+    }
+
+    @Override
+    public String getReceiverName() {
+        return "(Console/SysEX)";
+    }
+
+    @Override
+    public synchronized MX70View getReceiverView() {
+        if (_view == null) {
+            _view = new MX70View(this);
+        }
+        return _view;
+    }
+
+    @Override
+    public void processMXMessage(MXMessage message) {
+        return;
     }
 }

@@ -38,7 +38,6 @@ import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.MXFileChooser;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInForPlayer;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.libs.smf.SMFCallback;
@@ -408,7 +407,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     }// </editor-fold>//GEN-END:initComponents
 
     public void createPianoControls(int noteLowest, int octaveRange, boolean[] activeChannels, int[] listPrograms, List<Integer> drumProgs) {
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> {
                 createPianoControls(noteLowest, octaveRange, activeChannels, listPrograms, drumProgs);
             });
@@ -515,7 +514,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     MXPianoKeys _pianoRollKeys;
 
     public void autoResizePiano() {
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(this::autoResizePiano);
             return;
         }
@@ -714,7 +713,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     }//GEN-LAST:event_jSliderSongPositionStateChanged
 
     public void updatePianoDX(int dword) {
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> {
                 updatePianoDX(dword);
             });
@@ -832,7 +831,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
             return;
         }
 
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> {
                 smfStoped(fineFinish);
             });
@@ -878,9 +877,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     boolean jSliderStopCallback = false;
     @Override
     public void smfProgress(long pos, long finish) {
-        new MainThreadTask() {
-            @Override
-            public Object runTask() {
+        new MainThreadTask(() -> {
                 if (pos == 0) {
                     MXMain.getMain().getLayerProcess().resendProgramChange();
                 }
@@ -891,26 +888,18 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                 }
                 jSliderSongPosition.setValue((int) pos);
                 jSliderStopCallback = false;
-                return NOTHING;
-            }
-        };
+        });
     }
 
     public void turnOnMusic(PlayListElement file, final int pos) {
-        if (SwingUtilities.isEventDispatchThread() == false) {
-            new MainThreadTask(true) {
-                @Override
-                public Object runTask() {
-                    SwingUtilities.invokeLater(() -> {
-                        _player.stopSequencer(0);
-                        turnOnMusic(file, pos);
-                    });
-                    return NOTHING;
-                }
-            };
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(() -> {
+                turnOnMusic(file, pos);
+            });
             return;
         }
         try {
+            _player.stopSequencer(0);
             if (file == null) {
                 JOptionPane.showMessageDialog(this, "Choice one from PlayList", "Error", JOptionPane.OK_OPTION);
                 return;

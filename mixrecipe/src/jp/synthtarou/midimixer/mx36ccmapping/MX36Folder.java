@@ -89,7 +89,7 @@ public class MX36Folder implements Comparable<MX36Folder> {
     }
 
     public void addCCItem(MX36Status status) {
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> {
                 addCCItem(status);
             });

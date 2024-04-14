@@ -24,7 +24,6 @@ import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 
 /**
  *
@@ -129,11 +128,9 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
         _mixer._parent.addSliderMove(null, getStatus(), newValue);
     }
 
-    MXTiming _trackNumer;
-
     public void publishUI(MXRangedValue newValue) {
         MGStatus status = getStatus();
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> {
                 publishUI(newValue);
             });

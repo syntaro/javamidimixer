@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.libs.accordionui;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -161,12 +160,8 @@ public class MXAccordion extends javax.swing.JPanel {
     }
 
     public void openAccordion(boolean opened) {
-        new MainThreadTask<Object>() {
-            @Override
-            public Object runTask() {
-                if (_selected == opened) {
-                    return null;
-                }
+        new MainThreadTask(() -> {
+            if (_selected != opened) {
 
                 _selected = opened;
 
@@ -176,9 +171,8 @@ public class MXAccordion extends javax.swing.JPanel {
                     jSlider1.setValue(opened ? 1 : 0);
                 }
                 _contentsList.openWithAnimation(opened, _invert);
-                return null;
             }
-        };
+        });
     }
 
     public boolean isAccordionOpened() {

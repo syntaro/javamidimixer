@@ -21,8 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
@@ -269,7 +267,7 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         int[] index = jListScan.getSelectedIndices();
         if (index != null & index.length >= 1) {
             for (int i = 0; i < index.length; ++ i) {
-                MXMidiConsoleElement e = _list.getConsoleElement(index[i]);
+                MXMidiConsoleElement e = _list.elementAt(index[i]);
                 byte[] data2 =  e.getMessage().getBinary();
                 _file.add(data2, jTextArea1);
                 break;
@@ -338,7 +336,7 @@ public class MX70SysexPanel extends javax.swing.JPanel {
     private void jListScanValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListScanValueChanged
         int index = jListScan.getSelectedIndex();
         if (index >= 0) {
-            MXMidiConsoleElement seek =_list.getConsoleElement(index);
+            MXMidiConsoleElement seek =_list.elementAt(index);
             if (seek != null) {
                 _list.setMarked(seek.getMessage());
             }
@@ -356,7 +354,7 @@ public class MX70SysexPanel extends javax.swing.JPanel {
     private javax.swing.JComboBox<String> jComboBoxPort;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JList<String> jListScan;
+    private javax.swing.JList<MXMidiConsoleElement> jListScan;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;

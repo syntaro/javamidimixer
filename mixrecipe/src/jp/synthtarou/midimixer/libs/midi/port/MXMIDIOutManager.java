@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_Java;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
 import jp.synthtarou.libs.inifile.MXINIFile;
@@ -140,53 +139,51 @@ public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
     //protected MXMIDIOut[] _cache;
 
     public MXNamedObjectList<MXMIDIOut> listAllOutput() {
-        synchronized (MXTiming.mutex) {
-            if (_listAllOutput != null) {
-                return _listAllOutput;
-            }
-
-            MXNamedObjectList<MXMIDIOut> temp = new MXNamedObjectList<MXMIDIOut>();
-
-            MXDriver java = MXDriver_Java._instance;
-            for (int i = 0; i < java.OutputDevicesRoomSize(); i++) {
-                MXMIDIOut device = new MXMIDIOut(java, i);
-
-                String name = device.getName();
-                if (MXDriver_UWP._instance.isUsable()) {
-                    if (name.equals("Real Time Sequencer") || name.equals("Unknown name")) {
-                        continue;
-                    }
-                    if (name.startsWith("Microsoft GS Wave")) {
-                        continue;
-                    }
-                }
-
-                temp.addNameAndValue(device.getName(), device);
-            }
-            if (MXDriver_UWP._instance.isUsable()) {
-                MXDriver uwp = MXDriver_UWP._instance;
-                for (int i = 0; i < uwp.OutputDevicesRoomSize(); i++) {
-                    MXMIDIOut device = new MXMIDIOut(uwp, i);
-                    //if (name.equals("MIDI")) {
-                    //    continue;
-                    //}
-                    //if (temp.indexOfName(name) >= 0) {
-                    //    continue;
-                    //}
-                    temp.addNameAndValue(device.getName(), device);
-                }
-            }
-            if (MXDriver_VSTi._instance.isUsable()) {
-                MXDriver vst = MXDriver_VSTi._instance;
-                for (int i = 0; i < vst.OutputDevicesRoomSize(); i++) {
-                    MXMIDIOut out = new MXMIDIOut(MXDriver_VSTi._instance, i);
-                    temp.addNameAndValue(out.getName(), out);
-                }
-            }
-
-            _listAllOutput = temp;
+        if (_listAllOutput != null) {
             return _listAllOutput;
         }
+
+        MXNamedObjectList<MXMIDIOut> temp = new MXNamedObjectList<MXMIDIOut>();
+
+        MXDriver java = MXDriver_Java._instance;
+        for (int i = 0; i < java.OutputDevicesRoomSize(); i++) {
+            MXMIDIOut device = new MXMIDIOut(java, i);
+
+            String name = device.getName();
+            if (MXDriver_UWP._instance.isUsable()) {
+                if (name.equals("Real Time Sequencer") || name.equals("Unknown name")) {
+                    continue;
+                }
+                if (name.startsWith("Microsoft GS Wave")) {
+                    continue;
+                }
+            }
+
+            temp.addNameAndValue(device.getName(), device);
+        }
+        if (MXDriver_UWP._instance.isUsable()) {
+            MXDriver uwp = MXDriver_UWP._instance;
+            for (int i = 0; i < uwp.OutputDevicesRoomSize(); i++) {
+                MXMIDIOut device = new MXMIDIOut(uwp, i);
+                //if (name.equals("MIDI")) {
+                //    continue;
+                //}
+                //if (temp.indexOfName(name) >= 0) {
+                //    continue;
+                //}
+                temp.addNameAndValue(device.getName(), device);
+            }
+        }
+        if (MXDriver_VSTi._instance.isUsable()) {
+            MXDriver vst = MXDriver_VSTi._instance;
+            for (int i = 0; i < vst.OutputDevicesRoomSize(); i++) {
+                MXMIDIOut out = new MXMIDIOut(MXDriver_VSTi._instance, i);
+                temp.addNameAndValue(out.getName(), out);
+            }
+        }
+
+        _listAllOutput = temp;
+        return _listAllOutput;
     }
 
     public MXMIDIOut findMIDIOutput(String deviceName) {
@@ -195,40 +192,31 @@ public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
     }
 
     void onClose(MXMIDIOut output) {
-        synchronized (MXTiming.mutex) {
-            clearMIDIOutCache();
-        }
+        clearMIDIOutCache();
     }
 
     protected void clearMIDIOutCache() {
-        synchronized (MXTiming.mutex) {
-            _selectedOutput = null;
-            //_cache = null;
-        }
+        _selectedOutput = null;
     }
 
     public MXNamedObjectList<MXMIDIOut> listSelectedOutput() {
-        synchronized (MXTiming.mutex) {
-            if (_selectedOutput != null) {
-                return _selectedOutput;
-            }
-            _selectedOutput = new MXNamedObjectList();
-            for (MXMIDIOut midi : listAllOutput().valueList()) {
-                if (midi.getPortAssignCount() == 0) {
-                    continue;
-                }
-                _selectedOutput.addNameAndValue(midi.getName(), midi);
-            }
+        if (_selectedOutput != null) {
             return _selectedOutput;
         }
+        _selectedOutput = new MXNamedObjectList();
+        for (MXMIDIOut midi : listAllOutput().valueList()) {
+            if (midi.getPortAssignCount() == 0) {
+                continue;
+            }
+            _selectedOutput.addNameAndValue(midi.getName(), midi);
+        }
+        return _selectedOutput;
     }
 
     public void closeAll() {
-        synchronized (MXTiming.mutex) {
-            for (MXMIDIOut output : listAllOutput().valueList()) {
-                if (output.isOpen()) {
-                    output.close();
-                }
+        for (MXMIDIOut output : listAllOutput().valueList()) {
+            if (output.isOpen()) {
+                output.close();
             }
         }
     }

@@ -29,7 +29,6 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
-import jp.synthtarou.midimixer.libs.midi.MXTiming;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
@@ -56,12 +55,10 @@ public class MXMIDIIn {
 
     public void close() {
         MXMIDIInManager manager = MXMIDIInManager.getManager();
-        synchronized (MXTiming.mutex) {
-            if (isOpen()) {
-                allNoteOff(null);
-                manager.onClose(this);
-                _driver.InputDeviceClose(_driverOrder);
-            }
+        if (isOpen()) {
+            allNoteOff(null);
+            manager.onClose(this);
+            _driver.InputDeviceClose(_driverOrder);
         }
     }
 
@@ -103,20 +100,20 @@ public class MXMIDIIn {
 
             @Override
             public void processMXMessage(MXMessage message) {
-                for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
-                        if (isPortAssigned(port)) {
-                            MXMessage ported = MXMessageFactory.fromClone(message);
-                            message._owner = message;
-                            message.setPort(port);
-                            messageToReceiverThreaded(message, MXMain.getMain().getInputProcess());
-                        }
+                for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
+                    if (isPortAssigned(port)) {
+                        MXMessage ported = MXMessageFactory.fromClone(message);
+                        message._owner = message;
+                        message.setPort(port);
+                        messageToReceiverThreaded(message, MXMain.getMain().getInputProcess());
                     }
                 }
+            }
         });
     }
-    
+
     public MXPreprocess _preprocess;
-    
+
     public boolean isPortAssigned(int port) {
         return _assigned[port];
     }
@@ -139,29 +136,25 @@ public class MXMIDIIn {
     }
 
     public void setPortAssigned(int port, boolean flag) {
-        synchronized (MXTiming.mutex) {
-            if (_assigned[port] != flag) {
-                if (!flag) {
-                    _myNoteOff.allNoteOffToPort(null, port);
-                }
-                _assigned[port] = flag;
-                int x = 0;
-                for (int i = 0; i < _assigned.length; ++i) {
-                    if (_assigned[i]) {
-                        x++;
-                    }
-                }
-                _assignCount = x;
-                MXMIDIInManager.getManager().clearMIDIInCache();;
+        if (_assigned[port] != flag) {
+            if (!flag) {
+                _myNoteOff.allNoteOffToPort(null, port);
             }
+            _assigned[port] = flag;
+            int x = 0;
+            for (int i = 0; i < _assigned.length; ++i) {
+                if (_assigned[i]) {
+                    x++;
+                }
+            }
+            _assignCount = x;
+            MXMIDIInManager.getManager().clearMIDIInCache();;
         }
     }
 
     public void resetPortAssigned() {
-        synchronized (MXTiming.mutex) {
-            for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++i) {
-                setPortAssigned(i, false);
-            }
+        for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++i) {
+            setPortAssigned(i, false);
         }
     }
 
@@ -341,6 +334,7 @@ public class MXMIDIIn {
     }
 
     public static class MessageQueueElement {
+
         MessageQueueElement(MXMessage message, MXReceiver receiver) {
             _message = message;
             _receiver = receiver;
@@ -375,7 +369,7 @@ public class MXMIDIIn {
         _messageThread.setDaemon(true);
         _messageThread.start();
     }
-    
+
     public static void messageToReceiverThreaded(MXMessage message, MXReceiver receiver) {
         if (MXConfiguration._DEBUG || Thread.currentThread() == _messageThread) {
             messageToReceiver(message, receiver);
@@ -386,7 +380,6 @@ public class MXMIDIIn {
 
     MXMessage[] retBuf = new MXMessage[3];
 
-
     public static void queueMustEmpty() {
         try {
             while (true) {
@@ -395,11 +388,13 @@ public class MXMIDIIn {
                         return;
                     }
                 }
-                synchronized (_messageQueue) {                        
+                synchronized (_messageQueue) {
                     _messageQueue.wait(10);
                 }
             }
         } catch (InterruptedException ex) {
+            ex.printStackTrace();
+            return;
         }
     }
 

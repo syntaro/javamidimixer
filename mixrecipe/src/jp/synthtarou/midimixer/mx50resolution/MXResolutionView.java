@@ -375,7 +375,7 @@ public class MXResolutionView extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     public void updateMonitor(int original, int translated) {
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> {
                 updateMonitor(original, translated);
             });

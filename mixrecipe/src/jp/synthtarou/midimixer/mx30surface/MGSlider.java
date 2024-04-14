@@ -165,7 +165,7 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
     }//GEN-LAST:event_jSliderValueStateChanged
 
     public void publishUI(MXRangedValue newValue) {
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> {
                 publishUI(newValue);
             });

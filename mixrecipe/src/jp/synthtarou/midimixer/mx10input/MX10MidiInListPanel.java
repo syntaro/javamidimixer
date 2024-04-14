@@ -97,7 +97,7 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     public void refreshList() {
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(this::refreshList);
             return;
         }
