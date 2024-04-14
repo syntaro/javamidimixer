@@ -53,16 +53,15 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
     public boolean isEmpty() {
         return _template.isEmpty();
     }
-
-    public MXMessage getRealOwner() {
-        MXMessage seek = this;
+    
+    public static MXMessage getRealOwner(MXMessage msg) {
+        if (msg == null) {
+            return null;
+        }
+        MXMessage seek = msg;
         while (seek._owner != null) {
             seek = seek._owner;
             if (seek._owner == seek) {
-                if (seek._owner._owner != null && seek._owner._owner != seek) {
-                    seek = seek._owner._owner;
-                    return seek;
-                }
                 return seek;
             }
         }

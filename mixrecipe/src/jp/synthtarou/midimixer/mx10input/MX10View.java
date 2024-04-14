@@ -16,13 +16,10 @@
  */
 package jp.synthtarou.midimixer.mx10input;
 
-import jp.synthtarou.midimixer.libs.midi.port.MXPreprocess;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.util.TreeMap;
 import java.util.Vector;
+import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
@@ -33,6 +30,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.port.MXPreprocessPanel;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 
 /**
@@ -83,6 +81,11 @@ public class MX10View extends javax.swing.JPanel {
             }
 
         });
+        
+        MXPreprocessPanel manager = MXPreprocessPanel.getInstance();
+        jPanelPreprocessor.removeAll();
+        jPanelPreprocessor.setLayout(new BoxLayout(jPanelPreprocessor, BoxLayout.Y_AXIS));
+        jPanelPreprocessor.add(manager);
     }
     
     public void splitAuto() {
@@ -188,7 +191,7 @@ public class MX10View extends javax.swing.JPanel {
         jSplitPane1.setLeftComponent(jSplitPane2);
 
         jPanelPreprocessor.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        jPanelPreprocessor.setLayout(new java.awt.GridBagLayout());
+        jPanelPreprocessor.setLayout(new javax.swing.BoxLayout(jPanelPreprocessor, javax.swing.BoxLayout.LINE_AXIS));
         jScrollPane1.setViewportView(jPanelPreprocessor);
 
         jSplitPane1.setRightComponent(jScrollPane1);
@@ -287,38 +290,4 @@ public class MX10View extends javax.swing.JPanel {
         "Active&Clock", 
         
     };
-
-    public void addPreprocessor(TreeMap<Integer, MXPreprocess> prepro) {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> {
-                addPreprocessor(prepro);
-            });
-            return;
-        }
-        jPanelPreprocessor.removeAll();
-        jPanelPreprocessor.setLayout(new GridBagLayout());
-        int y = 0;
-        GridBagConstraints gc;
-        for (Integer seek : prepro.keySet()) {
-            MXPreprocess seek2 = prepro.get(seek);
-            gc = new java.awt.GridBagConstraints();
-            gc.gridx = 0;
-            gc.gridy = y ++;
-            gc.fill = java.awt.GridBagConstraints.BOTH;
-            gc.weightx = 1.0;
-            gc.weighty = 0;
-            jPanelPreprocessor.add(seek2.getReceiverView(), gc);
-        }
-        JLabel label = new JLabel(" ");
-        gc = new java.awt.GridBagConstraints();
-        gc.gridx = 0;
-        gc.gridy = y ++;
-        gc.fill = java.awt.GridBagConstraints.BOTH;
-        gc.weightx = 0;
-        gc.weighty = 1.0;
-        jPanelPreprocessor.add(label, gc);
-
-        jPanelPreprocessor.invalidate();
-        jPanelPreprocessor.repaint();
-    }
 }

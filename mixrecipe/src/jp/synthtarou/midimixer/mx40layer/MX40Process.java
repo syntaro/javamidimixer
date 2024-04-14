@@ -93,7 +93,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                     x = 127;
                 }
                 MXMessage newMessage = MXMessageFactory.fromProgramChange(message.getPort(), message.getChannel(), x);
-                newMessage._owner = message;
+                newMessage._owner = MXMessage.getRealOwner(message);
                 message = newMessage;
                 command = MXMidi.COMMAND_CH_PROGRAMCHANGE;
             }
@@ -103,7 +103,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                     x = 0;
                 }
                 MXMessage newMessage = MXMessageFactory.fromProgramChange(message.getPort(), message.getChannel(), x);
-                newMessage._owner = message;
+                newMessage._owner = MXMessage.getRealOwner(message);
                 message = newMessage;
                 command = MXMidi.COMMAND_CH_PROGRAMCHANGE;
             }
@@ -127,7 +127,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                                             target.getPort(),
                                             target.getChannel(),
                                             target.getCompiled(1));
-                                    newMessage._owner = target;
+                                    newMessage._owner = MXMessage.getRealOwner(target);
                                     col.processByGroup(newMessage);
                                 }
                             });
@@ -144,7 +144,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                             MXMessage newMessage = MXMessageFactory.fromNoteoff(target.getPort(),
                                     target.getChannel(),
                                     target.getCompiled(1));
-                            newMessage._owner = target;
+                            newMessage._owner = MXMessage.getRealOwner(target);
                             sendToNext(newMessage);
                         }
                     });

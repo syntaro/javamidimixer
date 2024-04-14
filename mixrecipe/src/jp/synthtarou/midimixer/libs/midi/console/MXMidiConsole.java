@@ -46,7 +46,10 @@ public class MXMidiConsole extends DefaultListModel<MXMidiConsoleElement> {
                         Thread.sleep(1000);
                         commitQueue();
                     }
-                } catch (Throwable e) {
+                } catch (InterruptedException e) {
+                    done = true;
+                    return;
+                } catch(Throwable e) {
                     e.printStackTrace();;
                     done = true;
                 }
@@ -83,8 +86,10 @@ public class MXMidiConsole extends DefaultListModel<MXMidiConsoleElement> {
                 isSelected = false;
                 Color back = Color.white;
                 boolean gray = false;
+                
+                MXMessage owner = MXMessage.getRealOwner(message);
 
-                if (message.getRealOwner() == _selectedTiming) {
+                if (owner == _selectedTiming) {
                     isSelected = true;
                     if (_refList.hasFocus()) {
                         cellHasFocus = true;
@@ -163,7 +168,7 @@ public class MXMidiConsole extends DefaultListModel<MXMidiConsoleElement> {
 
     public void setMarked(MXMessage selection) {
         if (selection != null) {
-            _selectedTiming = selection.getRealOwner();
+            _selectedTiming = MXMessage.getRealOwner(selection);
             _refList.repaint();
         }
     }

@@ -38,12 +38,13 @@ import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
  * @author Syntarou YOSHIDA
  */
 public class MXMIDIIn {
-
     public static final MXMIDIInForPlayer INTERNAL_PLAYER = new MXMIDIInForPlayer();
 
-    private String _name;
-    private MXDriver _driver;
-    private int _driverOrder;
+    String _name;
+    MXDriver _driver;
+    int _driverOrder;
+
+    public MXPreprocess _preprocess;
 
     public MXDriver getDriver() {
         return _driver;
@@ -103,7 +104,7 @@ public class MXMIDIIn {
                 for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
                     if (isPortAssigned(port)) {
                         MXMessage ported = MXMessageFactory.fromClone(message);
-                        message._owner = message;
+                        message._owner = MXMessage.getRealOwner(message);
                         message.setPort(port);
                         messageToReceiverThreaded(message, MXMain.getMain().getInputProcess());
                     }
@@ -111,8 +112,6 @@ public class MXMIDIIn {
             }
         });
     }
-
-    public MXPreprocess _preprocess;
 
     public boolean isPortAssigned(int port) {
         return _assigned[port];

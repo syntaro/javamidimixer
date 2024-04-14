@@ -140,7 +140,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
             _base = null;
         }else {
             _base = (MXMessage)base.clone();
-            _base._owner = base;
+            _base._owner = MXMessage.getRealOwner(base);
         }
     }
 
@@ -187,7 +187,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         if ((_base.getTemplate().get(0) & 0xfff0) == MXMidi.COMMAND_CH_NOTEON) {
             if ((message.getTemplate().get(0) & 0xfff0) == MXMidi.COMMAND_CH_NOTEOFF) {
                 MXMessage newMessage = MXMessageFactory.fromNoteon(message.getPort(), message.getChannel(), message.getCompiled(1), 0);
-                newMessage._owner = message;
+                newMessage._owner = MXMessage.getRealOwner(message);
                 message = newMessage;
             }
         }

@@ -49,7 +49,7 @@ public class MX16Process extends MXReceiver<MX11View> {
                 int channel = message.getChannel();
                 int note = message.getCompiled(1);
                 MXMessage newMessage = MXMessageFactory.fromNoteon(port, channel, note, newVelocity);
-                newMessage._owner = message;
+                newMessage._owner = MXMessage.getRealOwner(message);
                 sendToNext(newMessage);
             }
         }else {

@@ -280,14 +280,14 @@ public class MGStatusForDrum implements Cloneable {
                 switch (_outStyle) {
                     case STYLE_SAME_CC:
                         message = (MXMessage) _status._base.clone();
-                        message._owner = owner;
+                        message._owner = MXMessage.getRealOwner(owner);
                         message.setValue(velocity);
                         break;
 
                     case STYLE_CUSTOM_CC:
                         if (_customTemplate != null) {
                             message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, MXRangedValue.new7bit(velocity));
-                            message._owner = owner;
+                            message._owner = MXMessage.getRealOwner(owner);
                             packet.addResult(message);
                         }
                         message = null;
@@ -296,7 +296,7 @@ public class MGStatusForDrum implements Cloneable {
                         int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
                         for (int note : noteList) {
                             message = MXMessageFactory.fromNoteon(port, channel, note, velocity);
-                            message._owner = owner;
+                            message._owner = MXMessage.getRealOwner(owner);
                             packet.addResult(message);
                         }
                         message = null;
@@ -366,7 +366,7 @@ public class MGStatusForDrum implements Cloneable {
                             default:
                                 break;
                         }
-                        message._owner = owner;
+                        message._owner = MXMessage.getRealOwner(owner);
                         packet.addResult(message);
                         message = null;
                 }
@@ -385,13 +385,13 @@ public class MGStatusForDrum implements Cloneable {
                     case STYLE_SAME_CC:
                         message = MXMessageFactory.fromClone(_status._base);
                         message.setValue(velocity);
-                        message._owner = owner;
+                        message._owner = MXMessage.getRealOwner(owner);
                         break;
 
                     case STYLE_CUSTOM_CC:
                         if (_customTemplate != null) {
                             message = MXMessageFactory.fromTemplate(port, _customTemplate, channel, _customGate, MXRangedValue.new7bit(velocity));
-                            message._owner = owner;
+                            message._owner = MXMessage.getRealOwner(owner);
                             packet.addResult(message);
                         }
                         message = null;
@@ -400,7 +400,7 @@ public class MGStatusForDrum implements Cloneable {
                         int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
                         for (int note : noteList) {
                             message = MXMessageFactory.fromNoteoff(port, channel, note);
-                            message._owner = owner;
+                            message._owner = MXMessage.getRealOwner(owner);
                             packet.addResult(message);
                         }
                         message = null;

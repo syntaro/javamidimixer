@@ -112,7 +112,7 @@ public class MX60ViewData extends MX10ViewData {
                                     target.getPort(),
                                     target.getChannel(),
                                     target.getCompiled(1));
-                            newMessage._owner = target;
+                            newMessage._owner = MXMessage.getRealOwner(target);
                             _process.sendToNext(target);
                         }
                     });

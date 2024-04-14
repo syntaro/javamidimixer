@@ -28,7 +28,7 @@ public class MGSliderMove {
     int _newValue;
     
     public MGSliderMove(MXMessage owner, MGStatus slider, int newValue) {
-        _owner = owner;
+        _owner = owner != null ? MXMessage.getRealOwner(owner) : null;
         _status = slider;
         _newValue = newValue;
     }

@@ -44,7 +44,7 @@ public class FinalMIDIOut extends MXReceiver {
     public void startTestSignal(MXMessage testBase, int port) {
         _listTestResult = new LinkedList();
         _testPort = port;
-        _testBase = testBase != null ? testBase.getRealOwner() : null;
+        _testBase = MXMessage.getRealOwner(testBase);
     }
     
     public ArrayList<MXMessage> getTestResult() {
@@ -56,7 +56,7 @@ public class FinalMIDIOut extends MXReceiver {
             if (_testBase == null) {
                 result.add(seek);
             }
-            else if (seek.getRealOwner() == _testBase) {
+            else if (MXMessage.getRealOwner(seek) == _testBase) {
                 result.add(seek);
             }
         }

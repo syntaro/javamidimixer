@@ -199,14 +199,14 @@ public class MX40Group {
             proced = layer.processByLayer(message);
 
             MXMessage noteOff = MXMessageFactory.fromNoteoff(port, channel, message.getCompiled(1));
-            noteOff._owner = message;
+            noteOff._owner = MXMessage.getRealOwner(message);
             _noteOff.setHandler(message, noteOff,  new NoteOffWatcher2(layer, found));
         }else {
             for (MX40Layer layer: _listLayer) {
                 layer.processByLayer(message);
                 if (command == MXMidi.COMMAND_CH_NOTEON) {
                     MXMessage noteOff = MXMessageFactory.fromNoteoff(port, channel, message.getCompiled(1));
-                    noteOff._owner = message;
+                    noteOff._owner = MXMessage.getRealOwner(message);
                     _noteOff.setHandler(message, noteOff,  new NoteOffWatcher2(layer, -1));
                 }
                 proced = true;

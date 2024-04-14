@@ -337,7 +337,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
         });
         status._outValueRange = value;
         MXMessage message = status.createOutMessage();
-        message._owner = owner;
+        message._owner = MXMessage.getRealOwner(owner);
         return message;
     }
 

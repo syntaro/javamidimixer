@@ -212,12 +212,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
                     MXMessage message = _pageProcess[port].updateUIStatusAndGetResult(_parent, status, move._newValue);
                     
                     if (message != null) {
-                        if (message == move._owner) {
-                            //LAUGH
-                        }
-                        else {
-                            message._owner = move._owner;
-                        }
+                        message._owner = MXMessage.getRealOwner(move._owner);
                         packet.addQueue(message);
 
                         MX36Process mapping = _mappingProcess;

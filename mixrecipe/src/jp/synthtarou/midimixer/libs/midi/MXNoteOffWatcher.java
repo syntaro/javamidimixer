@@ -67,7 +67,7 @@ public class MXNoteOffWatcher {
         for (Element e : _list) {
             MXMessage base = e.sendSide;
             MXMessage msg = MXMessageFactory.fromNoteoff(base.getPort(), base.getChannel(), base.getCompiled(1));
-            msg._owner = parent;
+            msg._owner = MXMessage.getRealOwner(parent);
             e.listener.onNoteOffEvent(msg);
         }
         _list.clear();
@@ -83,7 +83,7 @@ public class MXNoteOffWatcher {
             it.remove();
             MXMessage base = e.sendSide;
             MXMessage msg = MXMessageFactory.fromNoteoff(base.getPort(), base.getChannel(), base.getCompiled(1));
-            msg._owner = parent;
+            msg._owner = MXMessage.getRealOwner(parent);
             e.listener.onNoteOffEvent(msg);
         }
     }
@@ -98,7 +98,7 @@ public class MXNoteOffWatcher {
             it.remove();
             MXMessage base = e.sendSide;
             MXMessage msg = MXMessageFactory.fromNoteoff(base.getPort(), base.getChannel(), base.getCompiled(1));
-            msg._owner = parent;
+            msg._owner = MXMessage.getRealOwner(parent);
             e.listener.onNoteOffEvent(msg);
         }
         //_list.clear();
@@ -120,7 +120,7 @@ public class MXNoteOffWatcher {
                         e.sendSide.getPort(),
                         e.sendSide.getChannel(),
                         e.sendSide.getCompiled(1));
-                noteOff._owner = parent;
+                noteOff._owner = MXMessage.getRealOwner(parent);
                 e.listener.onNoteOffEvent(noteOff);
                 it.remove();
                 proc++;

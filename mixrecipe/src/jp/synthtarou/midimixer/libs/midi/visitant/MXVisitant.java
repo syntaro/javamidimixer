@@ -203,7 +203,7 @@ public class MXVisitant implements Cloneable {
                     if (progDec >= 0) {
                         setProgram(progDec);
                         MXMessage newMessage = MXMessageFactory.fromProgramChange(port, channel, progDec);
-                        newMessage._owner = message;
+                        newMessage._owner = MXMessage.getRealOwner(message);
                         return newMessage;
                     }else {
                         MXFileLogger.getLogger(MXVisitant.class).severe("@PROG_DEC got less than 0");
@@ -214,7 +214,7 @@ public class MXVisitant implements Cloneable {
                     if (progInc <= 127) {
                         setProgram(progInc);
                         MXMessage newMesage = MXMessageFactory.fromProgramChange(port, channel, progInc);
-                        newMesage._owner = message;
+                        newMesage._owner = MXMessage.getRealOwner(message);
                         return newMesage;
                     }  else {
                         MXFileLogger.getLogger(MXVisitant.class).severe("@PROG_INC got biggger than 127");

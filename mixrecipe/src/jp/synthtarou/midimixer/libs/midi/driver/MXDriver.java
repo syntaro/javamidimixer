@@ -23,7 +23,7 @@ import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
  *
  * @author Syntarou YOSHIDA
  */
-public interface MXDriver {
+public interface MXDriver{
     public boolean isUsable();
     public void StartLibrary();
     

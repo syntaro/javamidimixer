@@ -62,7 +62,7 @@ public class MXResolution implements Cloneable {
             _lastSent = newValue;
             MXMessage newMessage = (MXMessage)message.clone();
             newMessage.setValue(newValue);
-            newMessage._owner = message;
+            newMessage._owner = MXMessage.getRealOwner(message);
             return newMessage;
         }
         return null;

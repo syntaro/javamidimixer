@@ -290,7 +290,7 @@ public class MX40Layer {
 
         if (changed) {
             MXMessage message_trans = MXMessageFactory.fromShortMessage(port_trans, channel_trans + command, data1_trans, data2_trans);
-            message_trans._owner = message;
+            message_trans._owner = MXMessage.getRealOwner(message);
             message = message_trans;
         }
 
@@ -323,14 +323,14 @@ public class MX40Layer {
         if (_modBank == MOD_ASFROM) {
             if (bankMSB >= 0 && bankLSB >= 0) {
                 MXMessage bank = MXMessageFactory.fromControlChange14(port, channel, MXMidi.DATA1_CC_BANKSELECT, bankMSB, bankLSB);
-                bank._owner = message;
+                bank._owner = MXMessage.getRealOwner(message);
                 _process.sendToNext(bank);
                 proc = true;
             }
         }else if (_modBank == MOD_FIXED) {
             if (_fixedBankMSB >= 0 && _fixedBankLSB >= 0) {
                 MXMessage bank = MXMessageFactory.fromControlChange14(port, channel, MXMidi.DATA1_CC_BANKSELECT, _fixedBankMSB, _fixedBankLSB);
-                bank._owner = message;
+                bank._owner = MXMessage.getRealOwner(message);
                 _process.sendToNext(bank);
                 proc = true;
             }
@@ -340,7 +340,7 @@ public class MX40Layer {
             //program = message.getGate();
             if (program >= 0) {
                 MXMessage newMessage = MXMessageFactory.fromProgramChange(port, channel, program);
-                newMessage._owner = message;
+                newMessage._owner = MXMessage.getRealOwner(message);
                 _process.sendToNext(newMessage);
                 proc = true;
                 //System.out.println("Program Change +" + message);
@@ -350,7 +350,7 @@ public class MX40Layer {
         }else if (_modProgram == MOD_FIXED) {
             if (_fixedProgram >= 0) {
                 MXMessage newMessage = MXMessageFactory.fromProgramChange(port, channel, _fixedProgram);
-                newMessage._owner = message;
+                newMessage._owner = MXMessage.getRealOwner(message);
                 _process.sendToNext(newMessage);
                 proc = true;
             }
@@ -365,7 +365,7 @@ public class MX40Layer {
             if (data2_exp < 0) data2_exp = 0;
             if (data2_exp > 127) data2_exp = 127;
             MXMessage newMessage = MXMessageFactory.fromControlChange(port, channel, data1_cc, data2_exp);
-            newMessage._owner = message;
+            newMessage._owner = MXMessage.getRealOwner(message);
             _process.sendToNext(newMessage);
 
             org = info.getCCValue(MXMidi.DATA1_CC_PANPOT);
@@ -376,7 +376,7 @@ public class MX40Layer {
             if (data2_value < 0) data2_value = 0;
             if (data2_value > 127) data2_value = 127;
             newMessage = MXMessageFactory.fromControlChange(port, channel, MXMidi.DATA1_CC_PANPOT, data2_value);
-            newMessage._owner = message;
+            newMessage._owner = MXMessage.getRealOwner(message);
             _process.sendToNext(newMessage);
         }
     }

@@ -190,7 +190,7 @@ public class MXMIDIOut {
                         if (portVisitant.isHavingProgram() == false || portVisitant.getProgram() != must) {
                             portVisitant.setProgram(must);
                             MXMessage newMessage = MXMessageFactory.fromProgramChange(message.getPort(), channel, must);
-                            newMessage._owner = message;
+                            newMessage._owner = MXMessage.getRealOwner(message);
                             newMessage.setVisitant(portVisitant.getSnapShot());
                             processMidiOutInternal(newMessage);
                             System.out.println("need Fix ProgramChange" + " @" + channel + " from " + old + " to " + must);
@@ -210,8 +210,8 @@ public class MXMIDIOut {
                             MXMessage newMessage2 = MXMessageFactory.fromControlChange(message.getPort(), channel, MXMidi.DATA1_CC_BANKSELECT + 32, mustLSB);
                             newMessage1.setVisitant(portVisitant.getSnapShot());
                             newMessage2.setVisitant(portVisitant.getSnapShot());
-                            newMessage1._owner = message;
-                            newMessage2._owner = message;
+                            newMessage1._owner = MXMessage.getRealOwner(message);
+                            newMessage2._owner = MXMessage.getRealOwner(message);
 
                             processMidiOutInternal(newMessage1);
                             processMidiOutInternal(newMessage2);
@@ -234,7 +234,7 @@ public class MXMIDIOut {
 
                                     MXMessage newMessage = MXMessageFactory.fromControlChange(message.getPort(), channel, code, must);
 
-                                    newMessage._owner = message;
+                                    newMessage._owner = MXMessage.getRealOwner(message);
                                     newMessage.setVisitant(portVisitant.getSnapShot());
 
                                     processMidiOutInternal(newMessage);
@@ -297,7 +297,7 @@ public class MXMIDIOut {
                     int data1 = (dword >> 8) & 0xff;
                     int data2 = (dword) & 0xff;
                     MXMessage newMessage = MXMessageFactory.fromShortMessage(message.getPort(), status, data1, data2);
-                    newMessage._owner = message;
+                    newMessage._owner = MXMessage.getRealOwner(message);
                     MXMain.addOutsideOutput(new MXMidiConsoleElement(newMessage));
                 }
             }

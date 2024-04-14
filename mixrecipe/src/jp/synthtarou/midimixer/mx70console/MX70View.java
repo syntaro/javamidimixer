@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import javax.swing.JList;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
 
@@ -362,32 +363,27 @@ public class MX70View extends javax.swing.JPanel {
         if (_stopFeedback > 0) {
             return;
         }
-        _stopFeedback++;
-        try {
-            if (base != jListOutsideInput) {
-                selectByTimingCallForList(jListOutsideInput, target);
-            }
-            if (base != jListInsideInput) {
-                selectByTimingCallForList(jListInsideInput, target);
-            }
-            if (base != jListInsideOutput) {
-                selectByTimingCallForList(jListInsideOutput, target);
-            }
-            if (base != jListOutsideOutput) {
-                selectByTimingCallForList(jListOutsideOutput, target);
-            }
-            MXMidiConsole model;
-            model = (MXMidiConsole) jListOutsideInput.getModel();
-            model.setMarked(target);
-            model = (MXMidiConsole) jListInsideInput.getModel();
-            model.setMarked(target);
-            model = (MXMidiConsole) jListInsideOutput.getModel();
-            model.setMarked(target);
-            model = (MXMidiConsole) jListOutsideOutput.getModel();
-            model.setMarked(target);
-        } finally {
-            _stopFeedback--;
+        if (base != jListOutsideInput) {
+            selectByTimingCallForList(jListOutsideInput, target);
         }
+        if (base != jListInsideInput) {
+            selectByTimingCallForList(jListInsideInput, target);
+        }
+        if (base != jListInsideOutput) {
+            selectByTimingCallForList(jListInsideOutput, target);
+        }
+        if (base != jListOutsideOutput) {
+            selectByTimingCallForList(jListOutsideOutput, target);
+        }
+        MXMidiConsole model;
+        model = (MXMidiConsole) jListOutsideInput.getModel();
+        model.setMarked(target);
+        model = (MXMidiConsole) jListInsideInput.getModel();
+        model.setMarked(target);
+        model = (MXMidiConsole) jListInsideOutput.getModel();
+        model.setMarked(target);
+        model = (MXMidiConsole) jListOutsideOutput.getModel();
+        model.setMarked(target);
     }
 
     void selectByTimingCallForList(JList list, MXMessage target) {
@@ -398,7 +394,7 @@ public class MX70View extends javax.swing.JPanel {
             return;
         }
         _stopFeedback++;
-        target = target.getRealOwner();
+        target = MXMessage.getRealOwner(target);
         try {
             MXMidiConsole model = (MXMidiConsole) list.getModel();
             ArrayList<Integer> sel = new ArrayList<>();
@@ -408,18 +404,20 @@ public class MX70View extends javax.swing.JPanel {
                     continue;
                 }
                 MXMessage seek = e.getMessage();
-                seek = seek.getRealOwner();
+                seek = MXMessage.getRealOwner(seek);
                 if (seek == target) {
                     sel.add(i);
                 }
             }
             if (sel.size() > 0) {
+                /*
                 int[] sel2 = new int[sel.size()];
                 for (int i = 0; i < sel2.length; ++i) {
                     sel2[i] = sel.get(i);
                 }
                 list.setSelectedIndices(sel2);
-                list.ensureIndexIsVisible(sel2[0]);
+                */
+                list.ensureIndexIsVisible(sel.get(0));
             }
         } finally {
             _stopFeedback--;
@@ -427,10 +425,10 @@ public class MX70View extends javax.swing.JPanel {
     }
 
     private void jListOutsideInputValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListOutsideInputValueChanged
-        if (_stopFeedback > 0) {
+         if (_stopFeedback > 0) {
             return;
         }
-        int index = jListOutsideInput.getSelectedIndex();
+       int index = jListOutsideInput.getSelectedIndex();
         if (index >= 0) {
             MXMidiConsoleElement e = _process._outsideInput.elementAt(index);
             if (e != null) {
@@ -443,10 +441,10 @@ public class MX70View extends javax.swing.JPanel {
     }//GEN-LAST:event_jListOutsideInputValueChanged
 
     private void jListInsideInputValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListInsideInputValueChanged
-        if (_stopFeedback > 0) {
+         if (_stopFeedback > 0) {
             return;
         }
-        int index = jListInsideInput.getSelectedIndex();
+       int index = jListInsideInput.getSelectedIndex();
         if (index >= 0) {
             MXMidiConsoleElement e = _process._insideInput.elementAt(index);
             if (e != null) {
@@ -459,10 +457,10 @@ public class MX70View extends javax.swing.JPanel {
     }//GEN-LAST:event_jListInsideInputValueChanged
 
     private void jListInsideOutputValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListInsideOutputValueChanged
-        if (_stopFeedback > 0) {
+         if (_stopFeedback > 0) {
             return;
         }
-        int index = jListInsideOutput.getSelectedIndex();
+       int index = jListInsideOutput.getSelectedIndex();
         if (index >= 0) {
             MXMidiConsoleElement e = _process._insideOutput.elementAt(index);
             if (e != null) {
@@ -475,10 +473,10 @@ public class MX70View extends javax.swing.JPanel {
     }//GEN-LAST:event_jListInsideOutputValueChanged
 
     private void jListOutsideOutputValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListOutsideOutputValueChanged
-        if (_stopFeedback > 0) {
+         if (_stopFeedback > 0) {
             return;
         }
-        int index = jListOutsideOutput.getSelectedIndex();
+       int index = jListOutsideOutput.getSelectedIndex();
         if (index >= 0) {
             MXMidiConsoleElement e = _process._outsideOutput.elementAt(index);
             if (e != null) {
@@ -491,10 +489,10 @@ public class MX70View extends javax.swing.JPanel {
     }//GEN-LAST:event_jListOutsideOutputValueChanged
 
     private void jListOutsideInputMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jListOutsideInputMousePressed
-        if (_stopFeedback > 0) {
-            return;
+         if (_stopFeedback > 0) {
+             return;
         }
-        int index = jListOutsideInput.getSelectedIndex();
+       int index = jListOutsideInput.getSelectedIndex();
         if (index >= 0) {
             MXMidiConsoleElement e = _process._outsideInput.elementAt(index);
             if (e != null) {
@@ -506,10 +504,10 @@ public class MX70View extends javax.swing.JPanel {
     }//GEN-LAST:event_jListOutsideInputMousePressed
 
     private void jListInsideInputMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jListInsideInputMousePressed
-        if (_stopFeedback > 0) {
+         if (_stopFeedback > 0) {
             return;
         }
-        int index = jListInsideInput.getSelectedIndex();
+       int index = jListInsideInput.getSelectedIndex();
         if (index >= 0) {
             MXMidiConsoleElement e = _process._insideInput.elementAt(index);
             if (e != null) {
@@ -521,10 +519,10 @@ public class MX70View extends javax.swing.JPanel {
     }//GEN-LAST:event_jListInsideInputMousePressed
 
     private void jListInsideOutputMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jListInsideOutputMousePressed
-        if (_stopFeedback > 0) {
+         if (_stopFeedback > 0) {
             return;
         }
-        int index = jListInsideOutput.getSelectedIndex();
+       int index = jListInsideOutput.getSelectedIndex();
         if (index >= 0) {
             MXMidiConsoleElement e = _process._insideOutput.elementAt(index);
             if (e != null) {
@@ -536,10 +534,10 @@ public class MX70View extends javax.swing.JPanel {
     }//GEN-LAST:event_jListInsideOutputMousePressed
 
     private void jListOutsideOutputMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jListOutsideOutputMousePressed
-        if (_stopFeedback > 0) {
+         if (_stopFeedback > 0) {
             return;
         }
-        int index = jListOutsideOutput.getSelectedIndex();
+       int index = jListOutsideOutput.getSelectedIndex();
         if (index >= 0) {
             MXMidiConsoleElement e = _process._outsideOutput.elementAt(index);
             if (e != null) {
