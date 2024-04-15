@@ -325,22 +325,22 @@ public class MXMIDIIn {
             _myNoteOff.allNoteOff(null);
         }
 
-        if (dword != 0) {
-            MXMessage message = MXMessageFactory.fromShortMessage(0, status, data1, data2);
-            message._owner = MXMessage.getRealOwner(owner);
-            MXMain.addOutsideInput(message);
-            _preprocess.processMXMessage(message);
-        }
+        MXMessage message = MXMessageFactory.fromShortMessage(0, status, data1, data2);
+        message._owner = MXMessage.getRealOwner(owner);
+        MXMain.addOutsideInput(message);
+        _preprocess.processMXMessage(message);
     }
 
-    public void receiveExMessage(MXMessage owner, MXMessage exMessage) {
-        exMessage._owner = MXMessage.getRealOwner(owner);
-        _preprocess.processMXMessage(exMessage);
+    public void receiveExMessage(MXMessage owner, MXMessage message) {
+        message._owner = MXMessage.getRealOwner(owner);
+        MXMain.addOutsideInput(message);
+        _preprocess.processMXMessage(message);
     }
 
     public void receiveLongMessage(MXMessage owner, byte[] data) {
         MXMessage message = MXMessageFactory.fromBinary(0, data);
         message._owner = MXMessage.getRealOwner(owner);
+        MXMain.addOutsideInput(message);
         _preprocess.processMXMessage(message);
     }
 
@@ -355,6 +355,7 @@ public class MXMIDIIn {
         MXReceiver _receiver;
     }
 
+    static int _messageQueueCount = 0;
     static MXQueue<MessageQueueElement> _messageQueue = new MXQueue<>();
     static MXSafeThread _messageThread = null;
     static MessageQueueElement _messageProcessing = null;
@@ -365,6 +366,7 @@ public class MXMIDIIn {
                 _messageProcessing = null;
                 _messageProcessing = _messageQueue.pop();
                 if (_messageProcessing == null) {
+                    _messageQueueCount --;
                     break;
                 }
                 MXMessage message = _messageProcessing._message;
@@ -373,6 +375,11 @@ public class MXMIDIIn {
                     messageToReceiver(message, receiver);
                 } catch (Throwable ex) {
                     ex.printStackTrace();;
+                }
+                if (--_messageQueueCount  == 0) {
+                    synchronized (_messageQueue) {
+                        _messageQueue.notifyAll();
+                    }
                 }
             }
         });
@@ -385,6 +392,7 @@ public class MXMIDIIn {
         if (MXConfiguration._DEBUG || Thread.currentThread() == _messageThread) {
             messageToReceiver(message, receiver);
         } else {
+            _messageQueueCount ++;
             _messageQueue.push(new MessageQueueElement(message, receiver));
         }
     }
@@ -393,12 +401,7 @@ public class MXMIDIIn {
 
     public static void queueMustEmpty() {
         try {
-            while (true) {
-                if (_messageQueue.isEmpty()) {
-                    if (_messageProcessing == null) {
-                        return;
-                    }
-                }
+            while (_messageQueueCount != 0) {
                 synchronized (_messageQueue) {
                     _messageQueue.wait(10);
                 }

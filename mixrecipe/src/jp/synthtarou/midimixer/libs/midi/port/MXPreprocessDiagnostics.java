@@ -43,12 +43,12 @@ public class MXPreprocessDiagnostics {
 
     public void recordCC(int cc, int value) {
         MXMessage message = MXMessageFactory.fromControlChange(0, 0, cc, value);
-        record(message);
+        processMain(message);
     }
 
     MXMessage _lastMessage = null;
 
-    public void record(MXMessage message) {
+    public void processMain(MXMessage message) {
         if (message == null) {
             return;
         }
@@ -212,10 +212,12 @@ public class MXPreprocessDiagnostics {
 
     synchronized void addResult(MXMessage message) {
         if (message == null) {
-            throw new IllegalCallerException("NULL");
+            //new IllegalCallerException("NULL").printStackTrace();
+            return;
         }
         if (message.isEmpty()) {
-            throw new IllegalCallerException("EMPTY");
+            //new IllegalCallerException("EMPTY").printStackTrace();
+            return;
         }
         if (message.getStatus() == MXMidi.COMMAND_CH_CONTROLCHANGE) {
             //DATAENTRY設定中
@@ -265,8 +267,8 @@ public class MXPreprocessDiagnostics {
 
     public static void test0(MXPreprocessDiagnostics diag) {
         System.out.println("test0");
-        diag.record(MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_RPN_MSB, 10));
-        diag.record(MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_RPN_LSB, 50));
+        diag.processMain(MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_RPN_MSB, 10));
+        diag.processMain(MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_RPN_LSB, 50));
         diag.recordCC(0 + 6, 10);
         diag.recordCC(32 + 6, 1);
         diag.recordCC(0 + 6, 10);
@@ -275,8 +277,8 @@ public class MXPreprocessDiagnostics {
         diag.recordCC(32 + 6, 3);
         diag.recordCC(0 + 6, 10);
         diag.recordCC(32 + 6,4);
-        diag.record(MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_NRPN_MSB, 1));
-        diag.record(MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_NRPN_LSB, 2));
+        diag.processMain(MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_NRPN_MSB, 1));
+        diag.processMain(MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_NRPN_LSB, 2));
         diag.recordCC(0 + 6, 10);
         diag.recordCC(32 + 6, 5);
         diag.recordCC(0 + 6, 10);
@@ -294,9 +296,9 @@ public class MXPreprocessDiagnostics {
         for (int i = 0; i < 128; ++i) {
             for (int j = 0; j < 128; ++j) {
                 message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_NOTEON, j, j);
-                diag.record(message);
+                diag.processMain(message);
                 message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_NOTEOFF, j, j);
-                diag.record(message);
+                diag.processMain(message);
             }
         }
         flush(diag);
@@ -319,9 +321,9 @@ public class MXPreprocessDiagnostics {
         for (int i = 0; i < 128; ++i) {
             for (int j = 0; j < 128; ++j) {
                 message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_NOTEON, j, j);
-                diag.record(message);
+                diag.processMain(message);
                 message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_NOTEOFF, j, j);
-                diag.record(message);
+                diag.processMain(message);
             }
         }
         flush(diag);
@@ -333,9 +335,9 @@ public class MXPreprocessDiagnostics {
         for (int i = 0; i < 128; ++i) {
             for (int j = 0; j < 128; ++j) {
                 message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_DATAENTRY, i);
-                diag.record(message);
+                diag.processMain(message);
                 message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_DATAENTRY2, j);
-                diag.record(message);
+                diag.processMain(message);
             }
         }
         flush(diag);
@@ -346,7 +348,7 @@ public class MXPreprocessDiagnostics {
         MXMessage message;
         for (int i = 0; i < 128; ++i) {
             message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_DATAENTRY, i);
-            diag.record(message);
+            diag.processMain(message);
         }
         flush(diag);
     }

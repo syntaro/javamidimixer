@@ -29,6 +29,7 @@ import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
+import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
@@ -215,6 +216,7 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
         }
         FinalMIDIOut.getInstance().startTestSignal(message, -1);
         MXMIDIIn.messageToReceiverThreaded(message, receiver);
+        //MXMIDIIn.messageToReceiverThreaded(MXMessageFactory.newEmpty(0), receiver);
         MXMIDIIn.queueMustEmpty();
         List<MXMessage> result = FinalMIDIOut.getInstance().getTestResult();
         if (_debugResult != null) {

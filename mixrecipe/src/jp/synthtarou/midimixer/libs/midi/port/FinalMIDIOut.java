@@ -28,59 +28,52 @@ import jp.synthtarou.midimixer.libs.midi.MXReceiver;
  *
  * @author Syntarou YOSHIDA
  */
-
 public class FinalMIDIOut extends MXReceiver {
 
     protected static final FinalMIDIOut _instance = new FinalMIDIOut();
-    
+
     public static FinalMIDIOut getInstance() {
         return _instance;
     }
-    
+
     LinkedList<MXMessage> _listTestResult = null;
     int _testPort = -1;
     MXMessage _testBase = null;
-    
+
     public void startTestSignal(MXMessage testBase, int port) {
         _listTestResult = new LinkedList();
         _testPort = port;
         _testBase = MXMessage.getRealOwner(testBase);
     }
-    
+
     public ArrayList<MXMessage> getTestResult() {
-        ArrayList<MXMessage> result = new ArrayList<>();
-        for (MXMessage seek : _listTestResult) {
-            if (seek == null) {
-                continue;
-            }
-            if (_testBase == null) {
-                result.add(seek);
-            }
-            else if (MXMessage.getRealOwner(seek) == _testBase) {
-                result.add(seek);
-            }
+        synchronized (this) {
+            ArrayList<MXMessage> result = new ArrayList(_listTestResult);
+            return result;
         }
-        return result;
     }
 
     static MXMessage _last = null;
-    
+
     @Override
     public void processMXMessage(MXMessage message) {
+        synchronized (this) {
             if (_listTestResult != null) {
-            if (_testPort < 0) {
-                _listTestResult.add(message);
-            }
-            else if (_testPort == message.getPort()) {
-                _listTestResult.add(message);
+                if (_testBase == null || MXMessage.getRealOwner(message) == _testBase) {
+                    if (_testPort < 0) {
+                        _listTestResult.add(message);
+                    } else if (_testPort == message.getPort()) {
+                        _listTestResult.add(message);
+                    }
+                }
             }
         }
         MXMain.addInsideOutput(message);
         MXNamedObjectList<MXMIDIOut> listOut = MXMIDIOutManager.getManager().listAllOutput();
-        for (int i = 0; i < listOut.getSize(); ++ i) {
+        for (int i = 0; i < listOut.getSize(); ++i) {
             MXMIDIOut out = listOut.valueOfIndex(i);
             if (out.isOpen() && out.isPortAssigned(message.getPort())) {
-                out.processMidiOut(message);   
+                out.processMidiOut(message);
             }
         }
         _last = message;

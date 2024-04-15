@@ -105,12 +105,24 @@ public class MX90Process extends MXReceiver<MX90View> {
             int cc = random(128);
             int value = random(128);
             RecordEntry e = MXMIDIIn.DEBUGGER._preprocess._analyzer.getEntry(cc);
-            MXMessage program = MXMessageFactory.fromControlChange(0, ch, cc, value);
-            if (e != null && e.is14bitChoiced()) {
+            if (e == null) {
                 continue;
-                //program = MXMessageFactory.fromControlChange14(0, ch, cc, value, 20);
             }
-            new MXDebugSame(program);
+            switch(cc) {
+                case  MXMidi.DATA1_CC_RPN_LSB:
+                case  MXMidi.DATA1_CC_RPN_MSB:
+                case  MXMidi.DATA1_CC_NRPN_LSB:
+                case  MXMidi.DATA1_CC_NRPN_MSB:
+                    continue;
+            }
+            if (e.is14bitChoiced()) {
+                MXMessage controlchange = MXMessageFactory.fromControlChange14(0, ch, cc, value, value);
+                new MXDebugSame(controlchange);
+            }
+            else {
+                MXMessage controlchange = MXMessageFactory.fromControlChange(0, ch, cc, value);
+                new MXDebugSame(controlchange);
+            }
             if (Thread.interrupted()) {
                 return;
             }

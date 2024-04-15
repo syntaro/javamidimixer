@@ -27,7 +27,9 @@ import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataListener;
 import jp.synthtarou.libs.MXSafeThread;
+import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 
 /**
  *
@@ -49,7 +51,7 @@ public class MXMidiConsole extends DefaultListModel<MXMidiConsoleElement> {
                 } catch (InterruptedException e) {
                     done = true;
                     return;
-                } catch(Throwable e) {
+                } catch (Throwable e) {
                     e.printStackTrace();;
                     done = true;
                 }
@@ -80,13 +82,27 @@ public class MXMidiConsole extends DefaultListModel<MXMidiConsoleElement> {
                 MXMidiConsoleElement value = (MXMidiConsoleElement) var;
                 MXMessage message = value.getMessage();
 
-                var = message.toStringMessageInfo(2) + message.toStringGateValue();
+                var = message.toStringMessageInfo(2);
+                if (message.isBinaryMessage()) {
+                    var += "\"" + MXUtil.dumpHex(message.getBinary()) + "\"";
+                }
+                String gateValue = message.toStringGateValue();
+                if (gateValue.isEmpty() == false) {
+                    if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
+                        int data2 = message.parseTemplate(2);
+                        if (data2 != 0) {
+                            var += "("+ gateValue + ")";
+                        }
+                    }else {
+                        var += "("+ gateValue + ")";
+                    }
+                }
                 boolean prevSele = isSelected;
                 cellHasFocus = false;
                 isSelected = false;
                 Color back = Color.white;
                 boolean gray = false;
-                
+
                 MXMessage owner = MXMessage.getRealOwner(message);
 
                 if (owner == _selectedTiming) {
@@ -102,15 +118,14 @@ public class MXMidiConsole extends DefaultListModel<MXMidiConsoleElement> {
                     c.setBackground(back);
                 }
                 return c;
-            }
-            catch (Throwable e) {
+            } catch (Throwable e) {
                 return _def.getListCellRendererComponent(list, var, index, isSelected, cellHasFocus);
             }
         }
     };
 
     public void bind(JList list) {
-       list.setModel(this);
+        list.setModel(this);
         list.setCellRenderer(_renderer);
         _refList = list;
     }
@@ -133,20 +148,29 @@ public class MXMidiConsole extends DefaultListModel<MXMidiConsoleElement> {
             if (_switchPause) {
                 return;
             }
+            boolean selLast = false;
+            if (_refList.getSelectedIndex() == size() - 1) {
+                selLast = true;
+            }
             LinkedList<MXMidiConsoleElement> list;
             synchronized (MXMidiConsole.this) {
                 list = _queue;
                 _queue = new LinkedList<>();
             }
             _refList.setValueIsAdjusting(true);
-            for (MXMidiConsoleElement seek : list) {
-                addElement(seek);
-                if (size() >= 500) {
-                    removeElementAt(0);
+            addAll(list);
+            int newTotal = size();
+            if (newTotal >= 500) {
+                int minus = newTotal - 500;
+                if (minus >= 0) {
+                    removeRange(0, minus);
                 }
             }
+            if (list.isEmpty() == false) {
+                _refList.ensureIndexIsVisible(size()-1);
+            }
             _refList.setValueIsAdjusting(false);
-            _refList.repaint();;
+            _refList.repaint();
         });
     }
 
@@ -165,10 +189,30 @@ public class MXMidiConsole extends DefaultListModel<MXMidiConsoleElement> {
     public void setRecordClock(boolean record) {
         _recordClock = record;
     }
+    
+    MXMessage _lastSel = null;
 
-    public void setMarked(MXMessage selection) {
-        if (selection != null) {
-            _selectedTiming = MXMessage.getRealOwner(selection);
+    public void setHIghlightOwner(MXMessage selection) {
+        MXMessage owner = MXMessage.getRealOwner(selection);
+        if (_selectedTiming == owner) {
+            //for removeRange feedback
+            return;
+        }
+        _selectedTiming = owner;
+        if (owner == null) {
+            _refList.repaint();
+        }else {
+            for (int i = 0; i < getSize(); ++i) {
+                MXMidiConsoleElement e = elementAt(i);
+                if (e == null) {
+                    continue;
+                }
+                MXMessage seek = e.getMessage();
+                seek = MXMessage.getRealOwner(seek);
+                if (seek == owner) {
+                    _refList.ensureIndexIsVisible(i);
+                }
+            }
             _refList.repaint();
         }
     }

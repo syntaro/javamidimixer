@@ -375,7 +375,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         if (isChannelMessage1()) {
             int channel = getChannel();
             if (showChannel == 1) {
-                chname = "" + (channel + 1);
+                chname = "" + (channel + 1) + ":";
             } else if (showChannel == 0) {
                 chname = "";
             } else {
@@ -436,7 +436,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         } else if (command == MXMidi.COMMAND_CH_NOTEOFF) {
             int note = getGate()._value;
             int velocity = getValue()._value;
-            return chname + MXMidi.nameOfNote(note) + "-";
+            return chname + MXMidi.nameOfNote(note) + "#OFF";
         }
         if (command == MXMidi.COMMAND_CH_NOTEON) {
             int note = getGate()._value;

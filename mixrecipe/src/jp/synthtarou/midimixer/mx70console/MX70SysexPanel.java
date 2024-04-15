@@ -338,7 +338,7 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         if (index >= 0) {
             MXMidiConsoleElement seek =_list.elementAt(index);
             if (seek != null) {
-                _list.setMarked(seek.getMessage());
+                _list.setHIghlightOwner(seek.getMessage());
             }
         }
     }//GEN-LAST:event_jListScanValueChanged

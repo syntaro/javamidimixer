@@ -34,6 +34,9 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.MainThreadTask;
@@ -139,7 +142,41 @@ public class MXPianoKeys extends JComponent {
         addMouseMotionListener(new MouseMotionListener() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                pushNoteByMouse(e.getPoint());
+                Point p = e.getPoint();
+                if (getParent() instanceof JViewport) {
+                    JViewport v = (JViewport) getParent();
+                    JScrollPane scrollPane = (JScrollPane) v.getParent();
+                    JScrollPane scroll = (JScrollPane) v.getParent();
+                    Dimension d = scrollPane.getSize();
+                    JScrollBar bar = scroll.getHorizontalScrollBar();
+                    int x = bar.getValue();
+                    if (p.x - x < 0 || p.x - x > d.width) {
+                        try {
+                            int y = x;
+                            if (p.x - x < 0) {
+                                x -= 30;
+                                if (x < 0) {
+                                    x = 0;
+                                }
+                            } else {
+                                x += 30;
+                                if (x > bar.getMaximum()) {
+                                    x = bar.getMaximum();
+                                }
+                            }
+                            if (x != y) {
+                                bar.setValue(x);
+                            }
+                        } catch (Exception ex) {
+                            ex.printStackTrace();;
+                        }
+                    } else {
+                        pushNoteByMouse(e.getPoint());
+                    }
+                } else {
+                    pushNoteByMouse(e.getPoint());
+
+                }
             }
 
             @Override
@@ -519,11 +556,11 @@ public class MXPianoKeys extends JComponent {
                     } else {
                         selectNote(key._note, true);
                     }
+                    orderRedrawNote(prevNote);
+                    orderRedrawNote(key._note);
                     if (_handler != null) {
                         _handler.noteOn(key._note);
                     }
-                    orderRedrawNote(prevNote);
-                    orderRedrawNote(key._note);
                 }
                 return;
             }
@@ -542,11 +579,11 @@ public class MXPianoKeys extends JComponent {
                     } else {
                         selectNote(key._note, true);
                     }
+                    orderRedrawNote(prevNote);
+                    orderRedrawNote(key._note);
                     if (_handler != null) {
                         _handler.noteOn(key._note);
                     }
-                    orderRedrawNote(prevNote);
-                    orderRedrawNote(key._note);
                 }
                 return;
             }

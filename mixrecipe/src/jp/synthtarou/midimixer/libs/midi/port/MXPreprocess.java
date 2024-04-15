@@ -48,7 +48,7 @@ public class MXPreprocess extends MXReceiver<MXPreprocessPanel> {
     @Override
     public void processMXMessage(MXMessage message) {
         MXPreprocessDiagnostics diag = _analyzer;
-        diag.record(message);
+        diag.processMain(message);
         while (true) {
             MXMessage seek = diag.popResult();
             if (seek == null) {

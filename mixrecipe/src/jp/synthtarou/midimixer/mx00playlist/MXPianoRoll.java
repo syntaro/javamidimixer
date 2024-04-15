@@ -85,6 +85,7 @@ public class MXPianoRoll extends JComponent {
         _sequencer = sequencer;
         _sequencer._pianoRoll = this;
         _keys = keys;
+        _keys.setAllowSelect(false, false);
         _canvas = new SimpleRGBCanvas();
         addComponentListener(new ComponentAdapter() {
             @Override
@@ -542,6 +543,5 @@ public class MXPianoRoll extends JComponent {
     public void setNoteRange(int rootNote, int octave) {
         _keyboardRoot = rootNote;
         _keyboardOctave = octave;
-        _keys.setAllowSelect(true, true);
     }
 }

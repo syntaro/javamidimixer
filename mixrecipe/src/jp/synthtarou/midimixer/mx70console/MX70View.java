@@ -23,11 +23,8 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import javax.swing.JList;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.MXUtil;
-import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
 
@@ -350,12 +347,12 @@ public class MX70View extends javax.swing.JPanel {
         add(jPanel4, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
-    public void selectByTimingCall(JList base, MXMessage target) {
+    public void selectByTimingCall(MXMessage target) {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    selectByTimingCall(base, target);
+                    selectByTimingCall(target);
                 }
             });
             return;
@@ -363,65 +360,15 @@ public class MX70View extends javax.swing.JPanel {
         if (_stopFeedback > 0) {
             return;
         }
-        if (base != jListOutsideInput) {
-            selectByTimingCallForList(jListOutsideInput, target);
-        }
-        if (base != jListInsideInput) {
-            selectByTimingCallForList(jListInsideInput, target);
-        }
-        if (base != jListInsideOutput) {
-            selectByTimingCallForList(jListInsideOutput, target);
-        }
-        if (base != jListOutsideOutput) {
-            selectByTimingCallForList(jListOutsideOutput, target);
-        }
         MXMidiConsole model;
         model = (MXMidiConsole) jListOutsideInput.getModel();
-        model.setMarked(target);
+        model.setHIghlightOwner(target);
         model = (MXMidiConsole) jListInsideInput.getModel();
-        model.setMarked(target);
+        model.setHIghlightOwner(target);
         model = (MXMidiConsole) jListInsideOutput.getModel();
-        model.setMarked(target);
+        model.setHIghlightOwner(target);
         model = (MXMidiConsole) jListOutsideOutput.getModel();
-        model.setMarked(target);
-    }
-
-    void selectByTimingCallForList(JList list, MXMessage target) {
-        if (target == null) {
-            return;
-        }
-        if (_stopFeedback > 0) {
-            return;
-        }
-        _stopFeedback++;
-        target = MXMessage.getRealOwner(target);
-        try {
-            MXMidiConsole model = (MXMidiConsole) list.getModel();
-            ArrayList<Integer> sel = new ArrayList<>();
-            for (int i = 0; i < model.getSize(); ++i) {
-                MXMidiConsoleElement e = model.elementAt(i);
-                if (e == null) {
-                    continue;
-                }
-                MXMessage seek = e.getMessage();
-                seek = MXMessage.getRealOwner(seek);
-                if (seek == target) {
-                    sel.add(i);
-                }
-            }
-            if (sel.size() > 0) {
-                /*
-                int[] sel2 = new int[sel.size()];
-                for (int i = 0; i < sel2.length; ++i) {
-                    sel2[i] = sel.get(i);
-                }
-                list.setSelectedIndices(sel2);
-                */
-                list.ensureIndexIsVisible(sel.get(0));
-            }
-        } finally {
-            _stopFeedback--;
-        }
+        model.setHIghlightOwner(target);
     }
 
     private void jListOutsideInputValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListOutsideInputValueChanged
@@ -432,10 +379,10 @@ public class MX70View extends javax.swing.JPanel {
         if (index >= 0) {
             MXMidiConsoleElement e = _process._outsideInput.elementAt(index);
             if (e != null) {
-                selectByTimingCall(jListOutsideInput, e.getMessage());
+                selectByTimingCall(e.getMessage());
                 jTextFieldDump.setText("OutsideInput " + e.formatMessageLong());
             } else {
-                selectByTimingCall(jListOutsideInput, null);
+                selectByTimingCall(null);
             }
         }
     }//GEN-LAST:event_jListOutsideInputValueChanged
@@ -448,10 +395,10 @@ public class MX70View extends javax.swing.JPanel {
         if (index >= 0) {
             MXMidiConsoleElement e = _process._insideInput.elementAt(index);
             if (e != null) {
-                selectByTimingCall(jListInsideInput, e.getMessage());
+                selectByTimingCall(e.getMessage());
                 jTextFieldDump.setText("InsideInput " + e.formatMessageLong());
             } else {
-                selectByTimingCall(jListInsideInput, null);
+                selectByTimingCall(null);
             }
         }
     }//GEN-LAST:event_jListInsideInputValueChanged
@@ -460,14 +407,14 @@ public class MX70View extends javax.swing.JPanel {
          if (_stopFeedback > 0) {
             return;
         }
-       int index = jListInsideOutput.getSelectedIndex();
+        int index = jListInsideOutput.getSelectedIndex();
         if (index >= 0) {
             MXMidiConsoleElement e = _process._insideOutput.elementAt(index);
             if (e != null) {
-                selectByTimingCall(jListInsideOutput, e.getMessage());
+                selectByTimingCall(e.getMessage());
                 jTextFieldDump.setText("InsideOutput " + e.formatMessageLong());
             } else {
-                selectByTimingCall(jListInsideOutput, null);
+                selectByTimingCall(null);
             }
         }
     }//GEN-LAST:event_jListInsideOutputValueChanged
@@ -480,10 +427,10 @@ public class MX70View extends javax.swing.JPanel {
         if (index >= 0) {
             MXMidiConsoleElement e = _process._outsideOutput.elementAt(index);
             if (e != null) {
-                selectByTimingCall(jListOutsideOutput, e.getMessage());
+                selectByTimingCall(e.getMessage());
                 jTextFieldDump.setText("OutsideOutput " + e.formatMessageLong());
             } else {
-                selectByTimingCall(jListOutsideOutput, null);
+                selectByTimingCall(null);
             }
         }
     }//GEN-LAST:event_jListOutsideOutputValueChanged
@@ -496,9 +443,9 @@ public class MX70View extends javax.swing.JPanel {
         if (index >= 0) {
             MXMidiConsoleElement e = _process._outsideInput.elementAt(index);
             if (e != null) {
-                selectByTimingCall(jListOutsideInput, e.getMessage());
+                selectByTimingCall(e.getMessage());
             } else {
-                selectByTimingCall(jListOutsideInput, null);
+                selectByTimingCall(null);
             }
         }
     }//GEN-LAST:event_jListOutsideInputMousePressed
@@ -511,9 +458,9 @@ public class MX70View extends javax.swing.JPanel {
         if (index >= 0) {
             MXMidiConsoleElement e = _process._insideInput.elementAt(index);
             if (e != null) {
-                selectByTimingCall(jListInsideInput, e.getMessage());
+                selectByTimingCall(e.getMessage());
             } else {
-                selectByTimingCall(jListInsideInput, null);
+                selectByTimingCall(null);
             }
         }
     }//GEN-LAST:event_jListInsideInputMousePressed
@@ -526,9 +473,9 @@ public class MX70View extends javax.swing.JPanel {
         if (index >= 0) {
             MXMidiConsoleElement e = _process._insideOutput.elementAt(index);
             if (e != null) {
-                selectByTimingCall(jListInsideOutput, e.getMessage());
+                selectByTimingCall(e.getMessage());
             } else {
-                selectByTimingCall(jListInsideOutput, null);
+                selectByTimingCall(null);
             }
         }
     }//GEN-LAST:event_jListInsideOutputMousePressed
@@ -541,9 +488,9 @@ public class MX70View extends javax.swing.JPanel {
         if (index >= 0) {
             MXMidiConsoleElement e = _process._outsideOutput.elementAt(index);
             if (e != null) {
-                selectByTimingCall(jListOutsideOutput, e.getMessage());
+                selectByTimingCall(e.getMessage());
             } else {
-                selectByTimingCall(jListOutsideOutput, null);
+                selectByTimingCall(null);
             }
         }
     }//GEN-LAST:event_jListOutsideOutputMousePressed

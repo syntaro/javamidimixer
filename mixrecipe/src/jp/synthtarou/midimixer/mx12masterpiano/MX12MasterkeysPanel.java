@@ -661,8 +661,8 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             MXMidiConsoleElement e = _input.elementAt(index);
             if (e != null) {
                 MXMessage message = e.getMessage();
-                _input.setMarked(message);
-                _output.setMarked(message);
+                _input.setHIghlightOwner(message);
+                _output.setHIghlightOwner(message);
                 jListInput.ensureIndexIsVisible(index);
                 jListOutput.ensureIndexIsVisible(index);
             }
@@ -675,8 +675,8 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             MXMidiConsoleElement e = _output.elementAt(index);
             if (e != null) {
                 MXMessage message = e.getMessage();
-                _input.setMarked(message);
-                _output.setMarked(message);
+                _input.setHIghlightOwner(message);
+                _output.setHIghlightOwner(message);
                 jListInput.ensureIndexIsVisible(index);
                 jListOutput.ensureIndexIsVisible(index);
             }
