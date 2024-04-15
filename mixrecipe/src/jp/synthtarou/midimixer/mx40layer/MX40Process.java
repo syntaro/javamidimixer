@@ -458,29 +458,28 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
             MXJsonValue.HelperForArray baseLayer = settingGroup.addFollowingArray("Layer");
 
             for (int j = 0; j < seekGroup._listLayer.size(); ++j) {
-                String prefixL = "Group[" + i + "].Layer[" + j + "]";
                 MX40Layer seekLayer = seekGroup._listLayer.get(j);
                 MXJsonValue.HelperForStructure settingLayer = baseLayer.addFollowingStructure();
-                settingLayer.setFollowingText(prefixL + ".title", seekLayer._title);
-                settingLayer.setFollowingBool(prefixL + ".disabled", seekLayer._disabled);
-                settingLayer.setFollowingInt(prefixL + ".modPort", seekLayer._modPort);
-                settingLayer.setFollowingInt(prefixL + ".fixedPort", seekLayer._fixedPort);
-                settingLayer.setFollowingInt(prefixL + ".modChannel", seekLayer._modChannel);
-                settingLayer.setFollowingInt(prefixL + ".fixedChannel", seekLayer._fixedChannel);
-                settingLayer.setFollowingInt(prefixL + ".modBank", seekLayer._modBank);
-                settingLayer.setFollowingInt(prefixL + ".fixedBankMSB", seekLayer._fixedBankMSB);
-                settingLayer.setFollowingInt(prefixL + ".fixedBankLSB", seekLayer._fixedBankLSB);
-                settingLayer.setFollowingInt(prefixL + ".modProgram", seekLayer._modProgram);
-                settingLayer.setFollowingInt(prefixL + ".fixedProgram", seekLayer._fixedProgram);
-                settingLayer.setFollowingInt(prefixL + ".modPan", seekLayer._modPan);
-                settingLayer.setFollowingInt(prefixL + ".fixedPan", seekLayer._fixedPan);
-                settingLayer.setFollowingInt(prefixL + ".adjustExpression", seekLayer._adjustExpression);
-                settingLayer.setFollowingInt(prefixL + ".adjustTranspose", seekLayer._adjustTranspose);
-                settingLayer.setFollowingInt(prefixL + ".adjustVelocity", seekLayer._adjustVelocity);
-                settingLayer.setFollowingInt(prefixL + ".sendKeyLowest", seekLayer.getAcceptKeyLowest());
-                settingLayer.setFollowingInt(prefixL + ".sendKeyHighest", seekLayer.getAcceptKeyHighest());
-                settingLayer.setFollowingInt(prefixL + ".sendVelocityLowest", seekLayer.getAcceptVelocityLowest());
-                settingLayer.setFollowingInt(prefixL + ".sendVelocityHighest", seekLayer.getAcceptVelocityHighest());
+                settingLayer.setFollowingText("title", seekLayer._title);
+                settingLayer.setFollowingBool("disabled", seekLayer._disabled);
+                settingLayer.setFollowingInt("modPort", seekLayer._modPort);
+                settingLayer.setFollowingInt("fixedPort", seekLayer._fixedPort);
+                settingLayer.setFollowingInt("modChannel", seekLayer._modChannel);
+                settingLayer.setFollowingInt("fixedChannel", seekLayer._fixedChannel);
+                settingLayer.setFollowingInt("modBank", seekLayer._modBank);
+                settingLayer.setFollowingInt("fixedBankMSB", seekLayer._fixedBankMSB);
+                settingLayer.setFollowingInt("fixedBankLSB", seekLayer._fixedBankLSB);
+                settingLayer.setFollowingInt("modProgram", seekLayer._modProgram);
+                settingLayer.setFollowingInt("fixedProgram", seekLayer._fixedProgram);
+                settingLayer.setFollowingInt("modPan", seekLayer._modPan);
+                settingLayer.setFollowingInt("fixedPan", seekLayer._fixedPan);
+                settingLayer.setFollowingInt("adjustExpression", seekLayer._adjustExpression);
+                settingLayer.setFollowingInt("adjustTranspose", seekLayer._adjustTranspose);
+                settingLayer.setFollowingInt("adjustVelocity", seekLayer._adjustVelocity);
+                settingLayer.setFollowingInt("sendKeyLowest", seekLayer.getAcceptKeyLowest());
+                settingLayer.setFollowingInt("sendKeyHighest", seekLayer.getAcceptKeyHighest());
+                settingLayer.setFollowingInt("sendVelocityLowest", seekLayer.getAcceptVelocityLowest());
+                settingLayer.setFollowingInt("sendVelocityHighest", seekLayer.getAcceptVelocityHighest());
             }
         }
 

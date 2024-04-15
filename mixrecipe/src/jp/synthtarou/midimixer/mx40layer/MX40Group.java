@@ -171,7 +171,6 @@ public class MX40Group {
             return false;
         }
         boolean proced = false;
-
         if (_listLayer.size() == 0) {
             return false;
         }
@@ -197,7 +196,7 @@ public class MX40Group {
 
             MX40Layer layer = _listLayer.get(found);
             proced = layer.processByLayer(message);
-
+ 
             MXMessage noteOff = MXMessageFactory.fromNoteoff(port, channel, message.getCompiled(1));
             noteOff._owner = MXMessage.getRealOwner(message);
             _noteOff.setHandler(message, noteOff,  new NoteOffWatcher2(layer, found));

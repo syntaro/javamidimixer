@@ -189,7 +189,7 @@ public class MX40Layer {
     }
 
     public boolean processByLayer(MXMessage message) {
-        if (message.isChannelMessage2()) {
+       if (message.parseTemplate(0) >= 0x100) {
             _process.sendToNext(message);
             return true;
         }
@@ -229,7 +229,7 @@ public class MX40Layer {
             changed = true;
             channel_trans = _fixedChannel;
         }
-
+        
         if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF || command == MXMidi.COMMAND_CH_POLYPRESSURE) {
             if (_adjustTranspose != 0) {
                 data1_trans = data1 + _adjustTranspose;
@@ -343,9 +343,6 @@ public class MX40Layer {
                 newMessage._owner = MXMessage.getRealOwner(message);
                 _process.sendToNext(newMessage);
                 proc = true;
-                //System.out.println("Program Change +" + message);
-            }else {
-                //System.out.println("Program Change -");
             }
         }else if (_modProgram == MOD_FIXED) {
             if (_fixedProgram >= 0) {
@@ -384,7 +381,6 @@ public class MX40Layer {
     public boolean equals(Object o) {
         MX40Layer target = (MX40Layer)o;
         if (_title == null || target._title == null) {
-            new Exception().printStackTrace();
         }
         else if (!_title.equals(target._title)) {
             return false;
