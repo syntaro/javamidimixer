@@ -102,7 +102,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
         _stream.addLine("V0.75beta fix freeze when doing toomany zoom pianoroll, layer import/export fix");
         _stream.addLine("V0.75beta6 fix drum surface etc");
         _stream.addLine("V0.77 14bit controllable");
-        _stream.addLine("V0.77.4 some bug fix");
+        _stream.addLine("V0.77.5 some bug fix");
 
         _stream.addLine("It is beta release, please send me issue / problem / wish,\n");
         _stream.addLine("Im waiting for public relesae timing.\n\n");

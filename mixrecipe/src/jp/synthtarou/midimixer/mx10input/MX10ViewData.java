@@ -70,13 +70,13 @@ public class MX10ViewData {
         }
 
         int type = TYPE_ALL;
-        int data1 = message.getGate()._value;
+        int data1 = message.parseTemplate(0);
     
         if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF) {
             type = TYPE_NOTE;
         }else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_DAMPERPEDAL) {
             type = TYPE_DAMPER_PEDAL;
-        }else if (command == MXMidi.COMMAND_CH_PITCHWHEEL) {
+        }else if (command == MXMidi.COMMAND_CH_PITCHWHEEL || command == MXMidi.COMMAND2_CH_PITCH_MSBLSB) {
             type = TYPE_PITCH_BEND;
         }else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_MODULATION) {
             type = TYPE_MOD_WHEEL;

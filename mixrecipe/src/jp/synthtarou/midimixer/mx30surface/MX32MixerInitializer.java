@@ -86,8 +86,7 @@ public class MX32MixerInitializer {
             while (slider.size() < MXConfiguration.SLIDER_COLUMN_COUNT) {
                 String text;
                 if (slider.size() >= 16) {
-                    text = MXMidi.MASTER_VOLUME;
-                    MXMessage base = MXMessageFactory.fromCCXMLText(port, text, 0);
+                    MXMessage base = MXMessageFactory.fromTemplate(port, MXMidi.TEMPLATE_MASTERVOLUME, 0, MXRangedValue.ZERO7, MXRangedValue.new7bit(127));
                     status = new MGStatus(_mixer,  MGStatus.TYPE_SLIDER, row, slider.size());
                     status._base = base;
                 } else {
@@ -112,9 +111,7 @@ public class MX32MixerInitializer {
             while (circle.size() < MXConfiguration.SLIDER_COLUMN_COUNT) {
                 if (circle.size() >= 16) {
                     status = new MGStatus(_mixer,  MGStatus.TYPE_CIRCLE, row, circle.size());
-                    String text = MXMidi.MASTER_VOLUME;
-                    
-                    MXMessage base = MXMessageFactory.fromCCXMLText(port, text, 0);
+                    MXMessage base = MXMessageFactory.fromTemplate(port, MXMidi.TEMPLATE_MASTERVOLUME, 0, MXRangedValue.ZERO7, MXRangedValue.new7bit(127));
                     status.setBaseMessage(base);
                     circle.add(status);
                 } else {
@@ -264,16 +261,15 @@ public class MX32MixerInitializer {
 
         MXMessage message = null;
         MGStatus status = null;
-        int _port = _mixer._port;
+        int port = _mixer._port;
 
         for (int row = 0; row < MXConfiguration.SLIDER_ROW_COUNT; ++row) {
             for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
                 status = _mixer.getStatus(MGStatus.TYPE_SLIDER, row, col);
                 if (col >= 16) {
-                    String text = MXMidi.MASTER_VOLUME;
-                    message = MXMessageFactory.fromCCXMLText(_port, text, 0);
+                    message = MXMessageFactory.fromTemplate(port, MXMidi.TEMPLATE_MASTERVOLUME, 0, MXRangedValue.ZERO7, MXRangedValue.new7bit(127));
                 } else {
-                    message = MXMessageFactory.fromControlChange(_port, col, MXMidi.DATA1_CC_EXPRESSION, 128 - 1);
+                    message = MXMessageFactory.fromControlChange(port, col, MXMidi.DATA1_CC_EXPRESSION, 128 - 1);
                 }
                 status._base = message;
             }
@@ -288,10 +284,9 @@ public class MX32MixerInitializer {
             for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
                 status = _mixer.getStatus(MGStatus.TYPE_CIRCLE, row, col);
                 if (col >= 16) {
-                    String text = MXMidi.MASTER_VOLUME;
-                    message = MXMessageFactory.fromCCXMLText(_port, text, 0);
+                    message = MXMessageFactory.fromTemplate(port, MXMidi.TEMPLATE_MASTERVOLUME, 0, MXRangedValue.ZERO7, MXRangedValue.new7bit(127));
                 } else {
-                    message = MXMessageFactory.fromControlChange(_port, col, ccCode[row], 64);
+                    message = MXMessageFactory.fromControlChange(port, col, ccCode[row], 64);
                 }
                 status._base = message;
             }
@@ -308,23 +303,23 @@ public class MX32MixerInitializer {
                 switch (row) {
                     case 0:
                         if (prog < 0) {
-                            message = MXMessageFactory.fromControlChange(_port, 0, MXMidi.DATA1_CC_MODULATION, 127);
+                            message = MXMessageFactory.fromControlChange(port, 0, MXMidi.DATA1_CC_MODULATION, 127);
                         } else {
-                            message = MXMessageFactory.fromProgramChange(_port, 0, prog);
+                            message = MXMessageFactory.fromProgramChange(port, 0, prog);
                         }
                         break;
                     case 1:
                         if (prog < 0) {
-                            message = MXMessageFactory.fromControlChange(_port, 0, MXMidi.DATA1_CC_MODULATION, 64);
+                            message = MXMessageFactory.fromControlChange(port, 0, MXMidi.DATA1_CC_MODULATION, 64);
                         } else {
-                            message = MXMessageFactory.fromProgramChange(_port, 1, prog);
+                            message = MXMessageFactory.fromProgramChange(port, 1, prog);
                         }
                         break;
                     case 2:
                         if (prog < 0) {
-                            message = MXMessageFactory.fromControlChange(_port, 0, MXMidi.DATA1_CC_MODULATION, 0);
+                            message = MXMessageFactory.fromControlChange(port, 0, MXMidi.DATA1_CC_MODULATION, 0);
                         } else {
-                            message = MXMessageFactory.fromProgramChange(_port, 2, prog);
+                            message = MXMessageFactory.fromProgramChange(port, 2, prog);
                         }
                         break;
                 }

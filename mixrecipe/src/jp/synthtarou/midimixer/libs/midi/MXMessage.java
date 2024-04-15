@@ -46,8 +46,8 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
     private MXRangedValue _gate = MXRangedValue.ZERO7;
     private int _channel = 0;
     public MXMessage _owner;
-    public Throwable _trace = (MXConfiguration._DEBUG)  ? new Throwable() : null;
-    
+    public Throwable _trace = (MXConfiguration._DEBUG) ? new Throwable() : null;
+
     private byte[] _dataBytes = null;
 
     private final MXTemplate _template;
@@ -55,7 +55,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
     public boolean isEmpty() {
         return _template.isEmpty();
     }
-    
+
     public static MXMessage getRealOwner(MXMessage msg) {
         if (msg == null) {
             return null;
@@ -176,7 +176,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
             }
             return c;
         }
-       return 0;
+        return 0;
     }
 
     public int getChannel() {
@@ -386,11 +386,13 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
             return "Empty";
         }
 
-
         int status = getStatus();
         int command = status;
         if (command >= 0x80 && command <= 0xef) {
             command &= 0xf0;
+        }
+        if (command >= 0x100) {
+            command &= 0xfff0;
         }
         switch (status) {
             case 0xf0:
@@ -403,7 +405,10 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         if (isBinaryMessage()) {
             return "Bin";
         }
-        
+
+        if (command == MXMidi.COMMAND2_CH_PITCH_MSBLSB) {
+            return chname + "PITCH = " + getValue()._value;
+        }
         if (command == MXMidi.COMMAND2_CH_RPN) {
             int temp1 = MXTemplate.parseDAlias(_template.get(1), this);
             int temp2 = MXTemplate.parseDAlias(_template.get(2), this);
@@ -427,7 +432,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         }
         if (command == MXMidi.COMMAND2_CH_PROGRAM_DEC) {
             return chname + "PROGRAM DEC";
-            
+
         }
 
         if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
@@ -455,7 +460,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         if (command == MXMidi.COMMAND_CH_CHANNELPRESSURE) {
             return chname + "ChPrs";
         }
-        if (command == MXMidi.COMMAND_CH_PITCHWHEEL) {
+        if (command == MXMidi.COMMAND_CH_PITCHWHEEL || command == MXMidi.COMMAND2_CH_PITCH_MSBLSB) {
             return chname + "Pitch";
         }
         if (command == MXMidi.COMMAND_SONGPOSITION) {
@@ -550,7 +555,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
                 str.setLength(str.length() - 1);
             }
             return str.toString();
-                    
+
         }
     }
 
@@ -602,6 +607,10 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
                     return toDatavalueLSB2();
             }
             return 0;
+        }
+        if (command == MXMidi.COMMAND2_CH_PITCH_MSBLSB) {
+            MXMessage newMessage = MXMessageFactory.fromTemplate(_port, MXMidi.TEMPLATE_PITCH, _channel, _gate, _value);
+            return newMessage.getAsDword(column);
         }
         if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
             if (indexOfValueHi() >= 0) {
@@ -787,15 +796,6 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         if (getChannel() != catchTarget.getChannel()) {
             return null;
         }
-        
-        if (temp1.get(0) == MXMidi.COMMAND_CH_CONTROLCHANGE
-          && temp2.get(0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
-            int gate1 = MXTemplate.parseDAlias(temp1.get(1), this);
-            int gate2 = MXTemplate.parseDAlias(temp2.get(1), catchTarget);
-            if (gate1 == gate2) {
-                return catchTarget.getValue();
-            }
-        }
 
         if (temp1 == temp2) {
             if (getGate() == catchTarget.getGate()) {
@@ -804,12 +804,30 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
             return null;
         }
 
+        int t1 = temp1.get(0);
+        int t2 = temp2.get(0);
+        if (t1 == MXMidi.COMMAND_CH_CONTROLCHANGE
+                && t2 == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+            int gate1 = MXTemplate.parseDAlias(temp1.get(1), this);
+            int gate2 = MXTemplate.parseDAlias(temp2.get(1), catchTarget);
+            if (gate1 == gate2) {
+                return catchTarget.getValue();
+            }
+        }
+        if (t1 == MXMidi.COMMAND2_CH_PITCH_MSBLSB || t1 == MXMidi.COMMAND_CH_PITCHWHEEL) {
+            System.out.println("t1 == PITCH ***");
+            if (t2 == MXMidi.COMMAND2_CH_PITCH_MSBLSB || t2 == MXMidi.COMMAND_CH_PITCHWHEEL) {
+                System.out.println("t2 == PITCH ***");
+                return catchTarget.getValue();
+            }
+        }
+
         if (temp1.size() != temp2.size()) {
             return null;
         }
         for (int i = 0; i < temp1.size(); ++i) {
-            int t1 = temp1.get(i);
-            int t2 = temp2.get(i);
+            t1 = temp1.get(i);
+            t2 = temp2.get(i);
 
             if (t1 == t2) {
                 continue;
@@ -864,7 +882,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         }
 
         int vh = 0, vl = 0;
-       
+
         int indexVL = indexOfValueLow();
         if (indexVL >= 0) {
             vl = catchTarget.parseTemplate(indexVL);
@@ -881,15 +899,15 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
             }
         }
         MXRangedValue range = vh >= 0 ? MXRangedValue.new14bit((vh << 7) | vl) : MXRangedValue.new7bit(vl);
-        
+
         boolean baseHave14 = this.indexOfValueHi() >= 0;
         boolean visitHave14 = catchTarget.indexOfValueHi() >= 0;
 
         if (baseHave14 != visitHave14) {
             if (baseHave14) {
-                range = range.changeRange(0, 128*128-1);
-            }else {
-                range = range.changeRange(0, 128-1);
+                range = range.changeRange(0, 128 * 128 - 1);
+            } else {
+                range = range.changeRange(0, 128 - 1);
             }
         }
         if (getValue().contains(range._value)) {

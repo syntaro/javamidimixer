@@ -538,6 +538,11 @@ public class MXTemplate implements Comparable<MXTemplate> {
                     return data;
 
                 case MXMidi.COMMAND_CH_PITCHWHEEL:
+                    data[wrote ++] = MXMidi.CCXML_VL;
+                    data[wrote ++] = MXMidi.CCXML_VH;
+                    return data;
+
+                case MXMidi.COMMAND2_CH_PITCH_MSBLSB:
                     data[wrote ++] = MXMidi.CCXML_VH;
                     data[wrote ++] = MXMidi.CCXML_VL;
                     return data;
@@ -570,7 +575,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
             if (i == 0 && code >= 0x80 && code <= 0xef) {
                 code &= 0xfff0;
             }
-            if (i == 0 && code >= 0x100 && code != MXMidi.COMMAND2_NONE) {
+            if (i == 0 && code >= 0x100) {
                 code &= 0xfff0;
             }
             if (code == MXMidi.CCXML_CHECKSUM_END) {
@@ -635,7 +640,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
         textAlias.addNameAndValue("]", MXMidi.CCXML_CHECKSUM_END);
 
         textCommand.addNameAndValue("@NONE", MXMidi.COMMAND2_NONE);
-        textCommand.addNameAndValue("@PB", MXMidi.COMMAND_CH_PITCHWHEEL);
+        textCommand.addNameAndValue("@PB", MXMidi.COMMAND2_CH_PITCH_MSBLSB);
         textCommand.addNameAndValue("@CC", MXMidi.COMMAND_CH_CONTROLCHANGE);
         textCommand.addNameAndValue("@CP", MXMidi.COMMAND_CH_CHANNELPRESSURE);
         textCommand.addNameAndValue("@PKP", MXMidi.COMMAND_CH_POLYPRESSURE);
@@ -725,21 +730,16 @@ public class MXTemplate implements Comparable<MXTemplate> {
                 }
                 return null;
             case MXMidi.COMMAND2_CH_RPN:
-                return null;
             case MXMidi.COMMAND2_CH_NRPN:
-                return null;
             case MXMidi.COMMAND2_CH_PROGRAM_INC:
-                return null;
             case MXMidi.COMMAND2_CH_PROGRAM_DEC:
                 return null;
-            /*
-            case MXMidi.COMMAND2_META:
+
+            case MXMidi.COMMAND2_CH_PITCH_MSBLSB:
                 checkMatch = true;
                 break;
-            case MXMidi.COMMAND2_SYSTEM:
-                checkMatch = true;
-                break;*/
-            default: //Command1 
+                
+            default: 
                 checkMatch = true;
                 break;
         }
