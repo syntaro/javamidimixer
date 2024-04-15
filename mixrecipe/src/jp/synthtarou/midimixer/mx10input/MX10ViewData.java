@@ -101,11 +101,7 @@ public class MX10ViewData {
         } else  if (command == MXMidi.COMMAND_ACTIVESENSING || command == MXMidi.COMMAND_MIDICLOCK) {
             type = TYPE_ACTIVE_SENSING;
         }
-        boolean skip = isSkip(port, type);
-        if (skip) {
-            System.out.println("****" + message.toString() + message.toStringDumped());
-        }
-        return skip;
+        return isSkip(port, type);
     }
 
     public void setSkip(int port, int type, boolean skipFlag) {
