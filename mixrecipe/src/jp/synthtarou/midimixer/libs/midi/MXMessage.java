@@ -824,7 +824,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
                     || t2 == MXMidi.CCXML_VH || t2 == MXMidi.CCXML_VL) {
                 continue;
             }
-            if (t1 == MXMidi.CCXML_NONE || t1 == MXMidi.CCXML_NONE) {
+            if (t1 == MXMidi.CCXML_NONE || t2 == MXMidi.CCXML_NONE) {
                 continue;
             }
 
