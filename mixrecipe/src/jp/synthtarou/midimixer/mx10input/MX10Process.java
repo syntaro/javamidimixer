@@ -16,9 +16,7 @@
  */
 package jp.synthtarou.midimixer.mx10input;
 
-import jp.synthtarou.midimixer.libs.midi.port.MXPreprocess;
 import java.io.File;
-import java.util.TreeMap;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.json.MXJsonValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;

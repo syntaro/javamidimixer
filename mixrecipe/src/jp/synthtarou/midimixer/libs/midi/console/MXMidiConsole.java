@@ -225,6 +225,9 @@ public class MXMidiConsole extends DefaultListModel<MXMidiConsoleElement> {
             return;
         }
 
-        clear();;
+        super.clear();
+        synchronized (this) {
+            _queue.clear();
+        }
     }
 }
