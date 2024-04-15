@@ -143,6 +143,7 @@ public class MXPianoKeys extends JComponent {
             @Override
             public void mouseDragged(MouseEvent e) {
                 Point p = e.getPoint();
+                /*
                 if (getParent() instanceof JViewport) {
                     JViewport v = (JViewport) getParent();
                     JScrollPane scrollPane = (JScrollPane) v.getParent();
@@ -173,7 +174,7 @@ public class MXPianoKeys extends JComponent {
                     } else {
                         pushNoteByMouse(e.getPoint());
                     }
-                } else {
+                } else */{
                     pushNoteByMouse(e.getPoint());
 
                 }
