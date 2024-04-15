@@ -22,12 +22,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
+import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.MXSafeThread;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.libs.SortedArray;
+import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
+import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 
 /**
  *
@@ -356,9 +359,10 @@ public class SMFSequencer {
                     message._port = port;
                     smfPlayNote(message);
                 }
-                byte vl = (byte) 0x7f;
-                byte vh = (byte) 0x7f;
-                byte[] reset = {(byte) 0xF0, (byte) 0x7F, (byte) 0x7F, (byte) 0x04, (byte) 0x01, vl, vh, (byte) 0xF7};
+                MXTemplate temp = new MXTemplate(MXMidi.MASTER_VOLUME);
+                MXMessage msg1 = MXMessageFactory.fromTemplate(0, temp, 0, MXRangedValue.ZERO7, MXRangedValue.new7bit(127));
+                byte[]reset = msg1.getBinary();
+
                 SMFMessage mesasge = new SMFMessage(0, reset);
                 smfPlayNote(mesasge);
             }

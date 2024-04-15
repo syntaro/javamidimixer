@@ -824,6 +824,9 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
                     || t2 == MXMidi.CCXML_VH || t2 == MXMidi.CCXML_VL) {
                 continue;
             }
+            if (t1 == MXMidi.CCXML_NONE || t1 == MXMidi.CCXML_NONE) {
+                continue;
+            }
 
             if (t1 == MXMidi.CCXML_GL || t2 == MXMidi.CCXML_GL) {
                 int gate1 = getGate()._value & 0x7f;
@@ -860,44 +863,37 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
             }
         }
 
-        int vh = 0, vl = 0, gh = 0, gl = 0;
-
-        byte[] data = catchTarget.getTemplate().makeBytes(null, catchTarget);
+        int vh = 0, vl = 0;
+       
+        int indexVL = indexOfValueLow();
+        if (indexVL >= 0) {
+            vl = catchTarget.parseTemplate(indexVL);
+            if (vl >= 0x80) {
+                vl = 0;
+            }
+        }
 
         int indexVH = indexOfValueHi();
         if (indexVH >= 0) {
-            vh = data[indexVH] & 0xff;
+            vh = catchTarget.parseTemplate(indexVH);
             if (vh >= 0x80) {
                 vh = 0;
             }
         }
-        int indexVL = indexOfValueLow();
-        if (indexVL >= 0) {
-            vl = data[indexVL] & 0xff;
-            if (vl >= 0x80) {
-                vl = 0;
-            }
-        }
-        int indexGH = indexOfGateHi();
-        if (indexGH >= 0) {
-            gh = data[indexGH] & 0xff;
-            if (gh >= 0x80) {
-                gh = 0;
-            }
-        }
-        int indexGL = indexOfGateLow();
-        if (indexGL >= 0) {
-            gl = data[indexGL] & 0xff;
-            if (vl >= 0x80) {
-                vl = 0;
-            }
-        }
+        MXRangedValue range = vh >= 0 ? MXRangedValue.new14bit((vh << 7) | vl) : MXRangedValue.new7bit(vl);
+        
+        boolean baseHave14 = this.indexOfValueHi() >= 0;
+        boolean visitHave14 = catchTarget.indexOfValueHi() >= 0;
 
-        int newValue = (vh << 7) | vl;
-        if (getValue().contains(newValue)) {
-            //Rangeは考慮しない O　フォーマットに依存する
-            MXRangedValue value = getValue().changeValue(newValue);
-            return value;
+        if (baseHave14 != visitHave14) {
+            if (baseHave14) {
+                range = range.changeRange(0, 128*128-1);
+            }else {
+                range = range.changeRange(0, 128-1);
+            }
+        }
+        if (getValue().contains(range._value)) {
+            return range;
         }
         return null;
     }

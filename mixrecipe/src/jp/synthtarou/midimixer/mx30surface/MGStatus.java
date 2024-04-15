@@ -194,17 +194,6 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
         MXRangedValue value = _base.catchValue(message);
 
         if (value != null) {
-            boolean baseHave14 = _base.indexOfValueHi() >= 0;
-            boolean visitHave14 = message.indexOfValueHi() >= 0;
-          
-            if (baseHave14 != visitHave14) {
-                if (baseHave14) {
-                    value = value.changeRange(0, 127);
-                }
-                else {
-                    value = value.changeRange(0, 128*128-1);
-                }
-            }
             MXVisitant visit = message.getVisitant();
 
             int newValue = value._value;

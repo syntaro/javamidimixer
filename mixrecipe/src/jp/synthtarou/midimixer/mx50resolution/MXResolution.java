@@ -77,17 +77,6 @@ public class MXResolution implements Cloneable {
         MXRangedValue value = base.catchValue(message);
 
         if (value != null) {
-            boolean baseHave14 = base.indexOfValueHi() >= 0;
-            boolean visitHave14 = message.indexOfValueHi() >= 0;
-
-            if (baseHave14 != visitHave14) {
-                if (baseHave14) {
-                    value = value.changeRange(0, 127);
-                }
-                else {
-                    value = value.changeRange(0, 128*128-1);
-                }
-            }
             base.setValue(value);
             proc = true;
             MXMessage translated = updateWithNewResolution(message);

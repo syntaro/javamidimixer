@@ -105,6 +105,7 @@ public class MXMidi {
     }
     
     
+    public static final String MASTER_VOLUME = "F0h, 7Fh, 7Fh, 04h, 01h, 11h, #VL, F7h";
     public static final int COMMAND_CH_NOTEOFF = 0x80; 
     public static final int COMMAND_CH_NOTEON = 0x90;
     public static final int COMMAND_CH_POLYPRESSURE = 0xa0;

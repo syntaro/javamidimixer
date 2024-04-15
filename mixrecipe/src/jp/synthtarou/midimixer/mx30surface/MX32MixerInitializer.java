@@ -86,12 +86,10 @@ public class MX32MixerInitializer {
             while (slider.size() < MXConfiguration.SLIDER_COLUMN_COUNT) {
                 String text;
                 if (slider.size() >= 16) {
-                    //F0H，7FH，7FH，04H，01H，00H，mm，F7H
-                    text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
+                    text = MXMidi.MASTER_VOLUME;
                     MXMessage base = MXMessageFactory.fromCCXMLText(port, text, 0);
                     status = new MGStatus(_mixer,  MGStatus.TYPE_SLIDER, row, slider.size());
                     status._base = base;
-                    status.setMessageValue(MXRangedValue.new14bit(128 * 128 - 1));
                 } else {
                     MXMessage base = MXMessageFactory.fromControlChange(port, slider.size(), MXMidi.DATA1_CC_CHANNEL_VOLUME, 128 - 1);
                     status = new MGStatus(_mixer,  MGStatus.TYPE_SLIDER, row, slider.size());
@@ -114,8 +112,8 @@ public class MX32MixerInitializer {
             while (circle.size() < MXConfiguration.SLIDER_COLUMN_COUNT) {
                 if (circle.size() >= 16) {
                     status = new MGStatus(_mixer,  MGStatus.TYPE_CIRCLE, row, circle.size());
-                    String text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
-
+                    String text = MXMidi.MASTER_VOLUME;
+                    
                     MXMessage base = MXMessageFactory.fromCCXMLText(port, text, 0);
                     status.setBaseMessage(base);
                     circle.add(status);
@@ -272,7 +270,7 @@ public class MX32MixerInitializer {
             for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
                 status = _mixer.getStatus(MGStatus.TYPE_SLIDER, row, col);
                 if (col >= 16) {
-                    String text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
+                    String text = MXMidi.MASTER_VOLUME;
                     message = MXMessageFactory.fromCCXMLText(_port, text, 0);
                 } else {
                     message = MXMessageFactory.fromControlChange(_port, col, MXMidi.DATA1_CC_EXPRESSION, 128 - 1);
@@ -290,8 +288,8 @@ public class MX32MixerInitializer {
             for (int col = 0; col < MXConfiguration.SLIDER_COLUMN_COUNT; ++col) {
                 status = _mixer.getStatus(MGStatus.TYPE_CIRCLE, row, col);
                 if (col >= 16) {
-                    String text = "F0h, 7Fh, 7Fh, 04h, 01h, #VL, #VH, F7h";
-                    message = MXMessageFactory.fromCCXMLText(_port, text, 0, MXRangedValue.ZERO7, MXRangedValue.ZERO14);
+                    String text = MXMidi.MASTER_VOLUME;
+                    message = MXMessageFactory.fromCCXMLText(_port, text, 0);
                 } else {
                     message = MXMessageFactory.fromControlChange(_port, col, ccCode[row], 64);
                 }
