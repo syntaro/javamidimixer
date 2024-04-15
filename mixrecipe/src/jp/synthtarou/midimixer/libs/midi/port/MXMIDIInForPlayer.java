@@ -133,10 +133,10 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
             public void smfPlayNote(SMFMessage smf) {
                  try {
                     if (smf.isBinaryMessage()) {
-                        receiveLongMessage(smf.getBinary());
+                        receiveLongMessage(null, smf.getBinary());
                     }else {
                         int dword = smf.toDwordMessage();
-                        receiveShortMessage(dword);
+                        receiveShortMessage(null, dword);
                     }
                      parent.smfPlayNote(smf);
                 }catch(RuntimeException ex) {

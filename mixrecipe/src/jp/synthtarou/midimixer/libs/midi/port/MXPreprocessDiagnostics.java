@@ -28,6 +28,7 @@ import jp.synthtarou.midimixer.libs.midi.MXTemplate;
  * @author Syntarou YOSHIDA
  */
 public class MXPreprocessDiagnostics {
+
     MXPreprocess _parent;
     RecordEntry _caret = null;
 
@@ -40,75 +41,118 @@ public class MXPreprocessDiagnostics {
         _owner = owner;
     }
 
-    public void record(int cc, int value) {
-        MXMessage message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, cc, value);
+    public void recordCC(int cc, int value) {
+        MXMessage message = MXMessageFactory.fromControlChange(0, 0, cc, value);
         record(message);
     }
 
+    MXMessage _lastMessage = null;
+
     public void record(MXMessage message) {
-        if (message.getTemplate().size() >= 3) {
-            if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
-                int cc = message.getCompiled(1);
-                switch (cc) {
-                    case MXMidi.DATA1_CC_RPN_MSB:
-                        _pastDataMSB = message.getCompiled(2);
-                        _pastWasRPN = 1;
-                        break;
-                    case MXMidi.DATA1_CC_RPN_LSB:
-                        _pastDataLSB = message.getCompiled(2);
-                        _pastWasRPN = 1;
-                        break;
-                    case MXMidi.DATA1_CC_NRPN_MSB:
-                        _pastDataMSB = message.getCompiled(2);
-                        _pastWasRPN = 2;
-                        break;
-                    case MXMidi.DATA1_CC_NRPN_LSB:
-                        _pastDataLSB = message.getCompiled(2);
-                        _pastWasRPN = 2;
-                        break;
-                }
-                RecordEntry e = getEntry(cc);
-                if (cc == e._cc) {
-                    e._count0++;
-                } else {
-                    if (e._pooling0 >= 0) {
-                        e._count32++;
-                    }
-                }
-                e.recalc();
-                if (_caret == null || _caret._cc != e._cc) {
-                    flushPool();
+        if (message == null) {
+            return;
+        }
+        int thisCC = -1;
+        if (message.getStatus() >= 0x100) {
+            switch(message.getStatus() & 0xfff0) {
+                case MXMidi.COMMAND2_CH_RPN:
+                case MXMidi.COMMAND2_CH_NRPN:
+                    MXTemplate temp = message.getTemplate();
+                    RecordEntry e = getEntry(MXMidi.DATA1_CC_DATAENTRY);
                     _caret = e;
-                    e._pooling0 = -1;
-                    e._pooling32 = -1;
+                    _pastDataMSB = MXTemplate.parseDAlias(temp.get(1), message);
+                    _pastDataLSB  = MXTemplate.parseDAlias(temp.get(2), message);
+                    e._pooling0 = MXTemplate.parseDAlias(temp.get(3), message);
+                    e._pooling32 = MXTemplate.parseDAlias(temp.get(4), message);
+                    if ((message.getStatus() & 0xfff0) == MXMidi.COMMAND2_CH_RPN)  {
+                        _pastWasRPN = 1;
+                    }else {
+                        _pastWasRPN = 2;
+                    }
+                    flushPool();
+                    return;
+            }
+        }
+        if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
+            thisCC = message.getCompiled(1);
+        }
+
+        MXMessage last = _lastMessage;
+        _lastMessage = message;
+        int lastCC = -1;
+
+        if (last != null && last.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
+            lastCC = last.getCompiled(1);
+        }
+
+        switch (thisCC) {
+            case MXMidi.DATA1_CC_RPN_MSB:
+                _pastDataMSB = message.getCompiled(2);
+                _pastWasRPN = 1;
+                return;
+            case MXMidi.DATA1_CC_RPN_LSB:
+                _pastDataLSB = message.getCompiled(2);
+                _pastWasRPN = 1;
+                return;
+            case MXMidi.DATA1_CC_NRPN_MSB:
+                _pastDataMSB = message.getCompiled(2);
+                _pastWasRPN = 2;
+                return;
+            case MXMidi.DATA1_CC_NRPN_LSB:
+                _pastDataLSB = message.getCompiled(2);
+                _pastWasRPN = 2;
+                return;
+        }
+
+        if (thisCC >= 0 && thisCC <= 0x3f) {
+            RecordEntry e = getEntry(thisCC);
+            if (thisCC >= 0x20 && thisCC <= 0x3f) {
+                e._count20h++;
+                if (lastCC + 0x20 == thisCC) {
+                    e._countPair++;
+                    e._count0h--;
+                    e._count20h--;
                 }
-                if (e.actually14bit()) {
-                    boolean is32 = (cc != e._cc);
-                    if (is32) {
-                        e._pooling32 = message.getCompiled(2);
-                        if (e._pooling0 >= 0) {
-                            flushPool();
-                            e._pooling0 = -1;
-                            e._pooling32 = -1;
-                        }
-                    } else {
-                        e._pooling0 = message.getCompiled(2);
-                        if (e._pooling32 >= 0) {
-                            flushPool();
-                            e._pooling0 = -1;
-                            e._pooling32 = -1;
-                        }
+            } else {
+                e._count0h++;
+                if (lastCC - 0x20 == thisCC) {
+                    e._countPair++;
+                    e._count0h--;
+                    e._count20h--;
+                }
+            }
+            e.recalc();
+            if (_caret == null || _caret._cc != e._cc) {
+                if (_caret != null) {
+                    flushPool();
+                }
+                _caret = e;
+                e._pooling0 = -1;
+                e._pooling32 = -1;
+            }
+            if (e.is14bitChoiced()) {
+                boolean is32 = (thisCC >= 0x20 && thisCC <= 0x3f);
+                //mean 0 <= e.cc <= 0x1f
+                if (is32) {
+                    e._pooling32 = message.getCompiled(2);
+                    if (e._pooling0 >= 0) {
+                        flushPool();
                     }
                 } else {
-                    flushPool();
-                    addResult(message);
+                    e._pooling0 = message.getCompiled(2);
+                    if (e._pooling32 >= 0) {
+                        flushPool();
+                    }
                 }
             } else {
                 flushPool();
                 addResult(message);
             }
         } else {
-            flushPool();
+            if (_caret != null) 
+            {
+                flushPool();
+            }
             addResult(message);
         }
     }
@@ -125,44 +169,45 @@ public class MXPreprocessDiagnostics {
     MXRangedValue dataRoom = new MXRangedValue(128 * 30 + 20, 0, 128 * 128 - 1);
 
     public synchronized void flushPool() {
-        if (_caret != null) {
-            int value0 = _caret._pooling0;
-            int value32 = _caret._pooling32;
-            if (value0 < 0) {
-                return;
-            }
-            if (_pastDataLSB >= 0 && _pastDataMSB >= 0 && (_pastWasRPN== 1 || _pastWasRPN == 2)) {
-                MXRangedValue dataroom = MXRangedValue.new14bit((_pastDataMSB << 7) | _pastDataLSB);
-                MXTemplate template7 = null;
-                MXTemplate template14 = null;
-                
-                if (_pastWasRPN == 1) {
-                    template7 = datar7bit;
-                    template14 = datar14bit;
-                }
-                else {
-                    template7 = datan7bit;
-                    template14 = datan14bit;
-                }
-                
-                if (_caret._cc == MXMidi.DATA1_CC_DATAENTRY) {
-                    MXRangedValue zero7 = MXRangedValue.ZERO7;
-                    MXRangedValue zero14 = MXRangedValue.ZERO14;
-                    if (value32 < 0) {
-                        MXMessage message = MXMessageFactory.fromTemplate(0, template7, 0, zero14, zero7);
-                        message.setGate(dataroom);
-                        message.setValue(MXRangedValue.new7bit(value0));
-                        addResult(message);
-                    } else {
-                        MXMessage message = MXMessageFactory.fromTemplate(0, template14, 0, zero14, zero14);
-                        message.setGate(dataroom);
-                        message.setValue(MXRangedValue.new14bit(value32 | (value0 << 7)));
-                        addResult(message);
-                    }
-                }
-            }
-            _caret = null;
+        if (_caret == null) {
+            return;
         }
+        int value0 = _caret._pooling0;
+        int value32 = _caret._pooling32;
+        //System.out.println("flush value = " +value0 +" , " + + value32 + " room = "+  _pastDataMSB + " ," + _pastDataLSB);
+        if (value0 < 0) {
+            return;
+        }
+        _caret._pooling0 = -1;
+        _caret._pooling32 = -1;
+        if (_pastDataLSB >= 0 && _pastDataMSB >= 0 && (_pastWasRPN == 1 || _pastWasRPN == 2)) {
+            MXRangedValue dataroom = MXRangedValue.new14bit((_pastDataMSB << 7) | _pastDataLSB);
+            MXTemplate template7 = null;
+            MXTemplate template14 = null;
+
+            if (_pastWasRPN == 1) {
+                template7 = datar7bit;
+                template14 = datar14bit;
+            } else {
+                template7 = datan7bit;
+                template14 = datan14bit;
+            }
+
+            MXRangedValue zero7 = MXRangedValue.ZERO7;
+            MXRangedValue zero14 = MXRangedValue.ZERO14;
+            if (value32 < 0) {
+                MXMessage message = MXMessageFactory.fromTemplate(0, template7, 0, zero14, zero7);
+                message.setGate(dataroom);
+                message.setValue(MXRangedValue.new7bit(value0));
+                addResult(message);
+            } else {
+                MXMessage message = MXMessageFactory.fromTemplate(0, template14, 0, zero14, zero14);
+                message.setGate(dataroom);
+                message.setValue(MXRangedValue.new14bit(value32 | (value0 << 7)));
+                addResult(message);
+            }
+        }
+        _caret = null;
     }
 
     synchronized void addResult(MXMessage message) {
@@ -178,7 +223,7 @@ public class MXPreprocessDiagnostics {
         _result.add(message);
     }
 
-    synchronized RecordEntry getEntry(int cc) {
+    public synchronized RecordEntry getEntry(int cc) {
         MXMIDIIn in = _owner;
         int seek = (cc >= 32 && cc < 64) ? (cc - 32) : cc;
         if (listCC[seek] == null) {
@@ -195,11 +240,8 @@ public class MXPreprocessDiagnostics {
     }
 
     RecordEntry[] listCC = new RecordEntry[128];
-    MXMessage _lastMessage;
     MXMIDIIn _owner;
     LinkedList<MXMessage> _result = new LinkedList<>();
-
-
 
     public static void flush(MXPreprocessDiagnostics diag) {
         System.out.println("before Flush");
@@ -208,7 +250,7 @@ public class MXPreprocessDiagnostics {
             if (e == null) {
                 break;
             }
-            System.out.println("result " + e.toStringMessageInfo(1));
+            System.out.println("result " + e + "[" + e.toStringDumped());//e.toStringMessageInfo(1));
         }
         System.out.println("after Flush");
         diag.flushPool();
@@ -217,7 +259,7 @@ public class MXPreprocessDiagnostics {
             if (e == null) {
                 break;
             }
-            System.out.println("result " + e.toStringMessageInfo(1));
+            System.out.println("result " + e + "[" + e.toStringDumped());//e.toStringMessageInfo(1));
         }
     }
 
@@ -225,24 +267,24 @@ public class MXPreprocessDiagnostics {
         System.out.println("test0");
         diag.record(MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_RPN_MSB, 10));
         diag.record(MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_RPN_LSB, 50));
-        diag.record(0 + 6, 10);
-        diag.record(32 + 6, 0);
-        diag.record(0 + 6, 10);
-        diag.record(32 + 6, 0);
-        diag.record(0 + 6, 10);
-        diag.record(32 + 6, 0);
-        diag.record(0 + 6, 10);
-        diag.record(32 + 6, 0);
+        diag.recordCC(0 + 6, 10);
+        diag.recordCC(32 + 6, 1);
+        diag.recordCC(0 + 6, 10);
+        diag.recordCC(32 + 6, 2);
+        diag.recordCC(0 + 6, 10);
+        diag.recordCC(32 + 6, 3);
+        diag.recordCC(0 + 6, 10);
+        diag.recordCC(32 + 6,4);
         diag.record(MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_NRPN_MSB, 1));
         diag.record(MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_NRPN_LSB, 2));
-        diag.record(0 + 6, 10);
-        diag.record(32 + 6, 0);
-        diag.record(0 + 6, 10);
-        diag.record(32 + 6, 0);
-        diag.record(0 + 6, 10);
-        diag.record(32 + 6, 0);
-        diag.record(0 + 6, 10);
-        diag.record(32 + 6, 0);
+        diag.recordCC(0 + 6, 10);
+        diag.recordCC(32 + 6, 5);
+        diag.recordCC(0 + 6, 10);
+        diag.recordCC(32 + 6,6);
+        diag.recordCC(0 + 6, 10);
+        diag.recordCC(32 + 6, 7);
+        diag.recordCC(0 + 6, 10);
+        diag.recordCC(32 + 6, 8);
         flush(diag);
     }
 
@@ -265,7 +307,7 @@ public class MXPreprocessDiagnostics {
         MXMessage message;
         for (int i = 0; i < 128; ++i) {
             for (int j = 0; j < 128; ++j) {
-                diag.record(i, j);
+                diag.recordCC(i, j);
             }
         }
         flush(diag);

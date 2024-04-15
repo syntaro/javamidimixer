@@ -205,7 +205,7 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
     }
 
     List<MXMessage> _debugResult = null;
-
+    
     public void sendCCAndGetResult(MXMessage message, MXReceiver receiver) {
         if (receiver == null) {
             receiver = getNextReceiver();

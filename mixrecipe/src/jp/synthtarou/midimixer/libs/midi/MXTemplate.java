@@ -341,8 +341,6 @@ public class MXTemplate implements Comparable<MXTemplate> {
         int value = message.getValue()._value;
         int channel = message.getChannel();
 
-        String str = fromAliasText(alias);
-
         switch (alias & 0xff00) {
             case MXMidi.CCXML_NONE:
                 return 0;
@@ -821,7 +819,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
 
     byte[] dwordBuffer = new byte[3];
 
-    public synchronized MXMessage readDwordForChGateValue(int port, int dword) {
+    public synchronized MXMessage readMessageWithThisTemplate(int port, int dword) {
         int status = (dword >> 16) & 0xff;
         int data1 = (dword >> 8) & 0xff;
         int data2 = dword & 0xff;

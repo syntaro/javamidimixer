@@ -43,6 +43,7 @@ import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.libs.smf.SMFCallback;
 import jp.synthtarou.libs.smf.SMFMessage;
 import jp.synthtarou.libs.navigator.legacy.INavigator;
+import jp.synthtarou.midimixer.libs.midi.port.MXPreprocessPanel;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
@@ -897,6 +898,10 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                 turnOnMusic(file, pos);
             });
             return;
+        }
+        if (pos == 0) {
+            MXPreprocessPanel manager = MXPreprocessPanel.getInstance();
+            manager.resetCounter();
         }
         try {
             _player.stopSequencer(0);

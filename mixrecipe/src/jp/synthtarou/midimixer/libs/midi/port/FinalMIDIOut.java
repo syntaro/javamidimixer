@@ -67,7 +67,7 @@ public class FinalMIDIOut extends MXReceiver {
     
     @Override
     public void processMXMessage(MXMessage message) {
-        if (_listTestResult != null) {
+            if (_listTestResult != null) {
             if (_testPort < 0) {
                 _listTestResult.add(message);
             }

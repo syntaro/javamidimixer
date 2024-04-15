@@ -76,7 +76,7 @@ public class MXMessageFactory {
             found = new MXTemplate(template);
         }
         
-        MXMessage message = found.readDwordForChGateValue(port, dword);
+        MXMessage message = found.readMessageWithThisTemplate(port, dword);
         if (message == null) {
             message = new MXMessage(port, found);
         }
@@ -202,8 +202,8 @@ public class MXMessageFactory {
     static final int [] _cc7bit_int = new int[]{MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
     static final MXTemplate _cc7bit = new MXTemplate(_cc7bit_int);
 
-    public static MXMessage fromControlChange(int port, int channel, int data1, int data2) {
-        MXMessage message = new MXMessage(port, _cc7bit, channel, MXRangedValue.new7bit(data1), MXRangedValue.new7bit(data2));
+    public static MXMessage fromControlChange(int port, int channel, int cc, int value) {
+        MXMessage message = new MXMessage(port, _cc7bit, channel, MXRangedValue.new7bit(cc), MXRangedValue.new7bit(value));
         return message;
     }
 

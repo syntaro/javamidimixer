@@ -89,7 +89,7 @@ public class MX10View extends javax.swing.JPanel {
     }
     
     public void splitAuto() {
-        jSplitPane1.setDividerLocation(Math.max(jSplitPane1.getWidth() / 2, jSplitPane1.getWidth() - 350));
+        jSplitPane1.setDividerLocation(Math.max(jSplitPane1.getWidth() * 70 / 100, jSplitPane1.getWidth() - 400));
     }
     
     private void jTableSkip_MouseClicked(java.awt.event.MouseEvent evt) {                                     
@@ -148,7 +148,6 @@ public class MX10View extends javax.swing.JPanel {
         jCheckBoxUseSkip = new javax.swing.JCheckBox();
         jPanel1 = new javax.swing.JPanel();
         jPanelInputSelect = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
         jPanelPreprocessor = new javax.swing.JPanel();
 
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
@@ -192,9 +191,7 @@ public class MX10View extends javax.swing.JPanel {
 
         jPanelPreprocessor.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanelPreprocessor.setLayout(new javax.swing.BoxLayout(jPanelPreprocessor, javax.swing.BoxLayout.LINE_AXIS));
-        jScrollPane1.setViewportView(jPanelPreprocessor);
-
-        jSplitPane1.setRightComponent(jScrollPane1);
+        jSplitPane1.setRightComponent(jPanelPreprocessor);
 
         add(jSplitPane1);
     }// </editor-fold>//GEN-END:initComponents
@@ -248,7 +245,6 @@ public class MX10View extends javax.swing.JPanel {
     private javax.swing.JPanel jPanelInputSelect;
     private javax.swing.JPanel jPanelPreprocessor;
     private javax.swing.JPanel jPanelSkip;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSplitPane jSplitPane2;
     // End of variables declaration//GEN-END:variables

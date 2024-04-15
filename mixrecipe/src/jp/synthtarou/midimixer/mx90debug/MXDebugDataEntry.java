@@ -36,9 +36,9 @@ public class MXDebugDataEntry extends MXDebug {
         int low = data & 0x7f;
         MXMessage parent = MXMessageFactory.newEmpty(0);
         MXMessage message100 = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_RPN_LSB, lsb);
-        MXMessage message101 = MXMessageFactory.fromShortMessage(0, 0, MXMidi.DATA1_CC_RPN_MSB, msb);
-        MXMessage messageMSB = MXMessageFactory.fromShortMessage(0, 0, MXMidi.DATA1_CC_DATAENTRY, high);
-        MXMessage messageLSB = MXMessageFactory.fromShortMessage(0, 0, MXMidi.DATA1_CC_DATAENTRY + 32, low);
+        MXMessage message101 = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_RPN_MSB, msb);
+        MXMessage messageMSB = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_DATAENTRY, high);
+        MXMessage messageLSB = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_DATAENTRY + 32, low);
         message100._owner = MXMessage.getRealOwner(parent);
         message101._owner = MXMessage.getRealOwner(parent);
         messageMSB._owner = MXMessage.getRealOwner(parent);
@@ -70,7 +70,7 @@ public class MXDebugDataEntry extends MXDebug {
         list.add(messageLSB);
         return list;
     }
-
+    
     public MXDebugDataEntry(boolean type, int msb, int lsb, int data) {
         super(type ? createRPN(msb, lsb, data) : createNRPN(msb, lsb, data));
     }
@@ -98,12 +98,15 @@ public class MXDebugDataEntry extends MXDebug {
             }
         }
         else {
-            MXFileLogger.getLogger(MXDebugDataEntry.class).severe("Size error in (" + _input.size() + " is not 4)" + _input);
+            MXFileLogger.getLogger(MXDebugDataEntry.class).severe("Size error in (" + _input.size() + " must be 4)" + _input);
         }
         if (_result.size() != 1) {
-            MXFileLogger.getLogger(MXDebugDataEntry.class).severe("Size error out (" +_result.size() + " is not 1)");
+            MXFileLogger.getLogger(MXDebugDataEntry.class).severe("Size error out (" +_result.size() + " must be 1)");
+            for (int i = 0; i < _input.size(); ++ i) {
+                System.out.println("input dump"  +_input.get(i));
+            }
             for (int i = 0; i < _result.size(); ++ i) {
-                System.out.println(_result.get(i));
+                System.out.println("result dump"  +_result.get(i));
             }
         }
     }

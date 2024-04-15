@@ -16,15 +16,8 @@
  */
 package jp.synthtarou.midimixer.libs.midi.port;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.util.Comparator;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.DefaultListModel;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.ListCellRenderer;
-import jp.synthtarou.libs.MainThreadTask;
+import java.awt.Dimension;
+import java.util.ArrayList;
 
 /**
  *
@@ -38,67 +31,26 @@ public class MXPreprocessPanel extends javax.swing.JPanel {
         return _instance;
     }
 
-    DefaultListCellRenderer _cellRenderer1;
-    DefaultListCellRenderer _cellRenderer2;
-
-    static final Comparator<MXMIDIIn> COMP_MIDI = new Comparator<MXMIDIIn>() {
-        @Override
-        public int compare(MXMIDIIn o1, MXMIDIIn o2) {
-            if (o1 == o2) {
-                return 0;
-            }
-            int x1 = o1._name.compareTo(o2._name);
-            if (x1 != 0) {
-                return x1;
-            }
-            int a1 = o1._driver.hashCode();
-            int a2 = o2._driver.hashCode();
-            if (a1 != a2) {
-                if (a1 < a2) {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            }
-            a1 = o1._driverOrder;
-            a2 = o2._driverOrder;
-            if (a1 != a2) {
-                if (a1 < a2) {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            }
-            return 0;
-        }
-    ;
-    };
-
-    static final Comparator<RecordEntry> COMP_ENTRY = new Comparator<RecordEntry>() {
-        @Override
-        public int compare(RecordEntry o1, RecordEntry o2) {
-            int x = COMP_MIDI.compare(o1._in, o2._in);
-            if (x == 0) {
-                if (o1._cc != o2._cc) {
-                    return (o1._cc < o2._cc) ? -1 : 1;
-                }
-            }
-            return x;
-        }
-    };
-
     /**
      * Creates new form MXPreprocessManager
      */
     public MXPreprocessPanel() {
         initComponents();
-        _modelMaybe = new DefaultListModel<>();
-        _modelLocked = new DefaultListModel<>();
-        jListMaybe.setModel(_modelMaybe);
-        jListLocked.setModel(_modelLocked);
-        _cellRenderer1 = new CellRenderer(jListMaybe);
-        _cellRenderer2 = new CellRenderer(jListLocked);
+        _tableModel = new PreProcessTableModel();
+        jTable1.setModel(_tableModel);
+        
+        jTable1.getColumnModel().getColumn(0).setMinWidth(30);
+        for (int i = 1; i <= 3; ++ i) {
+            jTable1.getColumnModel().getColumn(i).setMaxWidth(45);
+        }
+        jTable1.getColumnModel().getColumn(4).setMinWidth(45);
+     }
+
+    public void recalcDone(RecordEntry e) {
+        _tableModel.recalc(e);
     }
+
+    PreProcessTableModel _tableModel;
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -110,108 +62,80 @@ public class MXPreprocessPanel extends javax.swing.JPanel {
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jListMaybe = new javax.swing.JList<>();
         jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        jListLocked = new javax.swing.JList<>();
-        jLabel3 = new javax.swing.JLabel();
-        jScrollPane4 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
         jButtonLockIt = new javax.swing.JButton();
         jButtonUnlockIt = new javax.swing.JButton();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
 
         setBorder(javax.swing.BorderFactory.createTitledBorder("14 bit detector (UnderConstruction)"));
         setLayout(new java.awt.GridBagLayout());
 
-        jScrollPane1.setViewportView(jListMaybe);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        add(jScrollPane1, gridBagConstraints);
-
-        jLabel1.setText("Locked");
+        jLabel1.setText("ControlChange 0~15, 16~31");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         add(jLabel1, gridBagConstraints);
 
-        jLabel2.setText("Maybe");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        add(jLabel2, gridBagConstraints);
-
-        jScrollPane2.setViewportView(jListLocked);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        add(jScrollPane2, gridBagConstraints);
-
-        jLabel3.setText("Info");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        add(jLabel3, gridBagConstraints);
-
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane4.setViewportView(jTextArea1);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        add(jScrollPane4, gridBagConstraints);
-
-        jButtonLockIt.setText("Lock it");
+        jButtonLockIt.setText("mark as 14bit");
         jButtonLockIt.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonLockItActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         add(jButtonLockIt, gridBagConstraints);
 
-        jButtonUnlockIt.setText("Unlock it");
+        jButtonUnlockIt.setText("unmark");
         jButtonUnlockIt.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonUnlockItActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.weightx = 1.0;
         add(jButtonUnlockIt, gridBagConstraints);
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane3.setViewportView(jTable1);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        add(jScrollPane3, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonLockItActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonLockItActionPerformed
-        RecordEntry e = jListMaybe.getSelectedValue();
-        e._lockedBit = e.actually14bit() ? 14 : 7;
-        recalcDone(e, true);
+        int row = jTable1.getSelectedRow();
+        RecordEntry e = _tableModel.getRecordEntry(row);
+        e._choiceBit = 14;
+        e.recalc();
     }//GEN-LAST:event_jButtonLockItActionPerformed
 
     private void jButtonUnlockItActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonUnlockItActionPerformed
-        RecordEntry e = jListLocked.getSelectedValue();
-        e._lockedBit = 0;
-        recalcDone(e, false);
+        int row = jTable1.getSelectedRow();
+        RecordEntry e = _tableModel.getRecordEntry(row);
+        e._choiceBit = 0;
+        e.recalc();
     }//GEN-LAST:event_jButtonUnlockItActionPerformed
 
 
@@ -219,69 +143,21 @@ public class MXPreprocessPanel extends javax.swing.JPanel {
     private javax.swing.JButton jButtonLockIt;
     private javax.swing.JButton jButtonUnlockIt;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JList<RecordEntry> jListLocked;
-    private javax.swing.JList<RecordEntry> jListMaybe;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JTextArea jTextArea1;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JTable jTable1;
     // End of variables declaration//GEN-END:variables
 
-    /*
-    TreeSet<RecordEntry> _lock7bit = new TreeSet<>(COMP_ENTRY);
-    TreeSet<RecordEntry> _lock14bit = new TreeSet<>(COMP_ENTRY);
-    TreeSet<RecordEntry> _maybe7bit = new TreeSet<>(COMP_ENTRY);
-    TreeSet<RecordEntry> _maybe14bit = new TreeSet<>(COMP_ENTRY);
-     */
-    public void recalcDone(RecordEntry e, boolean lock) {
-        MainThreadTask r = new MainThreadTask(() -> {
-            System.out.println("adding " + e._cc);
-            if (lock) {
-                _modelLocked.addElement(e);
-                _modelMaybe.removeElement(e);
-            } else {
-                _modelMaybe.addElement(e);
-                _modelLocked.removeElement(e);
+    public void resetCounter() {
+        ArrayList<RecordEntry> list = new ArrayList(_tableModel._rows);
+        for (RecordEntry e : list) {
+            if (e._choiceBit == 0) {
+                _tableModel._rows.remove(e);
+                continue;
             }
-            jListLocked.revalidate();
-            jListMaybe.revalidate();
-        });
-    }
-
-    DefaultListModel<RecordEntry> _modelMaybe;
-    DefaultListModel<RecordEntry> _modelLocked;
-
-    public void rebuildListModel() {
-    }
-
-    private static class CellRenderer extends DefaultListCellRenderer {
-
-        ListCellRenderer _base;
-
-        public CellRenderer(JList list) {
-            _base = list.getCellRenderer();
-            list.setCellRenderer(this);
+            e._count0h = 0;
+            e._count20h = 0;
+            e._countPair = 0;
         }
-
-        @Override
-        public Component getListCellRendererComponent(
-                JList<?> list,
-                Object value,
-                int index,
-                boolean isSelected,
-                boolean cellHasFocus) {
-
-            RecordEntry e = (RecordEntry) value;
-            JLabel c = (JLabel) _base.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-            if (e != null) {
-                c.setForeground(e.getListBoxColor());
-                c.setText(e.toString());
-            }
-            return c;
-        }
-
+        _tableModel.fireTableDataChanged();
     }
-
 }

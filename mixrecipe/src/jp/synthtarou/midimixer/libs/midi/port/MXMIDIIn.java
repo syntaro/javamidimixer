@@ -39,6 +39,11 @@ import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
  */
 public class MXMIDIIn {
     public static final MXMIDIInForPlayer INTERNAL_PLAYER = new MXMIDIInForPlayer();
+    public static final MXMIDIInForPlayer DEBUGGER = new MXMIDIInForPlayer();
+    
+    static {
+        DEBUGGER.setPortAssigned(0, true);
+    }
 
     String _name;
     MXDriver _driver;
@@ -216,9 +221,9 @@ public class MXMIDIIn {
         for (int ch = 0; ch < 16; ++ch) {
             int status = MXMidi.COMMAND_CH_CONTROLCHANGE | ch;
             int data1 = MXMidi.DATA1_CC_ALLNOTEOFF;
-            receiveShortMessage((status << 16) | (data1 << 8));
+            receiveShortMessage(parent, (status << 16) | (data1 << 8));
             data1 = MXMidi.DATA1_CC_ALLSOUNDOFF;
-            receiveShortMessage((status << 16) | (data1 << 8));
+            receiveShortMessage(parent, (status << 16) | (data1 << 8));
         }
     }
 
@@ -295,7 +300,7 @@ public class MXMIDIIn {
         return hit;
     }
 
-    public final void receiveShortMessage(int dword) {
+    public final void receiveShortMessage(MXMessage owner, int dword) {
         int status = (dword >> 16) & 0xff;
         int data1 = (dword >> 8) & 0xff;
         int data2 = (dword) & 0xff;
@@ -322,13 +327,20 @@ public class MXMIDIIn {
 
         if (dword != 0) {
             MXMessage message = MXMessageFactory.fromShortMessage(0, status, data1, data2);
+            message._owner = MXMessage.getRealOwner(owner);
             MXMain.addOutsideInput(message);
             _preprocess.processMXMessage(message);
         }
     }
 
-    public void receiveLongMessage(byte[] data) {
+    public void receiveExMessage(MXMessage owner, MXMessage exMessage) {
+        exMessage._owner = MXMessage.getRealOwner(owner);
+        _preprocess.processMXMessage(exMessage);
+    }
+
+    public void receiveLongMessage(MXMessage owner, byte[] data) {
         MXMessage message = MXMessageFactory.fromBinary(0, data);
+        message._owner = MXMessage.getRealOwner(owner);
         _preprocess.processMXMessage(message);
     }
 

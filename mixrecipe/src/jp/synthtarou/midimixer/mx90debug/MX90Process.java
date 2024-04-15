@@ -27,6 +27,8 @@ import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
+import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
+import jp.synthtarou.midimixer.libs.midi.port.RecordEntry;
 
 /**
  *
@@ -56,7 +58,38 @@ public class MX90Process extends MXReceiver<MX90View> {
 
     public void doAllTest() {
         MXFileLogger.getLogger(MX90Process.class).info("Starting All Test");
-        //do sometihng
+        
+        MXFileLogger.getLogger(MX90Process.class).info("Testing Data Entry2");
+        for (int msb = 0; msb < 128; msb += random(20)) {
+            for (int lsb = 0; lsb < 128; lsb += random(20)) {
+                int varMSB = random(127);
+                int varLSB = random(127);
+                String textRPN = "@RPN " + msb + " " + lsb + " " + varMSB + " " + varLSB;
+                MXTemplate temp1 = new MXTemplate(textRPN);
+                MXMessage message1 = MXMessageFactory.fromTemplate(0, temp1, 0, null, null);
+
+                new MXDebugSame(message1);
+
+                String textNRPN = "@NRPN " + msb + " " + lsb + " " + varMSB + " " + varLSB;
+                MXTemplate temp2 = new MXTemplate(textNRPN);
+                MXMessage newMessage = MXMessageFactory.fromTemplate(0, temp2, 0, null, null);
+                new MXDebugSame(newMessage);
+                if (Thread.interrupted()) {
+                    return;
+                }
+
+            }
+        }
+        MXFileLogger.getLogger(MX90Process.class).info("Testing Data Entry1");
+        for (int msb = 0; msb < 128; msb += random(20)) {
+            for (int lsb = 0; lsb < 128; lsb += random(20)) {
+                int varMSB = random(127);
+                int varLSB = random(127);
+                new MXDebugDataEntry(true, msb, lsb, (varMSB << 7) | varLSB);
+                new MXDebugDataEntry(false, msb, lsb, (varMSB << 7) | varLSB);
+            }
+        }
+
         MXFileLogger.getLogger(MX90Process.class).info("Testing Program Change");
         for (int ch = 0; ch < 16; ++ch) {
             int pg = random(128);
@@ -66,6 +99,23 @@ public class MX90Process extends MXReceiver<MX90View> {
                 return;
             }
         }
+
+        MXFileLogger.getLogger(MX90Process.class).info("Testing Control Change");
+        for (int ch = 0; ch < 16; ++ch) {
+            int cc = random(128);
+            int value = random(128);
+            RecordEntry e = MXMIDIIn.DEBUGGER._preprocess._analyzer.getEntry(cc);
+            MXMessage program = MXMessageFactory.fromControlChange(0, ch, cc, value);
+            if (e != null && e.is14bitChoiced()) {
+                continue;
+                //program = MXMessageFactory.fromControlChange14(0, ch, cc, value, 20);
+            }
+            new MXDebugSame(program);
+            if (Thread.interrupted()) {
+                return;
+            }
+        }
+
         MXFileLogger.getLogger(MX90Process.class).info("Testing Volume");
         for (int ch = 0; ch < 16; ++ch) {
             int vol = random(128);
@@ -103,16 +153,6 @@ public class MX90Process extends MXReceiver<MX90View> {
                 }
             }
         }
-        /*
-        MXFileLogger.getLogger(MX90Process.class).info("Testing Data Entry1");
-        for (int msb = 0; msb < 128; msb += random(20)) {
-            for (int lsb = 0; lsb < 128; lsb += random(20)) {
-                int varMSB = random(127);
-                int varLSB = random(127);
-                new MXDebugDataEntry(true, msb, lsb, (varMSB << 7) | varLSB);
-                new MXDebugDataEntry(false, msb, lsb, (varMSB << 7) | varLSB);
-            }
-        }*/
         MXFileLogger.getLogger(MX90Process.class).info("Testing Sysex");
         for (int value = 0; value < 128; value += random(20)) {
             for (int gate = 0; gate < 128; gate += random(20)) {
@@ -145,28 +185,6 @@ public class MX90Process extends MXReceiver<MX90View> {
                 if (Thread.interrupted()) {
                     return;
                 }
-            }
-        }
-
-        MXFileLogger.getLogger(MX90Process.class).info("Testing Data Entry2");
-        for (int msb = 0; msb < 128; msb += random(20)) {
-            for (int lsb = 0; lsb < 128; lsb += random(20)) {
-                int varMSB = random(127);
-                int varLSB = random(127);
-                String textRPN = "@RPN " + msb + " " + lsb + " " + varMSB + " " + varLSB;
-                MXTemplate temp1 = new MXTemplate(textRPN);
-                MXMessage message1 = MXMessageFactory.fromTemplate(0, temp1, 0, null, null);
-
-                new MXDebugSame(message1);
-
-                String textNRPN = "@NRPN " + msb + " " + lsb + " " + varMSB + " " + varLSB;
-                MXTemplate temp2 = new MXTemplate(textNRPN);
-                MXMessage newMessage = MXMessageFactory.fromTemplate(0, temp2, 0, null, null);
-                new MXDebugSame(newMessage);
-                if (Thread.interrupted()) {
-                    return;
-                }
-
             }
         }
 

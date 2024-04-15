@@ -26,7 +26,7 @@ import jp.synthtarou.midimixer.libs.midi.MXReceiver;
  */
 public class MXPreprocess extends MXReceiver<MXPreprocessPanel> {
 
-    MXPreprocessDiagnostics _analyzer = null;
+    public final MXPreprocessDiagnostics _analyzer;
     DefaultListModel<String> _console = new DefaultListModel<>();
     MXMIDIIn _inputPort;
 
