@@ -591,7 +591,10 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
     }
 
     public int getAsDword(int column) {
-        int command = getStatus() & 0xfff0;
+        int command = getStatus();
+        if ((command >= 0x80 && command <= 0xef) || command >= 0x100) {
+            command = command & 0xfff0;
+        }
         int status = (command | getChannel()) & 0xff;
         int data1 = getCompiled(1) & 0x7f;
         int data2 = getCompiled(2) & 0x7f;
@@ -815,9 +818,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
             }
         }
         if (t1 == MXMidi.COMMAND2_CH_PITCH_MSBLSB || t1 == MXMidi.COMMAND_CH_PITCHWHEEL) {
-            System.out.println("t1 == PITCH ***");
             if (t2 == MXMidi.COMMAND2_CH_PITCH_MSBLSB || t2 == MXMidi.COMMAND_CH_PITCHWHEEL) {
-                System.out.println("t2 == PITCH ***");
                 return catchTarget.getValue();
             }
         }

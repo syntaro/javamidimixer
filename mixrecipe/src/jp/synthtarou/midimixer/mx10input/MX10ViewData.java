@@ -70,7 +70,7 @@ public class MX10ViewData {
         }
 
         int type = TYPE_ALL;
-        int data1 = message.parseTemplate(0);
+        int data1 = message.getCompiled(0);
     
         if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF) {
             type = TYPE_NOTE;

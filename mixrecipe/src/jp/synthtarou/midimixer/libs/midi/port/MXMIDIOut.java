@@ -193,7 +193,6 @@ public class MXMIDIOut {
                             newMessage._owner = MXMessage.getRealOwner(message);
                             newMessage.setVisitant(portVisitant.getSnapShot());
                             processMidiOutInternal(newMessage);
-                            System.out.println("need Fix ProgramChange" + " @" + channel + " from " + old + " to " + must);
                         }
                     }
                 }
@@ -215,7 +214,6 @@ public class MXMIDIOut {
 
                             processMidiOutInternal(newMessage1);
                             processMidiOutInternal(newMessage2);
-                            System.out.println("need Fix BankSelect" + " @" + channel);
                         }
                     }
                 }
@@ -238,7 +236,6 @@ public class MXMIDIOut {
                                     newMessage.setVisitant(portVisitant.getSnapShot());
 
                                     processMidiOutInternal(newMessage);
-                                    System.out.println("need Fix CC " + code + " @" + channel + " from " + old + " to " + must);
                                 }
                             }
                         }

@@ -150,7 +150,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\java\jdk-14\include;C:\java\jdk-14\include\win32</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\java\jdk-22\include;C:\java\jdk-22\include\win32</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
