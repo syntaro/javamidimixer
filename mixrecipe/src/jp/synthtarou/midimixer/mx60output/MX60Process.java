@@ -17,27 +17,46 @@
 package jp.synthtarou.midimixer.mx60output;
 
 import java.io.File;
-import jp.synthtarou.midimixer.MXConfiguration;
+import javax.swing.JPanel;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
-import jp.synthtarou.libs.inifile.MXINIFile;
-import jp.synthtarou.midimixer.mx10input.MX10ViewData;
-import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.json.MXJsonValue;
+import jp.synthtarou.midimixer.mx13patch.MX13Process;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX60Process extends MXReceiver<MX60View> implements MXINIFileSupport, MXJsonSupport {
+public class MX60Process extends MXReceiver<MX60View> implements MXJsonSupport {
     MX60View _view;
     MX60ViewData _viewData;
+    MX13Process _patch;
 
     public MX60Process() {
+        _patch = new MX13Process(true);
         _viewData = new MX60ViewData(this);
-        _view = new MX60View();
+        _view = new MX60View(this);
+        _patch.setNextReceiver(new MXReceiver() {
+            @Override
+            public String getReceiverName() {
+                return "@?";
+            }
+
+            @Override
+            public JPanel getReceiverView() {
+                return null;
+            }
+
+            @Override
+            public void processMXMessage(MXMessage message) {
+                if (_viewData._recordingTrack >= 0) {
+                    _viewData.record(message);
+                }
+                MX60Process.this.sendToNext(message);
+            }
+        });
     }
     
     @Override
@@ -51,20 +70,6 @@ public class MX60Process extends MXReceiver<MX60View> implements MXINIFileSuppor
     }
 
     @Override
-    public void processMXMessage(MXMessage message) {
-        if (isUsingThisRecipe() && _viewData.isMessageForSkip(message)) {
-            return;
-        }
-
-        if (_viewData.isRecording()) {
-            _viewData.record(message);
-            _view.setSongLengthDX(_viewData._recordingTrack, _viewData.getSongLength(_viewData._recordingTrack));
-        }
-
-        sendToNext(message);
-    }
-
-    @Override
     public String getReceiverName() {
         return "Output Dispatcher";
     }
@@ -73,126 +78,45 @@ public class MX60Process extends MXReceiver<MX60View> implements MXINIFileSuppor
     public MX60View getReceiverView() {
         return _view;
     }
-
     @Override
-    public boolean readINIFile(File custom) {
-        MXINIFile setting = prepareINIFile(custom);
-        if (setting.readINIFile() == false) {
-            return false;
-        }
-        for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
-            String prefix = "Setting[" + port + "].";
-            StringBuffer str = new StringBuffer();
-            for (int j = 0; j <_viewData.countOfTypes(); ++ j) {
-                String name = _viewData._typeNames[j];
-                boolean set = setting.getSettingAsBoolean(prefix + name, false);
-                _viewData.setSkip(port, j, set);
-            }
-        }
-        _viewData.loadSequenceData();
-        _viewData._isUsingThieRecipe = true;
-        _view.setViewData(_viewData);
-        return true;
-    }
-
-    @Override
-    public boolean writeINIFile(File custom) {
-        MXINIFile setting = prepareINIFile(custom);
-        _viewData.saveSequenceData();
-        for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
-            String prefix = "Setting[" + port + "].";
-            StringBuffer str = new StringBuffer();
-            for (int j = 0; j <_viewData.countOfTypes(); ++ j) {
-                boolean set = _viewData.isSkip(port, j);
-                String name = _viewData._typeNames[j];
-                setting.setSetting(prefix + name, set);
-            }
-        }
-        return setting.writeINIFile();
-    }
-
-    @Override
-    public MXINIFile prepareINIFile(File custom) {
-        if (custom == null) {
-            custom = MXINIFile.pathOf("OutputSkip");
-        }
-        MXINIFile setting = new MXINIFile(custom, this);
-        String prefix = "Setting[].";
-        for (String text : MX10ViewData._typeNames) {
-            setting.register(prefix + text);
-        }
-        return setting;
+    public void processMXMessage(MXMessage message) {
+        _patch.processMXMessage(message);
     }
 
     @Override
     public boolean readJSonfile(File custom) {
         if (custom == null) {
-            custom = MXJsonParser.pathOf("OutputSkip");
+            custom = MXJsonParser.pathOf("OutputPatch");
             MXJsonParser.setAutosave(this);
         }
         MXJsonValue value = new MXJsonParser(custom).parseFile();
         if (value == null) {
+            _patch.resetSetting();
+            _view.showViewData();
             return false;
         }
         
-        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
-        MXJsonValue.HelperForArray arraySetting = root.getFollowingArray("ListPort");
-        
-        if (arraySetting != null) {
-            for (int i = 0; i < arraySetting.count(); ++ i) {
-                MXJsonValue.HelperForStructure setting = arraySetting.getFollowingStructure(i);
-
-                int port = setting.getFollowingInt("Port", -1);
-                if (port < 0) {
-                    continue;
-                }
-                MXJsonValue.HelperForArray types = setting.getFollowingArray("Skip");
-                if (types != null) {
-                    for (int j = 0; j < types.count(); ++ j) {
-                        String type = types.getFollowingValue(j).getLabelUnscaped();
-                        int typeN = MX10ViewData.typeOfName(type);
-                        if (typeN >= 0) {
-                            _viewData.setSkip(port, typeN, true);
-                        }
-                    }
-                }
-            }
-        }
-        _viewData.loadSequenceData();
-        _view.setViewData(_viewData);
+        _patch.clearSetting();
+        _patch.readJsonTree(value);
+        _view.showViewData();
         return true;
     }
 
     @Override
     public boolean writeJsonFile(File custom) {
         if (custom == null) {
-            custom = MXJsonParser.pathOf("OutputSkip");
+            custom = MXJsonParser.pathOf("OutputPatch");
         }
-        MXJsonValue value = new MXJsonValue(null);
-        MXJsonValue.HelperForStructure root = value.new HelperForStructure();
-        MXJsonValue.HelperForArray arraySetting = root.addFollowingArray("ListPort");
-        for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
-            MXJsonValue.HelperForStructure setting = arraySetting.addFollowingStructure();
-            setting.setFollowingNumber("Port", port);
-            MXJsonValue.HelperForArray arrayTypes = setting.addFollowingArray("Skip");
-            
-            for (int j = 0; j <_viewData.countOfTypes(); ++ j) {
-                boolean set = _viewData.isSkip(port, j);
-                if (set) {
-                    String name = _viewData._typeNames[j];
-                    arrayTypes.addFollowingText(name);
-                } 
-            }
-        }
-
+        
         MXJsonParser parser = new MXJsonParser(custom);
-        parser.setRoot(value);
+        _patch.writeJsonTree(parser.getRoot());
+
         return parser.writeFile();
     }
-
+    
     @Override
     public void resetSetting() {
-        _viewData.resetSkip();
-        _view.setViewData(_viewData);
+        _patch.resetSetting();
+        _view.showViewData();
     }
 }

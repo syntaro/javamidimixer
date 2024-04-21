@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.mx16twodigit;
 
-import jp.synthtarou.midimixer.mx11vcurve.*;
 import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -32,13 +31,12 @@ import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
-import jp.synthtarou.midimixer.mx30surface.MX32MixerProcess;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX11View extends javax.swing.JPanel {
+public class MX16View extends javax.swing.JPanel {
     JTableWithFooter jTableVelocity;
     
     final MX16Process _process;
@@ -46,7 +44,7 @@ public class MX11View extends javax.swing.JPanel {
     /**
      * Creates new form MX11View
      */
-    public MX11View(MX16Process process) {
+    public MX16View(MX16Process process) {
         _process = process;
 
         initComponents();
@@ -273,7 +271,7 @@ public class MX11View extends javax.swing.JPanel {
                 jLabelVelocityOriginal.setText(String.valueOf(base));
                 jSpinnerVelocityCurve.setModel(new SafeSpinnerNumberModel(set, 0, 127, 1));
             }catch(RuntimeException ex) {
-                MXFileLogger.getLogger(MX11View.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(MX16View.class).log(Level.WARNING, ex.getMessage(), ex);
             }   
         }
     }

@@ -40,7 +40,7 @@ public class MXMidiConsole extends DefaultListModel<MXMidiConsoleElement> {
     boolean done = false;
 
     public MXMidiConsole() {
-        MXSafeThread t = new MXSafeThread("ListUpdate", new Runnable() {
+        MXSafeThread t = new MXSafeThread("MidiConsole", new Runnable() {
             @Override
             public void run() {
                 try {

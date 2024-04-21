@@ -25,13 +25,12 @@ import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.libs.smf.SMFCallback;
 import jp.synthtarou.libs.smf.SMFMessage;
 import jp.synthtarou.libs.smf.SMFSequencer;
-import jp.synthtarou.midimixer.mx10input.MX10ViewData;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MX60ViewData extends MX10ViewData {
+public class MX60ViewData  {
 
     SMFSequencer[] _listRecorder;
     int _recordingTrack = -1;
@@ -117,10 +116,7 @@ public class MX60ViewData extends MX10ViewData {
                         }
                     });
                 }
-                if (_process.isUsingThisRecipe() && isMessageForSkip(message)) {
-                } else {
-                    _process.sendToNext(message);
-                }
+                _process.sendToNext(message);
             }
 
             @Override

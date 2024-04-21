@@ -133,6 +133,10 @@ public class MXMain {
      * @throws Exception エラー通知
      */
     public static void main(String[] args) throws Exception {
+        int x = 1 << 2 | 3;
+        int y = 1 << 2 + 3;
+        System.out.println("jp.synthtarou.midimixer.MXMain.main(x)" + x);
+        System.out.println("jp.synthtarou.midimixer.MXMain.main(y)" + y);
         try {
             MXUtil.fixConsoleEncoding();
         } catch (Throwable ex) {
@@ -209,10 +213,10 @@ public class MXMain {
 
         initProcessWithSetting(_mx30kontrolProcess);
         initProcessWithSetting(_mx00playlistProcess);
-        initProcessWithSetting(_mx10inputProcess);
+        _mx10inputProcess.readJSonfile(null);
         initProcessWithSetting(_mx12SoftKeyboardProcess);
         initProcessWithSetting(_mx36ccmappingProcess);
-        initProcessWithSetting(_mx60outputProcess);
+        _mx60outputProcess.readJSonfile(null);
         initProcessWithSetting(_mx40layerProcess);
         initProcessWithSetting(_mx50resolutionProcess);
 

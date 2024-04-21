@@ -19,7 +19,6 @@ package jp.synthtarou.tools;
 import java.awt.Color;
 import java.awt.Dimension;
 import javax.swing.SpinnerNumberModel;
-import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
@@ -35,61 +34,68 @@ public class RGBTransVUI extends javax.swing.JPanel {
 
     public class ViewModel implements MXUIPropertyListener {
 
-        public final MXUIProperty _spinnerRed, _spinnerGreen, _spinnerBlue;
-        public final MXUIProperty _sliderRed, _sliderGreen, _sliderBlue;
-        public final MXUIProperty _textHex, _textDec;
+        public final MXUIProperty _spinnerRed = new MXUIProperty();
+        public final MXUIProperty _spinnerGreen = new MXUIProperty();
+        public final MXUIProperty _spinnerBlue = new MXUIProperty();
+        public final MXUIProperty _sliderRed = new MXUIProperty();
+        public final MXUIProperty _sliderGreen = new MXUIProperty();
+        public final MXUIProperty _sliderBlue = new MXUIProperty();
+        public final MXUIProperty _textHex = new MXUIProperty();
+        public final MXUIProperty _textDec = new MXUIProperty();
 
-        boolean _construction = true;
         ViewModel() {
-            _spinnerRed = new MXUIProperty(jSpinnerRed, this);
-            _spinnerGreen = new MXUIProperty(jSpinnerGreen, this);
-            _spinnerBlue = new MXUIProperty(jSpinnerBlue, this);
 
-            _sliderRed = new MXUIProperty(jSliderRed, this);
-            _sliderGreen = new MXUIProperty(jSliderGreen, this);
-            _sliderBlue = new MXUIProperty(jSliderBlue, this);
+            _spinnerRed.install(jSpinnerRed);
+            _spinnerGreen.install(jSpinnerGreen);
+            _spinnerBlue.install(jSpinnerBlue);
 
-            _textDec = new MXUIProperty(jTextField10);
-            _textHex = new MXUIProperty(jTextField16);
-            
+            _sliderRed.install(jSliderRed);
+            _sliderGreen.install(jSliderGreen);
+            _sliderBlue.install(jSliderBlue);
+
+            _spinnerRed.addChangeListener(this);
+            _spinnerGreen.addChangeListener(this);
+            _spinnerBlue.addChangeListener(this);
+
+            _sliderRed.addChangeListener(this);
+            _sliderGreen.addChangeListener(this);
+            _sliderBlue.addChangeListener(this);
+
+            _textDec.install(jTextField10);
+            _textHex.install(jTextField16);
+
             _textDec.addChangeListener(this);
             _textHex.addChangeListener(this);
-
-            _construction = false;
         }
 
         @Override
         public void uiProperityValueChanged(MXUIPropertyEvent evt) {
-            if (_underFlushing) {
-                return;
-            }
-            if (_construction) {
+            if (_stopFeedback > 0) {
                 return;
             }
             MXUIProperty control = evt.getMXContoller();
             if (control == _spinnerRed
                     || control == _spinnerGreen
                     || control == _spinnerBlue) {
-                _red = _spinnerRed.getAsInt();
-                _green = _spinnerGreen.getAsInt();
-                _blue = _spinnerBlue.getAsInt();
-                flushColorToAll();
+                int red = _spinnerRed.getAsInt();
+                int green = _spinnerGreen.getAsInt();
+                int blue = _spinnerBlue.getAsInt();
+                flushColorToAll(red, green, blue);
             } else if (control == _sliderRed
                     || control == _sliderGreen
                     || control == _sliderBlue) {
-                _red = _sliderRed.getAsInt();
-                _green = _sliderGreen.getAsInt();
-                _blue = _sliderBlue.getAsInt();
-                flushColorToAll();
+                int red = _sliderRed.getAsInt();
+                int green = _sliderGreen.getAsInt();
+                int blue = _sliderBlue.getAsInt();
+                flushColorToAll(red, green, blue);
             } else if (control == _textHex) {
-                setupWithTextHex();
+                flushWithTextHex();
             } else if (control == _textDec) {
-                setupWithTextDec();
+                flushWithTextDec();
             }
         }
     }
 
-    int _red, _green, _blue;
     ViewModel _vm;
 
     public static void main(String[] args) {
@@ -98,18 +104,26 @@ public class RGBTransVUI extends javax.swing.JPanel {
         System.exit(0);
     }
 
+    public int getRed() {
+        return _vm._sliderRed.getAsInt();
+    }
+
+    public int getGreen() {
+        return _vm._sliderGreen.getAsInt();
+    }
+
+    public int getBlue() {
+        return _vm._sliderBlue.getAsInt();
+    }
+
     /**
      * Creates new form RGBTrans
      */
     public RGBTransVUI() {
         initComponents();
-        _red = 100;
-        _green = 200;
-        _blue = 0;
-
-        jSpinnerRed.setModel(new SpinnerNumberModel(_red, 0, 255, 1));
-        jSpinnerGreen.setModel(new SpinnerNumberModel(_green, 0, 255, 1));
-        jSpinnerBlue.setModel(new SpinnerNumberModel(_blue, 0, 255, 1));
+        jSpinnerRed.setModel(new SpinnerNumberModel(0, 0, 255, 1));
+        jSpinnerGreen.setModel(new SpinnerNumberModel(0, 0, 255, 1));
+        jSpinnerBlue.setModel(new SpinnerNumberModel(0, 0, 255, 1));
 
         jSliderRed.setMinimum(0);
         jSliderRed.setMaximum(255);
@@ -125,32 +139,30 @@ public class RGBTransVUI extends javax.swing.JPanel {
         new MXAttachSliderLikeEclipse(jSliderGreen);
         new MXAttachSliderLikeEclipse(jSliderBlue);
         setPreferredSize(new Dimension(500, 500));
-        
+
         _vm = new ViewModel();
 
-        flushColorToAll();
+        flushColorToAll(123, 123, 123);
+
+        _stopFeedback = 0;
     }
 
-    boolean _underFlushing = false;
-    
-    public void flushColorToAll() {
-        _underFlushing = true;
+    int _stopFeedback = 1;
+
+    public void flushColorToAll(int red, int green, int blue) {
+        _stopFeedback++;
         try {
-            _red = new MXRangedValue(_red, 0, 255)._value;
-            _green = new MXRangedValue(_green, 0, 255)._value;
-            _blue = new MXRangedValue(_blue, 0, 255)._value;
-            
-            _vm._spinnerRed.set(_red);
-            _vm._spinnerGreen.set(_green);
-            _vm._spinnerBlue.set(_blue);
+            _vm._spinnerRed.set(red);
+            _vm._spinnerGreen.set(green);
+            _vm._spinnerBlue.set(blue);
 
-            _vm._sliderRed.set(_red);
-            _vm._sliderGreen.set(_green);
-            _vm._sliderBlue.set(_blue);
+            _vm._sliderRed.set(red);
+            _vm._sliderGreen.set(green);
+            _vm._sliderBlue.set(blue);
 
-            String red16 = Integer.toHexString(_red);
-            String green16 = Integer.toHexString(_green);
-            String blue16 = Integer.toHexString(_blue);
+            String red16 = Integer.toHexString(red);
+            String green16 = Integer.toHexString(green);
+            String blue16 = Integer.toHexString(blue);
 
             if (red16.length() == 1) {
                 red16 = "0" + red16;
@@ -162,16 +174,16 @@ public class RGBTransVUI extends javax.swing.JPanel {
                 blue16 = "0" + blue16;
             }
 
-            String text10 = _red + ", " + _green + "," + _blue;
+            String text10 = red + ", " + green + "," + blue;
             String text16 = "#" + red16 + green16 + blue16;
 
             _vm._textDec.set(text10);
             _vm._textHex.set(text16);
 
-            Color col = new Color(_red, _green, _blue);
+            Color col = new Color(red, green, blue);
             jTextPane1.setBackground(col);
         } finally {
-            _underFlushing = false;
+            _stopFeedback--;
         }
     }
 
@@ -369,54 +381,54 @@ public class RGBTransVUI extends javax.swing.JPanel {
         return 0;
     }
 
-    public void setupWithTextHex() {
+    public void flushWithTextHex() {
         String text = _vm._textHex.getAsText();
         while (text.startsWith("#")) {
             text = text.substring(1);
         }
         if (text.length() >= 6) {
-            String red = text.substring(0, 2);
-            String green = text.substring(2, 4);
-            String blue = text.substring(4, 6);
-            _red = parse16(red);
-            _green = parse16(green);
-            _blue = parse16(blue);
-            flushColorToAll();
+            String strRed = text.substring(0, 2);
+            String strGreen = text.substring(2, 4);
+            String strBlue = text.substring(4, 6);
+            int red = parse16(strRed);
+            int green = parse16(strGreen);
+            int blue = parse16(strBlue);
+            flushColorToAll(red, green, blue);
         }
     }
 
-    public void setupWithTextDec() {
+    public void flushWithTextDec() {
         String text = _vm._textDec.getAsText();
         String[] list = text.split(",");
         if (list != null && list.length >= 3) {
-            _red = parse10(list[0]);
-            _green = parse10(list[1]);
-            _blue = parse10(list[2]);
-            flushColorToAll();
+            int red = parse10(list[0]);
+            int green = parse10(list[1]);
+            int blue = parse10(list[2]);
+            flushColorToAll(red, green, blue);
         }
     }
-    
-    public void setupWithColor(Color col) {
-        _red = col.getRed();
-        _green = col.getGreen();
-        _blue = col.getBlue();
-        flushColorToAll();    
+
+    public void flushWithColor(Color col) {
+        int red = col.getRed();
+        int green = col.getGreen();
+        int blue = col.getBlue();
+        flushColorToAll(red, green, blue);
     }
 
     private void jButtonColor1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonColor1ActionPerformed
-        setupWithColor(jButtonColor1.getBackground());
+        flushWithColor(jButtonColor1.getBackground());
     }//GEN-LAST:event_jButtonColor1ActionPerformed
 
     private void jButtonColor2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonColor2ActionPerformed
-        setupWithColor(jButtonColor2.getBackground());
+        flushWithColor(jButtonColor2.getBackground());
     }//GEN-LAST:event_jButtonColor2ActionPerformed
 
     private void jButtonColor3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonColor3ActionPerformed
-        setupWithColor(jButtonColor3.getBackground());
+        flushWithColor(jButtonColor3.getBackground());
     }//GEN-LAST:event_jButtonColor3ActionPerformed
 
     private void jButtonColor4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonColor4ActionPerformed
-        setupWithColor(jButtonColor4.getBackground());
+        flushWithColor(jButtonColor4.getBackground());
     }//GEN-LAST:event_jButtonColor4ActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

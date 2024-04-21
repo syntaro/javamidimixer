@@ -46,33 +46,54 @@ public class MXUIPropertyDemo extends javax.swing.JPanel {
 
         MXUIProperty[] bindTenkey;
         MXUIProperty bindBack;
-        MXUIProperty bindCler;
+        MXUIProperty bindClear;
         MXUIProperty bindTo100;
 
         boolean inConstruction = true;
 
         public ViewModel() {
-            bindSpinner = new MXUIProperty(jSpinner1, this);
-            bindTextArea = new MXUIProperty(jTextArea1, this);
-            bindTextField = new MXUIProperty(jTextField1, this);
-            bindSlider = new MXUIProperty(jSlider1, this);
-            bindLabel = new MXUIProperty(jLabel1);
+            bindSpinner = new MXUIProperty(100);
+            bindTextArea = new MXUIProperty("100");
+            bindTextField = new MXUIProperty("100");
+            bindSlider = new MXUIProperty(100);
+            bindLabel = new MXUIProperty("100");
 
-            bindTenkey = new MXUIProperty[]{
-                new MXUIProperty(jButton0),
-                new MXUIProperty(jButton1),
-                new MXUIProperty(jButton2),
-                new MXUIProperty(jButton3),
-                new MXUIProperty(jButton4),
-                new MXUIProperty(jButton5),
-                new MXUIProperty(jButton6),
-                new MXUIProperty(jButton7),
-                new MXUIProperty(jButton8),
-                new MXUIProperty(jButton9)};
+            bindSpinner.install(jSpinner1);
+            bindTextArea.install(jTextArea1);
+            bindTextField.install(jTextField1);
+            bindSlider.install(jSlider1);
+            bindLabel.install(jLabel1);
 
-            bindBack = new MXUIProperty(jButtonBack);
-            bindCler = new MXUIProperty(jButtonClear);
-            bindTo100 = new MXUIProperty(jButtonto100);
+            bindTenkey = new MXUIProperty[10];
+            bindTenkey[0] = new MXUIProperty(false);
+            bindTenkey[1] = new MXUIProperty(false);
+            bindTenkey[2] = new MXUIProperty(false);
+            bindTenkey[3] = new MXUIProperty(false);
+            bindTenkey[4] = new MXUIProperty(false);
+            bindTenkey[5] = new MXUIProperty(false);
+            bindTenkey[6] = new MXUIProperty(false);
+            bindTenkey[7] = new MXUIProperty(false);
+            bindTenkey[8] = new MXUIProperty(false);
+            bindTenkey[9] = new MXUIProperty(false);
+
+            bindTenkey[0].install(jButton0);
+            bindTenkey[1].install(jButton1);
+            bindTenkey[2].install(jButton2);
+            bindTenkey[3].install(jButton3);
+            bindTenkey[4].install(jButton4);
+            bindTenkey[5].install(jButton5);
+            bindTenkey[6].install(jButton6);
+            bindTenkey[7].install(jButton7);
+            bindTenkey[8].install(jButton8);
+            bindTenkey[9].install(jButton9);
+
+            bindBack = new MXUIProperty();
+            bindClear = new MXUIProperty();
+            bindTo100 = new MXUIProperty();
+
+            bindBack.install(jButtonBack);
+            bindClear.install(jButtonClear);
+            bindTo100.install(jButtonto100);
 
             inConstruction = false;
         }
@@ -105,9 +126,10 @@ public class MXUIPropertyDemo extends javax.swing.JPanel {
         initComponents();
         new MXAttachSliderSingleClick(jSlider1);
         new MXAttachSliderLikeEclipse(jSlider1);
-        jSpinner1.setModel(new SpinnerNumberModel(150, 0, 1000, 1));
+        int max = 1000000000;
+        jSpinner1.setModel(new SpinnerNumberModel(150, 0, max, 1));
         jSlider1.setMinimum(0);
-        jSlider1.setMaximum(1000);
+        jSlider1.setMaximum(max);
         _vm = new ViewModel();
 
         _vm.bindTenkey[1].doClickAction();
@@ -120,30 +142,24 @@ public class MXUIPropertyDemo extends javax.swing.JPanel {
         new MXSafeThread("MXComponentControllerDemo", () -> {
             try {
                 Thread.sleep(1000);
-                for (int i = 0; i < 5; ++i) {
-                    _vm.bindBack.doClickAction();
-                    Thread.sleep(500);
-                    _vm.bindBack.doClickAction();
-                    Thread.sleep(500);
-                    _vm.bindBack.doClickAction();
-                    Thread.sleep(500);
-                    _vm.bindTenkey[(int) (Math.random() * 9) + 1].doClickAction();
-                    Thread.sleep(500);
-                    _vm.bindTenkey[(int) (Math.random() * 9) + 1].doClickAction();
-                    Thread.sleep(500);
-                    _vm.bindTenkey[(int) (Math.random() * 9) + 1].doClickAction();
-                    Thread.sleep(500);
+                for (int i = 0; i < 4; ++ i) {
+                        _vm.bindBack.doClickAction();
+                        Thread.sleep(50);
                 }
-                Thread.sleep(500);
-                _vm.bindBack.doClickAction();
-                _vm.bindBack.doClickAction();
-                _vm.bindBack.doClickAction();
-                Thread.sleep(1000);
-                _vm.bindTenkey[7].doClickAction();
-                Thread.sleep(1000);
-                _vm.bindTenkey[7].doClickAction();
-                Thread.sleep(1000);
-                _vm.bindTenkey[7].doClickAction();
+                for (int i = 0; i < 7; ++i) {
+                    for (int x = 0; x < 9; ++x) {
+                        _vm.bindTenkey[(int) (Math.random() * 9) + 1].doClickAction();
+                        Thread.sleep(100);
+                    }
+                    for (int x = 0; x < 9; ++x) {
+                        _vm.bindBack.doClickAction();
+                        Thread.sleep(50);
+                    }
+                }
+                for (int i = 0; i < 3; ++i) {
+                    Thread.sleep(333);
+                    _vm.bindTenkey[7].doClickAction();
+                }
             } catch (InterruptedException ex) {
                 MXFileLogger.getLogger(MXUIPropertyDemo.class).log(Level.WARNING, ex.getMessage(), ex);
             }
@@ -443,16 +459,13 @@ public class MXUIPropertyDemo extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton9ActionPerformed
 
     private void jButtonto100ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonto100ActionPerformed
-        for (int i = 0; i <= 100; ++i) {
-            _vm.bindSpinner.set(i);
-        }
         new MXSafeThread("Button", () -> {
-            for (int i = 0; i <= 100; ++i) {
-                _vm.bindSpinner.set(i);
+            for (int i = 0; i < 100; ++i) {
+                _vm.bindSpinner.set(i * 100 + 50);
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(20);
                 } catch (Exception e) {
-                    
+
                 }
             }
         }).start();;

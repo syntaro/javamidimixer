@@ -42,9 +42,9 @@ public class MXConfiguration {
             return colorSlider2;
         }
     }
-    public static final boolean _DEBUG = false;
+    public static final boolean _DEBUG = true;
     public static final String LOOPMIDI_NAME = "EX MIDIMixer Out";
-    public static final String MX_APPLICATION = "MixRecipe 0.77.4" + (_DEBUG ? " **DEBUGMODE" : "(PublicBeta)");
+    public static final String MX_APPLICATION = "MixRecipe 0.77.4.1" + (_DEBUG ? " **DEBUGMODE" : "(PublicBeta)");
     public static final String MX_EDITING = "*** EDIT CONTROl MODE ***";
     public static final int DRUM_CH = 9;
 

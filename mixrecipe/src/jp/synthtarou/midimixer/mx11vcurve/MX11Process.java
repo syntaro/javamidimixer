@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.midimixer.mx11vcurve;
 
-import javax.swing.JPanel;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;

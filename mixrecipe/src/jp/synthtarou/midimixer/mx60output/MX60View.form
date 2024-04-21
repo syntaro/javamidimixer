@@ -60,7 +60,7 @@
                     </Constraint>
                   </Constraints>
 
-                  <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout"/>
+                  <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBoxLayout"/>
                 </Container>
                 <Component class="javax.swing.JCheckBox" name="jCheckBoxUseSkip">
                   <Properties>

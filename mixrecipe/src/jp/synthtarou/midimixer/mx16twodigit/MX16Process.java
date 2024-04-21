@@ -25,14 +25,14 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
  *
  * @author Syntarou YOSHIDA
  */
-public class MX16Process extends MXReceiver<MX11View> {
+public class MX16Process extends MXReceiver<MX16View> {
     MX16ViewData _viewData;
-    MX11View _view;
+    MX16View _view;
     int _type;
 
     public MX16Process() {
         _viewData = new MX16ViewData();
-        _view = new MX11View(this);
+        _view = new MX16View(this);
     }
     
     @Override
@@ -63,7 +63,7 @@ public class MX16Process extends MXReceiver<MX11View> {
     }
 
     @Override
-    public MX11View getReceiverView() {
+    public MX16View getReceiverView() {
         return _view;
     }
 }

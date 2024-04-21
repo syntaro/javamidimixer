@@ -39,36 +39,18 @@ import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
  */
 public class MX10View extends javax.swing.JPanel {
     MX10MidiInListPanel _inPanel;
-    JTableWithColumnHeader _jTableSkip;
-    MX10ViewData _viewData;
+    MX10Process _process;
     
     /**
      * Creates new form MX10View
      */
-    public MX10View() {
+    public MX10View(MX10Process process) {
         initComponents();
+        _process = process;
 
         _inPanel = new MX10MidiInListPanel();
         jPanelInputSelect.add(_inPanel);
 
-        _jTableSkip = new JTableWithFooter(jPanel1);
-        new MXAttachTableResize(_jTableSkip);
-
-        _jTableSkip.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                if (_jTableSkip.isEnabled()) {
-                    jTableSkip_MouseClicked(evt);
-                }
-            }
-        });
-
-        DefaultTableCellRenderer tableCellRenderer = new DefaultTableCellRenderer();
-        tableCellRenderer.setHorizontalAlignment(JLabel.CENTER);
-
-        for (int i = 1; i < _jTableSkip.getColumnCount(); ++ i) {
-            TableColumn col = _jTableSkip.getColumnModel().getColumn(i);
-            col.setCellRenderer(tableCellRenderer);
-        }
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
@@ -90,46 +72,6 @@ public class MX10View extends javax.swing.JPanel {
     
     public void splitAuto() {
         jSplitPane1.setDividerLocation(Math.max(jSplitPane1.getWidth() * 70 / 100, jSplitPane1.getWidth() - 400));
-    }
-    
-    private void jTableSkip_MouseClicked(java.awt.event.MouseEvent evt) {                                     
-        int row = _jTableSkip.rowAtPoint(evt.getPoint());
-        int column = _jTableSkip.columnAtPoint(evt.getPoint());
-        
-        int type = row;
-        int port = column - 1;
-        DefaultTableModel model = (DefaultTableModel)_jTableSkip.getModel();
-        
-        if (port >= 0 && port < MXConfiguration.TOTAL_PORT_COUNT) {
-            String var = (String)model.getValueAt(row, column);
-            if (var == null || var.length() == 0) {
-                setSkipDX(row, column, true);
-            }
-            else {
-                setSkipDX(row, column, false);
-            }
-        }
-    }                                    
-    
-    public void setSkipDX(int row, int column, boolean skip) {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> {
-                setSkipDX(row, column, skip);
-            });
-            return;
-        }
-        if (_viewData != null) {
-            int type = row;
-            int port = column - 1;
-            _viewData.setSkip(port, type, skip);
-        }
-        DefaultTableModel model = (DefaultTableModel)_jTableSkip.getModel();
-        if (skip) {
-            model.setValueAt("Skip", row, column);
-        }
-        else {
-            model.setValueAt("", row, column);
-        }
     }
 
     /**
@@ -157,7 +99,7 @@ public class MX10View extends javax.swing.JPanel {
         jSplitPane2.setDividerLocation(240);
         jSplitPane2.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
 
-        jPanelSkip.setBorder(javax.swing.BorderFactory.createTitledBorder("2.Input Filter"));
+        jPanelSkip.setBorder(javax.swing.BorderFactory.createTitledBorder("2.Input Patch & Filter"));
         jPanelSkip.setLayout(new java.awt.GridBagLayout());
 
         jCheckBoxUseSkip.setText("Use This Recipe");
@@ -197,47 +139,8 @@ public class MX10View extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jCheckBoxUseSkipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxUseSkipActionPerformed
-        _viewData._isUsingThieRecipe = jCheckBoxUseSkip.isSelected();
+        _process.setUsingThisRecipe(jCheckBoxUseSkip.isSelected());
     }//GEN-LAST:event_jCheckBoxUseSkipActionPerformed
-
-    public synchronized TableModel createSkipTableModel(MX10ViewData data) {
-        DefaultTableModel model = new DefaultTableModel() {
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-
-        model.addColumn("");
-        
-        for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++ i) {
-            model.addColumn(MXMidi.nameOfPortShort(i));
-        }
-        
-        for (int row = 0; row  < MX10ViewData.TYPE_COUNT; ++ row) {
-            Vector line = new Vector();
-            line.add(MX10ViewData._typeNames[row]);
-            
-            for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
-                int type = row ;
-                if (data.isSkip(port, type)) {
-                    line.add("Skip");
-                }else {
-                    line.add("");
-                }
-            }
-            model.addRow(line);
-        }
-        if (true) {
-            Vector line = new Vector();
-            line.add("");
-
-            for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++ i) {
-                line.add(MXMidi.nameOfPortShort(i));
-            }
-        }
-        return model;
-    }
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox jCheckBoxUseSkip;
@@ -249,18 +152,16 @@ public class MX10View extends javax.swing.JPanel {
     private javax.swing.JSplitPane jSplitPane2;
     // End of variables declaration//GEN-END:variables
 
-    public void setViewData(MX10ViewData viewData) {
+    public void showViewData() {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> {
-                setViewData(viewData);
+                showViewData();
             });
             return;
         }
-        _viewData = viewData;
-        _jTableSkip.setModel(createSkipTableModel(viewData));
-        jCheckBoxUseSkip.setSelected(_viewData._isUsingThieRecipe);
-        //_jTableSkip.getColumnModel().getColumn(0).setMinWidth(150);
-        new MXAttachTableResize(_jTableSkip);
+        jPanel1.removeAll();;
+        jPanel1.add(_process._patch.getReceiverView());
+        jCheckBoxUseSkip.setSelected(_process._patch.isUsingThisRecipe());
     }
     
     public void tabActivated() {

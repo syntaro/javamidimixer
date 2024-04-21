@@ -33,48 +33,28 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.swing.JTableWithColumnHeader;
 import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
-import jp.synthtarou.midimixer.mx10input.MX10ViewData;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MX60View extends javax.swing.JPanel {
-    JTableWithColumnHeader _jTableSkip;
     boolean _useSkipCC = true;
     MXNamedObjectList<Integer> _recPortList;
     MX60MidiOutListPanel _midiPanel;
     ButtonGroup _recorderGroup;
-    MX60ViewData _viewData;
-    
+    MX60Process _process;
+
     /**
      * Creates new form MX60View
      */
-    public MX60View() {
+    public MX60View(MX60Process process) {
         initComponents();
+        _process = process;
 
         _midiPanel = new MX60MidiOutListPanel();
         jPanelOutputSelect.add(_midiPanel);
-        
-        //_recPortList = MXMidi.createPort(false);
-        //jComboBoxRecSong.setModel(_recPortList);
-         
-        _jTableSkip = new JTableWithFooter(jPanel1);
-        _jTableSkip.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                if (_jTableSkip.isEnabled()) {
-                    jTableSkip_MouseClicked(evt);
-                }
-            }
-        });
-        DefaultTableCellRenderer tableCellRenderer = new DefaultTableCellRenderer();
-        tableCellRenderer.setHorizontalAlignment(JLabel.CENTER);
-
-        for (int i = 1; i < _jTableSkip.getColumnCount(); ++ i) {
-            TableColumn col = _jTableSkip.getColumnModel().getColumn(i);
-            col.setCellRenderer(tableCellRenderer);
-        }
+ 
         _recorderGroup = new ButtonGroup();
         _recorderGroup.add(jRadioButtonSong1);
         _recorderGroup.add(jRadioButtonSong2);
@@ -123,6 +103,8 @@ public class MX60View extends javax.swing.JPanel {
 
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("1.Output Filter"));
         jPanel2.setLayout(new java.awt.GridBagLayout());
+
+        jPanel1.setLayout(new javax.swing.BoxLayout(jPanel1, javax.swing.BoxLayout.LINE_AXIS));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -247,7 +229,7 @@ public class MX60View extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jCheckBoxUseSkipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxUseSkipActionPerformed
-         _viewData._isUsingThieRecipe = jCheckBoxUseSkip.isSelected();         
+         _process.setUsingThisRecipe(jCheckBoxUseSkip.isSelected());         
     }//GEN-LAST:event_jCheckBoxUseSkipActionPerformed
 
     private void jToggleButtonRecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButtonRecActionPerformed
@@ -257,11 +239,11 @@ public class MX60View extends javax.swing.JPanel {
         }
         if (jToggleButtonRec.isSelected()) {
             jProgressBar1.setIndeterminate(true);
-            _viewData.startRecording(x);   
+            _process._viewData.startRecording(x);   
         }
         else {
             jProgressBar1.setIndeterminate(false);
-            _viewData.stopRecording();
+            _process._viewData.stopRecording();
         }
         enableRecordingButton();
     }//GEN-LAST:event_jToggleButtonRecActionPerformed
@@ -272,10 +254,10 @@ public class MX60View extends javax.swing.JPanel {
             return;
         }
         if (jToggleButtonPlay.isSelected()) {
-            _viewData.startPlaying(x);   
+            _process._viewData.startPlaying(x);   
         }
         else {
-            _viewData.stopPlaying();
+            _process._viewData.stopPlaying();
         }
         enableRecordingButton();
     }//GEN-LAST:event_jToggleButtonPlayActionPerformed
@@ -301,59 +283,11 @@ public class MX60View extends javax.swing.JPanel {
     }//GEN-LAST:event_jRadioButtonSong1ActionPerformed
 
     private void jButtonSongExportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSongExportActionPerformed
-        if (_viewData.saveSequenceData() == false) {
+        if (_process._viewData.saveSequenceData() == false) {
             JOptionPane.showMessageDialog(this, "Error while saving MIDI", "Information", JOptionPane.OK_OPTION);
         }
     }//GEN-LAST:event_jButtonSongExportActionPerformed
-
-    public synchronized TableModel createSkipTableModel(MX10ViewData viewData) {
-        DefaultTableModel model = new DefaultTableModel() {
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-
-        model.addColumn("");
-        
-        for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++ i) {
-            model.addColumn(MXMidi.nameOfPortShort(i));
-        }
-        
-        for (int type = 0; type < _viewData.TYPE_COUNT; ++ type) {
-            Vector line = new Vector();
-            line.add(_viewData._typeNames[type]);
-            
-            for (int delivery = 0; delivery < MXConfiguration.TOTAL_PORT_COUNT; ++ delivery) {
-                if (_viewData.isSkip(delivery, type)) {
-                    line.add("Skip");
-                }else {
-                    line.add("");
-                }
-            }
-            model.addRow(line);
-        }
-        return model;
-
-    }
-
-    private void jTableSkip_MouseClicked(java.awt.event.MouseEvent evt) {                                     
-        int row = _jTableSkip.rowAtPoint(evt.getPoint());
-        int column = _jTableSkip.columnAtPoint(evt.getPoint());
-        
-        int type = row;
-        int port = column - 1;
-        DefaultTableModel model = (DefaultTableModel)_jTableSkip.getModel();
-        
-        if (port >= 0 && port < MXConfiguration.TOTAL_PORT_COUNT) {
-            if (_viewData.isSkip(port, type)) {
-                _viewData.setSkip(port, type, false);
-                model.setValueAt("", row, column);
-            }else {
-                _viewData.setSkip(port, type, true);
-                model.setValueAt("Skip", row, column);
-            }
-        }
-    }                                    
+       
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
@@ -437,11 +371,11 @@ public class MX60View extends javax.swing.JPanel {
     }
     
     private void enableRecordingButton() {
-        if (_viewData.isRecording()) {
+        if (_process._viewData.isRecording()) {
             jToggleButtonPlay.setEnabled(false);
             jToggleButtonRec.setEnabled(true);
         }
-        else if (_viewData.isPlaying()) {
+        else if (_process._viewData.isPlaying()) {
             jToggleButtonPlay.setEnabled(true);
             jToggleButtonRec.setEnabled(false);
         }
@@ -450,7 +384,7 @@ public class MX60View extends javax.swing.JPanel {
             jToggleButtonRec.setSelected(false);
             jToggleButtonRec.setEnabled(true);
             int x = getSelectedTrack();
-            if (_viewData.hasRecorning(x)) {
+            if (_process._viewData.hasRecorning(x)) {
                 jToggleButtonPlay.setEnabled(true);
             }else {
                 jToggleButtonPlay.setEnabled(false);
@@ -477,18 +411,16 @@ public class MX60View extends javax.swing.JPanel {
         enableRecordingButton();
     }
 
-    public void setViewData(MX60ViewData viewData) {
+    public void showViewData() {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> {
-                setViewData(viewData);
+                showViewData();
             });
             return;
         }
-        _viewData = viewData;
-        jCheckBoxUseSkip.setSelected(_viewData._isUsingThieRecipe);
-        _jTableSkip.setModel(createSkipTableModel(viewData));
-        _jTableSkip.getColumnModel().getColumn(0).setMinWidth(150);
-        new MXAttachTableResize(_jTableSkip);
+        jCheckBoxUseSkip.setSelected(_process.isUsingThisRecipe());
+        jPanel1.removeAll();
+        jPanel1.add(_process._patch.getReceiverView());
         enableRecordingButton();
     }
 }

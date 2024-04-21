@@ -31,7 +31,6 @@ import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
-import jp.synthtarou.midimixer.mx30surface.MX32MixerProcess;
 
 /**
  *
