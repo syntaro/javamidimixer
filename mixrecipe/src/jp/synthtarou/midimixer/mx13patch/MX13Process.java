@@ -141,6 +141,7 @@ public class MX13Process extends MXReceiver<MX13View> {
                 }
             }
         }
+        setInformation();
     }
 
     public void resetSetting() {
@@ -156,6 +157,8 @@ public class MX13Process extends MXReceiver<MX13View> {
                 }
             }
         }
+        setInformation();
+
     }
     
     public void clearSetting() {

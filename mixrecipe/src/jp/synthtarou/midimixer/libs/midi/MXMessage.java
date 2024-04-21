@@ -18,12 +18,11 @@ package jp.synthtarou.midimixer.libs.midi;
 
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
-import java.util.logging.Level;
-import jp.synthtarou.libs.log.MXFileLogger;
-import jp.synthtarou.libs.MXUtil;
+import java.util.logging.*;
 import jp.synthtarou.libs.MXRangedValue;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.MXConfiguration;
-import static jp.synthtarou.midimixer.libs.midi.MXTemplate.parseDAlias;
 import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant;
 
 /**
@@ -123,7 +122,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
     public int parseTemplate(int pos) {
         int x = _template.get(pos);
         try {
-            return parseDAlias(x, this);
+            return MXTemplate.parseDAlias(x, this);
         } catch (IllegalArgumentException e) {
             //throw e;
         }
@@ -170,7 +169,7 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
             if (x == 0) {
                 return c;
             }
-            int c2 = parseDAlias(c, this);
+            int c2 = MXTemplate.parseDAlias(c, this);
             if (c != c2) {
                 return c2;
             }
