@@ -359,7 +359,7 @@ public class SMFSequencer {
                     message._port = port;
                     smfPlayNote(message);
                 }
-                MXTemplate temp = new MXTemplate(MXMidi.MASTER_VOLUME);
+                MXTemplate temp = MXMidi.TEMPLATE_MASTERVOLUME;
                 MXMessage msg1 = MXMessageFactory.fromTemplate(0, temp, 0, MXRangedValue.ZERO7, MXRangedValue.new7bit(127));
                 byte[]reset = msg1.getBinary();
 

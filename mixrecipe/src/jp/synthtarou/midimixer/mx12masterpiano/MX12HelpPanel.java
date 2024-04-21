@@ -116,7 +116,7 @@ public class MX12HelpPanel extends javax.swing.JPanel {
         str.append(" -> higher 7bit = #VH, lower7bit = #VL").append("\n");
         str.append(" ").append("\n");
         str.append("PitchBend").append("\n");
-        str.append(" @PB #VH #VL").append("\n");
+        str.append(" @PB #VH #VL -> E0 #VL #VH").append("\n");
         str.append("Chnanel Pressure").append("\n");
         str.append(" @CP #VL").append("\n");
         str.append("Polyphonic Key Pressure").append("\n");

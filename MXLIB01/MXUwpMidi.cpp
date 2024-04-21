@@ -525,7 +525,7 @@ info->itsOutput.SendMessageW(msg);
     }
     break;
     case 0xe0: {
-        MidiPitchBendChangeMessage  msg(channel, data1 << 7 | data2);
+        MidiPitchBendChangeMessage  msg(channel, data2 << 7 | data1);
         info->itsOutput.SendMessageW(msg);
     }
              break;

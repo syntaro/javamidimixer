@@ -105,7 +105,28 @@ public class MXMidi {
     }
     
     
-    public static final String MASTER_VOLUME = "F0h, 7Fh, 7Fh, 04h, 01h, 11h, #VL, F7h";
+    static int[] MASTERVOLUME = new int[]{
+        0xf0, 0x7F, 0x7F, 0x04, 0x01, 0x11, MXMidi.CCXML_VL, 0xF7
+    };
+    static int[] PB_ = new int[]{
+        MXMidi.COMMAND2_CH_PITCH_MSBLSB, MXMidi.CCXML_VH, MXMidi.CCXML_VL
+    };
+    static int[] PITCH = new int[]{
+        MXMidi.COMMAND_CH_PITCHWHEEL, MXMidi.CCXML_VL, MXMidi.CCXML_VH
+    };
+    public static MXTemplate TEMPLATE_MASTERVOLUME;
+    public static MXTemplate TEMPLATE_CCXMLPB;
+    public static MXTemplate TEMPLATE_PITCH;
+    
+    static {
+        try {
+            TEMPLATE_MASTERVOLUME = new MXTemplate(MASTERVOLUME);
+            TEMPLATE_CCXMLPB = new MXTemplate(PB_);
+            TEMPLATE_PITCH = new MXTemplate(PITCH);
+        }catch(Throwable e){
+            e.printStackTrace();
+        }
+    }
     public static final int COMMAND_CH_NOTEOFF = 0x80; 
     public static final int COMMAND_CH_NOTEON = 0x90;
     public static final int COMMAND_CH_POLYPRESSURE = 0xa0;
@@ -136,6 +157,7 @@ public class MXMidi {
     public static final int COMMAND2_CH_NRPN = 0x5600; /* msb lsb datamsb datalsb */
     public static final int COMMAND2_CH_PROGRAM_INC = 0x6000; /* no param */
     public static final int COMMAND2_CH_PROGRAM_DEC = 0x6100; /* no param */
+    public static final int COMMAND2_CH_PITCH_MSBLSB = 0x6200; /* @PB MSB LSB -> translate E0 LSB MSB */
     
     public static final int CCXML_NONE = 0x100;
     public static final int CCXML_VL = 0x200;

@@ -143,7 +143,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\github\VST_SDK\vst3sdk;C:\github\asiosdk2\common;C:\github\portaudio\include;C:\java\jdk-14\include;C:\java\jdk-14\include\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\github\VST_SDK\vst3sdk;C:\github\asiosdk2\common;C:\github\portaudio\include;C:\java\jdk-22\include;C:\java\jdk-22\include\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

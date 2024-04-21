@@ -73,6 +73,13 @@ public class MXPreprocessDiagnostics {
                     return;
             }
         }
+        if (message.isCommand(MXMidi.COMMAND_CH_PITCHWHEEL)) {
+            MXRangedValue value = message.getValue();
+            message = MXMessageFactory.fromTemplate(message.getPort()
+                    , MXMidi.TEMPLATE_CCXMLPB, message.getChannel()
+                    , MXRangedValue.ZERO7, value);
+        }
+
         if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
             thisCC = message.getCompiled(1);
         }
