@@ -150,11 +150,7 @@ public class MX13Process extends MXReceiver<MX13View> {
             
             for (MX13To to : from._listTo) {
                 to.setItemChecked(from._port == to._port ? true : false);
-                
-                for (MX13SignalType type : to._list) {
-                    type.setItemChecked(type._type == MX13SignalType.TYPE_ALL ? true : false);
-                    
-                }
+                to.resetSkip();;
             }
         }
         setInformation();

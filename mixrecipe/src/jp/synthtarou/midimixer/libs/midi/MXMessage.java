@@ -356,6 +356,11 @@ public final class MXMessage implements Comparable<MXMessage>, Cloneable {
         }
         if (indexOfValueLow() >= 0 || indexOfValueHi() >= 0) {
             value = String.valueOf(getValue()._value);
+            if (indexOfValueHi() >= 0) {
+                int vh = (getValue()._value >> 7) & 0x7f;
+                int vl = getValue()._value & 0x7f;
+                value += MXUtil.toHexFF(vh)  +":" + MXUtil.toHexFF(vl);
+            }
         }
         if (gate == null && value == null) {
             return "";

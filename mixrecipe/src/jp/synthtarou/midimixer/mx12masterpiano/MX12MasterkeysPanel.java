@@ -224,7 +224,12 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         if (_sentPitch != value) {
             _sentPitch = value;
             jSliderPitch.setValue(value);
-            MXMessage msg = MXMessageFactory.fromShortMessage(_process._mousePort, MXMidi.COMMAND_CH_PITCHWHEEL + _process._mouseChannel, 0, 0);
+
+            MXMessage msg  = MXMessageFactory.fromTemplate(_process._mousePort
+                    , MXMidi.TEMPLATE_CCXMLPB, _process._mouseChannel
+                    , MXRangedValue.ZERO7, MXRangedValue.new14bit(value));
+
+            //MXMessage msg = MXMessageFactory.fromShortMessage(_process._mousePort, MXMidi.COMMAND_CH_PITCHWHEEL + _process._mouseChannel, 0, 0);
             if (msg.indexOfValueHi() >= 0) {
                 msg.setValue(MXRangedValue.new14bit(value));
             } else {

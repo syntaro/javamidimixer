@@ -151,7 +151,7 @@ public class MX13View extends javax.swing.JPanel {
         gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 10);
         jPanel1.add(jLabel2, gridBagConstraints);
 
-        jLabel1.setText("Which(  OR )");
+        jLabel1.setText("Skip");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;

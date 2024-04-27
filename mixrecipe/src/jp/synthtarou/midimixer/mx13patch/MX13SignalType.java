@@ -55,10 +55,10 @@ public class MX13SignalType implements CheckableElement {
         return -1;
     }
 
-    public MX13SignalType(MX13To to, int type, String name) {
+    public MX13SignalType(MX13To to, int type) {
         _type = type;
         _to = to;
-        _name = name;
+        _name = MX13SignalType.typeNames[type];
     }
 
     MX13To _to;
@@ -84,7 +84,7 @@ public class MX13SignalType implements CheckableElement {
         return _name;
     }
 
-    public boolean accept(MXMessage message) {
+    public boolean isSkip(MXMessage message) {
         int status = message.getStatus();
         int command = status;
         if (message.isChannelMessage1() || command >= 0x100) {
@@ -109,7 +109,7 @@ public class MX13SignalType implements CheckableElement {
                 }
                 break;
             case TYPE_PITCH_BEND:
-                if (command == MXMidi.COMMAND_CH_PITCHWHEEL) {
+                if (command == MXMidi.COMMAND_CH_PITCHWHEEL || command == MXMidi.COMMAND2_CH_PITCH_MSBLSB) {
                     return true;
                 }
                 break;

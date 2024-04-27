@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import javax.swing.ButtonGroup;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -51,7 +52,7 @@ import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
  *
  * @author Syntarou YOSHIDA
  */
-public class NavigatorForCCXMLInst extends javax.swing.JPanel implements INavigator<CCXMLInst>{
+public class NavigatorForCCXMLInst extends javax.swing.JPanel implements INavigator<CCXMLInst> {
 
     public static void main(String[] args) {
         NavigatorForCCXMLInst editor = new NavigatorForCCXMLInst();
@@ -68,6 +69,7 @@ public class NavigatorForCCXMLInst extends javax.swing.JPanel implements INaviga
         }
         return false;
     }
+
     /**
      * Creates new form NavigatorForCCXMLInst
      */
@@ -82,16 +84,7 @@ public class NavigatorForCCXMLInst extends javax.swing.JPanel implements INaviga
         jComboBoxTestChannel.setModel(MXNamedObjectListFactory.listupChannel(null));
         _listXMLFile = CXXMLManager.getInstance().listLoaded();
 
-        if (file == null) {
-            _scanXMLFile = null;
-            if (_listXMLFile.size() > 0) {
-                _scanXMLFile = _listXMLFile.get(0);
-            }
-
-        } else {
-            _scanXMLFile = file;
-        }
-        updateXMLFileView();
+        updateXMLComboModel();
 
         _piano = new MXPianoKeys();
         jPanelPiano.add(_piano);
@@ -122,6 +115,7 @@ public class NavigatorForCCXMLInst extends javax.swing.JPanel implements INaviga
         _group1.add(jRadioButtonVel4);
 
         jRadioButtonVel3.setSelected(true);
+        _stopFeedback--;
     }
 
     int[] _tblVelocity = {20, 60, 100, 127};
@@ -144,7 +138,7 @@ public class NavigatorForCCXMLInst extends javax.swing.JPanel implements INaviga
 
     int _returnStatus;
     CCXMLInst _returnValue;
-    
+
     ButtonGroup _group1;
 
     int _testPort;
@@ -161,24 +155,13 @@ public class NavigatorForCCXMLInst extends javax.swing.JPanel implements INaviga
 
     MXNamedObjectList<MXReceiver> _listReceiver;
 
-    CXFile _resultXMLFile = null;
-    CXNode _resultModule = null;
-    CXNode _resultMap = null;
-    public CXNode _resultProgram = null;
-    public CXNode _resultBank = null;
+    CXFile _selectedXMLFile = null;
+    CXNode _selectedModule = null;
+    CXNode _selectedMap = null;
+    CXNode _selectedProgram = null;
+    CXNode _selectedBank = null;
     String _resultText = "";
 
-    CXFile _scanXMLFile = null;
-    CXNode _scanModule = null;
-    CXNode _scanMap = null;
-    int _scanProgram = 1;
-    /* 1~128 */
-    int _scanBankMSB = -1;
-    /* 0-FF */
-    int _scanBankLSB = -1;
-    /* 0-FF */
-    String _scanText = "";
-    
     @Override
     public int getNavigatorType() {
         return INavigator.TYPE_EDITOR;
@@ -237,11 +220,13 @@ public class NavigatorForCCXMLInst extends javax.swing.JPanel implements INaviga
         _timeToSearch = System.currentTimeMillis() + 300;
         MXCountdownTimer.letsCountdown(300, () -> {
             if (System.currentTimeMillis() >= _timeToSearch) {
-                _scanText = jTextFieldSearch.getText();
-                _scanMap = null;
-                updateXMLFileView();
+                applyFilter(jTextFieldSearch.getText());
             }
         });
+    }
+
+    public void applyFilter(String text) {
+        //TODO
     }
 
     /**
@@ -494,6 +479,12 @@ public class NavigatorForCCXMLInst extends javax.swing.JPanel implements INaviga
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         jPanel1.add(jLabel8, gridBagConstraints);
+
+        jComboBoxXML.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxXMLActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
@@ -521,6 +512,12 @@ public class NavigatorForCCXMLInst extends javax.swing.JPanel implements INaviga
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         jPanel1.add(jLabel9, gridBagConstraints);
+
+        jComboBoxModule.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxModuleActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
@@ -599,54 +596,76 @@ public class NavigatorForCCXMLInst extends javax.swing.JPanel implements INaviga
     }//GEN-LAST:event_jComboBoxTestChannelActionPerformed
 
     private void jListProgramValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListProgramValueChanged
-        if (_internalChange) {
+        if (_stopFeedback > 0) {
             return;
         }
         int index = jListProgram.getSelectedIndex();
         if (index >= 0) {
-            _scanProgram = _modelListProgram.valueOfIndex(index)._listAttributes.numberOfName("PC", -1);
-            updateXMLFileView();
+            CXNode program = _modelListProgram.valueOfIndex(index);
+            _selectedProgram = program;
+            updateBankListModel(program);
         }
     }//GEN-LAST:event_jListProgramValueChanged
 
     private void jListBankValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListBankValueChanged
-        _returnValue = new CCXMLInst();
-        
-        _returnValue._bankMSB = MXUtil.numberFromText(_resultBank._listAttributes.valueOfName("MSB"), -1);
-        _returnValue._bankLSB = MXUtil.numberFromText(_resultBank._listAttributes.valueOfName("LSB"), -1);
-        _returnValue._bankName = _resultBank._listAttributes.valueOfName("NAME");
-        _returnValue._programName = _resultProgram._listAttributes.valueOfName("Name");
-        _returnValue._progranNumber = MXUtil.numberFromText(_resultProgram._listAttributes.valueOfName("PC"), -1);
-
-        sendProgramChange();
+        int index = jListBank.getSelectedIndex();
+        if (index >= 0) {
+            CXNode bank = _modelListBank.valueOfIndex(index);
+            _selectedBank = bank;
+            _returnValue = new CCXMLInst();
+            _returnValue._bankMSB = MXUtil.numberFromText(_selectedBank._listAttributes.valueOfName("MSB"), -1);
+            _returnValue._bankLSB = MXUtil.numberFromText(_selectedBank._listAttributes.valueOfName("LSB"), -1);
+            _returnValue._bankName = _selectedBank._listAttributes.valueOfName("NAME");
+            _returnValue._programName = _selectedProgram._listAttributes.valueOfName("Name");
+            _returnValue._progranNumber = MXUtil.numberFromText(_selectedProgram._listAttributes.valueOfName("PC"), -1);
+            sendProgramChange();
+        }
     }//GEN-LAST:event_jListBankValueChanged
 
     private void jComboBoxTestPortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxTestPortActionPerformed
     }//GEN-LAST:event_jComboBoxTestPortActionPerformed
 
     private void jButtonCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCloseActionPerformed
-        _returnStatus =  INavigator.RETURN_STATUS_NOTSET;
+        _returnStatus = INavigator.RETURN_STATUS_NOTSET;
         if (_returnValue != null) {
-            _returnStatus =  INavigator.RETURN_STATUS_APPROVED;
+            _returnStatus = INavigator.RETURN_STATUS_APPROVED;
         }
         MXUtil.getOwnerWindow(this).setVisible(false);
     }//GEN-LAST:event_jButtonCloseActionPerformed
 
     private void jListMapValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListMapValueChanged
-        if (_internalChange) {
+        if (_stopFeedback > 0) {
             return;
         }
-        _scanMap = null;
         int sel = jListMap.getSelectedIndex();
         if (sel >= 0) {
-            _scanMap = _modelListMap.valueOfIndex(sel);
+            CXNode scanMap = _modelListMap.valueOfIndex(sel);
+            updateProgramListModel(scanMap);
         }
-        updateXMLFileView();
     }//GEN-LAST:event_jListMapValueChanged
 
     private void jComboBoxTestReceiverActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxTestReceiverActionPerformed
 
     }//GEN-LAST:event_jComboBoxTestReceiverActionPerformed
+
+    private void jComboBoxXMLActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxXMLActionPerformed
+        int sel = jComboBoxXML.getSelectedIndex();
+        if (sel >= 0) {
+            String name = _modelListXML.nameOfIndex(sel);
+            CXFile file = _modelListXML.valueOfIndex(sel);
+            updateModuleComboModel(file);
+        }
+    }//GEN-LAST:event_jComboBoxXMLActionPerformed
+
+    private void jComboBoxModuleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxModuleActionPerformed
+        int sel = jComboBoxModule.getSelectedIndex();
+        if (sel >= 0) {
+            String name = _modelListModule.nameOfIndex(sel);
+            CXNode scanModule = _modelListModule.valueOfIndex(sel);
+            JOptionPane.showMessageDialog(this, name, "Module", JOptionPane.OK_OPTION);
+            updateMapListModel(scanModule);
+        }
+    }//GEN-LAST:event_jComboBoxModuleActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
@@ -688,210 +707,171 @@ public class NavigatorForCCXMLInst extends javax.swing.JPanel implements INaviga
     private javax.swing.JTextField jTextFieldSearch;
     // End of variables declaration//GEN-END:variables
 
-    boolean _internalChange = false;
+    int _stopFeedback = 1;
 
-    public void updateXMLFileView() {
-        MXFileLogger.getLogger(NavigatorForCCXMLInst.class).info("scanXMLFile = " + _scanXMLFile);
+    public void updateXMLComboModel() {
         /* XML一覧を更新し、_scanXMLFileを選択する */
         _modelListXML = new MXNamedObjectList();
-        if (_resultXMLFile != _scanXMLFile || _modelListXML == null) {
-            _resultXMLFile = _scanXMLFile;
+        try {
+            _stopFeedback++;
             _modelListXML = new MXNamedObjectList<>();
             _modelListModule = null;
 
-            int selection = -1;
             // 一覧を更新する
             for (int i = 0; i < _listXMLFile.size(); ++i) {
                 CXFile xmlSeek = _listXMLFile.get(i);
                 _modelListXML.addNameAndValue(xmlSeek._file.getName(), xmlSeek);
             }
-            // 選択を取得する
-            for (int i = 0; i < _modelListXML.size(); ++i) {
-                CXFile seek = _modelListXML.valueOfIndex(i);
-                if (seek == _scanXMLFile) {
-                    selection = i;
-                }
-            }
-            //UIを更新する
-            _internalChange = true;
             jComboBoxXML.setModel(_modelListXML);
-            jComboBoxXML.setSelectedIndex(selection);
-            _internalChange = false;
+            _selectedXMLFile = _modelListXML.valueOfIndex(0);
+            updateModuleComboModel(_selectedXMLFile);
+        } finally {
+            _stopFeedback--;
         }
-        updateModuleView();
     }
 
-    public void updateModuleView() {
-        MXFileLogger.getLogger(NavigatorForCCXMLInst.class).info("scanModule = " + _scanModule);
-        /* MAP一覧を更新し、_scanMapを選択する */
-        if (_resultModule != _scanModule || _scanText.equals(_resultText) == false || _modelListModule == null) {
-            _resultModule = _scanModule;
-            _modelListMap = null;
-
+    public void updateModuleComboModel(CXFile scanFile) {
+        try {
+            _stopFeedback++;
             _modelListModule = new MXNamedObjectList<>();
-            int selection = -1;
-
-            if (_resultXMLFile != null && _resultXMLFile._document != null) {
-                // 一覧を更新する
-                CCRuleManager rule = CCRuleManager.getInstance();
-                List<CXNode> moduleData = _resultXMLFile._document.listChildren(rule.moduleData);
-                if (moduleData != null) {
-                    if (_scanModule == null && moduleData.size() > 0) {
-                        _scanModule = moduleData.get(0);
-                        _resultModule = _scanModule;
-                    }
-                    for (int seek = 0; seek < moduleData.size(); ++seek) {
-                        CXNode moduleSeek = moduleData.get(seek);
-                        _modelListModule.addNameAndValue(moduleSeek._listAttributes.valueOfName("Name"), moduleSeek);
+            CCRuleManager rule = CCRuleManager.getInstance();
+            List<CXNode> moduleData = scanFile._document.listChildren(rule.moduleData);
+            int scanModule = -1;
+            if (moduleData != null) {
+                for (int seek = 0; seek < moduleData.size(); ++seek) {
+                    CXNode moduleSeek = moduleData.get(seek);
+                    _modelListModule.addNameAndValue(moduleSeek._listAttributes.valueOfName("Name"), moduleSeek);
+                    if (_selectedModule == moduleSeek) {
+                        scanModule = seek;
                     }
                 }
             }
-            // 選択を取得する
-            for (int i = 0; i < _modelListModule.size(); ++i) {
-                CXNode seek = _modelListModule.valueOfIndex(i);
-                if (seek == _scanModule) {
-                    _resultModule = seek;
-                    selection = i;
-                }
+            if (scanModule < 0 && _modelListModule.size() > 0) {
+                scanModule = 0;
             }
-            // UIを更新する
-            _internalChange = true;
             jComboBoxModule.setModel(_modelListModule);
-            jComboBoxModule.setSelectedIndex(selection);
-            _internalChange = false;
+            if (scanModule >= 0) {
+                _selectedModule = _modelListModule.valueOfIndex(scanModule);
+                jComboBoxModule.setSelectedIndex(scanModule);
+                updateMapListModel(_selectedModule);
+            }
+        } finally {
+            _stopFeedback--;
         }
-        updateMapView();
     }
 
-    public void updateMapView() {
-        /* MAP一覧を更新し、_scanMapを選択する */
-        if (_resultMap != _scanMap || _scanText.equals(_resultText) == false || _modelListMap == null) {
-            _resultMap = _scanMap;
-            _modelListProgram = null;
-
+    public void updateMapListModel(CXNode scanModule) {
+        try {
+            _stopFeedback++;
             _modelListMap = new MXNamedObjectList<>();
             int selection = -1;
 
             // 一覧を更新する
-            if (_scanModule != null) {
-                CCRuleManager rule = CCRuleManager.getInstance();
-                List<CXNode> instrumentList = _scanModule.listChildren(rule.instrumentList);
-                if (instrumentList != null && instrumentList.size() > 0) {
-                    List<CXNode> mapList = instrumentList.get(0).listChildren(rule.instrumentList_map);
-                    for (int seek = 0; seek < mapList.size(); ++seek) {
-                        CXNode mapSeek = mapList.get(seek);
-                        _modelListMap.addNameAndValue(mapSeek._listAttributes.valueOfName("Name"), mapSeek);
+            CCRuleManager rule = CCRuleManager.getInstance();
+            List<CXNode> instrumentList = scanModule.listChildren(rule.instrumentList);
+            int scanMap = -1;
+            if (instrumentList != null && instrumentList.size() > 0) {
+                List<CXNode> mapList = instrumentList.get(0).listChildren(rule.instrumentList_map);
+                for (int seek = 0; seek < mapList.size(); ++seek) {
+                    CXNode seekMap = mapList.get(seek);
+                    _modelListMap.addNameAndValue(seekMap._listAttributes.valueOfName("Name"), seekMap);
+                    if (_selectedMap == seekMap) {
+                        scanMap = seek;
                     }
                 }
             }
-            // 選択を取得する
-            for (int i = 0; i < _modelListMap.size(); ++i) {
-                CXNode seek = _modelListMap.valueOfIndex(i);
-                if (seek == _scanMap) {
-                    _resultMap = seek;
-                    selection = i;
-                }
+            if (scanMap < 0 && _modelListMap.size() > 0) {
+                scanMap = 0;
             }
-            // UIを更新する
-            _internalChange = true;
             jListMap.setModel(_modelListMap);
-            jListMap.setSelectedIndex(selection);
-            _internalChange = false;
+            if (scanMap >= 0) {
+                _selectedProgram = _modelListMap.valueOfIndex(scanMap);
+                jListMap.setSelectedIndex(scanMap);
+                updateProgramListModel(_selectedProgram);
+            }
+        } finally {
+            _stopFeedback--;
         }
-        updateProgramView();
     }
 
-    public void updateProgramView() {
-        /* プログラム一覧を更新し、_scanProgramを選択する */
-        int resultPC = -1;
-        if (_resultProgram != null) {
-            resultPC = _resultProgram._listAttributes.numberOfName("PC", -1);
-        }
-        if (resultPC != _scanProgram || _scanText.equals(_resultText) == false || _modelListProgram == null) {
-            _modelListBank = null;
+    public void updateProgramListModel(CXNode scanMap) {
+        try {
+            _stopFeedback++;
             _modelListProgram = new MXNamedObjectList<>();
-
-            if (_resultMap != null) {
-                //一覧を更新する
-                List<CXNode> PCList = _resultMap.listChildren("PC");
-                for (int i = 0; i < PCList.size(); ++i) {
-                    CXNode programSeek = PCList.get(i);
-                    String pc = programSeek._listAttributes.valueOfName("PC");
-                    String name = programSeek._listAttributes.valueOfName("Name");
-
-                    _modelListProgram.addNameAndValue(pc + ". " + name, programSeek);
-                }
+            
+            int scanProgram = -1;
+            String selPC = "";
+            if (_selectedProgram != null) {
+                _selectedProgram._listAttributes.valueOfName("PC");
             }
-            //選択を取得する
-            int selection = -1;
-            for (int i = 0; i < _modelListProgram.size(); ++i) {
-                CXNode seek = _modelListProgram.valueOfIndex(i);
-                String pc = seek._listAttributes.valueOfName("PC");
 
-                if (MXUtil.numberFromText(pc) == _scanProgram || _modelListProgram.size() == 1) {
-                    _resultProgram = seek;
-                    selection = i;
-                    break;
-                }
-            }
-            //UIを更新する
-            _internalChange = true;
-            jListProgram.setModel(_modelListProgram);
-            jListProgram.setSelectedIndex(selection);
-            _internalChange = false;
-        }
-        updateBankView();
-    }
-
-    public void updateBankView() {
-        //BANK一覧を更新し、_scanBankMSB::_scanBankSBを選択する
-        int resultMSB = -1;
-        int resultLSB = -1;
-        if (_resultBank != null) {
-            resultMSB = _resultBank._listAttributes.numberOfName("MSB", -1);
-            resultLSB = _resultBank._listAttributes.numberOfName("LSB", -1);
-        }
-        if (_scanBankMSB != resultMSB || _scanBankLSB != resultLSB || _scanText.equals(_resultText) == false || _modelListBank == null) {
-
-            _modelListBank = new MXNamedObjectList<>();
-
-            int selection = -1;
-
-            if (_resultProgram != null) {
-                List<CXNode> listBank = _resultProgram.listChildren("Bank");
-
-                for (int i = 0; i < listBank.size(); ++i) {
-                    CXNode bankSeek = listBank.get(i);
-                    String lsb = bankSeek._listAttributes.valueOfName("LSB");
-                    String msb = bankSeek._listAttributes.valueOfName("MSB");
-                    String name = bankSeek._listAttributes.valueOfName("Name");
-
-                    _modelListBank.addNameAndValue(msb + ":" + lsb + ", " + name, bankSeek);
-                    int msbNum = MXUtil.numberFromText(msb, -1);
-                    int lsbNum = MXUtil.numberFromText(lsb, -1);
-                    if (listBank.size() == 1 || (msbNum == _scanBankMSB && lsbNum == _scanBankLSB)) {
-                        _resultBank = bankSeek;
-                        selection = i;
+            List<CXNode> PCList = scanMap.listChildren("PC");
+            for (int i = 0; i < PCList.size(); ++i) {
+                CXNode programSeek = PCList.get(i);
+                String pc = programSeek._listAttributes.valueOfName("PC");
+                String name = programSeek._listAttributes.valueOfName("Name");
+                
+                if (_selectedProgram != null) {
+                    if (pc.equals(selPC)) {
+                        scanProgram = i;
                     }
                 }
-            }
 
-            _internalChange = true;
-            jListBank.setModel(_modelListBank);
-            jListBank.setSelectedIndex(selection);
-            _internalChange = false;
+                _modelListProgram.addNameAndValue(pc + ". " + name, programSeek);
+            }
+            if (scanProgram < 0 && _modelListProgram.size() > 0) {
+                scanProgram = 0;
+            }
+            jListProgram.setModel(_modelListProgram);
+            if (scanProgram >= 0) {
+                _selectedBank = _modelListProgram.valueOfIndex(scanProgram);
+                jListProgram.setSelectedIndex(scanProgram);
+                updateBankListModel(_selectedBank);
+            }
+        } finally {
+            _stopFeedback--;
         }
-        sendProgramChange();
     }
 
-    public void scan(int xml, int program, int msb, int lsb) {
-        if (_listXMLFile.isEmpty()) {
-            return;
+    public void updateBankListModel(CXNode scanProgram) {
+        try {
+            _stopFeedback++;
+            _modelListBank = new MXNamedObjectList<>();
+            int selection = -1;
+
+            List<CXNode> listBank = scanProgram.listChildren("Bank");
+            int scanBank = -1;
+            String selMSB = "", selLSB =  "";
+            if (_selectedBank != null) {
+                selMSB = _selectedBank._listAttributes.valueOfName("MSB");
+                selLSB = _selectedBank._listAttributes.valueOfName("LSB");
+            }
+            for (int i = 0; i < listBank.size(); ++i) {
+                CXNode bankSeek = listBank.get(i);
+                String msb = bankSeek._listAttributes.valueOfName("MSB");
+                String lsb = bankSeek._listAttributes.valueOfName("LSB");
+                String name = bankSeek._listAttributes.valueOfName("Name");
+
+                if (_selectedBank != null) {
+                    if (msb.equals(selMSB) && lsb.equals(selLSB)) {
+                        scanBank = i;
+                    }
+                }
+
+                _modelListBank.addNameAndValue(msb + ":" + lsb + ", " + name, bankSeek);
+            }
+
+            if (scanBank < 0 && _modelListBank.size() > 0) {
+                scanBank = 0;
+            }
+            jListBank.setModel(_modelListBank);
+            if (scanBank >= 0) {
+                _selectedBank = _modelListBank.valueOfIndex(scanBank);
+                jListBank.setSelectedIndex(scanBank);
+            }
+        } finally {
+            _stopFeedback--;
         }
-        _scanText = "";
-        CXFile file = _listXMLFile.get(xml);
-        _scanXMLFile = file;
-        //TODO
     }
 
     public void sendProgramChange() {
@@ -913,45 +893,38 @@ public class NavigatorForCCXMLInst extends javax.swing.JPanel implements INaviga
         if (index < 0) {
             return;
         }
-        
+
         if (_returnValue == null) {
             return;
         }
 
-        int msb = _returnValue._bankMSB;
-        int lsb = _returnValue._bankLSB;
-
-        if (msb > 0 && lsb > 0) {
-            int command  = MXMidi.COMMAND_CH_NOTEON;
-            int data1 = MXMidi.DATA1_CC_BANKSELECT;
-            int data2 = getVelocity();
-            MXMessage message = MXMessageFactory.fromControlChange14(getPort(), command + getChannel(), data1, msb, lsb);
-            MXMIDIIn.messageToReceiverThreaded(message, getReceiver());
-
-            try {
-                Thread.sleep(500);
-            } catch (Exception ex) {
-                MXFileLogger.getLogger(NavigatorForCCXMLInst.class).log(Level.WARNING, ex.getMessage(), ex);
-            }
-        }
-
-
         int pc = _returnValue._progranNumber;
-        
+
         if (pc >= 1 && pc <= 128) {
             jLabelBankProgram.setText(pc + ": " + _returnValue._programName);
 
-            int data1 = pc-1;
+            int data1 = pc - 1;
             MXMessage message = MXMessageFactory.fromProgramChange(getPort(), getChannel(), data1);
             System.out.println("sending " + message + " to " + getReceiver());
             MXMIDIIn.messageToReceiverThreaded(message, getReceiver());
         }
+        int msb = _returnValue._bankMSB;
+        int lsb = _returnValue._bankLSB;
+
+        if (msb >= 0 && lsb >= 0) {
+            int data1 = MXMidi.DATA1_CC_BANKSELECT;
+            int data2 = 0;
+            MXMessage message = MXMessageFactory.fromControlChange14(getPort(), getChannel(), data1, msb, lsb);
+            MXMIDIIn.messageToReceiverThreaded(message, getReceiver());
+            System.out.println("sending " + message + " to " + getReceiver());
+        }
+
     }
 
     int getPort() {
         MXNamedObject<Integer> portObj = (MXNamedObject) jComboBoxTestPort.getSelectedItem();
         int port = portObj._value;
-        return  port;
+        return port;
     }
 
     int getChannel() {
@@ -959,10 +932,14 @@ public class NavigatorForCCXMLInst extends javax.swing.JPanel implements INaviga
         int channel = channelObj._value;
         return channel;
     }
-    
+
     MXReceiver getReceiver() {
         MXNamedObject<MXReceiver> receiverObj = (MXNamedObject) jComboBoxTestReceiver.getSelectedItem();
         MXReceiver receiver = _listReceiver.readComboBox(jComboBoxTestReceiver);
         return receiver;
+    }
+    
+    public void scan(int map, int program, int bankMSB, int bankLSB) {
+        
     }
 }

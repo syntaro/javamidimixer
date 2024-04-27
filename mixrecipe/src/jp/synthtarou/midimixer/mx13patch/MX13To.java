@@ -41,9 +41,12 @@ public class MX13To implements CheckableElement {
     public void resetSkip() {
         ArrayList<MX13SignalType> newList = new ArrayList<>();
         for(int i = 0; i < MX13SignalType.COUNT_TYPE; ++ i) {
-            MX13SignalType signal = new MX13SignalType(this, i, MX13SignalType.typeNames[i]);
-            if ( i == MX13SignalType.TYPE_ALL) {
+            MX13SignalType signal = new MX13SignalType(this, i);
+            if (i == MX13SignalType.TYPE_CLOCK || i == MX13SignalType.TYPE_ACTIVE_SENSING) {
                 signal.setItemChecked(true);
+            }
+            else {
+                signal.setItemChecked(false);
             }
             newList.add(signal);
         }
@@ -52,14 +55,11 @@ public class MX13To implements CheckableElement {
 
     public boolean accept(MXMessage message) {
         for (MX13SignalType seek : _list) {
-            if (seek.isItemChecked() == false) {
-                continue;
-            }
-            if (seek.accept(message)) {
-                return true;
+            if (seek.isItemChecked() && seek.isSkip(message)) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     boolean _itemChecked;

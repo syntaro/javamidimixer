@@ -18,20 +18,9 @@ package jp.synthtarou.midimixer.mx10input;
 
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.util.Vector;
 import javax.swing.BoxLayout;
-import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
-import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
-import jp.synthtarou.midimixer.libs.swing.JTableWithColumnHeader;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableModel;
-import jp.synthtarou.midimixer.MXConfiguration;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.port.MXPreprocessPanel;
-import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 
 /**
  *
@@ -167,24 +156,4 @@ public class MX10View extends javax.swing.JPanel {
     public void tabActivated() {
         _inPanel.refreshList();
     }
-
-    public static final int TYPE_ALL = 0;
-    public static final int TYPE_NOTE = 1;
-    public static final int TYPE_DAMPER_PEDAL = 2;
-    public static final int TYPE_PITCH_BEND = 3; 
-    public static final int TYPE_MOD_WHEEL = 4;
-    public static final int TYPE_BANK_SELECT = 5;
-    public static final int TYPE_PROGRAM_CHANGE  = 6;
-    public static final int TYPE_DATA_ENTRY = 7;
-    public static final int TYPE_ANOTHER_CC = 8;
-    public static final int TYPE_RESET_GENERAL = 9;
-    public static final int TYPE_SYSEX = 10;
-    public static final int TYPE_ACTIVE_SENSING = 11;
-
-    public static final String[] typeNames = {
-        "All", "Note", "DamperPedal", "PitchBend", "ModWheel", "BankChange",
-        "ProgramChange", "DataEntry", "AnotherCC", "GM&GS&XGReset", "SysEX", 
-        "Active&Clock", 
-        
-    };
 }

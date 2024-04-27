@@ -269,7 +269,7 @@ public class SMFSequencer {
         if (_paraPlay) {
 
         } else if (_startMilliSeconds == 0) {
-            sendProgramChangeBeforeNote();
+            //sendProgramChangeBeforeNote();
         }
 
         long launched = System.currentTimeMillis() - _startMilliSeconds;

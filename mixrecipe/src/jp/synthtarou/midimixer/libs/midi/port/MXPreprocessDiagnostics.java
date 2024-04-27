@@ -74,6 +74,7 @@ public class MXPreprocessDiagnostics {
             }
         }
         if (message.isCommand(MXMidi.COMMAND_CH_PITCHWHEEL)) {
+            // convert to Internal PitchBend
             MXRangedValue value = message.getValue();
             message = MXMessageFactory.fromTemplate(message.getPort()
                     , MXMidi.TEMPLATE_CCXMLPB, message.getChannel()
