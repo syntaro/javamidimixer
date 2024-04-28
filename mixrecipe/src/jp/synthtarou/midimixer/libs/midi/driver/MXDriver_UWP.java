@@ -30,6 +30,9 @@ import jp.synthtarou.midimixer.windows.MXLIB01UWPMidi;
  * @author Syntarou YOSHIDA
  */
 public class MXDriver_UWP implements MXDriver {
+    public int getDriverUID() {
+        return 20;
+    }
 
     public static final MXDriver_UWP _instance = new MXDriver_UWP();
 
@@ -182,7 +185,7 @@ public class MXDriver_UWP implements MXDriver {
     ArrayList<MXMIDIOut> _listOutputCatalog = new ArrayList();
 
     public void addInputCatalog(MXMIDIIn input) {
-        int order = input.getDriverOrder();
+        int order = input.getOrderInDriver();
         if (input.getDriver() == this) {
             while (_listInputCatalog.size() <= order) {
                 _listInputCatalog.add(null);
@@ -197,7 +200,7 @@ public class MXDriver_UWP implements MXDriver {
             _listInputCatalog.add(null);
         }
         MXMIDIIn in = _listInputCatalog.get(order);
-        if (in.getDriverOrder() == order) {
+        if (in.getOrderInDriver() == order) {
             return in;
         }
         throw new IllegalArgumentException();
@@ -212,7 +215,7 @@ public class MXDriver_UWP implements MXDriver {
     }
 
     public void addOuputCatalog(MXMIDIOut output) {
-        int order = output.getDriverOrder();
+        int order = output.getOrderInDriver();
         if (output.getDriver() == this) {
             while (_listOutputCatalog.size() <= order) {
                 _listOutputCatalog.add(null);
@@ -226,7 +229,7 @@ public class MXDriver_UWP implements MXDriver {
             _listOutputCatalog.add(null);
         }
         MXMIDIOut out = _listOutputCatalog.get(order);
-        if (out.getDriverOrder() == order) {
+        if (out.getOrderInDriver() == order) {
             return out;
         }
         throw new IllegalArgumentException();

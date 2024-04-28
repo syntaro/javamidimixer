@@ -36,13 +36,15 @@ import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_VSTi;
  *
  * @author Syntarou YOSHIDA
  */
-public class MXMIDIOut {
+public class MXMIDIOut implements Comparable<MXMIDIOut>{
 
     private MXDriver _driver;
-    private int _driverOrder;
+    private int _orderInDriver;
     private String _name;
     boolean[] _assigned;
     int _assignCount;
+    public final MXMidiFilter _filter;
+
     private MXVisitant16 _visitantOut16 = new MXVisitant16();
 
     private MXNoteOffWatcher _myNoteOff = new MXNoteOffWatcher();
@@ -51,8 +53,8 @@ public class MXMIDIOut {
         return _driver;
     }
 
-    public int getDriverOrder() {
-        return _driverOrder;
+    public int getOrderInDriver() {
+        return _orderInDriver;
     }
 
     public boolean isPortAssigned(int port) {
@@ -103,13 +105,14 @@ public class MXMIDIOut {
     }
 
     public boolean isOpen() {
-        return _driver.OutputDeviceIsOpen(_driverOrder);
+        return _driver.OutputDeviceIsOpen(_orderInDriver);
     }
 
     protected MXMIDIOut(MXDriver driver, int driverOrder) {
         _assigned = new boolean[16];
         _driver = driver;
-        _driverOrder = driverOrder;
+        _orderInDriver = driverOrder;
+        _filter = new MXMidiFilter();
         if (driver == null) {
             _name = "(NULL)";
         } else {
@@ -161,7 +164,7 @@ public class MXMIDIOut {
     MXMessage[] retBuf = new MXMessage[4];
 
     private void processMidiOutInternal(MXMessage message) {
-        if (!_driver.OutputDeviceIsOpen(_driverOrder)) {
+        if (!_driver.OutputDeviceIsOpen(_orderInDriver)) {
             return;
         }
 
@@ -255,18 +258,22 @@ public class MXMIDIOut {
         if (message == null) {
             return;
         }
+        
+        if (_filter.isSkip(message)) {
+            return;
+        }
 
         if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
             _myNoteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
                 @Override
                 public void onNoteOffEvent(MXMessage target) {
                     int dword = target.getAsDword(0);
-                    _driver.OutputShortMessage(_driverOrder, dword);
+                    _driver.OutputShortMessage(_orderInDriver, dword);
                     MXMain.addOutsideOutput(new MXMidiConsoleElement(target));
                 }
             });
             int dword = message.getAsDword(0);
-            _driver.OutputShortMessage(_driverOrder, dword);
+            _driver.OutputShortMessage(_orderInDriver, dword);
             MXMain.addOutsideOutput(new MXMidiConsoleElement(message));
             return;
         } else if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
@@ -281,7 +288,7 @@ public class MXMIDIOut {
         int col = message.getDwordCount();
         if (col == 0) {
             byte[] data = message.getBinary();
-            _driver.OutputLongMessage(_driverOrder, data);
+            _driver.OutputLongMessage(_orderInDriver, data);
             MXMain.addOutsideOutput(new MXMidiConsoleElement(message));
         } else {
             for (int j = 0; j < col; ++j) {
@@ -289,7 +296,7 @@ public class MXMIDIOut {
                 if (dword == 0) {
 
                 } else {
-                    _driver.OutputShortMessage(_driverOrder, dword);
+                    _driver.OutputShortMessage(_orderInDriver, dword);
                     int status = (dword >> 16) & 0xff;
                     int data1 = (dword >> 8) & 0xff;
                     int data2 = (dword) & 0xff;
@@ -313,22 +320,25 @@ public class MXMIDIOut {
         MXMIDIOutManager manager = MXMIDIOutManager.getManager();
         manager.clearMIDIOutCache();
         _visitantOut16 = new MXVisitant16();
-        if (_driver.OutputDeviceIsOpen(_driverOrder) == false) {
-            _driver.OutputDeviceOpen(_driverOrder, timeout);
+        if (_driver.OutputDeviceIsOpen(_orderInDriver) == false) {
+            _driver.OutputDeviceOpen(_orderInDriver, timeout);
         }
-        return _driver.OutputDeviceIsOpen(_driverOrder);
+        return _driver.OutputDeviceIsOpen(_orderInDriver);
     }
 
     public void close() {
         MXMIDIOutManager manager = MXMIDIOutManager.getManager();
         if (isOpen()) {
             allNoteOff(null);
-            if (_name.equals("Gervill")) {
-                manager.onClose(this);
-                _driver.OutputDeviceClose(_driverOrder);
+            if (_name.startsWith("Microsoft ")) {
+                
+            }
+            else if (_name.equals("Gervill")) {
+                //manager.onClose(this);
+                //_driver.OutputDeviceClose(_driverOrder);
             } else {
                 manager.onClose(this);
-                _driver.OutputDeviceClose(_driverOrder);
+                _driver.OutputDeviceClose(_orderInDriver);
             }
         }
     }
@@ -342,7 +352,7 @@ public class MXMIDIOut {
 
     public int getVStiDriverNumber() {
         if (_driver instanceof MXDriver_VSTi) {
-            return _driverOrder;
+            return _orderInDriver;
         }
         return -1;
     }
@@ -359,5 +369,20 @@ public class MXMIDIOut {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public int compareTo(MXMIDIOut o) {
+        int x = getDriver().getDriverUID() - o.getDriver().getDriverUID();
+        if (x != 0) {
+            return x;
+        }
+        x = getName().compareTo(o.getName());
+        if (x != 0) {
+            return x;
+        }
+        
+        x = getOrderInDriver() - o.getOrderInDriver();
+        return x;
     }
 }

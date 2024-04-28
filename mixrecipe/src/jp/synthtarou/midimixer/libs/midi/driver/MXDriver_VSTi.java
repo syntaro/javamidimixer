@@ -26,6 +26,9 @@ import jp.synthtarou.midimixer.windows.MXLIB02VST3;
  * @author Syntarou YOSHIDA
  */
 public class MXDriver_VSTi implements MXDriver {
+    public int getDriverUID() {
+        return 30;
+    }
     public static final MXDriver_VSTi _instance = new MXDriver_VSTi();
     
     MXLIB02VST3 _vstLib = MXLIB02VST3.getInstance();

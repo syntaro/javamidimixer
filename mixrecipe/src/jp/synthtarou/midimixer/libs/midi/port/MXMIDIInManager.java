@@ -18,6 +18,8 @@ package jp.synthtarou.midimixer.libs.midi.port;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.TreeSet;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
@@ -84,8 +86,9 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
             sequencer.setPortAssigned(0, true);
         }
 
-        MXDriver java = MXDriver_Java._instance;
+        TreeSet<MXMIDIIn> sorted = new TreeSet<>();
 
+        MXDriver java = MXDriver_Java._instance;
         for (int i = 0; i < java.InputDevicesRoomSize(); i++) {
             MXMIDIIn device = new MXMIDIIn(java, i);
             if (device == null) {
@@ -94,7 +97,7 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
             if (device.getName().equals("Real Time Sequencer")) {
                 continue;
             }
-            temp.addNameAndValue(device.getName(), device);
+            sorted.add(device);
         }
 
         MXDriver uwp = MXDriver_UWP._instance;
@@ -106,6 +109,10 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
             if (device.getName().equals("Real Time Sequencer")) {
                 continue;
             }
+            sorted.add(device);
+        }
+        
+        for (MXMIDIIn device : sorted) {
             temp.addNameAndValue(device.getName(), device);
         }
 
@@ -294,6 +301,7 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
                 boolean deviceOpen = device.getFollowingBool("open", false);
                 String deviceMaster = device.getFollowingText("toMaster", "");
                 String devicePort = device.getFollowingText("port", "");
+
                 if (deviceName == null || deviceName.length() == 0) {
                     break;
                 }
@@ -325,6 +333,18 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
                     }
                 }
                 in.setMasterList(deviceMaster);
+                
+                MXJsonValue.HelperForArray filter = device.getFollowingArray("filter");
+                if (filter != null) {
+                    in._filter.clearChecked();
+                    for (int x = 0; x < filter.count(); ++ x) {
+                        String filterName = filter.getFollowingText(x, "");
+                        int z = MXMidiFilter.fromName(filterName);
+                        if (z >= 0) {
+                            in._filter.setChecked(z, true);
+                        }
+                    }
+                }
             }
         }
         clearMIDIInCache();
@@ -341,7 +361,6 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
         MXJsonParser parser = new MXJsonParser(custom);
         MXJsonValue.HelperForStructure root = parser.getRoot().new HelperForStructure();
         MXJsonValue.HelperForArray listDevice = root.addFollowingArray("deviceList");
-        int x = 0;
         MXNamedObjectList<MXMIDIIn> listIn = listAllInput();
         for (MXMIDIIn e : listIn.valueList()) {
             if (e.getPortAssignCount() <= 0) {
@@ -362,7 +381,14 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
                 device.setFollowingBool("open", e.isOpen());
                 device.setFollowingText("port", assigned.toString());
                 device.setFollowingText("toMaster", e.getMasterList());
-                x++;
+    
+                MXJsonValue.HelperForArray filter = device.addFollowingArray("filter");
+                for (int x = 0; x < MXMidiFilter.COUNT_TYPE; ++ x) {
+                    String filterName = MXMidiFilter.getName(x);
+                    if (e._filter.isChecked(x)) {
+                        filter.addFollowingText(filterName);
+                    }
+                }
             }
         }
 

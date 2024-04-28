@@ -23,6 +23,9 @@ import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
  * @author Syntarou YOSHIDA
  */
 public class MXDriver_Tester implements MXDriver {
+    public int getDriverUID() {
+        return 6;
+    }
     public static final MXDriver_Tester _instance = new MXDriver_Tester();
 
     public boolean isUsable() {

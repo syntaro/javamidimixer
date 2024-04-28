@@ -37,7 +37,7 @@ import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_UWP;
  *
  * @author Syntarou YOSHIDA
  */
-public class MXMIDIIn {
+public class MXMIDIIn implements Comparable<MXMIDIIn>{
     public static final MXMIDIInForPlayer INTERNAL_PLAYER = new MXMIDIInForPlayer();
     public static final MXMIDIInForPlayer DEBUGGER = new MXMIDIInForPlayer();
     
@@ -47,7 +47,8 @@ public class MXMIDIIn {
 
     String _name;
     MXDriver _driver;
-    int _driverOrder;
+    int _orderInDriver;
+    public final MXMidiFilter _filter;
 
     public MXPreprocess _preprocess;
 
@@ -55,8 +56,8 @@ public class MXMIDIIn {
         return _driver;
     }
 
-    public int getDriverOrder() {
-        return _driverOrder;
+    public int getOrderInDriver() {
+        return _orderInDriver;
     }
 
     public void close() {
@@ -64,7 +65,7 @@ public class MXMIDIIn {
         if (isOpen()) {
             allNoteOff(null);
             manager.onClose(this);
-            _driver.InputDeviceClose(_driverOrder);
+            _driver.InputDeviceClose(_orderInDriver);
         }
     }
 
@@ -81,14 +82,15 @@ public class MXMIDIIn {
         if (_driver == null) {
             return false;
         }
-        return _driver.InputDeviceIsOpen(_driverOrder);
+        return _driver.InputDeviceIsOpen(_orderInDriver);
     }
 
     public MXMIDIIn(MXDriver driver, int driverOrder) {
         _name = driver.InputDeviceName(driverOrder);
         _assigned = new boolean[MXConfiguration.TOTAL_PORT_COUNT];
         _driver = driver;
-        _driverOrder = driverOrder;
+        _orderInDriver = driverOrder;
+        _filter = new MXMidiFilter();
         if (driver instanceof MXDriver_UWP) {
             MXDriver_UWP._instance.addInputCatalog(this);
         }
@@ -106,6 +108,9 @@ public class MXMIDIIn {
 
             @Override
             public void processMXMessage(MXMessage message) {
+                if (_filter.isSkip(message)) {
+                    return;
+                }
                 for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
                     if (isPortAssigned(port)) {
                         MXMessage ported = MXMessageFactory.fromClone(message);
@@ -239,7 +244,7 @@ public class MXMIDIIn {
         if (isOpen()) {
             return true;
         }
-        return _driver.InputDeviceOpen(_driverOrder, timeout, this);
+        return _driver.InputDeviceOpen(_orderInDriver, timeout, this);
     }
 
     public int hashCode() {
@@ -342,6 +347,21 @@ public class MXMIDIIn {
         message._owner = MXMessage.getRealOwner(owner);
         MXMain.addOutsideInput(message);
         _preprocess.processMXMessage(message);
+    }
+
+    @Override
+    public int compareTo(MXMIDIIn o) {
+        int x = getDriver().getDriverUID() - o.getDriver().getDriverUID();
+        if (x != 0) {
+            return x;
+        }
+        x = getName().compareTo(o.getName());
+        if (x != 0) {
+            return x;
+        }
+        
+        x = getOrderInDriver() - o.getOrderInDriver();
+        return x;
     }
 
     public static class MessageQueueElement {

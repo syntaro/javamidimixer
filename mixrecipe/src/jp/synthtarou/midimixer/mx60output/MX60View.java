@@ -16,23 +16,12 @@
  */
 package jp.synthtarou.midimixer.mx60output;
 
-import java.util.Vector;
 import javax.swing.ButtonGroup;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import javax.swing.SwingUtilities;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableModel;
-import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.swing.JTableWithColumnHeader;
-import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
-import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 
 /**
  *
@@ -77,11 +66,7 @@ public class MX60View extends javax.swing.JPanel {
         java.awt.GridBagConstraints gridBagConstraints;
 
         buttonGroup1 = new javax.swing.ButtonGroup();
-        jSplitPane2 = new javax.swing.JSplitPane();
-        jPanel3 = new javax.swing.JPanel();
-        jPanel2 = new javax.swing.JPanel();
-        jPanel1 = new javax.swing.JPanel();
-        jCheckBoxUseSkip = new javax.swing.JCheckBox();
+        jPanelOutputSelect = new javax.swing.JPanel();
         jPanel4 = new javax.swing.JPanel();
         jRadioButtonSong1 = new javax.swing.JRadioButton();
         jRadioButtonSong2 = new javax.swing.JRadioButton();
@@ -92,46 +77,16 @@ public class MX60View extends javax.swing.JPanel {
         jToggleButtonRec = new javax.swing.JToggleButton();
         jToggleButtonPlay = new javax.swing.JToggleButton();
         jProgressBar1 = new javax.swing.JProgressBar();
-        jPanelOutputSelect = new javax.swing.JPanel();
 
-        setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
+        setLayout(new java.awt.GridBagLayout());
 
-        jSplitPane2.setDividerLocation(250);
-        jSplitPane2.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-
-        jPanel3.setLayout(new java.awt.GridBagLayout());
-
-        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("1.Output Filter"));
-        jPanel2.setLayout(new java.awt.GridBagLayout());
-
-        jPanel1.setLayout(new javax.swing.BoxLayout(jPanel1, javax.swing.BoxLayout.LINE_AXIS));
+        jPanelOutputSelect.setBorder(javax.swing.BorderFactory.createTitledBorder("2.Output Assign"));
+        jPanelOutputSelect.setLayout(new javax.swing.BoxLayout(jPanelOutputSelect, javax.swing.BoxLayout.LINE_AXIS));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        jPanel2.add(jPanel1, gridBagConstraints);
-
-        jCheckBoxUseSkip.setText("Use This Recipe");
-        jCheckBoxUseSkip.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxUseSkipActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        jPanel2.add(jCheckBoxUseSkip, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        jPanel3.add(jPanel2, gridBagConstraints);
+        add(jPanelOutputSelect, gridBagConstraints);
 
         jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("2. Recorder"));
         jPanel4.setLayout(new java.awt.GridBagLayout());
@@ -215,22 +170,10 @@ public class MX60View extends javax.swing.JPanel {
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        jPanel3.add(jPanel4, gridBagConstraints);
-
-        jSplitPane2.setRightComponent(jPanel3);
-
-        jPanelOutputSelect.setBorder(javax.swing.BorderFactory.createTitledBorder("2.Output Assign"));
-        jPanelOutputSelect.setLayout(new javax.swing.BoxLayout(jPanelOutputSelect, javax.swing.BoxLayout.LINE_AXIS));
-        jSplitPane2.setLeftComponent(jPanelOutputSelect);
-
-        add(jSplitPane2);
+        add(jPanel4, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
-
-    private void jCheckBoxUseSkipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxUseSkipActionPerformed
-         _process.setUsingThisRecipe(jCheckBoxUseSkip.isSelected());         
-    }//GEN-LAST:event_jCheckBoxUseSkipActionPerformed
 
     private void jToggleButtonRecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButtonRecActionPerformed
         int x = getSelectedTrack();
@@ -292,10 +235,6 @@ public class MX60View extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton jButtonSongExport;
-    private javax.swing.JCheckBox jCheckBoxUseSkip;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanelOutputSelect;
     private javax.swing.JProgressBar jProgressBar1;
@@ -304,7 +243,6 @@ public class MX60View extends javax.swing.JPanel {
     private javax.swing.JRadioButton jRadioButtonSong3;
     private javax.swing.JRadioButton jRadioButtonSong4;
     private javax.swing.JRadioButton jRadioButtonSong5;
-    private javax.swing.JSplitPane jSplitPane2;
     private javax.swing.JToggleButton jToggleButtonPlay;
     private javax.swing.JToggleButton jToggleButtonRec;
     // End of variables declaration//GEN-END:variables
@@ -418,9 +356,6 @@ public class MX60View extends javax.swing.JPanel {
             });
             return;
         }
-        jCheckBoxUseSkip.setSelected(_process.isUsingThisRecipe());
-        jPanel1.removeAll();
-        jPanel1.add(_process._patch.getReceiverView());
         enableRecordingButton();
     }
 }

@@ -18,6 +18,7 @@ package jp.synthtarou.midimixer.libs.midi.port;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.TreeSet;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
@@ -143,8 +144,8 @@ public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
             return _listAllOutput;
         }
 
-        MXNamedObjectList<MXMIDIOut> temp = new MXNamedObjectList<MXMIDIOut>();
-
+        TreeSet<MXMIDIOut> sorted = new TreeSet<>();
+        
         MXDriver java = MXDriver_Java._instance;
         for (int i = 0; i < java.OutputDevicesRoomSize(); i++) {
             MXMIDIOut device = new MXMIDIOut(java, i);
@@ -159,7 +160,7 @@ public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
                 }
             }
 
-            temp.addNameAndValue(device.getName(), device);
+            sorted.add(device);
         }
         if (MXDriver_UWP._instance.isUsable()) {
             MXDriver uwp = MXDriver_UWP._instance;
@@ -171,15 +172,20 @@ public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
                 //if (temp.indexOfName(name) >= 0) {
                 //    continue;
                 //}
-                temp.addNameAndValue(device.getName(), device);
+                sorted.add(device);
             }
         }
         if (MXDriver_VSTi._instance.isUsable()) {
             MXDriver vst = MXDriver_VSTi._instance;
             for (int i = 0; i < vst.OutputDevicesRoomSize(); i++) {
-                MXMIDIOut out = new MXMIDIOut(MXDriver_VSTi._instance, i);
-                temp.addNameAndValue(out.getName(), out);
+                MXMIDIOut device = new MXMIDIOut(MXDriver_VSTi._instance, i);
+                sorted.add(device);
             }
+        }
+        MXNamedObjectList<MXMIDIOut> temp = new MXNamedObjectList<MXMIDIOut>();
+        
+        for (MXMIDIOut seek :sorted) {
+            temp.addNameAndValue(seek.getName(), seek);
         }
 
         _listAllOutput = temp;
@@ -308,6 +314,17 @@ public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
 
                     }
                 }
+                MXJsonValue.HelperForArray filter = device.getFollowingArray("filter");
+                out._filter.clearChecked();
+                if (filter != null) {
+                    for (int x = 0; x < filter.count(); ++ x) {
+                        String filterName = filter.getFollowingText(x, "");
+                        int z = MXMidiFilter.fromName(filterName);
+                        if (z >= 0) {
+                            out._filter.setChecked(z, true);
+                        }
+                    }
+                }
             }
         }
         clearMIDIOutCache();
@@ -327,7 +344,6 @@ public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
         MXJsonValue.HelperForArray deviceList = root.addFollowingArray("deviceList");
 
         MXNamedObjectList<MXMIDIOut> listOut = listAllOutput();
-        int x = 0;
         for (MXMIDIOut e : listOut.valueList()) {
             StringBuffer assigned = new StringBuffer();
             for (int p = 0; p < MXConfiguration.TOTAL_PORT_COUNT; ++p) {
@@ -343,7 +359,14 @@ public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
                 device.setFollowingText("name", e.getName());
                 device.setFollowingBool("open", e.isOpen());
                 device.setFollowingText("port", assigned.toString());
-                x++;
+
+                MXJsonValue.HelperForArray filter = device.addFollowingArray("filter");
+                for (int x = 0; x < MXMidiFilter.COUNT_TYPE; ++ x) {
+                    String filterName = MXMidiFilter.getName(x);
+                    if (e._filter.isChecked(x)) {
+                        filter.addFollowingText(filterName);
+                    }
+                }
             }
         }
 

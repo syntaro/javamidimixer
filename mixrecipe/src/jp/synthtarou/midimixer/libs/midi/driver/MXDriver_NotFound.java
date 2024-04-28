@@ -24,6 +24,9 @@ import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
  * @author Syntarou YOSHIDA
  */
 public class MXDriver_NotFound implements MXDriver {
+    public int getDriverUID() {
+        return 0;
+    }
     static MXDriver_NotFound _instance = new MXDriver_NotFound();
 
     public static MXDriver_NotFound getInstance() {

@@ -47,8 +47,8 @@ public class RecordEntry {
                     return 1;
                 }
             }
-            a1 = o1._driverOrder;
-            a2 = o2._driverOrder;
+            a1 = o1._orderInDriver;
+            a2 = o2._orderInDriver;
             if (a1 != a2) {
                 if (a1 < a2) {
                     return -1;

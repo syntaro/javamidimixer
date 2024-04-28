@@ -328,6 +328,7 @@ public class MXMain {
             } catch (RuntimeException ex) {
                 MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
             }
+            System.out.println("**********3");
             MXFileLogger.getLogger(MXMain.class).info("stopping vst");
             VSTInstance.stopEngine(null);
             MXFileLogger.getLogger(MXMain.class).info("stopped vst");
