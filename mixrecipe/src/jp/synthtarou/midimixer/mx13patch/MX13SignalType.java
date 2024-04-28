@@ -41,8 +41,8 @@ public class MX13SignalType implements CheckableElement {
     public static final int COUNT_TYPE = 13;
 
     public static final String[] typeNames = {
-        "All", "Note", "DamperPedal", "PitchBend", "ModWheel", "BankChange",
-        "ProgramChange", "DataEntry", "AnotherCC", "GM&GS&XGReset", "SysEX",
+        "All", "Note", "CC:DamperPedal", "PitchBend", "CC:ModWheel", "CC:BankChange",
+        "ProgramChange", "CC:DataEntry", "AnotherCC", "GM&GS&XGReset", "SysEX",
         "Clock", "Active"
     };
     

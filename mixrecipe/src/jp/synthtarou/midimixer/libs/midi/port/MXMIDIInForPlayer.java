@@ -170,7 +170,7 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
     
     public synchronized void stopSequencer(int port) {
         if (_sequencer != null) {
-            _sequencer.stopPlayerAsync();
+            _sequencer.stopPlayerAwait();
             allNoteOff(null);
         }
     }

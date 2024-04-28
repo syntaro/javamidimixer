@@ -17,6 +17,9 @@
 package jp.synthtarou.midimixer.libs.midi.driver;
 
 import java.util.ArrayList;
+import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.midimixer.libs.midi.MXMessage;
+import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.windows.MXLIB01UWPMidi;
@@ -153,6 +156,16 @@ public class MXDriver_UWP implements MXDriver {
         if (!isUsable()) {
             return false;
         }
+        
+        if (false) {
+            int status = (message >> 16) & 0xf0;
+            int channel = (message >> 16) & 0x0f;
+            int data1 = (message >> 8) & 0xff;
+            int data2 = message & 0xff;
+            MXMessage dump = MXMessageFactory.fromShortMessage(0, status + channel, data1, data2);
+            System.out.println(dump.toString());
+        }
+        
         return windows10.OutputShortMessage(device, message);
     }
 

@@ -75,7 +75,6 @@ public class VSTStream {
             if (_offer < 0) {
                 _offer = spare;
             }
-            System.out.println("offer = " + _offer);
         }
     }
     

@@ -101,7 +101,6 @@ bool openerOpen(PortInformation* info, int timeout) {
 
         info->itsOutput = nullptr;
         if (ope.Status() == Windows::Foundation::AsyncStatus::Completed) {
-            debugText("Complete");
             info->itsOutput = ope.GetResults();
             return true;
         }
@@ -112,7 +111,6 @@ bool openerOpen(PortInformation* info, int timeout) {
             return true;
         }
     }
-    debugText("openerOpen9");
     return false;
 }
 
@@ -360,7 +358,7 @@ void MXDeviceManager::InClose(int device) {
     }
 
     if (info->itsInput != nullptr) {
-        debugText("InputClosed");
+        debugText(L"InputClosed");
         info->itsInput.Close();
         info->itsInput = nullptr;
     }
@@ -421,6 +419,7 @@ void MXDeviceManager::OutClose(int device) {
     }
 }
 
+/*
 MidiMessageType midiDataType(int status, int data1) {
     int command = status & 0xf0;
     int channel = status & 0x0f;
@@ -477,6 +476,7 @@ MidiMessageType midiDataType(int status, int data1) {
     }
     return MidiMessageType::NoteOn;
 }
+*/
 
 bool MXDeviceManager::OutShortMessage(JNIEnv* env, int device, int message) {
     PortInformation* info = Output(device);
@@ -492,6 +492,11 @@ bool MXDeviceManager::OutShortMessage(JNIEnv* env, int device, int message) {
 
     int command = status & 0xf0;
     int channel = status & 0x0f;
+
+    if (command == 0x90 && data2 == 0) {
+        command = 0x80;
+    }
+
 
     switch (command) {
     case 0x80: {
@@ -517,11 +522,12 @@ bool MXDeviceManager::OutShortMessage(JNIEnv* env, int device, int message) {
     case 0xc0: {
         MidiProgramChangeMessage msg(channel, data1);
         info->itsOutput.SendMessageW(msg);
+
     }
              break;
     case 0xd0: {
-MidiChannelPressureMessage  msg(channel, data1);
-info->itsOutput.SendMessageW(msg);
+        MidiChannelPressureMessage  msg(channel, data1);
+        info->itsOutput.SendMessageW(msg);
     }
     break;
     case 0xe0: {
@@ -530,41 +536,65 @@ info->itsOutput.SendMessageW(msg);
     }
              break;
     case 0xf0:
-        /*
-    {
         switch (status) {
         case 0xf0:
-            return MidiMessageType::SystemExclusive;
-        case 0xf2:
-            return MidiMessageType::SongPositionPointer;
-        case 0xf3:
-            return MidiMessageType::SongSelect;
-        case 0xf4://none
-            return MidiMessageType::None;
-        case 0xf5://none
-            return MidiMessageType::None;
-        case 0xf6:
-            return MidiMessageType::TuneRequest;
-        case 0xf7:
-            return MidiMessageType::None; //MidiMessageType::SystemExclusive;
-        case 0xf8:
-            return MidiMessageType::MidiTimeCode;
-        case 0xf9://none
-            return MidiMessageType::None;
-        case 0xfa:
-            return MidiMessageType::Start;
-        case 0xfb:
-            return MidiMessageType::Continue;
-        case 0xfc:
-            return MidiMessageType::Stop;
-        case 0xfd: //none
-            return MidiMessageType::None;
-        case 0xfe:
-            return MidiMessageType::ActiveSensing;
-        case 0xff: //system reset
-            return MidiMessageType::SystemReset;
+            break;
+        case 0xf2: {
+            MidiSongPositionPointerMessage  msg(data2 << 7 | data1);
+            info->itsOutput.SendMessageW(msg);
+            break;
         }
-        */
+        case 0xf3: {
+            MidiSongSelectMessage  msg(data1);
+            info->itsOutput.SendMessageW(msg);
+            break;
+        }
+        case 0xf4://none
+            break;
+        case 0xf5://none
+            break;
+        case 0xf6: {
+            MidiTuneRequestMessage msg;
+            info->itsOutput.SendMessageW(msg);
+            break;
+        }
+        case 0xf7:
+            break;
+            //return MidiMessageType::None; //MidiMessageType::SystemExclusive;
+        case 0xf8:  {
+            MidiTimingClockMessage msg;
+            info->itsOutput.SendMessageW(msg);
+            break;
+        }
+        case 0xf9://none
+            return false;
+        case 0xfa: {
+            MidiStartMessage msg;
+            info->itsOutput.SendMessageW(msg);
+            return true;
+        }
+        case 0xfb: {
+            MidiContinueMessage msg;
+            info->itsOutput.SendMessageW(msg);
+            return true;
+        }
+        case 0xfc: {
+            MidiStopMessage msg;
+            info->itsOutput.SendMessageW(msg);
+            return true;
+        }
+        case 0xfd: //none
+            return false;
+        case 0xfe: {
+            MidiActiveSensingMessage msg;
+            info->itsOutput.SendMessageW(msg);
+            return true;
+        }
+        case 0xff: //system reset
+            MidiSystemResetMessage msg;
+            info->itsOutput.SendMessageW(msg);
+            return true;
+        }
         break;
     }
 
@@ -624,17 +654,12 @@ bool MXDeviceManager::OutLongMessage(JNIEnv* env, int device, jbyteArray data) {
     }
     buf.Length(len - skip);
 
-    /*
-        UWP-[An Error @JNI_OutputLongMessage]
-        UWP-[AVC_IoException] = 100%
-        UWP-[no symbol found
-    */
-    /* if (binary[0] == 0xf0 || binary[0] == 0xf7) {
+    if (binary[0] == 0xf0 || binary[0] == 0xf7) {
         MidiSystemExclusiveMessage mes(buf);
         info->itsOutput.SendMessageW(mes);
     }
-    else */ {
-        info->itsOutput.SendBuffer(buf);
+    else {
+        //info->itsOutput.SendBuffer(buf);
     }
     return true;
 }
@@ -685,14 +710,11 @@ extern MXDeviceManager staticManager;
 extern jmethodID cbCallText, cbCallShortMessage, cbCallLongMessage, cbDeviceListed;
 
 void refCallText(const jchar* text) {
-    std::wcout << text << std:: endl;
-    /*
     JNIEnv* env2 = nullptr;
     _javaVM->AttachCurrentThread((void**)&env2, nullptr);
 
     jstring str = env2->NewString((uint16_t*)text, wcslen((const wchar_t*)text));
     env2->CallStaticVoidMethod(_javaClass, cbCallText, str);
-    */
 }
 
 void refCallShortMessage(jint device, jint message) {

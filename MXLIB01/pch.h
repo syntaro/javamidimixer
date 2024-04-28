@@ -35,11 +35,11 @@
 #include <sstream>
 
 extern void printStackTrace();
-extern int systemExceptionMyHandler(const char* funcName, struct _EXCEPTION_POINTERS* ep);
-extern void debugText(const char* t);
-extern void debugText2(const char* t, const char* param);
-extern void debugNumber(const char* t, const long num);
-extern void debugDouble(const char* t, const double num);
+extern int systemExceptionMyHandler(const wchar_t* funcName, struct _EXCEPTION_POINTERS* ep);
+extern void debugText(const wchar_t* t);
+extern void debugText2(const wchar_t* t, const wchar_t* param);
+extern void debugNumber(const wchar_t* t, const long num);
+extern void debugDouble(const wchar_t* t, const double num);
 
 extern void printStackTrace();
 

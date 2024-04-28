@@ -32,7 +32,6 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.mx00playlist.MXPianoRoll;
 
-
 /**
  *
  * @author Syntarou YOSHIDA
@@ -48,7 +47,6 @@ public class SMFSequencer {
     private long _startMilliSeconds;
     private long _currentMilliSeconds;
     private File _lastFile;
-    boolean _paraPlay = false;
     public SMFParser _parser;
     public MXPianoRoll _pianoRoll;
     public boolean _updateFlag = false;
@@ -92,53 +90,38 @@ public class SMFSequencer {
         }
         asyncLock++;
         Thread t = new MXSafeThread("SMFPlayer", () -> {
-            stopPlayerAsyncAndWait();
+            stopPlayerAwait();
             _callback = callback;
             _playerThread = Thread.currentThread();
-            _isRunning = true;
             _callback.smfStarted();
-            _playerThread = Thread.currentThread();
             try {
                 asyncLock--;
                 playWithMilliSeconds(position);
             } catch (RuntimeException ex) {
                 MXFileLogger.getLogger(SMFSequencer.class).log(Level.WARNING, ex.getMessage(), ex);
             } finally {
-                _isRunning = false;
             }
             _callback.smfStoped(_stopPlayer ? false : true);
-            try {
-                synchronized (this) {
-                    wait(500);
-                }
-            } catch (InterruptedException e) {
-                _stopPlayer = true;
-                return;
+            _playerThread = null;
+            synchronized (SMFSequencer.this) {
+                SMFSequencer.this.notifyAll();
             }
         });
         t.setDaemon(true);
         t.start();;
     }
 
-    public void stopPlayerAsync() {
+    public void stopPlayerAwait() {
         _stopPlayer = true;
-        if (_isRunning) {
+        if (_playerThread != null) {
             synchronized (this) {
-                if (_playerThread != null) {
-                    notifyAll();
-                }
-            }
-        }
-    }
-
-    public void stopPlayerAsyncAndWait() {
-        stopPlayerAsync();
-        while (isRunning()) {
-            synchronized (this) {
-                try {
-                    wait(500);
-                } catch (InterruptedException ex) {
-                    break;
+                notifyAll();
+                while (_playerThread != null) {
+                    try {
+                        wait(1000);
+                    } catch (InterruptedException ex) {
+                        MXFileLogger.getLogger(SMFSequencer.class).log(Level.SEVERE, null, ex);
+                    }
                 }
             }
         }
@@ -182,16 +165,16 @@ public class SMFSequencer {
         boolean didProgramChange = false;
 
         for (int ch = 0; ch < 16; ++ch) {
+            if (firstProgram[ch] != null) {
+                smfPlayNote(firstProgram[ch]);
+                didProgramChange = true;
+            }
             if (firstBank0[ch] != null) {
                 smfPlayNote(firstBank0[ch]);
                 didProgramChange = true;
             }
             if (firstBank32[ch] != null) {
                 smfPlayNote(firstBank32[ch]);
-                didProgramChange = true;
-            }
-            if (firstProgram[ch] != null) {
-                smfPlayNote(firstProgram[ch]);
                 didProgramChange = true;
             }
         }
@@ -254,21 +237,15 @@ public class SMFSequencer {
             SMFMessage message = list.get(i);
             if (reset[message._port] == false) {
                 reset[message._port] = true;
-            }
-        }
-
-        if (pos == 0) {
-            for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++i) {
-                if (reset[i]) {
+                if (_startMilliSeconds == 0) {
+                    allNoteOff(i);
                     resetControllers(i);
                 }
             }
         }
 
         _firstNote = null;
-        if (_paraPlay) {
-
-        } else if (_startMilliSeconds == 0) {
+        if (_startMilliSeconds == 0) {
             //sendProgramChangeBeforeNote();
         }
 
@@ -292,7 +269,7 @@ public class SMFSequencer {
                     if (waiting >= 1) {
                         synchronized (this) {
                             wait(waiting);
-                            if (_stopPlayer) {
+                            if (_stopPlayer || _stopAll) {
                                 break;
                             }
                         }
@@ -317,10 +294,7 @@ public class SMFSequencer {
                     break;
                 }
             }
-            if (_stopAll) {
-                _stopPlayer = true;
-            }
-            if (_stopPlayer) {
+            if (_stopAll || _stopPlayer) {
                 break;
             }
             if (pos >= list.size()) {
@@ -336,10 +310,8 @@ public class SMFSequencer {
         }
     }
 
-    boolean _isRunning;
-
     public void resetControllers(int port) {
-        if (getStartMilliSecond() == 0 && !_paraPlay) {
+        if (getStartMilliSecond() == 0) {
             int start = 0, end = 15;
             if (_forceSingleChannel >= 0) {
                 start = _forceSingleChannel;
@@ -362,7 +334,7 @@ public class SMFSequencer {
                 }
                 MXTemplate temp = MXMidi.TEMPLATE_MASTERVOLUME;
                 MXMessage msg1 = MXMessageFactory.fromTemplate(0, temp, 0, MXRangedValue.ZERO7, MXRangedValue.new7bit(127));
-                byte[]reset = msg1.getBinary();
+                byte[] reset = msg1.getBinary();
 
                 SMFMessage mesasge = new SMFMessage(0, reset);
                 smfPlayNote(mesasge);
@@ -375,9 +347,6 @@ public class SMFSequencer {
     }
 
     public void allNoteOff(int port) {
-        if (_paraPlay) {
-            return;
-        }
         int chFrom = 0, chTo = 15;
         if (_forceSingleChannel >= 0) {
             chFrom = _forceSingleChannel;
@@ -388,17 +357,17 @@ public class SMFSequencer {
             message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
             message._port = port;
             smfPlayNote(message);
-            message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 127);
+            message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 0);
             message._port = port;
             smfPlayNote(message);
-            message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLSOUNDOFF, 127);
+            message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLSOUNDOFF, 0);
             message._port = port;
             smfPlayNote(message);
         }
     }
 
     public boolean isRunning() {
-        return _isRunning;
+        return _playerThread != null;
     }
 
     public long getStartMilliSecond() {

@@ -31,7 +31,7 @@ bool MXVSTStream::Initialize() {
     if (!_initDone) {
         _initRetcode = Pa_Initialize();
         if (_initRetcode != paNoError) {
-            debugNumber("Pa_Initialize Failed ", _initRetcode);
+            debugNumber(L"Pa_Initialize Failed ", _initRetcode);
             return false;
         }
         _initDone = true;
@@ -57,7 +57,7 @@ int MXVst_AudioCallback(const void* inputBuffer, void* pOutputBuffer, unsigned l
 
 bool MXVSTStream::closeStream() {
     if (_openedStream != nullptr) {
-        debugText("PA_CloseStream");
+        debugText(L"PA_CloseStream");
         Pa_CloseStream(_openedStream);
         _openedStream = nullptr;
         return true;
@@ -98,7 +98,7 @@ bool MXVSTStream::openStream(int num, int sampleRate, int blockSize) {
                     __try {
                         vst->_easyVst->suspendVST();
                     }
-                    __except (systemExceptionMyHandler("reinitSynth", GetExceptionInformation())) {
+                    __except (systemExceptionMyHandler(L"reinitSynth", GetExceptionInformation())) {
 
                     }
                 }
@@ -111,7 +111,7 @@ bool MXVSTStream::openStream(int num, int sampleRate, int blockSize) {
                     __try {
                         vst->_easyVst->suspendVST();
                     }
-                    __except (systemExceptionMyHandler("reinitEffect", GetExceptionInformation())) {
+                    __except (systemExceptionMyHandler(L"reinitEffect", GetExceptionInformation())) {
 
                     }
                 }
@@ -148,7 +148,7 @@ bool MXVSTStream::openStream(int num, int sampleRate, int blockSize) {
                     __try {
                         vst->_easyVst->resumeVST();
                     }
-                    __except (systemExceptionMyHandler("reopenSynth", GetExceptionInformation())) {
+                    __except (systemExceptionMyHandler(L"reopenSynth", GetExceptionInformation())) {
 
                     }
                 }
@@ -161,7 +161,7 @@ bool MXVSTStream::openStream(int num, int sampleRate, int blockSize) {
                     __try {
                         vst->_easyVst->resumeVST();
                     }
-                    __except (systemExceptionMyHandler("reopenEffect", GetExceptionInformation())) {
+                    __except (systemExceptionMyHandler(L"reopenEffect", GetExceptionInformation())) {
 
                     }
                 }
@@ -240,7 +240,6 @@ void MXVSTStream::processAudio(float* outputBuffer, unsigned long framesPerBuffe
         if (ensureBufferSize(framesPerBuffer) == false) {
             return;
         }
-        int64 systemTime = 0;
         MXVSTOperator* ope = getOperator();
         for (int i = 0; i < MAX_SYNTH; ++i) {
             MXVSTInstrument* vst = nullptr;
@@ -266,7 +265,7 @@ void MXVSTStream::processAudio(float* outputBuffer, unsigned long framesPerBuffe
                 }
 
             }
-            __except (systemExceptionMyHandler("processAudio#1", GetExceptionInformation()))
+            __except (systemExceptionMyHandler(L"processAudio#1", GetExceptionInformation()))
             {
                 if (vst != nullptr) {
                     vst->_blackList = true;
@@ -291,7 +290,7 @@ void MXVSTStream::processAudio(float* outputBuffer, unsigned long framesPerBuffe
                     }
                 }
             }
-            __except (systemExceptionMyHandler("processAudio#2", GetExceptionInformation()))
+            __except (systemExceptionMyHandler(L"processAudio#2", GetExceptionInformation()))
             {
                 if (vst != nullptr) {
                     vst->_blackList = true;
@@ -315,7 +314,7 @@ void MXVSTStream::processAudio(float* outputBuffer, unsigned long framesPerBuffe
                     }
                 }
             }
-            __except (systemExceptionMyHandler("processAudio#3", GetExceptionInformation()))
+            __except (systemExceptionMyHandler(L"processAudio#3", GetExceptionInformation()))
             {
                 if (vst != nullptr) {
                     vst->_blackList = true;
@@ -328,7 +327,7 @@ void MXVSTStream::processAudio(float* outputBuffer, unsigned long framesPerBuffe
             }
         }
     }
-    __except (systemExceptionMyHandler("processAudio outSide", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"processAudio outSide", GetExceptionInformation()))
     {
     }
 }

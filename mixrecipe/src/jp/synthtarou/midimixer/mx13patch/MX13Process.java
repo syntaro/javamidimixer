@@ -44,7 +44,7 @@ public class MX13Process extends MXReceiver<MX13View> {
 
     public void writeJsonTree(MXJsonValue tree) {
         MXJsonValue.HelperForStructure root = tree.new HelperForStructure();
-        
+
         MXJsonValue.HelperForArray listFrom = null;
         MXJsonValue.HelperForArray listTo = null;
         MXJsonValue.HelperForArray listFilter = null;
@@ -53,43 +53,33 @@ public class MX13Process extends MXReceiver<MX13View> {
         MXJsonValue.HelperForStructure currentTo = null;
         MXJsonValue.HelperForStructure currentFilter = null;
 
+        if (listFrom == null) {
+            listFrom = root.addFollowingArray("From");
+            currentFrom = null;
+        }
         for (MX13From from : _list) {
             if (from.isItemChecked() == false) {
                 continue;
             }
-            currentFrom = null;
+            currentFrom = listFrom.addFollowingStructure();
+            currentFrom.setFollowingNumber("Port", from._port);
+            listTo = null;
             for (MX13To to : from._listTo) {
-                if(to.isItemChecked() == false) {
+                if (to.isItemChecked() == false) {
                     continue;
                 }
-                currentTo = null;
+                if (listTo == null) {
+                    listTo = currentFrom.addFollowingArray("To");
+                }
+                currentTo = listTo.addFollowingStructure();
+                currentTo.setFollowingNumber("Port", to._port);
+
+                listFilter = currentTo.addFollowingArray("Filter");
                 for (MX13SignalType type : to._list) {
                     if (type.isItemChecked() == false) {
                         continue;
                     }
 
-                    if (listFrom == null) {
-                        listFrom = root.addFollowingArray("From");
-                        currentFrom = null;
-                    }
-                    if (currentFrom == null) {
-                        currentFrom = listFrom.addFollowingStructure();
-                        currentFrom.setFollowingNumber("Port", from._port);
-                        listTo = null;
-                    }
-                    if (listTo == null)     {
-                        listTo = currentFrom.addFollowingArray("To");
-                        currentTo = null;
-                    }
-                    if (currentTo == null) {
-                        currentTo = listTo.addFollowingStructure();
-                        currentTo.setFollowingNumber("Port", to._port);
-                        listFilter = null;
-                    }
-                    if (listFilter == null)     {
-                        listFilter = currentTo.addFollowingArray("Filter");
-                        currentTo = null;
-                    }
                     listFilter.addFollowingText(type._name);
                 }
             }
@@ -98,7 +88,7 @@ public class MX13Process extends MXReceiver<MX13View> {
 
     public void readJsonTree(MXJsonValue tree) {
         MXJsonValue.HelperForStructure root = tree.new HelperForStructure();
-        
+
         MXJsonValue.HelperForArray listFrom = null;
         MXJsonValue.HelperForArray listTo = null;
         MXJsonValue.HelperForArray listFilter = null;
@@ -106,34 +96,39 @@ public class MX13Process extends MXReceiver<MX13View> {
         MXJsonValue.HelperForStructure currentFrom = null;
         MXJsonValue.HelperForStructure currentTo = null;
         MXJsonValue.HelperForStructure currentFilter = null;
-        
+
         clearSetting();
-        
+
         listFrom = root.getFollowingArray("From");
-       
-        for (int from = 0; from < listFrom.count(); ++ from) {
+        for (int from = 0; from < listFrom.count(); ++from) {
             currentFrom = listFrom.getFollowingStructure(from);
             int fromPort = currentFrom.getFollowingInt("Port", -1);
             if (fromPort < 0) {
                 continue;
             }
+            MX13From theFrom = _list.get(fromPort);
+            theFrom.setItemChecked(true);
             listTo = currentFrom.getFollowingArray("To");
-            for (int to = 0; to < listTo.count(); ++ to) {
+            if (listTo == null) {
+                continue;
+            }
+            for (int to = 0; to < listTo.count(); ++to) {
                 currentTo = listTo.getFollowingStructure(to);
                 int toPort = currentTo.getFollowingInt("Port", -1);
                 if (toPort < 0) {
                     continue;
                 }
-                
+                MX13To theTo = theFrom._listTo.get(toPort);
+                theTo.setItemChecked(true);
+
                 listFilter = currentTo.getFollowingArray("Filter");
-                
-                for (int filter = 0; filter < listFilter.count(); ++ filter) {
-                    String filterName = listFilter.getFollowingText(filter,null);
-                    
-                    MX13From theFrom = _list.get(fromPort);
-                    theFrom.setItemChecked(true);
-                    MX13To theTo = theFrom._listTo.get(toPort);
-                    theTo.setItemChecked(true);
+                if (listFilter == null) {
+                    continue;
+                }
+
+                for (int filter = 0; filter < listFilter.count(); ++filter) {
+                    String filterName = listFilter.getFollowingText(filter, null);
+
                     int theFilter = MX13SignalType.fromName(filterName);
                     if (theFilter >= 0) {
                         theTo._list.get(theFilter).setItemChecked(true);
@@ -147,7 +142,7 @@ public class MX13Process extends MXReceiver<MX13View> {
     public void resetSetting() {
         for (MX13From from : _list) {
             from.setItemChecked(from._port == 0 ? true : false);
-            
+
             for (MX13To to : from._listTo) {
                 to.setItemChecked(from._port == to._port ? true : false);
                 to.resetSkip();;
@@ -156,22 +151,22 @@ public class MX13Process extends MXReceiver<MX13View> {
         setInformation();
 
     }
-    
+
     public void clearSetting() {
         for (MX13From from : _list) {
             from.setItemChecked(false);
-            
+
             for (MX13To to : from._listTo) {
                 to.setItemChecked(false);
-                
+
                 for (MX13SignalType type : to._list) {
                     type.setItemChecked(false);
-                    
+
                 }
             }
         }
     }
-    
+
     @Override
     public String getReceiverName() {
         return "Patch";
@@ -185,14 +180,14 @@ public class MX13Process extends MXReceiver<MX13View> {
     @Override
     public void processMXMessage(MXMessage message) {
         MX13From from = _list.get(message.getPort());
-        
+
         if (from.isItemChecked() == false) {
             return;
         }
-        
+
         for (MX13To to : from._listTo) {
             MXMessage portMessage = null;
-            
+
             if (to.isItemChecked() == false) {
                 continue;
             }
@@ -201,8 +196,7 @@ public class MX13Process extends MXReceiver<MX13View> {
                 if (portMessage == null) {
                     if (from._port == to._port) {
                         portMessage = message;
-                    }
-                    else {
+                    } else {
                         portMessage = MXMessageFactory.fromClone(message);
                         portMessage.setPort(to._port);
                     }
@@ -273,9 +267,9 @@ public class MX13Process extends MXReceiver<MX13View> {
                     result.append(temp.toString());
                 }
             }
-                if (addedTo) {
-                    result.append("}");
-                }
+            if (addedTo) {
+                result.append("}");
+            }
         }
         _view.setInformation(result.toString());
     }

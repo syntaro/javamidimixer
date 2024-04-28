@@ -40,7 +40,7 @@ void printStackTrace()
         hSymInit = SymInitialize(hProcess, NULL, TRUE);
     }
     if (!hSymInit) {
-        debugText("no symbol found\n");
+        debugText(L"no symbol found\n");
         return;
     }
 
@@ -61,7 +61,7 @@ void printStackTrace()
         , NULL
     );
 
-    std::stringstream ss;
+    std::wstringstream ss;
 
     ss << "Frames " << std::dec << frames << "\n";
 
@@ -74,72 +74,70 @@ void printStackTrace()
             , reinterpret_cast<SYMBOL_INFO*>(symbol)
         );
         ss << std::hex << i + 1;
-        ss << ":";
+        ss << L":";
         ss << reinterpret_cast<SYMBOL_INFO*>(symbol)->Name;
-        ss << "@";
+        ss << L"@";
         ss << std::hex << reinterpret_cast<SYMBOL_INFO*>(symbol)->Address;
-        ss << "\n";
+        ss << L"\n";
     }
     debugText(ss.str().c_str());
 }
 
 
-const char* exceptionName(int code) {
+const wchar_t* exceptionName(int code) {
     switch (code) {
     case EXCEPTION_ACCESS_VIOLATION:
-        return "EXCEPTION_ACCESS_VIOLATION";
+        return L"EXCEPTION_ACCESS_VIOLATION";
     case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
-        return "EXCEPTION_ARRAY_BOUNDS_EXCEEDED";
+        return L"EXCEPTION_ARRAY_BOUNDS_EXCEEDED";
     case EXCEPTION_BREAKPOINT:
-        return "EXCEPTION_BREAKPOINT";
+        return L"EXCEPTION_BREAKPOINT";
     case EXCEPTION_DATATYPE_MISALIGNMENT:
-        return "EXCEPTION_DATATYPE_MISALIGNMENT";
+        return L"EXCEPTION_DATATYPE_MISALIGNMENT";
     case EXCEPTION_FLT_DENORMAL_OPERAND:
-        return "EXCEPTION_FLT_DENORMAL_OPERAND";
+        return L"EXCEPTION_FLT_DENORMAL_OPERAND";
     case EXCEPTION_FLT_DIVIDE_BY_ZERO:
-        return "EXCEPTION_FLT_DIVIDE_BY_ZERO";
+        return L"EXCEPTION_FLT_DIVIDE_BY_ZERO";
     case EXCEPTION_FLT_INEXACT_RESULT:
-        return "EXCEPTION_FLT_INEXACT_RESULT";
+        return L"EXCEPTION_FLT_INEXACT_RESULT";
     case EXCEPTION_FLT_INVALID_OPERATION:
-        return "EXCEPTION_FLT_INVALID_OPERATION";
+        return L"EXCEPTION_FLT_INVALID_OPERATION";
     case EXCEPTION_FLT_OVERFLOW:
-        return "EXCEPTION_FLT_OVERFLOW";
+        return L"EXCEPTION_FLT_OVERFLOW";
     case EXCEPTION_FLT_STACK_CHECK:
-        return "EXCEPTION_FLT_STACK_CHECK";
+        return L"EXCEPTION_FLT_STACK_CHECK";
     case EXCEPTION_FLT_UNDERFLOW:
-        return "EXCEPTION_FLT_UNDERFLOW";
+        return L"EXCEPTION_FLT_UNDERFLOW";
     case EXCEPTION_ILLEGAL_INSTRUCTION:
-        return "EXCEPTION_ILLEGAL_INSTRUCTION";
+        return L"EXCEPTION_ILLEGAL_INSTRUCTION";
     case EXCEPTION_IN_PAGE_ERROR:
-        return "EXCEPTION_IN_PAGE_ERROR";
+        return L"EXCEPTION_IN_PAGE_ERROR";
     case EXCEPTION_INT_DIVIDE_BY_ZERO:
-        return "EXCEPTION_INT_DIVIDE_BY_ZERO";
+        return L"EXCEPTION_INT_DIVIDE_BY_ZERO";
     case EXCEPTION_INT_OVERFLOW:
-        return "EXCEPTION_INT_OVERFLOW";
+        return L"EXCEPTION_INT_OVERFLOW";
     case EXCEPTION_INVALID_DISPOSITION:
-        return "EXCEPTION_INVALID_DISPOSITION";
+        return L"EXCEPTION_INVALID_DISPOSITION";
     case EXCEPTION_NONCONTINUABLE_EXCEPTION:
-        return "EXCEPTION_NONCONTINUABLE_EXCEPTION";
+        return L"EXCEPTION_NONCONTINUABLE_EXCEPTION";
     case EXCEPTION_PRIV_INSTRUCTION:
-        return "EXCEPTION_PRIV_INSTRUCTION";
+        return L"EXCEPTION_PRIV_INSTRUCTION";
     case EXCEPTION_SINGLE_STEP:
-        return "EXCEPTION_SINGLE_STEP";
+        return L"EXCEPTION_SINGLE_STEP";
     case EXCEPTION_STACK_OVERFLOW:
-        return "EXCEPTION_STACK_OVERFLOW";
+        return L"EXCEPTION_STACK_OVERFLOW";
     case 0:
-        return "No Problem";
+        return L"No Problem";
     case 3765269347:
-        return "AVC_IoException";
+        return L"AVC_IoException";
 
     }
-    return "Unknown";
+    return L"Unknown";
 
 }
 
-int systemExceptionMyHandler(const char* funcName, struct _EXCEPTION_POINTERS* ep)
+int systemExceptionMyHandler(const wchar_t* funcName, struct _EXCEPTION_POINTERS* ep)
 {
-    debugText2("systemExcectionMyHandler at ", funcName);
-
     DWORD code = ep->ExceptionRecord->ExceptionCode;
     DWORD flags = ep->ExceptionRecord->ExceptionFlags;
     PVOID address = ep->ExceptionRecord->ExceptionAddress;
@@ -165,40 +163,8 @@ int systemExceptionMyHandler(const char* funcName, struct _EXCEPTION_POINTERS* e
         return EXCEPTION_CONTINUE_SEARCH;
     }
 */
-    debugText2("  Is ", exceptionName(code));
     printStackTrace();
 
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
-void debugText(const char* t) {
-    const jchar* jch = (const jchar*)t;
-    std::cout << t << std::endl;
-}
-
-void debugTextw2(const char* t, const wchar_t* param) {
-    std::wstring str = param;
-    std::string utf = wide_to_utf8(str);
-    std::cout << t << ", " << utf << std::endl;
-}
-
-void debugText2(const char* t, const char* param) {
-    std::string str;
-    str.append(t);
-    str.append(param);
-    debugText(str.c_str());
-}
-
-void debugNumber(const char* t, const long num) {
-    std::string str;
-    str.append(t);
-    str.append(std::to_string(num));
-    debugText(str.c_str());
-}
-
-void debugDouble(const char* t, const double num) {
-    std::string str;
-    str.append(t);
-    str.append(std::to_string(num));
-    debugText(str.c_str());
-}

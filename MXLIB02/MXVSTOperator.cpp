@@ -63,7 +63,7 @@ void ThreadFunc(MXVSTOperator* ui) {
 							std::cout << L"NULLPO" << std::endl;
 						}
 					}
-					__except (systemExceptionMyHandler("ThreadFunc2", GetExceptionInformation()))
+					__except (systemExceptionMyHandler(L"ThreadFunc2", GetExceptionInformation()))
 					{
 					}
 				}
@@ -75,7 +75,7 @@ void ThreadFunc(MXVSTOperator* ui) {
 				break;
 			}
 		}
-		__except (systemExceptionMyHandler("ThreadFunc", GetExceptionInformation()))
+		__except (systemExceptionMyHandler(L"ThreadFunc", GetExceptionInformation()))
 		{
 		}
 	}
@@ -177,7 +177,7 @@ int MXVSTOperator::processQueuedThreadCommand() {
 			case Thread_OpenVSTEditor:
 				vst = getSynth(effect, synth);
 				if (vst != nullptr && vst->isOpen()) {
-					debugTextw2("openVstEditor", vst->_path.c_str());
+					debugText2(L"openVstEditor", vst->_path.c_str());
 					if (vst->_easyVst->openVstEditor()) {
 						result = Thread_Success;
 					}
@@ -187,7 +187,7 @@ int MXVSTOperator::processQueuedThreadCommand() {
 			case Thread_CloseVSTEditor:
 				vst = getSynth(effect, synth);
 				if (vst != nullptr && vst->isOpen()) {
-					debugTextw2("closeVstEditor", vst->_path.c_str());
+					debugText2(L"closeVstEditor", vst->_path.c_str());
 					if (vst->_easyVst->closeVstEditor()) {
 						result = Thread_Success;
 					}
@@ -248,10 +248,10 @@ int MXVSTOperator::processQueuedThreadCommand() {
 				break;
 			}
 		}
-		__except (systemExceptionMyHandler("processQueuedThreadCommand", GetExceptionInformation()))
+		__except (systemExceptionMyHandler(L"processQueuedThreadCommand", GetExceptionInformation()))
 		{
 			result = Thread_Exception;
-			debugNumber("command was", command->command);
+			debugNumber(L"command was", command->command);
 			if (vst != nullptr) {
 				refBlackListed(effect, synth);
 			}
@@ -261,7 +261,7 @@ int MXVSTOperator::processQueuedThreadCommand() {
 			noticeTaskDone(task, result);
 			setRecycle(command);
 		}
-		__except (systemExceptionMyHandler("Trusing", GetExceptionInformation()))
+		__except (systemExceptionMyHandler(L"Trusing", GetExceptionInformation()))
 		{
 		}
 	}
@@ -492,7 +492,7 @@ void MXVSTOperator::setRecycle(ThreadCommandSturct* command) {
 ThreadCommandSturct* MXVSTOperator::createCommand() {
 	if (_recycleBin.empty()) {
 		++countNew;
-		debugNumber("Not Recycle, Count New = ", countNew);
+		debugNumber(L"Not Recycle, Count New = ", countNew);
 		return new ThreadCommandSturct();
 	}
 	ThreadCommandSturct* ret;

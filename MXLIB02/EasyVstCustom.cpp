@@ -54,8 +54,8 @@ bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool r
 	_processSetup.sampleRate = sampleRate;
 	_processSetup.maxSamplesPerBlock = 4096;
 
-	debugNumber("first sampleRate", sampleRate);
-	debugNumber("first blockSize", blockSize);
+	debugNumber(L"first sampleRate", sampleRate);
+	debugNumber(L"first blockSize", blockSize);
 
 	_processData.numSamples = blockSize;
 	_processData.symbolicSampleSize = _symbolicSampleSize;
@@ -429,7 +429,7 @@ bool EasyVstCustom::processVST(int numSamples)
 		}
 		return true;
 	}
-	__except (systemExceptionMyHandler("processVST", GetExceptionInformation())) {
+	__except (systemExceptionMyHandler(L"processVST", GetExceptionInformation())) {
 	}
 	return false;
 }

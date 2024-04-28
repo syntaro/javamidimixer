@@ -87,7 +87,6 @@ public class MXJsonParsersReader {
                 }else {
                     _data = readFileImpl(file, "UTF-16LE");
                 }
-                System.out.println(_data);
             }
         _pos = 0;
     }

@@ -142,7 +142,7 @@ public class MX60ViewData  {
             return;
         }
         if (_playingTrack.isRunning()) {
-            _playingTrack.stopPlayerAsync();
+            _playingTrack.stopPlayerAwait();
         }
         _playingTrack = null;
     }

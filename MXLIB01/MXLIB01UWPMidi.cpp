@@ -19,7 +19,7 @@ void JNICALL JNI_StartLibrary(JNIEnv* env, jobject obj)
     {
         staticManager.InitObject();
     }
-    __except (systemExceptionMyHandler("JNI_StartLibrary", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_StartLibrary", GetExceptionInformation()))
     {
         return;
     }
@@ -32,7 +32,7 @@ jint JNICALL JNI_InputDevicesRoomSize(JNIEnv* env, jobject obj)
     {
         return staticManager.InRoomSize();
     }
-    __except (systemExceptionMyHandler("JNI_InputDevicesRoomSize", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_InputDevicesRoomSize", GetExceptionInformation()))
     {
         return 0;
     }
@@ -47,7 +47,7 @@ jstring JNICALL JNI_InputDeviceName(JNIEnv* env, jobject obj, jint device)
         const wchar_t* str = staticManager.InName(device);
         return env->NewString((uint16_t*)str, wcslen(str));
     }
-    __except (systemExceptionMyHandler("JNI_InputDeviceName", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_InputDeviceName", GetExceptionInformation()))
     {
         return NULL;
     }
@@ -61,7 +61,7 @@ jstring JNICALL JNI_InputDeviceId(JNIEnv* env, jobject obj, jint  device)
         const wchar_t* str = staticManager.InId(device);
         return env->NewString((uint16_t*)str, wcslen(str));
     }
-    __except (systemExceptionMyHandler("JNI_InputDeviceId", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_InputDeviceId", GetExceptionInformation()))
     {
         return NULL;
     }
@@ -74,7 +74,7 @@ jboolean JNICALL JNI_InputIsOpen(JNIEnv* env, jobject obj, jint  device)
     {
         return staticManager.InIsOpen(device);
     }
-    __except (systemExceptionMyHandler("JNI_InputIsOpen", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_InputIsOpen", GetExceptionInformation()))
     {
         return JNI_FALSE;
     }
@@ -87,7 +87,7 @@ jboolean  JNI_InputOpen(JNIEnv* env, jobject obj, jint  device, jlong timeout)
     {
         return staticManager.InOpen(device, timeout);
     }
-    __except (systemExceptionMyHandler("JNI_InputOpen", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_InputOpen", GetExceptionInformation()))
     {
         return JNI_FALSE;
     }
@@ -100,7 +100,7 @@ void JNICALL JNI_InputClose(JNIEnv* env, jobject obj, jint  device)
     {
         staticManager.InClose(device);
     }
-    __except (systemExceptionMyHandler("JNI_InputClose", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_InputClose", GetExceptionInformation()))
     {
     }
 }
@@ -112,7 +112,7 @@ jint JNICALL JNI_OutputDevicesRoomSize(JNIEnv* env, jobject obj)
     {
         return staticManager.OutRoomSize();
     }
-    __except (systemExceptionMyHandler("JNI_OutputDevicesRoomSize", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_OutputDevicesRoomSize", GetExceptionInformation()))
     {
         return 0;
     }
@@ -126,7 +126,7 @@ jstring JNICALL JNI_OutputDeviceName(JNIEnv* env, jobject obj, jint  device)
         const wchar_t* str = staticManager.OutName(device);
         return env->NewString((uint16_t*)str, wcslen(str));
     }
-    __except (systemExceptionMyHandler("JNI_OutputDeviceName", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_OutputDeviceName", GetExceptionInformation()))
     {
         return NULL;
     }
@@ -140,7 +140,7 @@ jstring JNICALL JNI_OutputDeviceId(JNIEnv* env, jobject obj, jint  device)
         const wchar_t* str = staticManager.OutId(device);
         return env->NewString((uint16_t*)str, wcslen(str));
     }
-    __except (systemExceptionMyHandler("JNI_OutputDeviceId", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_OutputDeviceId", GetExceptionInformation()))
     {
         return NULL;
     }
@@ -153,7 +153,7 @@ jboolean JNICALL JNI_OutputDeviceIsOpen(JNIEnv* env, jobject obj, jint  device)
     {
         return staticManager.OutIsOpen(device);
     }
-    __except (systemExceptionMyHandler("JNI_OutputDeviceIsOpen", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_OutputDeviceIsOpen", GetExceptionInformation()))
     {
         return JNI_FALSE;
     }
@@ -166,7 +166,7 @@ jboolean  JNI_OutputOpen(JNIEnv* env, jobject obj, jint  device, jlong timeout)
     {
         return staticManager.OutOpen(device, timeout);
     }
-    __except (systemExceptionMyHandler("JNI_OutputOpen", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_OutputOpen", GetExceptionInformation()))
     {
         return JNI_FALSE;
     }
@@ -179,7 +179,7 @@ void JNICALL JNI_OutputClose(JNIEnv* env, jobject obj, jint  device)
     {
         staticManager.OutClose(device);
     }
-    __except (systemExceptionMyHandler("JNI_OutputClose", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_OutputClose", GetExceptionInformation()))
     {
     }
 }
@@ -195,7 +195,7 @@ jboolean JNICALL JNI_OutputShortMessage(JNIEnv* env, jobject obj, jint  device, 
 
         return staticManager.OutShortMessage(env, device, message);
     }
-    __except (systemExceptionMyHandler("JNI_OutputShortMessage", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_OutputShortMessage", GetExceptionInformation()))
     {
         staticManager.OutClose(device);
         return JNI_FALSE;
@@ -209,7 +209,7 @@ jboolean JNICALL JNI_OutputLongMessage(JNIEnv* env, jobject obj, jint device, jb
     {
         return staticManager.OutLongMessage(env, device, data);
     }
-    __except (systemExceptionMyHandler("JNI_OutputLongMessage", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_OutputLongMessage", GetExceptionInformation()))
     {
         staticManager.OutClose(device);
         return JNI_FALSE;
@@ -287,7 +287,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     //if (cbCallText == nullptr) return JNI_ERR;
     //if (cbCallLongMessage == nullptr) return JNI_ERR;
 
-    debugText("MXLIB01 -> 2023-3-24");
+    debugText(L"MXLIB01 -> 2023-3-24");
 
     return JNI_VERSION_1_1;
 }

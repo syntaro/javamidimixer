@@ -9,6 +9,7 @@ jmethodID cbCallText, cbTaskDone, cbBlackListed;
 jclass _javaClass = NULL;
 JavaVM* _javaVM;
 
+
 typedef void(*CallText_t2)(const wchar_t* text);
 typedef void(*CallBack_t2)(const jint callNumber);
 
@@ -58,7 +59,7 @@ void JNICALL JNI_PostInitializeStream(JNIEnv* env, jobject obj, jint task) {
     {
         getOperator()->postInitializeStream(task);
     }
-    __except (systemExceptionMyHandler("JNI_postInitializeStream", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_postInitializeStream", GetExceptionInformation()))
     {
         noticeTaskDone(task, Thread_Exception);
     }
@@ -70,7 +71,7 @@ void JNICALL JNI_PostOpenStream(JNIEnv* env, jobject obj, jint stream, int sampl
     {
         getOperator()->postOpenStream(stream, sampleRate, latency, task);
     }
-    __except (systemExceptionMyHandler("JNI_OpenStream", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_OpenStream", GetExceptionInformation()))
     {
         noticeTaskDone(task, Thread_Exception);
     }
@@ -81,7 +82,7 @@ void JNICALL JNI_PostCloseStream(JNIEnv* env, jobject obj, jint task) {
     {
         getOperator()->postCloseStream(task);
     }
-    __except (systemExceptionMyHandler("JNI_CloseStream", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_CloseStream", GetExceptionInformation()))
     {
         noticeTaskDone(task, Thread_Exception);
     }
@@ -92,7 +93,7 @@ jboolean JNICALL JNI_isStreamOpen(JNIEnv* en, jobject obj) {
     {
         return getMXStream()->isOpen();
     }
-    __except (systemExceptionMyHandler("JNI_isStreamOpen", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_isStreamOpen", GetExceptionInformation()))
     {
     }
     return false;
@@ -120,7 +121,7 @@ void JNICALL JNI_postLaunchVST(JNIEnv* env, jobject obj, jboolean  effect, jint 
                 noticeTaskDone(task, Thread_NoSuccess);
             }
         }
-        __except (systemExceptionMyHandler("JNI_postLaunchVST Parent", GetExceptionInformation()))
+        __except (systemExceptionMyHandler(L"JNI_postLaunchVST Parent", GetExceptionInformation()))
         {
             if (vst != nullptr) {
                 vst->_blackList = true;
@@ -129,7 +130,7 @@ void JNICALL JNI_postLaunchVST(JNIEnv* env, jobject obj, jboolean  effect, jint 
             }
         }
     }
-    __except (systemExceptionMyHandler("JNI_postLaunchVST", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_postLaunchVST", GetExceptionInformation()))
     {
     }
 }
@@ -139,7 +140,7 @@ jboolean JNICALL JNI_isLaunchedVST(JNIEnv* env, jobject obj, jboolean  effect, j
     {
         return getOperator()->isOpen(effect, synth);
     }
-    __except (systemExceptionMyHandler("JNI_isLaunchedVST", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_isLaunchedVST", GetExceptionInformation()))
     {
         return false;
     }
@@ -157,7 +158,7 @@ void JNICALL JNI_postOpenEditor(JNIEnv* env, jobject obj, jboolean  effect, jint
             noticeTaskDone(task, Thread_NoSuccess);
         }
     }
-    __except (systemExceptionMyHandler("JNI_postOpenEditor", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_postOpenEditor", GetExceptionInformation()))
     {
         if (vst != nullptr) {
             vst->_blackList = true;
@@ -179,7 +180,7 @@ void JNICALL JNI_postCloseEditor(JNIEnv* env, jobject obj, jboolean  effect, jin
             noticeTaskDone(task, Thread_NoSuccess);
         }
     }
-    __except (systemExceptionMyHandler("JNI_postCloseEditor", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_postCloseEditor", GetExceptionInformation()))
     {
         if (vst != nullptr) {
             vst->_blackList = true;
@@ -198,7 +199,7 @@ jboolean  JNI_isEditorOpen(JNIEnv* env, jobject obj, jboolean  effect, jint synt
             return vst->_easyVst->getHWnd() != 0;
         }
     }
-    __except (systemExceptionMyHandler("JNI_isEditorOpen", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_isEditorOpen", GetExceptionInformation()))
     {
         if (vst != nullptr) {
             vst->_blackList = true;
@@ -217,7 +218,7 @@ jboolean  JNI_isBlackListed(JNIEnv* env, jobject obj, jboolean  effect, jint syn
             return true;
         }
     }
-    __except (systemExceptionMyHandler("JNI_postRemoveSynth", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_postRemoveSynth", GetExceptionInformation()))
     {
         if (vst != nullptr) {
             vst->_blackList = true;
@@ -240,7 +241,7 @@ void JNICALL JNI_postRemoveSynth(JNIEnv* env, jobject obj, jboolean  effect, jin
             noticeTaskDone(task, Thread_NoSuccess);
         }
     }
-    __except (systemExceptionMyHandler("JNI_postRemoveSynth", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_postRemoveSynth", GetExceptionInformation()))
     {
         if (vst != nullptr) {
             vst->_blackList = true;
@@ -268,7 +269,7 @@ void JNICALL JNI_savePreset(JNIEnv* env, jobject obj, jboolean  effect, jint syn
             noticeTaskDone(task, Thread_NoSuccess);
         }
     }
-    __except (systemExceptionMyHandler("JNI_savePluginState", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_savePluginState", GetExceptionInformation()))
     {
         if (vst != nullptr) {
             vst->_blackList = true;
@@ -296,7 +297,7 @@ void JNICALL JNI_loadPreset(JNIEnv* env, jobject obj, jboolean  effect, jint syn
             noticeTaskDone(task, Thread_NoSuccess);
         }
     }
-    __except (systemExceptionMyHandler("JNI_loadPluginState", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_loadPluginState", GetExceptionInformation()))
     {
         if (vst != nullptr) {
             vst->_blackList = true;
@@ -311,7 +312,7 @@ void JNICALL JNI_waitQueued(JNIEnv* env, jobject obj, jint task) {
     {
         getOperator()->waitQueued(task);
     }
-    __except (systemExceptionMyHandler("JNI_waitQueued", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_waitQueued", GetExceptionInformation()))
     {
     }
 }
@@ -330,7 +331,7 @@ jboolean JNI_postShortMessage(JNIEnv* env, jobject obj, jboolean  effect, jint s
             return TRUE;
         }
     }
-    __except (systemExceptionMyHandler("JNI_postShortMessage", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_postShortMessage", GetExceptionInformation()))
     {
         if (vst != nullptr) {
             vst->_blackList = true;
@@ -357,7 +358,7 @@ jboolean JNICALL JNI_postLongMessage(JNIEnv* env, jobject obj, jboolean  effect,
             }
         }
     }
-    __except (systemExceptionMyHandler("JNI_postLongMessage", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_postLongMessage", GetExceptionInformation()))
     {
         if (vst != nullptr) {
             vst->_blackList = true;
@@ -372,7 +373,7 @@ jint JNICALL JNI_countStream(JNIEnv* env, jobject obj) {
     {
         return getMXStream()->countStream();
     }
-    __except (systemExceptionMyHandler("JNI_countStream", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_countStream", GetExceptionInformation()))
     {
         return 0;
     }
@@ -387,7 +388,7 @@ jstring JNICALL JNI_nameOfStream(JNIEnv* env, jobject obj, jint synth) {
         delete name;
         return ret;
     }
-    __except (systemExceptionMyHandler("JNI_nameOfStream", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_nameOfStream", GetExceptionInformation()))
     {
         return nullptr;
     }
@@ -402,7 +403,7 @@ jstring JNICALL JNI_typeNameOfStream(JNIEnv* env, jobject obj, jint synth) {
         delete name;
         return ret;
     }
-    __except (systemExceptionMyHandler("JNI_typeNameOfStream", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_typeNameOfStream", GetExceptionInformation()))
     {
         return nullptr;
     }
@@ -413,7 +414,7 @@ jfloat JNICALL JNI_getMasterVolume(JNIEnv* env, jobject obj) {
     {
         return getOperator()->getMasterVolume();
     }
-    __except (systemExceptionMyHandler("JNI_getMasterVolume", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_getMasterVolume", GetExceptionInformation()))
     {
         return 0;
     }
@@ -424,7 +425,7 @@ void JNICALL JNI_setMasterVolume(JNIEnv* env, jobject obj, jfloat volume) {
     {
         getOperator()->setMasterVolume(volume);
     }
-    __except (systemExceptionMyHandler("JNI_setMasterVolume", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_setMasterVolume", GetExceptionInformation()))
     {
     }
 }
@@ -436,10 +437,10 @@ jint JNICALL JNI_getBusCount(JNIEnv* env, jobject obj, jboolean  effect, jint sy
         int x = vst->getBusCount();
         return x;
     }
-    __except (systemExceptionMyHandler("JNI_getBusCount", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_getBusCount", GetExceptionInformation()))
     {
-        debugNumber("getBusCount effect = ", effect ? 1 : 0);
-        debugNumber("getBusCount synth = ", synth);
+        debugNumber(L"getBusCount effect = ", effect ? 1 : 0);
+        debugNumber(L"getBusCount synth = ", synth);
         return 0;
     }
 }
@@ -450,11 +451,11 @@ jfloat JNICALL JNI_getBusVolume(JNIEnv* env, jobject obj, jboolean  effect, jint
         MXVSTInstrument* vst = getOperator()->getSynth(effect, synth);
         return vst->getBusVolume(bus);
     }
-    __except (systemExceptionMyHandler("JNI_getBusVolume", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_getBusVolume", GetExceptionInformation()))
     {
-        debugNumber("effect", effect ? 1 : 0);
-        debugNumber("synth", synth);
-        debugNumber("bus", bus);
+        debugNumber(L"effect", effect ? 1 : 0);
+        debugNumber(L"synth", synth);
+        debugNumber(L"bus", bus);
         return 0;
     }
 }
@@ -465,7 +466,7 @@ void JNICALL JNI_setBusVolume(JNIEnv* env, jobject obj, jboolean  effect, jint s
         MXVSTInstrument* vst = getOperator()->getSynth(effect, synth);
         return vst->setBusVolume(bus, volume);
     }
-    __except (systemExceptionMyHandler("JNI_setBusVolume", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_setBusVolume", GetExceptionInformation()))
     {
     }
 }
@@ -473,10 +474,10 @@ void JNICALL JNI_setBusVolume(JNIEnv* env, jobject obj, jboolean  effect, jint s
 void JNICALL JNI_stopEngine(JNIEnv* env, jobject obj, jint task) {
     __try
     {
-        std::cout << "postQuit" << std::endl;
+        debugText(L"postQuit");
         getOperator()->postQuit(task);
     }
-    __except (systemExceptionMyHandler("JNI_setBusVolume", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_setBusVolume", GetExceptionInformation()))
     {
     }
     std::cout << "final exit" << std::endl;
@@ -492,7 +493,7 @@ void JNICALL JNI_setInsertBalance(JNIEnv* env, jobject obj, jint synth, jfloat b
         MXVSTInstrument* vst = getOperator()->getSynth(false, synth);
         vst->setInsertBalance(balance);
     }
-    __except (systemExceptionMyHandler("JNI_setInsertBalance", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_setInsertBalance", GetExceptionInformation()))
     {
     }
 }
@@ -503,7 +504,7 @@ float JNICALL JNI_getInsertBalance(JNIEnv* env, jobject obj, jint synth) {
         MXVSTInstrument* vst = getOperator()->getSynth(false, synth);
         return vst->getInsertBalance();
     }
-    __except (systemExceptionMyHandler("JNI_getInsertBalance", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_getInsertBalance", GetExceptionInformation()))
     {
         return 0;
     }
@@ -516,7 +517,7 @@ void JNICALL JNI_setAuxSend(JNIEnv* env, jobject obj, jint synth, jfloat balance
         MXVSTInstrument* vst = getOperator()->getSynth(false, synth);
         vst->setAuxSend(balance);
     }
-    __except (systemExceptionMyHandler("JNI_setAuxSend", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_setAuxSend", GetExceptionInformation()))
     {
     }
 }
@@ -527,7 +528,7 @@ float JNICALL JNI_getAuxSend(JNIEnv* env, jobject obj, jint synth) {
         MXVSTInstrument* vst = getOperator()->getSynth(false, synth);
         return vst->getAuxSend();
     }
-    __except (systemExceptionMyHandler("JNI_getAuxSend", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_getAuxSend", GetExceptionInformation()))
     {
         return 0;
     }
@@ -615,8 +616,43 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     cbTaskDone = env->GetStaticMethodID(_javaClass, "cbTaskDone", "(II)V");
     cbBlackListed = env->GetStaticMethodID(_javaClass, "cbBlackListed", "(ZI)V");
 
-    debugText("MXLIB02 2023-03-24");
+    debugText(L"MXLIB02 2023-03-24");
 
     return JNI_VERSION_1_1;
 }
 
+
+void refCallText(const jchar* text) {
+    JNIEnv* env2 = nullptr;
+    _javaVM->AttachCurrentThread((void**)&env2, nullptr);
+
+    jstring str = env2->NewString((uint16_t*)text, wcslen((const wchar_t*)text));
+    env2->CallStaticVoidMethod(_javaClass, cbCallText, str);
+}
+
+
+void debugText(const wchar_t* t) {
+    const jchar* jch = (const jchar*)t;
+    refCallText(jch);
+}
+
+void debugText2(const wchar_t* t, const wchar_t* param) {
+    std::wstring str;
+    str.append(t);
+    str.append(param);
+    debugText(str.c_str());
+}
+
+void debugNumber(const wchar_t* t, const long num) {
+    std::wstring str;
+    str.append(t);
+    str.append(std::to_wstring(num));
+    debugText(str.c_str());
+}
+
+void debugDouble(const wchar_t* t, const double num) {
+    std::wstring str;
+    str.append(t);
+    str.append(std::to_wstring(num));
+    debugText(str.c_str());
+}

@@ -70,7 +70,7 @@ public class MXVisitant16TableModel implements TableModel {
 
 
     String[] tableColumns =  {
-        "Port/Ch", "Bank", "Prog-1", "Vol",  "Exp", "Pan"
+        "Port/Ch", "Bank", "Prog +1", "Vol",  "Exp", "Pan"
     };
     @Override
     public int getRowCount() {
@@ -114,7 +114,7 @@ public class MXVisitant16TableModel implements TableModel {
 
             case 2:
                 if (info.isHavingProgram()) {
-                    return Integer.toString(info.getProgram());
+                    return Integer.toString(info.getProgram() +1);
                 }
                 break;
             case 3:

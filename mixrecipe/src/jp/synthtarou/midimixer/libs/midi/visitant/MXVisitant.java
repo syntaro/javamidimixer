@@ -44,6 +44,15 @@ public class MXVisitant implements Cloneable {
     public boolean isCCSet(int cc) {
         return _valueCC[cc] >= 0;
     }
+    
+    public void reset() {
+        _program = -1;
+        _bankLSB = -1;
+        _bankMSB = -1;
+        for (int i = 0; i < _valueCC.length; ++i) {
+            _valueCC[i] = -1;
+        }
+    }
 
     public void setCCValue(int cc, int value) {
         // skip mode change type cc
@@ -254,6 +263,11 @@ public class MXVisitant implements Cloneable {
                 
             }
             return message;
+        } else if (message.isBinaryMessage()) {
+            if (MXMidi.isReset(message.getBinary())) {
+                System.out.println("GM    RESET ********");
+                reset();
+            }
         }
         return message;
     }

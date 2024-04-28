@@ -144,7 +144,7 @@ public class MGStatusForDrum implements Cloneable {
             }
         }
         if (_sequencerPlayer != null) {
-            _sequencerPlayer.stopPlayerAsync();
+            _sequencerPlayer.stopPlayerAwait();
             _sequencerPlayer = null;
         }
         _sequencerFile = switchSongFile;
@@ -213,7 +213,7 @@ public class MGStatusForDrum implements Cloneable {
 
     public void stopSongPlayer() {
         if (_sequencerPlayer != null) {
-            _sequencerPlayer.stopPlayerAsync();
+            _sequencerPlayer.stopPlayerAwait();
         }
     }
 
