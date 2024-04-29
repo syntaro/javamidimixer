@@ -23,7 +23,6 @@ import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.libs.json.MXJsonParser;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.json.MXJsonValue;
-import jp.synthtarou.midimixer.mx13patch.MX13Process;
 
 /**
  *
@@ -32,31 +31,10 @@ import jp.synthtarou.midimixer.mx13patch.MX13Process;
 public class MX60Process extends MXReceiver<MX60View> implements MXJsonSupport {
     MX60View _view;
     MX60ViewData _viewData;
-    MX13Process _patch;
 
     public MX60Process() {
-        _patch = new MX13Process(true);
         _viewData = new MX60ViewData(this);
         _view = new MX60View(this);
-        _patch.setNextReceiver(new MXReceiver() {
-            @Override
-            public String getReceiverName() {
-                return "@?";
-            }
-
-            @Override
-            public JPanel getReceiverView() {
-                return null;
-            }
-
-            @Override
-            public void processMXMessage(MXMessage message) {
-                if (_viewData._recordingTrack >= 0) {
-                    _viewData.record(message);
-                }
-                MX60Process.this.sendToNext(message);
-            }
-        });
     }
     
     @Override
@@ -80,7 +58,7 @@ public class MX60Process extends MXReceiver<MX60View> implements MXJsonSupport {
     }
     @Override
     public void processMXMessage(MXMessage message) {
-        _patch.processMXMessage(message);
+        sendToNext(message);
     }
 
     @Override
@@ -91,13 +69,10 @@ public class MX60Process extends MXReceiver<MX60View> implements MXJsonSupport {
         }
         MXJsonValue value = new MXJsonParser(custom).parseFile();
         if (value == null) {
-            _patch.resetSetting();
             _view.showViewData();
             return false;
         }
         
-        _patch.clearSetting();
-        _patch.readJsonTree(value);
         _view.showViewData();
         return true;
     }
@@ -109,14 +84,12 @@ public class MX60Process extends MXReceiver<MX60View> implements MXJsonSupport {
         }
         
         MXJsonParser parser = new MXJsonParser(custom);
-        _patch.writeJsonTree(parser.getRoot());
 
         return parser.writeFile();
     }
     
     @Override
     public void resetSetting() {
-        _patch.resetSetting();
         _view.showViewData();
     }
 }

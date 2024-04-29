@@ -17,10 +17,14 @@
 package jp.synthtarou.midimixer.mx13patch;
 
 import java.awt.Color;
-import java.util.ArrayList;
 import javax.swing.DefaultListModel;
+import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
 import jp.synthtarou.libs.MXCountdownTimer;
 import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.midimixer.MXConfiguration;
+import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
+import jp.synthtarou.midimixer.libs.midi.port.MXMidiFilter;
 
 /**
  *
@@ -48,17 +52,10 @@ public class MX13View extends javax.swing.JPanel {
     public MX13View(MX13Process process) {
         initComponents();
         _process = process;
-        DefaultListModel<MX13From> info = new DefaultListModel<>();
-        for (MX13From seek : _process._list) {
-            info.addElement(seek);
-        }
-        selectFrom = new CheckableListCellRenderer<MX13From>(jListFrom);
         selectTo = new CheckableListCellRenderer<MX13To>(jListTo);
-        selectFilter = new CheckableListCellRenderer<MX13SignalType>(jListSignalType);
-        jListFrom.setCellRenderer(selectFrom);
+        selectFilter = new CheckableListCellRenderer<MX13ToFilter>(jListToFilter);
         jListTo.setCellRenderer(selectTo);
-        jListSignalType.setCellRenderer(selectFilter);
-        jListFrom.setModel(info);
+        jListToFilter.setCellRenderer(selectFilter);
         _stopFeedback--;
     }
 
@@ -72,42 +69,17 @@ public class MX13View extends javax.swing.JPanel {
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        jSplitPane1 = new javax.swing.JSplitPane();
-        jPanel1 = new javax.swing.JPanel();
-        jScrollPaneFrom = new javax.swing.JScrollPane();
-        jListFrom = new javax.swing.JList<>();
         jScrollPaneTo = new javax.swing.JScrollPane();
         jListTo = new javax.swing.JList<>();
         jScrollPaneFilter = new javax.swing.JScrollPane();
-        jListSignalType = new javax.swing.JList<>();
-        jLabel3 = new javax.swing.JLabel();
+        jListToFilter = new javax.swing.JList<>();
         jLabel2 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
+        jCheckBoxOpen = new javax.swing.JCheckBox();
+        jLabelDevice = new javax.swing.JLabel();
 
-        setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
-
-        jSplitPane1.setDividerLocation(200);
-        jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        jSplitPane1.setResizeWeight(0.8);
-
-        jPanel1.setLayout(new java.awt.GridBagLayout());
-
-        jListFrom.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                jListFromValueChanged(evt);
-            }
-        });
-        jScrollPaneFrom.setViewportView(jListFrom);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weighty = 1.0;
-        jPanel1.add(jScrollPaneFrom, gridBagConstraints);
+        setBorder(javax.swing.BorderFactory.createTitledBorder("Select Device ^"));
+        setLayout(new java.awt.GridBagLayout());
 
         jListTo.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
@@ -117,103 +89,67 @@ public class MX13View extends javax.swing.JPanel {
         jScrollPaneTo.setViewportView(jListTo);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weighty = 1.0;
-        jPanel1.add(jScrollPaneTo, gridBagConstraints);
+        add(jScrollPaneTo, gridBagConstraints);
 
-        jListSignalType.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+        jListToFilter.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                jListSignalTypeValueChanged(evt);
+                jListToFilterValueChanged(evt);
             }
         });
-        jScrollPaneFilter.setViewportView(jListSignalType);
+        jScrollPaneFilter.setViewportView(jListToFilter);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weighty = 1.0;
-        jPanel1.add(jScrollPaneFilter, gridBagConstraints);
-
-        jLabel3.setText("Signal From");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 10);
-        jPanel1.add(jLabel3, gridBagConstraints);
+        add(jScrollPaneFilter, gridBagConstraints);
 
         jLabel2.setText("To");
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 10);
-        jPanel1.add(jLabel2, gridBagConstraints);
+        add(jLabel2, gridBagConstraints);
 
-        jLabel1.setText("Skip");
+        jLabel1.setText("Filter");
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 10);
-        jPanel1.add(jLabel1, gridBagConstraints);
+        add(jLabel1, gridBagConstraints);
 
-        jSplitPane1.setLeftComponent(jPanel1);
+        jCheckBoxOpen.setText("Open");
+        jCheckBoxOpen.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxOpenActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        add(jCheckBoxOpen, gridBagConstraints);
 
-        jPanel2.setLayout(new javax.swing.BoxLayout(jPanel2, javax.swing.BoxLayout.LINE_AXIS));
-
-        jTextArea1.setEditable(false);
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane1.setViewportView(jTextArea1);
-
-        jPanel2.add(jScrollPane1);
-
-        jSplitPane1.setRightComponent(jPanel2);
-
-        add(jSplitPane1);
+        jLabelDevice.setText("Device :");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(jLabelDevice, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
-
-    int _selectedFrom = -1;
-    int _selectedTo = -1;
-
-    private void jListFromValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListFromValueChanged
-        if (_stopFeedback > 0) {
-            return;
-        }
-        _stopFeedback++;
-        try {
-            int index = jListFrom.getSelectedIndex();
-            if (index < 0) {
-                return;
-            }
-            if (_selectedFrom != index) {
-                _selectedFrom = index;
-                MX13From from = _process._list.get(_selectedFrom);
-                ArrayList<MX13To> listTo = from._listTo;
-                _selectedTo = -1;
-                DefaultListModel<MX13To> model = new DefaultListModel<>();
-                for (MX13To seek : listTo) {
-                    model.addElement(seek);
-                }
-                jListTo.setModel(model);
-                Color oColor = jListFrom.getBackground();
-                jListTo.setSelectedIndex(-1);
-                jListFrom.setBackground(Color.cyan);
-                MXCountdownTimer.letsCountdown(100, () -> {
-                    jListFrom.setBackground(oColor);
-                    jListTo.setBackground(Color.cyan);
-                    MXCountdownTimer.letsCountdown(100, () -> {
-                        jListTo.setBackground(oColor);
-                        jScrollPaneTo.getVerticalScrollBar().setValue(0);
-                    });
-                });
-            }
-        } finally {
-            _stopFeedback--;
-        }
-
-    }//GEN-LAST:event_jListFromValueChanged
 
     private void jListToValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListToValueChanged
         if (_stopFeedback > 0) {
@@ -225,60 +161,104 @@ public class MX13View extends javax.swing.JPanel {
             if (index < 0) {
                 return;
             }
-            if (_selectedTo != index) {
-                _selectedTo = index;
-                MX13From from = _process._list.get(_selectedFrom);
-                ArrayList<MX13To> listTo = from._listTo;
-                MX13To to = listTo.get(_selectedTo);
-                DefaultListModel<MX13SignalType> model = new DefaultListModel<>();
-                for (MX13SignalType seek : to._list) {
-                    model.addElement(seek);
-                }
-                jListSignalType.setModel(model);
-                jListSignalType.setSelectedIndex(-1);
+            MX13To to =_midiTo.get(index);
+            _midiFilter = createMidiFilter(to._in, to._port);
+            jListToFilter.setModel(_midiFilter);
+            jListToFilter.setSelectedIndex(-1);
 
-                Color oColor = jListTo.getBackground();
-                jListTo.setBackground(Color.cyan);
+            Color oColor = jListTo.getBackground();
+            jListTo.setBackground(Color.cyan);
+            MXCountdownTimer.letsCountdown(100, () -> {
+                jListTo.setBackground(oColor);
+                jListToFilter.setBackground(Color.cyan);
                 MXCountdownTimer.letsCountdown(100, () -> {
-                    jListTo.setBackground(oColor);
-                    jListSignalType.setBackground(Color.cyan);
-                    MXCountdownTimer.letsCountdown(100, () -> {
-                        jListSignalType.setBackground(oColor);
-                        jScrollPaneFilter.getVerticalScrollBar().setValue(0);
-                    });
+                    jListToFilter.setBackground(oColor);
+                    jScrollPaneFilter.getVerticalScrollBar().setValue(0);
                 });
-            }
+            });
         } finally {
             _stopFeedback--;
         }
     }//GEN-LAST:event_jListToValueChanged
 
-    private void jListSignalTypeValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListSignalTypeValueChanged
+    private void jListToFilterValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListToFilterValueChanged
         Color oColor = jListTo.getBackground();
-        jListSignalType.setBackground(Color.cyan);
+        jListToFilter.setBackground(Color.cyan);
         MXCountdownTimer.letsCountdown(100, () -> {
-            jListSignalType.setBackground(oColor);
-         });
-    }//GEN-LAST:event_jListSignalTypeValueChanged
+            jListToFilter.setBackground(oColor);
+        });
+    }//GEN-LAST:event_jListToFilterValueChanged
 
-    public void setInformation(String text) {
-        jTextArea1.setText(text);
-    }            
+    private void jCheckBoxOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxOpenActionPerformed
+        if (_midiIn != null) {
+            if (jCheckBoxOpen.isSelected()) {
+                if (_midiIn.isOpen() == false) {
+                    _midiIn.openInput(1000);
+                    _process.fireChangeListener(new ChangeEvent(_process));
+                }
+            }
+            else {
+                if (_midiIn.isOpen()) {
+                    _midiIn.close();
+                    _process.fireChangeListener(new ChangeEvent(_process));
+                }
+            }
+        }
+    }//GEN-LAST:event_jCheckBoxOpenActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox jCheckBoxOpen;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JList<MX13From> jListFrom;
-    private javax.swing.JList<jp.synthtarou.midimixer.mx13patch.MX13SignalType> jListSignalType;
+    private javax.swing.JLabel jLabelDevice;
     private javax.swing.JList<MX13To> jListTo;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JList<MX13ToFilter> jListToFilter;
     private javax.swing.JScrollPane jScrollPaneFilter;
-    private javax.swing.JScrollPane jScrollPaneFrom;
     private javax.swing.JScrollPane jScrollPaneTo;
-    private javax.swing.JSplitPane jSplitPane1;
-    private javax.swing.JTextArea jTextArea1;
     // End of variables declaration//GEN-END:variables
+
+    MXMIDIIn _midiIn = null;
+    DefaultListModel<MX13To> _midiTo = null;
+    DefaultListModel<MX13ToFilter> _midiFilter = null;
+    
+    public void showMIDIInDetail(MXMIDIIn in) {
+        if (SwingUtilities.isEventDispatchThread() == false) {
+            SwingUtilities.invokeLater(() -> {
+                showMIDIInDetail(in);
+            });
+            return;
+        }
+        if (_midiIn != in) {
+            _midiIn = in;
+            _midiTo = createMidiTo(in);
+            int port = _midiTo.size() > 0 ? _midiTo.get(0)._port : -1;
+            jListTo.setModel(_midiTo);
+            _midiFilter = createMidiFilter(in, port);
+            jListToFilter.setModel(_midiFilter);
+            jLabelDevice.setText(in.getName());
+            jCheckBoxOpen.setSelected(in.isOpen());
+        }
+    }
+
+    public DefaultListModel<MX13To> createMidiTo(MXMIDIIn in) {
+        DefaultListModel<MX13To> result = new DefaultListModel();
+        for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
+            MX13To to = new MX13To(_process, in, port);
+            result.addElement(to);
+        }
+        return result;
+    }
+
+    public DefaultListModel<MX13ToFilter> createMidiFilter(MXMIDIIn in, int port) {
+        DefaultListModel<MX13ToFilter> result = new DefaultListModel();
+        if (port >= 0) {
+            for (int type = 0; type < MXMidiFilter.COUNT_TYPE; ++ type) {
+                MXMidiFilter filter = in.getFilter(port);
+                MX13ToFilter filter2 = new MX13ToFilter(_process, in, port, type);
+                result.addElement(filter2);
+            }
+        }
+        return result;
+    }
 }

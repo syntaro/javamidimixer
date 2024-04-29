@@ -300,15 +300,12 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
                 String deviceName = device.getFollowingText("name", "");
                 boolean deviceOpen = device.getFollowingBool("open", false);
                 String deviceMaster = device.getFollowingText("toMaster", "");
-                String devicePort = device.getFollowingText("port", "");
+                MXJsonValue.HelperForArray listPort = device.getFollowingArray("portlist");
 
-                if (deviceName == null || deviceName.length() == 0) {
-                    break;
+                if (listPort == null) {
+                    continue;
                 }
-                if (devicePort == null || devicePort.length() == 0) {
-                    //For upgrade setting
-                    devicePort = String.valueOf(seek);
-                }
+                System.out.println("OPEN "+ deviceName + " = " + deviceOpen);
 
                 MXNamedObjectList<MXMIDIIn> detected = listAllInput();
                 MXMIDIIn in = detected.valueOfName(deviceName);
@@ -318,33 +315,27 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
                     }
                 } else {
                     in = new MXMIDIIn(dummy, dummy.InputAddDevice(deviceName));
-                    in.setPortAssigned(seek, true);
                     detected.addNameAndValue(deviceName, in);
                 }
-
-                ArrayList<String> split = new ArrayList();
-                MXUtil.split(devicePort, split, ',');
-                for (String t1 : split) {
-                    try {
-                        int x = Integer.parseInt(t1);
-                        in.setPortAssigned(x, true);
-                    } catch (NumberFormatException e) {
-
-                    }
-                }
-                in.setMasterList(deviceMaster);
                 
-                MXJsonValue.HelperForArray filter = device.getFollowingArray("filter");
-                if (filter != null) {
-                    in._filter.clearChecked();
-                    for (int x = 0; x < filter.count(); ++ x) {
-                        String filterName = filter.getFollowingText(x, "");
+                for (int p = 0; p < listPort.count(); ++ p) {
+                    MXJsonValue.HelperForStructure port = listPort.getFollowingStructure(p);
+                    int assigned = port.getFollowingInt("port", -1);
+                    if (assigned < 0) {
+                        continue;
+                    }
+                    in.setPortAssigned(assigned, true);
+                    MXJsonValue.HelperForArray listFilter = port.getFollowingArray("filter");
+                    for (int f = 0; f < listFilter.count(); ++ f) {
+                        String filterName = listFilter.getFollowingText(f, "");
                         int z = MXMidiFilter.fromName(filterName);
                         if (z >= 0) {
-                            in._filter.setChecked(z, true);
+                            in.getFilter(p).setChecked(z, true);
                         }
                     }
                 }
+
+                in.setMasterList(deviceMaster);
             }
         }
         clearMIDIInCache();
@@ -366,27 +357,22 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
             if (e.getPortAssignCount() <= 0) {
                 continue;
             }
-            StringBuffer assigned = new StringBuffer();
+            MXJsonValue.HelperForStructure device = listDevice.addFollowingStructure();
+            device.setFollowingText("name", e.getName());
+            device.setFollowingBool("open", e.isOpen());
+            device.setFollowingText("toMaster", e.getMasterList());
+
+            MXJsonValue.HelperForArray listPort = device.addFollowingArray("portlist");
             for (int p = 0; p < MXConfiguration.TOTAL_PORT_COUNT; ++p) {
                 if (e.isPortAssigned(p)) {
-                    if (assigned.length() > 0) {
-                        assigned.append(",");
-                    }
-                    assigned.append(Integer.toString(p));
-                }
-            }
-            if (assigned.length() > 0) {
-                MXJsonValue.HelperForStructure device = listDevice.addFollowingStructure();
-                device.setFollowingText("name", e.getName());
-                device.setFollowingBool("open", e.isOpen());
-                device.setFollowingText("port", assigned.toString());
-                device.setFollowingText("toMaster", e.getMasterList());
-    
-                MXJsonValue.HelperForArray filter = device.addFollowingArray("filter");
-                for (int x = 0; x < MXMidiFilter.COUNT_TYPE; ++ x) {
-                    String filterName = MXMidiFilter.getName(x);
-                    if (e._filter.isChecked(x)) {
-                        filter.addFollowingText(filterName);
+                    MXJsonValue.HelperForStructure port = listPort.addFollowingStructure();
+                    port.setFollowingInt("port", p);
+                    MXJsonValue.HelperForArray listFilter = port.addFollowingArray("filter");
+                    for (int x = 0; x < MXMidiFilter.COUNT_TYPE; ++ x) {
+                        String filterName = MXMidiFilter.getName(x);
+                        if (e.getFilter(p).isChecked(x)) {
+                            listFilter.addFollowingText(filterName);
+                        }
                     }
                 }
             }

@@ -106,7 +106,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
         tableModel.addColumn("Port");
         tableModel.addColumn("Assign");
         tableModel.addColumn("Open");
-        tableModel.addColumn("Skip");
+        tableModel.addColumn("Filter");
 
         for (MXMIDIOut output : allOutput.valueList()) {
             String prefix = "";

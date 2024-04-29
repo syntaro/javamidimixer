@@ -19,8 +19,11 @@ package jp.synthtarou.midimixer.mx10input;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import javax.swing.BoxLayout;
-import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXPreprocessPanel;
+import jp.synthtarou.midimixer.mx13patch.MX13Process;
 
 /**
  *
@@ -29,7 +32,7 @@ import jp.synthtarou.midimixer.libs.midi.port.MXPreprocessPanel;
 public class MX10View extends javax.swing.JPanel {
     MX10MidiInListPanel _inPanel;
     MX10Process _process;
-    
+    MX13Process _detail;
     /**
      * Creates new form MX10View
      */
@@ -37,7 +40,7 @@ public class MX10View extends javax.swing.JPanel {
         initComponents();
         _process = process;
 
-        _inPanel = new MX10MidiInListPanel();
+        _inPanel = new MX10MidiInListPanel(process);
         jPanelInputSelect.add(_inPanel);
 
         addComponentListener(new ComponentAdapter() {
@@ -57,6 +60,16 @@ public class MX10View extends javax.swing.JPanel {
         jPanelPreprocessor.removeAll();
         jPanelPreprocessor.setLayout(new BoxLayout(jPanelPreprocessor, BoxLayout.Y_AXIS));
         jPanelPreprocessor.add(manager);
+
+        _detail = new MX13Process(true);
+        _detail.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                _inPanel.refreshList();
+            }
+        });
+        jPanelDetail.setLayout(new BoxLayout(jPanelDetail, BoxLayout.LINE_AXIS));
+        jPanelDetail.add(_detail.getReceiverView());
     }
     
     public void splitAuto() {
@@ -71,19 +84,28 @@ public class MX10View extends javax.swing.JPanel {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-        java.awt.GridBagConstraints gridBagConstraints;
 
         jSplitPane1 = new javax.swing.JSplitPane();
+        jSplitPane2 = new javax.swing.JSplitPane();
         jPanelInputSelect = new javax.swing.JPanel();
+        jPanelDetail = new javax.swing.JPanel();
         jPanelPreprocessor = new javax.swing.JPanel();
 
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
 
         jSplitPane1.setDividerLocation(400);
 
+        jSplitPane2.setDividerLocation(200);
+        jSplitPane2.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+
         jPanelInputSelect.setBorder(javax.swing.BorderFactory.createTitledBorder("1.Input Assign"));
         jPanelInputSelect.setLayout(new javax.swing.BoxLayout(jPanelInputSelect, javax.swing.BoxLayout.LINE_AXIS));
-        jSplitPane1.setLeftComponent(jPanelInputSelect);
+        jSplitPane2.setTopComponent(jPanelInputSelect);
+
+        jPanelDetail.setBorder(javax.swing.BorderFactory.createTitledBorder("2.Filter"));
+        jSplitPane2.setBottomComponent(jPanelDetail);
+
+        jSplitPane1.setLeftComponent(jSplitPane2);
 
         jPanelPreprocessor.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanelPreprocessor.setLayout(new javax.swing.BoxLayout(jPanelPreprocessor, javax.swing.BoxLayout.LINE_AXIS));
@@ -93,12 +115,18 @@ public class MX10View extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel jPanelDetail;
     private javax.swing.JPanel jPanelInputSelect;
     private javax.swing.JPanel jPanelPreprocessor;
     private javax.swing.JSplitPane jSplitPane1;
+    private javax.swing.JSplitPane jSplitPane2;
     // End of variables declaration//GEN-END:variables
 
     public void tabActivated() {
         _inPanel.refreshList();
+    }
+    
+    public void showMIDIInDetail(MXMIDIIn in) {
+        _detail.showMIDIInDetail(in);
     }
 }

@@ -17,39 +17,41 @@
 package jp.synthtarou.midimixer.mx13patch;
 
 import javax.swing.event.ChangeEvent;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
+import jp.synthtarou.midimixer.libs.midi.port.MXMidiFilter;
 
 /**
  *
  * @author yaman
  */
-public class MX13To implements CheckableElement {
+public class MX13ToFilter implements CheckableElement {
     MX13Process _process;
     MXMIDIIn _in;
     int _port;
+    int _type;
     
-    public MX13To(MX13Process process, MXMIDIIn in, int port) {
+    public MX13ToFilter(MX13Process process, MXMIDIIn in, int port, int type) {
         _process = process;
         _in = in;
         _port = port;
+        _type = type;
     }
 
     @Override
     public boolean isItemChecked() {
-        return _in.isPortAssigned(_port);
+        return _in.getFilter(_port).isChecked(_type);
     }
 
     @Override
     public void setItemChecked(boolean checked) {
         if (isItemChecked() != checked) {
-            _in.setPortAssigned(_port, checked);
+            _in.getFilter(_port).setChecked(_type, checked);
             _process.fireChangeListener(new ChangeEvent(_process));
         }
     }
 
     @Override
     public String itemToString() {
-        return MXMidi.nameOfPortShort(_port);
-    }
+        return MXMidiFilter.getName(_type);
+    }    
 }

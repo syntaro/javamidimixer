@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi.port;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import javax.swing.JPanel;
@@ -48,7 +49,7 @@ public class MXMIDIIn implements Comparable<MXMIDIIn>{
     String _name;
     MXDriver _driver;
     int _orderInDriver;
-    public final MXMidiFilter _filter;
+    private final ArrayList<MXMidiFilter> _filter = new ArrayList<>();
 
     public MXPreprocess _preprocess;
 
@@ -58,6 +59,13 @@ public class MXMIDIIn implements Comparable<MXMIDIIn>{
 
     public int getOrderInDriver() {
         return _orderInDriver;
+    }
+    
+    public synchronized  MXMidiFilter getFilter(int port) {
+        while(_filter.size() <= port) {
+            _filter.add(new MXMidiFilter());
+        }
+        return _filter.get(port);
     }
 
     public void close() {
@@ -90,7 +98,6 @@ public class MXMIDIIn implements Comparable<MXMIDIIn>{
         _assigned = new boolean[MXConfiguration.TOTAL_PORT_COUNT];
         _driver = driver;
         _orderInDriver = driverOrder;
-        _filter = new MXMidiFilter();
         if (driver instanceof MXDriver_UWP) {
             MXDriver_UWP._instance.addInputCatalog(this);
         }
@@ -108,7 +115,7 @@ public class MXMIDIIn implements Comparable<MXMIDIIn>{
 
             @Override
             public void processMXMessage(MXMessage message) {
-                if (_filter.isSkip(message)) {
+                if (!getFilter(message.getPort()).isOK(message)) {
                     return;
                 }
                 for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {

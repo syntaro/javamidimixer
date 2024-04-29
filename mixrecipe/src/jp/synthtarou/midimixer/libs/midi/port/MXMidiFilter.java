@@ -25,7 +25,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
  */
 
 public class MXMidiFilter {
-    public static final int TYPE_ALL = 0;
+    public static final int TYPE_ISSKIPPER = 0;
     public static final int TYPE_NOTE = 1;
     public static final int TYPE_DAMPER_PEDAL = 2;
     public static final int TYPE_PITCH_BEND = 3;
@@ -41,7 +41,7 @@ public class MXMidiFilter {
     public static final int COUNT_TYPE = 13;
 
     private static final String[] typeNames = {
-        "All", "Note", "CC:DamperPedal", "PitchBend", "CC:ModWheel", "CC:BankChange",
+        "*Not", "Note", "CC:DamperPedal", "PitchBend", "CC:ModWheel", "CC:BankChange",
         "ProgramChange", "CC:DataEntry", "AnotherCC", "GM&GS&XGReset", "SysEX",
         "Clock", "Active"
     };
@@ -63,6 +63,7 @@ public class MXMidiFilter {
 
     public MXMidiFilter() {
         clearChecked();
+        _itemChecked[TYPE_ISSKIPPER] = true;
         _itemChecked[TYPE_ACTIVE_SENSING] = true;
         _itemChecked[TYPE_CLOCK] = true;
     }
@@ -79,16 +80,24 @@ public class MXMidiFilter {
         _itemChecked[type] = flag;
     }
 
-    public boolean isSkip(MXMessage message) {
-        for (int i = 0; i < COUNT_TYPE; ++ i) {
-            if (isChecked(i) && isSkipImpl(i, message)) {
-                return true;
+    public boolean isOK(MXMessage message) {
+        boolean flag = false;
+        for (int i = 1; i < COUNT_TYPE; ++ i) {
+            if (isChecked(i)) {
+                if (isMessageHit(i, message)) {
+                    flag = true;
+                    break;
+                }
             }
         }
-        return false;
+        if (isChecked(TYPE_ISSKIPPER)) {
+            return !flag;
+        }else {
+            return flag;
+        }
     }
 
-    public boolean isSkipImpl(int type, MXMessage message) {
+    public boolean isMessageHit(int type, MXMessage message) {
         int status = message.getStatus();
         int command = status;
         if (message.isChannelMessage1() || command >= 0x100) {
@@ -98,7 +107,7 @@ public class MXMidiFilter {
         int data2 = message.getCompiled(2);
 
         switch (type) {
-            case TYPE_ALL:
+            case TYPE_ISSKIPPER:
                 return true;
             case TYPE_NOTE:
                 if (command == MXMidi.COMMAND_CH_NOTEON

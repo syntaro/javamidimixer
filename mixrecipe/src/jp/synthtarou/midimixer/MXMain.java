@@ -219,6 +219,7 @@ public class MXMain {
         _mx60outputProcess.readJSonfile(null);
         initProcessWithSetting(_mx40layerProcess);
         initProcessWithSetting(_mx50resolutionProcess);
+        initProcessWithSetting(_mx80VstRack);
 
         _mainWindow = new MXMainWindow(this);
         _mainWindow.setEnabled(false);

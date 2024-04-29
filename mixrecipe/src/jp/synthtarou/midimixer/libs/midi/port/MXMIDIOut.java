@@ -259,7 +259,7 @@ public class MXMIDIOut implements Comparable<MXMIDIOut>{
             return;
         }
         
-        if (_filter.isSkip(message)) {
+        if (!_filter.isOK(message)) {
             return;
         }
 

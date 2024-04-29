@@ -17,13 +17,13 @@
 package jp.synthtarou.midimixer.mx10input;
 
 import java.io.File;
-import javax.swing.JPanel;
 import jp.synthtarou.libs.json.MXJsonValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
+import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 
 /**
  *
@@ -79,5 +79,9 @@ public class MX10Process extends MXReceiver<MX10View> implements MXJsonSupport  
     
     @Override
     public void resetSetting() {
+    }
+    
+    public void showMIDIInDetail(MXMIDIIn in) {
+        _view.showMIDIInDetail(in);
     }
 }
