@@ -1,0 +1,6 @@
+added option 
+
+#define INIT_NOT_DETAIL (true)
+
+for not reset iTunes/YouTube etc
+  when fetching driver information
