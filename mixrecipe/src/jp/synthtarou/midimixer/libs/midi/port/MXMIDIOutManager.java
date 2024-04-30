@@ -288,7 +288,7 @@ public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
 
                 String deviceName = device.getFollowingText("name", "");
                 boolean deviceOpen = device.getFollowingBool("open", false);
-                String devicePort = device.getFollowingText("port", "");
+                MXJsonValue.HelperForArray listPort = device.getFollowingArray("portlist");
 
                 if (deviceName == null || deviceName.length() == 0) {
                     break;
@@ -304,24 +304,21 @@ public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
                     out = new MXMIDIOut(dummy, dummy.OuputAddDevice(deviceName));
                     detected.addNameAndValue(deviceName, out);
                 }
-                ArrayList<String> split = new ArrayList();
-                MXUtil.split(devicePort, split, ',');
-                for (String t1 : split) {
-                    try {
-                        int x = Integer.parseInt(t1);
-                        out.setPortAssigned(x, true);
-                    } catch (NumberFormatException e) {
-
-                    }
-                }
-                MXJsonValue.HelperForArray filter = device.getFollowingArray("filter");
-                out._filter.clearChecked();
-                if (filter != null) {
-                    for (int x = 0; x < filter.count(); ++ x) {
-                        String filterName = filter.getFollowingText(x, "");
-                        int z = MXMidiFilter.fromName(filterName);
-                        if (z >= 0) {
-                            out._filter.setChecked(z, true);
+                if (listPort != null) {
+                    for (int p = 0; p < listPort.count(); ++ p) {
+                        MXJsonValue.HelperForStructure port = listPort.getFollowingStructure(p);
+                        int assigned = port.getFollowingInt("port", -1);
+                        if (assigned < 0) {
+                            continue;
+                        }
+                        out.setPortAssigned(assigned, true);
+                        MXJsonValue.HelperForArray listFilter = port.getFollowingArray("filter");
+                        for (int f = 0; f < listFilter.count(); ++ f) {
+                            String filterName = listFilter.getFollowingText(f, "");
+                            int z = MXMidiFilter.fromName(filterName);
+                            if (z >= 0) {
+                                out.getFilter(p).setChecked(z, true);
+                            }
                         }
                     }
                 }
@@ -358,13 +355,19 @@ public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
                 MXJsonValue.HelperForStructure device = deviceList.addFollowingStructure();
                 device.setFollowingText("name", e.getName());
                 device.setFollowingBool("open", e.isOpen());
-                device.setFollowingText("port", assigned.toString());
 
-                MXJsonValue.HelperForArray filter = device.addFollowingArray("filter");
-                for (int x = 0; x < MXMidiFilter.COUNT_TYPE; ++ x) {
-                    String filterName = MXMidiFilter.getName(x);
-                    if (e._filter.isChecked(x)) {
-                        filter.addFollowingText(filterName);
+                MXJsonValue.HelperForArray listPort = device.addFollowingArray("portlist");
+                for (int p = 0; p < MXConfiguration.TOTAL_PORT_COUNT; ++p) {
+                    if (e.isPortAssigned(p)) {
+                        MXJsonValue.HelperForStructure port = listPort.addFollowingStructure();
+                        port.setFollowingInt("port", p);
+                        MXJsonValue.HelperForArray listFilter = port.addFollowingArray("filter");
+                        for (int x = 0; x < MXMidiFilter.COUNT_TYPE; ++ x) {
+                            String filterName = MXMidiFilter.getName(x);
+                            if (e.getFilter(p).isChecked(x)) {
+                                listFilter.addFollowingText(filterName);
+                            }
+                        }
                     }
                 }
             }

@@ -16,12 +16,17 @@
  */
 package jp.synthtarou.midimixer.mx60output;
 
+import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
+import jp.synthtarou.midimixer.mx63patch.MX63Process;
 
 /**
  *
@@ -33,6 +38,7 @@ public class MX60View extends javax.swing.JPanel {
     MX60MidiOutListPanel _midiPanel;
     ButtonGroup _recorderGroup;
     MX60Process _process;
+    MX63Process _detail;
 
     /**
      * Creates new form MX60View
@@ -41,7 +47,7 @@ public class MX60View extends javax.swing.JPanel {
         initComponents();
         _process = process;
 
-        _midiPanel = new MX60MidiOutListPanel();
+        _midiPanel = new MX60MidiOutListPanel(_process);
         jPanelOutputSelect.add(_midiPanel);
  
         _recorderGroup = new ButtonGroup();
@@ -53,6 +59,16 @@ public class MX60View extends javax.swing.JPanel {
         jRadioButtonSong1.setSelected(true);
         jProgressBar1.setMinimum(0);
         jProgressBar1.setMaximum(10000);
+
+        _detail = new MX63Process(true);
+        _detail.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                _midiPanel.refreshList();
+            }
+        });
+        jPanelDetail.setLayout(new BoxLayout(jPanelDetail, BoxLayout.LINE_AXIS));
+        jPanelDetail.add(_detail.getReceiverView());
     }
 
     /**
@@ -66,7 +82,6 @@ public class MX60View extends javax.swing.JPanel {
         java.awt.GridBagConstraints gridBagConstraints;
 
         buttonGroup1 = new javax.swing.ButtonGroup();
-        jPanelOutputSelect = new javax.swing.JPanel();
         jPanel4 = new javax.swing.JPanel();
         jRadioButtonSong1 = new javax.swing.JRadioButton();
         jRadioButtonSong2 = new javax.swing.JRadioButton();
@@ -77,18 +92,13 @@ public class MX60View extends javax.swing.JPanel {
         jToggleButtonRec = new javax.swing.JToggleButton();
         jToggleButtonPlay = new javax.swing.JToggleButton();
         jProgressBar1 = new javax.swing.JProgressBar();
+        jSplitPane1 = new javax.swing.JSplitPane();
+        jPanelOutputSelect = new javax.swing.JPanel();
+        jPanelDetail = new javax.swing.JPanel();
 
         setLayout(new java.awt.GridBagLayout());
 
-        jPanelOutputSelect.setBorder(javax.swing.BorderFactory.createTitledBorder("2.Output Assign"));
-        jPanelOutputSelect.setLayout(new javax.swing.BoxLayout(jPanelOutputSelect, javax.swing.BoxLayout.LINE_AXIS));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        add(jPanelOutputSelect, gridBagConstraints);
-
-        jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("2. Recorder"));
+        jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Recorder"));
         jPanel4.setLayout(new java.awt.GridBagLayout());
 
         jRadioButtonSong1.setText("Song1");
@@ -173,6 +183,22 @@ public class MX60View extends javax.swing.JPanel {
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         add(jPanel4, gridBagConstraints);
+
+        jSplitPane1.setDividerLocation(200);
+        jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+
+        jPanelOutputSelect.setBorder(javax.swing.BorderFactory.createTitledBorder("Output"));
+        jPanelOutputSelect.setLayout(new javax.swing.BoxLayout(jPanelOutputSelect, javax.swing.BoxLayout.LINE_AXIS));
+        jSplitPane1.setLeftComponent(jPanelOutputSelect);
+
+        jPanelDetail.setBorder(javax.swing.BorderFactory.createTitledBorder("Filter"));
+        jSplitPane1.setRightComponent(jPanelDetail);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        add(jSplitPane1, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jToggleButtonRecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButtonRecActionPerformed
@@ -236,6 +262,7 @@ public class MX60View extends javax.swing.JPanel {
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton jButtonSongExport;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanelDetail;
     private javax.swing.JPanel jPanelOutputSelect;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JRadioButton jRadioButtonSong1;
@@ -243,6 +270,7 @@ public class MX60View extends javax.swing.JPanel {
     private javax.swing.JRadioButton jRadioButtonSong3;
     private javax.swing.JRadioButton jRadioButtonSong4;
     private javax.swing.JRadioButton jRadioButtonSong5;
+    private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JToggleButton jToggleButtonPlay;
     private javax.swing.JToggleButton jToggleButtonRec;
     // End of variables declaration//GEN-END:variables
@@ -357,5 +385,9 @@ public class MX60View extends javax.swing.JPanel {
             return;
         }
         enableRecordingButton();
+    }
+
+    public void showMIDIOutDetail(MXMIDIOut out) {
+        _detail.showMIDIOutDetail(out);
     }
 }

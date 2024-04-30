@@ -638,11 +638,9 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
         }
         
         MXJsonValue.HelperForArray listBase = root.getFollowingArray("base");
-        System.out.println("Json =" + listBase.count());
         if (listBase != null) {
             for (int i = 0; i < listBase.count(); ++ i) {
                 MXJsonValue.HelperForStructure base = listBase.getFollowingStructure(i);
-                System.out.println("Json =" + base.toJsonValue().formatForFile());
 
                 boolean scanDone = base.getFollowingBool("scanDone", false);
                 String path = base.getFollowingText("path", "");

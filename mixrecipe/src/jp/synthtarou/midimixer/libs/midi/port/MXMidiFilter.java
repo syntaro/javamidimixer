@@ -42,7 +42,7 @@ public class MXMidiFilter {
 
     private static final String[] typeNames = {
         "*Not", "Note", "CC:DamperPedal", "PitchBend", "CC:ModWheel", "CC:BankChange",
-        "ProgramChange", "CC:DataEntry", "AnotherCC", "GM&GS&XGReset", "SysEX",
+        "ProgramChange", "CC:DataEntry", "CC:Another", "GM&GS&XGReset", "SysEX",
         "Clock", "Active"
     };
 

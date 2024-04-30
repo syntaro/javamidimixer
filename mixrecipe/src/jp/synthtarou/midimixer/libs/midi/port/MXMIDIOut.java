@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi.port;
 
+import java.util.ArrayList;
 import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant16;
 import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant;
 import java.util.logging.Level;
@@ -43,7 +44,15 @@ public class MXMIDIOut implements Comparable<MXMIDIOut>{
     private String _name;
     boolean[] _assigned;
     int _assignCount;
-    public final MXMidiFilter _filter;
+
+    private final ArrayList<MXMidiFilter> _filter;
+    public synchronized  MXMidiFilter getFilter(int port) {
+        while(_filter.size() <= port) {
+            _filter.add(new MXMidiFilter());
+        }
+        return _filter.get(port);
+    }
+
 
     private MXVisitant16 _visitantOut16 = new MXVisitant16();
 
@@ -112,7 +121,7 @@ public class MXMIDIOut implements Comparable<MXMIDIOut>{
         _assigned = new boolean[16];
         _driver = driver;
         _orderInDriver = driverOrder;
-        _filter = new MXMidiFilter();
+        _filter = new ArrayList<MXMidiFilter>();
         if (driver == null) {
             _name = "(NULL)";
         } else {
@@ -259,10 +268,6 @@ public class MXMIDIOut implements Comparable<MXMIDIOut>{
             return;
         }
         
-        if (!_filter.isOK(message)) {
-            return;
-        }
-
         if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
             _myNoteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
                 @Override

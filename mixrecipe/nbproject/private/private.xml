@@ -2,6 +2,14 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="3">
         <file>
+            <url>src/jp/synthtarou/midimixer/libs/midi/port/MXMIDIInForPlayer.java</url>
+            <bookmark id="1">
+                <name/>
+                <line>169</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
             <url>src/jp/synthtarou/midimixer/libs/settings/MXSettingNode.java</url>
             <bookmark id="3">
                 <name/>
@@ -10,18 +18,10 @@
             </bookmark>
         </file>
         <file>
-            <url>src/jp/synthtarou/midimixer/libs/midi/port/MXMIDIInForPlayer.java</url>
-            <bookmark id="1">
-                <name/>
-                <line>174</line>
-                <key/>
-            </bookmark>
-        </file>
-        <file>
             <url>src/jp/synthtarou/midimixer/libs/midi/MXMessage.java</url>
             <bookmark id="2">
                 <name/>
-                <line>443</line>
+                <line>406</line>
                 <key/>
             </bookmark>
         </file>

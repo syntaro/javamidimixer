@@ -17,12 +17,12 @@
 package jp.synthtarou.midimixer.mx60output;
 
 import java.io.File;
-import javax.swing.JPanel;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.libs.json.MXJsonParser;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.json.MXJsonValue;
+import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 
 /**
  *
@@ -91,5 +91,9 @@ public class MX60Process extends MXReceiver<MX60View> implements MXJsonSupport {
     @Override
     public void resetSetting() {
         _view.showViewData();
+    }
+
+    public void showMIDIOutDetail(MXMIDIOut out) {
+        _view.showMIDIOutDetail(out);
     }
 }

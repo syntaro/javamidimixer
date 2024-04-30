@@ -16,25 +16,19 @@
  */
 package jp.synthtarou.midimixer.mx60output;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPopupMenu;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import jp.synthtarou.libs.log.MXFileLogger;
-import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_NotFound;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
-import jp.synthtarou.midimixer.libs.midi.port.MXMidiFilter;
-import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
+import jp.synthtarou.midimixer.mx63patch.MX63Process;
 
 /**
  *
@@ -44,23 +38,27 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
 
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JTable jTableDevice;
+    private MX60Process _process;
 
-    public MX60MidiOutListPanel() {
+    public MX60MidiOutListPanel(MX60Process process) {
         initComponents();
+        _process = process;
 
         MXMIDIInManager manager = MXMIDIInManager.getManager();
 
         jTableDevice = new javax.swing.JTable();
         jScrollPane4 = new javax.swing.JScrollPane(jTableDevice);
 
-        jTableDevice.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                jTableDeviceMousePressed(evt);
-            }
-        });
-        jTableDevice.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                jTableDeviceKeyPressed(evt);
+        jTableDevice.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        jTableDevice.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                int row = jTableDevice.getSelectedRow();
+                if (row >= 0) {
+                    MXMIDIOutManager manager = MXMIDIOutManager.getManager();
+                    MXMIDIOut output = manager.listAllOutput().valueOfIndex(row);
+                    _process.showMIDIOutDetail(output);
+                }
             }
         });
         this.add(jScrollPane4);
@@ -117,7 +115,8 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
                 prefix + output.getName(),
                 output.getPortAssignedAsText(),
                 output.isOpen() ? "o" : "-",
-                output._filter.toString()});
+                MX63Process.getFilterInfo(output)
+            });
         }
 
         return tableModel;
@@ -144,137 +143,6 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
             model.setValueAt(newAssign, i, 1);
             model.setValueAt(newOpen, i, 2);
             model.setValueAt(newSkip, i, 3);
-        }
-    }
-
-    public int columnX(int col) {
-        int spent = 0;
-        for (int x = 0; x < col; ++x ) {
-            spent += jTableDevice.getColumnModel().getColumn(x).getWidth();
-        }
-        return spent;
-    }
-    
-    public void popupOutputPortSelect(int row) {
-        JPopupMenu menu = createPopupMenuForPort(row);
-        menu.show(jTableDevice, columnX(1), jTableDevice.getRowHeight(0) * (row + 1));
-    }
-
-    public JPopupMenu createPopupMenuForPort(final int row) {
-        JPopupMenu popup = new JPopupMenu();
-
-        for (int i = -1; i < MXConfiguration.TOTAL_PORT_COUNT; ++i) {
-            JMenuItem item;
-            if (i < 0) {
-                item = popup.add("(none)");
-            } else {
-                item = popup.add(MXMidi.nameOfPortShort(i));
-            }
-            item.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent arg0) {
-                    JMenuItem item = (JMenuItem) arg0.getSource();
-                    String itemText = item.getText();
-                    int newAssign;
-                    if (itemText.startsWith("(none")) {
-                        newAssign = -1;
-                    } else {
-                        newAssign = MXMidi.valueOfPortName(itemText);
-                    }
-                    MXMIDIOutManager manager = MXMIDIOutManager.getManager();
-
-                    DefaultTableModel model = null;
-                    model = (DefaultTableModel) jTableDevice.getModel();
-                    String text = (String) model.getValueAt(row, 0);
-                    MXMIDIOut output = manager.listAllOutput().valueOfName(text);
-
-                    if (newAssign >= 0) {
-                        if (output.isPortAssigned(newAssign)) {
-                            output.allNoteOffFromPort(null, newAssign);
-                        }
-                        output.setPortAssigned(newAssign, !output.isPortAssigned(newAssign));
-                    } else if (output != null) {
-                        output.resetPortAssigned();
-                    }
-                    if (newAssign >= 0 && output.openOutput(0) == false) {
-                        JOptionPane.showMessageDialog(MX60MidiOutListPanel.this, "Error when opening " + text);
-                    }
-                    MX60MidiOutListPanel.this.updateDeviceTable();
-                }
-            });
-        }
-        return popup;
-    }
-
-    public void popupOutputSkip(int row) {
-        JPopupMenu popup = new JPopupMenu();
-        MXMIDIOutManager manager = MXMIDIOutManager.getManager();
-        MXMIDIOut output = manager.listAllOutput().valueOfIndex(row);
-        
-        if (output.isOpen() == false) {
-            JOptionPane.showMessageDialog(this, "Please Open Port before Edit", "Error", JOptionPane.OK_OPTION);
-            return;
-        }
-
-        for (int i = 0; i < MXMidiFilter.COUNT_TYPE; ++i) {
-            JMenuItem item = new MenuItemForSkip(output, i);
-            popup.add(item);
-        }
-        popup.show(jTableDevice, columnX(2), jTableDevice.getRowHeight(0) * (row + 1));
-    }
-
-    class MenuItemForSkip extends JCheckBoxMenuItem implements ActionListener{
-        MXMIDIOut _output;
-        int _type;
-
-        public MenuItemForSkip(MXMIDIOut output, int type) {
-            super(MXMidiFilter.getName(type));
-            _output = output;
-            _type = type;
-            addActionListener(this);
-            setSelected(_output._filter.isChecked(_type));
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            boolean old = _output._filter.isChecked(_type);
-            _output._filter.setChecked(_type, !old);
-            MX60MidiOutListPanel.this.updateDeviceTable();
-        }
-    }
-
-    private void jTableDeviceKeyPressed(java.awt.event.KeyEvent evt) {
-        if (evt.getKeyChar() == ' ' || evt.getKeyChar() == '\n') {
-            popupOutputPortSelect(jTableDevice.getSelectedRow());
-        }
-    }
-
-    private void jTableDeviceMousePressed(java.awt.event.MouseEvent evt) {
-        int row = jTableDevice.rowAtPoint(evt.getPoint());
-        int col = jTableDevice.columnAtPoint(evt.getPoint());
-        if (col == 1) {
-            popupOutputPortSelect(row);
-        }
-        if (col == 2) {
-            DefaultTableModel tableModel = (DefaultTableModel) jTableDevice.getModel();
-            String name = (String) tableModel.getValueAt(row, 0);
-            MXNamedObjectList<MXMIDIOut> allOutput = MXMIDIOutManager.getManager().listAllOutput();
-            for (MXMIDIOut output : allOutput.valueList()) {
-                if (output.getName().equals(name)) {
-                    if (output.isOpen()) {
-                        output.close();
-                    } else {
-                        if (output.openOutput(5) == false) {
-                            JOptionPane.showMessageDialog(this, "Can't open " + output.getName());
-                        }
-                    }
-                    break;
-                }
-            }
-            updateDeviceTable();
-        }
-        if (col == 3) {
-            popupOutputSkip(row);
         }
     }
 }

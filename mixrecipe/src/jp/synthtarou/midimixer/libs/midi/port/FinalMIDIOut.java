@@ -72,7 +72,8 @@ public class FinalMIDIOut extends MXReceiver {
         MXNamedObjectList<MXMIDIOut> listOut = MXMIDIOutManager.getManager().listAllOutput();
         for (int i = 0; i < listOut.getSize(); ++i) {
             MXMIDIOut out = listOut.valueOfIndex(i);
-            if (out.isOpen() && out.isPortAssigned(message.getPort())) {
+            int port = message.getPort();
+            if (out.isOpen() && out.isPortAssigned(port)&& out.getFilter(port).isOK(message)) {
                 out.processMidiOut(message);
             }
         }
