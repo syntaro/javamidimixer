@@ -30,7 +30,7 @@ EasyVstCustom::~EasyVstCustom()
 {
 	closeVstEditor();
 	_view = nullptr;
-	reset();
+	//reset();
 }
 
 bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool realtime)

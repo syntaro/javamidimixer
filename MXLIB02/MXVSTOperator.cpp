@@ -353,14 +353,16 @@ void MXVSTOperator::postQuit(int task) {
 		PostThreadMessage(GetThreadId(_thread->native_handle()), WM_QUIT, 0, 0);
 		for (int x = 0; x < MAX_SYNTH; ++x) {
 			MXVSTInstrument* vst = getOperator()->getSynth(false, x);
-			if (vst != nullptr) {
-				__try {
+			__try {
+				if (vst != nullptr && vst->_path.empty() == false) {
+					debugText2(L"Delete VSTClassObject for ", vst->_path.c_str());
 					delete vst->_easyVst;
 					vst->_easyVst = nullptr;
 				}
-				__except (systemExceptionMyHandler(L"ThreadFunc2", GetExceptionInformation()))
-				{
-				}
+			}
+			__except (systemExceptionMyHandler(L"ThreadFunc2", GetExceptionInformation()))
+			{
+				debugText(L"Exception when FreeVST");
 			}
 		}
 		/*
