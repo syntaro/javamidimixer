@@ -354,9 +354,12 @@ void MXVSTOperator::postQuit(int task) {
 		for (int x = 0; x < MAX_SYNTH; ++x) {
 			MXVSTInstrument* vst = getOperator()->getSynth(false, x);
 			if (vst != nullptr) {
-				if (vst->isOpen()) {
+				__try {
 					delete vst->_easyVst;
 					vst->_easyVst = nullptr;
+				}
+				__except (systemExceptionMyHandler(L"ThreadFunc2", GetExceptionInformation()))
+				{
 				}
 			}
 		}
