@@ -64,6 +64,7 @@ public class MXLIB02VST3 {
     public native void postRemoveSynth(boolean effect, int slot, int task);
     public native void savePreset(boolean effect, int slot, String path, int task);
     public native void loadPreset(boolean effect, int slot, String path, int task);
+    public native void forceTerminate();
 
     public native void waitQueued(int task);
 

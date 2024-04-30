@@ -223,7 +223,7 @@ public class MXMain {
 
         _mainWindow = new MXMainWindow(this);
         _mainWindow.setEnabled(false);
-        _mainWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        _mainWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         _mainWindow.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 AppCloseTask(true);
@@ -329,10 +329,25 @@ public class MXMain {
             } catch (RuntimeException ex) {
                 MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
             }
-            MXFileLogger.getLogger(MXMain.class).info("stopping vst");
-            VSTInstance.stopEngine(null);
-            MXFileLogger.getLogger(MXMain.class).info("stopped vst");
+
+            try {
+                MXFileLogger.getLogger(MXMain.class).info("stopping vst");
+                VSTInstance.stopEngine(null);
+                MXFileLogger.getLogger(MXMain.class).info("stopped vst");
+            } catch (Throwable ex) {
+                MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
+            }
+
+            /*
+            try {
+                VSTStream.getInstance().forceTerminate();
+            } catch (Throwable ex) {
+                MXFileLogger.getLogger(MXMain.class).log(Level.WARNING, ex.getMessage(), ex);
+            }*/
+
+            System.out.println("System.exit(0)");
             System.exit(0);
+
         });
         t.start();
     }

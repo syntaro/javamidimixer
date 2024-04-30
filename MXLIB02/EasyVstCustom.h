@@ -63,6 +63,7 @@ public:
 
 	void pushEvent(Event* ev);
 	Event* popEvent();
+	void pushShutdownMessage();
 	void pushShortMessage(uint32_t dword);
 	void pushLongMessage(const uchar *data, size_t length);
 

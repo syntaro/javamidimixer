@@ -211,6 +211,11 @@ int MXVSTStream::getBlockSize() {
 
 ProcessContext processContext = {};
 
+void MXVSTStream::quiting()
+{
+    _quiting = true;
+}
+
 void MXVSTStream::processAudio(float* outputBuffer, unsigned long framesPerBuffer) {
     __try
     {
@@ -234,6 +239,12 @@ void MXVSTStream::processAudio(float* outputBuffer, unsigned long framesPerBuffe
 
         memset(outputBuffer, 0, sizeof(float) * framesPerBuffer * 2);
 
+        if (_quiting) {
+            return;
+        }
+        if (_openedStream == nullptr) {
+            return;
+        }
         if (isSuspended()) {
             return;
         }

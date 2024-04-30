@@ -32,6 +32,7 @@ import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.json.MXJsonValue;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *

@@ -23,7 +23,7 @@ MXVSTInstrument::MXVSTInstrument() {
 }
 
 MXVSTInstrument::~MXVSTInstrument() {
-    std::cout << "Destruct" << std::endl;
+    _printDebug(L"Destruct");
 }
 
 bool MXVSTInstrument::load(const std::wstring& path) {
@@ -86,11 +86,11 @@ bool MXVSTInstrument::load(const std::wstring& path) {
 void MXVSTInstrument::unload(void) {
     if (_easyVst != nullptr) {
         if (_blackList) {
-            std::cout << "BL Bye" << std::endl;
+            _printDebug(L"Blacklist Unload");
             _easyVst = nullptr;
         }
         else {
-            std::cout << "Doing Unload " << std::endl;
+            _printDebug(L"Unload");
             int num = _easyVst->numBuses(kAudio, kOutput);
             for (int i = 0; i < num; ++i) {
                 _easyVst->setBusActive(kAudio, kOutput, i, false);

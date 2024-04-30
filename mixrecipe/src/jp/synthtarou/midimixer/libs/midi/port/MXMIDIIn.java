@@ -439,7 +439,7 @@ public class MXMIDIIn implements Comparable<MXMIDIIn>{
         }
     }
 
-    private static void messageToReceiver(MXMessage message, MXReceiver receiver) {
+    private synchronized static void messageToReceiver(MXMessage message, MXReceiver receiver) {
         try {
             try {
                 if (receiver == MXMain.getMain().getInputProcess()) {

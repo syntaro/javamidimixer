@@ -3,6 +3,7 @@
 #include "EasyVSTCustom.h"
 #include "NoteMessage.h"
 #include "MXVSTStream.h"
+#include "MXVSTOperator.h"
 
 #ifdef DEBUG
 #pragma comment(lib,"C:/github/vst3sdk_build/lib/Debug/base.lib")
@@ -141,7 +142,7 @@ bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool r
 			}
 
 			_numInAudioBuses = _component->getBusCount(MediaTypes::kAudio, BusDirections::kInput);
-			std::cout << "numInAudioBuses " << _numInAudioBuses << std::endl;
+			debugNumber(L"numInAudioBuses", _numInAudioBuses);
 
 			for (int i = 0; i < _numInAudioBuses; ++i) {
 				BusInfo info;
@@ -156,7 +157,7 @@ bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool r
 
 
 			_numInEventBuses = _component->getBusCount(MediaTypes::kEvent, BusDirections::kInput);
-			std::cout << "numInEventBuses " << _numInEventBuses << std::endl;
+			debugNumber(L"numInEventBuses", _numInEventBuses);
 
 			for (int i = 0; i < _numInEventBuses; ++i) {
 				BusInfo info;
@@ -166,7 +167,7 @@ bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool r
 			}
 
 			_numOutAudioBuses = _component->getBusCount(MediaTypes::kAudio, BusDirections::kOutput);
-			std::cout << "numOutAudioBuses " << _numOutAudioBuses << std::endl;
+			debugNumber(L"numOutAudioBuses", _numOutAudioBuses);
 
 			for (int i = 0; i < _numOutAudioBuses; ++i) {
 				BusInfo info;
@@ -180,7 +181,7 @@ bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool r
 			}
 
 			_numOutEventBuses = _component->getBusCount(MediaTypes::kEvent, BusDirections::kOutput);
-			std::cout << "numOutEventBuses " << _numOutEventBuses << std::endl;
+			debugNumber(L"numOutEventBuses", _numOutEventBuses);
 
 			for (int i = 0; i < _numOutEventBuses; ++i) {
 				BusInfo info;
@@ -189,7 +190,7 @@ bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool r
 				setBusActive(kEvent, kOutput, i, false);
 			}
 
-			std::cout << "setBusArrangements" << std::endl;
+			debugText(L"setBusArrangements");
 
 			tresult res = _audioEffect->setBusArrangements(_inSpeakerArrs.data(), _numInAudioBuses, _outSpeakerArrs.data(), _numOutAudioBuses);
 			if (res != kResultTrue) {
@@ -197,7 +198,7 @@ bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool r
 				//return false;
 			}
 
-			std::cout << "setupProcessing" << std::endl;
+			debugText(L"setupProcessing");
 
 			res = _audioEffect->setupProcessing(_processSetup);
 			if (res == kResultOk) {
@@ -252,24 +253,9 @@ bool EasyVstCustom::resumeVST() {
 	tresult a = _audioEffect->setupProcessing(_processSetup);
 	tresult b = _component->setActive(true);
 	tresult c = _audioEffect->setProcessing(true);
-	if (a != kResultOk) {
-		std::cout << "setupProcessing fail " << std::to_string(a) << std::endl;
-	}
-	else {
-		std::cout << "setupProcessing ok " << std::to_string(a) << std::endl;
-	}
-	if (b != kResultOk) {
-		std::cout << "setActive fail " << std::to_string(b) << std::endl;
-	}
-	else {
-		std::cout << "setActive ok " << std::to_string(b) << std::endl;
-	}
-	if (c != kResultOk) {
-		std::cout << "setProcessing fail " << std::to_string(c) << std::endl;
-	}
-	else {
-		std::cout << "setProcessing ok " << std::to_string(c) << std::endl;
-	}
+	debugText2(L"setupProcessing ", a != kResultOk ? L"false" : L"true");
+	debugText2(L"setActive ", b != kResultOk ? L"false" : L"true");
+	debugText2(L"setProcessing ", c != kResultOk ? L"false" : L"true");
 	_suspended = false;
 	return true;
 }
@@ -296,12 +282,10 @@ BOOL bufferToFile(const char* utfPath, IBStream& buffer) {
 		trans = 0;
 		tresult ret = buffer.read(data, 16384, &trans);
 		if (trans == 0) {
-			//std::cout << "buffer.read 0 byte";
+			_printError(L"buffer.read 0 byte");
 			break;
 		}
-		//std::cout << "buffer.read  " << std::to_string(trans) << " bytes " << std::endl;
 		size_t wrote = ::fwrite(data, 1, trans, fp);
-		//std::cout << "::write wrote " << std::to_string(wrote) << " bytes " << std::endl;
 		if (wrote != trans) {
 			::fclose(fp);
 			remove(utfPath);
@@ -323,7 +307,6 @@ BOOL fileToBuffer(const char* utfPath, IBStream& buffer) {
 	buffer.seek(0, IBStream::kIBSeekSet);
 	while (true) {
 		trans = fread(data, 1, 16384, fp);
-		//std::cout << "read  " << std::to_string(trans) << " bytes " << std::endl;
 		if (trans <= 0) {
 			break;
 		}
@@ -368,11 +351,11 @@ bool EasyVstCustom::savePreset(const char* utfPath) {
 			}
 		}
 		if (!success0) {
-			std::cout << "false from #savePreset";
+			_printError(L"false from #savePreset");
 		}
 	}
 	catch (...) {
-		std::cout << "something happens in savePreset";
+		_printError("something happens in savePreset");
 	}
 	return success0;
 }
@@ -396,11 +379,11 @@ bool EasyVstCustom::loadPreset(const char* utfPath) {
 		}
 
 		if (!success) {
-			std::cout << "false from #loadPreset";
+			_printError(L"false from #loadPreset");
 		}
 	}
 	catch (...) {
-		std::cout << "something happens in loadPreset";
+		_printError(L"something happens in loadPreset");
 	}
 	return success;
 }
@@ -421,7 +404,7 @@ bool EasyVstCustom::processVST(int numSamples)
 		_processData.outputParameterChanges = &_outputParameterChanges;
 		_processData.numSamples = numSamples;
 
-		if (_audioEffect != NULL) {
+		if (_audioEffect != nullptr) {
 			tresult result = _audioEffect->process(_processData);
 			if (result != kResultOk) {
 				return false;
@@ -702,43 +685,41 @@ void EasyVstCustom::_superDestroty(bool decrementRefCount)
 
 void PRINT_DEBUG(const std::wstring& str) {
 #if DEBUG
-	std::wcout << str << std::endl;
+	debugText(str.c_str());
 #endif
 }
 void PRINT_ERROR(const std::wstring& str) {
-#if DEBUG || 1
-	std::wcout << str << std::endl;
-#endif
+	debugText(str.c_str());
 }
 void PRINT_DEBUG(const std::string& str) {
 #if DEBUG
-	std::cout << str << std::endl;
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+	std::wstring str2 = converter.from_bytes(str); 
+	debugText(str2.c_str());
 #endif
 }
 void PRINT_ERROR(const std::string& str) {
-#if DEBUG || 1
-	std::cout << str << std::endl;
-#endif
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+	std::wstring str2 = converter.from_bytes(str);
+	debugText(str2.c_str());
 }
 void PRINT_DEBUG(const wchar_t* str) {
 #if DEBUG
-	std::wcout << str << std::endl;
+	debugText(str);
 #endif
 }
 void PRINT_ERROR(const wchar_t* str) {
-#if DEBUG || 1
-	std::cout << str << std::endl;
-#endif
+	debugText(str);
 }
 
 tresult EasyVstCustom::getCCMappingInfo(int channel, int cc, ParamID& param) {
 	if (_midiMapping == nullptr) {
-		std::cout << "midiMapping not avail" << std::endl;
+		debugText(L"midiMapping not avail");
 		return kResultFalse;
 	}
 	tresult res = _midiMapping->getMidiControllerAssignment(0, channel, cc, param);
 	if (res != kResultTrue) {
-		std::cout << "midiMapping not assigned" << std::endl;
+		debugText(L"midiMapping not assigned");
 		return kResultFalse;
 	}
 	return kResultTrue;
@@ -756,7 +737,7 @@ void EasyVstCustom::postProgramChange(int channel, int program) {
 		}
 	}
 	else {
-		std::cout << "Cant add parameter" << std::endl;
+		debugText(L"Can't add parameter");
 	}
 }
 
@@ -788,7 +769,7 @@ void EasyVstCustom::postControlChange(int channel, int ccnumber, int value) {
 		}
 	}
 	else {
-		std::cout << "Cant add parameter" << std::endl;
+		debugText(L"Can't add parameter");
 	}
 }
 
@@ -884,9 +865,10 @@ Event* EasyVstCustom::popEvent() {
 		return nullptr;
 	}
 	while(!_pooledMessage.pop(evt)) {
-
+		if (getOperator()->_quitThread) {
+			return nullptr;
+		}
 	}
 	return evt;
 }
-
 

@@ -201,4 +201,11 @@ public class VSTStream {
     public void setSampleRate(int sampleRate) {
         this._sampleRate= sampleRate;
     }
+
+    public void forceTerminate() {
+        MXLIB02VST3 vst = MXLIB02VST3.getInstance();
+        if (vst.isUsable()) {
+            vst.forceTerminate();
+        }
+    }
 }

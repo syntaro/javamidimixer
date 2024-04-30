@@ -18,7 +18,6 @@ package jp.synthtarou.libs.async;
 
 import java.util.logging.Level;
 import jp.synthtarou.libs.log.MXFileLogger;
-import jp.synthtarou.libs.MXUtil;
 
 
 /**

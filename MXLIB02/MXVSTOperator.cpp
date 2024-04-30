@@ -46,7 +46,7 @@ void ThreadFunc(MXVSTOperator* ui) {
 		__try {
 			bRet = GetMessage(&msg, NULL, 0, 0);
 			if (bRet == -1) {
-				std::cout << L"Handle Error" << std::endl;
+				debugText(L"Handle Error");
 				continue;
 			}
 			if (bRet > 0) {
@@ -54,13 +54,10 @@ void ThreadFunc(MXVSTOperator* ui) {
 					__try {
 						if (ui != nullptr) {
 							if (ui->processQueuedThreadCommand() > 0) {
-								if (ui->_quitThread) {
-									break;
-								}
 							}
 						}
 						else {
-							std::cout << L"NULLPO" << std::endl;
+							debugText(L"Handle Error");
 						}
 					}
 					__except (systemExceptionMyHandler(L"ThreadFunc2", GetExceptionInformation()))
@@ -71,7 +68,11 @@ void ThreadFunc(MXVSTOperator* ui) {
 				DispatchMessage(&msg);
 			}
 			if (bRet == 0) {
-				std::cout << "GetMessage Quit" << std::endl;
+				debugText(L"GetMessage WM_QUIT");
+				break;
+			}
+			if (ui->_quitThread) {
+				debugText(L"GetMessage QuitThread");
 				break;
 			}
 		}
@@ -79,7 +80,9 @@ void ThreadFunc(MXVSTOperator* ui) {
 		{
 		}
 	}
+	debugText(L"endthreadex");
 	::_endthreadex(0);
+	debugText(L"~endthreadex");
 }
 
 MXVSTOperator::MXVSTOperator() {
@@ -126,7 +129,10 @@ MXVSTOperator::~MXVSTOperator() {
 			postRemoveSynth(true, i, 0);
 		}
 	}
-	//delete _thread;
+	if (_thread != NULL) {
+		delete _thread;
+		_thread = NULL;
+	}
 }
 
 bool MXVSTOperator::isOpen(bool effect, int synth) {
@@ -205,7 +211,7 @@ int MXVSTOperator::processQueuedThreadCommand() {
 			case Thread_RemoveVST: {
 				vst = getSynth(effect, synth);
 				if (vst != nullptr) {
-					std::cout << "postRemoveSynth " << std::endl;
+					debugText(L"postRemoveSynth");
 					if (vst->isOpen()) {
 						vst->_easyVst->closeVstEditor();
 					}
@@ -239,13 +245,6 @@ int MXVSTOperator::processQueuedThreadCommand() {
 				result = Thread_Success;
 				break;
 
-			case Thread_Quit:
-				getMXStream()->closeStream();
-				_quitThread = true;
-				result = Thread_Success;
-				SetEvent(command->receiveFlag);
-				std::cout << L"Quit Thread" << std::endl;
-				break;
 			}
 		}
 		__except (systemExceptionMyHandler(L"processQueuedThreadCommand", GetExceptionInformation()))
@@ -289,10 +288,6 @@ MXVSTInstrument* MXVSTOperator::getSynth(bool effect, int x) {
 }
 
 void MXVSTOperator::postThreadCommand(ThreadCommandSturct* command) {
-	if (_quitThread) {
-		return;
-	}
-
 	while (!_threadCommand.push(command)) {
 
 	}
@@ -352,15 +347,16 @@ void MXVSTOperator::postRemoveSynth(bool effect, int synth, int task) {
 }
 
 void MXVSTOperator::postQuit(int task) {
-	ThreadCommandSturct* data = createCommand();
-
-	data->synth = -1;
-	data->command = Thread_Quit;
-	data->task = task;
-
-	postThreadCommand(data);
-
-	_thread->join();
+	if (_thread != NULL) {
+		_quitThread = true;
+		getMXStream()->quiting();
+		PostThreadMessage(GetThreadId(_thread->native_handle()), WM_QUIT, 0, 0);
+		/*
+		if (_thread != NULL) {
+			delete _thread;
+			_thread = NULL;
+		}*/
+	}
 }
 
 void MXVSTOperator::postLoadPreset(bool effect, int synth, std::wstring& path, int task) {

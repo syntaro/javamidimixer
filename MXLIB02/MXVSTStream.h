@@ -26,6 +26,7 @@ public:
 
 	bool isSuspended();
 	void processAudio(float* outputBuffer, unsigned long framesPerBuffer);
+	void quiting();
 
 private:
 	TimeInfo _ti;
@@ -33,6 +34,7 @@ private:
 	int _blockSize;
 	bool _initDone;
 	bool _suspend;
+	bool _quiting;
 	PaError _initRetcode;
 	PaStream* _openedStream;
 

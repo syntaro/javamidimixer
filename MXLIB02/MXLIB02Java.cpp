@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "MXVSTOperator.h"
+#include <tlhelp32.h>
 
 extern jclass _javaClass;
 extern JavaVM* _javavm;
@@ -52,6 +53,53 @@ bool stringFromJava(std::wstring& ret, JNIEnv* env, jstring jstr) {
 
 jstring stringToJava(JNIEnv* env, std::wstring& str) {
     return env->NewString((const jchar*)str.c_str(), str.length());
+}
+
+
+
+void JNICALL JNI_forceTerminate(JNIEnv* env, jobject obj) {
+
+    HANDLE hThreadSnap = INVALID_HANDLE_VALUE;
+    THREADENTRY32 te32;
+
+    // Take a snapshot of all running threads  
+    hThreadSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+    if (hThreadSnap == INVALID_HANDLE_VALUE) {
+        _printError(L"CreateToolhelp32Snapshot error");
+        return;
+    }
+
+    // Fill in the size of the structure before using it. 
+    te32.dwSize = sizeof(THREADENTRY32);
+
+    // Retrieve information about the first thread,
+    // and exit if unsuccessful
+    if (!Thread32First(hThreadSnap, &te32))
+    {
+        _printError(L"Thread32First error");
+        CloseHandle(hThreadSnap);     // Must clean up the snapshot object!
+        return;
+    }
+
+    // Now walk the thread list of the system,
+    // and display information about each thread
+    // associated with the specified process
+    do
+    {
+        if (te32.th32OwnerProcessID == GetCurrentProcessId())
+        {
+            debugNumber(L"Native Available Thread (Id) = ", te32.th32ThreadID);
+            /*
+            _tprintf(TEXT("\n     base priority  = %d"), te32.tpBasePri);
+            _tprintf(TEXT("\n     delta priority = %d"), te32.tpDeltaPri);
+            */
+            //HANDLE h = OpenThread(DELETE, FALSE, te32.th32ThreadID);
+            //TerminateThread(h, 0);
+        }
+    } while (Thread32Next(hThreadSnap, &te32));
+
+    //  Don't forget to clean up the snapshot object.
+    CloseHandle(hThreadSnap);
 }
 
 void JNICALL JNI_PostInitializeStream(JNIEnv* env, jobject obj, jint task) {
@@ -480,12 +528,7 @@ void JNICALL JNI_stopEngine(JNIEnv* env, jobject obj, jint task) {
     __except (systemExceptionMyHandler(L"JNI_setBusVolume", GetExceptionInformation()))
     {
     }
-    std::cout << "final exit" << std::endl;
-    exit(0);
-    std::cout << "final abort" << std::endl;
-    abort();
 }
-
 
 void JNICALL JNI_setInsertBalance(JNIEnv* env, jobject obj, jint synth, jfloat balance) {
     __try
@@ -568,6 +611,8 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 
     // Register your class' native methods.
     static JNINativeMethod methods[] = {
+        { (char*)"forceTerminate", (char*)"()V", reinterpret_cast<void*>(JNI_forceTerminate)},
+
         { (char*)"postInitializeStream", (char*)"(I)V", reinterpret_cast<void*>(JNI_PostInitializeStream)},
 
         { (char*)"countStream", (char*)"()I", reinterpret_cast<void*>(JNI_countStream)},

@@ -564,7 +564,7 @@ public class MX80View extends javax.swing.JPanel {
         };
         filter.addExtension("VST3");
         filter._stopAllFile = true;
-        MXFolderBrowser browse = new MXFolderBrowser(new File("C:\\Program Files"), filter, null);
+        MXFolderBrowser browse = new MXFolderBrowser(new File("C:\\Program Files\\Common Files\\VST3"), filter, null);
         MXUtil.showAsDialog(this, browse, "Select and Enter");
         FileList selected = browse.getReturnValue();
         if (selected != null) {
@@ -619,7 +619,7 @@ public class MX80View extends javax.swing.JPanel {
     private void jButtonAddSkipBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddSkipBrowseActionPerformed
         FileFilterListExt filter = new FileFilterListExt();
         filter.addExtension("VST3");
-        MXFolderBrowser browse = new MXFolderBrowser(new File("C:\\Program Files"), filter, null);
+        MXFolderBrowser browse = new MXFolderBrowser(new File("C:\\Program Files\\Common Files\\VST3"), filter, null);
         MXUtil.showAsDialog(this, browse, "Select and Enter");
         if (browse.getReturnStatus() == INavigator.RETURN_STATUS_APPROVED) {            
             FileList selected = browse.getReturnValue();

@@ -20,6 +20,8 @@
 #include <sstream>
 #include <thread>
 #include <Windows.h>
+#include <locale>
+#include <codecvt>
 
 #include <public.sdk/source/vst/hosting/plugprovider.h>
 #include <public.sdk/source/vst/hosting/module.h>
