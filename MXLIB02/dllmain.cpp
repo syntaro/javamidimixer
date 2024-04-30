@@ -40,7 +40,7 @@ void printStackTrace()
         hSymInit = SymInitialize(hProcess, NULL, TRUE);
     }
     if (!hSymInit) {
-        debugText(L"no symbol found\n");
+        debugText(L"no debug symbol found( trace error )\n");
         return;
     }
 
