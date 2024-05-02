@@ -3,7 +3,7 @@
 #include "strconv.h"
 #include "boost/lockfree/queue.hpp"
 
-#define TITLE TEXT("Kitty on your lap")
+#define TITLE TEXT("MIXRecipe VST Window")
 #define MDI_FRAME TEXT("FRAMEWINDOW")
 #define MDI_CLIENT TEXT("MDICLIENT")
 #define MDI_CHILD TEXT("MDICHILD")
