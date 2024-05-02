@@ -56,6 +56,9 @@ extern void debugDouble(const wchar_t* t, const double num);
 #define MAX_SYNTH 16
 #define MAX_EFFECT 2
 
+extern HANDLE hProcess;
+extern HINSTANCE hInstance;
+extern BOOL hSymInit;
 
 using namespace Steinberg;
 using namespace Steinberg::Vst;

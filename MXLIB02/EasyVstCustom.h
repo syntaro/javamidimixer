@@ -56,6 +56,7 @@ public:
 	bool savePreset(const char* utfPath);
 	bool loadPreset(const char* utfPath);
 	HWND getHWnd();
+	void destroyWindow();
 	bool isOpen();
 	void reset();
 	void postProgramChange(int channel, int program);

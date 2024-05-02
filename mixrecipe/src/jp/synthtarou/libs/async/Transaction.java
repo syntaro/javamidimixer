@@ -30,7 +30,6 @@ public class Transaction implements Runnable {
     protected int _result;
     protected String _taskName;
     protected Runnable _then;
-    protected boolean _doneThen;
     protected boolean _canceled;
     
     protected Transaction(int ticket) {
@@ -74,14 +73,13 @@ public class Transaction implements Runnable {
         boolean needThen = false;
         
         synchronized (this) {
-            if (_then != null && _doneThen == false) {
+            if (_then != null) {
                 needThen = true;
             }
         }
         
         if (needThen) {
             try {
-                _doneThen = true;
                 _then.run();
             }catch(RuntimeException ex) {
                 MXFileLogger.getLogger(Transaction.class).log(Level.WARNING, ex.getMessage(), ex);
@@ -108,27 +106,6 @@ public class Transaction implements Runnable {
         return _result;
     }
     
-    public final void setThen(Runnable run) {
-        _then = run;
-        
-        boolean needThen = false;
-        synchronized (this) {
-            if (!_running) {
-                if (_then != null && _doneThen == false) {
-                    _doneThen = true;
-                    needThen = true;
-                }
-            }
-        }
-        if (needThen) {
-            try {
-               _then.run();
-            }catch(RuntimeException ex) {
-                MXFileLogger.getLogger(Transaction.class).log(Level.WARNING, ex.getMessage(), ex);
-            }
-        }
-    }
-    
     
     public final int getTransactionTicket() {
         return _transactionTicket;
@@ -137,5 +114,10 @@ public class Transaction implements Runnable {
     @Override
     public void run() {
         //override
+    }
+   
+    @Override
+    public String toString() {
+        return _taskName + "#" + _transactionTicket;
     }
 }

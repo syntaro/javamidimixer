@@ -49,7 +49,9 @@ public class TransactionBox {
         Transaction tr = getTransaction(ticket);
         if (tr != null) {
             tr.notifyFinished(result);
-            closeTicket(tr);
+            if (tr._taskName.contains("#recycle") == false) {
+                closeTicket(tr);
+            }
             if (result < 0) {
                 MXFileLogger.getLogger(TransactionBox.class).severe("Error in " + tr._taskName + " result = " + result);
             }
@@ -64,7 +66,9 @@ public class TransactionBox {
         synchronized (this) {
             notifyAll();
         }
-        closeTicket(tr);
+        if (tr._taskName.contains("#recycle") == false) {
+            closeTicket(tr);
+        }
         MXFileLogger.getLogger(TransactionBox.class).severe("Task Canceled " + tr.getTransactionTicket() + " : " + tr._taskName);
     }
 
@@ -74,7 +78,8 @@ public class TransactionBox {
 
     private synchronized Transaction getTransaction(int ticket) {
         Transaction dummy = new Transaction(ticket);
-        return _keepTable.get(dummy);
+        Transaction result = _keepTable.get(dummy);
+        return result;
     }
     
     Comparator<Transaction> tr = new Comparator<Transaction>() {

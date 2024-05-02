@@ -59,11 +59,11 @@ public class VSTInstancePanel extends javax.swing.JPanel {
                         "Do you want to try Reload?", 
                         "BlackListed by Exception", JOptionPane.YES_NO_OPTION);
                 if (opt == JOptionPane.YES_OPTION) {
-                    enterCloseVST();
+                    enterCloseVST(false);
                     enterOpenVST();
                 }
                 else {
-                    enterCloseVST();
+                    enterCloseVST(false);
                 }
             }
         });
@@ -72,6 +72,7 @@ public class VSTInstancePanel extends javax.swing.JPanel {
     Transaction _loadHandler = new Transaction("loadHandler") {
         @Override
         public void run() {
+            //TODO black
             if (_instance.getPath() == null || _instance.getPath().isEmpty()) {
                 jLabelName.setText("-");
                 jLabelName.setToolTipText("-");
@@ -132,6 +133,9 @@ public class VSTInstancePanel extends javax.swing.JPanel {
             }
         }
     };
+    
+    Transaction _editorHandlerCloseEditor = _editorHandler.copyWithNewTicket("postOpenEditor#close#recycle");
+
     /**
      * Creates new form VSTInstancePanel
      */
@@ -299,10 +303,7 @@ public class VSTInstancePanel extends javax.swing.JPanel {
         int opt = JOptionPane.showConfirmDialog(this, "Do you want to bye VST[" + _instance.getName() + "] for Now?", "Confirm", JOptionPane.OK_CANCEL_OPTION);
         if (opt == JOptionPane.OK_OPTION) {
             jButtonLoad.setEnabled(false);
-            _instance.setPath(null);
-            _instance.postCloseVST(_loadHandler.copyWithNewTicket("postCloseVST"));
-            File file = VSTInstance.getTotalRecallSetting(_instance.isEffect(), _instance.getSlot());
-            file.delete();
+            enterCloseVST(true);
         }
     }
 
@@ -319,15 +320,19 @@ public class VSTInstancePanel extends javax.swing.JPanel {
         _instance.postLaunchVST(_loadHandler.copyWithNewTicket("enterOpenVST"));
     }
     
-    public void enterCloseVST() {
+    public void enterCloseVST(boolean forever) {
+        if (forever) {
+            File file = VSTInstance.getTotalRecallSetting(_instance.isEffect(), _instance.getSlot());
+            file.delete();
+            _instance.setPath(null);
+        }
         jButtonLaunch.setEnabled(false);
-        _instance.postCloseEditor(_editorHandler.copyWithNewTicket("postCloseEditor"));
         _instance.postCloseVST(_loadHandler.copyWithNewTicket("postCloseVSTi"));
     }
  
     public void enterOpenEditor() {
         jButtonEdit.setEnabled(false);
-        _instance.postOpenEditor(_editorHandler.copyWithNewTicket("postOpenEditor"), _editorHandler.copyWithNewTicket("postOpenEditor#close"));
+        _instance.postOpenEditor(_editorHandler.copyWithNewTicket("postOpenEditor"), _editorHandlerCloseEditor);
     }
 
     public void enterCloseEditor() {
@@ -365,7 +370,7 @@ public class VSTInstancePanel extends javax.swing.JPanel {
         if (_instance.isOpen()) {
             Transaction tr = new Transaction("closeVST - preset");
             _instance.postSavePreset(VSTInstance.getTotalRecallSetting(_instance.isEffect(), _instance.getSlot()).getPath(), tr);
-            enterCloseVST();
+            enterCloseVST(false);
         }else {
             enterOpenVST();
             

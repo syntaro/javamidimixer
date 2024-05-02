@@ -85,19 +85,16 @@ bool MXVSTInstrument::load(const std::wstring& path) {
 
 void MXVSTInstrument::unload(void) {
     if (_easyVst != nullptr) {
+        _easyVst->destroyWindow();
         if (_blackList) {
             _printDebug(L"Blacklist Unload");
-            _easyVst = nullptr;
         }
         else {
             _printDebug(L"Unload");
-            int num = _easyVst->numBuses(kAudio, kOutput);
-            for (int i = 0; i < num; ++i) {
-                _easyVst->setBusActive(kAudio, kOutput, i, false);
-            }
+            _easyVst->suspendVST();
             _easyVst->reset();
-            _easyVst = nullptr;
         }
+        _easyVst = nullptr;
     }
 }
 

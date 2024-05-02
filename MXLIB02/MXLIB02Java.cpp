@@ -16,22 +16,39 @@ typedef void(*CallBack_t2)(const jint callNumber);
 
 
 void refTaskDone(const jint task, const jint result) {
-    JNIEnv* env2 = NULL;
-    _javaVM->AttachCurrentThread((void**)&env2, NULL);
-    env2->CallStaticVoidMethod(_javaClass, cbTaskDone, task, result);
+    __try
+    {
+            JNIEnv* env2 = NULL;
+        _javaVM->AttachCurrentThread((void**)&env2, NULL);
+        env2->CallStaticVoidMethod(_javaClass, cbTaskDone, task, result);
+    }
+    __except (systemExceptionMyHandler(L"refTaskDone", GetExceptionInformation()))
+    {
+    }
 }
 
 void refBlackListed(jboolean effect, jint rack) {
-    JNIEnv* env2 = NULL;
-    _javaVM->AttachCurrentThread((void**)&env2, NULL);
-    env2->CallStaticVoidMethod(_javaClass, cbBlackListed, effect, rack);
+    __try
+    {
+        JNIEnv* env2 = NULL;
+        _javaVM->AttachCurrentThread((void**)&env2, NULL);
+        env2->CallStaticVoidMethod(_javaClass, cbBlackListed, effect, rack);
+    }
+    __except (systemExceptionMyHandler(L"refBlackListed", GetExceptionInformation()))
+    {
+    }
 }
 
 void refAttachOnly() {
-    JNIEnv* env2 = NULL;
-    _javaVM->AttachCurrentThread((void**)&env2, NULL);
+    __try
+    {
+        JNIEnv* env2 = NULL;
+        _javaVM->AttachCurrentThread((void**)&env2, NULL);
+    }
+    __except (systemExceptionMyHandler(L"refAttachOnly", GetExceptionInformation()))
+    {
+    }
 }
-
 
 void noticeTaskDone(const int task, const int result) {
     refTaskDone(task, result);
@@ -244,7 +261,11 @@ jboolean  JNI_isEditorOpen(JNIEnv* env, jobject obj, jboolean  effect, jint synt
     {
         vst = getOperator()->getSynth(effect, synth);
         if (vst != nullptr && vst->isOpen()) {
-            return vst->_easyVst->getHWnd() != 0;
+            if (vst->_easyVst->getHWnd() != 0) {
+                if (IsIconic(vst->_easyVst->getHWnd()) == FALSE) {
+                    return true;
+                }
+            }
         }
     }
     __except (systemExceptionMyHandler(L"JNI_isEditorOpen", GetExceptionInformation()))
@@ -266,7 +287,7 @@ jboolean  JNI_isBlackListed(JNIEnv* env, jobject obj, jboolean  effect, jint syn
             return true;
         }
     }
-    __except (systemExceptionMyHandler(L"JNI_postRemoveSynth", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_isBlackListed", GetExceptionInformation()))
     {
         if (vst != nullptr) {
             vst->_blackList = true;

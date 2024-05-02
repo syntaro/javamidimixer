@@ -262,12 +262,22 @@ bool EasyVstCustom::resumeVST() {
 
 void EasyVstCustom::destroy()
 {
-	_superDestroty(true);
+	__try 
+	{
+		_superDestroty(true);
+	}
+	__except (systemExceptionMyHandler(L"destroy", GetExceptionInformation())) {
+	}
 }
 
 void EasyVstCustom::reset()
 {
-	_superDestroty(false);
+	__try
+	{
+		_superDestroty(false);
+	}
+	__except (systemExceptionMyHandler(L"reset", GetExceptionInformation())) {
+	}
 }
 
 BOOL bufferToFile(const char* utfPath, IBStream& buffer) {
@@ -276,11 +286,11 @@ BOOL bufferToFile(const char* utfPath, IBStream& buffer) {
 		return FALSE;
 	}
 	int trans;
-	char* data = new char[16384];
+	char data[4096];
 	buffer.seek(0, IBStream::kIBSeekSet);
 	while (true) {
 		trans = 0;
-		tresult ret = buffer.read(data, 16384, &trans);
+		tresult ret = buffer.read(data, 4096, &trans);
 		if (trans == 0) {
 			_printError(L"buffer.read 0 byte");
 			break;
@@ -293,7 +303,6 @@ BOOL bufferToFile(const char* utfPath, IBStream& buffer) {
 		}
 	}
 	::fclose(fp);
-	delete data;
 	return TRUE;
 }
 
@@ -303,10 +312,10 @@ BOOL fileToBuffer(const char* utfPath, IBStream& buffer) {
 		return FALSE;
 	}
 	int trans;
-	char* data = new char[16384];
+	char data[4096];
 	buffer.seek(0, IBStream::kIBSeekSet);
 	while (true) {
-		trans = fread(data, 1, 16384, fp);
+		trans = fread(data, 1, 4096, fp);
 		if (trans <= 0) {
 			break;
 		}
@@ -314,7 +323,6 @@ BOOL fileToBuffer(const char* utfPath, IBStream& buffer) {
 	}
 	::fclose(fp);
 	buffer.seek(0, IBStream::kIBSeekSet);
-	delete data;
 	return TRUE;
 }
 
@@ -568,19 +576,26 @@ bool EasyVstCustom::openVstEditor()
 	_printError("Platform is not supported yet");
 	return false;
 #endif
-	_window = makeVSTView(_name.c_str(), viewRect.getWidth(), viewRect.getHeight());
 	if (_window == NULL) {
-		_printError("makeVSTView returned NULL");
-		return false;
+		_window = makeVSTView(_name.c_str(), viewRect.getWidth(), viewRect.getHeight());
+		if (_window == NULL) {
+			_printError("makeVSTView returned NULL");
+			return false;
+		}
+#ifdef _WIN32
+		int ret = _view->attached(_window, Steinberg::kPlatformTypeHWND);
+		if (ret != Steinberg::kResultOk) {
+			_printError(L"Failed to attach editor view to HWND retcode");
+			return false;
+		}
+#endif
+	}
+	else {
+		SetForegroundWindow(_window);
+		//ShowWindow(_window, SW_RESTORE);
+		PostMessage(_window, WM_SYSCOMMAND, SC_RESTORE, 0);
 	}
 
-#ifdef _WIN32
-	int ret = _view->attached(_window, Steinberg::kPlatformTypeHWND);
-	if (ret != Steinberg::kResultOk) {
-		_printError(L"Failed to attach editor view to HWND retcode");
-		return false;
-	}
-#endif
 
 	return true;
 }
@@ -588,10 +603,10 @@ bool EasyVstCustom::openVstEditor()
 bool EasyVstCustom::closeVstEditor()
 {
 	if (_window) {
-
-		_view->removed();
-		DestroyWindow(_window);
-		_window = nullptr;
+		//_view->removed();
+		SendMessage(_window, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+		//DestroyWindow(_window);
+		//_window = nullptr;
 		return true;
 	}
 	return false;
@@ -605,6 +620,13 @@ const char* EasyVstCustom::name()
 HWND EasyVstCustom::getHWnd()
 {
 	return _window;
+}
+
+void EasyVstCustom::destroyWindow() {
+	if (_window != NULL) {
+		DestroyWindow(_window);
+		_window = nullptr;
+	}
 }
 
 bool EasyVstCustom::isOpen()
@@ -627,8 +649,8 @@ void EasyVstCustom::_superDestroty(bool decrementRefCount)
 	_component = nullptr;
 	_plugProvider = nullptr;
 	_module = nullptr;
-	//_midiMapping = nullptr;
-	//_unitInfo = nullptr;
+	_midiMapping = nullptr;
+	_unitInfo = nullptr;
 
 	_inAudioBusInfos.clear();
 	_outAudioBusInfos.clear();
@@ -641,9 +663,11 @@ void EasyVstCustom::_superDestroty(bool decrementRefCount)
 
 	if (_processData.inputEvents) {
 		delete[] static_cast<EventList*>(_processData.inputEvents);
+		_processData.inputEvents = nullptr;
 	}
 	if (_processData.outputEvents) {
 		delete[] static_cast<EventList*>(_processData.outputEvents);
+		_processData.outputEvents = nullptr;
 	}
 
 	Event* evt;
@@ -655,15 +679,15 @@ void EasyVstCustom::_superDestroty(bool decrementRefCount)
 	}
 
 	_processData.unprepare();
-	
+
 	_processSetup = {};
 	_processContext = {};
 
 	_symbolicSampleSize = 0;
 	_realtime = false;
 
-	_path = "";
-	_name = "";
+	_path = nullptr;
+	_name = nullptr;
 
 	if (decrementRefCount) {
 		/*

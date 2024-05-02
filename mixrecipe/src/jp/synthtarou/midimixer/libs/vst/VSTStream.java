@@ -98,10 +98,10 @@ public class VSTStream {
                             VSTInstancePanel panel  = process.getInstrumentPanel(x);
                             if (panel.isOpen()) {
                                 loaded[x] = true;
-                                panel.enterCloseVST();
-                                VSTInstance.waitQueued(null);
+                                panel.enterCloseVST(false);
                             }
                         }
+                        VSTInstance.waitQueued(null);
                     }
                 }
             }
