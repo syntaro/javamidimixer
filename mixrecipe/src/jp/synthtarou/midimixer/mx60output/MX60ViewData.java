@@ -46,8 +46,10 @@ public class MX60ViewData  {
     }
 
     public synchronized void record(MXMessage message) {
-        SMFSequencer recorder = _listRecorder[_recordingTrack];
-        recorder.record(message);
+        if (_recordingTrack >= 0) {
+            SMFSequencer recorder = _listRecorder[_recordingTrack];
+            recorder.record(message);
+        }
     }
 
     public File getSequenceDirectory(int song) {
@@ -86,6 +88,9 @@ public class MX60ViewData  {
 
     public synchronized void startPlaying(int x) {
         _playingTrack = _listRecorder[x];
+        if (_playingTrack == null) {
+            return;
+        }
         _playingTrack.startPlayerThread(0, new SMFCallback() {
             MXNoteOffWatcher _noteOff = new MXNoteOffWatcher();
 
@@ -167,6 +172,7 @@ public class MX60ViewData  {
             _listRecorder[i] = new SMFSequencer();
             File seq = getSequenceDirectory(i);
             if (seq != null) {
+                System.out.println("readFromDirectory ******** " + seq);
                 _listRecorder[i].readFromDirectory(seq);
                 _process.getReceiverView().setSongLengthDX(i, _listRecorder[i].getSongLength());
             }
@@ -176,6 +182,9 @@ public class MX60ViewData  {
     public boolean saveSequenceData() {
         boolean error = false;
         for (int i = 0; i < _listRecorder.length; ++i) {
+            if (_listRecorder[i] == null) {
+                continue;
+            }
             File seq = getSequenceDirectory(i);
             if (seq != null) {
                 if (_listRecorder[i]._updateFlag) {

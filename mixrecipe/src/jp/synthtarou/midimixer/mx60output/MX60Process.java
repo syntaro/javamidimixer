@@ -58,6 +58,9 @@ public class MX60Process extends MXReceiver<MX60View> implements MXJsonSupport {
     }
     @Override
     public void processMXMessage(MXMessage message) {
+        if (_viewData != null) {
+            _viewData.record(message);
+        }
         sendToNext(message);
     }
 
@@ -67,6 +70,7 @@ public class MX60Process extends MXReceiver<MX60View> implements MXJsonSupport {
             custom = MXJsonParser.pathOf("OutputPatch");
             MXJsonParser.setAutosave(this);
         }
+        _viewData.loadSequenceData();
         MXJsonValue value = new MXJsonParser(custom).parseFile();
         if (value == null) {
             _view.showViewData();
@@ -84,6 +88,7 @@ public class MX60Process extends MXReceiver<MX60View> implements MXJsonSupport {
         }
         
         MXJsonParser parser = new MXJsonParser(custom);
+        _viewData.saveSequenceData();
 
         return parser.writeFile();
     }

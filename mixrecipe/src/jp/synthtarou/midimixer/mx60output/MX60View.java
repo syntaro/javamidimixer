@@ -337,25 +337,31 @@ public class MX60View extends javax.swing.JPanel {
     }
     
     private void enableRecordingButton() {
-        if (_process._viewData.isRecording()) {
-            jToggleButtonPlay.setEnabled(false);
-            jToggleButtonRec.setEnabled(true);
-        }
-        else if (_process._viewData.isPlaying()) {
-            jToggleButtonPlay.setEnabled(true);
-            jToggleButtonRec.setEnabled(false);
-        }
-        else {
-            jToggleButtonPlay.setSelected(false);
-            jToggleButtonRec.setSelected(false);
-            jToggleButtonRec.setEnabled(true);
-            int x = getSelectedTrack();
-            if (_process._viewData.hasRecorning(x)) {
-                jToggleButtonPlay.setEnabled(true);
-            }else {
-                jToggleButtonPlay.setEnabled(false);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+                public void run() {
+                if (_process._viewData.isRecording()) {
+                    jToggleButtonPlay.setEnabled(false);
+                    jToggleButtonRec.setEnabled(true);
+                }
+                else if (_process._viewData.isPlaying()) {
+                    jToggleButtonPlay.setEnabled(true);
+                    jToggleButtonRec.setEnabled(false);
+                }
+                else {
+                    jToggleButtonPlay.setSelected(false);
+                    jToggleButtonRec.setSelected(false);
+
+                    jToggleButtonRec.setEnabled(true);
+                    int x = getSelectedTrack();
+                    if (_process._viewData.hasRecorning(x)) {
+                        jToggleButtonPlay.setEnabled(true);
+                    }else {
+                        jToggleButtonPlay.setEnabled(false);
+                    }
+                }
             }
-        }
+        });
     }
     
     public void progress(long pos, long max) {
