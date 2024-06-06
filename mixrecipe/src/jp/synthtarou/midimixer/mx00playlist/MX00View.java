@@ -528,14 +528,16 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
             for (int ch = 0; ch < 16; ++ch) {
                 if (_listKeyboard[ch] != null) {
                     _listKeyboard[ch].autoAdjustHeight(jPanelRight.getWidth() - 70);
-                    _listKeyboard[ch]._keys.repaint();
+                }
+                if (_listKeyboard[ch] != null) {
+                    _listKeyboard[ch]._keys.revalidate();
                 }
             }
             if (_pianoRollKeys != null) {
                 int width = _pianoRollKeys.getWidth();
                 int height =_pianoRollKeys.getAdjustedHeight(width); 
                 jPanelPianoRollKeys.setPreferredSize(new Dimension(width, height));
-                jPanelPianoRollKeys.repaint();
+                jPanelPianoRollKeys.revalidate();
             }
             if (_drumPanel != null) {
                 _drumPanel.setPreferredSize(new Dimension(jPanelRight.getWidth() - 70, 350));
@@ -552,6 +554,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                 }
                 _drumPanel.setPreferredSize(new Dimension(jPanelRight.getWidth() - 70, maxHeight));
                 _drumPanel.setSize(new Dimension(jPanelRight.getWidth() - 70, maxHeight));
+                _drumPanel.revalidate();
             }
             revalidate();
         });
@@ -997,6 +1000,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                 }
             }
         }
+        autoResizePiano();
     }
 
     public void tabDeactivated() {

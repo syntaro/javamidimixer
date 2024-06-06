@@ -204,6 +204,7 @@ public class MXPianoRoll extends JComponent {
                 }
                 _keys.allNoteOff();
                 controlFooterKeys(currentMilliSec);
+                _keys.invalidate();
                 _keys.repaint();
             }
         }
