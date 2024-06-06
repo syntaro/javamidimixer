@@ -23,10 +23,11 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -49,8 +50,10 @@ public class MXPianoKeys extends JComponent {
     public void setDoingPaint(boolean flag) {
         _doingPaint = flag;
         if (_doingPaint != flag && flag) {
-            paintOnBuffer(null);
-            repaint();
+            MXMain.invokeUI(() -> {
+                paintOnBuffer(null);
+                repaint();
+            });
         }
     }
 
@@ -107,9 +110,7 @@ public class MXPianoKeys extends JComponent {
     boolean _sequenceSustainGlobal;
     boolean[] _sequenceSustain;
 
-    BufferedImage _bufferedImage = null;
-    Graphics _bufferedImageGraphics = null;
-    Rectangle _bufferedRect = null;
+    SimpleRGBCanvas _canvas;
 
     public MXPianoKeys() {
         addMouseListener(new MouseListener() {
@@ -139,17 +140,52 @@ public class MXPianoKeys extends JComponent {
         addMouseMotionListener(new MouseMotionListener() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                pushNoteByMouse(e.getPoint());
+                Point p = e.getPoint();
+                /*
+                if (getParent() instanceof JViewport) {
+                    JViewport v = (JViewport) getParent();
+                    JScrollPane scrollPane = (JScrollPane) v.getParent();
+                    JScrollPane scroll = (JScrollPane) v.getParent();
+                    Dimension d = scrollPane.getSize();
+                    JScrollBar bar = scroll.getHorizontalScrollBar();
+                    int x = bar.getValue();
+                    if (p.x - x < 0 || p.x - x > d.width) {
+                        try {
+                            int y = x;
+                            if (p.x - x < 0) {
+                                x -= 30;
+                                if (x < 0) {
+                                    x = 0;
+                                }
+                            } else {
+                                x += 30;
+                                if (x > bar.getMaximum()) {
+                                    x = bar.getMaximum();
+                                }
+                            }
+                            if (x != y) {
+                                bar.setValue(x);
+                            }
+                        } catch (Exception ex) {
+                            ex.printStackTrace();;
+                        }
+                    } else {
+                        pushNoteByMouse(e.getPoint());
+                    }
+                } else */{
+                    pushNoteByMouse(e.getPoint());
+
+                }
             }
 
             @Override
             public void mouseMoved(MouseEvent e) {
             }
         });
+        _canvas = new SimpleRGBCanvas();
         setSize(new Dimension(100, 30));
         _sequenceNoteOn = new boolean[256];
         _sequenceSustain = new boolean[256];
-        //generateKeysRect();
     }
 
     static int[] whiteNote = {0, 2, 4, 5, 7, 9, 11};
@@ -158,10 +194,13 @@ public class MXPianoKeys extends JComponent {
 
     private int _rootNote = 36;
     private int _keyboardOctave = 4;
-
-    public void setNoteRange(int rootNote, int octave) {
-        _rootNote = rootNote;
-        _keyboardOctave = octave;
+    
+    public int getRootNote() {
+        return _rootNote;
+    }
+    
+    public int getKeyboardOctave() {
+        return _keyboardOctave;
     }
 
     private void makeWhiteAndBlack1Oct(int rootNote, double offset, double width, double height, Collection<KeyRect> noteListWhite, Collection<KeyRect> noteListBlack, double whiteWidth) {
@@ -246,9 +285,10 @@ public class MXPianoKeys extends JComponent {
     static Color selectedColor = MXUtil.mixtureColor(Color.WHITE, 50, Color.blue, 10, Color.orange, 40);
 
     public int getAdjustedHeight(int width) {
+        calculateBuffer();
         int heightAll = getHeight();
         int widthOne = width / _whiteKeysList.size();
-        return widthOne * 5 + 40;
+        return widthOne * 4 + 20;
     }
 
     public void setLastSelectedColor(Color back) {
@@ -317,8 +357,11 @@ public class MXPianoKeys extends JComponent {
         }
     }
 
-    public void generateKeysRect() {
+    public void updateNoteGraphics(int rootNote, int octave) {
         int widthAll = getWidth(), heightAll = getHeight();
+        _rootNote = rootNote;
+        _keyboardOctave = octave;
+        
         TreeSet<KeyRect> whiteKeys = new TreeSet<KeyRect>(noteComp);
         TreeSet<KeyRect> blackKeys = new TreeSet<KeyRect>(noteComp);
         makeWhiteAndBlack(_rootNote, new Rectangle(0, 0, widthAll, heightAll), whiteKeys, blackKeys);
@@ -331,89 +374,68 @@ public class MXPianoKeys extends JComponent {
         try {
             int widthAll = getWidth(), heightAll = getHeight();
             Rectangle bounds = g.getClipBounds();
-
-            if (_bufferedImage != null) {
-                if (widthAll != _bufferedImage.getWidth() || heightAll != _bufferedImage.getHeight()) {
-                    _bufferedImage = null;
-                    if (_bufferedImageGraphics != null) {
-                        _bufferedImageGraphics.dispose();
-                        _bufferedImageGraphics = null;
-                    }
-                }
+            if (widthAll == 0 || heightAll == 0) {
+                return;
             }
-            if (_bufferedImage == null) {
-                generateKeysRect();
-                paintOnBuffer(null);
-                bounds = new Rectangle(_bufferedImage.getWidth(), _bufferedImage.getHeight());
-            }
-
-            Rectangle rect = _bufferedRect;
-            if (rect == null && bounds == null) {
-                rect = new Rectangle(widthAll, heightAll);
-            }
-            if (rect == null) {
-                rect = bounds;
-            } else if (bounds != null) {
-                rect = rect.union(bounds);
-            }
-            _bufferedRect = null;
-
-            g.drawImage(_bufferedImage,
-                    rect.x, rect.y, rect.x + rect.width, rect.y + rect.height,
-                    rect.x, rect.y, rect.x + rect.width, rect.y + rect.height, this);
-        } catch (RuntimeException ex) {
-            MXFileLogger.getLogger(MXPianoKeys.class).log(Level.WARNING, ex.getMessage(), ex);
-        }
-    }
-
-    public void invalidate() {
-        _bufferedImage = null;
-        super.invalidate();
-    }
-
-    public synchronized void paintOnBuffer(Rectangle rect) {
-        try {
-            int widthAll = getWidth();
-            int heightAll = getHeight();
-
-            if (_bufferedImage != null) {
-                if (widthAll != _bufferedImage.getWidth() || heightAll != _bufferedImage.getHeight()) {
-                    _bufferedImage = null;
-                    if (_bufferedImageGraphics != null) {
-                        _bufferedImageGraphics.dispose();
-                        _bufferedImageGraphics = null;
-                    }
-                }
-            }
-            if (_bufferedImage == null) {
-                if (widthAll <= 0 || heightAll <= 0) {
-                    return;
-                }
-                TreeSet<KeyRect> whiteKeys = new TreeSet<KeyRect>(noteComp);
-                TreeSet<KeyRect> blackKeys = new TreeSet<KeyRect>(noteComp);
-                makeWhiteAndBlack(_rootNote, new Rectangle(0, 0, widthAll, heightAll), whiteKeys, blackKeys);
-                _whiteKeysList = new ArrayList(whiteKeys);
-                _blackKeysList = new ArrayList(blackKeys);
-                _bufferedImage = new BufferedImage(widthAll, heightAll, BufferedImage.TYPE_3BYTE_BGR);
-                _bufferedImageGraphics = _bufferedImage.getGraphics();
-                paintOnGraphics(_bufferedImageGraphics, null);
-                _bufferedRect = new Rectangle(0, 0, widthAll, heightAll);
-            } else {
-                paintOnGraphics(_bufferedImageGraphics, rect);
-                Rectangle a = _bufferedRect;
-                if (rect == null) {
+            
+            if (_canvas._width == widthAll && _canvas._height == heightAll) {
+                Rectangle rect = _bufferedRect;
+                if (rect == null && bounds == null) {
                     rect = new Rectangle(widthAll, heightAll);
                 }
-                if (a == null) {
-                    a = rect;
-                } else {
-                    a = a.union(rect);
+                if (rect == null) {
+                    rect = bounds;
+                } else if (bounds != null) {
+                    rect = rect.union(bounds);
                 }
-                _bufferedRect = a;
+                _bufferedRect = null;
+
+                g.drawImage(_canvas._image,
+                        rect.x, rect.y, rect.x + rect.width, rect.y + rect.height,
+                        rect.x, rect.y, rect.x + rect.width, rect.y + rect.height, this);
             }
         } catch (RuntimeException ex) {
             MXFileLogger.getLogger(MXPianoKeys.class).log(Level.WARNING, ex.getMessage(), ex);
         }
+    }
+
+    Rectangle _bufferedRect = null;
+    
+    public boolean calculateBuffer() {
+        int widthAll = getWidth();
+        int heightAll = getHeight();
+        _canvas.prepare(widthAll, heightAll);
+        if (_canvas._prepareReseted) {
+            updateNoteGraphics(_rootNote, _keyboardOctave);
+        }
+        return _canvas._prepareReseted;
+        
+    }
+    public synchronized void paintOnBuffer(Rectangle rect) {
+        int widthAll = getWidth();
+        int heightAll = getHeight();
+        
+        if (widthAll <= 0 || heightAll <= 0) {
+            return;
+        }
+
+        if (calculateBuffer()) {
+            paintOnGraphics(_canvas._graphics, null);
+            _bufferedRect = null;
+        } else {
+            paintOnGraphics(_canvas._graphics, rect);
+            Rectangle a = rect;
+            if (rect == null) {
+                rect = new Rectangle(widthAll, heightAll);
+            }
+            if (a == null) {
+                a = rect;
+            } else {
+                a = a.union(rect);
+            }
+            _bufferedRect = a;
+        }
+        invalidate();
     }
 
     public boolean isNoteOn(int note) {
@@ -519,11 +541,11 @@ public class MXPianoKeys extends JComponent {
                     } else {
                         selectNote(key._note, true);
                     }
+                    orderRedrawNote(prevNote);
+                    orderRedrawNote(key._note);
                     if (_handler != null) {
                         _handler.noteOn(key._note);
                     }
-                    orderRedrawNote(prevNote);
-                    orderRedrawNote(key._note);
                 }
                 return;
             }
@@ -542,11 +564,11 @@ public class MXPianoKeys extends JComponent {
                     } else {
                         selectNote(key._note, true);
                     }
+                    orderRedrawNote(prevNote);
+                    orderRedrawNote(key._note);
                     if (_handler != null) {
                         _handler.noteOn(key._note);
                     }
-                    orderRedrawNote(prevNote);
-                    orderRedrawNote(key._note);
                 }
                 return;
             }
@@ -566,6 +588,7 @@ public class MXPianoKeys extends JComponent {
     }
 
     public KeyRect findRectByNote(int note) {
+        calculateBuffer();
         MXPianoKeys.KeyRect key = findRectByNote(_whiteKeysList, note);
         if (key == null) {
             key = findRectByNote(_blackKeysList, note);
@@ -574,6 +597,7 @@ public class MXPianoKeys extends JComponent {
     }
 
     public KeyRect findRectByNote(ArrayList<KeyRect> list, int note) {
+        calculateBuffer();
         if (list == null) {
             return null;
         }
@@ -601,7 +625,7 @@ public class MXPianoKeys extends JComponent {
         if (!_doingPaint) {
             return;
         }
-        MXMain.invokeUI(() ->  {
+        MXMain.invokeUI(() -> {
             if (note >= 0) {
                 MXPianoKeys.KeyRect key = findRectByNote(note);
                 if (key != null && key.isValid()) {
@@ -612,6 +636,7 @@ public class MXPianoKeys extends JComponent {
                 paintOnBuffer(null);
                 repaint();
             }
+
         });
     }
 
@@ -671,6 +696,7 @@ public class MXPianoKeys extends JComponent {
     }
 
     public int getBlackKeysWidth() {
+        calculateBuffer();
         for (KeyRect seek : _blackKeysList) {
             return seek._rect.width;
         }
@@ -678,6 +704,7 @@ public class MXPianoKeys extends JComponent {
     }
 
     public int getWhiteKeysWidth() {
+        calculateBuffer();
         for (KeyRect seek : _whiteKeysList) {
             return seek._rect.width;
         }

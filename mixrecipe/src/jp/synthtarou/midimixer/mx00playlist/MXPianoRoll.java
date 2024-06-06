@@ -21,8 +21,6 @@ import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Rectangle;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,13 +29,13 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
+import jp.synthtarou.libs.MXQueue;
 import jp.synthtarou.libs.MXUtil;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys.KeyRect;
 import jp.synthtarou.libs.smf.SMFMessage;
 import jp.synthtarou.libs.smf.SMFSequencer;
 import jp.synthtarou.libs.smf.SMFTestSynthesizer;
-import jp.synthtarou.midimixer.MXMain;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 
 /**
  *
@@ -48,10 +46,10 @@ public class MXPianoRoll extends JComponent {
     boolean _doingPaint = true;
 
     public void setDoingPaint(boolean flag) {
-        MXMain.invokeUI(() ->  {
+        SwingUtilities.invokeLater(() -> {
             _doingPaint = flag;
             if (_doingPaint != flag && flag) {
-                setPosition(_position, true);
+                postPianoFlush();
             }
         });
     }
@@ -86,30 +84,51 @@ public class MXPianoRoll extends JComponent {
         _sequencer = sequencer;
         _sequencer._pianoRoll = this;
         _keys = keys;
+        _keys.setAllowSelect(false, false);
         _canvas = new SimpleRGBCanvas();
+       /*
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                MXMain.invokeUI(() ->  {
+                SwingUtilities.invokeLater(() -> {
                     setPosition(_position, true);
                 });
             }
 
             @Override
             public void componentShown(ComponentEvent e) {
-                MXMain.invokeUI(() ->  {
+                SwingUtilities.invokeLater(() -> {
                     setPosition(_position, true);
                 });
             }
-        });
+        });*/
     }
+
+    PriorityLock _priorityLock = new PriorityLock();
+
+    int _countInvalidate = 0;
+    /*
+    @Override
+    public void invalidate() {
+        if (_countInvalidate++ == 0) {
+            super.invalidate();
+        }
+        else {
+            int x = _countInvalidate;
+            if ((x % 20) == 19) {
+                _priorityLock.debugGraphics("Many Inalivadate " + x);
+            }
+        }
+    }*/
 
     @Override
     public void paintComponent(Graphics g) {
+        _countInvalidate = 0;
+        
         if (!_doingPaint) {
             return;
         }
-        if (SwingUtilities.isEventDispatchThread() == false) {
+        if (!SwingUtilities.isEventDispatchThread()) {
             throw new IllegalStateException();
         }
         int widthAll = getWidth();
@@ -118,21 +137,33 @@ public class MXPianoRoll extends JComponent {
         if (widthAll <= 0 || heightAll <= 0) {
             return;
         }
+       if (_priorityLock._invalidateCount > 10) {
+            //animation zoom make it
+            _priorityLock.debugGraphics("Invalidate = " + _priorityLock._invalidateCount);
+        }
 
-        _canvas.prepare(widthAll, heightAll);
-        //if (_canvas._prepareReseted) {
-            paintOnBuffer1(_position);
-        //}
-
-        if (_lastRollingY == 0) {
-            g.drawImage(_canvas._image, 0, 0, widthAll, heightAll, 0, 0, widthAll, heightAll, this);
-        } else {
-            g.drawImage(_canvas._image,
-                    0, (int) (heightAll - _lastRollingY) - 1, widthAll, heightAll,
-                    0, 0, widthAll, (int) _lastRollingY, this);
-            g.drawImage(_canvas._image,
-                    0, 0, widthAll, (int) (heightAll - _lastRollingY) + 1,
-                    0, (int) _lastRollingY, widthAll, heightAll, this);
+        if (_priorityLock.getStrongForReader(50) == false) {
+            SwingUtilities.invokeLater(() -> {
+                //invalidate();
+                repaint();
+            });
+            return;
+        }
+        try{
+            if (_canvas._image.getWidth() == widthAll && _canvas._image.getHeight() == heightAll) {                    
+                if (_lastRollingY == 0) {
+                    g.drawImage(_canvas._image, 0, 0, widthAll, heightAll, 0, 0, widthAll, heightAll, this);
+                } else {
+                    g.drawImage(_canvas._image,
+                            0, (int) (heightAll - _lastRollingY) - 1, widthAll, heightAll,
+                            0, 0, widthAll, (int) _lastRollingY, this);
+                    g.drawImage(_canvas._image,
+                            0, 0, widthAll, (int) (heightAll - _lastRollingY) + 1,
+                            0, (int) _lastRollingY, widthAll, heightAll, this);
+                }
+            }
+        }finally {
+            _priorityLock.release(true);
         }
     }
 
@@ -140,13 +171,12 @@ public class MXPianoRoll extends JComponent {
     byte[] _colorBackBlack = SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(Color.cyan, 20, Color.black, 80, Color.red, 10), null);
     byte[] _colorBackGray2 = SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(MXUtil.mixtureColor(Color.cyan, 70, Color.white, 20), 20, Color.black, 50), null);
     byte[] _colorBackGray4 = SimpleRGBCanvas.colorToBgr(MXUtil.mixtureColor(Color.orange, 20, Color.red, 5, Color.black, 50), null);
+    
+    boolean _lastKeyRevresed = false;
 
-    protected void paintOnBuffer1(long currentMilliSec) {
+    protected void paintOnBuffer1(long currentMilliSec, long margin, boolean refresh) {
         if (!_doingPaint) {
             return;
-        }
-        if (SwingUtilities.isEventDispatchThread() == false) {
-            throw new IllegalStateException();
         }
         int widthAll = getWidth();
         int heightAll = getHeight();
@@ -154,8 +184,14 @@ public class MXPianoRoll extends JComponent {
             return;
         }
 
+        /*
+        if (_lastKeyRevresed != _keyReversed) {
+            _priorityLock.debugGraphics( "KeyReversed Update "+  keyReversed);
+            _lastKeyRevresed = _keyReversed;
+            refresh = true;
+        }*/
         _canvas.prepare(widthAll, heightAll);
-        if (_canvas._prepareReseted || _lastMilliSec < 0) {
+        if (_canvas._prepareReseted || _lastMilliSec < 0 || currentMilliSec < _lastMilliSec) {
             _lastRollingY = 0;
             _rollingY = 0;
             _lastMilliSec = -_spanMilliSec;
@@ -171,97 +207,102 @@ public class MXPianoRoll extends JComponent {
                 _keys.repaint();
             }
         }
-        if (_canvas.isReady()) {
-            long last = _lastMilliSec;
-            if (currentMilliSec - last >= _spanMilliSec) {
-                last = currentMilliSec - _spanMilliSec;
+        if (!_canvas.isReady()) {
+            return;
+        }
+        long last = _lastMilliSec;
+        if (currentMilliSec - last >= _spanMilliSec) {
+            last = currentMilliSec - _spanMilliSec;
+        }
+        long y0 = (long) (((last) * 1.0 / _spanMilliSec) * heightAll);
+        long y1 = (long) (((currentMilliSec) * 1.0 / _spanMilliSec) * heightAll);
+
+        _lastMilliSec = currentMilliSec;
+
+        double startTime = last + _spanMilliSec - _soundMargin;
+        byte[] colBuff = new byte[3];
+        byte[] peekBuff = new byte[3];
+        int lastMeasure = _sequencer._parser.calcMeasureByMilliseconds((long) (startTime - _spanMilliSec / heightAll));
+
+        for (long y = y0; y < y1; ++y) {
+            double distanceY = (double) (y - y0);
+            double distanceTime = distanceY * _spanMilliSec / heightAll;
+            long linetime = (long) (startTime + distanceTime);
+            int[] playing = calcPlayingNote(linetime);
+            int keysRoot = _keys.getRootNote();
+            int keysCount = _keys.getKeyboardOctave() * 12;
+            int onlyDrum = 1 << 9;
+            int realY2 = (int) (_rollingY - y + y0);
+            while (realY2 < 0) {
+                realY2 += heightAll;
             }
-            long y0 = (long) (((last) * 1.0 / _spanMilliSec) * heightAll);
-            long y1 = (long) (((currentMilliSec) * 1.0 / _spanMilliSec) * heightAll);
+            while (realY2 >= heightAll) {
+                realY2 -= heightAll;
+            }
 
-            _lastMilliSec = currentMilliSec;
-
-            double startTime = last + _spanMilliSec - _soundMargin;
-            byte[] colBuff = new byte[3];
-            byte[] peekBuff = new byte[3];
-            int lastMeasure = _sequencer._parser.calcMeasureByMilliseconds((long) (startTime - _spanMilliSec / heightAll));
-
-            for (long y = y0; y < y1; ++y) {
-                double distanceY = (double) (y - y0);
-                double distanceTime = distanceY * _spanMilliSec / heightAll;
-                long linetime = (long) (startTime + distanceTime);
-                int[] playing = calcPlayingNote(linetime);
-                int keysRoot = _keyboardRoot;
-                int keysCount = _keyboardOctave * 12;
-                int onlyDrum = 1 << 9;
-                int realY2 = (int) (_rollingY - y + y0);
-                while (realY2 < 0) {
-                    realY2 += heightAll;
-                }
-                while (realY2 >= heightAll) {
-                    realY2 -= heightAll;
-                }
-
-                _canvas.line(0, realY2, widthAll, realY2, _back);
-                int measure = _sequencer._parser.calcMeasureByMilliseconds(linetime);
-                byte[] color;
-                if (!_highlightTiming) {
-                    color = _colorBackBlack;
+            //_canvas.line(0, realY2, widthAll, realY2, _back);
+            int measure = _sequencer._parser.calcMeasureByMilliseconds(linetime);
+            byte[] color;
+            if (!_highlightTiming) {
+                color = _colorBackBlack;
+            } else {
+                if (lastMeasure != measure && _colorSeparator != null) {
+                    color = _colorSeparator;
+                    lastMeasure = measure;
                 } else {
-                    if (lastMeasure != measure && _colorSeparator != null) {
-                        color = _colorSeparator;
-                        lastMeasure = measure;
-                    } else {
-                        switch (measure % 8) {
-                            case 0:
-                                color = _colorBackGray4;
-                                break;
-                            case 2:
-                            case 4:
-                            case 6:
-                                color = _colorBackGray2;
-                                break;
-                            default:
-                                color = _colorBackBlack;
-                        }
+                    switch (measure % 8) {
+                        case 0:
+                            color = _colorBackGray4;
+                            break;
+                        case 2:
+                        case 4:
+                        case 6:
+                            color = _colorBackGray2;
+                            break;
+                        default:
+                            color = _colorBackBlack;
                     }
                 }
+            }
 
-                _canvas.line((int) 0, realY2, (int) widthAll - 1, realY2, color);
+            _canvas.line((int) 0, realY2, (int) widthAll, realY2, color);
 
-                for (int i = keysRoot; i < keysRoot + keysCount; ++i) {
-                    boolean selected = false;
-                    if (playing[i] > 0 && playing[i] != onlyDrum) {
-                        selected = true;
-                        double from = 1.0 * (i - keysRoot) * widthAll / keysCount;
-                        double to = 1.0 * (i - keysRoot + 1) * widthAll / keysCount;
-                        double div = (to - from) / 2;
-                        if (_keys != null) {
-                            KeyRect keysrect = _keys.findRectByNote(i);
-                            if (keysrect == null) {
-                                continue;
-                            }
-                            int center = (keysrect._rect.x + keysrect._rect.width / 2);
-                            int blackWidth = _keys.getBlackKeysWidth();
-                            from = center - blackWidth / 2 + (blackWidth / 4);
-                            to = center + blackWidth / 2 + (blackWidth / 4) + 1;
-                        }
-                        to -= div;
-                        Color col = bitColor(playing[i]);
-                        if (col == null) {
+            for (int i = keysRoot; i < keysRoot + keysCount; ++i) {
+                boolean selected = false;
+                if (playing[i] > 0 && playing[i] != onlyDrum) {
+                    selected = true;
+                    double from = 1.0 * (i - keysRoot) * widthAll / keysCount;
+                    double to = 1.0 * (i - keysRoot + 1) * widthAll / keysCount;
+                    double div = (to - from) / 2;
+                    if (_keys != null) {
+                        KeyRect keysrect = _keys.findRectByNote(i);
+                        if (keysrect == null) {
                             continue;
                         }
+                        int center = (keysrect._rect.x + keysrect._rect.width / 2);
+                        int blackWidth = _keys.getBlackKeysWidth();
+                        from = center - blackWidth / 2 + (blackWidth / 4);
+                        to = center + blackWidth / 2 + (blackWidth / 4) + 1;
+                    }
+                    to -= div;
+                    Color col = bitColor(playing[i]);
+                    if (col == null) {
+                        continue;
+                    }
+                    try {
                         byte[] col2 = SimpleRGBCanvas.colorToBgr(col, null);
                         _canvas.line((int) from, realY2, (int) to, realY2, col2);
+                    }catch(Throwable ex) {
+                        
                     }
                 }
             }
+        }
 
-            _lastRollingY = _rollingY;
-            _rollingY -= y1 - y0;
-            while (_rollingY < 0) {
-                _rollingY += heightAll;
-            }
+        _lastRollingY = _rollingY;
+        _rollingY -= y1 - y0;
+        while (_rollingY < 0) {
+            _rollingY += heightAll;
         }
     }
 
@@ -328,8 +369,9 @@ public class MXPianoRoll extends JComponent {
         if (_keys == null) {
             return;
         }
-        if (SwingUtilities.isEventDispatchThread() == false) {
-            throw new IllegalStateException();
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(() -> { controlFooterKeys(milliSeconds); } );
+            return;
         }
         boolean lockBuffered = false;
         List<SMFMessage> list = _sequencer.listMessage();
@@ -400,6 +442,7 @@ public class MXPianoRoll extends JComponent {
         return _position;
     }
 
+    boolean _paintKeyReverse = false;
     long _position = 0;
     long _spanMilliSec = 4000;
     long _lastMilliSec = -_spanMilliSec;
@@ -410,7 +453,7 @@ public class MXPianoRoll extends JComponent {
 
     public void setFocusChannel(int ch) {
         _focusChannel = ch;
-        setPosition(_position, true);
+        postPianoFlush();
     }
 
     public int getFocuChannel() {
@@ -465,6 +508,10 @@ public class MXPianoRoll extends JComponent {
                 int seekBit = 1 << seekCh;
                 if ((channel & seekBit) == seekBit) {
                     Color c = colors[seekCh % colors.length];
+                    if (true) {
+                        //return first encounted (lesser ch number)
+                        return c;
+                    }
                     hibridSource[seekCh] = c;
                     count++;
                 }
@@ -483,13 +530,11 @@ public class MXPianoRoll extends JComponent {
         win.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         Insets ins = win.getInsets();
         win.setLayout(new GridLayout(1, 1));
-        MXPianoRoll comp = new MXPianoRoll(sequencer, null);
-        comp._keyboardOctave = 10;
+        MXPianoRoll comp = new MXPianoRoll(sequencer, new MXPianoKeys());
         win.add(comp);
         win.setVisible(true);
         comp._position = 0;
         sequencer._progressSpan = 50;
-        MXPianoKeys key = new MXPianoKeys();
 
         sequencer.startPlayerThread(0, new SMFTestSynthesizer());
     }
@@ -504,45 +549,129 @@ public class MXPianoRoll extends JComponent {
 
     public void setSoundSpan(long span) {
         _spanMilliSec = span;
-        setPosition(_position, true);
+        postPianoFlush();
     }
 
     public void setSoundMargin(long margin) {
         _soundMargin = margin;
-        setPosition(_position, true);
+        postPianoFlush();
     }
 
     public void setHighlightTiming(boolean show) {
         _highlightTiming = show;
-        setPosition(_position, true);
+        postPianoFlush();
     }
 
-    public void setPosition(long elapsed, boolean clearCache) {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            MXMain.invokeUI(() ->  {
-                setPosition(elapsed, clearCache);
-            });
-            return;
+    static class PositionEvent {
+        PositionEvent(long elapsed, boolean clearCache) {
+            _elapsed = elapsed;
+            _clearCache = clearCache;
         }
-        if (elapsed < _position || clearCache) {
-            _lastMilliSec = -1;
-        }
-        _position = elapsed;
-        if (_keys != null) {
-            controlFooterKeys(_position);
-            _keys.repaint();
-        }
-        //invalidate();
-        //paintOnBuffer1(elapsed);
-        repaint();
+        long _elapsed;
+        boolean _clearCache;
     }
 
-    private int _keyboardRoot = 36;
-    private int _keyboardOctave = 4;
 
-    public void setNoteRange(int rootNote, int octave) {
-        _keyboardRoot = rootNote;
-        _keyboardOctave = octave;
-        _keys.setAllowSelect(true, true);
+    MXQueue<PositionEvent> _queue = new MXQueue();
+
+    public void postPosition(long elapsed) {
+        _queue.push(new PositionEvent(elapsed, false));
+        if (_drawThread == null) {
+            startDrawThreadIFNeed();
+        }
+    }
+
+    public void postPianoFlush() {
+        _queue.push(new PositionEvent(Integer.MAX_VALUE, true));
+    }
+
+    Thread _drawThread;
+    public synchronized void startDrawThreadIFNeed() {
+        if (_drawThread == null) {
+            _drawThread = new Thread(this::inifinityDraw);
+            _drawThread.setDaemon(true);
+            _drawThread.start();
+        }
+    }
+
+    public synchronized void pauseDrawThread(boolean flag) {
+        _pauseDrawThread = flag;
+        notifyAll();
+    }
+
+    boolean _pauseDrawThread = false;
+    public void inifinityDraw() {
+        try {
+            while(true) {
+                PositionEvent e = _queue.pop();
+                if (e == null) {
+                    break;
+                }
+                long elapsed = e._elapsed;
+                boolean clearCache = e._clearCache;
+                int loop = 1;
+                long _forceRepaint = System.currentTimeMillis();
+                while (true) {
+                    while (!_queue.isEmpty()) {
+                        loop++;
+                        e = _queue.pop();
+                        elapsed = e._elapsed;
+                        clearCache |= e._clearCache;
+                    }
+                    synchronized (this) {
+                        if (_pauseDrawThread) {
+                            _priorityLock.debugGraphics("pauseDrawThread");
+                            wait(100);
+                            continue;
+                        }
+                    }
+                    if (elapsed != Integer.MAX_VALUE) {
+                        _position = elapsed;
+                    }
+                    if (_keys != null) {
+                        controlFooterKeys(_position);
+                        SwingUtilities.invokeLater(() -> {
+                            _keys.invalidate();
+                            _keys.repaint();
+                        });
+                    }
+                    long now = System.currentTimeMillis();
+                    if (now - _forceRepaint >= 200) {
+                        _countInvalidate = 0;
+                        _forceRepaint = now;
+                    }
+                    if (_priorityLock.getWeakForWriter(500)) {
+                        try {
+                            if (_paintKeyReverse) {
+                                long span = _spanMilliSec;
+                                paintOnBuffer1(_position, (span / 8), clearCache);
+                            } else {
+                                paintOnBuffer1(_position, 0, clearCache);
+                            }
+                            SwingUtilities.invokeLater(() -> {
+                                //invalidate();
+                                repaint();
+                            });
+                        }catch(Throwable ex) {
+                            ex.printStackTrace();
+                        } finally {
+                            _priorityLock.release(false);
+                        }
+                        break;
+                    } else {
+                        continue;
+                    }
+                }
+            }
+        }catch(InterruptedException ex) {
+        }
+        _drawThread = null;
+    }
+
+    public synchronized void stopDrawThread() {
+        if (_drawThread != null) {
+            _drawThread.interrupt();
+            _drawThread = null;
+        }
     }
 }

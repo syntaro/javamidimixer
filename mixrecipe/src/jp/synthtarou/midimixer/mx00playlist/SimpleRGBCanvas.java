@@ -64,6 +64,10 @@ public class SimpleRGBCanvas {
             }
         }
         
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+        
         if (_image == null) {
             _image = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
             _graphics = _image.getGraphics();

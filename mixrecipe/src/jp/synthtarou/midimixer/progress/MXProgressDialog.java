@@ -134,9 +134,9 @@ public class MXProgressDialog extends javax.swing.JDialog {
         jLabelVersion.setText(MXConfiguration.MX_APPLICATION);
 
         _piano = new MXPianoKeys();
-        _piano.setNoteRange(0, 3);
-        _piano.setLastSelectedColor(MXUtil.mixtureColor(Color.white, 30, Color.green, 50, Color.yellow, 20));
         _piano.setPreferredSize(new Dimension(480, 120));
+        _piano.setLastSelectedColor(MXUtil.mixtureColor(Color.white, 30, Color.green, 50, Color.yellow, 20));
+        _piano.updateNoteGraphics(0, 3);
         jPanelPiano.add(_piano);
 
         Thread pianoColor = new MXSafeThread("*PianoColor", () -> {

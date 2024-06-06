@@ -20,7 +20,6 @@ import java.io.File;
 import java.util.List;
 import java.util.logging.Level;
 import jp.synthtarou.libs.log.MXFileLogger;
-import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.libs.inifile.MXINIFileNode;
@@ -28,6 +27,7 @@ import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
 import jp.synthtarou.libs.json.MXJsonValue;
+import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 
 /**
  *

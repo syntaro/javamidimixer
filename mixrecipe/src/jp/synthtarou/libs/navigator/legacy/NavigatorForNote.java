@@ -68,9 +68,9 @@ public class NavigatorForNote extends javax.swing.JPanel implements  INavigator<
 
         _piano = new MXPianoKeys();
 
-        _piano.setNoteRange(0, 11);
         _piano.setMinimumSize(new Dimension(9 * 200, 1));
         _piano.setPreferredSize(new Dimension(9 * 200, 150));
+        _piano.updateNoteGraphics(0, 11);
 
         jScrollPane1.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
         jScrollPane1.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
