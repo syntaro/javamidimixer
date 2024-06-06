@@ -189,7 +189,7 @@ void JNICALL JNI_postLaunchVST(JNIEnv* env, jobject obj, jboolean  effect, jint 
         __except (systemExceptionMyHandler(L"JNI_postLaunchVST Parent", GetExceptionInformation()))
         {
             if (vst != nullptr) {
-                vst->_blackList = true;
+                vst->setupBlackListed();
                 noticeTaskDone(task, Thread_Exception);
                 refBlackListed(effect, synth);
             }
@@ -226,7 +226,7 @@ void JNICALL JNI_postOpenEditor(JNIEnv* env, jobject obj, jboolean  effect, jint
     __except (systemExceptionMyHandler(L"JNI_postOpenEditor", GetExceptionInformation()))
     {
         if (vst != nullptr) {
-            vst->_blackList = true;
+            vst->setupBlackListed();
             noticeTaskDone(task, Thread_Exception);
             refBlackListed(effect, synth);
         }
@@ -248,7 +248,7 @@ void JNICALL JNI_postCloseEditor(JNIEnv* env, jobject obj, jboolean  effect, jin
     __except (systemExceptionMyHandler(L"JNI_postCloseEditor", GetExceptionInformation()))
     {
         if (vst != nullptr) {
-            vst->_blackList = true;
+            vst->setupBlackListed();
             noticeTaskDone(task, Thread_Exception);
             refBlackListed(effect, synth);
         }
@@ -271,7 +271,7 @@ jboolean  JNI_isEditorOpen(JNIEnv* env, jobject obj, jboolean  effect, jint synt
     __except (systemExceptionMyHandler(L"JNI_isEditorOpen", GetExceptionInformation()))
     {
         if (vst != nullptr) {
-            vst->_blackList = true;
+            vst->setupBlackListed();
             refBlackListed(effect, synth);
         }
     }
@@ -290,7 +290,7 @@ jboolean  JNI_isBlackListed(JNIEnv* env, jobject obj, jboolean  effect, jint syn
     __except (systemExceptionMyHandler(L"JNI_isBlackListed", GetExceptionInformation()))
     {
         if (vst != nullptr) {
-            vst->_blackList = true;
+            vst->setupBlackListed();
             refBlackListed(effect, synth);
             return true;
         }
@@ -313,7 +313,7 @@ void JNICALL JNI_postRemoveSynth(JNIEnv* env, jobject obj, jboolean  effect, jin
     __except (systemExceptionMyHandler(L"JNI_postRemoveSynth", GetExceptionInformation()))
     {
         if (vst != nullptr) {
-            vst->_blackList = true;
+            vst->setupBlackListed();
             noticeTaskDone(task, Thread_Exception);
             refBlackListed(effect, synth);
         }
@@ -341,7 +341,7 @@ void JNICALL JNI_savePreset(JNIEnv* env, jobject obj, jboolean  effect, jint syn
     __except (systemExceptionMyHandler(L"JNI_savePluginState", GetExceptionInformation()))
     {
         if (vst != nullptr) {
-            vst->_blackList = true;
+            vst->setupBlackListed();
             noticeTaskDone(task, Thread_Exception);
             refBlackListed(effect, synth);
         }
@@ -369,7 +369,7 @@ void JNICALL JNI_loadPreset(JNIEnv* env, jobject obj, jboolean  effect, jint syn
     __except (systemExceptionMyHandler(L"JNI_loadPluginState", GetExceptionInformation()))
     {
         if (vst != nullptr) {
-            vst->_blackList = true;
+            vst->setupBlackListed();
             noticeTaskDone(task, Thread_Exception);
             refBlackListed(effect, synth);
         }
@@ -403,7 +403,7 @@ jboolean JNI_postShortMessage(JNIEnv* env, jobject obj, jboolean  effect, jint s
     __except (systemExceptionMyHandler(L"JNI_postShortMessage", GetExceptionInformation()))
     {
         if (vst != nullptr) {
-            vst->_blackList = true;
+            vst->setupBlackListed();
             refBlackListed(effect, synth);
         }
     }
@@ -430,7 +430,7 @@ jboolean JNICALL JNI_postLongMessage(JNIEnv* env, jobject obj, jboolean  effect,
     __except (systemExceptionMyHandler(L"JNI_postLongMessage", GetExceptionInformation()))
     {
         if (vst != nullptr) {
-            vst->_blackList = true;
+            vst->setupBlackListed();
             refBlackListed(effect, synth);
         }
     }

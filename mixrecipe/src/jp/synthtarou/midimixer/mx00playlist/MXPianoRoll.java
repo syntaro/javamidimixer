@@ -37,6 +37,7 @@ import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys.KeyRect;
 import jp.synthtarou.libs.smf.SMFMessage;
 import jp.synthtarou.libs.smf.SMFSequencer;
 import jp.synthtarou.libs.smf.SMFTestSynthesizer;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
@@ -47,7 +48,7 @@ public class MXPianoRoll extends JComponent {
     boolean _doingPaint = true;
 
     public void setDoingPaint(boolean flag) {
-        SwingUtilities.invokeLater(() -> {
+        MXMain.invokeUI(() ->  {
             _doingPaint = flag;
             if (_doingPaint != flag && flag) {
                 setPosition(_position, true);
@@ -85,19 +86,18 @@ public class MXPianoRoll extends JComponent {
         _sequencer = sequencer;
         _sequencer._pianoRoll = this;
         _keys = keys;
-        _keys.setAllowSelect(false, false);
         _canvas = new SimpleRGBCanvas();
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                SwingUtilities.invokeLater(() -> {
+                MXMain.invokeUI(() ->  {
                     setPosition(_position, true);
                 });
             }
 
             @Override
             public void componentShown(ComponentEvent e) {
-                SwingUtilities.invokeLater(() -> {
+                MXMain.invokeUI(() ->  {
                     setPosition(_position, true);
                 });
             }
@@ -109,7 +109,7 @@ public class MXPianoRoll extends JComponent {
         if (!_doingPaint) {
             return;
         }
-        if (!SwingUtilities.isEventDispatchThread()) {
+        if (SwingUtilities.isEventDispatchThread() == false) {
             throw new IllegalStateException();
         }
         int widthAll = getWidth();
@@ -145,7 +145,7 @@ public class MXPianoRoll extends JComponent {
         if (!_doingPaint) {
             return;
         }
-        if (!SwingUtilities.isEventDispatchThread()) {
+        if (SwingUtilities.isEventDispatchThread() == false) {
             throw new IllegalStateException();
         }
         int widthAll = getWidth();
@@ -328,7 +328,7 @@ public class MXPianoRoll extends JComponent {
         if (_keys == null) {
             return;
         }
-        if (!SwingUtilities.isEventDispatchThread()) {
+        if (SwingUtilities.isEventDispatchThread() == false) {
             throw new IllegalStateException();
         }
         boolean lockBuffered = false;
@@ -519,7 +519,7 @@ public class MXPianoRoll extends JComponent {
 
     public void setPosition(long elapsed, boolean clearCache) {
         if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> {
+            MXMain.invokeUI(() ->  {
                 setPosition(elapsed, clearCache);
             });
             return;
@@ -543,5 +543,6 @@ public class MXPianoRoll extends JComponent {
     public void setNoteRange(int rootNote, int octave) {
         _keyboardRoot = rootNote;
         _keyboardOctave = octave;
+        _keys.setAllowSelect(true, true);
     }
 }

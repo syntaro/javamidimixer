@@ -114,7 +114,8 @@ public class MXMIDIOut implements Comparable<MXMIDIOut>{
     }
 
     public boolean isOpen() {
-        return _driver.OutputDeviceIsOpen(_orderInDriver);
+        boolean flag =_driver.OutputDeviceIsOpen(_orderInDriver);
+        return flag;
     }
 
     protected MXMIDIOut(MXDriver driver, int driverOrder) {

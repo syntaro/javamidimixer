@@ -25,6 +25,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.mx63patch.MX63Process;
 
@@ -280,31 +281,27 @@ public class MX60View extends javax.swing.JPanel {
     }
     
     public void setSongLengthDX(int recorder, long count) {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> {
-                setSongLengthDX(recorder, count);
-            });
-            return;
-        }
-        JRadioButton button = null;
-        switch(recorder) {
-            case 0:
-                button = jRadioButtonSong1;
-                break;
-            case 1:
-                button = jRadioButtonSong2;
-                break;
-            case 2:
-                button = jRadioButtonSong3;
-                break;
-            case 3:
-                button = jRadioButtonSong4;
-                break;
-            case 4:
-                button = jRadioButtonSong5;
-                break;
-        }
-        button.setText("Song" + (recorder+1) + ")" + MXUtil.digitalClock(count));
+        MXMain.invokeUI(() ->  {
+            JRadioButton button = null;
+            switch(recorder) {
+                case 0:
+                    button = jRadioButtonSong1;
+                    break;
+                case 1:
+                    button = jRadioButtonSong2;
+                    break;
+                case 2:
+                    button = jRadioButtonSong3;
+                    break;
+                case 3:
+                    button = jRadioButtonSong4;
+                    break;
+                case 4:
+                    button = jRadioButtonSong5;
+                    break;
+            }
+            button.setText("Song" + (recorder+1) + ")" + MXUtil.digitalClock(count));
+	});
     }   
 
     private int countSongButton() {
@@ -337,31 +334,28 @@ public class MX60View extends javax.swing.JPanel {
     }
     
     private void enableRecordingButton() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-                public void run() {
-                if (_process._viewData.isRecording()) {
-                    jToggleButtonPlay.setEnabled(false);
-                    jToggleButtonRec.setEnabled(true);
-                }
-                else if (_process._viewData.isPlaying()) {
-                    jToggleButtonPlay.setEnabled(true);
-                    jToggleButtonRec.setEnabled(false);
-                }
-                else {
-                    jToggleButtonPlay.setSelected(false);
-                    jToggleButtonRec.setSelected(false);
+        MXMain.invokeUI(() ->  {
+            if (_process._viewData.isRecording()) {
+                jToggleButtonPlay.setEnabled(false);
+                jToggleButtonRec.setEnabled(true);
+            }
+            else if (_process._viewData.isPlaying()) {
+                jToggleButtonPlay.setEnabled(true);
+                jToggleButtonRec.setEnabled(false);
+            }
+            else {
+                jToggleButtonPlay.setSelected(false);
+                jToggleButtonRec.setSelected(false);
 
-                    jToggleButtonRec.setEnabled(true);
-                    int x = getSelectedTrack();
-                    if (_process._viewData.hasRecorning(x)) {
-                        jToggleButtonPlay.setEnabled(true);
-                    }else {
-                        jToggleButtonPlay.setEnabled(false);
-                    }
+                jToggleButtonRec.setEnabled(true);
+                int x = getSelectedTrack();
+                if (_process._viewData.hasRecorning(x)) {
+                    jToggleButtonPlay.setEnabled(true);
+                }else {
+                    jToggleButtonPlay.setEnabled(false);
                 }
             }
-        });
+	});
     }
     
     public void progress(long pos, long max) {
@@ -384,13 +378,9 @@ public class MX60View extends javax.swing.JPanel {
     }
 
     public void showViewData() {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> {
-                showViewData();
-            });
-            return;
-        }
-        enableRecordingButton();
+        MXMain.invokeUI(() ->  {
+            enableRecordingButton();
+	});
     }
 
     public void showMIDIOutDetail(MXMIDIOut out) {

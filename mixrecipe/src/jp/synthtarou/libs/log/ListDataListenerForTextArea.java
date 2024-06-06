@@ -18,9 +18,9 @@ package jp.synthtarou.libs.log;
 
 import javax.swing.JTextArea;
 import javax.swing.ListModel;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
@@ -49,23 +49,19 @@ public class ListDataListenerForTextArea implements ListDataListener {
     }
     
     public void updateTextArea(ListModel model) {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> {
-                updateTextArea(model);
-            });
-            return;              
-        }
-        try {
-            StringBuffer str = new StringBuffer();
+        MXMain.invokeUI(() ->  {
+            try {
+                StringBuffer str = new StringBuffer();
 
-            for (int i = 0; i < model.getSize(); ++ i) {
-                String seg = model.getElementAt(i).toString();
-                str.append(seg);
-                str.append("\n");
+                for (int i = 0; i < model.getSize(); ++ i) {
+                    String seg = model.getElementAt(i).toString();
+                    str.append(seg);
+                    str.append("\n");
+                }
+                _target.setText(str.toString());
+            }catch(Throwable e) {
+                e.printStackTrace();
             }
-            _target.setText(str.toString());
-        }catch(Throwable e) {
-            e.printStackTrace();
-        }
+        });
     }
 }

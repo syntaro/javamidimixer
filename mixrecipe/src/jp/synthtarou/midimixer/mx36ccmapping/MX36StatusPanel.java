@@ -18,32 +18,33 @@ package jp.synthtarou.midimixer.mx36ccmapping;
 
 import java.util.Comparator;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.accordionui.MXAccordion;
 import jp.synthtarou.libs.accordionui.MXAccordionElement;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class MX36StatusPanel extends javax.swing.JPanel implements MXAccordionElement {
+
     MXAccordion _accordion;
     MX36Status _status;
     final MX36Process _process;
-    
-    public static Comparator<MXAccordionElement> _sortOrder =  new Comparator<MXAccordionElement>() {
+
+    public static Comparator<MXAccordionElement> _sortOrder = new Comparator<MXAccordionElement>() {
         @Override
         public int compare(MXAccordionElement o1, MXAccordionElement o2) {
-            MX36StatusPanel p1 = (MX36StatusPanel)o1;
-            MX36StatusPanel p2 = (MX36StatusPanel)o2;
-            
+            MX36StatusPanel p1 = (MX36StatusPanel) o1;
+            MX36StatusPanel p2 = (MX36StatusPanel) o2;
+
             MX36Status s1 = p1._status;
             MX36Status s2 = p2._status;
-            
+
             int x = s1.getSurfacePort() - s2.getSurfacePort();
             if (x == 0) {
-                x = s1.getSurfaceUIType()- s2.getSurfaceUIType();
+                x = s1.getSurfaceUIType() - s2.getSurfaceUIType();
             }
             if (x == 0) {
                 x = s1.getSurfaceRow() - s2.getSurfaceRow();
@@ -51,7 +52,7 @@ public class MX36StatusPanel extends javax.swing.JPanel implements MXAccordionEl
             if (x == 0) {
                 x = s1.getSurfaceColumn() - s2.getSurfaceColumn();
             }
-            
+
             return x;
         }
     };
@@ -67,50 +68,47 @@ public class MX36StatusPanel extends javax.swing.JPanel implements MXAccordionEl
         _accordion = accordion;
         repaintAccordion();
     }
-    
+
     public MX36Status getStatus() {
         return _status;
     }
-    
+
     public void repaintAccordion() {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(this::repaintAccordion);
-            return;
-        }
-        jLabelSurface.setText(_status.toSurfaceText());
-        jLabelName.setText("Name: " + _status._outName);
-        jLabelPortAndCh.setText(_status.toOutputPortText());
-        int gateDecimal = _status._outGateRange._value;
-        String gateLabel = _status.getOutGateLabel();
-        String gateDecimalText = String.valueOf(gateDecimal);
+        MXMain.invokeUI(() -> {
+            jLabelSurface.setText(_status.toSurfaceText());
+            jLabelName.setText("Name: " + _status._outName);
+            jLabelPortAndCh.setText(_status.toOutputPortText());
+            int gateDecimal = _status._outGateRange._value;
+            String gateLabel = _status.getOutGateLabel();
+            String gateDecimalText = String.valueOf(gateDecimal);
 
-        if (gateLabel.equals(gateDecimal)) {
-            gateDecimalText = "";
-        } else {
-            gateDecimalText = " = (" + gateDecimal + " =" + MXUtil.toHexFF(gateDecimal) + "h)";
-        }
+            if (gateLabel.equals(gateDecimal)) {
+                gateDecimalText = "";
+            } else {
+                gateDecimalText = " = (" + gateDecimal + " =" + MXUtil.toHexFF(gateDecimal) + "h)";
+            }
 
-        jLabelGate.setText("Gate:" + gateLabel + gateDecimalText);
+            jLabelGate.setText("Gate:" + gateLabel + gateDecimalText);
 
-        String valueLabel = _status.getOutValueLabel();
-        int valueDecimal =_status._outValueRange._value;
-        String valueDecimalText = String.valueOf(valueDecimal);
+            String valueLabel = _status.getOutValueLabel();
+            int valueDecimal = _status._outValueRange._value;
+            String valueDecimalText = String.valueOf(valueDecimal);
 
-        if (valueLabel.equals(valueDecimalText)) {
-            valueDecimalText = "";
-        }
+            if (valueLabel.equals(valueDecimalText)) {
+                valueDecimalText = "";
+            }
 
-        jLabelValue.setText(valueLabel);
-        jLabelValueDecimal.setText(valueDecimalText);
-        jLabelValueHex.setText("=" + Integer.toHexString(valueDecimal) + "h");
-        String text = _status.getOutDataText();
-        if (text == null || text.isBlank()) {
-            jLabelText.setText("Format: <none>");
-        }
-        else {
-            jLabelText.setText("Format:" + text);
-        }
-        invalidate();
+            jLabelValue.setText(valueLabel);
+            jLabelValueDecimal.setText(valueDecimalText);
+            jLabelValueHex.setText("=" + Integer.toHexString(valueDecimal) + "h");
+            String text = _status.getOutDataText();
+            if (text == null || text.isBlank()) {
+                jLabelText.setText("Format: <none>");
+            } else {
+                jLabelText.setText("Format:" + text);
+            }
+            invalidate();
+        });
     }
 
     /**

@@ -23,7 +23,7 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
-import jp.synthtarou.libs.MainThreadTask;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
@@ -56,7 +56,7 @@ public class MXAnimationPanel extends JPanel {
     }
 
     public void setScrollPercent(int x) {
-        new MainThreadTask(() -> {
+        MXMain.invokeUI(() ->  {
             _percent = x;
             repaint();
         });

@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import jp.synthtarou.libs.MXSafeThread;
 import jp.synthtarou.libs.log.MXFileLogger;
-import jp.synthtarou.libs.MainThreadTask;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
@@ -135,7 +135,7 @@ public class MXAccordionInnerPanel {
                         }
                     }
                 }
-                new MainThreadTask(() -> {
+                MXMain.invokeUI(() ->  {
                     _animationPanel.setVisible(false);
                     _doingAnimation = false;
                     revalidateASAP();

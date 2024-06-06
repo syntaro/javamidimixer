@@ -20,9 +20,9 @@ import java.awt.Color;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import javax.swing.JLabel;
-import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.MXRangedValue;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
@@ -165,15 +165,11 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
     }//GEN-LAST:event_jSliderValueStateChanged
 
     public void publishUI(MXRangedValue newValue) {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> {
-                publishUI(newValue);
-            });
-            return;
-        }
-        _stopFeedback = true;
-        jSliderValue.setValue(newValue._value);
-        _stopFeedback = false;
+        MXMain.invokeUI(() ->  {
+            _stopFeedback = true;
+            jSliderValue.setValue(newValue._value);
+            _stopFeedback = false;
+	});
     }
 
     public JLabel labelFor(int num, int max) {

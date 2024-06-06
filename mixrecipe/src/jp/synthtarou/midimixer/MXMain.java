@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.ccxml.xml.CXXMLManager;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
@@ -44,7 +45,6 @@ import jp.synthtarou.midimixer.mx40layer.MX40Process;
 import jp.synthtarou.midimixer.mx60output.MX60Process;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.libs.smf.SMFSequencer;
-import jp.synthtarou.libs.MainThreadTask;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
 import jp.synthtarou.libs.json.MXJsonSupport;
@@ -246,7 +246,7 @@ public class MXMain {
         reList.add(_mx90Debugger);
         reList.add(_mx70CosoleProcess);
 
-        new MainThreadTask(() -> {
+        MXMain.invokeUI(() -> {
             _mainWindow.initLatebind(reList);
 
             if (_progress != null) {
@@ -432,6 +432,61 @@ public class MXMain {
         if (!done) {
             support.resetSetting();
             MXFileLogger.getLogger(support.getClass()).info("tried reset setting");
+        }
+    }
+    
+    public static void invokeUI(Runnable run) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            run.run();
+        }
+        else {
+            SwingUtilities.invokeLater(run);
+        }
+    }
+
+    static class QueueItem implements Runnable {
+        public QueueItem(Runnable run) {
+            _run = run;
+        }
+        
+        public void run() {
+            try {
+                _run.run();
+            }catch(Throwable ex) {
+                ex.printStackTrace();
+            }finally {
+                _runWait = false;
+                synchronized (this) {
+                    notifyAll();
+                }
+            }
+        }
+        
+        public void launchAndWait() {
+            _runWait = true;
+            SwingUtilities.invokeLater(this);
+            try {
+                while (_runWait) {
+                    synchronized (this) {
+                        wait(1000);
+                    }
+                }
+            }catch(InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
+        
+        Runnable _run;
+        boolean _runWait = false;
+    }
+    
+    public static void invokeUIAndWait(Runnable run) throws InterruptedException {
+        if (SwingUtilities.isEventDispatchThread()) {
+            run.run();
+        }
+        else {
+            QueueItem q = new QueueItem(run);
+            q.launchAndWait();
         }
     }
 }

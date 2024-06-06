@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
-import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObject;
@@ -36,6 +35,7 @@ import jp.synthtarou.midimixer.mx30surface.MGStatus;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
@@ -326,7 +326,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
         if (status._folder.isSelected() == false) {
             return null;
         }
-        SwingUtilities.invokeLater(() -> {
+        MXMain.invokeUI(() ->  {
             if (_view._detailPanel._status == status) {
                 _view._detailPanel.repaintDetailSliderStatus();
             }
@@ -334,7 +334,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
                 status._folder.repaintStatus(status);
             }
             //_view.tabActivated();
-        });
+	});
         status._outValueRange = value;
         MXMessage message = status.createOutMessage();
         message._owner = MXMessage.getRealOwner(owner);

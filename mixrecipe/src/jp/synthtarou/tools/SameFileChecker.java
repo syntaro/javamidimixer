@@ -44,6 +44,7 @@ import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.navigator.legacy.INavigator;
 import jp.synthtarou.libs.navigator.legacy.NavigatorForText;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXFolderBrowser;
 
@@ -112,18 +113,14 @@ public class SameFileChecker extends javax.swing.JPanel {
     }
     
     protected void autoAdjust() {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> {
-                autoAdjust();;
-            });
-            return;
-        }
-        try {
-            jSplitPane1.setResizeWeight(1);
-            jSplitPane1.setDividerLocation(jSplitPane1.getHeight() - 150);
-        }catch(Exception ex){
-            ex.printStackTrace();;
-        }
+        MXMain.invokeUI(() ->  {
+            try {
+                jSplitPane1.setResizeWeight(1);
+                jSplitPane1.setDividerLocation(jSplitPane1.getHeight() - 150);
+            }catch(Exception ex){
+                ex.printStackTrace();;
+            }
+	});
     }
 
     /**
@@ -343,9 +340,9 @@ public class SameFileChecker extends javax.swing.JPanel {
                 _model = new DefaultListModel<>();
                 jList1.setModel(_model);
                 jButtonScan.setText("Stop");
-                SwingUtilities.invokeLater(() -> {
+                MXMain.invokeUI(() ->  {
                     jProgressBar1.setIndeterminate(true);
-                });
+            	});
                 try {
                     Scanner scanner = new Scanner(new Scanner.Callback() {
                         @Override
@@ -353,7 +350,7 @@ public class SameFileChecker extends javax.swing.JPanel {
                             long tick = System.currentTimeMillis();
                             if (tick - dispCounter >= 500) {
                                 dispCounter = tick;
-                                SwingUtilities.invokeLater(() -> {
+                                MXMain.invokeUI(() -> {
                                     jLabel1.setText("seeked: " + seeked + ", hit: " + hit + ", remain: " + queue  + ", seeking: "+ message);
                                 });
                             }
@@ -366,12 +363,12 @@ public class SameFileChecker extends javax.swing.JPanel {
                 } catch (Throwable ex) {
                     ex.printStackTrace();
                 } finally {
-                    SwingUtilities.invokeLater(() -> {
+                    MXMain.invokeUI(() ->  {
                         jProgressBar1.setIndeterminate(false);
                         jLabel1.setText("Done");
+                        jButtonScan.setText("Scan");
                     });
                     _thread = null;
-                    jButtonScan.setText("Scan");
                 }
             });
             _thread.start();
@@ -706,32 +703,23 @@ public class SameFileChecker extends javax.swing.JPanel {
         List<UserFolder> _folders = new ArrayList<>();
 
         public void makePair(Entry e1, Entry e2) {
-
-            if (!SwingUtilities.isEventDispatchThread()) {
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        makePair(e1, e2);
+            MXMain.invokeUI(() ->  {
+                for (UserFolder p : _folders) {
+                    if (p._list.contains(e1)) {
+                        if (!p._list.contains(e2)) {
+                            p.add(e2);
+                        }
+                        return;
+                    } else if (p._list.contains(e2)) {
+                        if (!p._list.contains(e1)) {
+                            p.add(e1);
+                        }
+                        return;
                     }
-                });
-                return;
-            }
-
-            for (UserFolder p : _folders) {
-                if (p._list.contains(e1)) {
-                    if (!p._list.contains(e2)) {
-                        p.add(e2);
-                    }
-                    return;
-                } else if (p._list.contains(e2)) {
-                    if (!p._list.contains(e1)) {
-                        p.add(e1);
-                    }
-                    return;
                 }
-            }
-            UserFolder p = new UserFolder(e1, e2);
-            _folders.add(p);
+                UserFolder p = new UserFolder(e1, e2);
+                _folders.add(p);
+            });
         }
     }
 

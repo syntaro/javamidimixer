@@ -26,6 +26,7 @@ import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.libs.async.Transaction;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOutManager;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
@@ -51,29 +52,25 @@ public class VSTInstancePanel extends javax.swing.JPanel {
     }
     
     public void noticeBlackListed() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                int opt = JOptionPane.showConfirmDialog(
-                        VSTInstancePanel.this, 
-                        "Do you want to try Reload?", 
-                        "BlackListed by Exception", JOptionPane.YES_NO_OPTION);
-                if (opt == JOptionPane.YES_OPTION) {
-                    enterCloseVST(false);
-                    enterOpenVST();
-                }
-                else {
-                    enterCloseVST(false);
-                }
+        MXMain.invokeUI(() ->  {
+            int opt = JOptionPane.showConfirmDialog(
+                    VSTInstancePanel.this, 
+                    "Do you want to try Reload?", 
+                    "BlackListed by Exception", JOptionPane.YES_NO_OPTION);
+            if (opt == JOptionPane.YES_OPTION) {
+                enterCloseVST(false);
+                enterOpenVST();
             }
-        });
+            else {
+                enterCloseVST(false);
+            }
+	});
     }
 
     Transaction _loadHandler = new Transaction("loadHandler") {
         @Override
         public void run() {
-            //TODO black
-            if (_instance.getPath() == null || _instance.getPath().isEmpty()) {
+            if (_instance.isBlacked() || _instance.getPath() == null || _instance.getPath().isEmpty()) {
                 jLabelName.setText("-");
                 jLabelName.setToolTipText("-");
                 jButtonLoad.setText("Open By Navi");
@@ -98,12 +95,9 @@ public class VSTInstancePanel extends javax.swing.JPanel {
                     jButtonLaunch.setText("Load");
                     jButtonEdit.setEnabled(false);
                     jButtonPreset.setEnabled(false);
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            jPanelVolume.removeAll();
-                            jPanelVolume.updateUI();
-                        }
+                    MXMain.invokeUI(() ->  {
+                        jPanelVolume.removeAll();
+                        jPanelVolume.updateUI();
                     });
                 }
                 _editorHandler.run();
@@ -249,6 +243,7 @@ public class VSTInstancePanel extends javax.swing.JPanel {
         add(jButtonPreset, gridBagConstraints);
 
         jPanelVolume.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        jPanelVolume.setLayout(new javax.swing.BoxLayout(jPanelVolume, javax.swing.BoxLayout.Y_AXIS));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;

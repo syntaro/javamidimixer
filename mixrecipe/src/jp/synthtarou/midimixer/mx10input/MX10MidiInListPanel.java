@@ -17,13 +17,13 @@
 package jp.synthtarou.midimixer.mx10input;
 
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInManager;
 import jp.synthtarou.midimixer.mx13patch.MX13Process;
@@ -77,15 +77,13 @@ public class MX10MidiInListPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     public void refreshList() {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(this::refreshList);
-            return;
-        }
-        MXMIDIInManager manager = MXMIDIInManager.getManager();
-        manager.reloadDeviceList();
+        MXMain.invokeUI(() ->  {
+            MXMIDIInManager manager = MXMIDIInManager.getManager();
+            manager.reloadDeviceList();
 
-        jTableDevice.setModel(createDeviceModel());
-        jTableDevice.getColumnModel().getColumn(2).setWidth(500);
+            jTableDevice.setModel(createDeviceModel());
+            jTableDevice.getColumnModel().getColumn(2).setWidth(500);
+	});
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

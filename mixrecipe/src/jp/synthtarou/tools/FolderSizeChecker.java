@@ -37,6 +37,7 @@ import jp.synthtarou.libs.MXSafeThread;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.navigator.legacy.INavigator;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXFolderBrowser;
 
@@ -353,17 +354,15 @@ public class FolderSizeChecker extends javax.swing.JPanel {
                 _model = new DefaultTreeModel(new DefaultMutableTreeNode(null));
                 jTreeFiles.setModel(_model);
                 jButtonScan.setText("Stop");
-                SwingUtilities.invokeLater(() -> {
+                MXMain.invokeUI(() -> {
                     jProgressBar1.setIndeterminate(true);
                 });
                 try {
                     Scanner scanner = new Scanner(new Scanner.Callback() {
                         @Override
                         public boolean addEntry(File file, long size) {
-                            SwingUtilities.invokeLater(new Runnable() {
-                                public void run() {
-                                    addToTree(file, size);
-                                }
+                            MXMain.invokeUI(() ->  {
+                                addToTree(file, size);
                             });
                             return _cancel == false;
                         }
@@ -374,11 +373,11 @@ public class FolderSizeChecker extends javax.swing.JPanel {
                 } catch (Throwable ex) {
                     ex.printStackTrace();
                 } finally {
-                    SwingUtilities.invokeLater(() -> {
+                    MXMain.invokeUI(() ->  {
                         jProgressBar1.setIndeterminate(false);
+                        _thread = null;
+                        jButtonScan.setText("Scan");
                     });
-                    _thread = null;
-                    jButtonScan.setText("Scan");
                 }
             });
             _thread.start();

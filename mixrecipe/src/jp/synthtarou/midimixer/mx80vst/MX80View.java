@@ -50,6 +50,7 @@ import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.libs.async.Transaction;
 import jp.synthtarou.libs.navigator.legacy.INavigator;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXFolderBrowser;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
@@ -124,7 +125,7 @@ public class MX80View extends javax.swing.JPanel {
         new MXAttachSliderLikeEclipse(jSliderMasterVolume);
         _initDone = true;
 
-        SwingUtilities.invokeLater(() -> {
+        MXMain.invokeUI(() ->  {
             Container cont = MXUtil.getOwnerWindow(MX80View.this);
             if (cont != null && cont instanceof JDialog) {
                 JDialog frame = (JDialog) cont;
@@ -141,7 +142,7 @@ public class MX80View extends javax.swing.JPanel {
                     }
                 });
             }
-        });
+	});
     }
 
     MXNamedObjectList<Integer> createStreamModel() {
@@ -865,7 +866,7 @@ public class MX80View extends javax.swing.JPanel {
     }
 
     public void updateMainTree() {
-        SwingUtilities.invokeLater(() -> {
+        MXMain.invokeUI(() ->  {
             TreeModel newModel = MX80View.this.createFolderTreeModel();
             jTreeMain.setModel(newModel);
             jTreeMain.setRootVisible(false);
@@ -877,14 +878,14 @@ public class MX80View extends javax.swing.JPanel {
                 TreePath path = new TreePath(new Object[]{rootNode, second});
                 jTreeMain.expandPath(path);
             }
-        });
+	});
     }
 
     public void updateSkipList() {
-        SwingUtilities.invokeLater(() -> {
+        MXMain.invokeUI(() ->  {
             ListModel list = MX80View.this.createSkipListModel();
             jListSkip.setModel(list);
-        });
+	});
     }
 
     public ListModel<String> createSkipListModel() {
@@ -896,49 +897,41 @@ public class MX80View extends javax.swing.JPanel {
     }
 
     public void updateLoadList() {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> {
-                updateLoadList();
-            });
-            return;
-        }
-        jPanelSynths.removeAll();
-        jPanelSynths.setLayout(new GridBagLayout());
+        MXMain.invokeUI(() ->  {
+            jPanelSynths.removeAll();
+            jPanelSynths.setLayout(new GridBagLayout());
 
-        for (int i = 0; i < MX80Process.getInstance()._listInstrumentPanel.size(); ++i) {
-            VSTInstancePanel vstPanel = MX80Process.getInstance()._listInstrumentPanel.get(i);
-            GridBagConstraints pos = new GridBagConstraints();
-            vstPanel.setParent(this);
-            pos.weightx = 1;
-            pos.weighty = 1;
-            pos.fill = GridBagConstraints.BOTH;
-            pos.gridx = 0;
-            pos.gridy = i;
-            pos.gridwidth = 1;
-            pos.gridheight = 1;
-            jPanelSynths.add(vstPanel, pos);
-        }
-        jPanelSynthsContainer.setBorder(BorderFactory.createEmptyBorder());
-        jPanelSynthsContainer.setBorder(BorderFactory.createTitledBorder("LoadList"));
+            for (int i = 0; i < MX80Process.getInstance()._listInstrumentPanel.size(); ++i) {
+                VSTInstancePanel vstPanel = MX80Process.getInstance()._listInstrumentPanel.get(i);
+                GridBagConstraints pos = new GridBagConstraints();
+                vstPanel.setParent(this);
+                pos.weightx = 1;
+                pos.weighty = 1;
+                pos.fill = GridBagConstraints.BOTH;
+                pos.gridx = 0;
+                pos.gridy = i;
+                pos.gridwidth = 1;
+                pos.gridheight = 1;
+                jPanelSynths.add(vstPanel, pos);
+            }
+            jPanelSynthsContainer.setBorder(BorderFactory.createEmptyBorder());
+            jPanelSynthsContainer.setBorder(BorderFactory.createTitledBorder("LoadList"));
+	});
     }
 
     public void updateEffectList() {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> {
-                updateEffectList();
-            });
-            return;
-        }
-        jPanelEffectsContainer.removeAll();
-        for (int i = 0; i < MX80Process.getInstance()._listEffect.size(); ++i) {
-            VSTInstancePanel vstPanel = MX80Process.getInstance()._listEffectPanel.get(i);
-            vstPanel.setParent(this);
-            jPanelEffectsContainer.add(vstPanel);
-        }
-        Dimension size = jPanelEffectsContainer.getSize();
-        //for repaint scrollbar
-        jPanelEffectsContainer.setBorder(BorderFactory.createEmptyBorder());
-        jPanelEffectsContainer.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
+        MXMain.invokeUI(() ->  {
+            jPanelEffectsContainer.removeAll();
+            for (int i = 0; i < MX80Process.getInstance()._listEffect.size(); ++i) {
+                VSTInstancePanel vstPanel = MX80Process.getInstance()._listEffectPanel.get(i);
+                vstPanel.setParent(this);
+                jPanelEffectsContainer.add(vstPanel);
+            }
+            Dimension size = jPanelEffectsContainer.getSize();
+            //for repaint scrollbar
+            jPanelEffectsContainer.setBorder(BorderFactory.createEmptyBorder());
+            jPanelEffectsContainer.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
+	});
     }
 
     public TreeModel createFolderTreeModel() {

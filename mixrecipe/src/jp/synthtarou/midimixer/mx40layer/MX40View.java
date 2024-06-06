@@ -16,14 +16,11 @@
  */
 package jp.synthtarou.midimixer.mx40layer;
 
-import java.awt.Component;
-import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.logging.Level;
 import javax.swing.BorderFactory;
-import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -40,11 +37,11 @@ import jp.synthtarou.midimixer.ccxml.ui.NavigatorForCCXMLInst;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.ccxml.ui.CCXMLInst;
 import jp.synthtarou.midimixer.libs.swing.MXFileChooser;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
-import jp.synthtarou.midimixer.mx36ccmapping.MX36StatusDetailPanel;
 
 /**
  *
@@ -1434,7 +1431,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
             if (_process.readINIFile(file)) {
                 _process.resendProgramChange();
                 justRefreshViewListAndPanel();
-                SwingUtilities.invokeLater(() -> {
+                MXMain.invokeUI(() ->  {
                     JOptionPane.showMessageDialog(MX40View.this, "Succeed Import [" + file + "]");
                 });
             }
@@ -1902,14 +1899,14 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
     public void tableChanged(TableModelEvent e) {
         updateRequest = true;
         MXCountdownTimer.letsCountdown(500, () -> {
-            SwingUtilities.invokeLater(() -> {
+            MXMain.invokeUI(() ->  {
                 if (updateRequest) {
                     updateRequest = false;
                 }
                 /*
                 jTable1.setModel(_process._inputInfo);
                 jTable2.setModel(_process._outputInfo);
-                */
+                 */
                 jTable1.invalidate();
                 jTable2.invalidate();
             });

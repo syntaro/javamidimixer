@@ -26,7 +26,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -37,6 +36,7 @@ import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachTableResize;
 import jp.synthtarou.libs.namedobject.MXNamedObject;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
@@ -166,7 +166,7 @@ public class NavigatorFor2ColumnList<T> extends javax.swing.JPanel implements IN
             jTable1.setRowSelectionInterval(selectedIndex, selectedIndex);
             jTable1.scrollRectToVisible(jTable1.getCellRect(selectedIndex, 0, true));
         }
-        SwingUtilities.invokeLater(() -> {
+        MXMain.invokeUI(() ->  {
             jTable1.requestFocus();
             new MXAttachTableResize(jTable1);
         });

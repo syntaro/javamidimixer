@@ -16,7 +16,6 @@
  */
 package jp.synthtarou.libs.uiproperty;
 
-import jp.synthtarou.libs.MainThreadTask;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -49,6 +48,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXRangedValue;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
@@ -99,7 +99,6 @@ public class MXUIProperty {
                 @Override
                 public void insertUpdate(DocumentEvent e) {
                     if (0 == _stopFeedback) {
-                        // getTextが問題なくなるにはこのタイミングより遅らせる
                         SwingUtilities.invokeLater(MXUIProperty.this::uiToInternal);
                     }
                 }
@@ -275,117 +274,117 @@ public class MXUIProperty {
     }
 
     public synchronized void doUpdateUIThread(Object parsedObject, String parsedText, int parsedNumeric, boolean parsedBoolean) {
-        if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(() -> {
-                doUpdateUIThread(parsedObject, parsedText, parsedNumeric, parsedBoolean);
-            });
-            return;
-        }
-        String needFire = null;
-        if (_component instanceof JSpinner spinner) {
-            SpinnerNumberModel model = (SpinnerNumberModel) spinner.getModel();
-            int min = (Integer) model.getMinimum();
-            int max = (Integer) model.getMaximum();
-            if (min <= parsedNumeric && parsedNumeric <= max) {
-            } else {
-                return;
-            }
-        }
-        if (parsedObject == null && _varAsObject != null) {
-            needFire = "object null balanec";
-        } else if (parsedObject != null && _varAsObject == null) {
-            needFire = "object null balanec";
-        } else if (parsedObject != null && _varAsObject != null) {
-            try {
-                if (parsedObject.equals(_varAsObject) == false) {
-                    needFire = "object not equals";
+        MXMain.invokeUI(() -> {
+            String needFire = null;
+            if (_component instanceof JSpinner spinner) {
+                SpinnerNumberModel model = (SpinnerNumberModel) spinner.getModel();
+                int min = (Integer) model.getMinimum();
+                int max = (Integer) model.getMaximum();
+                if (min <= parsedNumeric && parsedNumeric <= max) {
+                } else {
+                    return;
                 }
-            } catch (Throwable ex) {
-                needFire = "object equals thrown exception";
             }
-        }
-
-        if (needFire == null) {
-            if (parsedText == null && _varAsText != null) {
-                needFire = "text null balance";
-            } else if (parsedText != null && _varAsText == null) {
-                needFire = "text null balance";
-            } else if (parsedText != null && _varAsText != null) {
+            if (parsedObject == null && _varAsObject != null) {
+                needFire = "object null balanec";
+            } else if (parsedObject != null && _varAsObject == null) {
+                needFire = "object null balanec";
+            } else if (parsedObject != null && _varAsObject != null) {
                 try {
-                    if (parsedText.equals(_varAsText) == false) {
-                        needFire = "text null equals";
+                    if (parsedObject.equals(_varAsObject) == false) {
+                        needFire = "object not equals";
                     }
                 } catch (Throwable ex) {
-                    needFire = "text equals thrown exception";
+                    needFire = "object equals thrown exception";
                 }
             }
-        }
 
-        if (needFire == null) {
-            if (parsedBoolean != _varAsBoolean) {
-                needFire = "boolean not equals";
-            }
-            if (parsedNumeric != _varAsNumeric) {
-                needFire = "numeric not equals";
-            }
-        }
-
-        if (needFire != null) {
-            _varAsBoolean = parsedBoolean;
-            _varAsNumeric = parsedNumeric;
-            _varAsObject = parsedObject;
-            _varAsText = parsedText;
-            internalToUI();
-
-            if (_component != null && _listListener.isEmpty() == false) {
-                MXUIPropertyEvent evt = new MXUIPropertyEvent(_component, MXUIProperty.this);
-                for (MXUIPropertyListener l : _listListener) {
-                    l.uiProperityValueChanged(evt);
+            if (needFire == null) {
+                if (parsedText == null && _varAsText != null) {
+                    needFire = "text null balance";
+                } else if (parsedText != null && _varAsText == null) {
+                    needFire = "text null balance";
+                } else if (parsedText != null && _varAsText != null) {
+                    try {
+                        if (parsedText.equals(_varAsText) == false) {
+                            needFire = "text null equals";
+                        }
+                    } catch (Throwable ex) {
+                        needFire = "text equals thrown exception";
+                    }
                 }
             }
-        }
+
+            if (needFire == null) {
+                if (parsedBoolean != _varAsBoolean) {
+                    needFire = "boolean not equals";
+                }
+                if (parsedNumeric != _varAsNumeric) {
+                    needFire = "numeric not equals";
+                }
+            }
+
+            if (needFire != null) {
+                _varAsBoolean = parsedBoolean;
+                _varAsNumeric = parsedNumeric;
+                _varAsObject = parsedObject;
+                _varAsText = parsedText;
+                internalToUI();
+
+                if (_component != null && _listListener.isEmpty() == false) {
+                    MXUIPropertyEvent evt = new MXUIPropertyEvent(_component, MXUIProperty.this);
+                    for (MXUIPropertyListener l : _listListener) {
+                        l.uiProperityValueChanged(evt);
+                    }
+                }
+            }
+        });
     }
 
     protected void internalToUI() {
-        new MainThreadTask(() -> {
-            _stopFeedback++;
-            try {
-                JComponent component = _component;
-                if (component instanceof JLabel label) {
-                    if (label.getText().equals(_varAsText) == false) {
-                        label.setText(_varAsText);
+        try {
+            MXMain.invokeUIAndWait(() -> {
+                _stopFeedback++;
+                try {
+                    JComponent component = _component;
+                    if (component instanceof JLabel label) {
+                        if (label.getText().equals(_varAsText) == false) {
+                            label.setText(_varAsText);
+                        }
+                    } else if (component instanceof JTextArea textArea) {
+                        if (textArea.getText().equals(_varAsText) == false) {
+                            textArea.setText(_varAsText);
+                        }
+                    } else if (component instanceof JTextField textField) {
+                        if (textField.getText().equals(_varAsText) == false) {
+                            textField.setText(_varAsText);
+                        }
+                    } else if (component instanceof JCheckBox checkBox) {
+                        if (checkBox.isSelected() != _varAsBoolean) {
+                            checkBox.setSelected(_varAsBoolean);
+                        }
+                    } else if (component instanceof JSlider slider) {
+                        if (slider.getValue() != _varAsNumeric) {
+                            slider.setValue(_varAsNumeric);
+                        }
+                    } else if (component instanceof JSpinner spinner) {
+                        int x1 = (Integer) spinner.getValue();
+                        if (x1 != _varAsNumeric) {
+                            spinner.setValue(_varAsNumeric);
+                        }
+                    } else if (component instanceof JToggleButton toggleButton) {
+                        if (toggleButton.isSelected() != _varAsBoolean) {
+                            toggleButton.setSelected(_varAsBoolean);
+                        }
+                    } else if (component instanceof JButton button) {
                     }
-                } else if (component instanceof JTextArea textArea) {
-                    if (textArea.getText().equals(_varAsText) == false) {
-                        textArea.setText(_varAsText);
-                    }
-                } else if (component instanceof JTextField textField) {
-                    if (textField.getText().equals(_varAsText) == false) {
-                        textField.setText(_varAsText);
-                    }
-                } else if (component instanceof JCheckBox checkBox) {
-                    if (checkBox.isSelected() != _varAsBoolean) {
-                        checkBox.setSelected(_varAsBoolean);
-                    }
-                } else if (component instanceof JSlider slider) {
-                    if (slider.getValue() != _varAsNumeric) {
-                        slider.setValue(_varAsNumeric);
-                    }
-                } else if (component instanceof JSpinner spinner) {
-                    int x1 = (Integer) spinner.getValue();
-                    if (x1 != _varAsNumeric) {
-                        spinner.setValue(_varAsNumeric);
-                    }
-                } else if (component instanceof JToggleButton toggleButton) {
-                    if (toggleButton.isSelected() != _varAsBoolean) {
-                        toggleButton.setSelected(_varAsBoolean);
-                    }
-                } else if (component instanceof JButton button) {
+                } finally {
+                    _stopFeedback--;
                 }
-            } finally {
-                _stopFeedback--;
-            }
-        }).join();
+            });
+        } catch (InterruptedException ex) {
+
+        }
     }
 
     public void set(boolean var) {

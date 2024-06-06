@@ -1,0 +1,39 @@
+MIDI Mixer - MixRecipe for Javaは　GNU GPL3ライセンスを使用しています。
+
+******************************************************************************
+
+再配布について、
+
+******************************************************************************
+1 ライセンスのコピーを渡すこと
+2 修正点があれば明示すること
+3 ソース形式で配布する場合は著作権、特許、商標、帰属についての告知を含めること
+4 帰属告知が書かれた NOTICE ファイルがある場合は、NOTICE ファイルも含めること
+******************************************************************************
+
+パブリックだった引用元の一覧です。
+
+＊information全般
+g200kg Music & Software
+https://www.g200kg.com/
+
+＊シーケンサー（再生）
+Qiita @takayoshi
+[C#] [NAudio] [MIDI] NAudio で MIDI ファイルを読み込んで再生する
+https://qiita.com/takayoshi1968/items/8e3f901539c92a6aac16
+
+＊スライダーのタブレット対応
+Stackoverflow #JSlider question: Position after leftclick
+https://stackoverflow.com/questions/518471/jslider-question-position-after-leftclick
+
+＊円形スライダーコンポーネント
+Stackoverflow #How can I make a JSlider in a curve shape?
+https://stackoverflow.com/questions/25546399/how-can-i-make-a-jslider-in-a-curve-shape
+
+＊MIDIインプリメンテーション・チャート＊
+https://www.dtmstation.com/wp-content/uploads/2022/05/AMS_MIDI_Impre.pdf
+
+＊テキストがはみ出すラベル*
+https://ateraimemo.com/Swing/TextOverflowFadeLabel.html
+
+******************************************************************************

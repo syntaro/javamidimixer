@@ -18,11 +18,11 @@ package jp.synthtarou.midimixer.mx13patch;
 
 import java.awt.Color;
 import javax.swing.DefaultListModel;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import jp.synthtarou.libs.MXCountdownTimer;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.MXConfiguration;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMidiFilter;
 
@@ -223,22 +223,18 @@ public class MX13View extends javax.swing.JPanel {
     DefaultListModel<MX13ToFilter> _midiFilter = null;
     
     public void showMIDIInDetail(MXMIDIIn in) {
-        if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(() -> {
-                showMIDIInDetail(in);
-            });
-            return;
-        }
-        if (_midiIn != in) {
-            _midiIn = in;
-            _midiTo = createMidiTo(in);
-            int port = _midiTo.size() > 0 ? _midiTo.get(0)._port : -1;
-            jListTo.setModel(_midiTo);
-            _midiFilter = createMidiFilter(in, port);
-            jListToFilter.setModel(_midiFilter);
-            jLabelDevice.setText(in.getName());
-            jCheckBoxOpen.setSelected(in.isOpen());
-        }
+        MXMain.invokeUI(() ->  {
+            if (_midiIn != in) {
+                _midiIn = in;
+                _midiTo = createMidiTo(in);
+                int port = _midiTo.size() > 0 ? _midiTo.get(0)._port : -1;
+                jListTo.setModel(_midiTo);
+                _midiFilter = createMidiFilter(in, port);
+                jListToFilter.setModel(_midiFilter);
+                jLabelDevice.setText(in.getName());
+                jCheckBoxOpen.setSelected(in.isOpen());
+            }
+	});
     }
 
     public DefaultListModel<MX13To> createMidiTo(MXMIDIIn in) {

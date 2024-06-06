@@ -92,7 +92,9 @@ void MXVSTInstrument::unload(void) {
         else {
             _printDebug(L"Unload");
             _easyVst->suspendVST();
+            _printDebug(L"Suspended");
             _easyVst->reset();
+            _printDebug(L"reseted");
         }
         _easyVst = nullptr;
     }
@@ -288,4 +290,14 @@ void MXVSTInstrument::setAuxSend(float bal) {
 
 float MXVSTInstrument::getAuxSend() {
     return _auxSend;
+}
+
+void MXVSTInstrument::setupBlackListed() {
+    _blackList = true;
+    __try {
+        unload();
+    }
+    __except (systemExceptionMyHandler(L"JNI_InputIsOpen", GetExceptionInformation()))
+    {
+    }
 }

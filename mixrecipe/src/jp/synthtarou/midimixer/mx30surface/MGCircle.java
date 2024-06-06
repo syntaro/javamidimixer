@@ -20,9 +20,9 @@ import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
 import java.awt.Color;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 
 /**
@@ -129,16 +129,12 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
     }
 
     public void publishUI(MXRangedValue newValue) {
-        MGStatus status = getStatus();
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> {
-                publishUI(newValue);
-            });
-            return;
-        }
-        _stopFeedback ++;
-        jCircleValue.setValue(newValue);
-        _stopFeedback --;
+        MXMain.invokeUI(() ->  {
+            MGStatus status = getStatus();
+            _stopFeedback ++;
+            jCircleValue.setValue(newValue);
+            _stopFeedback --;
+	});
     }
 
     // Variables declaration - do not modify                     

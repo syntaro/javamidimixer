@@ -25,8 +25,8 @@ import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.namedobject.MXNamedObject;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.libs.MXRangedValue;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
-import jp.synthtarou.libs.MainThreadTask;
 
 /**
  *
@@ -298,7 +298,7 @@ public class ThemeManagerDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_jCheckBox1ActionPerformed
 
     public void updateLookAndFeel() {
-        new MainThreadTask(() -> {
+        MXMain.invokeUI(() ->  {
             config.setUITheme(config.themeName);
             config.setFont(config.fontName, config.fontStyle, config.fontSize);
             config.updateUITree();

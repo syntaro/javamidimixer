@@ -17,18 +17,14 @@
 package jp.synthtarou.midimixer.mx30surface.capture;
 
 import java.util.ArrayList;
-import java.util.logging.Level;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 
 /**
  *
@@ -94,22 +90,18 @@ public class MGCapturePanel extends javax.swing.JPanel {
     }
 
     public void updateListModel() {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(this::updateListModel);
-            return;
-        }
-        listCommandModel = _capture.createCommandListModel();
-        listGateModel = _capture.createGateListModel(null);
-        listValueModel = _capture.createValueListModel(null);
+        MXMain.invokeUI(() ->  {
+            listCommandModel = _capture.createCommandListModel();
+            listGateModel = _capture.createGateListModel(null);
+            listValueModel = _capture.createValueListModel(null);
 
-        jListCommand.setModel(listCommandModel);
-        jListGate.setModel(listGateModel);
-        jListValue.setModel(listValueModel);
+            jListCommand.setModel(listCommandModel);
+            jListGate.setModel(listGateModel);
+            jListValue.setModel(listValueModel);
 
-        jListCommand.revalidate();
-        jListCommand.repaint();
-
-
+            jListCommand.revalidate();
+            jListCommand.repaint();
+	});
     }
 
     public MXNamedObjectList<CaptureCommand> getCommandModel() {

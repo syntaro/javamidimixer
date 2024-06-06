@@ -17,10 +17,10 @@
 package jp.synthtarou.midimixer.mx36ccmapping;
 
 import java.util.List;
-import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.accordionui.MXAccordion;
 import jp.synthtarou.libs.accordionui.MXAccordionElement;
 import jp.synthtarou.libs.accordionui.MXAccordionFocus;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
 
 /**
@@ -51,7 +51,7 @@ public class MX36Folder implements Comparable<MX36Folder> {
         };
         _folderName = name;
     }
-    
+
     public boolean isSelected() {
         return _accordion.isAccordionOpened();
     }
@@ -59,7 +59,7 @@ public class MX36Folder implements Comparable<MX36Folder> {
     public void setSelected(boolean selected) {
         _accordion.openAccordion(selected);
     }
-    
+
     @Override
     public int compareTo(MX36Folder o) {
         if (_order < o._order) {
@@ -72,15 +72,15 @@ public class MX36Folder implements Comparable<MX36Folder> {
     }
 
     public boolean isAlreadyHave(MGStatus mgstatus) {
-        for (int i = 0; i < _accordion.getElementCount(); ++ i) {
+        for (int i = 0; i < _accordion.getElementCount(); ++i) {
             MXAccordionElement e = _accordion.getElementAt(i);
             if (e instanceof MX36StatusPanel) {
-                MX36StatusPanel panel = (MX36StatusPanel)e;
+                MX36StatusPanel panel = (MX36StatusPanel) e;
                 MX36Status seek = panel._status;
                 if (seek.getSurfacePort() == mgstatus._port
-                 && seek.getSurfaceUIType() == mgstatus._uiType
-                 && seek.getSurfaceRow() == mgstatus._row
-                 && seek.getSurfaceColumn() == mgstatus._column) {
+                        && seek.getSurfaceUIType() == mgstatus._uiType
+                        && seek.getSurfaceRow() == mgstatus._row
+                        && seek.getSurfaceColumn() == mgstatus._column) {
                     return true;
                 }
             }
@@ -89,23 +89,19 @@ public class MX36Folder implements Comparable<MX36Folder> {
     }
 
     public void addCCItem(MX36Status status) {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> {
-                addCCItem(status);
-            });
-            return;
-        }
-        status._folder = this;
-        MX36StatusPanel element = new MX36StatusPanel(_process, _accordion, status);
-        _accordion.insertElement(_accordion.getElementCount(), element);
-        repaintStatus(status);
-        setupMouse();
+        MXMain.invokeUI(() -> {
+            status._folder = this;
+            MX36StatusPanel element = new MX36StatusPanel(_process, _accordion, status);
+            _accordion.insertElement(_accordion.getElementCount(), element);
+            repaintStatus(status);
+            setupMouse();
+        });
     }
 
     public void repaintStatus(MX36Status status) {
         int count = 0;
-        for (int i = 0; i < _accordion.getElementCount(); ++ i){
-            MX36StatusPanel panel  =(MX36StatusPanel)_accordion.getElementAt(i);
+        for (int i = 0; i < _accordion.getElementCount(); ++i) {
+            MX36StatusPanel panel = (MX36StatusPanel) _accordion.getElementAt(i);
             if (panel._status == status) {
                 _accordion.repaintAccordionElement(count);
             }
@@ -121,17 +117,17 @@ public class MX36Folder implements Comparable<MX36Folder> {
     }
 
     public void remove(MXAccordionElement elem) {
-        MX36StatusPanel p = (MX36StatusPanel)elem;
+        MX36StatusPanel p = (MX36StatusPanel) elem;
         _accordion.removeElement(elem);
     }
-    
+
     public void removeAll() {
         int count = 0;
-        while(_accordion.getElementCount() != 0){
-            _accordion.removeElementAt(_accordion.getElementCount() -1);
+        while (_accordion.getElementCount() != 0) {
+            _accordion.removeElementAt(_accordion.getElementCount() - 1);
         }
     }
-    
+
     public String toString() {
         return _folderName;
     }
@@ -145,7 +141,7 @@ public class MX36Folder implements Comparable<MX36Folder> {
             seek.setSelected(false);
         }
     }
-    
+
     public boolean sortElements() {
         return _accordion.sortElements(MX36StatusPanel._sortOrder);
     }

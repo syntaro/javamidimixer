@@ -16,32 +16,81 @@
  */
 package jp.synthtarou.libs;
 
+import jp.synthtarou.libs.log.MXFileLogger;
+import java.lang.reflect.InvocationTargetException;
+import java.util.logging.Level;
 import javax.swing.SwingUtilities;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class MainThreadTask {
+public abstract class MainThreadTask<T> {
+    public T _result = null;
+    boolean _doing = true;
+    public Throwable _errorWhenInvoke = null;
+    public Throwable _errorHappens = null;
+    
+    public static final Object NOTHING = null;
 
-    public MainThreadTask(Runnable run) {
-        if (SwingUtilities.isEventDispatchThread() == false) {
-            SwingUtilities.invokeLater(run);
-        } else {
-            run.run();
+    public MainThreadTask() {
+        this(false);
+    }
+    
+    public MainThreadTask(boolean forceInvokeLater) {
+        if (forceInvokeLater || SwingUtilities.isEventDispatchThread() == false) {
+            SwingUtilities.invokeLater(this::callerForTask);
+        }else {
+            callerForTask();
         }
     }
 
-    public void join() {
-        if (SwingUtilities.isEventDispatchThread()) {
-            return;
+    
+    public boolean isDone() {
+        return !_doing;
+    }
+    
+    public boolean isResultFine() {
+        waitResult();
+        return _errorHappens == null;
+    }
+    
+    public Throwable getError() {
+        return _errorHappens; //right ?
+    }
+
+    public T waitResult() {
+        synchronized (this) {
+            while (_doing) {
+                try {
+                    wait(1000);
+                }catch(InterruptedException ex) {
+                    _errorHappens = ex;
+                }
+            }
+            if (_errorWhenInvoke != null) {
+                _errorHappens = new InvocationTargetException(_errorWhenInvoke);
+            }
+            return _result;
         }
+    }
+
+    private void callerForTask() {
         try {
-            SwingUtilities.invokeAndWait(() -> {
-                return;
-            });
-        } catch (Throwable e) {
+            if (SwingUtilities.isEventDispatchThread() == false) {
+                throw new IllegalStateException("Not MainThread");
+            }
+            _result = runTask();
+        }catch(Throwable ex) {
+            MXFileLogger.getLogger(MainThreadTask.class).log(Level.SEVERE, ex.getMessage(), ex);
+            _errorWhenInvoke = ex;
+        }finally {
+            _doing = false;
+            synchronized (this) {
+                notifyAll();
+            }
         }
-
     }
+    
+    public abstract T runTask();
 }

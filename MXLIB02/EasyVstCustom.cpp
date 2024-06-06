@@ -644,13 +644,22 @@ IComponent* EasyVstCustom::getComponent() {
 
 void EasyVstCustom::_superDestroty(bool decrementRefCount)
 {
-	_editController = nullptr;
-	_audioEffect = nullptr;
-	_component = nullptr;
-	_plugProvider = nullptr;
-	_module = nullptr;
-	_midiMapping = nullptr;
+
+	//debugText(L"**10");
 	_unitInfo = nullptr;
+	//debugText(L"**11");
+	_midiMapping = nullptr;
+	//debugText(L"**12");
+	_editController = nullptr;
+	//debugText(L"**13");
+	_audioEffect = nullptr;
+	//debugText(L"**14");
+	_component = nullptr;
+	//debugText(L"**15");
+	_plugProvider = nullptr;
+	//debugText(L"**16");
+	_module = nullptr;
+	//debugText(L"**17");
 
 	_inAudioBusInfos.clear();
 	_outAudioBusInfos.clear();
@@ -670,6 +679,7 @@ void EasyVstCustom::_superDestroty(bool decrementRefCount)
 		_processData.outputEvents = nullptr;
 	}
 
+	//debugText(L"**2");
 	Event* evt;
 	while (_pooledMessage.empty() == false) {
 		while (!_pooledMessage.pop(evt)) {
@@ -685,9 +695,10 @@ void EasyVstCustom::_superDestroty(bool decrementRefCount)
 
 	_symbolicSampleSize = 0;
 	_realtime = false;
+	//debugText(L"**3");
 
-	_path = nullptr;
-	_name = nullptr;
+	_path = "";
+	_name = "";
 
 	if (decrementRefCount) {
 		/*
@@ -702,6 +713,7 @@ void EasyVstCustom::_superDestroty(bool decrementRefCount)
 		}
 		*/
 	}
+	debugText(L"Clear Resource Done");
 }
 
 

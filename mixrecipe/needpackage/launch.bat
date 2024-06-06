@@ -1,0 +1,1 @@
+C:\java\jdk-22\bin\java -classpath . -jar MIDIMixer-MIXRecipe.jar

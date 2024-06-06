@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
-import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.MXCountdownTimer;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
@@ -69,58 +69,50 @@ public class ListModelOutputStream extends OutputStream {
     }
 
     public synchronized void checkLag() {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> {
-                checkLag();
-            });
-            return;
-        }
-        if (_lagPool.isEmpty() || _pause) {
-            return;
-        }
-        long spent = System.currentTimeMillis() - _lastAdded;
-        if (spent >= 500) {
-            if (_installed != null) {
-                _installed.setValueIsAdjusting(true);
+        MXMain.invokeUI(() -> {
+            if (_lagPool.isEmpty() || _pause) {
+                return;
             }
-            synchronized (ListModelOutputStream.this) {
-                while (_lagPool.isEmpty() == false) {
-                    String str = _lagPool.removeFirst();
-                    for (int i = _lines.size() - 1; i >= 0; i--) {
-                        MyModel m = _lines.get(i);
-                        m.addElement(str);
-                        while (m.size() >= 500) {
-                            m.removeElementAt(0);
+            long spent = System.currentTimeMillis() - _lastAdded;
+            if (spent >= 500) {
+                if (_installed != null) {
+                    _installed.setValueIsAdjusting(true);
+                }
+                synchronized (ListModelOutputStream.this) {
+                    while (_lagPool.isEmpty() == false) {
+                        String str = _lagPool.removeFirst();
+                        for (int i = _lines.size() - 1; i >= 0; i--) {
+                            MyModel m = _lines.get(i);
+                            m.addElement(str);
+                            while (m.size() >= 500) {
+                                m.removeElementAt(0);
+                            }
                         }
                     }
+                    _lagPool.clear();
                 }
-                _lagPool.clear();
-            }
-            if (_installed != null) {
-                _installed.setValueIsAdjusting(false);
-            }
-            for (int i = _lines.size() - 1; i >= 0; i--) {
-                synchronized (ListModelOutputStream.this) {
-                    MyModel m = _lines.get(i);
-                    m._list.ensureIndexIsVisible(m.getSize() - 1);
+                if (_installed != null) {
+                    _installed.setValueIsAdjusting(false);
                 }
+                for (int i = _lines.size() - 1; i >= 0; i--) {
+                    synchronized (ListModelOutputStream.this) {
+                        MyModel m = _lines.get(i);
+                        m._list.ensureIndexIsVisible(m.getSize() - 1);
+                    }
+                }
+            } else {
+                MXCountdownTimer.letsCountdown(500 - spent, this::checkLag);
             }
-        } else {
-            MXCountdownTimer.letsCountdown(500 - spent, this::checkLag);
-        }
+        });
     }
 
     public synchronized void clearLogLine() {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> {
-                clearLogLine();
-            });
-            return;
-        }
-        for (int i = _lines.size() - 1; i >= 0; i--) {
-            MyModel m = _lines.get(i);
-            m.removeAllElements();
-        }
+        MXMain.invokeUI(() ->  {
+            for (int i = _lines.size() - 1; i >= 0; i--) {
+                MyModel m = _lines.get(i);
+                m.removeAllElements();
+            }
+	});
     }
 
     public synchronized void addLine(String text) {

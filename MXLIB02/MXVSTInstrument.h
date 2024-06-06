@@ -34,6 +34,8 @@ public:
 	void setAuxSend(float bal);
 	float getAuxSend();
 
+	void setupBlackListed();
+
 	int _whenClose;
 	bool _blackList;
 

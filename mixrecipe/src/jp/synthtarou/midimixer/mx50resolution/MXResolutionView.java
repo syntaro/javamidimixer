@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import javax.swing.JComponent;
-import javax.swing.SwingUtilities;
 import jp.synthtarou.midimixer.ccxml.InformationForCCM;
 import jp.synthtarou.midimixer.ccxml.ui.NavigatorForCCXMLCC;
 import jp.synthtarou.libs.log.MXFileLogger;
@@ -36,6 +35,7 @@ import jp.synthtarou.libs.navigator.MXPopupForList;
 import jp.synthtarou.libs.navigator.legacy.INavigator;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
@@ -375,12 +375,8 @@ public class MXResolutionView extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     public void updateMonitor(int original, int translated) {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> {
-                updateMonitor(original, translated);
-            });
-            return;
-        }
-        jTextFieldMonitor.setText("from " + original + " To " + translated);
+        MXMain.invokeUI(() ->  {
+            jTextFieldMonitor.setText("from " + original + " To " + translated);
+	});
     }
 }

@@ -22,10 +22,10 @@ import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import jp.synthtarou.libs.MXUtil;
-import jp.synthtarou.libs.MainThreadTask;
 import jp.synthtarou.libs.log.ListModelOutputStream;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.MXConfiguration;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
 
 /**
@@ -172,7 +172,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
                     last = 40;
                     _piano.noteOn(40);
                 }
-                new MainThreadTask(() -> {
+                MXMain.invokeUI(() ->  {
                     _piano.invalidate();
                     _piano.repaint();
                 });

@@ -19,12 +19,11 @@ package jp.synthtarou.midimixer.mx80vst;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import javax.swing.JLabel;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import jp.synthtarou.libs.MXRangedValue;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
-import jp.synthtarou.libs.MainThreadTask;
 import jp.synthtarou.midimixer.libs.vst.VSTInstance;
 
 /**
@@ -92,9 +91,9 @@ public class VSTVolume extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     public void reload() {
-        new MainThreadTask(() -> {
+        MXMain.invokeUI(() ->  {
             _slider.setValue(MXRangedValue.new7bit(_instance.getBusVolume(_bus)));
-        });
+	});
     }
     
 

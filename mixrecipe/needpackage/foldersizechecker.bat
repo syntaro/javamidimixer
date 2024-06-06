@@ -1,0 +1,1 @@
+C:\java\jdk-22\bin\java -classpath MIDIMixer-MIXRecipe.jar jp.synthtarou.tools.FolderSizeChecker

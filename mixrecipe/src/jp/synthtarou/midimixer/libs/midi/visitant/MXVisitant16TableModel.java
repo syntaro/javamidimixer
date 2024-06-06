@@ -18,12 +18,12 @@ package jp.synthtarou.midimixer.libs.midi.visitant;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
-import javax.swing.SwingUtilities;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 
@@ -158,7 +158,7 @@ public class MXVisitant16TableModel implements TableModel {
     }
 
     public void invokeListener(Object message) {
-        SwingUtilities.invokeLater(() -> {
+        MXMain.invokeUI(() ->  {
             for (TableModelListener l : _listeners) {
                 TableModelEvent e = new TableModelEvent(MXVisitant16TableModel.this, 0, getRowCount());
                 l.tableChanged(e);

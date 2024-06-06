@@ -40,7 +40,7 @@ import jp.synthtarou.libs.MXSafeThread;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.navigator.legacy.INavigator;
-import jp.synthtarou.libs.MainThreadTask;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
@@ -501,7 +501,7 @@ public class MXFolderBrowser extends javax.swing.JPanel implements INavigator<Fi
 
     public void ensureNodeToVisible(FileSystemCache.Element node) {
         if (node != null) {
-            new MainThreadTask(() -> {
+            MXMain.invokeUI(() ->  {
                 TreePath path = new TreePath(node._pairNode.getPath());
                 jTree1.expandPath(path);
                 jTree1.setSelectionPath(path);
@@ -557,7 +557,7 @@ public class MXFolderBrowser extends javax.swing.JPanel implements INavigator<Fi
     }
 
     public void progress(String text) {
-        new MainThreadTask(() -> {
+        MXMain.invokeUI(() ->  {
             jLabelScan.setText(text);
             jLabelScan.paintImmediately(jLabelScan.getVisibleRect());
         });

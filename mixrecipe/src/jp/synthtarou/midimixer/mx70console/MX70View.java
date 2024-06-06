@@ -25,6 +25,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
 
@@ -46,12 +47,12 @@ public class MX70View extends javax.swing.JPanel {
         initComponents();
 //        new MXAttachCopyAndPaste(jTextFieldDump);
 
-        SwingUtilities.invokeLater(() -> {
+        MXMain.invokeUI(() ->  {
             _process._outsideInput.bind(jListOutsideInput);
             _process._insideInput.bind(jListInsideInput);
             _process._insideOutput.bind(jListInsideOutput);
             _process._outsideOutput.bind(jListOutsideOutput);
-        });
+	});
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
@@ -348,27 +349,20 @@ public class MX70View extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     public void selectByTimingCall(MXMessage target) {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    selectByTimingCall(target);
-                }
-            });
-            return;
-        }
-        if (_stopFeedback > 0) {
-            return;
-        }
-        MXMidiConsole model;
-        model = (MXMidiConsole) jListOutsideInput.getModel();
-        model.setHIghlightOwner(target);
-        model = (MXMidiConsole) jListInsideInput.getModel();
-        model.setHIghlightOwner(target);
-        model = (MXMidiConsole) jListInsideOutput.getModel();
-        model.setHIghlightOwner(target);
-        model = (MXMidiConsole) jListOutsideOutput.getModel();
-        model.setHIghlightOwner(target);
+        MXMain.invokeUI(() ->  {
+            if (_stopFeedback > 0) {
+                return;
+            }
+            MXMidiConsole model;
+            model = (MXMidiConsole) jListOutsideInput.getModel();
+            model.setHIghlightOwner(target);
+            model = (MXMidiConsole) jListInsideInput.getModel();
+            model.setHIghlightOwner(target);
+            model = (MXMidiConsole) jListInsideOutput.getModel();
+            model.setHIghlightOwner(target);
+            model = (MXMidiConsole) jListOutsideOutput.getModel();
+            model.setHIghlightOwner(target);
+	});
     }
 
     private void jListOutsideInputValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListOutsideInputValueChanged

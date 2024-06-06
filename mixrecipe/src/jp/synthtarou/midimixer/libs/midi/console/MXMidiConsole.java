@@ -28,6 +28,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataListener;
 import jp.synthtarou.libs.MXSafeThread;
 import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 
@@ -141,7 +142,7 @@ public class MXMidiConsole extends DefaultListModel<MXMidiConsoleElement> {
     }
 
     public void commitQueue() {
-        SwingUtilities.invokeLater(() -> {
+        MXMain.invokeUI(() ->  {
             if (_refList == null) {
                 return;
             }
@@ -218,16 +219,11 @@ public class MXMidiConsole extends DefaultListModel<MXMidiConsoleElement> {
     }
 
     public void clear() {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> {
-                clear();
-            });
-            return;
-        }
-
-        super.clear();
-        synchronized (this) {
-            _queue.clear();
-        }
+        MXMain.invokeUI(() ->  {
+            super.clear();
+            synchronized (this) {
+                _queue.clear();
+            }
+        });
     }
 }

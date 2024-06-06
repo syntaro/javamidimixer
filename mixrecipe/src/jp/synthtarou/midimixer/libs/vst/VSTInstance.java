@@ -307,6 +307,14 @@ public class VSTInstance {
         task.letsCancel();
         return task;
     }
+    
+    public boolean isBlacked() {
+        MXLIB02VST3 vst = MXLIB02VST3.getInstance();
+        if (vst.isUsable()) {
+            return vst.isBlackListed(_isEffect, _slot);
+        }
+        return false;
+    }
 
     public static Transaction waitQueued(Transaction task) {
         MXLIB02VST3 vst = MXLIB02VST3.getInstance();

@@ -16,8 +16,8 @@
  */
 package jp.synthtarou.libs.uiproperty;
 
-import jp.synthtarou.libs.MainThreadTask;
 import javax.swing.SwingUtilities;
+import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.mx30surface.MGCircle;
 import jp.synthtarou.midimixer.mx30surface.MGSlider;
 
@@ -41,7 +41,7 @@ public class MXUIProperty2 extends MXUIProperty {
             throw new IllegalStateException("not from ui thread");
         }
         if (_component instanceof MGSlider slider || _component instanceof MGCircle circle) {
-            new MainThreadTask(() -> {
+            MXMain.invokeUI(() ->  {
                 _stopFeedback++;
                 try {
                     synchronized (MXUIProperty2.this) {

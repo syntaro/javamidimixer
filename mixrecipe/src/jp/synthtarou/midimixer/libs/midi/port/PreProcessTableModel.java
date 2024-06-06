@@ -20,7 +20,7 @@ import java.util.LinkedList;
 import java.util.TreeSet;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
-import jp.synthtarou.libs.MainThreadTask;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
@@ -91,7 +91,7 @@ public class PreProcessTableModel extends AbstractTableModel {
         if (e._count0h + e._count20h + e._countPair == 0) {
             return;
         }
-        MainThreadTask r = new MainThreadTask(() -> {
+        MXMain.invokeUI(() ->  {
             _rows.add(e);
             int index = indexOfRecordEntry(e);
             if (index >= 0) {

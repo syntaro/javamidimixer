@@ -18,11 +18,11 @@ package jp.synthtarou.midimixer.mx00playlist;
 
 import java.awt.Dimension;
 import javax.swing.JRadioButtonMenuItem;
-import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObject;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.libs.navigator.MXPopupForList;
+import jp.synthtarou.midimixer.MXMain;
 
 /**
  *
@@ -118,7 +118,7 @@ public class MXPianoRollSettings extends javax.swing.JPanel {
     }
 
     public void showDataFirst() {
-        SwingUtilities.invokeLater(() -> {
+        MXMain.invokeUI(() ->  {
             jTextFieldColor.setText(listColor.nameOfValue(_process._viewData._focusChannel));
             jTextFieldMargin.setText(listMagin.nameOfValue((int)_process._viewData._soundMargin));
             jTextFieldSpan.setText(listSpan.nameOfValue((int)_process._viewData._soundSpan));

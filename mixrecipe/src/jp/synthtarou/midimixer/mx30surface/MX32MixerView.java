@@ -317,7 +317,7 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
         if (_mixer == null) {
             return;
         }
-        SwingUtilities.invokeLater(() -> {
+        MXMain.invokeUI(() ->  {
             try {
                 if (_mixer.getCircle(0,0) != null) {
                     for (int column = 0; column < MXConfiguration.SLIDER_COLUMN_COUNT; ++column) {
@@ -665,7 +665,7 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
             return;
         }
         if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> {
+            MXMain.invokeUI(() ->  {
                 goNextFocus(keyCode);
             });
             return;
