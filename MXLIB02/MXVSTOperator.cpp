@@ -370,7 +370,7 @@ int MXVSTOperator::processQueuedThreadCommand() {
 		}
 		__try 
 		{
-			noticeTaskDone(task, result);
+			noticeTaskDone(task, result, effect, synth);
 			setRecycle(command);
 		}
 		__except (systemExceptionMyHandler(L"Trusing", GetExceptionInformation()))
@@ -467,10 +467,15 @@ void MXVSTOperator::postQuit(int task) {
 		for (int x = 0; x < MAX_SYNTH; ++x) {
 			MXVSTInstrument* vst = getOperator()->getSynth(false, x);
 			__try {
-				if (vst != nullptr && vst->_path.empty() == false) {
+				if (vst->_blackList) {
+
+				}
+				else {
 					debugText2(L"Delete VSTClassObject for ", vst->_path.c_str());
-					delete vst->_easyVst;
-					vst->_easyVst = nullptr;
+					if (vst != nullptr && vst->_path.empty() == false) {
+						delete vst->_easyVst;
+						vst->_easyVst = nullptr;
+					}
 				}
 			}
 			__except (systemExceptionMyHandler(L"ThreadFunc2", GetExceptionInformation()))
@@ -553,7 +558,7 @@ void handleOpenCloseWindow(HWND hWnd) {
 		if (vst != nullptr && vst->_easyVst != nullptr) {
 			if (vst->_easyVst->getHWnd() == hWnd) {
 				if (vst->_whenClose >= 0) {
-					noticeTaskDone(vst->_whenClose, Thread_Success);
+					noticeTaskDone(vst->_whenClose, Thread_Success, false, -1);
 				}
 				return;
 			}
@@ -564,7 +569,7 @@ void handleOpenCloseWindow(HWND hWnd) {
 		if (vst != nullptr && vst->_easyVst != nullptr) {
 			if (vst->_easyVst->getHWnd() == hWnd) {
 				if (vst->_whenClose >= 0) {
-					noticeTaskDone(vst->_whenClose, Thread_Success);
+					noticeTaskDone(vst->_whenClose, Thread_Success, false, -1);
 				}
 				return;
 			}

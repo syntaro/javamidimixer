@@ -49,7 +49,7 @@ public class MXNoteOffWatcher {
 
     Handler _lastHandler;
 
-    public boolean setHandler(MXMessage noteOn, MXMessage noteOff, Handler listener) {
+    public synchronized boolean setHandler(MXMessage noteOn, MXMessage noteOff, Handler listener) {
         if (noteOn.isCommand(MXMidi.COMMAND_CH_NOTEON) == false) {
             MXFileLogger.getLogger(MXMessage.class).severe("Its not note on " + noteOn);
             return false;
@@ -63,7 +63,7 @@ public class MXNoteOffWatcher {
         return true;
     }
 
-    public void allNoteOff(MXMessage parent) {
+    public synchronized void allNoteOff(MXMessage parent) {
         for (Element e : _list) {
             MXMessage base = e.sendSide;
             MXMessage msg = MXMessageFactory.fromNoteoff(base.getPort(), base.getChannel(), base.getCompiled(1));
@@ -73,7 +73,7 @@ public class MXNoteOffWatcher {
         _list.clear();
     }
 
-    public void allNoteOffToPort(MXMessage parent, int to) {
+    public synchronized void allNoteOffToPort(MXMessage parent, int to) {
         Iterator<Element> it = _list.iterator();
         while (it.hasNext()) {
             Element e = it.next();
@@ -88,7 +88,7 @@ public class MXNoteOffWatcher {
         }
     }
 
-    public void allNoteFromPort(MXMessage parent, int from) {
+    public synchronized void allNoteFromPort(MXMessage parent, int from) {
         Iterator<Element> it = _list.iterator();
         while (it.hasNext()) {
             Element e = it.next();
@@ -108,7 +108,7 @@ public class MXNoteOffWatcher {
         return raiseHandler(target, target.getPort(), target.getChannel(), target.getCompiled(1));
     }
 
-    public boolean raiseHandler(MXMessage parent, int port, int ch, int note) {
+    public synchronized boolean raiseHandler(MXMessage parent, int port, int ch, int note) {
         int proc = 0;
         Iterator<Element> it = _list.iterator();
         while (it.hasNext()) {

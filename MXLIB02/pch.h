@@ -42,7 +42,7 @@
 
 static const double TEMPO = 120.0;
 
-extern void noticeTaskDone(const int task, int result);
+extern void noticeTaskDone(const int task, int result, jboolean effect, jint synth);
 extern void refBlackListed(jboolean effect, jint rack);
 extern void refAttachOnly();
 

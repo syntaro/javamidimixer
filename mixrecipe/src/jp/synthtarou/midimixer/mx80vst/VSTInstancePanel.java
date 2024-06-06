@@ -321,8 +321,13 @@ public class VSTInstancePanel extends javax.swing.JPanel {
             file.delete();
             _instance.setPath(null);
         }
-        jButtonLaunch.setEnabled(false);
-        _instance.postCloseVST(_loadHandler.copyWithNewTicket("postCloseVSTi"));
+        if (_instance.isOpen()) {
+            jButtonLaunch.setEnabled(false);
+            _instance.postCloseVST(_loadHandler.copyWithNewTicket("postCloseVSTi"));
+        }
+        else {
+            _loadHandler.run();
+        }
     }
  
     public void enterOpenEditor() {

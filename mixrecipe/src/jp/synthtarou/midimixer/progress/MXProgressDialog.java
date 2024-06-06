@@ -105,6 +105,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
         _stream.addLine("V0.77.5 some bug fix");
         _stream.addLine("V0.77.6.7 some bug fix (recording etc)");
         _stream.addLine("V0.77.6.95 piano roll been 60 fps fixed");
+        _stream.addLine("0.77.7 more safe VSTi operation");
 
         _stream.addLine("It is beta release, please send me issue / problem / wish,\n");
         _stream.addLine("Im waiting for public relesae timing.\n\n");

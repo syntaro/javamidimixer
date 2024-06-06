@@ -16,7 +16,7 @@ MXVSTInstrument::MXVSTInstrument() {
     _easyVst = nullptr;
     _busesVolumeCount = 0;
     _busesVolume = nullptr;
-
+    
     _blackList = false;
     _insertBalance = 0;
     _auxSend = 0;
@@ -292,12 +292,12 @@ float MXVSTInstrument::getAuxSend() {
     return _auxSend;
 }
 
-void MXVSTInstrument::setupBlackListed() {
+void MXVSTInstrument::unloadWithBL() {
     _blackList = true;
     __try {
         unload();
     }
-    __except (systemExceptionMyHandler(L"JNI_InputIsOpen", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"unloadWithBL", GetExceptionInformation()))
     {
     }
 }

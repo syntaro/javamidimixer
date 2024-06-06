@@ -267,6 +267,7 @@ void EasyVstCustom::destroy()
 		_superDestroty(true);
 	}
 	__except (systemExceptionMyHandler(L"destroy", GetExceptionInformation())) {
+		debugText(L"Bahh close error1");
 	}
 }
 
@@ -277,6 +278,7 @@ void EasyVstCustom::reset()
 		_superDestroty(false);
 	}
 	__except (systemExceptionMyHandler(L"reset", GetExceptionInformation())) {
+		debugText(L"Bahh close error2");
 	}
 }
 
@@ -645,21 +647,13 @@ IComponent* EasyVstCustom::getComponent() {
 void EasyVstCustom::_superDestroty(bool decrementRefCount)
 {
 
-	//debugText(L"**10");
 	_unitInfo = nullptr;
-	//debugText(L"**11");
 	_midiMapping = nullptr;
-	//debugText(L"**12");
 	_editController = nullptr;
-	//debugText(L"**13");
 	_audioEffect = nullptr;
-	//debugText(L"**14");
 	_component = nullptr;
-	//debugText(L"**15");
 	_plugProvider = nullptr;
-	//debugText(L"**16");
 	_module = nullptr;
-	//debugText(L"**17");
 
 	_inAudioBusInfos.clear();
 	_outAudioBusInfos.clear();
