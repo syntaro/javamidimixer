@@ -23,8 +23,8 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -35,6 +35,7 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.MXMain;
@@ -411,6 +412,7 @@ public class MXPianoKeys extends JComponent {
         return _canvas._prepareReseted;
         
     }
+    
     public synchronized void paintOnBuffer(Rectangle rect) {
         int widthAll = getWidth();
         int heightAll = getHeight();
@@ -709,5 +711,21 @@ public class MXPianoKeys extends JComponent {
             return seek._rect.width;
         }
         return 20;
+    }
+    
+    public void setAutoScanSize(boolean flag) {
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                updateNoteGraphics(_rootNote, _keyboardOctave);
+                SwingUtilities.invokeLater(() -> {
+                    paintOnBuffer(null);
+                    repaint();
+                });
+            }
+        });
+        if (flag) {
+           updateNoteGraphics(0, 11);
+        }
     }
 }

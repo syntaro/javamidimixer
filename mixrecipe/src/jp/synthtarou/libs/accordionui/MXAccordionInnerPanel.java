@@ -19,6 +19,7 @@ package jp.synthtarou.libs.accordionui;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.logging.Level;
+import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.MXSafeThread;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.MXMain;
@@ -145,14 +146,18 @@ public class MXAccordionInnerPanel {
     }
 
     public void revalidateASAP() {
-        Component c = _animationPanel;
-        while (c != null) {
-            if (c instanceof MXAccordion) {
-                MXAccordion panel = (MXAccordion) c;
-                panel.revalidate();
-                return;
+        MXMain.invokeUI(() -> {
+            Component c = _animationPanel;
+            c.repaint();
+            while (c != null) {
+                if (c instanceof MXAccordion) {
+                    MXAccordion panel = (MXAccordion) c;
+                    panel.invalidate();
+                    panel.repaint();
+                    return;
+                }
+                c = c.getParent();
             }
-            c = c.getParent();
-        }
+        });
     }
 }

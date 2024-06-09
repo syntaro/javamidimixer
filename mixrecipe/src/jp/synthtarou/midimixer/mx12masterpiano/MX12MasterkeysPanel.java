@@ -35,7 +35,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.accordionui.MXAccordionElement;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.libs.MXUtil;
@@ -133,13 +132,14 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
 
         _piano = new MXPianoKeys();
 
-        _piano.setMinimumSize(new Dimension(9 * 200, 100));
-        _piano.setPreferredSize(new Dimension(9 * 200, 150));
-        _piano.updateNoteGraphics(0, 11);
-
         jScrollPane1.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
         jScrollPane1.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         jScrollPane1.setViewportView(_piano);
+        
+        _piano.setMinimumSize(new Dimension(9 * 200, 100));
+        _piano.setPreferredSize(new Dimension(9 * 200, 150));
+        _piano.updateNoteGraphics(0, 11);
+        _piano.setAutoScanSize(true);
 
         _piano.setHandler(new MXPianoKeys.MXMouseHandler() {
             public void noteOn(int note) {

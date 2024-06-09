@@ -162,7 +162,6 @@ public class MXAccordion extends javax.swing.JPanel {
     public void openAccordion(boolean opened) {
         MXMain.invokeUI(() ->  {
             if (_selected != opened) {
-
                     _selected = opened;
 
                     Integer v = jSlider1.getValue();
