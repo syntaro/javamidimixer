@@ -16,14 +16,14 @@ MXVSTInstrument::MXVSTInstrument() {
     _easyVst = nullptr;
     _busesVolumeCount = 0;
     _busesVolume = nullptr;
-    
+
     _blackList = false;
     _insertBalance = 0;
     _auxSend = 0;
 }
 
 MXVSTInstrument::~MXVSTInstrument() {
-    _printDebug(L"Destruct");
+    std::cout << "Destruct" << std::endl;
 }
 
 bool MXVSTInstrument::load(const std::wstring& path) {
@@ -85,18 +85,19 @@ bool MXVSTInstrument::load(const std::wstring& path) {
 
 void MXVSTInstrument::unload(void) {
     if (_easyVst != nullptr) {
-        _easyVst->destroyWindow();
         if (_blackList) {
-            _printDebug(L"Blacklist Unload");
+            std::cout << "BL Bye" << std::endl;
+            _easyVst = nullptr;
         }
         else {
-            _printDebug(L"Unload");
-            _easyVst->suspendVST();
-            _printDebug(L"Suspended");
+            std::cout << "Doing Unload " << std::endl;
+            int num = _easyVst->numBuses(kAudio, kOutput);
+            for (int i = 0; i < num; ++i) {
+                _easyVst->setBusActive(kAudio, kOutput, i, false);
+            }
             _easyVst->reset();
-            _printDebug(L"reseted");
+            _easyVst = nullptr;
         }
-        _easyVst = nullptr;
     }
 }
 
@@ -290,14 +291,4 @@ void MXVSTInstrument::setAuxSend(float bal) {
 
 float MXVSTInstrument::getAuxSend() {
     return _auxSend;
-}
-
-void MXVSTInstrument::unloadWithBL() {
-    _blackList = true;
-    __try {
-        unload();
-    }
-    __except (systemExceptionMyHandler(L"unloadWithBL", GetExceptionInformation()))
-    {
-    }
 }

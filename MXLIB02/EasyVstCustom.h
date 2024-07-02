@@ -56,7 +56,6 @@ public:
 	bool savePreset(const char* utfPath);
 	bool loadPreset(const char* utfPath);
 	HWND getHWnd();
-	void destroyWindow();
 	bool isOpen();
 	void reset();
 	void postProgramChange(int channel, int program);
@@ -64,7 +63,6 @@ public:
 
 	void pushEvent(Event* ev);
 	Event* popEvent();
-	void pushShutdownMessage();
 	void pushShortMessage(uint32_t dword);
 	void pushLongMessage(const uchar *data, size_t length);
 

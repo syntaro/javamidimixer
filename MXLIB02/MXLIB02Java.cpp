@@ -1,7 +1,6 @@
 #include "pch.h"
 
 #include "MXVSTOperator.h"
-#include <tlhelp32.h>
 
 extern jclass _javaClass;
 extern JavaVM* _javavm;
@@ -16,73 +15,25 @@ typedef void(*CallBack_t2)(const jint callNumber);
 
 
 void refTaskDone(const jint task, const jint result) {
-    __try
-    {
-            JNIEnv* env2 = NULL;
-        _javaVM->AttachCurrentThread((void**)&env2, NULL);
-        env2->CallStaticVoidMethod(_javaClass, cbTaskDone, task, result);
-    }
-    __except (systemExceptionMyHandler(L"refTaskDone", GetExceptionInformation()))
-    {
-    }
+    JNIEnv* env2 = NULL;
+    _javaVM->AttachCurrentThread((void**)&env2, NULL);
+    env2->CallStaticVoidMethod(_javaClass, cbTaskDone, task, result);
 }
 
 void refBlackListed(jboolean effect, jint rack) {
-    __try
-    {
-        JNIEnv* env2 = NULL;
-        _javaVM->AttachCurrentThread((void**)&env2, NULL);
-        env2->CallStaticVoidMethod(_javaClass, cbBlackListed, effect, rack);
-    }
-    __except (systemExceptionMyHandler(L"refBlackListed", GetExceptionInformation()))
-    {
-    }
+    JNIEnv* env2 = NULL;
+    _javaVM->AttachCurrentThread((void**)&env2, NULL);
+    env2->CallStaticVoidMethod(_javaClass, cbBlackListed, effect, rack);
 }
 
 void refAttachOnly() {
-    __try
-    {
-        JNIEnv* env2 = NULL;
-        _javaVM->AttachCurrentThread((void**)&env2, NULL);
-    }
-    __except (systemExceptionMyHandler(L"refAttachOnly", GetExceptionInformation()))
-    {
-    }
+    JNIEnv* env2 = NULL;
+    _javaVM->AttachCurrentThread((void**)&env2, NULL);
 }
 
 
-void noticeTaskDone(const int task, const int result, jboolean effect, jint synth) {
-    bool fail = false;
-    if (task >= 0) {
-        __try
-        {
-            refTaskDone(task, result);
-        }
-        __except (systemExceptionMyHandler(L"JNI_postInitializeStream", GetExceptionInformation())) {
-            fail = true;
-        }
-    }
-    if (result == Thread_Exception || fail) {
-        if (synth >= 0) {
-            __try
-            {
-                MXVSTInstrument* vst = getOperator()->getSynth(effect, synth);
-                if (vst != nullptr) {
-                    vst->unloadWithBL();
-                }
-            }
-            __except (systemExceptionMyHandler(L"JNI_postInitializeStream", GetExceptionInformation()))
-            {
-            }
-            __try
-            {
-                refBlackListed(effect, synth);
-            }
-            __except (systemExceptionMyHandler(L"JNI_postInitializeStream", GetExceptionInformation()))
-            {
-            }
-        }
-    }
+void noticeTaskDone(const int task, const int result) {
+    refTaskDone(task, result);
 }
 
 bool stringFromJava(std::wstring& ret, JNIEnv* env, jstring jstr) {
@@ -103,95 +54,37 @@ jstring stringToJava(JNIEnv* env, std::wstring& str) {
     return env->NewString((const jchar*)str.c_str(), str.length());
 }
 
-
-void JNICALL JNI_forceTerminate(JNIEnv* env, jobject obj) {
-
-    HANDLE hThreadSnap = INVALID_HANDLE_VALUE;
-    THREADENTRY32 te32;
-
-    // Take a snapshot of all running threads  
-    hThreadSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-    if (hThreadSnap == INVALID_HANDLE_VALUE) {
-        _printError(L"CreateToolhelp32Snapshot error");
-        return;
-    }
-
-    // Fill in the size of the structure before using it. 
-    te32.dwSize = sizeof(THREADENTRY32);
-
-    // Retrieve information about the first thread,
-    // and exit if unsuccessful
-    if (!Thread32First(hThreadSnap, &te32))
-    {
-        _printError(L"Thread32First error");
-        CloseHandle(hThreadSnap);     // Must clean up the snapshot object!
-        return;
-    }
-
-    // Now walk the thread list of the system,
-    // and display information about each thread
-    // associated with the specified process
-    do
-    {
-        if (te32.th32OwnerProcessID == GetCurrentProcessId())
-        {
-            debugNumber(L"Native Available Thread (Id) = ", te32.th32ThreadID);
-            /*
-            _tprintf(TEXT("\n     base priority  = %d"), te32.tpBasePri);
-            _tprintf(TEXT("\n     delta priority = %d"), te32.tpDeltaPri);
-            */
-            //HANDLE h = OpenThread(DELETE, FALSE, te32.th32ThreadID);
-            //TerminateThread(h, 0);
-        }
-    } while (Thread32Next(hThreadSnap, &te32));
-
-    //  Don't forget to clean up the snapshot object.
-    CloseHandle(hThreadSnap);
-}
-
 void JNICALL JNI_PostInitializeStream(JNIEnv* env, jobject obj, jint task) {
-    bool fail = false;
     __try
     {
         getOperator()->postInitializeStream(task);
     }
     __except (systemExceptionMyHandler(L"JNI_postInitializeStream", GetExceptionInformation()))
     {
-        fail = true;
-    }
-    if (fail) {
-        noticeTaskDone(task, Thread_Exception, false, -1);
+        noticeTaskDone(task, Thread_Exception);
     }
 }
 
 void JNICALL JNI_PostOpenStream(JNIEnv* env, jobject obj, jint stream, int sampleRate, jint latency, jint task)
 {
-    bool fail = false;
     __try
     {
         getOperator()->postOpenStream(stream, sampleRate, latency, task);
     }
     __except (systemExceptionMyHandler(L"JNI_OpenStream", GetExceptionInformation()))
     {
-        fail = true;
-    }
-    if (fail) {
-        noticeTaskDone(task, Thread_Exception, false, -1);
+        noticeTaskDone(task, Thread_Exception);
     }
 }
 
 void JNICALL JNI_PostCloseStream(JNIEnv* env, jobject obj, jint task) {
-    bool fail = false;
     __try
     {
         getOperator()->postCloseStream(task);
     }
     __except (systemExceptionMyHandler(L"JNI_CloseStream", GetExceptionInformation()))
     {
-        fail = true;
-    }
-    if (fail) {
-        noticeTaskDone(task, Thread_Exception, false, -1);
+        noticeTaskDone(task, Thread_Exception);
     }
 }
 
@@ -212,133 +105,132 @@ void CAPSULE_postLaunchVST(JNIEnv* env, jobject obj, jboolean  effect, jint synt
     getOperator()->postLaunchVST(effect, synth, uniPath, task);
 }
 
+
 void JNICALL JNI_postLaunchVST(JNIEnv* env, jobject obj, jboolean  effect, jint synth, jstring path, jint task) {
-    MXVSTInstrument* vst = nullptr;
-    bool fail = false;
     __try
     {
-        vst = getOperator()->getSynth(effect, synth);
-        if (vst != nullptr) {
-            vst->_blackList = false;
-            CAPSULE_postLaunchVST(env, obj, effect, synth, path, task);
+        MXVSTInstrument* vst = nullptr;
+        __try
+        {
+            vst = getOperator()->getSynth(effect, synth);
+            if (vst != nullptr) {
+                vst->_blackList = false;
+                CAPSULE_postLaunchVST(env, obj, effect, synth, path, task);
+            }
+            else {
+                noticeTaskDone(task, Thread_NoSuccess);
+            }
         }
-        else {
-            noticeTaskDone(task, Thread_NoSuccess, effect, synth);
+        __except (systemExceptionMyHandler(L"JNI_postLaunchVST Parent", GetExceptionInformation()))
+        {
+            if (vst != nullptr) {
+                vst->_blackList = true;
+                noticeTaskDone(task, Thread_Exception);
+                refBlackListed(effect, synth);
+            }
         }
     }
-    __except (systemExceptionMyHandler(L"JNI_postLaunchVST Parent", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_postLaunchVST", GetExceptionInformation()))
     {
-        fail = true;
-
-    }
-    if (fail) {
-        noticeTaskDone(task, Thread_Exception, effect, synth);
     }
 }
 
 jboolean JNICALL JNI_isLaunchedVST(JNIEnv* env, jobject obj, jboolean  effect, jint synth, jint task) {
-    bool fail = false;
     __try
     {
         return getOperator()->isOpen(effect, synth);
     }
     __except (systemExceptionMyHandler(L"JNI_isLaunchedVST", GetExceptionInformation()))
     {
-        fail = true;
+        return false;
     }
-    if (fail) {
-        noticeTaskDone(task, Thread_Exception, effect, synth);
-    }
-    return false;
 }
 
 void JNICALL JNI_postOpenEditor(JNIEnv* env, jobject obj, jboolean  effect, jint synth, jint task, jint whenClose) {
-    bool fail = false;
+    MXVSTInstrument* vst = nullptr;
     __try
     {
-        MXVSTInstrument* vst = getOperator()->getSynth(effect, synth);
+        vst = getOperator()->getSynth(effect, synth);
         if (vst != nullptr && vst->_blackList == false) {
             getOperator()->postOpenEditor(effect, synth, task, whenClose);
         }
         else {
-            noticeTaskDone(task, Thread_NoSuccess, effect, synth);
+            noticeTaskDone(task, Thread_NoSuccess);
         }
     }
     __except (systemExceptionMyHandler(L"JNI_postOpenEditor", GetExceptionInformation()))
     {
-        fail = true;
-    }
-    if (fail) {
-        noticeTaskDone(task, Thread_Exception, effect, synth);
+        if (vst != nullptr) {
+            vst->_blackList = true;
+            noticeTaskDone(task, Thread_Exception);
+            refBlackListed(effect, synth);
+        }
     }
 }
 
 void JNICALL JNI_postCloseEditor(JNIEnv* env, jobject obj, jboolean  effect, jint synth, jint task) {
-    bool fail = false;
+    MXVSTInstrument* vst = nullptr;
     __try
     {
-        MXVSTInstrument*vst = getOperator()->getSynth(effect, synth);
+        vst = getOperator()->getSynth(effect, synth);
         if (vst != nullptr) {
             getOperator()->postCloseEditor(effect, synth, task);
         }
         else {
-            noticeTaskDone(task, Thread_NoSuccess, effect, synth);
+            noticeTaskDone(task, Thread_NoSuccess);
         }
     }
     __except (systemExceptionMyHandler(L"JNI_postCloseEditor", GetExceptionInformation()))
     {
-        fail = true;
-    }
-    if (fail) {
-        noticeTaskDone(task, Thread_Exception, effect, synth);
+        if (vst != nullptr) {
+            vst->_blackList = true;
+            noticeTaskDone(task, Thread_Exception);
+            refBlackListed(effect, synth);
+        }
     }
 }
 
 jboolean  JNI_isEditorOpen(JNIEnv* env, jobject obj, jboolean  effect, jint synth) {
-    bool fail = false;
+    MXVSTInstrument* vst = nullptr;
     __try
     {
-        MXVSTInstrument* vst = getOperator()->getSynth(effect, synth);
+        vst = getOperator()->getSynth(effect, synth);
         if (vst != nullptr && vst->isOpen()) {
-            if (vst->_easyVst->getHWnd() != 0) {
-                if (IsIconic(vst->_easyVst->getHWnd()) == FALSE) {
-                    return true;
-                }
-            }
+            return vst->_easyVst->getHWnd() != 0;
         }
     }
     __except (systemExceptionMyHandler(L"JNI_isEditorOpen", GetExceptionInformation()))
     {
-        fail = true;
-    }
-    if (fail) {
-        noticeTaskDone(-1, Thread_Exception, effect, synth);
+        if (vst != nullptr) {
+            vst->_blackList = true;
+            refBlackListed(effect, synth);
+        }
     }
     return false;
 }
 
 jboolean  JNI_isBlackListed(JNIEnv* env, jobject obj, jboolean  effect, jint synth) {
-    bool fail = false;
+    MXVSTInstrument* vst = nullptr;
     __try
     {
-        MXVSTInstrument* vst = getOperator()->getSynth(effect, synth);
+        vst = getOperator()->getSynth(effect, synth);
         if (vst != nullptr && vst->_blackList) {
             return true;
         }
     }
-    __except (systemExceptionMyHandler(L"JNI_isBlackListed", GetExceptionInformation()))
+    __except (systemExceptionMyHandler(L"JNI_postRemoveSynth", GetExceptionInformation()))
     {
-        fail = true;
-    }
-    if (fail) {
-        noticeTaskDone(-1, Thread_Exception, effect, synth);
+        if (vst != nullptr) {
+            vst->_blackList = true;
+            refBlackListed(effect, synth);
+            return true;
+        }
     }
     return false;
 }
 
 void JNICALL JNI_postRemoveSynth(JNIEnv* env, jobject obj, jboolean  effect, jint synth, jint task) {
     MXVSTInstrument* vst = nullptr;
-    bool fail = false;
     __try
     {
         vst = getOperator()->getSynth(effect, synth);
@@ -346,15 +238,16 @@ void JNICALL JNI_postRemoveSynth(JNIEnv* env, jobject obj, jboolean  effect, jin
             getOperator()->postRemoveSynth(effect, synth, task);
         }
         else {
-            noticeTaskDone(task, Thread_NoSuccess, effect, synth);
+            noticeTaskDone(task, Thread_NoSuccess);
         }
     }
     __except (systemExceptionMyHandler(L"JNI_postRemoveSynth", GetExceptionInformation()))
     {
-        fail = true;
-    }
-    if (fail) {
-        noticeTaskDone(task, Thread_Exception, effect, synth);
+        if (vst != nullptr) {
+            vst->_blackList = true;
+            noticeTaskDone(task, Thread_Exception);
+            refBlackListed(effect, synth);
+        }
     }
 }
 
@@ -366,7 +259,6 @@ void CAPSULE_savePreset(JNIEnv* env, jobject obj, jboolean  effect, jint synth, 
 
 void JNICALL JNI_savePreset(JNIEnv* env, jobject obj, jboolean  effect, jint synth, jstring path, jint task) {
     MXVSTInstrument* vst = nullptr;
-    bool fail = false;
     __try
     {
         vst = getOperator()->getSynth(effect, synth);
@@ -374,15 +266,16 @@ void JNICALL JNI_savePreset(JNIEnv* env, jobject obj, jboolean  effect, jint syn
             CAPSULE_savePreset(env, obj, effect, synth, path, task);
         }
         else {
-            noticeTaskDone(task, Thread_NoSuccess, effect, synth);
+            noticeTaskDone(task, Thread_NoSuccess);
         }
     }
     __except (systemExceptionMyHandler(L"JNI_savePluginState", GetExceptionInformation()))
     {
-        fail = true;
-    }
-    if (fail) {
-        noticeTaskDone(task, Thread_Exception, effect, synth);
+        if (vst != nullptr) {
+            vst->_blackList = true;
+            noticeTaskDone(task, Thread_Exception);
+            refBlackListed(effect, synth);
+        }
     }
 }
 
@@ -394,7 +287,6 @@ void CAPSULE_loadPreset(JNIEnv* env, jobject obj, jboolean  effect, jint synth, 
 
 void JNICALL JNI_loadPreset(JNIEnv* env, jobject obj, jboolean  effect, jint synth, jstring path, jint task) {
     MXVSTInstrument* vst = nullptr;
-    bool fail = false;
     __try
     {
         vst = getOperator()->getSynth(effect, synth);
@@ -402,16 +294,16 @@ void JNICALL JNI_loadPreset(JNIEnv* env, jobject obj, jboolean  effect, jint syn
             CAPSULE_loadPreset(env, obj, effect, synth, path, task);
         }
         else {
-            noticeTaskDone(task, Thread_NoSuccess, effect, synth);
-            return;
+            noticeTaskDone(task, Thread_NoSuccess);
         }
     }
     __except (systemExceptionMyHandler(L"JNI_loadPluginState", GetExceptionInformation()))
     {
-        fail = true;
-    }
-    if (fail) {
-        noticeTaskDone(task, Thread_Exception, effect, synth);
+        if (vst != nullptr) {
+            vst->_blackList = true;
+            noticeTaskDone(task, Thread_Exception);
+            refBlackListed(effect, synth);
+        }
     }
 }
 
@@ -427,7 +319,6 @@ void JNICALL JNI_waitQueued(JNIEnv* env, jobject obj, jint task) {
 
 jboolean JNI_postShortMessage(JNIEnv* env, jobject obj, jboolean  effect, jint synth, jint message) {
     MXVSTInstrument* vst = nullptr;
-    bool fail = false;
     __try
     {
         vst = getOperator()->getSynth(effect, synth);
@@ -442,17 +333,16 @@ jboolean JNI_postShortMessage(JNIEnv* env, jobject obj, jboolean  effect, jint s
     }
     __except (systemExceptionMyHandler(L"JNI_postShortMessage", GetExceptionInformation()))
     {
-        fail = true;
-    }
-    if (fail) {
-        noticeTaskDone(-1, Thread_Exception, effect, synth);
+        if (vst != nullptr) {
+            vst->_blackList = true;
+            refBlackListed(effect, synth);
+        }
     }
     return false;
 }
 
 jboolean JNICALL JNI_postLongMessage(JNIEnv* env, jobject obj, jboolean  effect, jint synth, jbyteArray data) {
     MXVSTInstrument* vst = nullptr;
-    bool fail = false;
     __try
     {
         vst = getOperator()->getSynth(effect, synth);
@@ -470,10 +360,10 @@ jboolean JNICALL JNI_postLongMessage(JNIEnv* env, jobject obj, jboolean  effect,
     }
     __except (systemExceptionMyHandler(L"JNI_postLongMessage", GetExceptionInformation()))
     {
-        fail = true;
-    }
-    if (fail) {
-        noticeTaskDone(-1, Thread_Exception, effect, synth);
+        if (vst != nullptr) {
+            vst->_blackList = true;
+            refBlackListed(effect, synth);
+        }
     }
     return false;
 }
@@ -590,7 +480,12 @@ void JNICALL JNI_stopEngine(JNIEnv* env, jobject obj, jint task) {
     __except (systemExceptionMyHandler(L"JNI_setBusVolume", GetExceptionInformation()))
     {
     }
+    std::cout << "final exit" << std::endl;
+    exit(0);
+    std::cout << "final abort" << std::endl;
+    abort();
 }
+
 
 void JNICALL JNI_setInsertBalance(JNIEnv* env, jobject obj, jint synth, jfloat balance) {
     __try
@@ -673,8 +568,6 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 
     // Register your class' native methods.
     static JNINativeMethod methods[] = {
-        { (char*)"forceTerminate", (char*)"()V", reinterpret_cast<void*>(JNI_forceTerminate)},
-
         { (char*)"postInitializeStream", (char*)"(I)V", reinterpret_cast<void*>(JNI_PostInitializeStream)},
 
         { (char*)"countStream", (char*)"()I", reinterpret_cast<void*>(JNI_countStream)},
@@ -743,23 +636,27 @@ void debugText(const wchar_t* t) {
     refCallText(jch);
 }
 
+void debugText(const std::wstring t) {
+    refCallText((jchar*)t.c_str());
+}
+
 void debugText2(const wchar_t* t, const wchar_t* param) {
     std::wstring str;
     str.append(t);
     str.append(param);
-    debugText(str.c_str());
+    debugText(str);
 }
 
 void debugNumber(const wchar_t* t, const long num) {
     std::wstring str;
     str.append(t);
     str.append(std::to_wstring(num));
-    debugText(str.c_str());
+    debugText(str);
 }
 
 void debugDouble(const wchar_t* t, const double num) {
     std::wstring str;
     str.append(t);
     str.append(std::to_wstring(num));
-    debugText(str.c_str());
+    debugText(str);
 }

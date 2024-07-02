@@ -242,7 +242,8 @@ public class MXDriver_Java implements MXDriver {
                     return true;
                 }
             } catch (MidiUnavailableException ex) {
-                MXFileLogger.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(MXDriver_Java.class).warning(ex.getMessage());
+                return false;
             }
             return false;
         }

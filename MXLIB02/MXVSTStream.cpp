@@ -211,11 +211,6 @@ int MXVSTStream::getBlockSize() {
 
 ProcessContext processContext = {};
 
-void MXVSTStream::quiting()
-{
-    _quiting = true;
-}
-
 void MXVSTStream::processAudio(float* outputBuffer, unsigned long framesPerBuffer) {
     __try
     {
@@ -239,12 +234,6 @@ void MXVSTStream::processAudio(float* outputBuffer, unsigned long framesPerBuffe
 
         memset(outputBuffer, 0, sizeof(float) * framesPerBuffer * 2);
 
-        if (_quiting) {
-            return;
-        }
-        if (_openedStream == nullptr) {
-            return;
-        }
         if (isSuspended()) {
             return;
         }
@@ -257,7 +246,6 @@ void MXVSTStream::processAudio(float* outputBuffer, unsigned long framesPerBuffe
             MXVSTInstrument* synth = nullptr;
             vst = ope->getSynth(false, i);
             synth = vst;
-            bool black = false;
 
             __try
             {
@@ -269,7 +257,8 @@ void MXVSTStream::processAudio(float* outputBuffer, unsigned long framesPerBuffe
                     _bufResult.zero();
                     _bufInsert.zero();
                     if (!vst->processAudio(_ti, nullptr, &_bufResult, mainVolume, &_bufInsert, effectVolume)) {
-                        black = true;
+                        vst->_blackList = true;
+                        refBlackListed(false, i);
                     }
                 }else {
                     continue;
@@ -278,11 +267,10 @@ void MXVSTStream::processAudio(float* outputBuffer, unsigned long framesPerBuffe
             }
             __except (systemExceptionMyHandler(L"processAudio#1", GetExceptionInformation()))
             {
-                black = true;
-            }
-            if (vst != nullptr && black) {
-                vst->unloadWithBL();
-                refBlackListed(false, i);
+                if (vst != nullptr) {
+                    vst->_blackList = true;
+                    refBlackListed(false, i);
+                }
             }
 
             vst = ope->getSynth(true, 0);
@@ -291,7 +279,7 @@ void MXVSTStream::processAudio(float* outputBuffer, unsigned long framesPerBuffe
                 if (vst != nullptr && vst->isOpen() && synth->getInsertBalance() > 0) {
                     _bufInsertResult.zero();
                     if (vst->processAudio(_ti, &_bufInsert, &_bufInsertResult, 1, nullptr, 0) == false) {
-                        vst->unloadWithBL();
+                        vst->_blackList = true;
                         refBlackListed(true, 0);
                     }
                     else {
@@ -305,7 +293,7 @@ void MXVSTStream::processAudio(float* outputBuffer, unsigned long framesPerBuffe
             __except (systemExceptionMyHandler(L"processAudio#2", GetExceptionInformation()))
             {
                 if (vst != nullptr) {
-                    vst->unloadWithBL();
+                    vst->_blackList = true;
                     refBlackListed(true, 0);
                 }
             }
@@ -315,7 +303,7 @@ void MXVSTStream::processAudio(float* outputBuffer, unsigned long framesPerBuffe
                 if (vst != nullptr && vst->isOpen() && synth->getAuxSend() > 0) {
                     _bufAuxSendResult.zero();
                     if (vst->processAudio(_ti, &_bufResult, &_bufAuxSendResult, synth->getAuxSend(), nullptr, 0) == false) {
-                        vst->unloadWithBL();
+                        vst->_blackList = true;
                         refBlackListed(true, 0);
                     }
                     else {
@@ -329,7 +317,7 @@ void MXVSTStream::processAudio(float* outputBuffer, unsigned long framesPerBuffe
             __except (systemExceptionMyHandler(L"processAudio#3", GetExceptionInformation()))
             {
                 if (vst != nullptr) {
-                    vst->unloadWithBL();
+                    vst->_blackList = true;
                     refBlackListed(true, 1);
                 }
             }

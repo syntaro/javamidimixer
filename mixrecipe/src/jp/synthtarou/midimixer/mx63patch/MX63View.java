@@ -196,6 +196,12 @@ public class MX63View extends javax.swing.JPanel {
                 if (_midiOut.isOpen() == false) {
                     _midiOut.openOutput(1000);
                     _process.fireChangeListener(new ChangeEvent(_process));
+                    if (_midiOut.isOpen()) {
+                        return;
+                    }
+                    else {
+                        jCheckBoxOpen.setSelected(false);
+                    }
                 }
             }
             else {

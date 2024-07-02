@@ -79,7 +79,7 @@ void printStackTrace()
         ss << std::hex << reinterpret_cast<SYMBOL_INFO*>(symbol)->Address;
         ss << L"\n";
     }
-    debugText(ss.str().c_str());
+    debugText(ss.str());
 }
 
 
@@ -170,6 +170,10 @@ int systemExceptionMyHandler(const wchar_t* funcName, struct _EXCEPTION_POINTERS
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
+void debugText(std::wstring t) {
+    debugText(t.c_str());
+}
+
 void debugText(const wchar_t* t) {
     const jchar* jch = (const jchar*)t;
     refCallText(jch);
@@ -179,19 +183,19 @@ void debugText2(const wchar_t* t, const wchar_t* param) {
     std::wstring str;
     str.append(t);
     str.append(param);
-    debugText(str.c_str());
+    debugText(str);
 }
 
 void debugNumber(const wchar_t* t, const long num) {
     std::wstring str;
     str.append(t);
     str.append(std::to_wstring(num));
-    debugText(str.c_str());
+    debugText(str);
 }
 
 void debugDouble(const wchar_t* t, const double num) {
     std::wstring str;
     str.append(t);
     str.append(std::to_wstring(num));
-    debugText(str.c_str());
+    debugText(str);
 }

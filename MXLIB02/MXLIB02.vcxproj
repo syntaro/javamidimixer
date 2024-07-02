@@ -23,7 +23,7 @@
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{43d867a2-a3e5-43dd-b1bd-262930ab9956}</ProjectGuid>
     <RootNamespace>MXLIB02</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -71,7 +71,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ExternalIncludePath>C:\java\jdk-11\include;C:\java\jdk-11\include\win32;$(IncludePath)</ExternalIncludePath>
+    <ExternalIncludePath>C:\java\jdk-22\include;C:\java\jdk-22\include\win32;C:\Boost\include\boost-1_83</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>C:\Boost\include\boost-1_81;$(IncludePath)</IncludePath>
@@ -143,7 +143,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\github\VST_SDK\vst3sdk;C:\github\asiosdk2\common;C:\github\portaudio\include;C:\java\jdk-22\include;C:\java\jdk-22\include\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\github\VST_SDK\vst3sdk;C:\github\asiosdk2\common;C:\github\portaudio\include;C:\java\jdk-22\include;C:\java\jdk-22\include\win32;C:\Boost\include\boost-1_83;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

@@ -36,6 +36,7 @@
 
 extern void printStackTrace();
 extern int systemExceptionMyHandler(const wchar_t* funcName, struct _EXCEPTION_POINTERS* ep);
+extern void debugText(std::wstring t);
 extern void debugText(const wchar_t* t);
 extern void debugText2(const wchar_t* t, const wchar_t* param);
 extern void debugNumber(const wchar_t* t, const long num);

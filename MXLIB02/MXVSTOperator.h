@@ -54,5 +54,4 @@ private:
 };
 
 extern MXVSTOperator* getOperator();
-extern void handleOpenCloseWindow(HWND hWnd);
-extern HWND hWndAppFrame;
+extern void handleCloseWindow(HWND hWnd);

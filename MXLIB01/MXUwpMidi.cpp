@@ -44,7 +44,6 @@ extern void receiver(MidiInPort port, IMidiMessageReceivedEventArgs args);
 
 vector<PortInformation*> inputArray;
 vector<PortInformation*> outputArray;
-std::mutex mx_valuelock;
 
 bool openerOpen(PortInformation* info, int timeout) {
     if (info->whichType == PortType::INPUT) {
@@ -63,10 +62,9 @@ bool openerOpen(PortInformation* info, int timeout) {
                 break;
             }
             time_t spend = time(nullptr) - started;
-            debugNumber(L"timeout", timeout);
-            debugNumber(L"spend", spend);
+            std::wcout << L"timeout= " << std::to_wstring(timeout) << L" spend = " << std::to_wstring(spend) << std::endl;
             if (timeout != 0) {
-                if (spend >= timeout) {
+                if (spend * 1000 >= timeout) {
                     break;
                 }
             }
@@ -76,7 +74,7 @@ bool openerOpen(PortInformation* info, int timeout) {
 
         info->itsInput = nullptr;
         if (ope.Status() == Windows::Foundation::AsyncStatus::Completed) {
-            debugText(L"open success");
+            std::wcout << L"open success " << std::endl;
             ope.GetResults().MessageReceived(receiver);
             info->itsInput = ope.GetResults();
             return true;
@@ -135,10 +133,13 @@ void MXDeviceManager::InitObject() {
     }
     initFlag = true;
 
+    debugText(L"in reload");
     InReload();
+    debugText(L"out reload");
     OutReload();
 
-    /* 時間かかって意味がなかった 
+    debugText(L"out reload2");
+    /* 時間かかって意味がなかった
 
     wstring accept = L"System.Devices.DevObjectType:=5 AND System.Devices.Aep.ProtocolId:=\"{BB7BB05E-5972-42B5-94FC-76EAA7084D49}\" AND ((System.Devices.Aep.IsPaired:=System.StructuredQueryType.Boolean#True))";
     wstring ignore = L"System.Devices.DevObjectType:=5 AND System.Devices.Aep.ProtocolId:=\"{BB7BB05E-5972-42B5-94FC-76EAA7084D49}\" AND ((System.Devices.Aep.IsPaired:=System.StructuredQueryType.Boolean#False) OR System.Devices.Aep.Bluetooth.IssueInquiry:=System.StructuredQueryType.Boolean#True)";
@@ -154,7 +155,7 @@ void MXDeviceManager::InitObject() {
     if (listAccept.Status() == Windows::Foundation::AsyncStatus::Completed) {
         DeviceInformationCollection col = listAccept.GetResults();
         debugText(L"Count = ");
-        debugText(to_wstring(col.Size()).c_str());
+        debugText(to_wstring(col.Size()));
         //新規だけ追加する
         for (unsigned int i = 0; i < col.Size(); ++i)
         {
@@ -179,7 +180,7 @@ void MXDeviceManager::InitObject() {
     if (listAccept.Status() == Windows::Foundation::AsyncStatus::Completed) {
         DeviceInformationCollection col = listAccept.GetResults();
         debugText(L"Count = ");
-        debugText(to_wstring(col.Size()).c_str());
+        debugText(to_wstring(col.Size()));
         //新規だけ追加する
         for (unsigned int i = 0; i < col.Size(); ++i)
         {
@@ -196,28 +197,36 @@ void MXDeviceManager::InitObject() {
 
 void MXDeviceManager::InReload() {
     // まず、INPUTを列挙
+    debugText(L"in reload 1");
     hstring sel = MidiInPort::GetDeviceSelector();
     IAsyncOperation<DeviceInformationCollection> list = DeviceInformation::FindAllAsync(sel);
     while (list.Status() == Windows::Foundation::AsyncStatus::Started)
     {
         std::this_thread::sleep_for(std::chrono::microseconds(100));
     }
+    debugText(L"in reload 2");
 
     boolean changed = false;
 
+    debugText(L"in reload 3");
     if (list.Status() == Windows::Foundation::AsyncStatus::Completed) {
+        debugText(L"in reload 3.5");
         DeviceInformationCollection col = list.GetResults();
+        debugText(L"in reload 4");
 
-        std::lock_guard autoLock(mx_valuelock);
+        //std::lock_guard autoLock(staticManager->_mutex);
+        debugText(L"in reload 4.5");
 
         //既存リストのフラグをリセット
         for (PortInformation* already : inputArray) {
             already->nowExist = FALSE;
         }
+        debugText(L"in reload 5");
         //新規だけ追加する
         for (unsigned int i = 0; i < col.Size(); ++i)
         {
             PortInformation* info = new PortInformation();
+            debugText2(L"Found", col.GetAt(i).Name().c_str());
             info->name = wstrdup(col.GetAt(i).Name().c_str());
             info->id = wstrdup(col.GetAt(i).Id().c_str());
             info->whichType = PortType::INPUT;
@@ -226,6 +235,7 @@ void MXDeviceManager::InReload() {
             info->nowExist = true;
             bool foundPrev = false;
 
+            debugText(L"in reload 6");
             for (PortInformation* already : inputArray) {
                 if (wcscmp(already->id, info->id) == 0) {
                     already->nowExist = TRUE;
@@ -242,27 +252,33 @@ void MXDeviceManager::InReload() {
             changed = true;
         }
         //削除されたものを閉じる
+        debugText(L"in reload 7");
         for (PortInformation* toremove : inputArray) {
             if (toremove->nowExist == FALSE) {
-                staticManager.InClose(toremove->number);
+                staticManager->InClose(toremove->number);
                 changed = true;
             }
         }
+        debugText(L"in reload 8");
         if (changed) {
             refCallDeviceListed();
         }
+        debugText(L"in reload 9");
     }
 }
 
 void MXDeviceManager::OutReload() {
-    std::lock_guard autoLock(mx_valuelock);
+    //std::lock_guard autoLock(mx_valuelock);
+    debugText(L"out reload 1");
     // まず、OUTPUTを列挙
     hstring sel = MidiOutPort::GetDeviceSelector();
     IAsyncOperation<DeviceInformationCollection> list = DeviceInformation::FindAllAsync(sel);
+    debugText(L"out reload 2");
 
     DeviceInformationCollection col = list.get();
     boolean changed = false;
 
+    debugText(L"out reload 3");
 
     //既存リストのフラグをリセット
     for (PortInformation* already : outputArray) {
@@ -296,6 +312,7 @@ void MXDeviceManager::OutReload() {
         changed = true;
     }
 
+    debugText(L"out reload 4");
     //削除されたものを閉じる
     for (PortInformation* toremove : outputArray) {
         if (toremove->nowExist == FALSE) {
@@ -303,21 +320,25 @@ void MXDeviceManager::OutReload() {
             changed = true;
         }
     }
+    debugText(L"out reload 5");
     if (changed) {
         refCallDeviceListed();
     }
+    debugText(L"out reload 6");
 }
 
 size_t MXDeviceManager::InRoomSize() {
-    std::lock_guard autoLock(mx_valuelock);
+    //std::lock_guard autoLock(staticManager->_mutex);
     if (!initFlag) {
+        debugText(L"initObject ? ");
         InitObject();
     }
+    debugText(L"arraySize ? ");
     return inputArray.size();
 }
 
 const wchar_t* MXDeviceManager::InName(int device) {
-    std::lock_guard autoLock(mx_valuelock);
+    //std::lock_guard autoLock(staticManager->_mutex);
     PortInformation* info = Input(device);
     if (info == nullptr) {
         return nullptr;
@@ -326,7 +347,7 @@ const wchar_t* MXDeviceManager::InName(int device) {
 }
 
 const wchar_t* MXDeviceManager::InId(int device) {
-    std::lock_guard autoLock(mx_valuelock);
+    //std::lock_guard autoLock(staticManager->_mutex);
     PortInformation* info = Input(device);
     if (info == nullptr) {
         return nullptr;
@@ -335,7 +356,7 @@ const wchar_t* MXDeviceManager::InId(int device) {
 }
 
 bool MXDeviceManager::InIsOpen(int device) {
-    std::lock_guard autoLock(mx_valuelock);
+    //std::lock_guard autoLock(staticManager->_mutex);
     PortInformation* info = Input(device);
     if (info == nullptr) {
         return false;
@@ -352,7 +373,7 @@ bool MXDeviceManager::InOpen(int device, long timeout) {
 }
 
 void MXDeviceManager::InClose(int device) {
-    std::lock_guard autoLock(mx_valuelock);
+    //std::lock_guard autoLock(staticManager->_mutex);
     PortInformation* info = Input(device);
     if (info == nullptr) {
         return;
@@ -366,7 +387,7 @@ void MXDeviceManager::InClose(int device) {
 }
 
 size_t MXDeviceManager::OutRoomSize() {
-    std::lock_guard autoLock(mx_valuelock);
+    //std::lock_guard autoLock(staticManager->_mutex);
     if (!initFlag) {
         InitObject();
     }
@@ -374,7 +395,7 @@ size_t MXDeviceManager::OutRoomSize() {
 }
 
 const wchar_t* MXDeviceManager::OutName(int device) {
-    std::lock_guard autoLock(mx_valuelock);
+    //std::lock_guard autoLock(staticManager->_mutex);
     PortInformation* info = Output(device);
     if (info == nullptr) {
         return nullptr;
@@ -382,7 +403,7 @@ const wchar_t* MXDeviceManager::OutName(int device) {
     return info->name;
 }
 const wchar_t* MXDeviceManager::OutId(int device) {
-    std::lock_guard autoLock(mx_valuelock);
+    //std::lock_guard autoLock(staticManager->_mutex);
     PortInformation* info = Output(device);
     if (info == nullptr) {
         return nullptr;
@@ -391,7 +412,7 @@ const wchar_t* MXDeviceManager::OutId(int device) {
 }
 
 bool MXDeviceManager::OutIsOpen(int device) {
-    std::lock_guard autoLock(mx_valuelock);
+    //std::lock_guard autoLock(staticManager->_mutex);
     PortInformation* info = Output(device);
     if (info == nullptr) {
         return false;
@@ -400,7 +421,7 @@ bool MXDeviceManager::OutIsOpen(int device) {
 }
 
 bool MXDeviceManager::OutOpen(int device, long timeout) {
-    std::lock_guard autoLock(mx_valuelock);
+    //std::lock_guard autoLock(staticManager->_mutex);
     PortInformation* info = Output(device);
     if (info == nullptr) {
         return false;
@@ -409,7 +430,7 @@ bool MXDeviceManager::OutOpen(int device, long timeout) {
 }
 
 void MXDeviceManager::OutClose(int device) {
-    std::lock_guard autoLock(mx_valuelock);
+    //std::lock_guard autoLock(staticManager->_mutex);
     PortInformation* info = Output(device);
     if (info == nullptr) {
         return;
@@ -665,7 +686,7 @@ bool MXDeviceManager::OutLongMessage(JNIEnv* env, int device, jbyteArray data) {
     return true;
 }
 
-MXDeviceManager staticManager;
+MXDeviceManager* staticManager = NULL;
 
 int receiverCnt = 0;
 
@@ -707,7 +728,7 @@ void receiver(MidiInPort port, IMidiMessageReceivedEventArgs args)
     }
 }
 
-extern MXDeviceManager staticManager;
+extern MXDeviceManager *staticManager;
 extern jmethodID cbCallText, cbCallShortMessage, cbCallLongMessage, cbDeviceListed;
 
 void refCallText(const jchar* text) {

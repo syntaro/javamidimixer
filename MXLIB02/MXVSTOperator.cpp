@@ -3,176 +3,50 @@
 #include "strconv.h"
 #include "boost/lockfree/queue.hpp"
 
-#define TITLE TEXT("MIXRecipe VST Window")
-#define MDI_FRAME TEXT("FRAMEWINDOW")
-#define MDI_CLIENT TEXT("MDICLIENT")
-#define MDI_CHILD TEXT("MDICHILD")
-
-#define ID_CHILDWND 0x100
-
-extern void handleOpenCloseWindow(HWND hWnd);
-HINSTANCE hInst;
-
-int idChildWnd = 50000;
-HWND hWndAppFrame = NULL;
-HWND hClientWnd = NULL;
-
 HWND makeVSTView(std::string title, int width, int height)
 {
-	if (hWndAppFrame == NULL) {
-		hWndAppFrame = CreateWindow(
-			MDI_FRAME, TITLE,
-			WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-			CW_USEDEFAULT, CW_USEDEFAULT,
-			CW_USEDEFAULT, CW_USEDEFAULT,
-			NULL, NULL, hInstance, NULL
-		);
-
-		if (hWndAppFrame == NULL) {
-			//TODO MessageBox
-			return 0;
-		}
-	}
 	std::wstring str2 = utf8_to_wide(title);
-	MDICREATESTRUCT mdic;
+	HINSTANCE hInstance = GetModuleHandle(0);
 
-	mdic.szClass = MDI_CHILD;
-	mdic.szTitle = TITLE;
-	mdic.x = mdic.y = mdic.cx = mdic.cy = 0;
-	mdic.style = WS_CHILD;
-	mdic.lParam = 0;
-
-	HWND hwnd = CreateMDIWindow(
-		MDI_CHILD, str2.c_str(), 0,
-		100, 50, width, height + 40,
-		hClientWnd, hInstance, (LPARAM)&mdic
+	HWND hwnd = CreateWindow(
+		TEXT("WITHOUT_WINMAIN"), str2.c_str(),
+		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+		0, 0, width, height, NULL, NULL,
+		hInstance, NULL
 	);
-
 
 	if (hwnd == NULL) return 0;
 
 	return hwnd;
 }
 
+extern void handleCloseWindow(HWND hWnd);
 
-//フレームウィンドウプロシージャ
-LRESULT CALLBACK FrameWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	HINSTANCE hInstance = GetModuleHandle(0);
-	HWND h;
-	CLIENTCREATESTRUCT ccs;
-
-	static int testDataIndex;
-
-	switch (message)
-	{
-	case WM_CREATE:
-		ccs.hWindowMenu = GetSubMenu(GetMenu(hWnd), 1);
-		ccs.idFirstChild = idChildWnd;
-
-		//クライアントウィンドウの作成
-		hClientWnd = CreateWindow(MDI_CLIENT, NULL,
-			WS_CHILD | WS_CLIPCHILDREN | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL,
-			0, 0, 0, 0, hWnd, (HMENU)1, hInstance, &ccs);
-		return 0;
-
-	case WM_SYSCOMMAND:
-		if (wParam == SC_CLOSE) {
-			PostMessage(hWnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
-			return 0;
-		}
-			break;
-	case WM_COMMAND:
-		break;
-
-	case WM_DESTROY:
-		return 0;
-	}
-	return DefFrameProc(hWnd, hClientWnd, message, wParam, lParam);
-}
-
-
-LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
-	switch (message) {
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
+	switch (msg) {
 	case WM_CLOSE:
-		PostMessage(hWnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+		handleCloseWindow(hwnd);
 		return 0;
-
-	case WM_SIZING:
-		return 0;
-
-	case WM_SYSCOMMAND:
-		if (wParam == SC_CLOSE) {
-			PostMessage(hWnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
-			return 0;
-		}
-		if (wParam == SC_RESTORE || wParam == SC_MINIMIZE) {
-			LRESULT before = DefMDIChildProc(hWnd, message, wParam, lParam);
-			handleOpenCloseWindow(hWnd);
-			return before;
-		}
-		if (wParam == SC_MAXIMIZE) {
-			return 0;
-		}
-		break;
-
-	case WM_CREATE: {
-		HMENU hMenu = GetSystemMenu(hWnd, 0);
-		RemoveMenu(hMenu, SC_CLOSE, MF_BYCOMMAND);  //閉じるボタン
-		RemoveMenu(hMenu, SC_MAXIMIZE, MF_BYCOMMAND); // 最大化ボタン
-		//RemoveMenu(hMenu, SC_MINIMIZE, MF_BYCOMMAND) ' 最小化ボタン
-		//RemoveMenu(hMenu, SC_RESTORE, MF_BYCOMMAND) ' 元に戻すボタン
-		break;
-	}
 	case WM_DESTROY:
+		//return DefWindowProc(hwnd, msg, wp, lp);
 		return 0;
 	}
-	return DefMDIChildProc(hWnd, message, wParam, lParam);
+	return DefWindowProc(hwnd, msg, wp, lp);
 }
 
 void ThreadFunc(MXVSTOperator* ui) {
 	MSG msg;
+	BOOL bRet;
+
 	PeekMessage(&msg, NULL, 0, 0, 0);
 	::SetEvent(ui->_threadInit);
-
-	BOOL bRet;
-	WNDCLASS winFrame;
-
-	winFrame.style = CS_HREDRAW | CS_VREDRAW;
-	winFrame.lpfnWndProc = FrameWndProc;
-	winFrame.cbClsExtra = winFrame.cbWndExtra = 0;
-	winFrame.hInstance = hInstance;
-	winFrame.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	winFrame.hCursor = LoadCursor(NULL, IDC_ARROW);
-	winFrame.hbrBackground = (HBRUSH)(COLOR_APPWORKSPACE + 1);
-	winFrame.lpszMenuName = NULL;
-	winFrame.lpszClassName = MDI_FRAME;
-
-	RegisterClass(&winFrame);
-
-	WNDCLASS winChild;
-
-	winChild.style = CS_HREDRAW | CS_VREDRAW;
-	winChild.lpfnWndProc = ChildWndProc;
-	winChild.cbClsExtra = winChild.cbWndExtra = 0;
-	winChild.hInstance = hInstance;
-	winChild.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	winChild.hCursor = LoadCursor(NULL, IDC_ARROW);
-	winChild.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
-	winChild.lpszMenuName = NULL;
-	winChild.lpszClassName = MDI_CHILD;
-
-	RegisterClass(&winChild);
-
-	hWndAppFrame = NULL;
-
 	refAttachOnly();
 
 	while (true) {
 		__try {
 			bRet = GetMessage(&msg, NULL, 0, 0);
 			if (bRet == -1) {
-				debugText(L"Handle Error");
+				std::cout << L"Handle Error" << std::endl;
 				continue;
 			}
 			if (bRet > 0) {
@@ -180,10 +54,13 @@ void ThreadFunc(MXVSTOperator* ui) {
 					__try {
 						if (ui != nullptr) {
 							if (ui->processQueuedThreadCommand() > 0) {
+								if (ui->_quitThread) {
+									break;
+								}
 							}
 						}
 						else {
-							debugText(L"Handle Error");
+							std::cout << L"NULLPO" << std::endl;
 						}
 					}
 					__except (systemExceptionMyHandler(L"ThreadFunc2", GetExceptionInformation()))
@@ -194,11 +71,7 @@ void ThreadFunc(MXVSTOperator* ui) {
 				DispatchMessage(&msg);
 			}
 			if (bRet == 0) {
-				debugText(L"GetMessage WM_QUIT");
-				break;
-			}
-			if (ui->_quitThread) {
-				debugText(L"GetMessage QuitThread");
+				std::cout << "GetMessage Quit" << std::endl;
 				break;
 			}
 		}
@@ -206,16 +79,27 @@ void ThreadFunc(MXVSTOperator* ui) {
 		{
 		}
 	}
-	debugText(L"endthreadex");
 	::_endthreadex(0);
-	debugText(L"~endthreadex");
 }
 
 MXVSTOperator::MXVSTOperator() {
 	//インスタンスハンドルの取得
+	HINSTANCE hInstance = GetModuleHandle(0);
 
+	WNDCLASS winc;
 
 	_masterVolume = 0.1F;
+
+	winc.style = CS_HREDRAW | CS_VREDRAW;
+	winc.lpfnWndProc = WndProc;
+	winc.cbClsExtra = winc.cbWndExtra = 0;
+	winc.hInstance = hInstance;
+	winc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	winc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	winc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	winc.lpszMenuName = NULL;
+	winc.lpszClassName = TEXT("WITHOUT_WINMAIN");
+	RegisterClass(&winc);
 
 	this->_threadInit = ::CreateEvent(
 		NULL      // SECURITY_ATTRIBUTES構造体
@@ -242,10 +126,7 @@ MXVSTOperator::~MXVSTOperator() {
 			postRemoveSynth(true, i, 0);
 		}
 	}
-	if (_thread != NULL) {
-		delete _thread;
-		_thread = NULL;
-	}
+	//delete _thread;
 }
 
 bool MXVSTOperator::isOpen(bool effect, int synth) {
@@ -324,7 +205,7 @@ int MXVSTOperator::processQueuedThreadCommand() {
 			case Thread_RemoveVST: {
 				vst = getSynth(effect, synth);
 				if (vst != nullptr) {
-					debugText(L"postRemoveSynth");
+					std::cout << "postRemoveSynth " << std::endl;
 					if (vst->isOpen()) {
 						vst->_easyVst->closeVstEditor();
 					}
@@ -358,6 +239,13 @@ int MXVSTOperator::processQueuedThreadCommand() {
 				result = Thread_Success;
 				break;
 
+			case Thread_Quit:
+				getMXStream()->closeStream();
+				_quitThread = true;
+				result = Thread_Success;
+				SetEvent(command->receiveFlag);
+				std::cout << L"Quit Thread" << std::endl;
+				break;
 			}
 		}
 		__except (systemExceptionMyHandler(L"processQueuedThreadCommand", GetExceptionInformation()))
@@ -370,7 +258,7 @@ int MXVSTOperator::processQueuedThreadCommand() {
 		}
 		__try 
 		{
-			noticeTaskDone(task, result, effect, synth);
+			noticeTaskDone(task, result);
 			setRecycle(command);
 		}
 		__except (systemExceptionMyHandler(L"Trusing", GetExceptionInformation()))
@@ -401,6 +289,10 @@ MXVSTInstrument* MXVSTOperator::getSynth(bool effect, int x) {
 }
 
 void MXVSTOperator::postThreadCommand(ThreadCommandSturct* command) {
+	if (_quitThread) {
+		return;
+	}
+
 	while (!_threadCommand.push(command)) {
 
 	}
@@ -460,35 +352,15 @@ void MXVSTOperator::postRemoveSynth(bool effect, int synth, int task) {
 }
 
 void MXVSTOperator::postQuit(int task) {
-	if (_thread != NULL) {
-		_quitThread = true;
-		getMXStream()->quiting();
-		PostThreadMessage(GetThreadId(_thread->native_handle()), WM_QUIT, 0, 0);
-		for (int x = 0; x < MAX_SYNTH; ++x) {
-			MXVSTInstrument* vst = getOperator()->getSynth(false, x);
-			__try {
-				if (vst->_blackList) {
+	ThreadCommandSturct* data = createCommand();
 
-				}
-				else {
-					debugText2(L"Delete VSTClassObject for ", vst->_path.c_str());
-					if (vst != nullptr && vst->_path.empty() == false) {
-						delete vst->_easyVst;
-						vst->_easyVst = nullptr;
-					}
-				}
-			}
-			__except (systemExceptionMyHandler(L"ThreadFunc2", GetExceptionInformation()))
-			{
-				debugText(L"Exception when FreeVST");
-			}
-		}
-		/*
-		if (_thread != NULL) {
-			delete _thread;
-			_thread = NULL;
-		}*/
-	}
+	data->synth = -1;
+	data->command = Thread_Quit;
+	data->task = task;
+
+	postThreadCommand(data);
+
+	_thread->join();
 }
 
 void MXVSTOperator::postLoadPreset(bool effect, int synth, std::wstring& path, int task) {
@@ -552,13 +424,14 @@ void MXVSTOperator::waitQueued(int task) {
 	CloseHandle(receiveFlag);
 }
 
-void handleOpenCloseWindow(HWND hWnd) {
+void handleCloseWindow(HWND hWnd) {
 	for (int i = 0; i < MAX_SYNTH; ++i) {
 		MXVSTInstrument* vst = getOperator()->getSynth(false, i);
 		if (vst != nullptr && vst->_easyVst != nullptr) {
 			if (vst->_easyVst->getHWnd() == hWnd) {
+				vst->_easyVst->closeVstEditor();
 				if (vst->_whenClose >= 0) {
-					noticeTaskDone(vst->_whenClose, Thread_Success, false, -1);
+					noticeTaskDone(vst->_whenClose, Thread_Success);
 				}
 				return;
 			}
@@ -568,8 +441,9 @@ void handleOpenCloseWindow(HWND hWnd) {
 		MXVSTInstrument* vst = getOperator()->getSynth(true, i);
 		if (vst != nullptr && vst->_easyVst != nullptr) {
 			if (vst->_easyVst->getHWnd() == hWnd) {
+				vst->_easyVst->closeVstEditor();
 				if (vst->_whenClose >= 0) {
-					noticeTaskDone(vst->_whenClose, Thread_Success, false, -1);
+					noticeTaskDone(vst->_whenClose, Thread_Success);
 				}
 				return;
 			}

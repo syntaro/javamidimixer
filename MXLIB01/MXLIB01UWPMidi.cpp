@@ -17,7 +17,8 @@ void JNICALL JNI_StartLibrary(JNIEnv* env, jobject obj)
     exceptionCode = 0;
     __try
     {
-        staticManager.InitObject();
+        staticManager = new MXDeviceManager();
+        staticManager->InitObject();
     }
     __except (systemExceptionMyHandler(L"JNI_StartLibrary", GetExceptionInformation()))
     {
@@ -30,7 +31,7 @@ jint JNICALL JNI_InputDevicesRoomSize(JNIEnv* env, jobject obj)
     exceptionCode = 0;
     __try
     {
-        return staticManager.InRoomSize();
+        return staticManager->InRoomSize();
     }
     __except (systemExceptionMyHandler(L"JNI_InputDevicesRoomSize", GetExceptionInformation()))
     {
@@ -44,7 +45,7 @@ jstring JNICALL JNI_InputDeviceName(JNIEnv* env, jobject obj, jint device)
     exceptionCode = 0;
     __try
     {
-        const wchar_t* str = staticManager.InName(device);
+        const wchar_t* str = staticManager->InName(device);
         return env->NewString((uint16_t*)str, wcslen(str));
     }
     __except (systemExceptionMyHandler(L"JNI_InputDeviceName", GetExceptionInformation()))
@@ -58,7 +59,7 @@ jstring JNICALL JNI_InputDeviceId(JNIEnv* env, jobject obj, jint  device)
     exceptionCode = 0;
     __try
     {
-        const wchar_t* str = staticManager.InId(device);
+        const wchar_t* str = staticManager->InId(device);
         return env->NewString((uint16_t*)str, wcslen(str));
     }
     __except (systemExceptionMyHandler(L"JNI_InputDeviceId", GetExceptionInformation()))
@@ -72,7 +73,7 @@ jboolean JNICALL JNI_InputIsOpen(JNIEnv* env, jobject obj, jint  device)
     exceptionCode = 0;
     __try
     {
-        return staticManager.InIsOpen(device);
+        return staticManager->InIsOpen(device);
     }
     __except (systemExceptionMyHandler(L"JNI_InputIsOpen", GetExceptionInformation()))
     {
@@ -85,7 +86,7 @@ jboolean  JNI_InputOpen(JNIEnv* env, jobject obj, jint  device, jlong timeout)
     exceptionCode = 0;
     __try
     {
-        return staticManager.InOpen(device, timeout);
+        return staticManager->InOpen(device, timeout);
     }
     __except (systemExceptionMyHandler(L"JNI_InputOpen", GetExceptionInformation()))
     {
@@ -98,7 +99,7 @@ void JNICALL JNI_InputClose(JNIEnv* env, jobject obj, jint  device)
     exceptionCode = 0;
     __try
     {
-        staticManager.InClose(device);
+        staticManager->InClose(device);
     }
     __except (systemExceptionMyHandler(L"JNI_InputClose", GetExceptionInformation()))
     {
@@ -110,7 +111,7 @@ jint JNICALL JNI_OutputDevicesRoomSize(JNIEnv* env, jobject obj)
     exceptionCode = 0;
     __try
     {
-        return staticManager.OutRoomSize();
+        return staticManager->OutRoomSize();
     }
     __except (systemExceptionMyHandler(L"JNI_OutputDevicesRoomSize", GetExceptionInformation()))
     {
@@ -123,7 +124,7 @@ jstring JNICALL JNI_OutputDeviceName(JNIEnv* env, jobject obj, jint  device)
     exceptionCode = 0;
     __try
     {
-        const wchar_t* str = staticManager.OutName(device);
+        const wchar_t* str = staticManager->OutName(device);
         return env->NewString((uint16_t*)str, wcslen(str));
     }
     __except (systemExceptionMyHandler(L"JNI_OutputDeviceName", GetExceptionInformation()))
@@ -137,7 +138,7 @@ jstring JNICALL JNI_OutputDeviceId(JNIEnv* env, jobject obj, jint  device)
     exceptionCode = 0;
     __try
     {
-        const wchar_t* str = staticManager.OutId(device);
+        const wchar_t* str = staticManager->OutId(device);
         return env->NewString((uint16_t*)str, wcslen(str));
     }
     __except (systemExceptionMyHandler(L"JNI_OutputDeviceId", GetExceptionInformation()))
@@ -151,7 +152,7 @@ jboolean JNICALL JNI_OutputDeviceIsOpen(JNIEnv* env, jobject obj, jint  device)
     exceptionCode = 0;
     __try
     {
-        return staticManager.OutIsOpen(device);
+        return staticManager->OutIsOpen(device);
     }
     __except (systemExceptionMyHandler(L"JNI_OutputDeviceIsOpen", GetExceptionInformation()))
     {
@@ -164,7 +165,7 @@ jboolean  JNI_OutputOpen(JNIEnv* env, jobject obj, jint  device, jlong timeout)
     exceptionCode = 0;
     __try
     {
-        return staticManager.OutOpen(device, timeout);
+        return staticManager->OutOpen(device, timeout);
     }
     __except (systemExceptionMyHandler(L"JNI_OutputOpen", GetExceptionInformation()))
     {
@@ -177,7 +178,7 @@ void JNICALL JNI_OutputClose(JNIEnv* env, jobject obj, jint  device)
     exceptionCode = 0;
     __try
     {
-        staticManager.OutClose(device);
+        staticManager->OutClose(device);
     }
     __except (systemExceptionMyHandler(L"JNI_OutputClose", GetExceptionInformation()))
     {
@@ -193,11 +194,11 @@ jboolean JNICALL JNI_OutputShortMessage(JNIEnv* env, jobject obj, jint  device, 
         int data1 = (message >> 8) & 0xff;
         int data2 = (message) & 0xff;
 
-        return staticManager.OutShortMessage(env, device, message);
+        return staticManager->OutShortMessage(env, device, message);
     }
     __except (systemExceptionMyHandler(L"JNI_OutputShortMessage", GetExceptionInformation()))
     {
-        staticManager.OutClose(device);
+        staticManager->OutClose(device);
         return JNI_FALSE;
     }
 }
@@ -207,11 +208,11 @@ jboolean JNICALL JNI_OutputLongMessage(JNIEnv* env, jobject obj, jint device, jb
     exceptionCode = 0;
     __try
     {
-        return staticManager.OutLongMessage(env, device, data);
+        return staticManager->OutLongMessage(env, device, data);
     }
     __except (systemExceptionMyHandler(L"JNI_OutputLongMessage", GetExceptionInformation()))
     {
-        staticManager.OutClose(device);
+        staticManager->OutClose(device);
         return JNI_FALSE;
     }
 }

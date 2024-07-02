@@ -4,7 +4,6 @@
 #include "strconv.h"
 
 HANDLE hProcess;
-HINSTANCE hInstance;
 BOOL hSymInit;
 
 #include <dbghelp.h>
@@ -21,9 +20,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     case DLL_PROCESS_ATTACH:
         hProcess = GetCurrentProcess();
         hSymInit = SymInitialize(hProcess, NULL, TRUE);
-        hInstance = GetModuleHandle(0);
         break;
-
     case DLL_PROCESS_DETACH:
         if (hSymInit) {
             SymCleanup(hProcess);
@@ -43,7 +40,7 @@ void printStackTrace()
         hSymInit = SymInitialize(hProcess, NULL, TRUE);
     }
     if (!hSymInit) {
-        debugText(L"no debug symbol found( trace error )\n");
+        debugText(L"no symbol found\n");
         return;
     }
 

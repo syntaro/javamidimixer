@@ -36,7 +36,7 @@ extern void refCallShortMessage(jint device, jint message);
 extern void refCallLongMessage(jint device, jbyteArray ptr);
 extern void refCallDeviceListed();
 
-extern MXDeviceManager staticManager;
+extern MXDeviceManager *staticManager;
 extern jclass _javaClass;
 extern JavaVM* _javavm;
 

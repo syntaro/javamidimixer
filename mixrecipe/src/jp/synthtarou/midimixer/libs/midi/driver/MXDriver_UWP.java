@@ -47,19 +47,19 @@ public class MXDriver_UWP implements MXDriver {
     }
 
     @Override
-    public boolean isUsable() {
+    public synchronized boolean isUsable() {
         return windows10.isDLLAvail();
     }
 
     @Override
-    public void StartLibrary() {
+    public synchronized void StartLibrary() {
         if (isUsable()) {
             windows10.StartLibrary();
         }
     }
 
     @Override
-    public int InputDevicesRoomSize() {
+    public synchronized int InputDevicesRoomSize() {
         if (!isUsable()) {
             return 0;
         }
@@ -67,7 +67,7 @@ public class MXDriver_UWP implements MXDriver {
     }
 
     @Override
-    public String InputDeviceName(int device) {
+    public synchronized String InputDeviceName(int device) {
         if (!isUsable()) {
             return "";
         }
@@ -75,7 +75,7 @@ public class MXDriver_UWP implements MXDriver {
     }
 
     @Override
-    public String InputDeviceId(int device) {
+    public synchronized String InputDeviceId(int device) {
         if (!isUsable()) {
             return "";
         }
@@ -83,7 +83,7 @@ public class MXDriver_UWP implements MXDriver {
     }
 
     @Override
-    public boolean InputDeviceIsOpen(int device) {
+    public synchronized boolean InputDeviceIsOpen(int device) {
         if (!isUsable()) {
             return false;
         }
@@ -91,15 +91,15 @@ public class MXDriver_UWP implements MXDriver {
     }
 
     @Override
-    public boolean InputDeviceOpen(int device, long timeout, MXMIDIIn input) {
+    public synchronized boolean InputDeviceOpen(int device, long timeout, MXMIDIIn input) {
         if (!isUsable()) {
             return false;
         }
-        return windows10.InputOpen(device, timeout);
+        return windows10.InputOpen(device, timeout / 1000);
     }
 
     @Override
-    public void InputDeviceClose(int device) {
+    public synchronized void InputDeviceClose(int device) {
         if (!isUsable()) {
             return;
         }
@@ -107,7 +107,7 @@ public class MXDriver_UWP implements MXDriver {
     }
 
     @Override
-    public int OutputDevicesRoomSize() {
+    public synchronized int OutputDevicesRoomSize() {
         if (!isUsable()) {
             return 0;
         }
@@ -115,7 +115,7 @@ public class MXDriver_UWP implements MXDriver {
     }
 
     @Override
-    public String OutputDeviceName(int device) {
+    public synchronized String OutputDeviceName(int device) {
         if (!isUsable()) {
             return "";
         }
@@ -123,7 +123,7 @@ public class MXDriver_UWP implements MXDriver {
     }
 
     @Override
-    public String OutputDeviceId(int device) {
+    public synchronized String OutputDeviceId(int device) {
         if (!isUsable()) {
             return "";
         }
@@ -131,7 +131,7 @@ public class MXDriver_UWP implements MXDriver {
     }
 
     @Override
-    public boolean OutputDeviceIsOpen(int device) {
+    public synchronized boolean OutputDeviceIsOpen(int device) {
         if (!isUsable()) {
             return false;
         }
@@ -139,15 +139,15 @@ public class MXDriver_UWP implements MXDriver {
     }
 
     @Override
-    public boolean OutputDeviceOpen(int device, long timeout) {
+    public synchronized boolean OutputDeviceOpen(int device, long timeout) {
         if (!isUsable()) {
             return false;
         }
-        return windows10.OutputOpen(device, timeout);
+        return windows10.OutputOpen(device, timeout / 1000);
     }
 
     @Override
-    public void OutputDeviceClose(int device) {
+    public synchronized void OutputDeviceClose(int device) {
         if (!isUsable()) {
             return;
         }
@@ -155,7 +155,7 @@ public class MXDriver_UWP implements MXDriver {
     }
 
     @Override
-    public boolean OutputShortMessage(int device, int message) {
+    public synchronized boolean OutputShortMessage(int device, int message) {
         if (!isUsable()) {
             return false;
         }
@@ -173,7 +173,7 @@ public class MXDriver_UWP implements MXDriver {
     }
 
     @Override
-    public boolean OutputLongMessage(int device, byte[] data) {
+    public synchronized boolean OutputLongMessage(int device, byte[] data) {
         if (!isUsable()) {
             return false;
         }
@@ -184,7 +184,7 @@ public class MXDriver_UWP implements MXDriver {
     ArrayList<MXMIDIIn> _listInputCatalog = new ArrayList();
     ArrayList<MXMIDIOut> _listOutputCatalog = new ArrayList();
 
-    public void addInputCatalog(MXMIDIIn input) {
+    public synchronized void addInputCatalog(MXMIDIIn input) {
         int order = input.getOrderInDriver();
         if (input.getDriver() == this) {
             while (_listInputCatalog.size() <= order) {
@@ -194,7 +194,7 @@ public class MXDriver_UWP implements MXDriver {
         }
     }
 
-    public MXMIDIIn findInputCatalog(int order) {
+    public synchronized MXMIDIIn findInputCatalog(int order) {
         Thread t = Thread.currentThread();
         while (_listInputCatalog.size() <= order) {
             _listInputCatalog.add(null);
@@ -206,7 +206,7 @@ public class MXDriver_UWP implements MXDriver {
         throw new IllegalArgumentException();
     }
 
-    public void closeAllInput() {
+    public synchronized void closeAllInput() {
         for (MXMIDIIn in : _listInputCatalog) {
             if (in != null) {
                 in.close();
@@ -214,7 +214,7 @@ public class MXDriver_UWP implements MXDriver {
         }
     }
 
-    public void addOuputCatalog(MXMIDIOut output) {
+    public synchronized void addOuputCatalog(MXMIDIOut output) {
         int order = output.getOrderInDriver();
         if (output.getDriver() == this) {
             while (_listOutputCatalog.size() <= order) {
@@ -224,7 +224,7 @@ public class MXDriver_UWP implements MXDriver {
         }
     }
 
-    public MXMIDIOut findOutputCatalog(int order) {
+    public synchronized MXMIDIOut findOutputCatalog(int order) {
         while (_listOutputCatalog.size() <= order) {
             _listOutputCatalog.add(null);
         }
@@ -235,7 +235,7 @@ public class MXDriver_UWP implements MXDriver {
         throw new IllegalArgumentException();
     }
 
-    public void closeAllOutput() {
+    public synchronized void closeAllOutput() {
         for (MXMIDIOut out : _listOutputCatalog) {
             if (out != null) {
                 out.close();

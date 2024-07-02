@@ -20,8 +20,6 @@
 #include <sstream>
 #include <thread>
 #include <Windows.h>
-#include <locale>
-#include <codecvt>
 
 #include <public.sdk/source/vst/hosting/plugprovider.h>
 #include <public.sdk/source/vst/hosting/module.h>
@@ -42,7 +40,7 @@
 
 static const double TEMPO = 120.0;
 
-extern void noticeTaskDone(const int task, int result, jboolean effect, jint synth);
+extern void noticeTaskDone(const int task, int result);
 extern void refBlackListed(jboolean effect, jint rack);
 extern void refAttachOnly();
 
@@ -56,9 +54,6 @@ extern void debugDouble(const wchar_t* t, const double num);
 #define MAX_SYNTH 16
 #define MAX_EFFECT 2
 
-extern HANDLE hProcess;
-extern HINSTANCE hInstance;
-extern BOOL hSymInit;
 
 using namespace Steinberg;
 using namespace Steinberg::Vst;
