@@ -62,7 +62,9 @@ bool openerOpen(PortInformation* info, int timeout) {
                 break;
             }
             time_t spend = time(nullptr) - started;
-            std::wcout << L"timeout= " << std::to_wstring(timeout) << L" spend = " << std::to_wstring(spend) << std::endl;
+            wstring str;
+            debugNumber(L"timeout", timeout);
+            debugNumber(L"spend", spend);
             if (timeout != 0) {
                 if (spend * 1000 >= timeout) {
                     break;
@@ -74,7 +76,7 @@ bool openerOpen(PortInformation* info, int timeout) {
 
         info->itsInput = nullptr;
         if (ope.Status() == Windows::Foundation::AsyncStatus::Completed) {
-            std::wcout << L"open success " << std::endl;
+            debugText(L"open success");
             ope.GetResults().MessageReceived(receiver);
             info->itsInput = ope.GetResults();
             return true;

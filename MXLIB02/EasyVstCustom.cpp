@@ -32,6 +32,15 @@ EasyVstCustom::~EasyVstCustom()
 	reset();
 }
 
+void debugText(const char* t) {
+	std::string str(t);
+	debugText(utf8_to_wide(str).c_str());
+}
+
+void debugText(std::string& str) {
+	debugText(utf8_to_wide(str).c_str());
+}
+
 bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool realtime)
 {
 	int sampleRate = getMXStream()->getSampleRate();
@@ -64,7 +73,7 @@ bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool r
 	std::string error;
 	_module = VST3::Hosting::Module::create(path, error);
 	if (!_module) {
-		_printError(error);
+		debugText(error);
 		return false;
 	}
 
@@ -85,7 +94,7 @@ bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool r
 
 			_plugProvider = owned(NEW PlugProvider(factory, classInfo, true));
 			if (!_plugProvider) {
-				_printError("No PlugProvider found");
+				debugText("No PlugProvider found");
 				return false;
 			}
 
@@ -93,7 +102,7 @@ bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool r
 
 			_audioEffect = FUnknownPtr<IAudioProcessor>(_component);
 			if (!_audioEffect) {
-				_printError("Could not get audio processor from VST");
+				debugText("Could not get audio processor from VST");
 				return false;
 			}
 
@@ -103,20 +112,22 @@ bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool r
 
 			FUnknownPtr<IProcessContextRequirements> contextRequirements(_audioEffect);
 			if (contextRequirements) {
+				/*
 				auto flags = contextRequirements->getProcessContextRequirements();
-#define PRINT_FLAG(x) if (flags & IProcessContextRequirements::Flags::x) { _printDebug(#x); }
+#define PRINT_FLAG(x) if (flags & IProcessContextRequirements::Flags::x) { debugNumber("debug", #x); }
 				PRINT_FLAG(kNeedSystemTime)
-					PRINT_FLAG(kNeedContinousTimeSamples)
-					PRINT_FLAG(kNeedProjectTimeMusic)
-					PRINT_FLAG(kNeedBarPositionMusic)
-					PRINT_FLAG(kNeedCycleMusic)
-					PRINT_FLAG(kNeedSamplesToNextClock)
-					PRINT_FLAG(kNeedTempo)
-					PRINT_FLAG(kNeedTimeSignature)
-					PRINT_FLAG(kNeedChord)
-					PRINT_FLAG(kNeedFrameRate)
-					PRINT_FLAG(kNeedTransportState)
+				PRINT_FLAG(kNeedContinousTimeSamples)
+				PRINT_FLAG(kNeedProjectTimeMusic)
+				PRINT_FLAG(kNeedBarPositionMusic)
+				PRINT_FLAG(kNeedCycleMusic)
+				PRINT_FLAG(kNeedSamplesToNextClock)
+				PRINT_FLAG(kNeedTempo)
+				PRINT_FLAG(kNeedTimeSignature)
+				PRINT_FLAG(kNeedChord)
+				PRINT_FLAG(kNeedFrameRate)
+				PRINT_FLAG(kNeedTransportState)
 #undef PRINT_FLAG
+				*/
 			}
 
 			/* プログラムチェンジの準備 */
@@ -141,8 +152,8 @@ bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool r
 			}
 
 			_numInAudioBuses = _component->getBusCount(MediaTypes::kAudio, BusDirections::kInput);
-			std::cout << "numInAudioBuses " << _numInAudioBuses << std::endl;
-
+			debugNumber(L"numInAudioBuses ", _numInAudioBuses);
+			
 			for (int i = 0; i < _numInAudioBuses; ++i) {
 				BusInfo info;
 				_component->getBusInfo(kAudio, kInput, i, info);
@@ -156,7 +167,7 @@ bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool r
 
 
 			_numInEventBuses = _component->getBusCount(MediaTypes::kEvent, BusDirections::kInput);
-			std::cout << "numInEventBuses " << _numInEventBuses << std::endl;
+			debugNumber(L"numInEventBuses ", _numInEventBuses);
 
 			for (int i = 0; i < _numInEventBuses; ++i) {
 				BusInfo info;
@@ -166,7 +177,7 @@ bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool r
 			}
 
 			_numOutAudioBuses = _component->getBusCount(MediaTypes::kAudio, BusDirections::kOutput);
-			std::cout << "numOutAudioBuses " << _numOutAudioBuses << std::endl;
+			debugNumber(L"numOutAudioBuses ", _numOutAudioBuses);
 
 			for (int i = 0; i < _numOutAudioBuses; ++i) {
 				BusInfo info;
@@ -180,7 +191,7 @@ bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool r
 			}
 
 			_numOutEventBuses = _component->getBusCount(MediaTypes::kEvent, BusDirections::kOutput);
-			std::cout << "numOutEventBuses " << _numOutEventBuses << std::endl;
+			debugNumber(L"numOutEventBuses ", _numOutEventBuses);
 
 			for (int i = 0; i < _numOutEventBuses; ++i) {
 				BusInfo info;
@@ -189,15 +200,14 @@ bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool r
 				setBusActive(kEvent, kOutput, i, false);
 			}
 
-			std::cout << "setBusArrangements" << std::endl;
-
+			debugText(L"setBusArrangements ");
+				
 			tresult res = _audioEffect->setBusArrangements(_inSpeakerArrs.data(), _numInAudioBuses, _outSpeakerArrs.data(), _numOutAudioBuses);
 			if (res != kResultTrue) {
-				_printError("Failed to set bus arrangements");
+				debugText("Failed to set bus arrangements");
 				//return false;
 			}
-
-			std::cout << "setupProcessing" << std::endl;
+			debugText(L"setupProcessing ");
 
 			res = _audioEffect->setupProcessing(_processSetup);
 			if (res == kResultOk) {
@@ -210,12 +220,12 @@ bool EasyVstCustom::init(const std::string& path, int symbolicSampleSize, bool r
 				}
 			}
 			else {
-				_printError("Failed to setup VST processing");
+				debugText("Failed to setup VST processing");
 				return false;
 			}
 
 			if (_component->setActive(true) != kResultTrue) {
-				_printError("Failed to activate VST component");
+				debugText("Failed to activate VST component");
 				return false;
 			}
 		}
@@ -557,7 +567,7 @@ extern HWND makeVSTView(std::string title, int width, int height);
 bool EasyVstCustom::openVstEditor()
 {
 	if (!_editController) {
-		_printError("VST does not provide an edit controller");
+		debugText("VST does not provide an edit controller");
 		return false;
 	}
 
@@ -565,20 +575,20 @@ bool EasyVstCustom::openVstEditor()
 
 		_view = _editController->createView(ViewType::kEditor);
 		if (!_view) {
-			_printError("EditController does not provide its own view");
+			debugText("EditController does not provide its own view");
 			return false;
 		}
 	}
 
 	ViewRect viewRect = {};
 	if (_view->getSize(&viewRect) != kResultOk) {
-		_printError("Failed to get editor view size");
+		debugText("Failed to get editor view size");
 		return false;
 	}
 
 #ifdef _WIN32
 	if (_view->isPlatformTypeSupported(Steinberg::kPlatformTypeHWND) != Steinberg::kResultTrue) {
-		_printError("Editor view does not support HWND");
+		debugText("Editor view does not support HWND");
 		return false;
 	}
 #else
@@ -587,14 +597,14 @@ bool EasyVstCustom::openVstEditor()
 #endif
 	_window = makeVSTView(_name.c_str(), viewRect.getWidth(), viewRect.getHeight());
 	if (_window == NULL) {
-		_printError("makeVSTView returned NULL");
+		debugText("makeVSTView returned NULL");
 		return false;
 	}
 
 #ifdef _WIN32
 	int ret = _view->attached(_window, Steinberg::kPlatformTypeHWND);
 	if (ret != Steinberg::kResultOk) {
-		_printError(L"Failed to attach editor view to HWND retcode");
+		debugText(L"Failed to attach editor view to HWND retcode");
 		return false;
 	}
 #endif
@@ -698,47 +708,14 @@ void EasyVstCustom::_superDestroty(bool decrementRefCount)
 }
 
 
-#define DEBUG 1
-
-void PRINT_DEBUG(const std::wstring& str) {
-#if DEBUG
-	std::wcout << str << std::endl;
-#endif
-}
-void PRINT_ERROR(const std::wstring& str) {
-#if DEBUG || 1
-	std::wcout << str << std::endl;
-#endif
-}
-void PRINT_DEBUG(const std::string& str) {
-#if DEBUG
-	std::cout << str << std::endl;
-#endif
-}
-void PRINT_ERROR(const std::string& str) {
-#if DEBUG || 1
-	std::cout << str << std::endl;
-#endif
-}
-void PRINT_DEBUG(const wchar_t* str) {
-#if DEBUG
-	std::wcout << str << std::endl;
-#endif
-}
-void PRINT_ERROR(const wchar_t* str) {
-#if DEBUG || 1
-	std::cout << str << std::endl;
-#endif
-}
-
 tresult EasyVstCustom::getCCMappingInfo(int channel, int cc, ParamID& param) {
 	if (_midiMapping == nullptr) {
-		std::cout << "midiMapping not avail" << std::endl;
+		debugText("midiMapping not avail");
 		return kResultFalse;
 	}
 	tresult res = _midiMapping->getMidiControllerAssignment(0, channel, cc, param);
 	if (res != kResultTrue) {
-		std::cout << "midiMapping not assigned" << std::endl;
+		debugText("midiMapping not assigned");
 		return kResultFalse;
 	}
 	return kResultTrue;
@@ -756,7 +733,7 @@ void EasyVstCustom::postProgramChange(int channel, int program) {
 		}
 	}
 	else {
-		std::cout << "Cant add parameter" << std::endl;
+		debugText("Cant add parameter");
 	}
 }
 
@@ -788,7 +765,7 @@ void EasyVstCustom::postControlChange(int channel, int ccnumber, int value) {
 		}
 	}
 	else {
-		std::cout << "Cant add parameter" << std::endl;
+		debugText("Cant add parameter");
 	}
 }
 

@@ -143,7 +143,7 @@ public class MXDriver_UWP implements MXDriver {
         if (!isUsable()) {
             return false;
         }
-        return windows10.OutputOpen(device, timeout / 1000);
+        return windows10.OutputOpen(device, timeout);
     }
 
     @Override

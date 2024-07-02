@@ -630,7 +630,6 @@ void refCallText(const jchar* text) {
     env2->CallStaticVoidMethod(_javaClass, cbCallText, str);
 }
 
-
 void debugText(const wchar_t* t) {
     const jchar* jch = (const jchar*)t;
     refCallText(jch);

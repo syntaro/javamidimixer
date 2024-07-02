@@ -104,9 +104,10 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
             }
         }
         if (_viewData._playListModel.isEmpty()) {
-            _viewData._playListModel.addFile("SynthTAROU000.mid");
-            _viewData._playListModel.addFile("SynthTAROU001.mid");
-            _viewData._playListModel.addFile("SynthTAROU002.mid");
+            _viewData._playListModel.addFile("synth01.mid");
+            _viewData._playListModel.addFile("synth02.mid");
+            _viewData._playListModel.addFile("synth03.mid");
+            _viewData._playListModel.addFile("synth04.mid");
         }
 
         _view.showDataFirst();
@@ -171,9 +172,10 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
             }
         }
         if (_viewData._playListModel.isEmpty()) {
-            _viewData._playListModel.addFile("SynthTAROU000.mid");
-            _viewData._playListModel.addFile("SynthTAROU001.mid");
-            _viewData._playListModel.addFile("SynthTAROU002.mid");
+            _viewData._playListModel.addFile("synth01.mid");
+            _viewData._playListModel.addFile("synth02.mid");
+            _viewData._playListModel.addFile("synth03.mid");
+            _viewData._playListModel.addFile("synth04.mid");
         }
 
         _view.showDataFirst();

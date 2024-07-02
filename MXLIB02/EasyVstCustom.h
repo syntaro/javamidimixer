@@ -121,13 +121,3 @@ private:
 
 	boost::lockfree::queue<Event*> _pooledMessage;
 };
-
-void PRINT_DEBUG(const std::wstring& str);
-void PRINT_ERROR(const std::wstring& str);
-void PRINT_DEBUG(const std::string& str);
-void PRINT_ERROR(const std::string& str);
-void PRINT_DEBUG(const wchar_t* str);
-void PRINT_ERROR(const wchar_t* str);
-
-#define _printDebug PRINT_DEBUG
-#define _printError PRINT_ERROR
