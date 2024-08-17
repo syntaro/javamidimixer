@@ -16,9 +16,11 @@
  */
 package jp.synthtarou.libs.navigator.legacy;
 
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.util.ArrayList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import jp.synthtarou.libs.MXUtil;
@@ -71,10 +73,12 @@ public class NavigatorForNote extends javax.swing.JPanel implements  INavigator<
         _piano.setMinimumSize(new Dimension(9 * 200, 1));
         _piano.setPreferredSize(new Dimension(9 * 200, 150));
         _piano.updateNoteGraphics(0, 11);
+        _piano.setAutoScanSize(true);
 
         jScrollPane1.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
         jScrollPane1.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         jScrollPane1.setViewportView(_piano);
+        _piano.setBackground(Color.BLUE);
 
         _piano.setHandler(new MXPianoKeys.MXMouseHandler() {
             @Override
@@ -103,8 +107,13 @@ public class NavigatorForNote extends javax.swing.JPanel implements  INavigator<
     }
 
     public void noteSelectionChanged() {
-        _retNote = _piano.listMultiSelected();
+        ArrayList<Integer> sel = _piano.listMultiSelected();
+        _retNote = new int[sel.size()];
+        for (int i = 0; i < sel.size(); ++ i) {
+            _retNote[i] = sel.get(i);
+        }
         jLabelNoteList.setText(MXMidi.noteListToText(_retNote));
+        jLabelChord.setText("Chord Name ? " + _piano.listChord().toString());
     }
 
     /**
@@ -126,6 +135,7 @@ public class NavigatorForNote extends javax.swing.JPanel implements  INavigator<
         jLabelNoteList = new javax.swing.JLabel();
         jButtonOK = new javax.swing.JButton();
         jButtonCancel = new javax.swing.JButton();
+        jLabelChord = new javax.swing.JLabel();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -174,6 +184,14 @@ public class NavigatorForNote extends javax.swing.JPanel implements  INavigator<
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.weightx = 1.0;
         add(jButtonCancel, gridBagConstraints);
+
+        jLabelChord.setText("[]");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        add(jLabelChord, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelActionPerformed
@@ -191,6 +209,7 @@ public class NavigatorForNote extends javax.swing.JPanel implements  INavigator<
     private javax.swing.JButton jButtonCancel;
     private javax.swing.JButton jButtonOK;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabelChord;
     private javax.swing.JLabel jLabelNoteList;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;

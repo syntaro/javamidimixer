@@ -106,7 +106,7 @@ public class MX60MidiOutListPanel extends javax.swing.JPanel {
 
         for (MXMIDIOut output : allOutput.valueList()) {
             String prefix = "";
-            if (output.getDriver() instanceof MXDriver_NotFound) {
+            if (output.getDriver().getDriverUID() == 0) { //not found
                 prefix = "*";
             }
             tableModel.addRow(new Object[]{

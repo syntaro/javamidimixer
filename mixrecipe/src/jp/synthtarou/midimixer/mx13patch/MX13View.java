@@ -193,7 +193,7 @@ public class MX13View extends javax.swing.JPanel {
         if (_midiIn != null) {
             if (jCheckBoxOpen.isSelected()) {
                 if (_midiIn.isOpen() == false) {
-                    _midiIn.openInput(1000);
+                    _midiIn.openInput(10000);
                     _process.fireChangeListener(new ChangeEvent(_process));
                 }
             }

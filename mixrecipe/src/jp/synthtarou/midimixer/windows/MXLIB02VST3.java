@@ -174,7 +174,7 @@ public class MXLIB02VST3 {
             Thread.sleep(1000);
             loadPreset(false, synth1, path, 12);
 
-            Thread.sleep(5000);
+            Thread.sleep(10000);
 
             postCloseEditor(false, synth1, 13);
             postOpenEditor(false, synth1, 14, 0);

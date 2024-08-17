@@ -204,7 +204,7 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
             MXMIDIIn in = detected.valueOfName(deviceName);
             if (in != null) {
                 if (deviceOpen.equals("1")) {
-                    in.openInput(5000);
+                    in.openInput(10000);
                 }
             } else {
                 in = new MXMIDIIn(dummy, dummy.InputAddDevice(deviceName));
@@ -311,7 +311,7 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
                 MXMIDIIn in = detected.valueOfName(deviceName);
                 if (in != null) {
                     if (deviceOpen) {
-                        in.openInput(5000);
+                        in.openInput(10000);
                     }
                 } else {
                     in = new MXMIDIIn(dummy, dummy.InputAddDevice(deviceName));

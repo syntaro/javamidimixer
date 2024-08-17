@@ -107,6 +107,8 @@ public class NavigatorForCCXMLInst extends javax.swing.JPanel implements INaviga
         _listReceiver.writeComboBox(jComboBoxTestReceiver, FinalMIDIOut.getInstance());
 
         setPreferredSize(new Dimension(800, 600));
+        _piano.updateNoteGraphics(0, 11);
+        _piano.setAutoScanSize(true);
 
         _group1 = new ButtonGroup();
         _group1.add(jRadioButtonVel1);

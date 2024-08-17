@@ -738,7 +738,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
         }
 
         MXJsonValue.HelperForArray listPad = root.getFollowingArray("Pad");
-        for (int x = 0; x < listSlider.count(); ++x) {
+        for (int x = 0; x < listPad.count(); ++x) {
             MXJsonValue.HelperForStructure pad = listPad.getFollowingStructure(x);
             MGStatus status = readJsonSub(pad);
 

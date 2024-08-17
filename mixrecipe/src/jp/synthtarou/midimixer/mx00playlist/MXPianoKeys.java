@@ -31,6 +31,7 @@ import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import javax.swing.JComponent;
@@ -682,19 +683,38 @@ public class MXPianoKeys extends JComponent {
         }
     }
 
-    public int[] listMultiSelected() {
+    public ArrayList<Integer> listMultiSelected() {
         ArrayList<Integer> list = new ArrayList();
         for (int i = 0; i < _selectedNote.length; ++i) {
             if (_selectedNote[i]) {
                 list.add(i);
             }
         }
-        int[] ret = new int[list.size()];
-        int x = 0;
-        for (int n : list) {
-            ret[x++] = n;
+        return list;
+    }
+    
+    public List<String>listChord() {
+        MXPianoHarmony harmony = new MXPianoHarmony();
+        ArrayList<Integer> sel = listMultiSelected();
+        ArrayList<String> chord = new ArrayList<>();
+        if (sel.size() < 3) {
+            return chord;
         }
-        return ret;
+        for (int x = sel.size(); x <= sel.size(); ++ x) {
+            int[] sublist = new int[x];
+            for (int y = 1; y <= x; ++ y) {
+                sublist[sublist.length - y] = sel.get(sel.size() - y );
+            }
+            ArrayList<String> listName = harmony.getChordName(sublist);
+            if (listName != null) {
+                for (String name  : listName) {
+                    if (chord.indexOf(name) < 0) {
+                        chord.add(0, name);
+                    }
+                }
+            }
+        }
+        return chord;
     }
 
     public int getBlackKeysWidth() {
