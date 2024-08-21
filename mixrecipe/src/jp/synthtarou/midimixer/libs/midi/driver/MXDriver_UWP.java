@@ -18,6 +18,7 @@ package jp.synthtarou.midimixer.libs.midi.driver;
 
 import java.util.ArrayList;
 import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
@@ -92,10 +93,12 @@ public class MXDriver_UWP implements MXDriver {
 
     @Override
     public synchronized boolean InputDeviceOpen(int device, long timeout, MXMIDIIn input) {
+        MXFileLogger.getLogger(MXMIDIIn.class).info("InputDeviceOpen 1" + timeout);
         if (!isUsable()) {
             return false;
         }
-        return windows10.InputOpen(device, timeout / 1000);
+        MXFileLogger.getLogger(MXMIDIIn.class).info("InputDeviceOpen 2" + timeout);
+        return windows10.InputOpen(device, timeout);
     }
 
     @Override

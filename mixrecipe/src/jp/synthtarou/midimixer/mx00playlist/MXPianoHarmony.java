@@ -116,7 +116,7 @@ public class MXPianoHarmony {
         _listFormat.add(new Element(name, new int[] { key1, key2, key3, key4, key5 }));
     }
     
-    final String[] _noteNameList = { "C", "C#", "D", "D#", "E", "E#", "F", "G", "G#", "A", "A#", "B" };
+    final String[] _noteNameList = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
     final int _rootOctave = -1;
 
     public MXPianoHarmony() {

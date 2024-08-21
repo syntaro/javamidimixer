@@ -244,6 +244,7 @@ public class MXMIDIIn implements Comparable<MXMIDIIn>{
     }
 
     public boolean openInput(long timeout) {
+        MXFileLogger.getLogger(MXMIDIIn.class).info("timeout open input " + timeout);
         MXMIDIInManager manager = MXMIDIInManager.getManager();
         if (_driver == null) {
             return false;
@@ -251,6 +252,7 @@ public class MXMIDIIn implements Comparable<MXMIDIIn>{
         if (isOpen()) {
             return true;
         }
+        MXFileLogger.getLogger(MXMIDIIn.class).info("timeout open input go " + _driver.getDriverUID());
         return _driver.InputDeviceOpen(_orderInDriver, timeout, this);
     }
 
