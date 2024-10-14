@@ -214,9 +214,11 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
     @Override
     public void resetSetting() {
         _viewData._playListModel.clear();
-        _viewData._playListModel.addFile("SynthTAROU000.mid");
-        _viewData._playListModel.addFile("SynthTAROU001.mid");
-        _viewData._playListModel.addFile("SynthTAROU002.mid");
+        _viewData._playListModel.addFile("synth01.mid");
+        _viewData._playListModel.addFile("synth02.mid");
+        _viewData._playListModel.addFile("synth03.mid");
+        _viewData._playListModel.addFile("synth04.mid");
+        _viewData._playListModel.addFile("synth05.mid");
 
         _viewData._playAsRepeated = false;
         _viewData._playAsChained = false;

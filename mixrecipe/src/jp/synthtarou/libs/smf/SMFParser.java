@@ -44,7 +44,7 @@ import jp.synthtarou.libs.SortedArray;
 public class SMFParser {
 
     public static void main(String[] args) {
-        File file = new File("C:\\midi\\SynthTAROU000.mid");
+        File file = new File("C:\\midi\\synth01.mid");
         try {
             SMFParser parse = new SMFParser(file);
             System.out.println(file);
