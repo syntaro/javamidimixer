@@ -243,7 +243,7 @@ public class SysEXFile {
             OutputStreamWriter write = new OutputStreamWriter(bout);
             for (byte[] data : _contents) {
                 for (int x = 0; x < data.length; ++ x) {
-                    String hex = MXUtil.toHexFF(data[x]);
+                    String hex = MXUtil.toHexFF(data[x] & 0xff);
                     int pos = x % 64;
                     if (pos != 0) {
                         write.write(" ");

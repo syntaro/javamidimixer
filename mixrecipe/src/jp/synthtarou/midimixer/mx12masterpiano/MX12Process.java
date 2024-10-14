@@ -214,8 +214,7 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
         }
         FinalMIDIOut.getInstance().startTestSignal(message, -1);
         MXMIDIIn.messageToReceiverThreaded(message, receiver);
-        //MXMIDIIn.messageToReceiverThreaded(MXMessageFactory.newEmpty(0), receiver);
-        MXMIDIIn.queueMustEmpty();
+        //MXMIDIIn.queueMustEmpty();
         List<MXMessage> result = FinalMIDIOut.getInstance().getTestResult();
         if (_debugResult != null) {
             _debugResult.addAll(result);

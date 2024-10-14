@@ -88,7 +88,7 @@ public class MXPianoKeys extends JComponent {
         this._allowSelect = allow;
         this._allowMulti = multi;
     }
-
+    
     public static interface MXMouseHandler {
 
         public void noteOn(int note);
@@ -118,17 +118,17 @@ public class MXPianoKeys extends JComponent {
         addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                releaseNoteByMouse();
+                onMouseRelease();
             }
 
             @Override
             public void mousePressed(MouseEvent e) {
-                pushNoteByMouse(e.getPoint());
+                onMousePress(e.getPoint());
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                releaseNoteByMouse();
+                onMouseRelease();
             }
 
             @Override
@@ -172,10 +172,10 @@ public class MXPianoKeys extends JComponent {
                             ex.printStackTrace();;
                         }
                     } else {
-                        pushNoteByMouse(e.getPoint());
+                        onMousePress(e.getPoint());
                     }
                 } else */{
-                    pushNoteByMouse(e.getPoint());
+                    onMousePress(e.getPoint());
 
                 }
             }
@@ -529,63 +529,60 @@ public class MXPianoKeys extends JComponent {
         }
     };
 
-    public void pushNoteByMouse(Point p) {
-        for (KeyRect key : _blackKeysList) {
-            if (key.isValid() == false) {
-                continue;
-            }
-            if (key._rect.contains(p)) {
-                int prevNote = _mouseNoteOn;
-                if (prevNote != key._note) {
-                    releaseNoteByMouse();
-                    _mouseNoteOn = key._note;
-                    if (_allowMulti) {
-                        selectNote(key._note, !_selectedNote[key._note]);
-                    } else {
-                        selectNote(key._note, true);
-                    }
-                    orderRedrawNote(prevNote);
-                    orderRedrawNote(key._note);
-                    if (_handler != null) {
-                        _handler.noteOn(key._note);
-                    }
+    public void onMousePress(Point p) {
+        ArrayList<ArrayList<KeyRect>> list = new ArrayList<>();
+        list.add(_blackKeysList);
+        list.add(_whiteKeysList);
+
+        for (ArrayList<KeyRect> seek : list) {
+            for (KeyRect key : seek) {
+                if (key.isValid() == false) {
+                    continue;
                 }
-                return;
-            }
-        }
-        for (KeyRect key : _whiteKeysList) {
-            if (key.isValid() == false) {
-                continue;
-            }
-            if (key._rect.contains(p)) {
-                int prevNote = _mouseNoteOn;
-                if (prevNote != key._note) {
-                    releaseNoteByMouse();
-                    _mouseNoteOn = key._note;
-                    if (_allowMulti) {
-                        selectNote(key._note, !_selectedNote[key._note]);
-                    } else {
-                        selectNote(key._note, true);
+                if (key._rect.contains(p)) {
+                    int prevNote = _mouseNoteOn;
+                    if (prevNote != key._note) {
+                        if (isAllowMultiSelect()) {
+                            selectNote(key._note, !_selectedNote[key._note]);
+                            if (_selectedNote[key._note]) {
+                                System.out.println("noteON = " + key._note + " sel " + _selectedNote[key._note]);
+                                if (_handler != null) {
+                                    _handler.noteOn(key._note);
+                                }
+                            }
+                            else {
+                                System.out.println("noteOFF = " + key._note + " sel " + _selectedNote[key._note]);
+                                if (_handler != null) {
+                                    _handler.noteOff(key._note);
+                                }
+                            }
+                        } else {
+                            onMouseRelease();
+                            selectNote(key._note, true);
+                            System.out.println("noteON = " + key._note + " sel " + _selectedNote[key._note]);
+                            if (_handler != null) {
+                                _handler.noteOn(key._note);
+                            }
+                        }
+                        _mouseNoteOn = key._note;
+                        orderRedrawNote(prevNote);
+                        orderRedrawNote(key._note);
                     }
-                    orderRedrawNote(prevNote);
-                    orderRedrawNote(key._note);
-                    if (_handler != null) {
-                        _handler.noteOn(key._note);
-                    }
+                    return;
                 }
-                return;
             }
         }
     }
 
-    public void releaseNoteByMouse() {
+    public void onMouseRelease() {
         if (_mouseNoteOn >= 0) {
             int note = _mouseNoteOn;
             _mouseNoteOn = -1;
             orderRedrawNote(note);
-
-            if (_handler != null) {
-                _handler.noteOff(note);
+            if (!isAllowMultiSelect()) {
+                if (_handler != null) {
+                    _handler.noteOff(note);
+                }
             }
         }
     }
@@ -682,6 +679,18 @@ public class MXPianoKeys extends JComponent {
             }
         }
     }
+
+    public void clearSelectedNote() {
+        for (int i = 0; i < _selectedNote.length; ++i) {
+            if (_selectedNote[i]) {
+                _selectedNote[i] = false;
+                _handler.noteOff(i);
+                orderRedrawNote(i);
+            }
+        }
+        _handler.selectionChanged();
+    }
+
 
     public ArrayList<Integer> listMultiSelected() {
         ArrayList<Integer> list = new ArrayList();

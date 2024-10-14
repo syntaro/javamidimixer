@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.mx12masterpiano;
 
+import java.util.ArrayList;
 import javax.swing.SpinnerNumberModel;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
@@ -64,6 +65,8 @@ public class MX12LabelAfterName extends javax.swing.JPanel {
         jSpinnerMouseVelocity = new javax.swing.JSpinner();
         jLabel2 = new javax.swing.JLabel();
         jLabelAuto = new javax.swing.JLabel();
+        jCheckBoxHold = new javax.swing.JCheckBox();
+        jLabelChord = new javax.swing.JLabel();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -127,7 +130,6 @@ public class MX12LabelAfterName extends javax.swing.JPanel {
         gridBagConstraints.gridx = 9;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         add(jSpinnerMouseVelocity, gridBagConstraints);
 
@@ -143,6 +145,26 @@ public class MX12LabelAfterName extends javax.swing.JPanel {
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 0;
         add(jLabelAuto, gridBagConstraints);
+
+        jCheckBoxHold.setText("Hold");
+        jCheckBoxHold.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxHoldActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 10;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(jCheckBoxHold, gridBagConstraints);
+
+        jLabelChord.setText("=");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        add(jLabelChord, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jComboBoxRecieverActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxRecieverActionPerformed
@@ -181,6 +203,12 @@ public class MX12LabelAfterName extends javax.swing.JPanel {
         _process._mouseVelocity = velocity;
      }//GEN-LAST:event_jSpinnerMouseVelocityStateChanged
 
+    private void jCheckBoxHoldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxHoldActionPerformed
+        _process._view.clearSelectedNote();
+        boolean selectable = jCheckBoxHold.isSelected();
+        _process._view._piano.setAllowSelect(selectable, selectable);
+    }//GEN-LAST:event_jCheckBoxHoldActionPerformed
+
     public void updateReceiverName() {
         StringBuffer info = new StringBuffer();
         if (_process.getNextReceiver() != null) {
@@ -214,7 +242,17 @@ public class MX12LabelAfterName extends javax.swing.JPanel {
         }
     }
     
+    public void setChordNames(String chord) {
+        if (chord == null || chord.isEmpty()) {
+            jLabelChord.setText("-");
+        }
+        else {
+            jLabelChord.setText(chord);
+        }
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox jCheckBoxHold;
     private javax.swing.JComboBox<String> jComboBoxChannel;
     private javax.swing.JComboBox<String> jComboBoxPort;
     private javax.swing.JComboBox<String> jComboBoxReciever;
@@ -223,6 +261,7 @@ public class MX12LabelAfterName extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabelAuto;
+    private javax.swing.JLabel jLabelChord;
     private javax.swing.JSpinner jSpinnerMouseVelocity;
     // End of variables declaration//GEN-END:variables
 }

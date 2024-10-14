@@ -23,6 +23,7 @@ import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.IllegalFormatException;
 import java.util.List;
@@ -80,6 +81,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     int _sentPitch = 8192;
     int _sentModulation = 0;
     MXNamedObjectList<Integer> _listCC = MXNamedObjectListFactory.listupControlChange(true);
+    MXChordSignalChecker _notePicker = new MXChordSignalChecker();
 
     /**
      * Creates new form MX12MasterkeysPanel
@@ -145,11 +147,23 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             public void noteOn(int note) {
                 MXMessage message = MXMessageFactory.fromNoteon(_process._mousePort, _process._mouseChannel, note, _process._mouseVelocity);
                 _process.sendCCAndGetResult(message, MXMain.getMain().getInputProcess());
+                if (_notePicker != null && _piano.isAllowMultiSelect()) {
+                    _notePicker.noteOn(note);
+                    _notePicker.refresh();
+                    ArrayList<String> listChord = _notePicker.getChordName();
+                    _labelAfterName.setChordNames(listChord.toString() + ", " + _notePicker.getNotes());
+                }
             }
 
             public void noteOff(int note) {
                 MXMessage message = MXMessageFactory.fromNoteoff(_process._mousePort, _process._mouseChannel, note);
                 _process.sendCCAndGetResult(message, MXMain.getMain().getInputProcess());
+                if (_notePicker != null && _piano.isAllowMultiSelect()) {
+                    _notePicker.noteOff(note);
+                    _notePicker.refresh();
+                    ArrayList<String> listChord = _notePicker.getChordName();
+                    _labelAfterName.setChordNames(listChord.toString() + ", " + _notePicker.getNotes());
+                }
             }
 
             @Override
@@ -309,7 +323,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 18, 0);
+        gridBagConstraints.insets = new java.awt.Insets(10, 0, 10, 0);
         jPanel1.add(jSliderPitch, gridBagConstraints);
 
         jSliderModwheel.setOrientation(javax.swing.JSlider.VERTICAL);
@@ -323,13 +337,14 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 18, 0);
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(10, 0, 10, 0);
         jPanel1.add(jSliderModwheel, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 6;
-        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.gridheight = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
@@ -796,5 +811,10 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
     
     public void setDebugMode(boolean mode) {
         jTabbedPane1.setSelectedIndex(mode ? 1 : 0);
+    }
+    
+    public void clearSelectedNote() {
+        //_notePicker.clearSelectedNote();
+        _piano.clearSelectedNote();
     }
 }
