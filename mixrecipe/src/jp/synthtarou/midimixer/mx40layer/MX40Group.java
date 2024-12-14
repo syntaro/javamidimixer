@@ -58,7 +58,7 @@ public class MX40Group {
     }
     
     public String toString() {
-        StringBuffer str = new StringBuffer();
+        StringBuilder str = new StringBuilder();
         str.append("By ");
         str.append("Port=").append(_isWatchPort).append("[").append(MXMidi.nameOfPortOutput(_watchingPort)).append("]");
         str.append("Channel=").append(_isWatchChannel).append("[").append(_watchingChannel+1).append("]");

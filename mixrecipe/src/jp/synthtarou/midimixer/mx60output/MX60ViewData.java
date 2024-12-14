@@ -23,7 +23,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.libs.smf.SMFCallback;
-import jp.synthtarou.libs.smf.SMFMessage;
+import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.libs.smf.SMFSequencer;
 
 /**
@@ -95,7 +95,7 @@ public class MX60ViewData  {
             MXNoteOffWatcher _noteOff = new MXNoteOffWatcher();
 
             @Override
-            public void smfPlayNote(SMFMessage e) {
+            public void smfPlayNote(OneMessage e) {
                 MXMessage message = e.toMXMessage();
                 if (message == null) {
                     return;

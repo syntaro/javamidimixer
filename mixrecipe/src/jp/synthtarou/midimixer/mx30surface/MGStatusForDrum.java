@@ -26,7 +26,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.libs.smf.SMFCallback;
-import jp.synthtarou.libs.smf.SMFMessage;
+import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.libs.smf.SMFSequencer;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 
@@ -186,7 +186,7 @@ public class MGStatusForDrum implements Cloneable {
         final int _channel = channel;
         _sequencerPlayer.startPlayerThread(seek, new SMFCallback() {
             @Override
-            public void smfPlayNote(SMFMessage e) {
+            public void smfPlayNote(OneMessage e) {
                 e._port = _port;
                 MXMessage message = e.toMXMessage();
                 if (_sequencerSingleTrack) {

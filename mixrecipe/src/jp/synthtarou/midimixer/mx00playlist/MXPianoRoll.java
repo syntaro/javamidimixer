@@ -32,7 +32,7 @@ import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.MXQueue;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys.KeyRect;
-import jp.synthtarou.libs.smf.SMFMessage;
+import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.libs.smf.SMFSequencer;
 import jp.synthtarou.libs.smf.SMFTestSynthesizer;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -321,7 +321,7 @@ public class MXPianoRoll extends JComponent {
     };
 
     public int[] calcPlayingNote(long milliSeconds) {
-        List<SMFMessage> list = _sequencer.listMessage();
+        List<OneMessage> list = _sequencer.listMessage();
         if (_lastCheckedForRolling < list.size()) {
             if (milliSeconds < list.get(_lastCheckedForRolling)._millisecond) {
                 _lastCheckedForRolling = 0;
@@ -333,7 +333,7 @@ public class MXPianoRoll extends JComponent {
             }
         }
         for (int x = _lastCheckedForRolling; x < list.size(); ++x) {
-            SMFMessage smf = list.get(x);
+            OneMessage smf = list.get(x);
             if (smf._millisecond > milliSeconds) {
                 break;
             }
@@ -375,7 +375,7 @@ public class MXPianoRoll extends JComponent {
             return;
         }
         boolean lockBuffered = false;
-        List<SMFMessage> list = _sequencer.listMessage();
+        List<OneMessage> list = _sequencer.listMessage();
         if (list != null && _nextStartForPaintFooterKeys < list.size()) {
             if (_nextStartForPaintFooterKeys == 0 
               || milliSeconds < list.get(_nextStartForPaintFooterKeys)._millisecond) {
@@ -392,7 +392,7 @@ public class MXPianoRoll extends JComponent {
         }
 
         for (int x = _nextStartForPaintFooterKeys; x < list.size(); ++x) {
-            SMFMessage smf = list.get(x);
+            OneMessage smf = list.get(x);
             if (smf._millisecond > milliSeconds) {
                 break;
             }

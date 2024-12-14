@@ -23,6 +23,7 @@ import java.util.logging.Level;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.log.MXFileLogger;
+import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -78,7 +79,7 @@ public class MXMIDIOut implements Comparable<MXMIDIOut>{
     }
 
     public String getPortAssignedAsText() {
-        StringBuffer assigned = new StringBuffer();
+        StringBuilder assigned = new StringBuilder();
         for (int p = 0; p < MXConfiguration.TOTAL_PORT_COUNT; ++p) {
             if (isPortAssigned(p)) {
                 if (assigned.length() > 0) {
@@ -273,13 +274,13 @@ public class MXMIDIOut implements Comparable<MXMIDIOut>{
             _myNoteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
                 @Override
                 public void onNoteOffEvent(MXMessage target) {
-                    int dword = target.getAsDword(0);
-                    _driver.OutputShortMessage(_orderInDriver, dword);
+                    OneMessage one = target.toOneMessage(0);
+                    _driver.OutputOneMessage(_orderInDriver, one);
                     MXMain.addOutsideOutput(new MXMidiConsoleElement(target));
                 }
             });
-            int dword = message.getAsDword(0);
-            _driver.OutputShortMessage(_orderInDriver, dword);
+            OneMessage one = message.toOneMessage(0);
+            _driver.OutputOneMessage(_orderInDriver, one);
             MXMain.addOutsideOutput(new MXMidiConsoleElement(message));
             return;
         } else if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
@@ -291,26 +292,16 @@ public class MXMIDIOut implements Comparable<MXMIDIOut>{
             allNoteOff(message);
         }
 
-        int col = message.getDwordCount();
-        if (col == 0) {
-            byte[] data = message.getBinary();
-            _driver.OutputLongMessage(_orderInDriver, data);
-            MXMain.addOutsideOutput(new MXMidiConsoleElement(message));
-        } else {
-            for (int j = 0; j < col; ++j) {
-                int dword = message.getAsDword(j);
-                if (dword == 0) {
-
-                } else {
-                    _driver.OutputShortMessage(_orderInDriver, dword);
-                    int status = (dword >> 16) & 0xff;
-                    int data1 = (dword >> 8) & 0xff;
-                    int data2 = (dword) & 0xff;
-                    MXMessage newMessage = MXMessageFactory.fromShortMessage(message.getPort(), status, data1, data2);
-                    newMessage._owner = MXMessage.getRealOwner(message);
-                    MXMain.addOutsideOutput(new MXMidiConsoleElement(newMessage));
-                }
-            }
+        int col = message.countOneMessage();
+        for (int j = 0; j < col; ++j) {
+            OneMessage one = message.toOneMessage(j);
+            _driver.OutputOneMessage(_orderInDriver, one);
+            int status = one.getStatus();
+            int data1 = one.getData1();
+            int data2 = one.getData2();
+            MXMessage newMessage = MXMessageFactory.fromShortMessage(message.getPort(), status, data1, data2);
+            newMessage._owner = MXMessage.getRealOwner(message);
+            MXMain.addOutsideOutput(new MXMidiConsoleElement(newMessage));
         }
     }
 

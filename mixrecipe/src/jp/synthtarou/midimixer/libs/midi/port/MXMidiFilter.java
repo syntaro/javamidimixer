@@ -182,8 +182,8 @@ public class MXMidiFilter {
                 }
                 break;
             case TYPE_RESET_GENERAL:
-                if (message.isBinaryMessage()) {
-                    if (MXMidi.isReset(message.getBinary())) {
+                if (message.isSysexOrMeta()) {
+                    if (MXMidi.isReset(message.toOneMessage(0).getBinary())) {
                         return true;
                     }
                 }
@@ -208,7 +208,7 @@ public class MXMidiFilter {
     }
     
     public String toString() {
-        StringBuffer str = new StringBuffer();
+        StringBuilder str = new StringBuilder();
         for (int i = 0; i < COUNT_TYPE; ++ i) {
             if (isChecked(i)) {
                 if (str.length() != 0) {

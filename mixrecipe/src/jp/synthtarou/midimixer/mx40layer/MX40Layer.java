@@ -150,7 +150,7 @@ public class MX40Layer {
     }
     
     public String toString() {
-        StringBuffer str = new StringBuffer();
+        StringBuilder str = new StringBuilder();
         if (_modChannel == MOD_FIXED) {
             str.append("[Channel=").append(MXMidi.nameOfPortOutput(_fixedPort)).append("/").append(_fixedChannel+1).append("]");
         }

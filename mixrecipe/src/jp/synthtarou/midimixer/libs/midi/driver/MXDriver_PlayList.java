@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi.driver;
 
+import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 
 /**
@@ -81,11 +82,7 @@ public class MXDriver_PlayList implements MXDriver {
     public void OutputDeviceClose(int x) {
     }
     
-    public boolean OutputShortMessage(int x, int message) {
-        return false;
-    }
-    
-    public boolean OutputLongMessage(int x, byte[] data) {
+    public boolean OutputOneMessage(int x, OneMessage message) {
         return false;
     }
 }

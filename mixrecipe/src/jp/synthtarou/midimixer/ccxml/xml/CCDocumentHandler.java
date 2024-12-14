@@ -131,7 +131,7 @@ public class CCDocumentHandler extends DefaultHandler {
 
     @Override
     public void characters(char[] ch, int offset, int length) {
-        StringBuffer ret = new StringBuffer();
+        StringBuilder ret = new StringBuilder();
         ret.append(ch, offset, length);
 
         if (_cursor == null || _cursor.getLast() == null) {

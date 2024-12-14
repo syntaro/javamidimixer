@@ -115,7 +115,7 @@ public class MXProgressDialog extends javax.swing.JDialog {
     public void setMessageAsExit() {
         _stream.clearLogLine();
         jLabelVersion.setText("Closing MixRecipe");
-        StringBuffer text = new StringBuffer();
+        StringBuilder text = new StringBuilder();
         _stream.addLine("Writing Settings.\n");
         _stream.addLine("Closing Devices.\n");
         _stream.addLine("Shutting Down.\n\n");

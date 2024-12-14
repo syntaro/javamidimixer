@@ -19,6 +19,7 @@ package jp.synthtarou.midimixer.libs.midi.driver;
 import java.util.ArrayList;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.log.MXFileLogger;
+import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
@@ -158,31 +159,22 @@ public class MXDriver_UWP implements MXDriver {
     }
 
     @Override
-    public synchronized boolean OutputShortMessage(int device, int message) {
+    public synchronized boolean OutputOneMessage(int device, OneMessage message) {
         if (!isUsable()) {
             return false;
         }
         
-        if (false) {
-            int status = (message >> 16) & 0xf0;
-            int channel = (message >> 16) & 0x0f;
-            int data1 = (message >> 8) & 0xff;
-            int data2 = message & 0xff;
-            MXMessage dump = MXMessageFactory.fromShortMessage(0, status + channel, data1, data2);
-            System.out.println(dump.toString());
+        int dword = message.getDWORD();
+        if (dword != 0) {
+            return windows10.OutputShortMessage(device, dword);
         }
-        
-        return windows10.OutputShortMessage(device, message);
+        byte[] data = message.getBinary();
+        if (message != null) {
+            return windows10.OutputLongMessage(device, data);
+        }
+        return false;
     }
 
-    @Override
-    public synchronized boolean OutputLongMessage(int device, byte[] data) {
-        if (!isUsable()) {
-            return false;
-        }
-
-        return windows10.OutputLongMessage(device, data);
-    }
 
     ArrayList<MXMIDIIn> _listInputCatalog = new ArrayList();
     ArrayList<MXMIDIOut> _listOutputCatalog = new ArrayList();

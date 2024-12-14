@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.mx90debug;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 
 /**
- *
+// *
  * @author Syntarou YOSHIDA
  */
 public class MXDebugSame extends MXDebug {

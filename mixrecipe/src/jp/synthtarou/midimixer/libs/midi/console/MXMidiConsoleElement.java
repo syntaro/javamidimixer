@@ -17,6 +17,7 @@
 package jp.synthtarou.midimixer.libs.midi.console;
 
 import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 
 /**
@@ -36,23 +37,12 @@ public class MXMidiConsoleElement {
     }
 
     public String formatMessageDump() {
-        String exString = "";
-        if (_message.getDwordCount() >= 1) {
-            StringBuffer str = new StringBuffer();
-            for (int i = 0; i < _message.getDwordCount(); ++i) {
-                int dword = _message.getAsDword(i);
-                int status = (dword >> 16) & 0xff;
-                int data1 = (dword >> 8) & 0xff;
-                int data2 = (dword) & 0xff;
-                str.append("[");
-                str.append(MXUtil.toHexFF(status) + " " + MXUtil.toHexFF(data1) + " " + MXUtil.toHexFF(data2));
-                str.append("]");
-            }
-            return str.toString();
-        } else {
-            byte[] data = _message.getBinary();
-            return MXUtil.dumpHex(data);
+        StringBuilder str = new StringBuilder();
+        for (int i = 0; i < _message.countOneMessage(); ++i) {
+            OneMessage smf = _message.toOneMessage(i);
+            str.append("[" + smf.toString() + "]");
         }
+        return str.toString();
     }
 
     public String formatMessageLong() {

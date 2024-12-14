@@ -210,7 +210,7 @@ public class MX12LabelAfterName extends javax.swing.JPanel {
     }//GEN-LAST:event_jCheckBoxHoldActionPerformed
 
     public void updateReceiverName() {
-        StringBuffer info = new StringBuffer();
+        StringBuilder info = new StringBuilder();
         if (_process.getNextReceiver() != null) {
             jLabelAuto.setText("");
         } else {

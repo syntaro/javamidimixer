@@ -122,7 +122,7 @@ public class CXNode  {
     }
     
     public static String pathToString(Collection<CXNode> path) {
-        StringBuffer str = new StringBuffer();
+        StringBuilder str = new StringBuilder();
         for (CXNode node : path) {
             if (str.length() != 0) {
                 str.append("/");

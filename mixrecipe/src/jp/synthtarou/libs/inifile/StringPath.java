@@ -40,13 +40,13 @@ public class StringPath extends ArrayList<String> implements Cloneable {
         StringPath path = new StringPath();
 
         char[]buffer = name.toCharArray();
-        StringBuffer writingChar = new StringBuffer();
+        StringBuilder writingChar = new StringBuilder();
 
         for (int x = 0; x < buffer.length; ++ x) {
             char ch = buffer[x];
             if (ch == '.') {
                 String part = writingChar.toString();
-                writingChar = new StringBuffer();
+                writingChar = new StringBuilder();
                 if (part.length() >= 1) {
                     if (part.charAt(0) >= '0' && part.charAt(0) <= '9') {
                         try {
@@ -63,7 +63,7 @@ public class StringPath extends ArrayList<String> implements Cloneable {
             if (ch == '[') {
                 if (writingChar.length() >= 1) {
                     String part = writingChar.toString();
-                    writingChar = new StringBuffer();
+                    writingChar = new StringBuilder();
                     if (part.length() >= 1) {
                         if (part.charAt(0) >= '0' && part.charAt(0) <= '9') {
                             try {
@@ -110,7 +110,7 @@ public class StringPath extends ArrayList<String> implements Cloneable {
         }
         if (writingChar.length() >= 1) {
             String part = writingChar.toString();
-            writingChar = new StringBuffer();
+            writingChar = new StringBuilder();
             if (part.length() >= 1) {
                 if (part.charAt(0) >= '0' && part.charAt(0) <= '9') {
                     try {

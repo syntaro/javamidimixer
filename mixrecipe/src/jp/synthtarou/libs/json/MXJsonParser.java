@@ -393,7 +393,7 @@ public class MXJsonParser {
      * @return String 文字列化されたqueue
      */
     protected String first5ToText(LinkedList<MXJsonValue> queue) {
-        StringBuffer str = new StringBuffer();
+        StringBuilder str = new StringBuilder();
         for (int i = 0; i < 5; ++i) {
             if (i >= queue.size()) {
                 break;

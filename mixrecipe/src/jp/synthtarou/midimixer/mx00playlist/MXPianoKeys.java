@@ -545,7 +545,7 @@ public class MXPianoKeys extends JComponent {
                         if (isAllowMultiSelect()) {
                             selectNote(key._note, !_selectedNote[key._note]);
                             if (_selectedNote[key._note]) {
-                                System.out.println("noteON = " + key._note + " sel " + _selectedNote[key._note]);
+                                //System.out.println("noteON = " + key._note + " sel " + _selectedNote[key._note]);
                                 if (_handler != null) {
                                     _handler.noteOn(key._note);
                                 }
@@ -559,7 +559,7 @@ public class MXPianoKeys extends JComponent {
                         } else {
                             onMouseRelease();
                             selectNote(key._note, true);
-                            System.out.println("noteON = " + key._note + " sel " + _selectedNote[key._note]);
+                            //System.out.println("noteON = " + key._note + " sel " + _selectedNote[key._note]);
                             if (_handler != null) {
                                 _handler.noteOn(key._note);
                             }

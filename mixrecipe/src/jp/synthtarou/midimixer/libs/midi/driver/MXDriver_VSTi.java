@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi.driver;
 
+import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.mx80vst.MX80Process;
 import jp.synthtarou.midimixer.libs.vst.VSTStream;
@@ -121,12 +122,16 @@ public class MXDriver_VSTi implements MXDriver {
     }
 
     @Override
-    public boolean OutputShortMessage(int port, int message) {
-        return _ownList.getInstrument(port).postShortMessage(message);
-    }
-
-    @Override
-    public boolean OutputLongMessage(int port, byte[] data) {
-        return _ownList.getInstrument(port).postLongMessage(data);
+    public boolean OutputOneMessage(int port, OneMessage message) {
+        if (message.isBinaryMessage()) {
+            return _ownList.getInstrument(port).postLongMessage(message.getBinary());
+        }
+        else {
+            int x = message.getDWORD();
+            if (x == 0){ 
+                return false;
+            }
+            return _ownList.getInstrument(port).postShortMessage(message.getDWORD());
+        }
     }
 }

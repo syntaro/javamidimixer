@@ -173,9 +173,9 @@ public class MX90Process extends MXReceiver<MX90View> {
                 MXMessage message3 = MXMessageFactory.fromTemplate(0, template3, 10, MXRangedValue.new7bit(gate), MXRangedValue.new7bit(value));
                 MXMessage message4 = MXMessageFactory.fromTemplate(0, template4, 10, MXRangedValue.new7bit(gate), MXRangedValue.new7bit(value));
 
-                byte[] question3 = message3.getBinary();
+                byte[] question3 = message3.toOneMessage(0).getBinary();
                 byte[] answer = {(byte) 0xf0, (byte) gate, (byte) value, (byte) 0xf7};
-                byte[] question4 = message4.getBinary();
+                byte[] question4 = message4.toOneMessage(0).getBinary();
 
                 if (checkSame(question3, answer) == false) {
                     MXFileLogger.getLogger(MX90Process.class).info("Sysex Error: " + MXUtil.dumpHex(question3) + " -> " + MXUtil.dumpHex(answer));

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 yaman
+ * Copyright (C) 2024 Syntarou YOSHIDA
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ import jp.synthtarou.libs.MXUtil;
 
 /**
  *
- * @author yaman
+ * @author Syntarou YOSHIDA
  */
 public class LoggerDemo extends javax.swing.JPanel {
 

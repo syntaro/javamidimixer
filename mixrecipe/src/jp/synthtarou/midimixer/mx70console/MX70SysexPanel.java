@@ -25,6 +25,7 @@ import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
 import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
+import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.swing.MXFileChooser;
 
 /**
@@ -268,9 +269,12 @@ public class MX70SysexPanel extends javax.swing.JPanel {
         if (index != null & index.length >= 1) {
             for (int i = 0; i < index.length; ++ i) {
                 MXMidiConsoleElement e = _list.elementAt(index[i]);
-                byte[] data2 =  e.getMessage().getBinary();
-                _file.add(data2, jTextArea1);
-                break;
+                MXMessage message = e.getMessage();
+                if (message.isSysexOrMeta()) {
+                    byte[] data = message.toOneMessage(0).getBinary();
+                    _file.add(data, jTextArea1);
+                    break;
+                }
             }
             _file.bind(jTextArea1);
         }

@@ -428,7 +428,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     }
 
     private void showValidationError() {
-        StringBuffer str = new StringBuffer();
+        StringBuilder str = new StringBuilder();
         if (textValidate.size() == 0) {
             return;
         }

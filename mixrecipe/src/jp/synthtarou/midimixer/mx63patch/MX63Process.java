@@ -54,7 +54,7 @@ public class MX63Process extends MXReceiver<MX63View> {
     }
 
     public static String getFilterInfo(MXMIDIOut out) {
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         boolean reset = true;
         if (out.getPortAssignCount() == 0) {
             return "";

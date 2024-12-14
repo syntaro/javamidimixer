@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.libs.MXRangedValue;
+import jp.synthtarou.libs.smf.OneMessage;
 
 /**
  *
@@ -284,18 +285,9 @@ public class MXTemplate implements Comparable<MXTemplate> {
         }
     }
 
-    byte[] makeBytes(byte[] data, MXMessage message) {
+    OneMessage makeBytes(MXMessage message) {
         int dataLength = _commands.length;
-
-        if (data == null || data.length != dataLength) {
-            data = new byte[dataLength];
-        }
-
-        /*
-        if ((_commands[0] & 0xff00) != 0) {
-            return null;
-        }*/
-        int dpos = 0;
+        byte[] data = new byte[dataLength];
 
         for (int i = 0; i < _commands.length; ++i) {
             int x = _commands[i];
@@ -304,7 +296,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
             } catch (IllegalArgumentException e) {
                 //throw e;
             }
-            data[dpos++] = (byte) (x & 0xff);
+            data[i] = (byte)x;
         }
         if (_listChecksum != null) {
             for (CheckSumInfo seek : _listChecksum) {
@@ -319,21 +311,21 @@ public class MXTemplate implements Comparable<MXTemplate> {
                 data[seek._to] = (byte) sumChecksum;
             }
         }
-        if (data.length >= 3
-         && (data[0] & 0xff) == MXMidi.COMMAND_SYSEX
-         && ((data[1] & 0xff) == MXMidi.COMMAND_SYSEX || (data[1] & 0xff) == MXMidi.COMMAND_SYSEX_END)) {
-            dataLength --;
-            byte []copyData = new byte[dataLength];
-            for (int i = 0; i < copyData.length; ++ i) {
-                copyData[i] = data[i + 1];
-            }            
-            data = copyData;
-        }
         int command = data[0] & 0xff;
         if (command >= 0x80 && command <= 0xef) {
             data[0] = (byte) ((command & 0xf0) + message.getChannel());
         }
-        return data;
+        if ((data[0] & 0xff) == MXMidi.COMMAND_SYSEX && data.length >= 2) {
+            if ((data[1] & 0xff) == MXMidi.COMMAND_SYSEX
+              ||(data[1] & 0xff) == MXMidi.COMMAND_SYSEX_END) {
+                byte[] newData = new byte[data.length-1];
+                for (int i = 0; i < newData.length ;++ i) {
+                    newData[i] = data[i+1];
+                }
+                data = newData;
+            }
+        }
+        return OneMessage.thisBuffer(0, data);
     }
 
     public static int parseDAlias(int alias, MXMessage message) {
@@ -454,7 +446,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
     public String toDText() {
         ArrayList<String> array = toDTextArray();
 
-        StringBuffer text = new StringBuffer();
+        StringBuilder text = new StringBuilder();
         String last = "]"; //magic number -> to skip add "space"
         for (String seg : array) {
             if (seg.length() == 0) {
@@ -862,7 +854,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
             MXTemplate template = new MXTemplate(seek);
             for (int x = 0;  x < 127; x += 26) {
                 MXMessage message = MXMessageFactory.fromTemplate(1, template, 5, MXRangedValue.ZERO7, MXRangedValue.new7bit(x));
-                System.out.println(" x = " + x + " / " + MXUtil.dumpHex(message.getBinary()));
+                System.out.println(" x = " + x + " / " + message.listOneMessage());
                 System.out.println(" template = " + message.getTemplateAsText());
             }
         }

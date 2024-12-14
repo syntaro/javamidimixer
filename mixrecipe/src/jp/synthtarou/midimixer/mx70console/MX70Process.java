@@ -44,7 +44,7 @@ public class MX70Process extends MXReceiver<MX70View>{
     public void addInsideInput(MXMessage msg) {
         MXMidiConsoleElement e = new MXMidiConsoleElement(msg);
         _insideInput.addElement2(e);
-        if (msg.isBinaryMessage()) {
+        if (msg.isSysexOrMeta()) {
             _listBinary.addElement2(e);
         }
     }

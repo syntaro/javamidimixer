@@ -19,6 +19,7 @@ package jp.synthtarou.midimixer.libs.midi.visitant;
 import java.util.logging.Level;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.log.MXFileLogger;
+import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -263,10 +264,15 @@ public class MXVisitant implements Cloneable {
                 
             }
             return message;
-        } else if (message.isBinaryMessage()) {
-            if (MXMidi.isReset(message.getBinary())) {
-                System.out.println("GM    RESET ********");
-                reset();
+        } else if (message.isSysexOrMeta()) {
+            for (int i = 0; i < message.countOneMessage(); ++ i) {
+                OneMessage one = message.toOneMessage(i);
+                byte[] bin = one.getBinary();
+                if (bin != null && MXMidi.isReset(bin)) {
+                    System.out.println("GM    RESET ********");
+                    reset();
+                    break;
+                }
             }
         }
         return message;

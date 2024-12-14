@@ -54,7 +54,7 @@ public class MX13Process extends MXReceiver<MX13View> {
     }
 
     public static String getFilterInfo(MXMIDIIn in) {
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         boolean reset = true;
         if (in.getPortAssignCount() == 0) {
             return "";

@@ -139,7 +139,7 @@ public class MXMIDIIn implements Comparable<MXMIDIIn>{
     }
 
     public String getPortAssignedAsText() {
-        StringBuffer assigned = new StringBuffer();
+        StringBuilder assigned = new StringBuilder();
         for (int p = 0; p < MXConfiguration.TOTAL_PORT_COUNT; ++p) {
             if (isPortAssigned(p)) {
                 if (assigned.length() > 0) {
@@ -183,7 +183,7 @@ public class MXMIDIIn implements Comparable<MXMIDIIn>{
     }
 
     public String getMasterList() {
-        StringBuffer str = new StringBuffer();
+        StringBuilder str = new StringBuilder();
         for (int ch = 0; ch < 16; ++ch) {
             if (isToMaster(ch)) {
                 if (str.length() == 0) {
@@ -272,7 +272,7 @@ public class MXMIDIIn implements Comparable<MXMIDIIn>{
     }
 
     public String textForMasterChannel() {
-        StringBuffer masterMark = new StringBuffer();
+        StringBuilder masterMark = new StringBuilder();
         for (int ch = 0; ch < 16; ++ch) {
             if (isToMaster(ch)) {
                 if (masterMark.length() != 0) {
@@ -418,6 +418,9 @@ public class MXMIDIIn implements Comparable<MXMIDIIn>{
     }
 
     public static void messageToReceiverThreaded(MXMessage message, MXReceiver receiver) {
+        if (message.getCompiled(0) == 0) {
+            new Throwable("**TEST** " + message.toStringDumped()).printStackTrace();
+        }
         if (MXConfiguration._DEBUG || Thread.currentThread() == _messageThread) {
             messageToReceiver(message, receiver);
         } else {

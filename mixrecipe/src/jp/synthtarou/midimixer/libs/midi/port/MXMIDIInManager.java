@@ -257,7 +257,7 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
             if (e.getPortAssignCount() <= 0) {
                 continue;
             }
-            StringBuffer assigned = new StringBuffer();
+            StringBuilder assigned = new StringBuilder();
             for (int p = 0; p < MXConfiguration.TOTAL_PORT_COUNT; ++p) {
                 if (e.isPortAssigned(p)) {
                     if (assigned.length() > 0) {

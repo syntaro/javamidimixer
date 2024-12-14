@@ -25,7 +25,7 @@ import jp.synthtarou.midimixer.libs.swing.themes.ThemeManager;
  *
  * @thanks (https://stackoverflow.com/questions/25546399/how-can-i-make-a-jslider-in-a-curve-shape)
  */
-public class CurvedSlider extends JPanel implements MouseListener, MouseMotionListener
+public class CurvedSlider extends JPanel 
 {
     private double _minAngleRad = 0.0;
     private double _maxAngleRad = 0.0;
@@ -46,17 +46,69 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
         _selectionColor = MXUtil.mixtureColor(Color.red, 10, Color.yellow, 90);
     }
 
+    class MouseHandler implements MouseListener, MouseMotionListener { 
+        @Override
+        public void mouseDragged(MouseEvent e)
+        {
+            if (isEnabled()) {
+                if(SwingUtilities.isRightMouseButton(e)){
+                }else{ 
+                    updateAngle(e.getPoint());
+                }
+            }
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent e)
+        {
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e)
+        {
+            if (isEnabled()) {
+                if(SwingUtilities.isRightMouseButton(e)){
+                }else{
+                    startPoint = e.getPoint();
+                    startValue = _value._value;
+                    updateAngle(e.getPoint());
+                }
+            }
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e)
+        {
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e)
+        {
+            startPoint = null;
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e)
+        {
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e)
+        {
+        }
+
+    }
+    
     int _circleR;
     
-    /**
-     *
-     * @param circleR
-     */
-    public CurvedSlider(int circleR)
+    public CurvedSlider(int circleR, boolean catchMouse)
     {
         _circleR = circleR;
-        addMouseListener(this);
-        addMouseMotionListener(this);
+        if (catchMouse) {
+            MouseHandler handle = new MouseHandler();
+            addMouseListener(handle);
+            addMouseMotionListener(handle);
+        }
         setMinimumSize(new Dimension(circleR, circleR));
         setMaximumSize(new Dimension(circleR, circleR));
         setPreferredSize(new Dimension(circleR, circleR));
@@ -66,6 +118,10 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
         double maxAngle = -40 / 180.0 * Math.PI;
 
         setAngles(minAngle, maxAngle);
+    }
+    public CurvedSlider(int circleR)
+    {
+        this(circleR, true);
     }
 
     public void setAngles(double minAngleRad, double maxAngleRad)
@@ -252,58 +308,8 @@ public class CurvedSlider extends JPanel implements MouseListener, MouseMotionLi
         }
     }
 
-    @Override
-    public void mouseDragged(MouseEvent e)
-    {
-        if (isEnabled()) {
-            if(SwingUtilities.isRightMouseButton(e)){
-            }else{ 
-                updateAngle(e.getPoint());
-            }
-        }
-    }
-
-    @Override
-    public void mouseMoved(MouseEvent e)
-    {
-    }
 
     public Runnable _editor = null;
-
-    @Override
-    public void mousePressed(MouseEvent e)
-    {
-        if (isEnabled()) {
-            if(SwingUtilities.isRightMouseButton(e)){
-            }else{
-                startPoint = e.getPoint();
-                startValue = _value._value;
-                updateAngle(e.getPoint());
-            }
-        }
-    }
-
-    @Override
-    public void mouseClicked(MouseEvent e)
-    {
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e)
-    {
-        startPoint = null;
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e)
-    {
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e)
-    {
-    }
-    
     ArrayList<ChangeListener> listenerList = new ArrayList<ChangeListener>();
 
     public synchronized void addChangeListener(ChangeListener listener) {

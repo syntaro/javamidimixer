@@ -50,7 +50,7 @@ public class CXTreeRenderer implements TreeCellRenderer {
     public static boolean _displayTextContent = true;
     
     public String escapeDQuote(String text) {
-        StringBuffer ret = new StringBuffer();
+        StringBuilder ret = new StringBuilder();
 
         final char DQUOTE = '\"';
         final char BSLASH = '\\';
@@ -82,7 +82,7 @@ public class CXTreeRenderer implements TreeCellRenderer {
     }
     
     public String format(CXNode node) {
-        StringBuffer text = new StringBuffer();
+        StringBuilder text = new StringBuilder();
         text.append(node._nodeName);
 
         if (_displayAttribute) {

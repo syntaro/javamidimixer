@@ -39,7 +39,7 @@ import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.swing.MXFileChooser;
 import jp.synthtarou.libs.smf.SMFCallback;
-import jp.synthtarou.libs.smf.SMFMessage;
+import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.libs.navigator.legacy.INavigator;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
@@ -829,8 +829,8 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
     PlayListElement _lastPlayed = null;
 
     @Override
-    public void smfPlayNote(SMFMessage e) {
-        updatePianoDX(e.toDwordMessage());
+    public void smfPlayNote(OneMessage e) {
+        updatePianoDX(e.getDWORD());
     }
 
     @Override

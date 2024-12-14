@@ -70,7 +70,7 @@ public class MXUtil {
     }
 
     public static String dumpHex(byte[] data) {
-        StringBuffer str = new StringBuffer();
+        StringBuilder str = new StringBuilder();
         for (int i = 0; i < data.length; ++i) {
             if (i != 0) {
                 str.append(" ");
@@ -90,7 +90,7 @@ public class MXUtil {
     }
 
     public static String dumpHex(int[] data) {
-        StringBuffer str = new StringBuffer();
+        StringBuilder str = new StringBuilder();
         for (int i = 0; i < data.length; ++i) {
             if (i != 0) {
                 str.append(" ");

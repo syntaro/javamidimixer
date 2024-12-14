@@ -51,7 +51,7 @@ public class ListDataListenerForTextArea implements ListDataListener {
     public void updateTextArea(ListModel model) {
         MXMain.invokeUI(() ->  {
             try {
-                StringBuffer str = new StringBuffer();
+                StringBuilder str = new StringBuilder();
 
                 for (int i = 0; i < model.getSize(); ++ i) {
                     String seg = model.getElementAt(i).toString();

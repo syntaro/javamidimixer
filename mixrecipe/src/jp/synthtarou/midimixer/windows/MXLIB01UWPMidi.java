@@ -62,7 +62,7 @@ public class MXLIB01UWPMidi {
     public native boolean OutputLongMessage(int device, byte[] data);
 
     static private void cbCallText(String text) {
-        MXFileLogger.getLogger(MXLIB01UWPMidi.class).info("UWP-[" + text.toString() + "]");
+        //MXFileLogger.getLogger(MXLIB01UWPMidi.class).info("UWP-[" + text.toString() + "]");
     }
     
     int _microsoftSynthIndex = -1;

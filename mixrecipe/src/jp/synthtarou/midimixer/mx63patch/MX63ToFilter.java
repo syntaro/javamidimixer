@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 yaman
+ * Copyright (C) 2024 Syntarou YOSHIDA
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ import jp.synthtarou.midimixer.mx13patch.CheckableElement;
 
 /**
  *
- * @author yaman
+ * @author Syntarou YOSHIDA
  */
 public class MX63ToFilter implements CheckableElement {
     MX63Process _process;

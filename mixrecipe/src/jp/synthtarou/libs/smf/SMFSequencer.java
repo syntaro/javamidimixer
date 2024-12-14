@@ -54,7 +54,7 @@ public class SMFSequencer {
     public SMFSequencer() {
         _parser = new SMFParser(); // as recorder
         _lastFile = null;
-        _firstNote = new SMFMessage[16];
+        _firstNote = new OneMessage[16];
     }
 
     public int getResolution() {
@@ -67,7 +67,7 @@ public class SMFSequencer {
 
     public SMFSequencer(File file) throws IOException {
         _parser = new SMFParser(file);
-        _firstNote = new SMFMessage[16];
+        _firstNote = new OneMessage[16];
         _lastFile = file;
     }
 
@@ -75,7 +75,7 @@ public class SMFSequencer {
         return _lastFile;
     }
 
-    public SortedArray<SMFMessage> listMessage() {
+    public SortedArray<OneMessage> listMessage() {
         return _parser._listMessage;
     }
 
@@ -127,18 +127,18 @@ public class SMFSequencer {
         }
     }
 
-    SMFMessage[] _firstNote = null;
+    OneMessage[] _firstNote = null;
 
     protected boolean sendProgramChangeBeforeNote() {
-        SMFMessage[] firstProgram = new SMFMessage[16];
-        SMFMessage[] firstBank0 = new SMFMessage[16];
-        SMFMessage[] firstBank32 = new SMFMessage[16];
-        _firstNote = new SMFMessage[16];
+        OneMessage[] firstProgram = new OneMessage[16];
+        OneMessage[] firstBank0 = new OneMessage[16];
+        OneMessage[] firstBank32 = new OneMessage[16];
+        _firstNote = new OneMessage[16];
 
         int doneCh = 0;
         int pos = 0;
 
-        for (SMFMessage smf : _parser._listMessage) {
+        for (OneMessage smf : _parser._listMessage) {
             int status = smf.getStatus();
             int command = status & 0xf0;
             int channel = status & 0x0f;
@@ -223,7 +223,7 @@ public class SMFSequencer {
 
         boolean[] reset = new boolean[MXConfiguration.TOTAL_PORT_COUNT];
 
-        SortedArray<SMFMessage> list = _parser._listMessage;
+        SortedArray<OneMessage> list = _parser._listMessage;
         int pos = 0;
 
         for (int i = 0; i < list.size(); ++i) {
@@ -234,7 +234,7 @@ public class SMFSequencer {
         }
 
         for (int i = pos; i < list.size(); ++i) {
-            SMFMessage message = list.get(i);
+            OneMessage message = list.get(i);
             if (reset[message._port] == false) {
                 reset[message._port] = true;
                 if (_startMilliSeconds == 0) {
@@ -287,7 +287,7 @@ public class SMFSequencer {
             }
 
             while (!_stopAll && !_stopPlayer && list.get(pos)._millisecond <= elapsed) {
-                SMFMessage currentEvent = list.get(pos++);
+                OneMessage currentEvent = list.get(pos++);
 
                 smfPlayNote(currentEvent);
                 if (pos >= list.size()) {
@@ -319,24 +319,22 @@ public class SMFSequencer {
             }
             synchronized (SMFSequencer.this) {
                 for (int i = start; i <= end; ++i) {
-                    SMFMessage message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
+                    OneMessage message = new OneMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
                     message._port = port;
                     smfPlayNote(message);
-                    message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 127);
+                    message = new OneMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 127);
                     message._port = port;
                     smfPlayNote(message);
-                    message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_EXPRESSION, 127);
+                    message = new OneMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_EXPRESSION, 127);
                     message._port = port;
                     smfPlayNote(message);
-                    message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_CHANNEL_VOLUME, 127);
+                    message = new OneMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_CHANNEL_VOLUME, 127);
                     message._port = port;
                     smfPlayNote(message);
                 }
                 MXTemplate temp = MXMidi.TEMPLATE_MASTERVOLUME;
                 MXMessage msg1 = MXMessageFactory.fromTemplate(0, temp, 0, MXRangedValue.ZERO7, MXRangedValue.new7bit(127));
-                byte[] reset = msg1.getBinary();
-
-                SMFMessage mesasge = new SMFMessage(0, reset);
+                OneMessage mesasge = msg1.toOneMessage(0);
                 smfPlayNote(mesasge);
             }
         }
@@ -353,14 +351,14 @@ public class SMFSequencer {
             chTo = _forceSingleChannel;
         }
         for (int i = chFrom; i <= chTo; ++i) {
-            SMFMessage message;
-            message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
+            OneMessage message;
+            message = new OneMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
             message._port = port;
             smfPlayNote(message);
-            message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 0);
+            message = new OneMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 0);
             message._port = port;
             smfPlayNote(message);
-            message = new SMFMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLSOUNDOFF, 0);
+            message = new OneMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLSOUNDOFF, 0);
             message._port = port;
             smfPlayNote(message);
         }
@@ -380,7 +378,7 @@ public class SMFSequencer {
 
     public long getMaxMilliSecond() {
         long t = 0;
-        ArrayList<SMFMessage> list = _parser._listMessage;
+        ArrayList<OneMessage> list = _parser._listMessage;
         if (list.isEmpty() == false) {
             t = list.get(list.size() - 1)._millisecond;
         }
@@ -391,7 +389,7 @@ public class SMFSequencer {
     int _forceSingleChannel = -1;
     SMFCallback _callback;
 
-    void smfPlayNote(SMFMessage smf) {
+    void smfPlayNote(OneMessage smf) {
         try {
             if (smf.isBinaryMessage()) {
                 _callback.smfPlayNote(smf);
@@ -400,7 +398,7 @@ public class SMFSequencer {
                     _callback.smfPlayNote(smf);
                 } else {
                     boolean skip = true;
-                    int dword = smf.toDwordMessage();
+                    int dword = smf.getDWORD();
 
                     int status = (dword >> 16) & 0xff;
                     int data1 = (dword >> 8) & 0xff;
@@ -446,8 +444,8 @@ public class SMFSequencer {
     }
 
     public long getFirstNoteMilliSecond() {
-        ArrayList<SMFMessage> list = _parser._listMessage;
-        for (SMFMessage smf : list) {
+        ArrayList<OneMessage> list = _parser._listMessage;
+        for (OneMessage smf : list) {
             int command = smf.getStatus() & 0xf0;
             if (command == MXMidi.COMMAND_CH_NOTEON) {
                 return smf._millisecond;
@@ -475,25 +473,12 @@ public class SMFSequencer {
             _startRecord = timing;
         }
         timing -= _startRecord;
-        if (message.isBinaryMessage()) {
-            byte[] data = message.getBinary();
-            SMFMessage smf = new SMFMessage(0, data);
+        for (int i = 0; i < message.countOneMessage(); ++i) {
+            OneMessage smf = message.toOneMessage(i);
             smf._millisecond = timing;
             smf._port = message.getPort();
             _parser._listMessage.insertSorted(smf);
-        } else {
-            for (int i = 0; i < message.getDwordCount(); ++i) {
-                int dword = message.getAsDword(i);
-                int status = (dword >> 16) & 0xff;
-                int data1 = (dword >> 8) & 0xff;
-                int data2 = dword & 0xff;
-                SMFMessage smf = new SMFMessage(0, status, data1, data2);
-                smf._millisecond = timing;
-                smf._port = message.getPort();
-                _parser._listMessage.insertSorted(smf);
-            }
         }
-
     }
 
     public synchronized void stopRecording() {
@@ -533,13 +518,13 @@ public class SMFSequencer {
         if (directory.isDirectory() == false) {
             return false;
         }
-        SortedArray<SMFMessage> merge = new SortedArray<>();
+        SortedArray<OneMessage> merge = new SortedArray<>();
         for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
             File f = new File(directory, directory.getName() + "-" + MXMidi.nameOfPortInput(port) + ".mid");
             if (f.isFile()) {
                 try {
                     SMFParser parser = new SMFParser(f);
-                    for (SMFMessage seek : parser._listMessage) {
+                    for (OneMessage seek : parser._listMessage) {
                         seek._port = port;
                         merge.add(seek);
                     }
@@ -549,7 +534,7 @@ public class SMFSequencer {
             }
         }
         _parser._listMessage.clear();
-        for (SMFMessage seek : merge) {
+        for (OneMessage seek : merge) {
             _parser._listMessage.insertSorted(seek);
         }
         return true;
@@ -557,7 +542,7 @@ public class SMFSequencer {
 
     public long getSongLength() {
         try {
-            SMFMessage message = _parser._listMessage.get(_parser._listMessage.size() - 1);
+            OneMessage message = _parser._listMessage.get(_parser._listMessage.size() - 1);
             return message._millisecond;
         } catch (Exception e) {
             return 0;

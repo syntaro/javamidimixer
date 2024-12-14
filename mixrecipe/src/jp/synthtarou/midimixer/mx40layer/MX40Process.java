@@ -74,7 +74,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
             }
             _inputInfo.mergeVisitant16WithVisitant(message);
 
-            if (message.isBinaryMessage()) {
+            if (message.isSysexOrMeta()) {
                 sendToNext(message);
                 return;
             }

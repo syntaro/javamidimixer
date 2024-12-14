@@ -331,7 +331,7 @@ public class MXJsonValue {
      * @param indent インデント数
      * @param str 文字バッファ
      */
-    public void doIndent(int indent, StringBuffer str) {
+    public void doIndent(int indent, StringBuilder str) {
         for (int i = 0; i < indent; ++ i) {
             str.append(" ");
         }
@@ -345,7 +345,7 @@ public class MXJsonValue {
      * @return 整形された文字列
      */
     public String formatForDisplay(boolean showDetail, int indent) {
-        StringBuffer str = new StringBuffer();
+        StringBuilder str = new StringBuilder();
         switch (_conetentsType) {
             case CONTENTS_TYPE_ARRAY:
                 if (showDetail) {
@@ -1219,7 +1219,7 @@ public class MXJsonValue {
         }
         int len = unescaped.length();
         int pos = 0;
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         try {
             while (pos < len) {
                 char ch = unescaped.charAt(pos++);
@@ -1280,7 +1280,7 @@ public class MXJsonValue {
         if (escaped == null || escaped.equals("null")) {
             return null;
         }
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         boolean inDQuote = false;
         try {
             while (pos < len) {

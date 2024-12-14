@@ -323,7 +323,7 @@ public class CXFile {
             return;
         }
 
-        StringBuffer warning = new StringBuffer();
+        StringBuilder warning = new StringBuilder();
         ArrayList<String> missingAttr = new ArrayList<>();
         ArrayList<String> undocumentedAttr = new ArrayList<>();
 
@@ -382,7 +382,7 @@ public class CXFile {
         if (isLoaded() == false) {
             return "Error, This XML Don't have '<Module>'";
         }
-        StringBuffer str = new StringBuffer();
+        StringBuilder str = new StringBuilder();
         for (CXNode node : _listWarning) {
             if (str.length() > 0) {
                 str.append("\n");

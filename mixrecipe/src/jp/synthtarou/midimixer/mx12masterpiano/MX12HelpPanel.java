@@ -107,7 +107,7 @@ public class MX12HelpPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     void showTexts() {
-        StringBuffer str = new StringBuffer();
+        StringBuilder str = new StringBuilder();
         str.append("You can use following Commands. with Gate and Value.").append("\n");
         str.append(" ").append("\n");
         str.append("Gate = Note, CCNum, DataEntry Room").append("\n");

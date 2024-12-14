@@ -231,7 +231,7 @@ public class SMFParser {
                 throw new IllegalArgumentException("Unsupported SMF Type " + type + " is not 0 nor 1 @" + file);
             }
 
-            SortedArray<SMFMessage> list = new SortedArray();
+            SortedArray<OneMessage> list = new SortedArray();
 
             for (int tr = 0; tr < trackCount; tr++) {
                 if (seekMagicNumber(smfStream, "MTrk") == false) {
@@ -257,7 +257,7 @@ public class SMFParser {
                     long step = trackStream.readVariable();
                     tick += step;
 
-                    SMFMessage message = fromStream(trackStream);
+                    OneMessage message = fromStream(trackStream);
                     if (step == 0) {
                         fileOrder++;
                     } else {
@@ -282,14 +282,14 @@ public class SMFParser {
 
                 double tickPerMillisecond = frameRate * _fileResolution / 1000;
 
-                for (SMFMessage seek : list) {
+                for (OneMessage seek : list) {
                     seek._millisecond = (long) (seek._tick / tickPerMillisecond);
                     _listMessage.add(seek);
                 }
             } else {
                 _tempoArray = new SMFTempoArray(this);
                 long lastMillisecond = 0;
-                for (SMFMessage seek : list) {
+                for (OneMessage seek : list) {
                     seek._millisecond = _tempoArray.calcMicrosecondByTick(seek._tick) / 1000;
                     lastMillisecond = seek._millisecond;
                     if (seek.getStatus() == 0xff && seek.getData1() == 0x51) {
@@ -305,11 +305,11 @@ public class SMFParser {
         }
     }
 
-    public SortedArray<SMFMessage> _listMessage;
+    public SortedArray<OneMessage> _listMessage;
     static int _runningStatus = 0;
 
-    public SMFMessage fromStream(SMFStreamForTrack child) {
-        SMFMessage message = null;
+    public OneMessage fromStream(SMFStreamForTrack child) {
+        OneMessage message = null;
 
         int status = child.peek();
         if (status < 0x80) {
@@ -329,12 +329,12 @@ public class SMFParser {
                 data1 = child.read8();
                 data2 = child.read8();
 
-                message = new SMFMessage(0, status, data1, data2);
+                message = new OneMessage(0, status, data1, data2);
                 break;
             case 0xC0:
             case 0xD0:
                 data1 = child.read8();
-                message = new SMFMessage(0, status, data1, 0);
+                message = new OneMessage(0, status, data1, 0);
                 break;
             case 0xF0:
                 // sys-ex or meta
@@ -350,7 +350,7 @@ public class SMFParser {
                         sysexData[0] = (byte) status;
                         child.readBuffer(sysexData, 1, sysexLength);
 
-                        message = new SMFMessage(0, sysexData);
+                        message = OneMessage.thisBuffer(0, sysexData);
                         break;
 
                     case MXMidi.COMMAND_META_OR_RESET:
@@ -365,7 +365,7 @@ public class SMFParser {
                         metaData[1] = (byte) metaType;
                         child.readBuffer(metaData, 2, metaLength);
 
-                        message = new SMFMessage(0, metaData);
+                        message = OneMessage.thisBuffer(0, metaData);
                         break;
                     default:
                         message = null;
@@ -379,8 +379,10 @@ public class SMFParser {
         return message;
     }
 
-    public void toStream(SMFOutputStream out, SMFMessage message) throws IOException {
-
+    public void toStream(SMFOutputStream out, OneMessage message) throws IOException {
+        if (message == null) {
+            return;
+        }
         out.write8(message.getStatus());
 
         switch (message.getStatus() & 0xF0) {
@@ -436,11 +438,11 @@ public class SMFParser {
     void writeFile(File file, int port) throws IOException {
         _file = null;
 
-        SortedArray<SMFMessage> list = new SortedArray<>();
+        SortedArray<OneMessage> list = new SortedArray<>();
         canonicalizeWithMillisecond();
 
         int count = 0;
-        for (SMFMessage seek : _listMessage) {
+        for (OneMessage seek : _listMessage) {
             if (seek.isTempoMessage()) {
                 list.insertSorted(seek);
             } else if (seek._port == port) {
@@ -468,7 +470,7 @@ public class SMFParser {
 
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             SMFOutputStream track = new SMFOutputStream(byteStream);
-            for (SMFMessage seek : list) {
+            for (OneMessage seek : list) {
 
                 long step = seek._tick - lastTick;
                 if (step <= 0) {
@@ -479,7 +481,7 @@ public class SMFParser {
                 lastTick += step;
             }
             track.writeVariable(0);
-            toStream(track, new SMFMessage(lastTick, new byte[]{(byte) 0xff, (byte) 0x2f, 0}));
+            toStream(track, OneMessage.thisBuffer(lastTick, new byte[]{(byte) 0xff, (byte) 0x2f, 0}));
 
             int trackLength = byteStream.size();
             output.write32(trackLength);
@@ -491,7 +493,7 @@ public class SMFParser {
 
     public void canonicalizeWithMillisecond() {
         _tempoArray = new SMFTempoArray(this);
-        for (SMFMessage seek : _listMessage) {
+        for (OneMessage seek : _listMessage) {
             long millisecond = seek._millisecond;
             seek._tick = _tempoArray.calcTicksByMicrosecond(millisecond * 1000);
             if (seek.getStatus() == 0xff && seek.getData1() == 0x51) {
@@ -519,11 +521,11 @@ public class SMFParser {
         }
 
         for (int i = 0; i < _listMessage.size(); ++i) {
-            SMFMessage smf = _listMessage.get(i);
+            OneMessage smf = _listMessage.get(i);
             if (smf.isBinaryMessage()) {
                 continue;
             }
-            int msg = smf.toDwordMessage();
+            int msg = smf.getDWORD();
 
             int status = (msg >> 16) & 0xff;
             int ch = status & 0x0f;

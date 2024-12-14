@@ -21,7 +21,7 @@ package jp.synthtarou.libs.smf;
  * @author Syntarou YOSHIDA
  */
 public interface SMFCallback {
-    public void smfPlayNote(SMFMessage e);
+    public void smfPlayNote(OneMessage e);
     public void smfStarted();
     public void smfStoped(boolean fineFinish);
     public void smfProgress(long pos, long finish);

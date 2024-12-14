@@ -85,7 +85,7 @@ public class MXPianoHarmony {
         }
         
         public String toString(int note, int octave) {
-            StringBuffer str = new StringBuffer();
+            StringBuilder str = new StringBuilder();
             str.append(_noteNameList[note]);
             str.append(_name);
             ArrayList<Integer> list = toNoteList(note, octave);

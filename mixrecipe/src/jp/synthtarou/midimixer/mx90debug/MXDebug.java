@@ -23,6 +23,7 @@ import java.util.logging.Level;
 import javax.swing.JPanel;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.log.MXFileLogger;
+import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
@@ -60,12 +61,14 @@ public abstract class MXDebug {
                 MXMIDIIn.DEBUGGER.receiveExMessage(message, message);
             }
             else{
-                if (message.getDwordCount() == 0) {
-                    byte[] data = message.getBinary();
-                    MXMIDIIn.DEBUGGER.receiveLongMessage(message, data);
-                } else {
-                    for (int i = 0; i < message.getDwordCount(); ++i) {
-                        int dword = message.getAsDword(i);
+                int count = message.countOneMessage();
+                for (int i = 0; i < count; ++ i) {
+                    OneMessage one = message.toOneMessage(i);
+                    if(one.isBinaryMessage()) {
+                        byte[] data = message.toOneMessage(0).getBinary();
+                        MXMIDIIn.DEBUGGER.receiveLongMessage(message, data);
+                    }else {
+                        int dword = one.getDWORD();
                         MXMIDIIn.DEBUGGER.receiveShortMessage(message, dword);
                     }
                 }
@@ -90,13 +93,14 @@ public abstract class MXDebug {
 
     public MXDebug(List<MXMessage> target) {
         MX12Process process = MXMain.getMain().getMasterkeyProcess();
+        MXMIDIIn.queueMustEmpty();
+        System.out.println("result before start " + _result.size());
         process.startDebug(_result);
         for (MXMessage seek : target) {
             _input.add(seek);
             MXMain.getMain().getMasterkeyProcess().sendCCAndGetResult(seek, _debugProcess);
         }
         MXMIDIIn.queueMustEmpty();
-        checkResult();
         if (_interval >= 1) {
             try {
                 synchronized (this) {
@@ -106,6 +110,8 @@ public abstract class MXDebug {
                 ex.printStackTrace();;
             }
         }
+        System.out.println("result after end " + _result.size() +" => "+ _result);
+        checkResult();
     }
 
     // overrider it
@@ -154,25 +160,16 @@ public abstract class MXDebug {
                         + ", input port = " + message1.getPort(), new Exception());
             }
 
-            if (message1.getDwordCount() != message2.getDwordCount()) {
-                MXFileLogger.getLogger(MXDebug.class).log(Level.SEVERE, "Error output dword length = " + message2.getDwordCount()
-                        + ", input dword length = " + message1.getDwordCount(), new Exception());
-            } else if (message1.getDwordCount() >= 1) {
-                for (int i = 0; i < message1.getDwordCount(); ++i) {
-                    int d1 = message1.getAsDword(i);
-                    int d2 = message2.getAsDword(i);
-                    if (d1 != d2) {
-                        MXFileLogger.getLogger(MXDebug.class).log(Level.SEVERE, "Error output dword[" + i + "] = " + MXUtil.dumpDword(d2)
-                                + ", input dword[" + i + "] = " + MXUtil.dumpDword(d1), new Exception());
-                    }
-                }
-            } else {
-                byte[] data1 = message1.getBinary();
-                byte[] data2 = message1.getBinary();
-                for (int i = 0; i < data1.length; ++i) {
-                    if (data1[i] != data2[i]) {
-                        MXFileLogger.getLogger(MXDebug.class).log(Level.SEVERE, "Error output bin[" + i + "] = "
-                                + MXUtil.dumpDword(data1[i]) + "<>" + MXUtil.dumpDword(data2[i]), new Exception());
+            if (message1.countOneMessage() != message2.countOneMessage()) {
+                MXFileLogger.getLogger(MXDebug.class).log(Level.SEVERE, "Error output length = " + message2.countOneMessage()
+                        + ", input length = " + message1.countOneMessage(), new Exception());
+            } else if (message1.countOneMessage() >= 1) {
+                for (int i = 0; i < message1.countOneMessage(); ++i) {
+                    OneMessage m1 = message1.toOneMessage(i);
+                    OneMessage m2 = message2.toOneMessage(i);
+                    if (m1.compareTo(m2) != 0) {
+                        MXFileLogger.getLogger(MXDebug.class).log(Level.SEVERE, "Error output[" + i + "] = " + m2.toMXMessage()
+                            + ", input[" + i + "] = " + m1.toString(), new Exception());
                     }
                 }
             }

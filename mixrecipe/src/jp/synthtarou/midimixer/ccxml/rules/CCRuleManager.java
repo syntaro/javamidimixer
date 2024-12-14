@@ -458,7 +458,7 @@ public class CCRuleManager {
     }
 
     public static void dumpRulesSub(int space, CCRuleForTag current, HashSet<CCRuleForTag> already) {
-        StringBuffer indent = new StringBuffer();
+        StringBuilder indent = new StringBuilder();
         for (int i = 0; i < space; ++ i) {
             indent.append("    ");
         }
@@ -468,7 +468,7 @@ public class CCRuleManager {
         already.add(current);
 
         List<CCRuleForAttribute> listAttributes = current.listAttributes();
-        StringBuffer strAttributes = new StringBuffer();
+        StringBuilder strAttributes = new StringBuilder();
         for (CCRuleForAttribute attribute : listAttributes) {
             if (strAttributes.length() > 0) {
                 strAttributes.append(", ");

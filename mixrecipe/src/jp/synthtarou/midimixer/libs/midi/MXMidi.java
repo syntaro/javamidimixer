@@ -627,7 +627,7 @@ public class MXMidi {
     }
     
     public static String noteListToText(int[] note) {
-        StringBuffer str = new StringBuffer();
+        StringBuilder str = new StringBuilder();
         for (int i = 0; i < note.length; ++ i) {
             str.append(MXMidi.nameOfNote(note[i]));
             str.append(" ");

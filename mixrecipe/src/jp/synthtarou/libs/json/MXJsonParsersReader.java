@@ -153,7 +153,7 @@ public class MXJsonParsersReader {
      */
     public String readFileImpl(File file, String encoding) throws FileNotFoundException, IOException {
         InputStream in = null;
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         try {
             in = new BufferedInputStream(new FileInputStream(file));
             BufferedReader r = new BufferedReader(new InputStreamReader(in, encoding));
@@ -220,7 +220,7 @@ public class MXJsonParsersReader {
     public String readPartial() {
         boolean inDQuote = false;
         boolean inComment = false;
-        StringBuffer text = new StringBuffer();
+        StringBuilder text = new StringBuilder();
         if (peek() == '"') {
             inDQuote = true;
             text.append("\"");

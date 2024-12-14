@@ -17,6 +17,7 @@
 package jp.synthtarou.midimixer.libs.midi.driver;
 
 import java.util.ArrayList;
+import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 
 /**
@@ -124,13 +125,7 @@ public class MXDriver_NotFound implements MXDriver {
     }
 
     @Override
-    public boolean OutputShortMessage(int port, int message) {
+    public boolean OutputOneMessage(int port, OneMessage message) {
         return false;
     }
-
-    @Override
-    public boolean OutputLongMessage(int port, byte[] data) {
-        return false;
-    }
-    
 }

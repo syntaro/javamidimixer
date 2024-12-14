@@ -216,7 +216,7 @@ public class SysEXFile {
     }
 
     public void bind(JTextArea area) {
-        StringBuffer text = new StringBuffer();
+        StringBuilder text = new StringBuilder();
         int  count = 1; 
         for (byte[] data : _contents) {
             text.append(count + " = " + data.length + " bytes)\n");

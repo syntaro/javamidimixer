@@ -132,7 +132,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
     @Override
     public boolean writeINIFile(File custom) {
         MXINIFile setting = prepareINIFile(custom);
-        StringBuffer circle = new StringBuffer();
+        StringBuilder circle = new StringBuilder();
         for (int i = 0; i < _visibleKnob.length; ++i) {
             if (_visibleKnob[i]) {
                 if (circle.length() != 0) {
@@ -141,7 +141,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
                 circle.append(i + 1);
             }
         }
-        StringBuffer pad = new StringBuffer();
+        StringBuilder pad = new StringBuilder();
         for (int i = 0; i < _visiblePad.length; ++i) {
             if (_visiblePad[i]) {
                 if (pad.length() != 0) {
@@ -416,7 +416,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
         MXJsonParser parser = new MXJsonParser(custom);
         MXJsonValue.HelperForStructure root = parser.getRoot().new HelperForStructure();
 
-        StringBuffer circle = new StringBuffer();
+        StringBuilder circle = new StringBuilder();
         for (int i = 0; i < _visibleKnob.length; ++i) {
             if (_visibleKnob[i]) {
                 if (circle.length() != 0) {
@@ -425,7 +425,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
                 circle.append(i + 1);
             }
         }
-        StringBuffer pad = new StringBuffer();
+        StringBuilder pad = new StringBuilder();
         for (int i = 0; i < _visiblePad.length; ++i) {
             if (_visiblePad[i]) {
                 if (pad.length() != 0) {

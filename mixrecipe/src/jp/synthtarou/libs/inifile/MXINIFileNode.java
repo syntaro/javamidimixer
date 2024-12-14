@@ -232,7 +232,7 @@ public class MXINIFileNode {
     }
 
     protected void recuesiveDump(Writer writer, int indent, TreeSet registered) throws IOException {
-        StringBuffer text = new StringBuffer();
+        StringBuilder text = new StringBuilder();
         boolean wasnum = false;
         boolean first = true;
         for (String e : _path) {
@@ -240,7 +240,7 @@ public class MXINIFileNode {
                 if (wasnum) {
                 }else {
                 }
-                text.append("[" + e + "]");
+                text.append("[").append(e).append("]");
                 wasnum = true;
                 first = false;
             }else {

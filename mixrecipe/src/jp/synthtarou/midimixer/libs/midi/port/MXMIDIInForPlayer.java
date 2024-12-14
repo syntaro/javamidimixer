@@ -25,7 +25,7 @@ import java.util.logging.Level;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_PlayList;
-import jp.synthtarou.libs.smf.SMFMessage;
+import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.libs.smf.SMFSequencer;
 import jp.synthtarou.libs.smf.SMFCallback;
 import jp.synthtarou.libs.SortedArray;
@@ -81,13 +81,13 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
             }
             else {
                 SMFSequencer player = new SMFSequencer(file);
-                SortedArray<SMFMessage> listMessage = player.listMessage();
+                SortedArray<OneMessage> listMessage = player.listMessage();
 
                 ret.add("SongLength: " + MXUtil.digitalClock(player.getMaxMilliSecond()));
                 ret.add("SMPTE: " + player.getSMPTEFormat());
                 ret.add("Resolution : " + player.getResolution());
 
-                for (SMFMessage message : listMessage) {
+                for (OneMessage message : listMessage) {
                     if (message.getStatus() != 0xff) {
                         continue;
                     }
@@ -130,12 +130,12 @@ public class MXMIDIInForPlayer extends MXMIDIIn {
         _gotBreak = false;
         _sequencer.startPlayerThread(position, new SMFCallback() {
             @Override
-            public void smfPlayNote(SMFMessage smf) {
+            public void smfPlayNote(OneMessage smf) {
                  try {
                     if (smf.isBinaryMessage()) {
                         receiveLongMessage(null, smf.getBinary());
                     }else {
-                        int dword = smf.toDwordMessage();
+                        int dword = smf.getDWORD();
                         receiveShortMessage(null, dword);
                     }
                      parent.smfPlayNote(smf);

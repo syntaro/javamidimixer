@@ -246,7 +246,7 @@ public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
         MXNamedObjectList<MXMIDIOut> all = listAllOutput();
         int x = 0;
         for (MXMIDIOut e : all.valueList()) {
-            StringBuffer assigned = new StringBuffer();
+            StringBuilder assigned = new StringBuilder();
             for (int p = 0; p < MXConfiguration.TOTAL_PORT_COUNT; ++p) {
                 if (e.isPortAssigned(p)) {
                     if (assigned.length() > 0) {
@@ -343,7 +343,7 @@ public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
 
         MXNamedObjectList<MXMIDIOut> listOut = listAllOutput();
         for (MXMIDIOut e : listOut.valueList()) {
-            StringBuffer assigned = new StringBuffer();
+            StringBuilder assigned = new StringBuilder();
             for (int p = 0; p < MXConfiguration.TOTAL_PORT_COUNT; ++p) {
                 if (e.isPortAssigned(p)) {
                     if (assigned.length() > 0) {

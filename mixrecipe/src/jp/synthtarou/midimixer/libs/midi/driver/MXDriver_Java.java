@@ -29,6 +29,7 @@ import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
+import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 
@@ -85,7 +86,7 @@ public class MXDriver_Java implements MXDriver {
                     String charset3 = System.getProperty("sun.jnu.encoding");
                     String name3 = new String(name.getBytes(charset3), charset3);
                     if (!name.equals(name2) || !name.equals(name3)) {
-                        StringBuffer out = new StringBuffer();
+                        StringBuilder out = new StringBuilder();
                         for (int x = 0; x < name.length(); ++x) {
                             int ch = name.charAt(x);
                             out.append(Integer.toHexString(ch));
@@ -265,88 +266,85 @@ public class MXDriver_Java implements MXDriver {
         _listOutput.get(x).close();
     }
 
-    public boolean OutputShortMessage(int x, int message) {
+    public boolean OutputOneMessage(int x, OneMessage one) {
         listAllOutput();
-
-        int status = (message >> 16) & 0xff;
-        if (status == 0) {
+        if (_listOutput.get(x).isOpen() == false) {
             return false;
         }
-        int data1 = (message >> 8) & 0xff;
-        int data2 = (message) & 0xff;
-        if (_listOutput.get(x).isOpen()) {
+        
+        if (one.isBinaryMessage()) {
             try {
-                ShortMessage msg = new ShortMessage(status, data1, data2);
-                _listOutput.get(x).getReceiver().send(msg, 0);
-                return true;
-            } catch (InvalidMidiDataException ex) {
-                String text = "Unknown Message: " + MXUtil.toHexFF(status) + "  " + MXUtil.toHexFF(data1) + " " + MXUtil.toHexFF(data2);
-                MXFileLogger.getLogger(MXDriver_Java.class).log(Level.WARNING, text, ex);
-            } catch (MidiUnavailableException ex) {
+                byte[] data = one.getBinary();
+                int status = (data.length > 0) ? (data[0] & 0xff) : 0;
+                switch (status) {
+                    case 0xf0:
+                    case 0xf7:
+                        try {
+                            SplittableSysexMessage msg = new SplittableSysexMessage(data);
+                            _listOutput.get(x).getReceiver().send(msg, 0);
+
+                            return true;
+                        } catch (MidiUnavailableException ex) {
+                            MXFileLogger.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
+                        } catch (InvalidMidiDataException ex) {
+                            MXFileLogger.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
+                        } catch (RuntimeException ex) {
+                            MXFileLogger.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
+                        }
+                        break;
+
+                    case 0xff:
+                        break;
+                    default:
+                        if (data.length <= 3) {
+                            int data1 = 0;
+                            int data2 = 0;
+                            if (data.length >= 2) {
+                                data1 = data[1] & 0xff;
+                            }
+                            if (data.length >= 3) {
+                                data1 = data[2] & 0xff;
+                            }
+                            if (_listOutput.get(x).isOpen()) {
+                                try {
+                                    ShortMessage msg3 = new ShortMessage(status, data1, data2);
+                                    _listOutput.get(x).getReceiver().send(msg3, 0);
+                                    return true;
+                                } catch (MidiUnavailableException ex) {
+                                    MXFileLogger.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
+                                } catch (InvalidMidiDataException ex) {
+                                    MXFileLogger.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
+                                } catch (RuntimeException ex) {
+                                    MXFileLogger.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
+                                }
+                            }
+                        }
+                        break;
+                }
+            } catch (RuntimeException ex) {
                 MXFileLogger.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
-        return false;
-    }
-
-    public boolean OutputLongMessage(int x, byte[] data) {
-        listAllOutput();
-
-        if (data == null || data.length == 0) {
-            return true;
-        }
-
-        try {
-            int status = data[0] & 0xff;
-            switch (status) {
-                case 0xf0:
-                case 0xf7:
-                    try {
-                        SplittableSysexMessage msg = new SplittableSysexMessage(data);
-                        _listOutput.get(x).getReceiver().send(msg, 0);
-
-                        return true;
-                    } catch (MidiUnavailableException ex) {
-                        MXFileLogger.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
-                    } catch (InvalidMidiDataException ex) {
-                        MXFileLogger.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
-                    } catch (RuntimeException ex) {
-                        MXFileLogger.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
-                    }
-                    break;
-
-                case 0xff:
-                    break;
-                default:
-                    if (data.length <= 3) {
-                        int data1 = 0;
-                        int data2 = 0;
-                        if (data.length >= 2) {
-                            data1 = data[1] & 0xff;
-                        }
-                        if (data.length >= 3) {
-                            data1 = data[2] & 0xff;
-                        }
-                        if (_listOutput.get(x).isOpen()) {
-                            try {
-                                ShortMessage msg3 = new ShortMessage(status, data1, data2);
-                                _listOutput.get(x).getReceiver().send(msg3, 0);
-                                return true;
-                            } catch (MidiUnavailableException ex) {
-                                MXFileLogger.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
-                            } catch (InvalidMidiDataException ex) {
-                                MXFileLogger.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
-                            } catch (RuntimeException ex) {
-                                MXFileLogger.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
-                            }
-                        }
-                    }
-                    break;
+        else {
+            int status = one.getStatus();
+            if (status == 0) {
+                return false;
             }
-        } catch (RuntimeException ex) {
-            MXFileLogger.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
+            int data1 = one.getData1();
+            int data2 = one.getData2();
+            if (_listOutput.get(x).isOpen()) {
+                try {
+                    ShortMessage msg = new ShortMessage(status, data1, data2);
+                    _listOutput.get(x).getReceiver().send(msg, 0);
+                    return true;
+                } catch (InvalidMidiDataException ex) {
+                    String text = "Unknown Message: " + MXUtil.toHexFF(status) + "  " + MXUtil.toHexFF(data1) + " " + MXUtil.toHexFF(data2);
+                    MXFileLogger.getLogger(MXDriver_Java.class).log(Level.WARNING, text, ex);
+                } catch (MidiUnavailableException ex) {
+                    MXFileLogger.getLogger(MXDriver_Java.class).log(Level.WARNING, ex.getMessage(), ex);
+                }
+            }
         }
-
         return false;
     }
 }

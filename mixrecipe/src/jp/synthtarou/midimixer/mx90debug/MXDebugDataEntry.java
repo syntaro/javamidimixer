@@ -18,8 +18,10 @@ package jp.synthtarou.midimixer.mx90debug;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.log.MXFileLogger;
+import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXMidi;
@@ -78,30 +80,33 @@ public class MXDebugDataEntry extends MXDebug {
     @Override
     public void checkResult() {
         if (_input.size() == 4) {
-            int x1 = _input.get(0).getAsDword(0);
-            int x2 = _input.get(1).getAsDword(0);
-            int x3 = _input.get(2).getAsDword(0);
-            int x4 = _input.get(3).getAsDword(0);
+            OneMessage x1 = _input.get(0).toOneMessage(0);
+            OneMessage x2 = _input.get(1).toOneMessage(0);
+            OneMessage x3 = _input.get(2).toOneMessage(0);
+            OneMessage x4 = _input.get(3).toOneMessage(0);
             
             if (_result.size() == 1) {
                 MXMessage message = _result.get(0);
-                int y1 = message.getAsDword(0);
-                int y2 = message.getAsDword(1);
-                int y3 = message.getAsDword(2);
-                int y4 = message.getAsDword(3);
+                OneMessage y1 = message.toOneMessage(0);
+                OneMessage y2 = message.toOneMessage(1);
+                OneMessage y3 = message.toOneMessage(2);
+                OneMessage y4 = message.toOneMessage(3);
 
-                if (x1 != y1 || x2 != y2 || x3 != y3 || x4 != y4) {
-                    String str1 = MXUtil.toHexFF(x1) + ", " + MXUtil.toHexFF(x2) + ", " + MXUtil.toHexFF(x3) + ", " + MXUtil.toHexFF(x4) ;
-                    String str2 = MXUtil.toHexFF(y1) + ", " + MXUtil.toHexFF(y2) + ", " + MXUtil.toHexFF(y3) + ", " + MXUtil.toHexFF(y4) ;
+                if (x1.equals(y1) == false
+                 || x2.equals(y2) == false
+                 || x3.equals(y3) == false
+                 || x4.equals(y4) == false) {
+                    String str1 = x1 + ", " + x2 + ", " + x3 + ", " + x4;
+                    String str2 = y1 + ", " + y2 + ", " + y3 + ", " + y4;
                     MXFileLogger.getLogger(MXDebugDataEntry.class).severe("fail in (" + str1 + ") out (" + str2+ ")");
                 }
             }
         }
         else {
-            MXFileLogger.getLogger(MXDebugDataEntry.class).severe("Size error in (" + _input.size() + " must be 4)" + _input);
+            MXFileLogger.getLogger(MXDebugDataEntry.class).log(Level.SEVERE, "Size error in (" + _input.size() + " must be 4)" + _input, new Throwable());
         }
         if (_result.size() != 1) {
-            MXFileLogger.getLogger(MXDebugDataEntry.class).severe("Size error out (" +_result.size() + " must be 1)");
+            MXFileLogger.getLogger(MXDebugDataEntry.class).log(Level.SEVERE, "Size error out (" +_result.size() + " must be 1)", new Throwable());
             for (int i = 0; i < _input.size(); ++ i) {
                 System.out.println("input dump"  +_input.get(i));
             }

@@ -25,21 +25,76 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
  *
  * @author Syntarou YOSHIDA
  */
-public class SMFMessage implements Comparable<SMFMessage> {
+public class OneMessage implements Comparable<OneMessage> {
+    static int calcDWord(byte[] binary) {
+        if (binary == null || binary.length <= 1 || binary.length > 3) {
+            return 0;
+        }
+        int status = binary[0] & 0xff;
+        if (status == MXMidi.COMMAND_SYSEX
+         || status == MXMidi.COMMAND_SYSEX_END
+         || status == MXMidi.COMMAND_META_OR_RESET) {
+            return 0;
+        }
 
-    public SMFMessage(long tick, int status, int data1, int data2) {
-        this(tick, new byte[]{(byte) status, (byte) (data1 & 0x7f), (byte) (data2 & 0x7f)});
+        int c1 = binary.length > 1 ? (binary[1] & 0xff) : 0;
+        int c2 = binary.length > 2 ? (binary[2] & 0xff) : 0;
+        int x = (status << 16) | (c1 << 7) | c2;
+        return x;
     }
 
-    public SMFMessage(long tick, byte[] binary) {
+    public static OneMessage cloneBuffer(long tick, byte[] binary) {
+        byte[] cbuf = new byte[binary.length];
+        for (int i  = 0; i < cbuf.length; ++ i) {
+            cbuf[i] = binary[i];
+        }
+        return new OneMessage(tick, cbuf);
+    }
+
+    public static OneMessage thisBuffer(long tick, byte[] binary) {
+        if (binary.length == 0) {
+            return null;
+        }
+        return new OneMessage(tick, binary);
+    }
+    
+    public static OneMessage thisCodes(long tick, int status, int data1, int data2) {
+        return new OneMessage(tick, status, data1, data2);
+    }
+
+    public OneMessage(long tick, int status, int data1, int data2) {
+        _tick = tick;
+        if (status == 0) {
+            new Throwable().printStackTrace();;
+        }
+        if (status == MXMidi.COMMAND_SYSEX
+         || status == MXMidi.COMMAND_SYSEX_END
+         || status == MXMidi.COMMAND_META_OR_RESET) {
+            _dword = 0;
+            _binary = new byte[] { (byte)status, (byte)data1, (byte)data2 };
+        }
+        else {
+            _dword = (status << 16) | (data1 << 8) | data2;
+            _binary = null;
+        }
+    }
+
+    private OneMessage(long tick, byte[] binary) {
         if (binary.length == 0) {
             throw new IllegalArgumentException("NULLPO");
         }
         _tick = tick;
-        _binary = binary;
+        _dword = calcDWord(binary);
+        if (_dword == 0) {
+           _binary = binary;
+        }
+        else {
+            _binary = null;
+        }
     }
 
     private final byte[] _binary;
+    private final int _dword;
 
     public int _port = 0;
     public long _tick;
@@ -48,18 +103,36 @@ public class SMFMessage implements Comparable<SMFMessage> {
     public long _millisecond;
 
     public int getStatus() {
-        return _binary.length >= 1 ? _binary[0] & 0xff : 0;
+        if (_dword != 0) {
+            return (_dword >> 16) & 0xff;
+        }
+        if (_binary != null) {
+            return _binary.length >= 1 ? _binary[0] & 0xff : 0;
+        }
+        return 0;
     }
 
     public int getData1() {
-        return _binary.length >= 2 ? _binary[1] & 0xff : 0;
+        if (_dword != 0) {
+            return (_dword >> 8) & 0xff;
+        }
+        if (_binary != null) {
+            return _binary.length >= 2 ? _binary[1] & 0xff : 0;
+        }
+        return 0;
     }
 
     public int getData2() {
-        return _binary.length >= 3 ? _binary[2] & 0xff : 0;
+        if (_dword != 0) {
+            return _dword & 0xff;
+        }
+        if (_binary != null) {
+            return _binary.length >= 3 ? _binary[2] & 0xff : 0;
+        }
+        return 0;
     }
 
-    public String getMetaTitle() {
+    public String getMetaType() {
         if (getStatus() == 0xff) {
             switch (getData1()) {
                 case 0x00:
@@ -101,9 +174,9 @@ public class SMFMessage implements Comparable<SMFMessage> {
 
     public String getMetaText() {
         if (getStatus() == 0xff) {
-            String meta = getMetaTitle();
+            String meta = getMetaType();
             if (meta == null) {
-                return meta;
+                return null;
             }
             switch (getData1()) {
                 case 0x01:
@@ -127,7 +200,7 @@ public class SMFMessage implements Comparable<SMFMessage> {
                     meta2 = MXUtil.shrinkText(meta2);
                     return meta + " = \"" + meta2 + "\"";
                 default:
-                    StringBuffer meta3 = new StringBuffer();
+                    StringBuilder meta3 = new StringBuilder();
                     String meta4 = "";
                     for (int i = 2; i < _binary.length; ++ i) {
                         int x = _binary[i] & 0xff;
@@ -156,9 +229,24 @@ public class SMFMessage implements Comparable<SMFMessage> {
     
     public String toString() {
         if (getStatus() == 0xff) {
-            return getMetaText();
+            return "[meta:" + getMetaText() + "]";
+        } else if (_binary != null) {
+            return "[" + dumpHexFF(_binary) + "]";
+        } else if (_dword != 0) {
+            StringBuilder str = new StringBuilder();
+            int status = (_dword >> 16) & 0xff;
+            int data1 = (_dword >> 8) & 0xff;
+            int data2 = (_dword) & 0xff;
+            str.append("[");
+            str.append(toHexFF(status));
+            str.append(",");
+            str.append(toHexFF(data1));
+            str.append(",");
+            str.append(toHexFF(data2));
+            str.append("]");
+            return str.toString();
         } else {
-            return dumpHexFF(_binary);
+            return "[empty]";
         }
     }
 
@@ -174,7 +262,7 @@ public class SMFMessage implements Comparable<SMFMessage> {
     }
 
     public static String dumpHexFF(byte[] data) {
-        StringBuffer str = new StringBuffer();
+        StringBuilder str = new StringBuilder();
         for (int i = 0; i < data.length; ++i) {
             if (i != 0) {
                 str.append(" ");
@@ -188,7 +276,7 @@ public class SMFMessage implements Comparable<SMFMessage> {
         MXMessage message = null;
         int status = getStatus();
 
-        if (status >= 0x80 && status <= 0xef) {
+        if (_dword != 0) {
             message = MXMessageFactory.fromShortMessage(_port, getStatus(), getData1(), getData2());
         } else {
             message = MXMessageFactory.fromBinary(_port, getBinary());
@@ -197,9 +285,9 @@ public class SMFMessage implements Comparable<SMFMessage> {
     }
 
     @Override
-    public int compareTo(SMFMessage o) {
-        SMFMessage o1 = this;
-        SMFMessage o2 = o;
+    public int compareTo(OneMessage o) {
+        OneMessage o1 = this;
+        OneMessage o2 = o;
         long x, y, z;
         
         if (o1._tick == 0 && o2._tick == 0) {
@@ -231,21 +319,32 @@ public class SMFMessage implements Comparable<SMFMessage> {
             return 1;
         }
         
-        boolean isReset1 = MXMidi.isReset(o1.getBinary());
-        boolean isReset2 = MXMidi.isReset(o2.getBinary());
         boolean isProg1 = (o1.getStatus() & 0xf0) == MXMidi.COMMAND_CH_PROGRAMCHANGE;
         boolean isProg2 = (o2.getStatus() & 0xf0) == MXMidi.COMMAND_CH_PROGRAMCHANGE;
         boolean isBank1 = (o1.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE && (o1.getData1() == 0 || o1.getData1() == 32);
         boolean isBank2 = (o2.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE && (o2.getData1() == 0 || o2.getData1() == 32);
         
+        byte[] data1 = o1.getBinary();
+        byte[] data2 = o2.getBinary();
+
         /* リセットとバンクとプログラムは早めに送信する */
+        boolean isReset1 = data1 == null ? false : MXMidi.isReset(data1);
+        boolean isReset2 = data2 == null ? false : MXMidi.isReset(data2);
+
         if (isReset1 && !isReset2) {
             return -1;
         }
         if (!isReset1 && isReset2) {
             return 1;
         }
-
+        
+        if (data1 != null && data2 == null) {
+            return -1;
+        }
+        if (data1 == null && data2 != null) {
+            return 1;
+        }
+        
         if (isProg1 && !isProg2) {
             return -1;
         }
@@ -260,17 +359,26 @@ public class SMFMessage implements Comparable<SMFMessage> {
             return 1;
         }
         
-        int len = o1.getBinary().length - o2.getBinary().length;
-        if (len != 0) {
-            return len;
+        if (data1 != null && data2 != null) {        
+            int len = data1.length - data2.length;
+            if (len != 0) {
+                return len;
+            }
+            for (int i = 0; i < data1.length; ++i) {
+                x = (data1[i] & 0xff) - (data2[i] & 0xff);
+                if (x < 0) {
+                    return -1;
+                }
+                if (x > 0) {
+                    return 1;
+                }
+            }
         }
-
-        for (int i = 0; i < o1.getBinary().length; ++i) {
-            x = o1.getBinary()[i] - o2.getBinary()[i];
-            if (x < 0) {
+        else {
+            if (o1._dword < o2._dword) {
                 return -1;
             }
-            if (x > 0) {
+            if (o1._dword > o2._dword) {
                 return 1;
             }
         }
@@ -299,9 +407,6 @@ public class SMFMessage implements Comparable<SMFMessage> {
 
     public boolean isBinaryMessage() {
         if (_binary != null) {
-            if (_binary.length <= 4) {
-                return false;
-            }
             return true;
         }
         return false;
@@ -311,7 +416,7 @@ public class SMFMessage implements Comparable<SMFMessage> {
         return _binary;
     }
 
-    public int toDwordMessage() {
+    public int getDWORD() {
         if (isBinaryMessage()) {
             return 0;
         }
@@ -326,6 +431,13 @@ public class SMFMessage implements Comparable<SMFMessage> {
             if (getData1() == 0x51) {
                 return true;
             }
+        }
+        return false;
+    }
+    
+    public boolean equals(Object o) {
+        if (o instanceof OneMessage) {
+            return compareTo((OneMessage)o) == 0;
         }
         return false;
     }

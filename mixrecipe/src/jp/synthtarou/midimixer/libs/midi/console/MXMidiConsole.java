@@ -84,8 +84,8 @@ public class MXMidiConsole extends DefaultListModel<MXMidiConsoleElement> {
                 MXMessage message = value.getMessage();
 
                 var = message.toStringMessageInfo(2);
-                if (message.isBinaryMessage()) {
-                    var += "\"" + MXUtil.dumpHex(message.getBinary()) + "\"";
+                if (message.isSysexOrMeta()) {
+                    var += "\"" + message.toOneMessage(0).toString() + "\"";
                 }
                 String gateValue = message.toStringGateValue();
                 if (gateValue.isEmpty() == false) {
