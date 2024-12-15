@@ -582,7 +582,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
             }
             PlayListDX playList = _playListProcess._viewData._playListModel;
             for (File file : selected) {
-                playList.addAsFile(file);
+                playList.addFile(file);
             }
         } else {
             MXFileChooser chooser = new MXFileChooser();
@@ -597,7 +597,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
 
             File file = chooser.getSelectedFile();
             PlayListDX playList = _playListProcess._viewData._playListModel;
-            playList.addAsFile(file);
+            playList.addFile(file);
         }
 
     }//GEN-LAST:event_jButtonAddActionPerformed

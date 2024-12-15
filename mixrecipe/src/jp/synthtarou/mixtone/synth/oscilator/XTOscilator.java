@@ -1,11 +1,21 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Copyright (C) 2024 Syntarou YOSHIDA
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package jp.synthtarou.mixtone.synth.oscilator;
 
-import java.util.ArrayList;
-import jp.synthtarou.mixtone.listmodel.ListModelINSTSHDRProperty;
 import jp.synthtarou.mixtone.synth.soundfont.SFZElement;
 import static jp.synthtarou.mixtone.synth.oscilator.XTEnvelope.sampleRate;
 import jp.synthtarou.mixtone.synth.soundfont.XTFile;
@@ -22,60 +32,14 @@ public class XTOscilator {
     SFZElement.SFZElement_sm24 _sm24;
 
     long _oscStartTime;
-    long _oscReleaseTime;
+    long _oscStopTime;
     
-    double _samplePlayPos;
-    double _samplePlaySpeed;
+    long _totalFrame;
     
     double _limitVolume;
 
-    boolean _oscReadyRelease;
     boolean _oscInLoop;
     boolean _oscInRelease;
-    
-    public long recalcPlayPos() {
-        int startOffset = 0;
-        int endOffset = _end - _start;
-        int loopStartOffset = _loopStart - _start;
-        int loopEndOffset = _loopEnd - _start;
-        int fontFrames = (int)_samplePlayPos;
-
-        //in Attack
-        if (fontFrames < loopStartOffset) {
-            return fontFrames;
-        }
-
-        // check releasing 
-        if (_samplePlayPos > loopEndOffset) {
-            if (_loop == false) {
-                _oscReadyRelease = true;
-                _oscInRelease = true;
-            }
-        }
-
-        // in Relase
-        if (_oscInRelease) {
-            // check end
-            if (fontFrames > endOffset) {
-                return -1;
-            }
-            return fontFrames;
-        }
-
-        if (_oscReadyRelease) {
-            //exiting loop
-            if (_samplePlayPos > loopEndOffset) {
-                _oscInRelease = true;
-            }
-        }else {
-            //looping 
-            while (_samplePlayPos > loopEndOffset) {
-                _samplePlayPos -= loopEndOffset - loopStartOffset + 1;
-            }
-        }
-        fontFrames = (int)_samplePlayPos;
-        return fontFrames;
-    }
     
     public final String _name;
     public final boolean _loop;
@@ -93,6 +57,7 @@ public class XTOscilator {
     public final int _sampleLink;
     public final int _type;
     public final XTRow _row;
+    public OscilatorPosition _pos;
     
     public XTOscilator(int playKey, XTFile sfz, int sampleId, boolean loop, int overridingRootKey) {
         _sfz = sfz;
@@ -130,19 +95,9 @@ public class XTOscilator {
             playKey = sampleKey;
         }
        
-        if (sampleKey >= 0x80) {
-            _samplePlaySpeed = 1.0;
-        }
-        else {
-            double sampleFrequency = 440 * Math.pow(2, (sampleKey-69) / 12.0);
-            double playFrequency = 440 * Math.pow(2, (playKey-69) / 12.0);
-            _samplePlaySpeed = (_sampleRate / 44100.0) * playFrequency / sampleFrequency;
-        }
-        
         _oscStartTime = System.currentTimeMillis();
-        _oscReleaseTime = -1;
-        _beforeX = -1;
-        _samplePlayPos = 0;
+        _oscStopTime = -1;
+        _totalFrame = 0;
 
         int min = 100000;
         int max = -100000;
@@ -152,48 +107,46 @@ public class XTOscilator {
             if (min > x) min = x;
         }
         _limitVolume = 0.2 / (max - min);
+        _pos = new OscilatorPosition(_sampleRate, sampleKey, playKey);
+
         initEnvelope();
     }
 
-    long _beforeX;
-
-    public double nextValueOfOscilator(){
-        long x = recalcPlayPos();
-        if (x >= 0 && _beforeX > x) {
-            if (_loop == false) {
-                _oscReadyRelease = true;
+    public double nextValueOfOscilator(long frame){
+        long x = _pos.frameToSampleoffset(frame);
+        if (x + _start >= _loopEnd) {
+            if (_loop && _loopStart < _loopEnd) {
+                while (x > _loopEnd) {
+                    long step = x - _loopEnd;
+                    step --;
+                    x = _loopStart + step;
+                }
+            }else {
                 _oscInRelease = true;
-            }
-            if (_oscReadyRelease) {
-                _oscInRelease = true;
-                x = recalcPlayPos();
             }
         }
-        if (x < 0) {
+        if (x + _start >= _end) {
             long tick = System.currentTimeMillis();
-            _oscReleaseTime = tick;
+            _oscStopTime = tick;
             return 0;
         }
-        _samplePlayPos += _samplePlaySpeed;
-        _beforeX = x;
         int smpl = _smpl.getSample16((int)(_start + x));
         return smpl * _limitVolume;
     }
 
     XTEnvelope _ampEnv;
-    long _ampFrame;
     double _releaseOscNeeded = 0;
     double _releaseAmpNeeded = 0;
 
     public void initEnvelope() {
         _ampEnv = new XTEnvelope();
  
-        _ampEnv.setAttachSamples((long)(sampleRate * 0));
-        _ampEnv.setDecaySamples((long)(sampleRate / 4));
-        _ampEnv.setSustainLevel(0.3);
-        _ampEnv.setReleaseSamples((long)(sampleRate * 0.2));
+        _ampEnv.setAttachSamples((long)(0));
+        _ampEnv.setDecaySamples((long)(0));
+        _ampEnv.setSustainLevel(1);
+        _ampEnv.setReleaseSamples((long)(sampleRate * 0.5));
         _releaseAmpNeeded = _ampEnv._releaseSamples;
-        _releaseOscNeeded = (_end - _loopEnd) / _samplePlaySpeed;
+        _releaseOscNeeded = _pos.frameToSampleoffset(_end - _loopEnd);
     }
     
     boolean _closed = false;
@@ -205,19 +158,14 @@ public class XTOscilator {
         }
     }
     
-    public double nextValueOfAmp() {
-        if (_ampEnv.isNoteOff()) {
-            long x = _ampEnv.calcFrameTillMute();
-            if (x != Long.MIN_VALUE && x <= _releaseOscNeeded) {
-                _oscReadyRelease = true;
-            }
-        }
-        double amp = _ampEnv.getAmountAt(_ampFrame ++);
-        return nextValueOfOscilator() * amp;
+    public double nextValueWithAmp() {
+        long frame = _totalFrame ++;
+        double amp = _ampEnv.getAmountAt(frame);
+        return nextValueOfOscilator(frame) * amp;
     }
     
     public boolean isClose() {
-        return _closed || _ampEnv.isNoteFaded();
+        return _ampEnv.isNoteFaded();
     }
 
     public long _frame = 0;

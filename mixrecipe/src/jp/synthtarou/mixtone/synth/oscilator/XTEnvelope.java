@@ -1,6 +1,18 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Copyright (C) 2024 Syntarou YOSHIDA
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package jp.synthtarou.mixtone.synth.oscilator;
 
@@ -9,7 +21,7 @@ package jp.synthtarou.mixtone.synth.oscilator;
  * @author Syntarou YOSHIDA
  */
 public class XTEnvelope {
-    long _attachSamples = 0;
+    long _attackSamples = 0;
     long _decaySamples = 0;
     double _sustainLevel = 1.0;
     long _releaseSamples = 0;
@@ -24,7 +36,7 @@ public class XTEnvelope {
    
     public static void main(String[] args) {
         XTEnvelope env = new XTEnvelope();
-        env.setAttachSamples((long)sampleRate);
+        env.setAttachSamples((long)sampleRate / 4);
         env.setDecaySamples((long)sampleRate);
         env.setSustainLevel(0.5);
         env.setReleaseSamples((long)sampleRate * 2);
@@ -38,7 +50,13 @@ public class XTEnvelope {
     }
     
     public void setAttachSamples(long samples) {
-        _attachSamples = samples;
+        _attackSamples = samples;
+        if (samples == 0) {
+            _currentAmount = 1;
+        }
+        else {
+            _currentAmount = 1;
+        }
     }
 
     public void setDecaySamples(long samples) {
@@ -84,8 +102,16 @@ public class XTEnvelope {
     
     public double getAmountAt(long samples) {
         _currentSample = samples;
-        
+
         if (_noteOffSample >= 0) {
+            if (_releaseSamples == 0) {
+                return 0;
+            }
+            
+            if (_noteOffAmount == 0) {
+                return 0;
+            }
+
             double from = _noteOffAmount;
             double to = 0;
  
@@ -100,24 +126,24 @@ public class XTEnvelope {
             return _currentAmount;
         }
         
-        if (samples < _attachSamples) {
-            _currentAmount = samples * 1.0 / _attachSamples;
+        if (samples < _attackSamples) {
+            _currentAmount = samples * 1.0 / _attackSamples;
             return _currentAmount;
         }
-        if (samples < (_attachSamples + _decaySamples)) {
+        if (samples < (_attackSamples + _decaySamples)) {
             double from = 1.0;
             double to = _sustainLevel;
             
-            long spentSample = samples - _attachSamples;
+            long spentSample = samples - _attackSamples;
             double spentPercent = ((double)spentSample) / _decaySamples;
             double step = to - from;
 
             _currentAmount = from + step * spentPercent;
             return _currentAmount;
         }
-        _currentAmount = _sustainLevel;
-        return _sustainLevel;
+        else {
+            _currentAmount = _sustainLevel;
+            return _currentAmount;
+        }
     }
-    
-    
 }

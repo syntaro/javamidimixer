@@ -72,12 +72,10 @@ public class XTSynthesizerTrack {
             }
             Integer instrument = pmean.instrument();
             if (instrument == null) {
-                System.err.println("inst = null");
                 continue;
             }
             XTRow instrumentRow = _inst.get(instrument);
             if (instrumentRow == null) {
-                System.err.println("instRow = null");
                 continue;
             }
             XTTable instBag = instrumentRow.tableColumn(SFZElement.INST_BAGINDEX_TABLE);
@@ -107,7 +105,7 @@ public class XTSynthesizerTrack {
                     if (sampleId == null) {
                         continue;
                     }
-                    Integer overridingRootKey = imean.keyNum();
+                    Integer overridingRootKey = imean.overridingRootKey();
                     boolean loop = imean.sampleModes();
 
                     XTOscilator osc = new XTOscilator(key, _synth._sfz, sampleId, loop, overridingRootKey == null ? -1 : overridingRootKey);
@@ -141,8 +139,15 @@ public class XTSynthesizerTrack {
             }
             else {
                 if (numPreset != null && numPreset.intValue() == program) {
-                    if (numBank != null && numBank.intValue() == bank) {
-                        found = row;
+                    if (_track == 9) {
+                        if (numBank != null && numBank.intValue() >= 120) {
+                            found = row;
+                        }
+                    }
+                    else {
+                        if (numBank != null && numBank.intValue() == bank) {
+                            found = row;
+                        }
                     }
                 }
             }
@@ -154,8 +159,6 @@ public class XTSynthesizerTrack {
                 System.err.println("bag = null +" + _phdr_row);
                 new Throwable().printStackTrace();
             }
-        }else {
-            _phdr_row = null;
         }
     }
 
@@ -217,16 +220,20 @@ public class XTSynthesizerTrack {
                     _listRemove.clear();
                     for (XTOscilator seek : _listOscilator) {
                         if (seek._playKey == data1) {
-                            _listRemove.add(seek);
                             seek.noteOff();
                         }
                     }
-                    _listOscilator.removeAll(_listRemove);
 
                     break;
 
                 case MXMidi.COMMAND_CH_PROGRAMCHANGE:
-                    setupPHDRObject(data1, 0);
+                    if (_track == 9) {
+                        setupPHDRObject(data1, 128);
+                        setupPHDRObject(data1, 127);
+                    }
+                    else {
+                        setupPHDRObject(data1, 0);
+                    }
                     break;
                     
                 case MXMidi.COMMAND_CH_CONTROLCHANGE:

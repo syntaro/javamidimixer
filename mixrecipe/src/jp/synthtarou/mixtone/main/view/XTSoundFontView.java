@@ -417,7 +417,7 @@ public class XTSoundFontView extends javax.swing.JPanel {
         try {
             _synth.openSoundfont(f);
             _synth.dump(_console);
-            _synth.reset();
+            _synth.resetGM();
             listInstrument();
             listPreset();
         }catch(Throwable ex) {

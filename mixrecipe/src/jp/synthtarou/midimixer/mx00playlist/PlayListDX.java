@@ -60,11 +60,10 @@ public class PlayListDX extends DefaultListModel<PlayListElement> {
     }
 
     public void addFile(String file) {
-        _queueForAdd.push(new PlayListElement(file));
-        orderCommit();
+        addFile(new File(file));
     }
 
-    public void addAsFile(File file) {
+    public void addFile(File file) {
         _queueForAdd.push(new PlayListElement(file));
         orderCommit();
     }

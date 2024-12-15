@@ -1,6 +1,18 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Copyright (C) 2024 Syntarou YOSHIDA
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package jp.synthtarou.mixtone.synth.audio;
 
@@ -25,23 +37,32 @@ public class XTAudioStream implements LineListener {
     private final int _frame_size = 1000;
     private final int _buffer_size = 4000;
 
-    private double[] _frame_double = new double[_frame_size];
-    private byte[] _frame_16 = new byte[_frame_size * 2];
+    private double[] _frame_left = new double[_frame_size];
+    private double[] _frame_right = new double[_frame_size];
+    private byte[] _frame_16_stere = new byte[_frame_size * 2 * 2];
+    
+    static XTAudioStream _instance;
+    
+    public static XTAudioStream getInstance() {
+        if (_instance == null) {
+            _instance = new XTAudioStream();
+        }
+        return _instance;
+    }
 
-    public XTAudioStream() {
-        start();
+    private XTAudioStream() {
     }
     
     private Timer _timer;
     private TimerTask _task;
     private SourceDataLine _sourceDL;
     
-    public void start() {
+    public void startStream() {
         if (_task == null) {
             _timer = new Timer();
             _task = new TimerTask2(_timer);
-            _timer.scheduleAtFixedRate(_task ,0,1);
-            AudioFormat frmt= new AudioFormat(44100,16,1,true,false);
+            _timer.scheduleAtFixedRate(_task , 0, 1);
+            AudioFormat frmt= new AudioFormat(44100,16,2,true,false);
             DataLine.Info info= new DataLine.Info(SourceDataLine.class,frmt);
             if (_sourceDL == null) {
                 try {
@@ -63,7 +84,7 @@ public class XTAudioStream implements LineListener {
         }
     }
     
-    public void stop() {
+    public void stopStream() {
         if (_task != null) {
             _sourceDL.stop();
             _sourceDL.close();
@@ -98,6 +119,7 @@ public class XTAudioStream implements LineListener {
     public void addToQueue(XTOscilator osc) {
         synchronized (_queue) {
             _queue.add(osc);
+            //System.err.println(osc._name + " : "+  osc._playKey);
         }
     }
     
@@ -108,18 +130,37 @@ public class XTAudioStream implements LineListener {
             return false;
         }
         int now_available = _sourceDL.available();
-        if( _buffer_size - now_available < _frame_size){
-            synchronized (_queue) {
-                while(_queue.isEmpty() == false) {
-                    _oscilator.add(_queue.remove());
+        if( _buffer_size - now_available < _frame_size * 2){
+            for(int i = 0;i < _frame_size; i++) {
+                synchronized (_queue) {
+                    while(_queue.isEmpty() == false) {
+                        _oscilator.add(_queue.remove());
+                    }
                 }
-            }
-            for(int i = 0;i < _frame_double.length;i++) {
-                double value = 0;
+                double valueLeft = 0;
+                double valueRight = 0;
                 for (XTOscilator j : _oscilator) {
-                    value += j.nextValueOfAmp();
+                    double v = j.nextValueWithAmp();
+                    switch (j._type) {
+                        case 2:
+                            valueRight += v;
+                            break;
+                        case 4:
+                            valueLeft += v;
+                            break;
+                        default:
+                            valueLeft += v / 2;
+                            valueRight += v / 2;
+                            break;
+                    }
                 }
-                _frame_double[i] = value;
+                if (valueLeft < -1) valueLeft = -1;
+                if (valueRight < -1) valueRight = -1;
+                if (valueLeft > 1) valueLeft = 1;
+                if (valueRight > 1) valueRight = 1;
+                
+                _frame_left[i] = valueLeft;
+                _frame_right[i] = valueRight;
             }
 
             for (XTOscilator j : _oscilator) {
@@ -137,35 +178,16 @@ public class XTAudioStream implements LineListener {
             
             int pos = 0;
             
-            for (int x = 0; x < _frame_double.length; x ++) {
-                double signal = _frame_double[x];
-                if (signal < _streamMin) {
-                    _streamMin = signal;
-                }
-                if (signal > _streamMax) {
-                    _streamMax = signal;
-                }
+            for (int x = 0; x < _frame_size; x ++) {
+                int sampleInt_left = (int)(_frame_left[x] * (1<<6));
+                int sampleInt_right = (int)(_frame_right[x] * (1<<6));
                 
-                double dif  = _streamMax - _streamMin;
-                double newAudio = signal / (dif * 5);
-                
-                if (dif >= 10000) {
-                    _streamMax = -100;
-                    _streamMin = 100;
-                }
-                
-                int sampleInt = (int)(newAudio * (1<<7));
-                if (newAudio > 1) {
-                    sampleInt = 1 << 8;
-                }else if (newAudio < -1) {
-                    sampleInt = -(1 << 8);
-                }
-
-                _frame_16[pos ++] = (byte)((sampleInt >> 8)  & 0xff);
-                _frame_16[pos ++] = (byte)(sampleInt  & 0xff);
+                _frame_16_stere[pos ++] = (byte)((sampleInt_left >> 8)  & 0xff);
+                _frame_16_stere[pos ++] = (byte)(sampleInt_left  & 0xff);
+                _frame_16_stere[pos ++] = (byte)((sampleInt_right >> 8)  & 0xff);
+                _frame_16_stere[pos ++] = (byte)(sampleInt_right  & 0xff);
             }
-            //source.write(wave_frame,buffer_size - now_available,wave_frame.length);
-            _sourceDL.write(_frame_16,0,_frame_16.length);
+            _sourceDL.write(_frame_16_stere,0,pos);
 
             return true;
         }

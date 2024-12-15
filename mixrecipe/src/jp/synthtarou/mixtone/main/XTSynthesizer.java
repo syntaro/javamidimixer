@@ -41,9 +41,15 @@ public class XTSynthesizer {
         }
     }
     
-    public void reset() {
+    public void resetGM() {
         for (int i = 0; i < 16; ++ i) {
-           _tracks[i].setupPHDRObject(0, 0);
+            if (i == 9) {
+                _tracks[i].setupPHDRObject(0, 127);
+                _tracks[i].setupPHDRObject(0, 128);
+            }
+            else {
+               _tracks[i].setupPHDRObject(0, 0);
+            }
         }
     }
     
@@ -55,9 +61,9 @@ public class XTSynthesizer {
     
     public XTAudioStream prepareAudioStream() {
         if (_audioStream == null) {
-            _audioStream = new XTAudioStream();
+            _audioStream = XTAudioStream.getInstance();
         }
-        _audioStream.start();
+        _audioStream.startStream();
         return _audioStream;
     }
     
@@ -83,7 +89,7 @@ public class XTSynthesizer {
     
     public void closeSoundFont() {
         allNoteOff();
-        _audioStream.stop();
+        _audioStream.stopStream();
         _sfz = null;
     }
     

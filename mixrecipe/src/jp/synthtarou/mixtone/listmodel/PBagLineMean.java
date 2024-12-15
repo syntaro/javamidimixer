@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 yaman
+ * Copyright (C) 2024 Syntarou YOSHIDA
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ import jp.synthtarou.mixtone.synth.soundfont.table.XTTable;
 
 /**
  *
- * @author yaman
+ * @author Syntarou YOSHIDA
  */
 public class PBagLineMean {
     final Number getAmountOfOper(XTTable pgen, int oper, Number defValue) {
