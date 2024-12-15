@@ -20,6 +20,8 @@ import jp.synthtarou.mixtone.main.view.XTSynthesizerFrame;
 import java.io.File;
 import java.io.IOException;
 import jp.synthtarou.libs.smf.OneMessage;
+import jp.synthtarou.midimixer.libs.midi.MXMessage;
+import jp.synthtarou.midimixer.libs.midi.MXMidi;
 import jp.synthtarou.mixtone.listmodel.TheConsole;
 import jp.synthtarou.mixtone.synth.audio.XTAudioStream;
 import jp.synthtarou.mixtone.synth.soundfont.XTFile;
@@ -93,15 +95,50 @@ public class XTSynthesizer {
         _sfz = null;
     }
     
+    int[] masterVolume =  { 0xf0, 0x7F, 0x7F, 0x04, 0x01, 0x11, -1, 0xF7 };
+  
     public void processMessage(OneMessage message) {
         int status = message.getStatus();
+
+        if (message.getStatus() >= 0x80 && message.getStatus() <= 0xef) {
+            if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_NOTEON) {
+
+            }
+            else if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_NOTEOFF) {
+
+            }
+            else {
+                MXMessage mx = message.toMXMessage();
+                System.out.println("Message "  + mx.getChannel() + " : " + mx.getTemplateAsText() + " gate " + mx.getGate()._value + " value " + mx.getValue()._value);
+            }
+        }
+
         if (status >= 0x80 && status <= 0xef) {
             int ch = status & 0x0f;
             _tracks[ch].processMesssage(message);
         }
         else {
-            //master volume etc TODO:
-            //?
+            if (status == 0xf0 && message.isBinaryMessage()) {
+                int detected = -1;
+                byte[] data = message.getBinary();
+                if (data.length == masterVolume.length) {
+                    for (int i = 0; i < masterVolume.length; ++ i) {
+                        int c = data[i] & 0xff;
+                        if (masterVolume[i] != c) {
+                            if (masterVolume[i] < 0) {
+                                detected = c;
+                            }
+                            else {
+                                detected = -1;
+                                break;
+                            }
+                        }
+                    }
+                    if (detected >= 0) {
+                        _audioStream._masterVolume = detected * 1.0 / 127;
+                    }
+                }
+            }
         }
     }
 }

@@ -274,10 +274,19 @@ public class OneMessage implements Comparable<OneMessage> {
 
     public MXMessage toMXMessage() {
         MXMessage message = null;
-        int status = getStatus();
 
         if (_dword != 0) {
-            message = MXMessageFactory.fromShortMessage(_port, getStatus(), getData1(), getData2());
+            int status = getStatus();
+            int data1 = getData1();
+            int data2 = getData2();
+            /*
+            if ((status & 0xf0) == MXMidi.COMMAND_CH_NOTEON) {
+                if (data2 == 0) {
+                    int ch = (status & 0x0f);
+                    status = MXMidi.COMMAND_CH_NOTEOFF | ch;
+                }
+            }*/
+            message = MXMessageFactory.fromShortMessage(_port, status, data1, data2);
         } else {
             message = MXMessageFactory.fromBinary(_port, getBinary());
         }

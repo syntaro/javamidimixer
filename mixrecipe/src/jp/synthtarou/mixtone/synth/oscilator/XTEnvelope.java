@@ -107,25 +107,25 @@ public class XTEnvelope {
             if (_releaseSamples == 0) {
                 return 0;
             }
-            
+
             if (_noteOffAmount == 0) {
                 return 0;
             }
 
             double from = _noteOffAmount;
             double to = 0;
- 
+
             long spentSample = samples - _noteOffSample;
             double spentPercent = ((double)spentSample) / _releaseSamples;
             double step = to - from;
-            
+
             double leftPercent = 1 - spentPercent;
             _tillMute = (long)(leftPercent * _releaseSamples);
-            
+
             _currentAmount = from + step * spentPercent;
             return _currentAmount;
         }
-        
+
         if (samples < _attackSamples) {
             _currentAmount = samples * 1.0 / _attackSamples;
             return _currentAmount;
@@ -133,7 +133,7 @@ public class XTEnvelope {
         if (samples < (_attackSamples + _decaySamples)) {
             double from = 1.0;
             double to = _sustainLevel;
-            
+
             long spentSample = samples - _attackSamples;
             double spentPercent = ((double)spentSample) / _decaySamples;
             double step = to - from;

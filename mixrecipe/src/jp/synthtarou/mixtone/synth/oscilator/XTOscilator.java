@@ -32,24 +32,22 @@ public class XTOscilator {
     SFZElement.SFZElement_sm24 _sm24;
 
     long _oscStartTime;
-    long _oscStopTime;
     
     long _totalFrame;
     
     double _limitVolume;
 
     boolean _oscInLoop;
-    boolean _oscInRelease;
     
     public final String _name;
-    public final boolean _loop;
+    public boolean _loop;
     
     public final int _playKey;
     public final int _sampleId;
     public final int _start;
     public final int _end;
-    public final int _loopStart;
-    public final int _loopEnd;
+    public int _loopStart;
+    public int _loopEnd;
     public final int _sampleRate;
     public final int _originalKey;
     public final int _correction;
@@ -59,11 +57,12 @@ public class XTOscilator {
     public final XTRow _row;
     public OscilatorPosition _pos;
     
-    public XTOscilator(int playKey, XTFile sfz, int sampleId, boolean loop, int overridingRootKey) {
+    public XTOscilator(int playKey, double velocity, XTFile sfz, int sampleId, boolean loop, int overridingRootKey) {
         _sfz = sfz;
         _sampleId = sampleId;
         _playKey = playKey;
         _loop = loop;
+        _velocity = velocity;
         _overridingRootKey = overridingRootKey;
 
         _shdr = (SFZElement.SFZElement_shdr)sfz.getElement("shdr");
@@ -76,6 +75,18 @@ public class XTOscilator {
         _end = _row.intColumn(SFZElement.SHDR_END);
         _loopStart = _row.intColumn(SFZElement.SHDR_LOOPSTART);
         _loopEnd = _row.intColumn(SFZElement.SHDR_LOOPEND);
+        if (_loopStart >= 0 && _loopEnd >= 0 && _start <= _loopStart && _loopStart <= _loopEnd && _loopEnd <= _end) {
+            _loop = true;
+        }
+        if (_loop && _loopStart < 0) {
+            _loopStart = _start;
+            System.err.println("fixed loopStart " + _start);
+        }
+        if (_loop && _loopEnd < 0) {
+            _loopEnd = _end;
+            System.err.println("fixed loopEnd " + _end);
+        }
+
         _sampleRate = _row.intColumn(SFZElement.SHDR_SAMPLERATE);
 
         _correction = _row.intColumn(SFZElement.SHDR_PITCHCORRECTION);
@@ -96,7 +107,6 @@ public class XTOscilator {
         }
        
         _oscStartTime = System.currentTimeMillis();
-        _oscStopTime = -1;
         _totalFrame = 0;
 
         int min = 100000;
@@ -107,27 +117,30 @@ public class XTOscilator {
             if (min > x) min = x;
         }
         _limitVolume = 0.2 / (max - min);
-        _pos = new OscilatorPosition(_sampleRate, sampleKey, playKey);
+        _pos = new OscilatorPosition(_sampleRate, sampleKey, _correction, playKey);
 
         initEnvelope();
     }
 
     public double nextValueOfOscilator(long frame){
         long x = _pos.frameToSampleoffset(frame);
-        if (x + _start >= _loopEnd) {
-            if (_loop && _loopStart < _loopEnd) {
-                while (x > _loopEnd) {
-                    long step = x - _loopEnd;
-                    step --;
-                    x = _loopStart + step;
+        if (_loopEnd >= 0 && x + _start > _loopEnd) {
+            if (_loop && _loopStart <= _loopEnd) {
+                long distance = _loopEnd - _loopStart + 1;
+                while (x > _loopEnd - _start) {
+                    x -= distance;
                 }
-            }else {
-                _oscInRelease = true;
+                if (_ampEnv.isNoteOff()) {
+                    x += distance;
+                    if (x > _end - _start) {
+                        x = _end - _start;
+                    }
+                }
+                int smpl = _smpl.getSample16((int)(_start + x));
+                return smpl * _limitVolume;
             }
         }
-        if (x + _start >= _end) {
-            long tick = System.currentTimeMillis();
-            _oscStopTime = tick;
+        if (x + _start > _end) {
             return 0;
         }
         int smpl = _smpl.getSample16((int)(_start + x));
@@ -149,11 +162,8 @@ public class XTOscilator {
         _releaseOscNeeded = _pos.frameToSampleoffset(_end - _loopEnd);
     }
     
-    boolean _closed = false;
-    
     public void noteOff() {
         if (!_ampEnv.isNoteOff()) {
-            _closed = true;
             _ampEnv.noteOff();
         }
     }
@@ -168,5 +178,16 @@ public class XTOscilator {
         return _ampEnv.isNoteFaded();
     }
 
+    public void setPan(double x) { //-1 ~ +1
+        _pan = x;
+    }
+    
+    public void setVolume(double volume) { //0~+1
+        _volume = volume;
+    }
+    
+    public double _pan;
+    public double _volume;
+    public double _velocity;
     public long _frame = 0;
 }

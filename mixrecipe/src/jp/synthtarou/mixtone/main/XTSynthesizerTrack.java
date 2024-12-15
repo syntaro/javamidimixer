@@ -43,10 +43,22 @@ public class XTSynthesizerTrack {
     SFZElement.SFZElement_inst _inst;
     XTRow _phdr_row;
     XTSynthesizer _synth;
+    double _pan;
+    double _volume;
+    double _expression;
+    double _mixing;
+    boolean _sustain;
+    ArrayList<XTOscilator> _markNoteOff;
     
     public XTSynthesizerTrack(XTSynthesizer synth, int track) {
         _synth = synth;
         _track = track;
+        _pan = 0.0;
+        _volume = 1.0;
+        _expression = 1.0;
+        _mixing = 1.0;
+        _sustain = false;
+        _markNoteOff = new ArrayList<>();
     }            
     
     public List<XTOscilator> createOscilator(int key, int velocity) {
@@ -56,6 +68,7 @@ public class XTSynthesizerTrack {
 
         XTTable table = _phdr_row.tableColumn(SFZElement.PHDR_BAGINDEX_TABLE);
         ArrayList<XTOscilator> result = new ArrayList<>();
+
         for (int row = 0; row <table.size(); ++ row) {
             PBagLineMean pmean = new PBagLineMean(table.get(row));
             if (pmean.keyRange() != null && pmean.keyRange() != 0) {
@@ -80,6 +93,7 @@ public class XTSynthesizerTrack {
             }
             XTTable instBag = instrumentRow.tableColumn(SFZElement.INST_BAGINDEX_TABLE);
             IBagLineMean root = null;
+
             for (int inst = 0; inst < instBag.size() ; ++ inst) {
                 IBagLineMean imean = new IBagLineMean(instBag.get(inst));
                 if (root == null) {
@@ -108,7 +122,9 @@ public class XTSynthesizerTrack {
                     Integer overridingRootKey = imean.overridingRootKey();
                     boolean loop = imean.sampleModes();
 
-                    XTOscilator osc = new XTOscilator(key, _synth._sfz, sampleId, loop, overridingRootKey == null ? -1 : overridingRootKey);
+                    XTOscilator osc = new XTOscilator(key, velocity * 1.0 / 127, _synth._sfz, sampleId, loop, overridingRootKey == null ? -1 : overridingRootKey);
+                    osc.setPan(_pan);
+                    osc.setVolume(_volume * _expression * _mixing * osc._velocity);
                     result.add(osc);
                 }catch(Throwable ex) {
                     System.err.println("inst "  + instBag.get(inst));
@@ -162,8 +178,6 @@ public class XTSynthesizerTrack {
         }
     }
 
-    int _note;
-    int _velocity;
     static XTGenOperatorMaster _opratorMaster = new XTGenOperatorMaster();
     
     class BindValue {
@@ -193,11 +207,12 @@ public class XTSynthesizerTrack {
     
     List<XTOscilator> _listOscilator = new LinkedList<>();
     ArrayList<XTOscilator> _listRemove = new ArrayList<>();
-   
+
     public void processMesssage(OneMessage message) {
         int status = message.getStatus();
         int data1 = message.getData1();
         int data2 = message.getData2();
+        
         if (status >= 0x80 && status <= 0xef) {
             int ch = status & 0x0f;
             status = status & 0xf0;
@@ -218,9 +233,18 @@ public class XTSynthesizerTrack {
 
                 case MXMidi.COMMAND_CH_NOTEOFF:
                     _listRemove.clear();
-                    for (XTOscilator seek : _listOscilator) {
-                        if (seek._playKey == data1) {
-                            seek.noteOff();
+                    if (_sustain) {
+                        for (XTOscilator seek : _listOscilator) {
+                            if (seek._playKey == data1) {
+                                _markNoteOff.add(seek);
+                            }
+                        }
+                    }
+                    else {
+                        for (XTOscilator seek : _listOscilator) {
+                            if (seek._playKey == data1) {
+                                seek.noteOff();
+                            }
                         }
                     }
 
@@ -237,9 +261,38 @@ public class XTSynthesizerTrack {
                     break;
                     
                 case MXMidi.COMMAND_CH_CONTROLCHANGE:
+                    boolean modulated = false;
                     if (data1 == MXMidi.DATA1_CC_ALLNOTEOFF
                         || data1 == MXMidi.DATA1_CC_ALLSOUNDOFF) {
                         allNoteOff();
+                    }
+                    if (data1 == MXMidi.DATA1_CC_CHANNEL_VOLUME) {
+                        _volume = data2 * 1.0 / 127;
+                        modulated = true;
+                    }
+                    if (data1 == MXMidi.DATA1_CC_EXPRESSION) {
+                        _expression = data2 * 1.0 / 127;
+                        modulated = true;
+                    }
+                    if (data1 == MXMidi.DATA1_CC_PANPOT) {
+                        _pan = (data2 - 64) * 1.0 / 64;
+                        modulated = true;
+                    }
+                    if (modulated) {
+                        for (XTOscilator seek : _listOscilator) {
+                            seek.setPan(_pan);
+                            seek.setVolume(_volume * _expression * _mixing * seek._velocity);
+                        }
+                    }
+                    if (data1 == MXMidi.DATA1_CC_DAMPERPEDAL || data1 == MXMidi.DATA1_CC_FOOT_SOFTENUT || data1 == MXMidi.DATA1_CC_HOLD2_FREEZE ) {
+                        _sustain = (data2 != 0);
+                        if (_sustain == false) {
+                            List<XTOscilator> cont = _markNoteOff;
+                            for (XTOscilator seek : cont) {
+                                seek.noteOff();
+                            }
+                            _markNoteOff.clear();
+                        }
                     }
             }
         }

@@ -35,7 +35,7 @@ public class ListModelINSTSHDRProperty extends AbstractListModel<String>{
     public final XTRow _row;
     
     public final String _name;
-    public final boolean _loop;
+    public final boolean _doLoop;
     
     public final int _start;
     public final int _end;
@@ -51,7 +51,7 @@ public class ListModelINSTSHDRProperty extends AbstractListModel<String>{
     public ListModelINSTSHDRProperty(XTFile sfz, int sampleId, boolean loop, int overridingRootKey) {
         _sfz = sfz;
         _sampleId = sampleId;
-        _loop = loop;
+        _doLoop = loop;
         _overridingRootKey = overridingRootKey;
         _shdr = (SFZElement.SFZElement_shdr)sfz.getElement("shdr");
         _text = new ArrayList<>();
@@ -96,6 +96,6 @@ public class ListModelINSTSHDRProperty extends AbstractListModel<String>{
     }
     
     public XTOscilator newOscilator(int note) {
-        return new XTOscilator(note, _sfz, _sampleId, _loop, _overridingRootKey);
+        return new XTOscilator(note, 1.0, _sfz, _sampleId, _doLoop, _overridingRootKey);
     }
 }

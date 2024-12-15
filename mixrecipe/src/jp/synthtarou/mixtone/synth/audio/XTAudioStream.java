@@ -56,7 +56,8 @@ public class XTAudioStream implements LineListener {
     private Timer _timer;
     private TimerTask _task;
     private SourceDataLine _sourceDL;
-    
+    public double _masterVolume = 1.0;
+
     public void startStream() {
         if (_task == null) {
             _timer = new Timer();
@@ -124,6 +125,7 @@ public class XTAudioStream implements LineListener {
     }
     
     ArrayList<XTOscilator> listRemove = null;
+    int mumBit = 256;
 
     public boolean updateBuffer(){
         if (_sourceDL == null) {
@@ -141,23 +143,27 @@ public class XTAudioStream implements LineListener {
                 double valueRight = 0;
                 for (XTOscilator j : _oscilator) {
                     double v = j.nextValueWithAmp();
+                    double pan = j._pan;
+                    double vol = j._volume;
+                    
+                    double right, left;
+                    
+                    right = (pan + 1) / 2;
+                    left = (1 - pan) / 2;
+
                     switch (j._type) {
                         case 2:
-                            valueRight += v;
+                            valueRight += v * right;
                             break;
                         case 4:
-                            valueLeft += v;
+                            valueLeft += v * left;
                             break;
                         default:
-                            valueLeft += v / 2;
-                            valueRight += v / 2;
+                            valueRight += v / 2 * right;
+                            valueLeft += v / 2 * left;
                             break;
                     }
                 }
-                if (valueLeft < -1) valueLeft = -1;
-                if (valueRight < -1) valueRight = -1;
-                if (valueLeft > 1) valueLeft = 1;
-                if (valueRight > 1) valueRight = 1;
                 
                 _frame_left[i] = valueLeft;
                 _frame_right[i] = valueRight;
@@ -177,15 +183,44 @@ public class XTAudioStream implements LineListener {
             }
             
             int pos = 0;
+            int min = -10000;
+            int max = 10000;
             
             for (int x = 0; x < _frame_size; x ++) {
-                int sampleInt_left = (int)(_frame_left[x] * (1<<6));
-                int sampleInt_right = (int)(_frame_right[x] * (1<<6));
+                double sampleleft = (_frame_left[x] * mumBit);
+                double sampleright = (_frame_right[x] * mumBit);
                 
-                _frame_16_stere[pos ++] = (byte)((sampleInt_left >> 8)  & 0xff);
-                _frame_16_stere[pos ++] = (byte)(sampleInt_left  & 0xff);
-                _frame_16_stere[pos ++] = (byte)((sampleInt_right >> 8)  & 0xff);
-                _frame_16_stere[pos ++] = (byte)(sampleInt_right  & 0xff);
+                if (sampleleft > max) {
+                    mumBit -= 20;
+                    x --;
+                    continue;
+                }
+                if (sampleleft < min) {
+                    sampleleft = min;
+                    mumBit -= 20;
+                    x --;
+                    continue;
+                }
+                if (sampleright > max) {
+                    sampleright = max;
+                    mumBit -= 20;
+                    x --;
+                    continue;
+                }
+                if (sampleright < min) {
+                    sampleright = min;
+                    mumBit -= 20;
+                    x --;
+                    continue;
+                }
+            }
+            for (int x = 0; x < _frame_size; x ++) {
+                int sampleleft = (int)(_frame_left[x] * _masterVolume * mumBit);
+                int sampleright = (int)(_frame_right[x] * _masterVolume * mumBit);
+                _frame_16_stere[pos ++] = (byte)((sampleleft >> 8)  & 0xff);
+                _frame_16_stere[pos ++] = (byte)(sampleleft  & 0xff);
+                _frame_16_stere[pos ++] = (byte)((sampleright >> 8)  & 0xff);
+                _frame_16_stere[pos ++] = (byte)(sampleright  & 0xff);
             }
             _sourceDL.write(_frame_16_stere,0,pos);
 
