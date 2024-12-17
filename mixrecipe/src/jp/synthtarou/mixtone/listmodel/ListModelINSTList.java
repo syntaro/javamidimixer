@@ -32,7 +32,7 @@ public class ListModelINSTList extends AbstractListModel<String> {
     
     public ListModelINSTList(XTFile sfz) {
         _sfz = sfz;
-        _inst = (SFZElement.SFZElement_inst)sfz.getElement("inst");
+        _inst = sfz.getElement_inst();
     }
     
     public ListModelINSTBagTable getAsINSTBagTable(int x) {

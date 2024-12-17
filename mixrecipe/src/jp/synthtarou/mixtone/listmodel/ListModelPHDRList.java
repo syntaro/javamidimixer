@@ -32,7 +32,7 @@ public class ListModelPHDRList extends AbstractListModel<String>{
 
     public ListModelPHDRList(XTFile sfz) {
         _sfz = sfz;
-        _phdr = (SFZElement.SFZElement_phdr)sfz.getElement("phdr");
+        _phdr = sfz.getElement_phdr();
     }
 
     public ListModelPHDRBagTable getAsPHDRBagTable(int x) {

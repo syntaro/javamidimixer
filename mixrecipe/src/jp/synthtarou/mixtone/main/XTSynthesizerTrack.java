@@ -139,8 +139,8 @@ public class XTSynthesizerTrack {
     public void setupPHDRObject(int program, int bank) {
         _program = program;
         _bank = bank;
-        _phdr = (SFZElement.SFZElement_phdr)_synth._sfz.getElement("phdr");
-        _inst = (SFZElement.SFZElement_inst)_synth._sfz.getElement("inst");
+        _phdr = _synth._sfz.getElement_phdr();
+        _inst = _synth._sfz.getElement_inst();
         XTHeader header = _phdr.getHeader();
         XTRow found = null;
         
@@ -268,10 +268,12 @@ public class XTSynthesizerTrack {
                     }
                     if (data1 == MXMidi.DATA1_CC_CHANNEL_VOLUME) {
                         _volume = data2 * 1.0 / 127;
+                        //System.out.println("volume of ch" + _track + " " + _volume);
                         modulated = true;
                     }
                     if (data1 == MXMidi.DATA1_CC_EXPRESSION) {
                         _expression = data2 * 1.0 / 127;
+                        //System.out.println("expression of ch" + _track + " " + _expression);
                         modulated = true;
                     }
                     if (data1 == MXMidi.DATA1_CC_PANPOT) {
@@ -284,8 +286,9 @@ public class XTSynthesizerTrack {
                             seek.setVolume(_volume * _expression * _mixing * seek._velocity);
                         }
                     }
-                    if (data1 == MXMidi.DATA1_CC_DAMPERPEDAL || data1 == MXMidi.DATA1_CC_FOOT_SOFTENUT || data1 == MXMidi.DATA1_CC_HOLD2_FREEZE ) {
-                        _sustain = (data2 != 0);
+                    if (data1 == MXMidi.DATA1_CC_DAMPERPEDAL /*|| data1 == MXMidi.DATA1_CC_FOOT_SOFTENUT || data1 == MXMidi.DATA1_CC_HOLD2_FREEZE */) {
+                        _sustain = (data2 >= 0x40);
+                        System.err.println(message);
                         if (_sustain == false) {
                             List<XTOscilator> cont = _markNoteOff;
                             for (XTOscilator seek : cont) {

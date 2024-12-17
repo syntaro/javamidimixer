@@ -96,11 +96,13 @@ public class XTSynthesizer {
     }
     
     int[] masterVolume =  { 0xf0, 0x7F, 0x7F, 0x04, 0x01, 0x11, -1, 0xF7 };
-  
+    static final boolean debugMessage = false;
+    
     public void processMessage(OneMessage message) {
         int status = message.getStatus();
-
-        if (message.getStatus() >= 0x80 && message.getStatus() <= 0xef) {
+        
+        
+        if (debugMessage && message.getStatus() >= 0x80 && message.getStatus() <= 0xef) {
             if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_NOTEON) {
 
             }
@@ -136,6 +138,7 @@ public class XTSynthesizer {
                     }
                     if (detected >= 0) {
                         _audioStream._masterVolume = detected * 1.0 / 127;
+                        //System.out.println("matervolume " + _audioStream._masterVolume);
                     }
                 }
             }

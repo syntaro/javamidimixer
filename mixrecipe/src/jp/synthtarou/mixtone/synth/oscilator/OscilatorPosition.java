@@ -33,8 +33,8 @@ public class OscilatorPosition {
         _targetKey = targetKey;
         _waveSampleRate = waveSampleRate;
         
-        _waveFrequency = 440 * Math.pow(2, (_waveKey-69  - (waveCorrection / 100.0)) / 12.0);
-        _targetFrequency = 440 * Math.pow(2, (_targetKey-69) / 12.0);
+        _waveFrequency = 440 * Math.pow(2, (_waveKey-69) / 12.0 -(waveCorrection / 100.0 / 12.0));
+        _targetFrequency = 440 * Math.pow(2, (_targetKey -69) / 12.0 );
 
         /*
         System.out.println("wave " + _waveKey + " (" + _waveFrequency + "hz)");

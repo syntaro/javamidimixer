@@ -121,6 +121,46 @@ public class XTFile {
             prepareRooms(seek);
         }
     }
+
+    SFZElement.SFZElement_inst _inst = null;
+    public SFZElement.SFZElement_inst getElement_inst() {
+        if (_inst == null) {
+            _inst = (SFZElement.SFZElement_inst)getElement("inst");
+        }
+        return _inst;
+    }
+    
+    SFZElement.SFZElement_phdr _phdr = null;
+    public SFZElement.SFZElement_phdr getElement_phdr() {
+        if (_phdr == null) {
+            _phdr = (SFZElement.SFZElement_phdr)getElement("phdr");
+        }
+        return _phdr;
+    }
+    
+    SFZElement.SFZElement_shdr _shdr = null;
+    public SFZElement.SFZElement_shdr getElement_shdr() {
+        if (_shdr == null) {
+            _shdr = (SFZElement.SFZElement_shdr)getElement("shdr");
+        }
+        return _shdr;
+    }
+
+    SFZElement.SFZElement_smpl _smpl = null;
+    public SFZElement.SFZElement_smpl getElement_smpl() {
+        if (_smpl == null) {
+            _smpl = (SFZElement.SFZElement_smpl)getElement("smpl");
+        }
+        return _smpl;
+    }
+    
+    SFZElement.SFZElement_sm24 _sm24 = null;
+    public SFZElement.SFZElement_sm24 getElement_sm24() {
+        if (_sm24 == null) {
+            _sm24 = (SFZElement.SFZElement_sm24)getElement("sm24");
+        }
+        return _sm24;
+    }
     
     public SFZElement getElement(String id) {
         try {

@@ -31,12 +31,8 @@ public class XTOscilator {
     SFZElement.SFZElement_smpl _smpl;
     SFZElement.SFZElement_sm24 _sm24;
 
-    long _oscStartTime;
-    
     long _totalFrame;
     
-    double _limitVolume;
-
     boolean _oscInLoop;
     
     public final String _name;
@@ -56,6 +52,7 @@ public class XTOscilator {
     public final int _type;
     public final XTRow _row;
     public OscilatorPosition _pos;
+    public XTFilter _filter;
     
     public XTOscilator(int playKey, double velocity, XTFile sfz, int sampleId, boolean loop, int overridingRootKey) {
         _sfz = sfz;
@@ -65,12 +62,16 @@ public class XTOscilator {
         _velocity = velocity;
         _overridingRootKey = overridingRootKey;
 
-        _shdr = (SFZElement.SFZElement_shdr)sfz.getElement("shdr");
+        _sfz = sfz;
+        _shdr = _sfz.getElement_shdr();
+        _smpl = _sfz.getElement_smpl();
+        _sm24 = _sfz.getElement_sm24();
+
         _row = _shdr.get(sampleId);
         if (_row == null) {
             throw new IllegalArgumentException("sampleID " + sampleId + " overflow " + _shdr.size());
         }
-        _name = _row.textColumn(SFZElement.SHDR_NAME);
+        _name = "";//_row.textColumn(SFZElement.SHDR_NAME);
         _start = _row.intColumn(SFZElement.SHDR_START);
         _end = _row.intColumn(SFZElement.SHDR_END);
         _loopStart = _row.intColumn(SFZElement.SHDR_LOOPSTART);
@@ -88,16 +89,11 @@ public class XTOscilator {
         }
 
         _sampleRate = _row.intColumn(SFZElement.SHDR_SAMPLERATE);
-
         _correction = _row.intColumn(SFZElement.SHDR_PITCHCORRECTION);
         _sampleLink = _row.intColumn(SFZElement.SHDR_SAMPLELINK);
         _type= _row.intColumn(SFZElement.SHDR_TYPE);
         _originalKey = _row.intColumn(SFZElement.SHDR_ORIGINALPITCH);
 
-        _sfz = sfz;
-        _shdr = (SFZElement.SFZElement_shdr)_sfz.getElement("shdr");
-        _smpl = (SFZElement.SFZElement_smpl)_sfz.getElement("smpl");
-        _sm24 = (SFZElement.SFZElement_sm24)_sfz.getElement("sm24");
         int sampleKey = _originalKey;
         if (_overridingRootKey >= 0) {
             sampleKey = _overridingRootKey;
@@ -106,18 +102,9 @@ public class XTOscilator {
             playKey = sampleKey;
         }
        
-        _oscStartTime = System.currentTimeMillis();
         _totalFrame = 0;
-
-        int min = 100000;
-        int max = -100000;
-        for (int i = _start; i <= _end; ++ i) {
-            int x = _smpl.getSample16(i);
-            if (max < x) max = x;
-            if (min > x) min = x;
-        }
-        _limitVolume = 0.2 / (max - min);
         _pos = new OscilatorPosition(_sampleRate, sampleKey, _correction, playKey);
+        //_filter = new XTFilter();
 
         initEnvelope();
     }
@@ -137,14 +124,14 @@ public class XTOscilator {
                     }
                 }
                 int smpl = _smpl.getSample16((int)(_start + x));
-                return smpl * _limitVolume;
+                return smpl / 256.0;
             }
         }
         if (x + _start > _end) {
             return 0;
         }
         int smpl = _smpl.getSample16((int)(_start + x));
-        return smpl * _limitVolume;
+        return smpl / 256.0;
     }
 
     XTEnvelope _ampEnv;
@@ -153,11 +140,11 @@ public class XTOscilator {
 
     public void initEnvelope() {
         _ampEnv = new XTEnvelope();
- 
+
         _ampEnv.setAttachSamples((long)(0));
-        _ampEnv.setDecaySamples((long)(0));
-        _ampEnv.setSustainLevel(1);
-        _ampEnv.setReleaseSamples((long)(sampleRate * 0.5));
+        _ampEnv.setDecaySamples((long)(sampleRate * 0.3));
+        _ampEnv.setSustainLevel(0.6);
+        _ampEnv.setReleaseSamples((long)(sampleRate * 0.1));
         _releaseAmpNeeded = _ampEnv._releaseSamples;
         _releaseOscNeeded = _pos.frameToSampleoffset(_end - _loopEnd);
     }
@@ -170,8 +157,10 @@ public class XTOscilator {
     
     public double nextValueWithAmp() {
         long frame = _totalFrame ++;
+        double osc = nextValueOfOscilator(frame);
+        //double filt = _filter.update(osc);
         double amp = _ampEnv.getAmountAt(frame);
-        return nextValueOfOscilator(frame) * amp;
+        return osc * amp;        
     }
     
     public boolean isClose() {

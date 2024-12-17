@@ -28,19 +28,17 @@ import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
+import jp.synthtarou.mixtone.synth.oscilator.XTFilter;
+import jp.synthtarou.mixtone.synth.soundfont.XTFile;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class XTAudioStream implements LineListener {
-    private final int _frame_size = 1000;
-    private final int _buffer_size = 4000;
+    private final int _frame_size = 1024;
+    private final int _buffer_size = 2048;
 
-    private double[] _frame_left = new double[_frame_size];
-    private double[] _frame_right = new double[_frame_size];
-    private byte[] _frame_16_stere = new byte[_frame_size * 2 * 2];
-    
     static XTAudioStream _instance;
     
     public static XTAudioStream getInstance() {
@@ -58,12 +56,34 @@ public class XTAudioStream implements LineListener {
     private SourceDataLine _sourceDL;
     public double _masterVolume = 1.0;
 
+    public static int _sampleChannel = 2;
+    public static float _sampleRate = 44100;
+    public static int _sampleBits = 16;
+    public static boolean _available = true;
+
+    private double[] _frame_left = new double[_frame_size];
+    private double[] _frame_right = new double[_frame_size];
+    private byte[] _stereo = new byte[_frame_size * _sampleChannel * _sampleBits / 8];
+
+    static {
+        try {
+            AudioFormat frmt0 = AudioSystem.getClip().getFormat();
+            _sampleChannel = frmt0.getChannels();
+            _sampleRate = frmt0.getSampleRate();
+            _sampleBits = frmt0.getSampleSizeInBits();
+            System.err.print("Audio " +  _sampleRate +"hz ch:" + _sampleChannel + " (" + _sampleBits +" bit)");
+        }catch(Throwable ex) {
+            _available = false;
+            System.err.print("Audio not avail " + ex.toString());
+        }
+    }
+
     public void startStream() {
         if (_task == null) {
             _timer = new Timer();
             _task = new TimerTask2(_timer);
             _timer.scheduleAtFixedRate(_task , 0, 1);
-            AudioFormat frmt= new AudioFormat(44100,16,2,true,false);
+            AudioFormat frmt= new AudioFormat(_sampleRate, _sampleBits,_sampleChannel,true,false);
             DataLine.Info info= new DataLine.Info(SourceDataLine.class,frmt);
             if (_sourceDL == null) {
                 try {
@@ -110,7 +130,11 @@ public class XTAudioStream implements LineListener {
 
         @Override
         public void run() {
-            updateBuffer();
+            try {
+                updateBuffer();
+            }catch(Throwable ex) {
+                ex.printStackTrace();
+            }
         }
     }
     
@@ -125,7 +149,10 @@ public class XTAudioStream implements LineListener {
     }
     
     ArrayList<XTOscilator> listRemove = null;
-    int mumBit = 256;
+    double mumBit = 0.5;
+    
+    XTFilter _filterL = new XTFilter();
+    XTFilter _filterR = new XTFilter();
 
     public boolean updateBuffer(){
         if (_sourceDL == null) {
@@ -137,6 +164,12 @@ public class XTAudioStream implements LineListener {
                 synchronized (_queue) {
                     while(_queue.isEmpty() == false) {
                         _oscilator.add(_queue.remove());
+                    }
+                }
+                if (_oscilator.size() >= 100) {
+                    System.err.println("Osc Cut " + _oscilator.size());
+                    while (_oscilator.size() >= 100) {
+                        _oscilator.removeFirst();
                     }
                 }
                 double valueLeft = 0;
@@ -164,6 +197,9 @@ public class XTAudioStream implements LineListener {
                             break;
                     }
                 }
+   
+                valueLeft = _filterL.update(valueLeft);
+                valueRight = _filterR.update(valueRight);
                 
                 _frame_left[i] = valueLeft;
                 _frame_right[i] = valueRight;
@@ -183,46 +219,44 @@ public class XTAudioStream implements LineListener {
             }
             
             int pos = 0;
-            int min = -10000;
-            int max = 10000;
+            double min = -120;
+            double max = 120;
             
             for (int x = 0; x < _frame_size; x ++) {
                 double sampleleft = (_frame_left[x] * mumBit);
                 double sampleright = (_frame_right[x] * mumBit);
-                
-                if (sampleleft > max) {
-                    mumBit -= 20;
-                    x --;
-                    continue;
-                }
-                if (sampleleft < min) {
-                    sampleleft = min;
-                    mumBit -= 20;
-                    x --;
-                    continue;
-                }
-                if (sampleright > max) {
-                    sampleright = max;
-                    mumBit -= 20;
-                    x --;
-                    continue;
-                }
-                if (sampleright < min) {
-                    sampleright = min;
-                    mumBit -= 20;
+
+                if (sampleleft > max || sampleleft < min
+                 || sampleright > max || sampleright < min) {
+                    mumBit *= 0.8;
+                    System.err.println("mumBit =" + mumBit);
                     x --;
                     continue;
                 }
             }
             for (int x = 0; x < _frame_size; x ++) {
-                int sampleleft = (int)(_frame_left[x] * _masterVolume * mumBit);
-                int sampleright = (int)(_frame_right[x] * _masterVolume * mumBit);
-                _frame_16_stere[pos ++] = (byte)((sampleleft >> 8)  & 0xff);
-                _frame_16_stere[pos ++] = (byte)(sampleleft  & 0xff);
-                _frame_16_stere[pos ++] = (byte)((sampleright >> 8)  & 0xff);
-                _frame_16_stere[pos ++] = (byte)(sampleright  & 0xff);
+                long sampleleft = (long)(_frame_left[x] * _masterVolume * mumBit);
+                long sampleright = (long)(_frame_right[x] * _masterVolume * mumBit);
+                if (_sampleBits == 24) {
+                    _stereo[pos ++] = (byte)((sampleleft >> 16)  & 0xff);
+                    _stereo[pos ++] = (byte)((sampleleft >> 8)  & 0xff);
+                    _stereo[pos ++] = (byte)(sampleleft  & 0xff);
+                    _stereo[pos ++] = (byte)((sampleright >> 16)  & 0xff);
+                    _stereo[pos ++] = (byte)((sampleright >> 8)  & 0xff);
+                    _stereo[pos ++] = (byte)(sampleright  & 0xff);
+                }
+                else if (_sampleBits == 16) {
+                    _stereo[pos ++] = 0;//(byte)((sampleleft >> 8)  & 0xff);
+                    _stereo[pos ++] = (byte)(sampleleft  & 0xff);
+                    _stereo[pos ++] = 0;//(byte)((sampleright >> 8)  & 0xff);
+                    _stereo[pos ++] = (byte)(sampleright  & 0xff);
+                }
+                else if (_sampleBits == 8) {
+                    _stereo[pos ++] = (byte)(sampleleft  & 0xff);
+                    _stereo[pos ++] = (byte)(sampleright  & 0xff);
+                }
             }
-            _sourceDL.write(_frame_16_stere,0,pos);
+            _sourceDL.write(_stereo,0,pos);
 
             return true;
         }

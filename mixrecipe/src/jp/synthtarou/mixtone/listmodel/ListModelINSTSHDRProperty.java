@@ -53,7 +53,7 @@ public class ListModelINSTSHDRProperty extends AbstractListModel<String>{
         _sampleId = sampleId;
         _doLoop = loop;
         _overridingRootKey = overridingRootKey;
-        _shdr = (SFZElement.SFZElement_shdr)sfz.getElement("shdr");
+        _shdr = sfz.getElement_shdr();
         _text = new ArrayList<>();
         
         _row = _shdr.get(sampleId);

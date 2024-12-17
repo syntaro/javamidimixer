@@ -126,11 +126,13 @@ public class XTEnvelope {
             return _currentAmount;
         }
 
-        if (samples < _attackSamples) {
-            _currentAmount = samples * 1.0 / _attackSamples;
-            return _currentAmount;
+        if (_attackSamples == 0 && samples == 0) {
+            _currentAmount = 1.0;
         }
-        if (samples < (_attackSamples + _decaySamples)) {
+        else if (samples < _attackSamples) {
+            _currentAmount = samples * 1.0 / _attackSamples;
+        }
+        else  if (samples <= (_attackSamples + _decaySamples)) {
             double from = 1.0;
             double to = _sustainLevel;
 
@@ -139,11 +141,10 @@ public class XTEnvelope {
             double step = to - from;
 
             _currentAmount = from + step * spentPercent;
-            return _currentAmount;
         }
         else {
             _currentAmount = _sustainLevel;
-            return _currentAmount;
         }
+        return _currentAmount;
     }
 }
