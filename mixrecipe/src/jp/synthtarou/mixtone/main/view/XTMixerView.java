@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.mixtone.main.view;
 
+import jp.synthtarou.libs.MXQueue;
 import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.mixtone.main.XTSynthesizer;
 import jp.synthtarou.mixtone.main.XTSynthesizerTrack;
@@ -61,6 +62,9 @@ public class XTMixerView extends javax.swing.JPanel {
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.Y_AXIS));
     }// </editor-fold>//GEN-END:initComponents
 
+    Thread _processer = null;
+    MXQueue<OneMessage> _pool = new MXQueue<>();
+
     public void dispatchNote(OneMessage smf) {
         int status =  smf.getStatus();
         int data1 = smf.getData1();
@@ -69,7 +73,29 @@ public class XTMixerView extends javax.swing.JPanel {
             int ch = status & 0x0f;
             _lines[ch].push(smf);
         }
-        _synth.processMessage(smf);
+        if (false) {
+            _synth.processMessage(smf);
+        }
+        else{
+            if (_processer == null) {
+                _processer = new Thread() {
+                    public void run() {
+                        try {
+                            while (true) {
+                                OneMessage message = _pool.pop();
+                                _synth.processMessage(message);
+                            }
+                        }catch(Throwable ex) {
+                            ex.printStackTrace();
+                        }
+                        _processer = null;
+                    }
+                };
+                _processer.setPriority(Thread.MAX_PRIORITY);
+                _processer.start();
+            }
+            _pool.push(smf);
+        }
     }
     
     public void cleanNote() {

@@ -29,15 +29,14 @@ import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import jp.synthtarou.mixtone.synth.oscilator.XTFilter;
-import jp.synthtarou.mixtone.synth.soundfont.XTFile;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class XTAudioStream implements LineListener {
-    private final int _frame_size = 1024;
-    private final int _buffer_size = 2048;
+    private final int _frame_size = 512;
+    private final int _buffer_size = 4096;
 
     static XTAudioStream _instance;
     
@@ -82,7 +81,7 @@ public class XTAudioStream implements LineListener {
         if (_task == null) {
             _timer = new Timer();
             _task = new TimerTask2(_timer);
-            _timer.scheduleAtFixedRate(_task , 0, 1);
+            _timer.scheduleAtFixedRate(_task , 0, 2);
             AudioFormat frmt= new AudioFormat(_sampleRate, _sampleBits,_sampleChannel,true,false);
             DataLine.Info info= new DataLine.Info(SourceDataLine.class,frmt);
             if (_sourceDL == null) {
@@ -158,8 +157,12 @@ public class XTAudioStream implements LineListener {
         if (_sourceDL == null) {
             return false;
         }
-        int now_available = _sourceDL.available();
-        if( _buffer_size - now_available < _frame_size * 2){
+        Thread t = Thread.currentThread();
+        if (t.getPriority() != Thread.MAX_PRIORITY) {
+            t.setPriority(Thread.MAX_PRIORITY);
+        }
+         int did = 0;
+        while( _buffer_size - _sourceDL.available() < _frame_size * 4){
             for(int i = 0;i < _frame_size; i++) {
                 synchronized (_queue) {
                     while(_queue.isEmpty() == false) {
@@ -256,11 +259,13 @@ public class XTAudioStream implements LineListener {
                     _stereo[pos ++] = (byte)(sampleright  & 0xff);
                 }
             }
+            did ++;
             _sourceDL.write(_stereo,0,pos);
-
-            return true;
         }
-        return false;
+        if (did >= 2) {
+            System.err.println("Did " + did + " Frames" );
+        }
+        return did > 0;
     }
     
     double _streamMin = 100;

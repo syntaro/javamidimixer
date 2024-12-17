@@ -450,7 +450,6 @@ public class XTSoundFontView extends javax.swing.JPanel {
                 try {
                     Thread.sleep(1000);
                 }catch(Throwable ex) {
-                    
                 }
                 osc.noteOff();
             }).start();

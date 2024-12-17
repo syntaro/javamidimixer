@@ -101,7 +101,6 @@ public class XTSynthesizer {
     public void processMessage(OneMessage message) {
         int status = message.getStatus();
         
-        
         if (debugMessage && message.getStatus() >= 0x80 && message.getStatus() <= 0xef) {
             if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_NOTEON) {
 
