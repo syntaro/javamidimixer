@@ -16,12 +16,14 @@
  */
 package jp.synthtarou.mixtone.synth.oscilator;
 
+import jp.synthtarou.mixtone.synth.audio.XTAudioStream;
+
 /**
  *
  * @author Syntarou YOSHIDA
  */
 public class OscilatorPosition {
-    double _streamSampleRate = 44100;
+    double _streamSampleRate = XTAudioStream._sampleRate;
     double _waveSampleRate;
     int _waveKey;
     double _waveFrequency;

@@ -134,11 +134,12 @@ public class XTSynthesizerTrack {
                         overridingRootKey = root.overridingRootKey();
                     }
                     Integer loop = imean.sampleModes();
-                    if (loop == null) {
+                    if (loop == null && root != null) {
                         loop = root.sampleModes();
                     }
 
                     XTOscilator osc = new XTOscilator(
+                            _track,
                             key, 
                             velocity * 1.0 / 127, 
                             _synth._sfz, 

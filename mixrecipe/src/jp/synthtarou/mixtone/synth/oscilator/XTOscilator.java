@@ -38,6 +38,7 @@ public class XTOscilator {
     public final String _name;
     public boolean _loop;
     
+    public final int _track;
     public final int _playKey;
     public final int _sampleId;
     public final int _start;
@@ -54,7 +55,8 @@ public class XTOscilator {
     public OscilatorPosition _pos;
     public XTFilter _filter;
     
-    public XTOscilator(int playKey, double velocity, XTFile sfz, int sampleId, boolean loop, int overridingRootKey) {
+    public XTOscilator(int track, int playKey, double velocity, XTFile sfz, int sampleId, boolean loop, int overridingRootKey) {
+        _track = track;
         _sfz = sfz;
         _sampleId = sampleId;
         _playKey = playKey;
@@ -129,6 +131,7 @@ public class XTOscilator {
             }
         }
         if (x + _start > _end) {
+            _faded = true;
             return 0;
         }
         int smpl = _smpl.getSample16((int)(_start + x));
@@ -136,8 +139,6 @@ public class XTOscilator {
     }
 
     XTEnvelope _ampEnv;
-    double _releaseOscNeeded = 0;
-    double _releaseAmpNeeded = 0;
 
     public void initEnvelope() {
         _ampEnv = new XTEnvelope();
@@ -146,8 +147,6 @@ public class XTOscilator {
         _ampEnv.setDecaySamples((long)(sampleRate * 0.3));
         _ampEnv.setSustainLevel(0.6);
         _ampEnv.setReleaseSamples((long)(sampleRate * 0.1));
-        _releaseAmpNeeded = _ampEnv._releaseSamples;
-        _releaseOscNeeded = _pos.frameToSampleoffset(_end - _loopEnd);
     }
     
     public void noteOff() {
@@ -164,8 +163,12 @@ public class XTOscilator {
         return osc * amp;        
     }
     
-    public boolean isClose() {
-        return _ampEnv.isNoteFaded();
+    public boolean isNoteOff() {
+        return _ampEnv.isNoteOff();
+    }
+    
+    public boolean isMuted() {
+        return _faded || _ampEnv.isNoteFaded();
     }
 
     public void setPan(double x) { //-1 ~ +1
@@ -179,5 +182,6 @@ public class XTOscilator {
     public double _pan;
     public double _volume;
     public double _velocity;
+    public boolean _faded = false;
     public long _frame = 0;
 }

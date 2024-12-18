@@ -16,6 +16,8 @@
  */
 package jp.synthtarou.mixtone.synth.oscilator;
 
+import jp.synthtarou.mixtone.synth.audio.XTAudioStream;
+
 /**
  *
  * @author Syntarou YOSHIDA
@@ -32,14 +34,14 @@ public class XTEnvelope {
     long _noteOffSample = -1;
     double _noteOffAmount;
     
-    static final double sampleRate = 44100;
+    static final double sampleRate = XTAudioStream._sampleRate;
    
     public static void main(String[] args) {
         XTEnvelope env = new XTEnvelope();
         env.setAttachSamples((long)sampleRate / 4);
         env.setDecaySamples((long)sampleRate);
         env.setSustainLevel(0.5);
-        env.setReleaseSamples((long)sampleRate * 2);
+        env.setReleaseSamples((long)sampleRate/10);
         
         for(long x = 0; x <= (sampleRate * 10); x += sampleRate / 10) {
             if (x >= sampleRate * 5) {
@@ -101,6 +103,10 @@ public class XTEnvelope {
     }
     
     public double getAmountAt(long samples) {
+        if (samples < _currentSample) {
+            new Throwable().printStackTrace();
+           
+        }
         _currentSample = samples;
 
         if (_noteOffSample >= 0) {

@@ -111,6 +111,6 @@ public class ListModelINSTSHDRProperty extends AbstractListModel<String>{
     }
     
     public XTOscilator newOscilator(int note) {
-        return new XTOscilator(note, 1.0, _sfz, _sampleId, _doLoop, _overridingRootKey);
+        return new XTOscilator(0, note, 1.0, _sfz, _sampleId, _doLoop, _overridingRootKey);
     }
 }

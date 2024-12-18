@@ -16,6 +16,8 @@
  */
 package jp.synthtarou.mixtone.synth.oscilator;
 
+import jp.synthtarou.mixtone.synth.audio.XTAudioStream;
+
 /**
  *
  * @author Syntarou YOSHIDA
@@ -38,7 +40,7 @@ public class XTFilter {
         resonance = Math.clamp(resonance, 0.1, 1);
         _cutoffFreq = cutoffFreq;
         _resonance = resonance;
-        _samplerate = 44100;
+        _samplerate = XTAudioStream._sampleRate;
         _cut_lp = _cutoffFreq * 2 / _samplerate;
         _fb_lp = _resonance + _resonance / ( 1.0 - _cut_lp );
     }

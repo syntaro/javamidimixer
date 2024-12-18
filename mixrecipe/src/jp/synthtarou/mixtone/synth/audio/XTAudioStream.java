@@ -49,33 +49,24 @@ public class XTAudioStream implements LineListener {
     }
 
     private XTAudioStream() {
+        _track = new XTAudioTrack[16];
+        for(int i= 0; i < 16; ++ i) {
+            _track[i] = new XTAudioTrack(i);
+        }
     }
     
     private SourceDataLine _sourceDL;
     public double _masterVolume = 1.0;
 
-    public static int _sampleChannel = 2;
-    public static float _sampleRate = 44100;
-    public static int _sampleBits = 16;
-    public static boolean _available = true;
+    public static final int _sampleChannel = 2;
+    public static final float _sampleRate = 48000;
+    public static final int _sampleBits = 16;
+    public static final boolean _available = true;
 
     private double[] _frame_left = new double[_frame_size];
     private double[] _frame_right = new double[_frame_size];
     private byte[] _stereo = new byte[_frame_bytes];
 
-    static {
-        try {
-            AudioFormat frmt0 = AudioSystem.getClip().getFormat();
-            _sampleChannel = frmt0.getChannels();
-            _sampleRate = frmt0.getSampleRate();
-            _sampleBits = frmt0.getSampleSizeInBits();
-            System.err.print("Audio " +  _sampleRate +"hz ch:" + _sampleChannel + " (" + _sampleBits +" bit)");
-        }catch(Throwable ex) {
-            _available = false;
-            System.err.print("Audio not avail " + ex.toString());
-        }
-    }
-    
     Thread _renderThread = null;
     
     public void startThread() {
@@ -95,6 +86,7 @@ public class XTAudioStream implements LineListener {
                             long current = System.currentTimeMillis();
                             long waiting = reserve - current;
                             if (waiting > 10) {
+                                System.err.println(waiting);
                                 synchronized (this) {
                                     this.wait(5);
                                 }
@@ -180,18 +172,17 @@ public class XTAudioStream implements LineListener {
         }
     }
     
-    LinkedList<XTOscilator> _oscilator = new LinkedList<>();
+    XTAudioTrack[] _track;
     LinkedList<XTOscilator> _queue = new LinkedList<>();
-
+   
     public void addToQueue(XTOscilator osc) {
         synchronized (_queue) {
             _queue.add(osc);
-            //System.err.println(osc._name + " : "+  osc._playKey);
         }
     }
     
-    ArrayList<XTOscilator> listRemove = null;
-    double mumBit = 0.5;
+    ArrayList<XTOscilator> listNoteOffed = new ArrayList<>();
+    double mumBit = 1000;
     
     XTFilter _filterL = new XTFilter();
     XTFilter _filterR = new XTFilter();
@@ -212,38 +203,72 @@ public class XTAudioStream implements LineListener {
             for(int i = 0;i < _frame_size; i++) {
                 synchronized (_queue) {
                     while(_queue.isEmpty() == false) {
-                        _oscilator.add(_queue.remove());
+                        XTOscilator osc = _queue.remove();
+                        _track[osc._track].add(osc);
                     }
                 }
-                if (_oscilator.size() > 64) {
-                    System.err.println("Osc Cut " + _oscilator.size());
-                    while (_oscilator.size() > 64) {
-                        _oscilator.removeFirst();
+                while (true) {
+                    XTAudioTrack maxOn = null;
+                    int countOn = 0;
+                    XTAudioTrack maxOff = null;
+                    for (int t = 0; t < _track.length; ++ t) {
+                        XTAudioTrack seek = _track[t];
+                        seek.cleanMuted();
+
+                        int off = seek.countNoteOffed();
+                        if (off > 0) {
+                            if (maxOff == null || off >= maxOff.size()) {
+                                maxOff = _track[t];
+                            } 
+                        }
+
+                        int all = seek.size();
+                        if (all > 0) {
+                            countOn += all;
+                            if (maxOn == null || all >= maxOn.size()) {
+                                maxOn = _track[t];
+                            }
+                        }
                     }
+                    if (countOn > 100) {
+                        int errMute = (maxOff != null) ? maxOff._track : -1;
+                        if (maxOff != null) {
+                            maxOff.removeSmallTone();
+                            continue;
+                        }
+                        else if (maxOn != null) {
+                            maxOn.removeSmallTone();
+                            continue;
+                        }
+                    }
+                    break;
+                    //System.err.println("count = " + count + " channel " + max._track);
                 }
                 double valueLeft = 0;
                 double valueRight = 0;
-                for (XTOscilator j : _oscilator) {
-                    double v = j.nextValueWithAmp();
-                    double pan = j._pan;
-                    double vol = j._volume;
-                    
-                    double right, left;
-                    
-                    right = (pan + 1) / 2;
-                    left = (1 - pan) / 2;
+                for (XTAudioTrack t : _track) {
+                    for (XTOscilator j : t._oscilator) {
+                        double v = j.nextValueWithAmp();
+                        double pan = j._pan;
+                        double vol = j._volume;
 
-                    switch (j._type) {
-                        case 2:
-                            valueRight += v * right;
-                            break;
-                        case 4:
-                            valueLeft += v * left;
-                            break;
-                        default:
-                            valueRight += v / 2 * right;
-                            valueLeft += v / 2 * left;
-                            break;
+                        double right, left;
+
+                        right = (pan + 1) / 2;
+                        left = (1 - pan) / 2;
+
+                        switch (j._type) {
+                            case 2:
+                                valueRight += v * right;
+                                break;
+                            case 4:
+                                valueLeft += v * left;
+                                break;
+                            default:
+                                valueRight += v / 2 * right;
+                                valueLeft += v / 2 * left;
+                                break;
+                        }
                     }
                 }
    
@@ -254,22 +279,9 @@ public class XTAudioStream implements LineListener {
                 _frame_right[i] = valueRight;
             }
 
-            for (XTOscilator j : _oscilator) {
-                if (j.isClose()) {
-                    if (listRemove == null) {
-                        listRemove = new ArrayList<>();
-                    }
-                    listRemove.add(j);
-                }
-            }
-            if (listRemove != null && listRemove.isEmpty() == false) {
-                _oscilator.removeAll(listRemove);
-                listRemove.clear();
-            }
-            
             int pos = 0;
-            double min = -120;
-            double max = 120;
+            double min = -12000;
+            double max = 12000;
             
             for (int x = 0; x < _frame_size; x ++) {
                 double sampleleft = (_frame_left[x] * mumBit);
@@ -287,18 +299,18 @@ public class XTAudioStream implements LineListener {
                 long sampleleft = (long)(_frame_left[x] * _masterVolume * mumBit);
                 long sampleright = (long)(_frame_right[x] * _masterVolume * mumBit);
                 if (_sampleBits == 24) {
-                    _stereo[pos ++] = (byte)((sampleleft >> 16)  & 0xff);
-                    _stereo[pos ++] = (byte)((sampleleft >> 8)  & 0xff);
                     _stereo[pos ++] = (byte)(sampleleft  & 0xff);
-                    _stereo[pos ++] = (byte)((sampleright >> 16)  & 0xff);
-                    _stereo[pos ++] = (byte)((sampleright >> 8)  & 0xff);
+                    _stereo[pos ++] = (byte)((sampleleft >> 8)  & 0xff);
+                    _stereo[pos ++] = (byte)((sampleleft >> 16)  & 0xff);
                     _stereo[pos ++] = (byte)(sampleright  & 0xff);
+                    _stereo[pos ++] = (byte)((sampleright >> 8)  & 0xff);
+                    _stereo[pos ++] = (byte)((sampleright >> 16)  & 0xff);
                 }
                 else if (_sampleBits == 16) {
-                    _stereo[pos ++] = (byte)((sampleleft >> 8)  & 0xff);
                     _stereo[pos ++] = (byte)(sampleleft  & 0xff);
-                    _stereo[pos ++] = (byte)((sampleright >> 8)  & 0xff);
+                    _stereo[pos ++] = (byte)((sampleleft >> 8)  & 0xff);
                     _stereo[pos ++] = (byte)(sampleright  & 0xff);
+                    _stereo[pos ++] = (byte)((sampleright >> 8)  & 0xff);
                 }
                 else if (_sampleBits == 8) {
                     _stereo[pos ++] = (byte)(sampleleft  & 0xff);

@@ -16,6 +16,8 @@
  */
 package jp.synthtarou.mixtone.synth.oscilator;
 
+import jp.synthtarou.mixtone.synth.audio.XTAudioStream;
+
 /**
  *
  * @author Syntarou YOSHIDA
@@ -29,7 +31,7 @@ public class XTSineOscilator {
 
     public XTSineOscilator(int note){
         _frequency = 440 * Math.pow(2, (note-69) / 12.0);
-        _sample_freq = 44100;
+        _sample_freq = XTAudioStream._sampleRate;
         times = 0;
         _angle_freq = _frequency * 2 * Math.PI;
         _angle_freq_discrete = _angle_freq/ _sample_freq;
