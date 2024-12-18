@@ -36,7 +36,8 @@ import jp.synthtarou.mixtone.synth.oscilator.XTFilter;
  */
 public class XTAudioStream implements LineListener {
     private final int _frame_size = 512;
-    private final int _buffer_size = 4096;
+    private final int _frame_bytes = _frame_size * 4;
+    private final int _buffer_rooms = 3;
 
     static XTAudioStream _instance;
     
@@ -50,8 +51,6 @@ public class XTAudioStream implements LineListener {
     private XTAudioStream() {
     }
     
-    private Timer _timer;
-    private TimerTask _task;
     private SourceDataLine _sourceDL;
     public double _masterVolume = 1.0;
 
@@ -62,7 +61,7 @@ public class XTAudioStream implements LineListener {
 
     private double[] _frame_left = new double[_frame_size];
     private double[] _frame_right = new double[_frame_size];
-    private byte[] _stereo = new byte[_frame_size * _sampleChannel * _sampleBits / 8];
+    private byte[] _stereo = new byte[_frame_bytes];
 
     static {
         try {
@@ -76,15 +75,64 @@ public class XTAudioStream implements LineListener {
             System.err.print("Audio not avail " + ex.toString());
         }
     }
+    
+    Thread _renderThread = null;
+    
+    public void startThread() {
+        if (_renderThread == null) {
+            _renderThread = new Thread() {
+                public void run() {
+                    while(true) {
+                        if (_renderThread == null) {
+                            break;
+                        }
+                        double span = 1000.0 * _frame_size /  _sampleRate;
+                        long start = System.currentTimeMillis();
+                        try {
+                            boolean proced = updateBuffer();
+
+                            long reserve = (long)span + start;
+                            long current = System.currentTimeMillis();
+                            long waiting = reserve - current;
+                            if (waiting > 10) {
+                                synchronized (this) {
+                                    this.wait(5);
+                                }
+                                start = System.currentTimeMillis();
+                            }else if (waiting >= 3) {
+                                synchronized (this) {
+                                    this.wait(1);
+                                }
+                                start = System.currentTimeMillis();
+                            }
+                            else {
+                                start = current;
+                            }
+                        }catch(Throwable ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                    _renderThread = null;
+                    _sourceDL.stop();
+                    _sourceDL.close();
+                    _sourceDL = null;
+                }
+            };
+            //_renderThread.setPriority(Thread.MAX_PRIORITY);
+            _renderThread.start();
+        }
+    }
+    
+    public void stopThread() {
+        _renderThread = null;
+    }
 
     public void startStream() {
-        if (_task == null) {
-            _timer = new Timer();
-            _task = new TimerTask2(_timer);
-            _timer.scheduleAtFixedRate(_task , 0, 2);
+        if (_renderThread == null) {
+            startThread();
             AudioFormat frmt= new AudioFormat(_sampleRate, _sampleBits,_sampleChannel,true,false);
             DataLine.Info info= new DataLine.Info(SourceDataLine.class,frmt);
-            if (_sourceDL == null) {
+            //if (_sourceDL == null) {
                 try {
                     _sourceDL = (SourceDataLine) AudioSystem.getLine(info);
                 } catch (LineUnavailableException e) {
@@ -92,10 +140,10 @@ public class XTAudioStream implements LineListener {
                     throw new RuntimeException(e);
                 }
                 _sourceDL.addLineListener(this);
-            }
+            //}
             _sourceDL.flush();
             try {
-                _sourceDL.open(frmt,_buffer_size);
+                _sourceDL.open(frmt,_frame_bytes * _buffer_rooms);
             } catch (LineUnavailableException e) {
                 System.out.println("cant open line....");
                 throw new RuntimeException(e);
@@ -105,19 +153,14 @@ public class XTAudioStream implements LineListener {
     }
     
     public void stopStream() {
-        if (_task != null) {
-            _sourceDL.stop();
-            _sourceDL.close();
-            _sourceDL = null;
-            _task.cancel();
-            _task = null;
-            _timer.cancel();
-            _timer = null;
+        if (_renderThread != null) {
+            stopThread();
         }
     }
     
     @Override
     public void update(LineEvent event) {
+        System.err.println(event);
     }
     
     class TimerTask2 extends TimerTask {
@@ -157,21 +200,24 @@ public class XTAudioStream implements LineListener {
         if (_sourceDL == null) {
             return false;
         }
+        /*
         Thread t = Thread.currentThread();
         if (t.getPriority() != Thread.MAX_PRIORITY) {
             t.setPriority(Thread.MAX_PRIORITY);
-        }
-         int did = 0;
-        while( _buffer_size - _sourceDL.available() < _frame_size * 4){
+        }*/
+        int did = 0;
+        int avail = _sourceDL.available();
+        //System.err.println("avail " + avail + " bytes " + _frame_bytes + " x 3");
+        while( /*(_frame_bytes * _buffer_rooms) - */_sourceDL.available() >= _frame_bytes ){
             for(int i = 0;i < _frame_size; i++) {
                 synchronized (_queue) {
                     while(_queue.isEmpty() == false) {
                         _oscilator.add(_queue.remove());
                     }
                 }
-                if (_oscilator.size() >= 100) {
+                if (_oscilator.size() > 64) {
                     System.err.println("Osc Cut " + _oscilator.size());
-                    while (_oscilator.size() >= 100) {
+                    while (_oscilator.size() > 64) {
                         _oscilator.removeFirst();
                     }
                 }
@@ -249,9 +295,9 @@ public class XTAudioStream implements LineListener {
                     _stereo[pos ++] = (byte)(sampleright  & 0xff);
                 }
                 else if (_sampleBits == 16) {
-                    _stereo[pos ++] = 0;//(byte)((sampleleft >> 8)  & 0xff);
+                    _stereo[pos ++] = (byte)((sampleleft >> 8)  & 0xff);
                     _stereo[pos ++] = (byte)(sampleleft  & 0xff);
-                    _stereo[pos ++] = 0;//(byte)((sampleright >> 8)  & 0xff);
+                    _stereo[pos ++] = (byte)((sampleright >> 8)  & 0xff);
                     _stereo[pos ++] = (byte)(sampleright  & 0xff);
                 }
                 else if (_sampleBits == 8) {
