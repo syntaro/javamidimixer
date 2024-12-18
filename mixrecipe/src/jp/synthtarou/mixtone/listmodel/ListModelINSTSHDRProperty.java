@@ -57,18 +57,33 @@ public class ListModelINSTSHDRProperty extends AbstractListModel<String>{
         _text = new ArrayList<>();
         
         _row = _shdr.get(sampleId);
-        _name = _row.textColumn(SFZElement.SHDR_NAME);
-        _start = _row.intColumn(SFZElement.SHDR_START);
-        _end = _row.intColumn(SFZElement.SHDR_END);
-        _loopStart = _row.intColumn(SFZElement.SHDR_LOOPSTART);
-        _loopEnd = _row.intColumn(SFZElement.SHDR_LOOPEND);
-        _sampleRate = _row.intColumn(SFZElement.SHDR_SAMPLERATE);
+        if (_row != null) {
+            _name = _row.textColumn(SFZElement.SHDR_NAME);
+            _start = _row.intColumn(SFZElement.SHDR_START);
+            _end = _row.intColumn(SFZElement.SHDR_END);
+            _loopStart = _row.intColumn(SFZElement.SHDR_LOOPSTART);
+            _loopEnd = _row.intColumn(SFZElement.SHDR_LOOPEND);
+            _sampleRate = _row.intColumn(SFZElement.SHDR_SAMPLERATE);
 
-        _correction = _row.intColumn(SFZElement.SHDR_PITCHCORRECTION);
-        _sampleLink = _row.intColumn(SFZElement.SHDR_SAMPLELINK);
-        _type= _row.intColumn(SFZElement.SHDR_TYPE);
-        _originalKey = _row.intColumn(SFZElement.SHDR_ORIGINALPITCH);
-
+            _correction = _row.intColumn(SFZElement.SHDR_PITCHCORRECTION);
+            _sampleLink = _row.intColumn(SFZElement.SHDR_SAMPLELINK);
+            _type= _row.intColumn(SFZElement.SHDR_TYPE);
+            _originalKey = _row.intColumn(SFZElement.SHDR_ORIGINALPITCH);
+        }
+        else {
+            _name = null;
+            _start = 0;
+            _end = 0;
+            _loopStart = 0;
+            _loopEnd = 0;
+            _sampleRate = 0;
+            
+            _correction = 0;
+            _sampleLink = -1;
+            _type= 0;
+            _originalKey = 0;
+        }
+ 
         _text.add("name=" + _name);
 
         _text.add("start=" + _start);

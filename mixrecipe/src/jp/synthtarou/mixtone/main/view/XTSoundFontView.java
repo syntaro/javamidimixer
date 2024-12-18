@@ -370,7 +370,7 @@ public class XTSoundFontView extends javax.swing.JPanel {
         if (index >= 0) {
             try {
                 int sampleId = _listModelINSTBagList.getSampleIdOf(index);
-                int overridingRootKey = _listModelINSTBagList.getOverridingRootKeyOf(index);
+                int overridingRootKey = _listModelINSTBagList.getOverrindingRootkey(index);
                 boolean loop = _listModelINSTBagList.getLoopOf(index);
                 _listModelSHDRProperty = new ListModelINSTSHDRProperty(_synth._sfz, sampleId, loop, overridingRootKey);
                 jListSHDRProperty.setModel(_listModelSHDRProperty);

@@ -96,11 +96,18 @@ public class XTSynthesizerTrack {
 
             for (int inst = 0; inst < instBag.size() ; ++ inst) {
                 IBagLineMean imean = new IBagLineMean(instBag.get(inst));
-                if (root == null) {
+                if (root == null && imean.sampleID() == null) {
                     root = imean;
+                    continue;
                 }
                 if (imean.keyRange() != null && imean.keyRange() != 0) {
                     if (imean.keyRangeLo() <= key && key <= imean.keyRangeHi()) {
+                    }else {
+                        continue;
+                    }
+                }
+                else if (root != null && root.keyRange() != null && root.keyRange() != 0) {
+                    if (root.keyRangeLo() <= key && key <= root.keyRangeHi()) {
                     }else {
                         continue;
                     }
@@ -111,18 +118,33 @@ public class XTSynthesizerTrack {
                         continue;
                     }
                 }
+                else if (root != null && root.velRange() != null && root.velRange() != 0) {
+                    if (root.velRangeLo() <= velocity && velocity <= root.velRangeHi()) {
+                    }else {
+                        continue;
+                    }
+                }
                 try {
                     Integer sampleId = imean.sampleID();
-                    if (sampleId == null) {
-                        sampleId = root.sampleID();
-                    }
                     if (sampleId == null) {
                         continue;
                     }
                     Integer overridingRootKey = imean.overridingRootKey();
-                    boolean loop = imean.sampleModes();
+                    if (overridingRootKey == null) {
+                        overridingRootKey = root.overridingRootKey();
+                    }
+                    Integer loop = imean.sampleModes();
+                    if (loop == null) {
+                        loop = root.sampleModes();
+                    }
 
-                    XTOscilator osc = new XTOscilator(key, velocity * 1.0 / 127, _synth._sfz, sampleId, loop, overridingRootKey == null ? -1 : overridingRootKey);
+                    XTOscilator osc = new XTOscilator(
+                            key, 
+                            velocity * 1.0 / 127, 
+                            _synth._sfz, 
+                            sampleId, 
+                            loop == null ? false: (loop.intValue() > 0), 
+                            overridingRootKey == null ? -1 : overridingRootKey);
                     osc.setPan(_pan);
                     osc.setVolume(_volume * _expression * _mixing * osc._velocity);
                     result.add(osc);

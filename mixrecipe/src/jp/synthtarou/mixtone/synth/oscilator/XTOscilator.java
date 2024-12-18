@@ -76,6 +76,7 @@ public class XTOscilator {
         _end = _row.intColumn(SFZElement.SHDR_END);
         _loopStart = _row.intColumn(SFZElement.SHDR_LOOPSTART);
         _loopEnd = _row.intColumn(SFZElement.SHDR_LOOPEND);
+        /*
         if (_loopStart >= 0 && _loopEnd >= 0 && _start <= _loopStart && _loopStart <= _loopEnd && _loopEnd <= _end) {
             _loop = true;
         }
@@ -87,7 +88,7 @@ public class XTOscilator {
             _loopEnd = _end;
             System.err.println("fixed loopEnd " + _end);
         }
-
+        */
         _sampleRate = _row.intColumn(SFZElement.SHDR_SAMPLERATE);
         _correction = _row.intColumn(SFZElement.SHDR_PITCHCORRECTION);
         _sampleLink = _row.intColumn(SFZElement.SHDR_SAMPLELINK);

@@ -139,12 +139,12 @@ public class IBagLineMean {
         return null;
     }
     
-    public boolean sampleModes() {
+    public Integer sampleModes() {
         Number x = getAmount(XTGenOperatorMaster.sampleModes);
         if (x != null) {
-            return x.intValue() > 0;
+            return x.intValue();
         }
-        return false;
+        return null;
     }
 
     public Integer keyNum() {

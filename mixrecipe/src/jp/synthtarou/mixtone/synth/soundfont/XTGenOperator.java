@@ -34,6 +34,10 @@ public class XTGenOperator {
 
     SFZTranslator _trans = null;
     
+    public String getName() {
+        return _name;
+    }
+    
     public interface SFZTranslator {
          Double asParameter(int generator);
     }
