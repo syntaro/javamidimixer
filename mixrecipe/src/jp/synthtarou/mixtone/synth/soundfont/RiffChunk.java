@@ -20,6 +20,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
 import java.util.ArrayList;
 
 /**
@@ -89,9 +91,14 @@ public class RiffChunk {
     }
     
     public void setData(File file) throws IOException {
+        long size = Files.size(file.toPath());
         FileInputStream input = new FileInputStream(file);
         try {
-            setData(input);
+            if (size >= 1 && size <= Integer.MAX_VALUE) {
+                setData(input, (int)size);
+            }else {
+                setData(input);
+            }
         }finally {
             try{
                 input.close();
@@ -103,6 +110,11 @@ public class RiffChunk {
     
     public void setData(InputStream input) throws IOException {
         BytesAppender data = new BytesAppender(input);
+        setData(data.toByteArray());
+    }
+
+    public void setData(InputStream input, int size) throws IOException {
+        BytesAppender data = new BytesAppender(input, size);
         setData(data.toByteArray());
     }
     

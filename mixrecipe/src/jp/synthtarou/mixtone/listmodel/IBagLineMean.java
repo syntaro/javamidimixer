@@ -19,6 +19,7 @@ package jp.synthtarou.mixtone.listmodel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import jp.synthtarou.mixtone.synth.soundfont.SFZElement;
+import jp.synthtarou.mixtone.synth.soundfont.XTGenOperator;
 import jp.synthtarou.mixtone.synth.soundfont.XTGenOperatorMaster;
 import jp.synthtarou.mixtone.synth.soundfont.table.XTHeader;
 import jp.synthtarou.mixtone.synth.soundfont.table.XTRow;
@@ -72,7 +73,7 @@ public class IBagLineMean {
         }
         return b;
     }
-    
+
     public Number getAmount(int oper) {
         if (_igenMap != null) {
             XTRow row1 = _igenMap.get(oper);
@@ -107,6 +108,14 @@ public class IBagLineMean {
         return num.intValue();
     }
 
+    public Double pan() {
+        Number num = getAmount(XTGenOperatorMaster.pan);
+        if (num == null) {
+            return null;
+        }
+        return num.doubleValue();
+    }
+    
     public int keyRangeLo() {
         return calcLowerOfRange(keyRange());
     }

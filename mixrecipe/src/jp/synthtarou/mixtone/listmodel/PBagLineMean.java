@@ -144,6 +144,14 @@ public class PBagLineMean {
         return num.intValue();
     }
 
+    public Double pan() {
+        Number num = getAmount(XTGenOperatorMaster.pan);
+        if (num == null) {
+            return null;
+        }
+        return num.doubleValue();
+    }
+
     public PBagLineMean(XTRow row) {
         XTTable pgen = row.tableColumn(SFZElement.PBAG_PGENINDEX_TABLE);
         XTTable pmod = row.tableColumn(SFZElement.PBAG_PMODINDEX_TABLE);

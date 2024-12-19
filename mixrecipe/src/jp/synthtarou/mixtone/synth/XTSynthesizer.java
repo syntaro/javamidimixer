@@ -56,14 +56,21 @@ public class XTSynthesizer {
         }
     }
     
-    public void checkSettingAndUpdate() {
+    private String _lastFile = null;
+    public void checkSettingAndUpdate() throws IOException {
         XTSynthesizerSetting setting = XTSynthesizerSetting.getSetting();
         if (setting.isUpdated()) {
             setting.clearUpdated();
             stopAudioStream();
             closeSoundFont();
             String sfz = setting.getCustomSFZ();
-            openSoundfont(sfz == null ? null : new File(sfz));
+            if (_lastFile != null && _lastFile.equals(sfz)) {
+                
+            }
+            else {
+                openSoundfont(sfz == null ? null : new File(sfz));
+                _lastFile = sfz;
+            }
             startAudioStream();
         }
     }
@@ -101,29 +108,21 @@ public class XTSynthesizer {
         }
     }
 
-    public XTFile openSoundfont(File file) {
+    public XTFile openSoundfont(File file) throws IOException {
         boolean copyInfo = false;
         if (_sfz != null) {
             copyInfo = true;
         }
         if (file == null) {
             InputStream stream = MXDriver_SoundFont.class.getResourceAsStream("GeneralUser-GS.sf2");
-            try {
-                XTFile newSfz = new XTFile(stream);
-                _sfz = newSfz;
-            }catch(IOException ex) {
-                ex.printStackTrace();
-                _sfz = null;
-            }
+            _sfz = null;
+            XTFile newSfz = new XTFile(stream);
+            _sfz = newSfz;
         }
         else {
-            try {
-                XTFile newSfz = new XTFile(file);
-                _sfz = newSfz;
-            }catch(IOException ex) {
-                ex.printStackTrace();
-                _sfz = null;
-            }
+            _sfz = null;
+            XTFile newSfz = new XTFile(file);
+            _sfz = newSfz;
         }
         if (_sfz != null) {
             allNoteOff();

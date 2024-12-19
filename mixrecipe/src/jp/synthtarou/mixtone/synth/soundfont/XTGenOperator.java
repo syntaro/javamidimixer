@@ -88,6 +88,14 @@ public class XTGenOperator {
     public Double getInitial() {
         return _initial;
     }
+
+    public Double getMin() {
+        return _min;
+    }
+
+    public Double getMax() {
+        return _max;
+    }
     
     public Double asParameter(int x) {
         boolean wasOverflow = false;

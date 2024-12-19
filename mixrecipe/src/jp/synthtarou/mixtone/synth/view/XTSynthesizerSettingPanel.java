@@ -59,30 +59,32 @@ public class XTSynthesizerSettingPanel extends javax.swing.JPanel {
         buttonGroupBit.add(jRadioButton16bit);
         jRadioButton16bit.setSelected(true);
 
-        buttonGroupSmpl.add(jRadioButton128smpl);
-        buttonGroupSmpl.add(jRadioButton256smpl);
         buttonGroupSmpl.add(jRadioButton512smpl);
         buttonGroupSmpl.add(jRadioButton1024smpl);
+        buttonGroupSmpl.add(jRadioButton1536smpl);
         buttonGroupSmpl.add(jRadioButton2048smpl);
-        buttonGroupSmpl.add(jRadioButton360smpl);
-        int smpl = setting.getSamplePageSize();
-        if (smpl == 128) {
-            jRadioButton128smpl.setSelected(true);
-        }
-        else if (smpl == 256) {
-            jRadioButton256smpl.setSelected(true);
-        }
-        else if (smpl == 360) {
-            jRadioButton360smpl.setSelected(true);
-        }
-        else if (smpl == 512) {
+        buttonGroupSmpl.add(jRadioButton2560smpl);
+        buttonGroupSmpl.add(jRadioButton3072smpl);
+        int page = setting.getSamplePageSize();
+        int count  = setting.getSamplePageCount();
+        int total = page * count;
+        if (total == 512) {
             jRadioButton512smpl.setSelected(true);
         }
-        else if (smpl == 1024) {
+        else if (total == 1024) {
             jRadioButton1024smpl.setSelected(true);
         }
-        else if (smpl == 2048) {
+        else if (total == 1536) {
+            jRadioButton1536smpl.setSelected(true);
+        }
+        else if (total == 2048) {
             jRadioButton2048smpl.setSelected(true);
+        }
+        else if (total== 2560) {
+            jRadioButton2560smpl.setSelected(true);
+        }
+        else if (total == 3072) {
+            jRadioButton3072smpl.setSelected(true);
         }
         
         jSliderSwitch.setMinimum(0);
@@ -102,12 +104,12 @@ public class XTSynthesizerSettingPanel extends javax.swing.JPanel {
         jRadioButton44khz.addActionListener(this::readPanelKhz);
         jRadioButton48khz.addActionListener(this::readPanelKhz);
         //jRadioButton16bit.addActionListener(this::readPanel);
-        jRadioButton128smpl.addActionListener(this::readPanelSmpl);
-        jRadioButton256smpl.addActionListener(this::readPanelSmpl);
-        jRadioButton360smpl.addActionListener(this::readPanelSmpl);
         jRadioButton512smpl.addActionListener(this::readPanelSmpl);
         jRadioButton1024smpl.addActionListener(this::readPanelSmpl);
+        jRadioButton1536smpl.addActionListener(this::readPanelSmpl);
         jRadioButton2048smpl.addActionListener(this::readPanelSmpl);
+        jRadioButton2560smpl.addActionListener(this::readPanelSmpl);
+        jRadioButton3072smpl.addActionListener(this::readPanelSmpl);
     }
     
 
@@ -129,23 +131,24 @@ public class XTSynthesizerSettingPanel extends javax.swing.JPanel {
 
     public void readPanelSmpl(ActionEvent evt) {
         XTSynthesizerSetting setting = XTSynthesizerSetting.getSetting();
-        if (jRadioButton128smpl.isSelected()) {
-            setting.setSamplePageSize(128);
-        }
-        if (jRadioButton256smpl.isSelected()) {
-            setting.setSamplePageSize(256);
-        }
-        if (jRadioButton360smpl.isSelected()) {
-            setting.setSamplePageSize(360);
-        }
+        int pageSize = setting.getSamplePageSize();
         if (jRadioButton512smpl.isSelected()) {
-            setting.setSamplePageSize(512);
+            setting.setSamplePageCount(512 / pageSize);
         }
         if (jRadioButton1024smpl.isSelected()) {
-            setting.setSamplePageSize(1024);
+            setting.setSamplePageCount(1024 / pageSize);
+        }
+        if (jRadioButton1536smpl.isSelected()) {
+            setting.setSamplePageCount(1536 / pageSize);
         }
         if (jRadioButton2048smpl.isSelected()) {
-            setting.setSamplePageSize(2048);
+            setting.setSamplePageCount(2048 / pageSize);
+        }
+        if (jRadioButton2560smpl.isSelected()) {
+            setting.setSamplePageCount(2560 / pageSize);
+        }
+        if (jRadioButton3072smpl.isSelected()) {
+            setting.setSamplePageCount(3072 / pageSize);
         }
         unloadSynth();
         loadSynth();
@@ -205,12 +208,12 @@ public class XTSynthesizerSettingPanel extends javax.swing.JPanel {
         jRadioButton44khz = new javax.swing.JRadioButton();
         jRadioButton48khz = new javax.swing.JRadioButton();
         jRadioButton16bit = new javax.swing.JRadioButton();
-        jRadioButton128smpl = new javax.swing.JRadioButton();
-        jRadioButton256smpl = new javax.swing.JRadioButton();
         jRadioButton512smpl = new javax.swing.JRadioButton();
         jRadioButton1024smpl = new javax.swing.JRadioButton();
+        jRadioButton1536smpl = new javax.swing.JRadioButton();
         jRadioButton2048smpl = new javax.swing.JRadioButton();
-        jRadioButton360smpl = new javax.swing.JRadioButton();
+        jRadioButton2560smpl = new javax.swing.JRadioButton();
+        jRadioButton3072smpl = new javax.swing.JRadioButton();
         jButtonTestTone = new javax.swing.JButton();
         jSliderSwitch = new javax.swing.JSlider();
         jTextFieldFile = new javax.swing.JTextField();
@@ -274,47 +277,47 @@ public class XTSynthesizerSettingPanel extends javax.swing.JPanel {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         add(jRadioButton16bit, gridBagConstraints);
 
-        jRadioButton128smpl.setText("128");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        add(jRadioButton128smpl, gridBagConstraints);
-
-        jRadioButton256smpl.setText("256");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        add(jRadioButton256smpl, gridBagConstraints);
-
         jRadioButton512smpl.setText("512");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         add(jRadioButton512smpl, gridBagConstraints);
 
         jRadioButton1024smpl.setText("1024");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         add(jRadioButton1024smpl, gridBagConstraints);
 
-        jRadioButton2048smpl.setText("2048");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        add(jRadioButton2048smpl, gridBagConstraints);
-
-        jRadioButton360smpl.setText("360");
+        jRadioButton1536smpl.setText("1536");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        add(jRadioButton360smpl, gridBagConstraints);
+        add(jRadioButton1536smpl, gridBagConstraints);
+
+        jRadioButton2048smpl.setText("2048");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(jRadioButton2048smpl, gridBagConstraints);
+
+        jRadioButton2560smpl.setText("2560");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(jRadioButton2560smpl, gridBagConstraints);
+
+        jRadioButton3072smpl.setText("3072");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(jRadioButton3072smpl, gridBagConstraints);
 
         jButtonTestTone.setText("Test Tone");
         jButtonTestTone.addActionListener(new java.awt.event.ActionListener() {
@@ -359,7 +362,7 @@ public class XTSynthesizerSettingPanel extends javax.swing.JPanel {
 
     private void jButtonFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonFileActionPerformed
         FileFilter filtersf2 = new FileFilterListExt(new String[]{".sf2"});
-        MXFolderBrowser chooser = new MXFolderBrowser(new File("c:"), filtersf2);
+        MXFolderBrowser chooser = new MXFolderBrowser(new File("c:/soundfont"), filtersf2);
         MXUtil.showAsDialog(this, chooser, "Choise sf2");
         if (chooser.getReturnStatus() != INavigator.RETURN_STATUS_APPROVED) {
             return;
@@ -389,12 +392,12 @@ public class XTSynthesizerSettingPanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JRadioButton jRadioButton1024smpl;
-    private javax.swing.JRadioButton jRadioButton128smpl;
+    private javax.swing.JRadioButton jRadioButton1536smpl;
     private javax.swing.JRadioButton jRadioButton16bit;
     private javax.swing.JRadioButton jRadioButton2048smpl;
     private javax.swing.JRadioButton jRadioButton22khz;
-    private javax.swing.JRadioButton jRadioButton256smpl;
-    private javax.swing.JRadioButton jRadioButton360smpl;
+    private javax.swing.JRadioButton jRadioButton2560smpl;
+    private javax.swing.JRadioButton jRadioButton3072smpl;
     private javax.swing.JRadioButton jRadioButton44khz;
     private javax.swing.JRadioButton jRadioButton48khz;
     private javax.swing.JRadioButton jRadioButton512smpl;

@@ -129,8 +129,8 @@ public class XTSynthesizerSetting {
     }
     
     private int _polyPhony = 100;
-    private int _samplePageSize = 512;
-    private int _samplePageCount = 4;
+    private int _samplePageSize = 16;
+    private int _samplePageCount = 2048 / _samplePageSize;
     private int _sampleChannels = 2;
 
     private float _sampleRate = 48000;

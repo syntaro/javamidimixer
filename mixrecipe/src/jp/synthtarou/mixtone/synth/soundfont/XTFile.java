@@ -36,17 +36,13 @@ import jp.synthtarou.mixtone.synth.soundfont.table.XTTable;
 public class XTFile {
     public static String TAG = "XTFile";
     public XTFile(File f) throws IOException {
-        try {
-            RiffChunk riff = new RiffChunk();
-            riff.setData(f);
-            _storage = new HashMap<>();
-            prepareChunkTree(riff);
-            prepareRooms(riff);
-            dumpPreset();
-            dumpInstrument();
-        }catch(Throwable ex) {
-            MXFileLogger.getLogger(XTFile.class).log(Level.SEVERE, ex.getMessage(), ex);
-        }
+        RiffChunk riff = new RiffChunk();
+        riff.setData(f);
+        _storage = new HashMap<>();
+        prepareChunkTree(riff);
+        prepareRooms(riff);
+        dumpPreset();
+        dumpInstrument();
     }
 
     public XTFile(InputStream stream) throws IOException {

@@ -27,6 +27,21 @@ import java.io.InputStream;
 public class BytesAppender {
     ArrayList<byte[]> _listAll;
     
+    public BytesAppender(InputStream input, int size) throws IOException {
+        _listAll = new ArrayList<>();
+        byte[] data = new byte[size];
+        int pos = 0;
+        while(size > 0) {
+            int x = input.read(data, pos, size);
+            if (x < 0) { 
+                return;
+            }
+            pos += x;
+            size -= x;
+        }
+        _listAll.add(data);
+    }
+
     public BytesAppender(InputStream input) throws IOException {
         _listAll = new ArrayList<>();
         while(true) {
@@ -69,6 +84,9 @@ public class BytesAppender {
     }
 
     public byte[] toByteArray() {
+        if (_listAll.size() == 1) {
+            return _listAll.get(0);
+        }
         byte[] result = new byte[size()];
         int x = 0;
         for (byte[] data : _listAll) {

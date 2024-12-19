@@ -219,20 +219,24 @@ public abstract class SFZElement extends XTTable {
     }
     
     public static class SFZElement_smpl extends SFZElement {
+        int _offset;
+        int _length;
         byte[] _data;
         
         public SFZElement_smpl(RiffChunk riff) {
             super("smpl");
-            _data = riff.readData(-1);
+            _offset = riff._chunkDataOffset;
+            _length = riff.remainByteLength();
+            _data = riff._chunkData;
         }
         
         public int size() {
-            return _data.length / 2;
+            return _length / 2;
         }
         
         public int getSample16(int pos) {
-            int b1 = _data[pos*2] & 0xff;
-            int b2 = _data[pos*2+1] & 0xff;
+            int b1 = _data[_offset + pos*2] & 0xff;
+            int b2 = _data[_offset + pos*2+1] & 0xff;
             int x = b2 << 8  | b1;
             if ((b2 & 0x80) != 0){
                 x |= 0xffff0000;
@@ -242,19 +246,23 @@ public abstract class SFZElement extends XTTable {
     }
 
     public static class SFZElement_sm24 extends SFZElement {
+        int _offset;
+        int _length;
         byte[] _data;
-
+        
         public SFZElement_sm24(RiffChunk riff) {
-            super("sm24");
-            _data = riff.readData(-1);
+            super("smpl");
+            _offset = riff._readX;
+            _length = riff.remainByteLength();
+            _data = riff._chunkData;
         }
-
+        
         public int size() {
-            return _data.length;
+            return _length;
         }
         
         public int getSample24Add(int pos) {
-            int x = _data[pos] & 0xff;
+            int x = _data[_offset + pos] & 0xff;
             return x;
         }
     }

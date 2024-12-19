@@ -55,8 +55,9 @@ public class XTOscilator {
     public final XTRow _row;
     public OscilatorPosition _pos;
     public XTFilter _filter;
+    public double _tonePan;
     
-    public XTOscilator(int track, int playKey, double velocity, XTFile sfz, int sampleId, boolean loop, int overridingRootKey) {
+    public XTOscilator(int track, int playKey, double velocity, XTFile sfz, int sampleId, boolean loop, int overridingRootKey, double pan) {
         _track = track;
         _sfz = sfz;
         _sampleId = sampleId;
@@ -64,6 +65,7 @@ public class XTOscilator {
         _loop = loop;
         _velocity = velocity;
         _overridingRootKey = overridingRootKey;
+        _tonePan = pan;
 
         _sfz = sfz;
         _shdr = _sfz.getElement_shdr();
@@ -79,6 +81,7 @@ public class XTOscilator {
         _end = _row.intColumn(SFZElement.SHDR_END);
         _loopStart = _row.intColumn(SFZElement.SHDR_LOOPSTART);
         _loopEnd = _row.intColumn(SFZElement.SHDR_LOOPEND);
+
         /*
         if (_loopStart >= 0 && _loopEnd >= 0 && _start <= _loopStart && _loopStart <= _loopEnd && _loopEnd <= _end) {
             _loop = true;
@@ -179,7 +182,19 @@ public class XTOscilator {
     }
 
     public void setPan(double x) { //-1 ~ +1
-        _pan = x;
+        _pan = _tonePan;
+        if (x > 0) {
+            _pan += x;
+            if (_pan > 1) {
+                _pan = 1;
+            }
+        }
+        else if (x < 0) {
+            _pan += x;
+            if (_pan < -1) {
+                _pan = -1;
+            }
+        }
     }
     
     public void setVolume(double volume) { //0~+1

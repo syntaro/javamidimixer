@@ -51,6 +51,8 @@ public class XTSynthesizerTrack {
     double _mixing;
     boolean _damper;
     ArrayList<XTOscilator> _markNoteOff;
+    static XTGenOperatorMaster _genMaster = null;
+    
     public XTSynthesizerTrack(XTSynthesizer synth, int track) {
         _synth = synth;
         _track = track;
@@ -60,6 +62,9 @@ public class XTSynthesizerTrack {
         _mixing = 1.0;
         _damper = false;
         _markNoteOff = null;
+        if (_genMaster == null) {
+            _genMaster = new XTGenOperatorMaster();
+        }
     }
 
     public List<XTOscilator> createOscilator(int key, int velocity) {
@@ -84,6 +89,7 @@ public class XTSynthesizerTrack {
                     continue;
                 }
             }
+
             Integer instrument = pmean.instrument();
             if (instrument == null) {
                 continue;
@@ -125,13 +131,40 @@ public class XTSynthesizerTrack {
                         continue;
                     }
                 }
+
+                Double pan = imean.pan();
+                if (pan == null && root != null) {
+                    pan = root.pan();
+                }
+                
+                if (pan == null) {
+                    pan = 0.0;
+                }
+
+                XTGenOperator oper = _genMaster.get(XTGenOperatorMaster.pan);
+                int min = -500;
+                int max = 500;
+                /*
+                if (oper != null) {
+                    if (oper.getMin() != null && oper.getMax() != null) {
+                        if (oper.getMin() < oper.getMax()) {
+                            min = oper.getMin().intValue();
+                            max = oper.getMax().intValue();
+                        }
+                    }
+                }*/
+                double pos = (pan.doubleValue() - min) / (max - min);
+                double centerPos = (pos - 0.5) * 2;
+                if (centerPos < -1) centerPos = -1;
+                if (centerPos > 1) centerPos = 1;
+
                 try {
                     Integer sampleId = imean.sampleID();
                     if (sampleId == null) {
                         continue;
                     }
                     Integer overridingRootKey = imean.overridingRootKey();
-                    if (overridingRootKey == null) {
+                    if (overridingRootKey == null && root != null) {
                         overridingRootKey = root.overridingRootKey();
                     }
                     Integer loop = imean.sampleModes();
@@ -146,7 +179,9 @@ public class XTSynthesizerTrack {
                             _synth._sfz, 
                             sampleId, 
                             loop == null ? false: (loop.intValue() > 0), 
-                            overridingRootKey == null ? -1 : overridingRootKey);
+                            overridingRootKey == null ? -1 : overridingRootKey,
+                            centerPos);
+
                     osc.setPan(_pan);
                     osc.setVolume(_volume * _expression * _mixing);
                     result.add(osc);

@@ -61,6 +61,10 @@ public class XTAudioStream{
                         long start = System.currentTimeMillis();
                         try {
                             boolean proced = updateBuffer();
+                            
+                            if (proced) {
+                                continue;
+                            }
 
                             long reserve = (long)span + start;
                             long current = System.currentTimeMillis();
@@ -122,36 +126,28 @@ public class XTAudioStream{
         int did = 0;
         XTSynthesizerSetting setting = XTSynthesizerSetting.getSetting();
         int pageSize = setting.getSamplePageSize();
-        if (_frame_left == null) {
+        if (_frame_left == null || _frame_left.length != pageSize) {
             _frame_left  = new double[pageSize];
             _frame_right = new double[pageSize];
         }
 
-        double popTo = System.currentTimeMillis() - 1.0 * setting.getSamplePageSize() /setting.getSampleRate();
-        while( _sourceDL.available() >= setting.getSamplePageSize() ){
+        //double popTo = System.currentTimeMillis() - 1.0 * setting.getSamplePageSize() /setting.getSampleRate();
+        while( _sourceDL.available() >= pageSize ){
             //double pendAmount = 0;
             //int pendCount = 0;
             //int pendNotCount = 0; 
             for(int i = 0; i < pageSize; i++) {
                 double valueLeft = 0;
                 double valueRight = 0;
-                double lastTime = 1.0 * i / setting.getSampleRate() + popTo;
+                //double lastTime = 1.0 * i / setting.getSampleRate() + popTo;
 
                 while (true) {
                     XTOscilator osc = _push.tryPeek();
                     if (osc == null) {
                         break;
                     }
-                    if (osc._timing <= lastTime) {
-                        _push.pop();
-                        _copy.push(osc);
-                        //pendNotCount ++;
-                    }
-                    else {
-                        //pendCount ++;
-                        //pendAmount += lastTime - osc._timing;
-                        break;
-                    }
+                    _push.pop();
+                    _copy.push(osc);
                 }
 
                 ArrayList<XTOscilator> check = new ArrayList<>();
@@ -165,12 +161,10 @@ public class XTAudioStream{
                 for (XTOscilator j : _copy) {
                     double v = j.nextValueWithAmp() * j._volume * j._velocity;
                     double pan = j._pan;
-
-                    double right, left;
-
-                    right = (pan + 1) / 2;
-                    left = (1 - pan) / 2;
-
+                    pan += 1;
+                    pan /= 2;
+                    double right = pan, left = 1 - pan;
+                    
                     switch (j._type) {
                         case 2:
                             valueRight += v * right;

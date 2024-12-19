@@ -58,7 +58,7 @@ public class JavaSourceDataLine {
                     XTSynthesizerSetting setting = XTSynthesizerSetting.getSetting();
                     setting.clearUpdated();
                     int frame_size = setting.getSamplePageSize();
-                    byte[] _stereo = new byte[frame_size * setting.getSamplePageCount() * 4];
+                    byte[] _stereo = new byte[frame_size /** setting.getSamplePageCount() */* 4];
                     if (_audioThread == null) {
                         try {
                             Thread.sleep(10);
@@ -75,10 +75,10 @@ public class JavaSourceDataLine {
                                 needReboot = true;
                                 break;
                             }
-                            _pool.waitForCount(setting.getSamplePageCount());
+                            //_pool.waitForCount(setting.getSamplePageCount());
                             
                             int pos = 0;
-                            for (int i = 0; i < setting.getSamplePageCount(); ++ i) {
+                            //for (int i = 0; i < setting.getSamplePageCount(); ++ i) {
                                 AudioSegment p = _pool.pop();
                                 for (int x = 0; x < frame_size; x ++) {
                                     long sampleleft = (long)(p._left[x] * 30000);
@@ -91,11 +91,11 @@ public class JavaSourceDataLine {
                                 synchronized (_trashCan) {
                                     _trashCan.push(p);
                                 }
-                            }
-                            if (pos >= _stereo.length) {
+                            //}
+                            //if (pos >= _stereo.length) {
                                 _audioTrack.write(_stereo,0,pos);
                                 pos = 0;
-                            }
+                            //}
                         }
                     }finally {
                         if (_audioTrack != null) {

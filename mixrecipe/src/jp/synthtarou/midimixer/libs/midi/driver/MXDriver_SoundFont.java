@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.midimixer.libs.midi.driver;
 
+import java.io.IOException;
 import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.mixtone.synth.XTSynthesizer;
@@ -41,9 +42,13 @@ public class MXDriver_SoundFont implements MXDriver {
     }
     
     private MXDriver_SoundFont() {
-        XTSynthesizer synth = XTSynthesizerSetting.getSetting().getSynthInstance();
-        synth.openSoundfont(null);
-        _synth = synth;
+        try {
+            XTSynthesizer synth = XTSynthesizerSetting.getSetting().getSynthInstance();
+            synth.openSoundfont(null);
+            _synth = synth;
+        }catch(IOException ex) {
+            ex.printStackTrace();
+        }
     }
 
     public int getDriverUID() {
