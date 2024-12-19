@@ -59,7 +59,7 @@ public class MX16Process extends MXReceiver<MX16View> {
 
     @Override
     public String getReceiverName() {
-        return "Velocity Curve";
+        return "Velocity";
     }
 
     @Override

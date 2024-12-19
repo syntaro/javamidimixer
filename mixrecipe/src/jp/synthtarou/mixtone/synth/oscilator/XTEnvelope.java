@@ -16,6 +16,7 @@
  */
 package jp.synthtarou.mixtone.synth.oscilator;
 
+import jp.synthtarou.mixtone.synth.XTSynthesizerSetting;
 import jp.synthtarou.mixtone.synth.audio.XTAudioStream;
 
 /**
@@ -23,7 +24,8 @@ import jp.synthtarou.mixtone.synth.audio.XTAudioStream;
  * @author Syntarou YOSHIDA
  */
 public class XTEnvelope {
-    long _sampleRate = (long)(XTAudioStream._sampleRate);
+    static double _sampleRate = XTSynthesizerSetting.getSetting().getSampleRate();
+    
     long _attackSamples = 0;
     long _decaySamples = (long)(_sampleRate / 4);
     double _sustainLevel = 0.7;
@@ -34,18 +36,16 @@ public class XTEnvelope {
 
     long _noteOffSample = -1;
     double _noteOffAmount;
-    
-    static final double sampleRate = XTAudioStream._sampleRate;
    
     public static void main(String[] args) {
         XTEnvelope env = new XTEnvelope();
         env.setAttachSamples((long)0);
-        env.setDecaySamples((long)(sampleRate / 4));
+        env.setDecaySamples((long)(_sampleRate / 4));
         env.setSustainLevel(0.5);
-        env.setReleaseSamples((long)(sampleRate / 4));
+        env.setReleaseSamples((long)(_sampleRate / 4));
         
-        for(long x = 0; x <= (sampleRate * 10); x += sampleRate / 10) {
-            if (x >= sampleRate * 5) {
+        for(long x = 0; x <= (_sampleRate * 10); x += _sampleRate / 10) {
+            if (x >= _sampleRate * 5) {
                 env.noteOff();
             }
             System.out.println("step " + x + " -> " + env.getAmountAt(x));
@@ -76,7 +76,7 @@ public class XTEnvelope {
     
     public static long millisecToSample(long millisec) {
         double temp = 1000.0 * millisec;
-        return (long)Math.round(temp / sampleRate);
+        return (long)Math.round(temp / _sampleRate);
     }
 
     public boolean isNoteOff() {

@@ -53,7 +53,7 @@ public class MX36Process extends MXReceiver<MX36View> implements MXINIFileSuppor
 
     @Override
     public String getReceiverName() {
-        return "CCMapping";
+        return "CC Map";
     }
 
     @Override

@@ -78,7 +78,7 @@ public class MXMainWindow extends javax.swing.JFrame {
             }
         });
         appMenu.add(helpMenu);
-
+        
         JMenuItem helpMenu2 = new JMenuItem("Manual PDF");
         helpMenu2.addActionListener(new ActionListener() {
             @Override
@@ -169,11 +169,12 @@ public class MXMainWindow extends javax.swing.JFrame {
     }
     
     List<MXReceiver> _viewList = null;
+    List<MXReceiver> _viewList2 = null;
 
     /**
      * ウィンドウの初期化
      */
-    public void initLatebind(List<MXReceiver> viewList) {
+    public void initLatebind(List<MXReceiver> viewList, List<MXReceiver> optionViewList) {
         setTitle(MXConfiguration.MX_APPLICATION);
         setSize(new Dimension(1200, 800));
 
@@ -182,33 +183,55 @@ public class MXMainWindow extends javax.swing.JFrame {
 
         int count = 0;
         _viewList = viewList;
+        _viewList2 = optionViewList;
         for (MXReceiver re : viewList) {
             jTabbedPane1.add(re.getReceiverName(), re.getReceiverView());
             JMenuItem menu = new JMenuItem(re.getReceiverName());
-            menu.addActionListener(new WindowMenuItemListener(count));
+            menu.addActionListener((act) -> {
+                openTab(re);
+            });
             count++;
             jMenuWindow.add(menu);
         }
+        
         jTabbedPane1.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 tabPanelStateChanged(evt);
             }
         });
+
+        jMenuWindow.add(new JSeparator());
+        
+        _tab2 = new JTabbedPane();
+        jTabbedPane1.add("Extended Option", _tab2);
+        int count2 = 0;
+        for (MXReceiver re : optionViewList) {
+            _tab2.add(re.getReceiverName(), re.getReceiverView());
+            JMenuItem menu = new JMenuItem(re.getReceiverName());
+            menu.addActionListener((act) -> {
+                openTab(re);
+            });
+            count2++;
+            jMenuWindow.add(menu);
+        }
     }
-
-    class WindowMenuItemListener implements ActionListener {
-
-        int _page;
-
-        public WindowMenuItemListener(int page) {
-            _page = page;
+    
+    JTabbedPane _tab2;
+    
+    public void openTab(MXReceiver target){ 
+        for (int x1 = 0; x1 < _viewList.size(); ++ x1) {
+            if (_viewList.get(x1) == target ) {
+                jTabbedPane1.setSelectedIndex(x1);
+                return;
+            }
         }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            jTabbedPane1.setSelectedIndex(_page);
+        for (int x2 = 0; x2 < _viewList2.size(); ++ x2) {
+            if (_viewList2.get(x2) == target ) {
+                jTabbedPane1.setSelectedIndex(_viewList.size());
+                _tab2.setSelectedIndex(x2);
+                return;
+            }
         }
-
     }
 
     /**
@@ -332,8 +355,12 @@ public class MXMainWindow extends javax.swing.JFrame {
     
     public MXReceiver getSelectedReceiver() {
         int x = jTabbedPane1.getSelectedIndex();
-        if (_viewList != null) {
+        if (x < _viewList.size()) {
             return _viewList.get(x);
+        }
+        int y = _tab2.getSelectedIndex();
+        if (y < _viewList2.size()) {
+            return _viewList2.get(y);
         }
         return null;
     }

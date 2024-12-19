@@ -16,13 +16,13 @@
  */
 package jp.synthtarou.mixtone.synth.audio;
 
-import jp.synthtarou.mixtone.main.XTSynthesizer;
+import jp.synthtarou.mixtone.synth.XTSynthesizer;
 import jp.synthtarou.mixtone.synth.oscilator.XTOscilator;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import jp.synthtarou.libs.MXQueue;
-import static jp.synthtarou.mixtone.synth.audio.XTAudioStream._sampleRate;
+import jp.synthtarou.mixtone.synth.XTSynthesizerSetting;
 
 /**
  *
@@ -30,34 +30,17 @@ import static jp.synthtarou.mixtone.synth.audio.XTAudioStream._sampleRate;
  */
 public class XTAudioStream{
     static final String TAG=  "XTAudioStream";
-    //private final int _frame_size = AndroidSourceDataLine._bufferSize;
-    public static final int _frame_size = 512;
-    public static final int _buffer_rooms = 1;
-
-    static XTAudioStream _instance;
     XTSynthesizer _synth;
     
-    public static XTAudioStream getInstance(XTSynthesizer synth) {
-        if (_instance == null) {
-            _instance = new XTAudioStream(synth);
-        }
-        return _instance;
-    }
-
-    private XTAudioStream(XTSynthesizer synth) {
+    public XTAudioStream(XTSynthesizer synth) {
         _synth = synth;
     }
     
     private JavaSourceDataLine _sourceDL;
     public double _masterVolume = 1.0;
-
-    public static final int _sampleChannel = 2;
-    public static final float _sampleRate = 48000;
-    public static final int _sampleBits = 16;
-    public static final boolean _available = true;
-
-    private double[] _frame_left = new double[_frame_size];
-    private double[] _frame_right = new double[_frame_size];
+    public boolean _available = true;
+    private double[] _frame_left;
+    private double[] _frame_right;
     Thread _renderThread = null;
     
     private void startThread() {
@@ -71,12 +54,11 @@ public class XTAudioStream{
 
                         }
                     }
-                    double span = 1000.0 * _frame_size /  _sampleRate;
-                    while(true) {
+                    XTSynthesizerSetting setting = XTSynthesizerSetting.getSetting();
+                    int pageSize = setting.getSamplePageSize() * setting.getSamplePageCount();
+                    double span = 1000.0 * setting.getSampleRate()/ pageSize;
+                    while(_renderThread != null) {
                         long start = System.currentTimeMillis();
-                        if (_renderThread == null) {
-                            break;
-                        }
                         try {
                             boolean proced = updateBuffer();
 
@@ -107,7 +89,6 @@ public class XTAudioStream{
                     _sourceDL = null;
                 }
             };
-            //_renderThread.setPriority(Thread.MAX_PRIORITY);
             _renderThread.start();
         }
     }
@@ -122,7 +103,7 @@ public class XTAudioStream{
     public void startStream() {
         if (_sourceDL == null) {
             _sourceDL = new JavaSourceDataLine();
-            _sourceDL.start();
+            _sourceDL.launchThread();
             startThread();
         }
     }
@@ -139,14 +120,38 @@ public class XTAudioStream{
             return false;
         }
         int did = 0;
-        while( _sourceDL.available() >= _frame_size ){
-            for(int i = 0; i < _frame_size; i++) {
+        XTSynthesizerSetting setting = XTSynthesizerSetting.getSetting();
+        int pageSize = setting.getSamplePageSize();
+        if (_frame_left == null) {
+            _frame_left  = new double[pageSize];
+            _frame_right = new double[pageSize];
+        }
 
+        double popTo = System.currentTimeMillis() - 1.0 * setting.getSamplePageSize() /setting.getSampleRate();
+        while( _sourceDL.available() >= setting.getSamplePageSize() ){
+            //double pendAmount = 0;
+            //int pendCount = 0;
+            //int pendNotCount = 0; 
+            for(int i = 0; i < pageSize; i++) {
                 double valueLeft = 0;
                 double valueRight = 0;
+                double lastTime = 1.0 * i / setting.getSampleRate() + popTo;
 
-                while (_push.isEmpty() == false) {
-                    _copy.push(_push.pop());
+                while (true) {
+                    XTOscilator osc = _push.tryPeek();
+                    if (osc == null) {
+                        break;
+                    }
+                    if (osc._timing <= lastTime) {
+                        _push.pop();
+                        _copy.push(osc);
+                        //pendNotCount ++;
+                    }
+                    else {
+                        //pendCount ++;
+                        //pendAmount += lastTime - osc._timing;
+                        break;
+                    }
                 }
 
                 ArrayList<XTOscilator> check = new ArrayList<>();
@@ -183,6 +188,13 @@ public class XTAudioStream{
                 _frame_left[i] = valueLeft;
                 _frame_right[i] = valueRight;
             }
+            /*
+            if (pendCount != 0) {
+                System.err.println("pend count " +pendCount + " amount " + pendAmount + " (pendNot " + pendNotCount + ")");
+            }
+            else if (pendNotCount != 0) {
+                System.err.println("pend count " +pendCount + " amount " + pendAmount + " (pendNot " + pendNotCount + ")");
+            }*/
 
             _sourceDL.write(_frame_right, _frame_left);
             did ++;
@@ -194,6 +206,7 @@ public class XTAudioStream{
     MXQueue<XTOscilator> _push = new MXQueue<>();
 
     public void push(XTOscilator osc) {
+        osc._timing = System.currentTimeMillis();
         _push.push(osc);
     }
 }

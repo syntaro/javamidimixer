@@ -474,7 +474,7 @@ public class MX80Process extends MXReceiver<MX80View> implements MXINIFileSuppor
 
     @Override
     public String getReceiverName() {
-        return "(VSTRack)";
+        return "VSTi";
     }
 
     MX80View _view = null;

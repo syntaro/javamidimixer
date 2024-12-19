@@ -47,7 +47,7 @@ public abstract class MXDebug {
     static MXReceiver<JPanel> _debugProcess = new MXReceiver<JPanel>() {
         @Override
         public String getReceiverName() {
-            return "Temp";
+            return "debugProcess";
         }
 
         @Override

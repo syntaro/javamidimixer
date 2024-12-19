@@ -16,7 +16,7 @@
  */
 package jp.synthtarou.mixtone.synth.oscilator;
 
-import jp.synthtarou.mixtone.synth.audio.XTAudioStream;
+import jp.synthtarou.mixtone.synth.XTSynthesizerSetting;
 
 /**
  *
@@ -25,24 +25,24 @@ import jp.synthtarou.mixtone.synth.audio.XTAudioStream;
 public class XTFilter {
     double _cutoffFreq;
     double _resonance;
-    double _samplerate;
+    long _samplerate;
     double[] _smpl = new double[2];
 
     double _cut_lp;
     double _fb_lp;
             
     public XTFilter() {
-        this(20000, 0.0);
+        this((long)XTSynthesizerSetting.getSetting().getSampleRate(), 20000, 0.0);
     }
     
-    public XTFilter(double cutoffFreq, double resonance) {
+    public XTFilter(long sampleRate, double cutoffFreq, double resonance) {
         if (cutoffFreq < 10) cutoffFreq = 10;
         if (cutoffFreq > 22200) cutoffFreq = 22200;
         if (resonance < 0.1) resonance = 0.1;
         if (resonance > 1) resonance = 1;
         _cutoffFreq = cutoffFreq;
         _resonance = resonance;
-        _samplerate = XTAudioStream._sampleRate;
+        _samplerate = sampleRate;
         _cut_lp = _cutoffFreq * 2 / _samplerate;
         _fb_lp = _resonance + _resonance / ( 1.0 - _cut_lp );
     }

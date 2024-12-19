@@ -121,7 +121,7 @@ public class MX12Process extends MXReceiver<MXAccordion> implements MXINIFileSup
 
     @Override
     public String getReceiverName() {
-        return "Virtual Key";
+        return "Key";
     }
 
     @Override

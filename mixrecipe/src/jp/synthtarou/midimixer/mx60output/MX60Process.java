@@ -49,7 +49,7 @@ public class MX60Process extends MXReceiver<MX60View> implements MXJsonSupport {
 
     @Override
     public String getReceiverName() {
-        return "Output Dispatcher";
+        return "Output";
     }
 
     @Override

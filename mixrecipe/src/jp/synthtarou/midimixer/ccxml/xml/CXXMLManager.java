@@ -341,7 +341,7 @@ public class CXXMLManager extends MXReceiver<CXXMLManagerPanel> implements MXINI
 
     @Override
     public String getReceiverName() {
-        return "(XML Manager)";
+        return "XML";
     }
 
     CXXMLManagerPanel _view = null;

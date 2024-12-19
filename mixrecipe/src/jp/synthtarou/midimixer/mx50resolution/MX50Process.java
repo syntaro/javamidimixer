@@ -51,7 +51,7 @@ public class MX50Process extends MXReceiver<MX50View> implements MXINIFileSuppor
 
     @Override
     public String getReceiverName() {
-        return "ResolutionDown";
+        return "Adjust Reso";
     }
 
     @Override

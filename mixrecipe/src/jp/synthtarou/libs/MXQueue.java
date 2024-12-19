@@ -47,6 +47,23 @@ public class MXQueue<T> {
         return _queue.size();
     }
 
+    public synchronized void waitForCount(int count) {
+        while (_queue.size() < count && !_quit) {
+            try {
+                wait(100);
+            } catch (InterruptedException ex) {
+            }
+        }
+    }
+
+    public synchronized T tryPeek() {
+        if (!_queue.isEmpty()) {
+            T value = _queue.getFirst();
+            return value;
+        }
+        return null;
+    }
+    
     public synchronized T pop() {
         while (true) {
             while (_queue.isEmpty() && !_quit) {

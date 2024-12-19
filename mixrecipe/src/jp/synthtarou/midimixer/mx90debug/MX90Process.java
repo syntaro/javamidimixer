@@ -44,7 +44,7 @@ public class MX90Process extends MXReceiver<MX90View> {
 
     @Override
     public String getReceiverName() {
-        return "(Debug)";
+        return "Debug";
     }
 
     @Override

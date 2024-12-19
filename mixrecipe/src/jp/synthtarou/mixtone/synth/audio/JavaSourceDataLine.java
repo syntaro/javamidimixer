@@ -9,49 +9,44 @@ import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import jp.synthtarou.libs.MXQueue;
+import jp.synthtarou.mixtone.synth.XTSynthesizerSetting;
 
 import jp.synthtarou.mixtone.synth.oscilator.XTFilter;
 
 public class JavaSourceDataLine {
-    public static final int _frame_size = XTAudioStream._frame_size;
-    public static final int _buffer_rooms = XTAudioStream._buffer_rooms;
-    public static final float _sampleRate = XTAudioStream._sampleRate;
-    public static final int _sampleBits = XTAudioStream._sampleBits;
-    public static final int _sampleChannel = XTAudioStream._sampleChannel;
-
     public void stop() {
-
-    }
-    public void close() {
-
+        pauseThread();
     }
     
-    private SourceDataLine _audioTrack;
+    public void close() {
+        pauseThread();
+    }
 
-    public void start() {
-        if (true) {
-            AudioFormat frmt= new AudioFormat(_sampleRate, _sampleBits,_sampleChannel,true,false);
-            DataLine.Info info= new DataLine.Info(SourceDataLine.class,frmt);
-            //if (_sourceDL == null) {
-                try {
-                    _audioTrack = (SourceDataLine) AudioSystem.getLine(info);
-                } catch (LineUnavailableException e) {
-                    System.out.println("cant get line///");
-                    throw new RuntimeException(e);
-                }
-                _audioTrack.addLineListener(new LineListener() {
+    public synchronized void launchThread() {
+        if (_audioTrack == null) {
+            XTSynthesizerSetting setting = XTSynthesizerSetting.getSetting();
+            try {
+                AudioFormat frmt= new AudioFormat(
+                        setting.getSampleRate(), 
+                        setting.getSampleBits(),
+                        setting.getSampleChannel(),
+                        true,
+                        false);
+                DataLine.Info info= new DataLine.Info(SourceDataLine.class,frmt);
+                SourceDataLine dataLine = (SourceDataLine) AudioSystem.getLine(info);
+                dataLine.flush();
+                dataLine.open(frmt, setting.getSamplePageSize() * setting.getSamplePageCount());
+                dataLine.addLineListener(new LineListener() {
                     @Override
                     public void update(LineEvent event) {
                     }
                 });
-            //}
-            _audioTrack.flush();
-            try {
-                _audioTrack.open(frmt,_frame_size * 4);
+                _audioTrack = dataLine;
             } catch (LineUnavailableException e) {
-                System.out.println("cant open line....");
+                System.out.println("cant get line///");
                 throw new RuntimeException(e);
             }
+            _audioTrack.flush();
             _audioTrack.start();
         }
 
@@ -59,52 +54,80 @@ public class JavaSourceDataLine {
             _audioThread = new Thread() {
                 @Override
                 public void run() {
-                    byte[] _stereo = new byte[_frame_size * 4];
+                    boolean needReboot = false;
+                    XTSynthesizerSetting setting = XTSynthesizerSetting.getSetting();
+                    setting.clearUpdated();
+                    int frame_size = setting.getSamplePageSize();
+                    byte[] _stereo = new byte[frame_size * setting.getSamplePageCount() * 4];
+                    if (_audioThread == null) {
+                        try {
+                            Thread.sleep(10);
+                        }catch(Throwable ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                    if (_audioTrack == null) {
+                        System.err.println("Launch fatal error");
+                    }
                     try {
                         while (_audioThread != null) {
-                            AudioSegment p = _pool.pop();
-                            short left = 0, right = 0;
+                            if (setting.isUpdated()) {
+                                needReboot = true;
+                                break;
+                            }
+                            _pool.waitForCount(setting.getSamplePageCount());
                             
                             int pos = 0;
-
-                            for (int x = 0; x < _frame_size; x ++) {
-                                long sampleleft = (long)(p._left[x] * 30000);
-                                long sampleright = (long)(p._right[x] * 30000);
-                                _stereo[pos ++] = (byte)(sampleleft  & 0xff);
-                                _stereo[pos ++] = (byte)((sampleleft >> 8)  & 0xff);
-                                _stereo[pos ++] = (byte)(sampleright  & 0xff);
-                                _stereo[pos ++] = (byte)((sampleright >> 8)  & 0xff);
+                            for (int i = 0; i < setting.getSamplePageCount(); ++ i) {
+                                AudioSegment p = _pool.pop();
+                                for (int x = 0; x < frame_size; x ++) {
+                                    long sampleleft = (long)(p._left[x] * 30000);
+                                    long sampleright = (long)(p._right[x] * 30000);
+                                    _stereo[pos ++] = (byte)(sampleleft  & 0xff);
+                                    _stereo[pos ++] = (byte)((sampleleft >> 8)  & 0xff);
+                                    _stereo[pos ++] = (byte)(sampleright  & 0xff);
+                                    _stereo[pos ++] = (byte)((sampleright >> 8)  & 0xff);
+                                }
+                                synchronized (_trashCan) {
+                                    _trashCan.push(p);
+                                }
                             }
-                            _audioTrack.write(_stereo,0,pos);
-                           synchronized (_trashCan) {
-                                _trashCan.push(p);
+                            if (pos >= _stereo.length) {
+                                _audioTrack.write(_stereo,0,pos);
+                                pos = 0;
                             }
                         }
                     }finally {
                         if (_audioTrack != null) {
-                            close();
+                            _audioTrack.stop();
+                            _audioTrack = null;
                         }
                         _audioThread = null;
                     }
+                    if (needReboot) {
+                        JavaSourceDataLine.this.launchThread();
+                    }
                 }
             };
+            _audioThread.setDaemon(true);
             _audioThread.start();
         }
+
     }
 
     public int available() {
-        int cnt = _pool.size();
-        if (cnt >= _buffer_rooms) {
+        XTSynthesizerSetting setting = XTSynthesizerSetting.getSetting();
+        int x= (setting.getSamplePageCount()- _pool.size()) * setting.getSamplePageSize();
+        if (x < 0) {
             return 0;
         }
-        return (_buffer_rooms - _pool.size()) * _frame_size;
+        return x;
     }
 
     MXQueue<AudioSegment> _pool = new MXQueue<>();
     LinkedList<AudioSegment> _trashCan = new LinkedList<>();
     class AudioSegment {
-        public AudioSegment() {
-            int size = _frame_size;
+        public AudioSegment(int size) {
             _pos = 0;
             _right = new double[size];
             _left = new double[size];
@@ -113,10 +136,6 @@ public class JavaSourceDataLine {
         int _pos;
         double[] _right;
         double[] _left;
-
-        public boolean canWrite() {
-            return _pos < _right.length;
-        }
 
         public void write(double r, double l) {
             _right[_pos] = r;
@@ -133,51 +152,65 @@ public class JavaSourceDataLine {
         }
     }
 
-    AudioSegment _currentWrite = new AudioSegment();
     double _mum = 32768;
     
     public void write(double[] right, double[] left, int pos, int length) {
+        double x = 0;
         for (int i = pos; i < pos + length ;++ i) {
             double r = right[i] * _mum;
             double l = left[i] * _mum;
             if (r >= 0.8 || r <= -0.8 || l >= 0.8 || l <= -0.8) {
                 _mum *= 0.8;
                 i --;
+                continue;
+            }
+            if (r < 0) {
+                x -= r;
+            }
+            else {
+                x += r;
             }
         }
+
+        AudioSegment seg = null;
+        while (true) {
+            synchronized (_trashCan) {
+                if (_trashCan.isEmpty()) {
+                    break;
+                }
+                seg = _trashCan.removeFirst();
+                if (seg._left.length == length) {
+                    break;
+                }   
+                seg = null;
+            }
+        }
+        if (seg == null) {
+            seg = new AudioSegment(length);
+        }
+
+        int pen = 0;
         for (int i = pos; i < pos + length ;++ i) {
             double r = right[i] * _mum;
             double l = left[i] * _mum;
-            if (!_currentWrite.canWrite()) {
-                _pool.push(_currentWrite);
-                synchronized (_trashCan) {
-                    if (_trashCan.isEmpty()) {
-                        _currentWrite = new AudioSegment();
-                    }else {
-                        _currentWrite = _trashCan.removeFirst();
-                    }
-                    _currentWrite._pos = 0;
-                }
-            }
             r = _filterR.update(r);
             l = _filterL.update(l);
-            _currentWrite.write(r, l);
+            seg._left[pen] = l;
+            seg._right[pen] = r;
+            pen ++;
         }
+        _pool.push(seg);
     }
     XTFilter _filterL = new XTFilter();
     XTFilter _filterR = new XTFilter();
 
-
-    static String TAG = "AndroidSourceDataLine";
-
-    //private AudioTrack _audioTrack;
     private Thread _audioThread;
+    private SourceDataLine _audioTrack;
 
     public boolean isRunning() {
         return (_audioThread != null);
     }
 
-    boolean _paused = false;
     public void pauseThread() {
         _audioThread = null;
         while(_audioThread != null) {
@@ -189,4 +222,6 @@ public class JavaSourceDataLine {
             }
         }
     }
+
+    static String TAG = "AndroidSourceDataLine";
 }

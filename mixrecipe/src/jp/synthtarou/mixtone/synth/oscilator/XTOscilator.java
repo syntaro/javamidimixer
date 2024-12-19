@@ -190,4 +190,5 @@ public class XTOscilator {
     public double _volume;
     public double _velocity;
     public boolean _faded = false;
+    public long _timing;
 }

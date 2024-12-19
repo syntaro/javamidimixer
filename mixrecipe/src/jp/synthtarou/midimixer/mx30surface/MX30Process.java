@@ -275,7 +275,7 @@ public class MX30Process extends MXReceiver<MX30View> implements MXINIFileSuppor
 
     @Override
     public String getReceiverName() {
-        return "Surface17";
+        return "Surface";
     }
 
     @Override

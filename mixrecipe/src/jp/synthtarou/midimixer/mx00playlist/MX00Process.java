@@ -46,7 +46,7 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
     
     @Override
     public String getReceiverName() {
-        return "SMF Player";
+        return "Player";
     }
 
     @Override

@@ -162,7 +162,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
 
     @Override
     public String getReceiverName() {
-        return "Sound Layer";
+        return "Layer";
     }
 
     @Override

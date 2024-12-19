@@ -37,7 +37,7 @@ public class MXPreprocess extends MXReceiver<MXPreprocessPanel> {
 
     @Override
     public String getReceiverName() {
-        return "Preprocessor";
+        return "-";
     }
 
     @Override

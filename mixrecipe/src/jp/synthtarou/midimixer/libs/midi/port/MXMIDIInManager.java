@@ -18,7 +18,6 @@ package jp.synthtarou.midimixer.libs.midi.port;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.TreeSet;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.MXUtil;
@@ -32,6 +31,7 @@ import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.json.MXJsonValue;
+import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_SoundFont;
 
 /**
  *
@@ -88,6 +88,15 @@ public class MXMIDIInManager implements MXINIFileSupport, MXJsonSupport {
 
         TreeSet<MXMIDIIn> sorted = new TreeSet<>();
 
+        MXDriver sfz = MXDriver_SoundFont.getInstance();
+        for (int i = 0; i < sfz.InputDevicesRoomSize(); i++) {
+            MXMIDIIn device = new MXMIDIIn(sfz, i);
+            if (device == null) {
+                continue;
+            }
+            sorted.add(device);
+        }
+        
         MXDriver java = MXDriver_Java._instance;
         for (int i = 0; i < java.InputDevicesRoomSize(); i++) {
             MXMIDIIn device = new MXMIDIIn(java, i);

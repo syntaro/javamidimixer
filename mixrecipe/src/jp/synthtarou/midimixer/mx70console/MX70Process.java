@@ -69,7 +69,7 @@ public class MX70Process extends MXReceiver<MX70View>{
 
     @Override
     public String getReceiverName() {
-        return "(Console/SysEX)";
+        return "SysEX";
     }
 
     @Override

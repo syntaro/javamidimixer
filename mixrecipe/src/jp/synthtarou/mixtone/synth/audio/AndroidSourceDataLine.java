@@ -1,11 +1,5 @@
 package jp.synthtarou.mixtone.synth.audio;
 
-import java.util.LinkedList;
-import javax.sound.sampled.AudioFormat;
-import jp.synthtarou.libs.MXQueue;
-
-import jp.synthtarou.mixtone.synth.oscilator.XTFilter;
-
 public class AndroidSourceDataLine {
     /*
     public static int _frameRate = 48000;

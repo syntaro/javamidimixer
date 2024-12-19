@@ -44,7 +44,7 @@ public class MX10Process extends MXReceiver<MX10View> implements MXJsonSupport  
 
     @Override
     public String getReceiverName() {
-        return "Input Receiver";
+        return "Input";
     }
 
     @Override
