@@ -26,7 +26,7 @@ import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver;
@@ -197,7 +197,7 @@ public class MXMIDIOut implements Comparable<MXMIDIOut>{
             }
             if (msgVisitant == null) {
             } else {
-                if (command != MXMidi.COMMAND_CH_PROGRAMCHANGE) {
+                if (command != MXMidiStatic.COMMAND_CH_PROGRAMCHANGE) {
                     if (msgVisitant.isHavingProgram()) {
                         int must = msgVisitant.getProgram();
                         int old = portVisitant.getProgram();
@@ -210,7 +210,7 @@ public class MXMIDIOut implements Comparable<MXMIDIOut>{
                         }
                     }
                 }
-                if (command != MXMidi.COMMAND_CH_CONTROLCHANGE || (gate != MXMidi.DATA1_CC_BANKSELECT && gate != MXMidi.DATA1_CC_BANKSELECT + 32)) {
+                if (command != MXMidiStatic.COMMAND_CH_CONTROLCHANGE || (gate != MXMidiStatic.DATA1_CC_BANKSELECT && gate != MXMidiStatic.DATA1_CC_BANKSELECT + 32)) {
                     //0と32が連続でくる間は、この処理は実行されないので、半端を送ることもない
                     if (msgVisitant.isHavingBank()) {
                         int mustLSB = msgVisitant.getBankLSB();
@@ -219,8 +219,8 @@ public class MXMIDIOut implements Comparable<MXMIDIOut>{
                             portVisitant.setBankLSB(msgVisitant.getBankMSB());
                             portVisitant.setBankLSB(msgVisitant.getBankLSB());
 
-                            MXMessage newMessage1 = MXMessageFactory.fromControlChange(message.getPort(), channel, MXMidi.DATA1_CC_BANKSELECT, mustMSB);
-                            MXMessage newMessage2 = MXMessageFactory.fromControlChange(message.getPort(), channel, MXMidi.DATA1_CC_BANKSELECT + 32, mustLSB);
+                            MXMessage newMessage1 = MXMessageFactory.fromControlChange(message.getPort(), channel, MXMidiStatic.DATA1_CC_BANKSELECT, mustMSB);
+                            MXMessage newMessage2 = MXMessageFactory.fromControlChange(message.getPort(), channel, MXMidiStatic.DATA1_CC_BANKSELECT + 32, mustLSB);
                             newMessage1.setVisitant(portVisitant.getSnapShot());
                             newMessage2.setVisitant(portVisitant.getSnapShot());
                             newMessage1._owner = MXMessage.getRealOwner(message);
@@ -232,7 +232,7 @@ public class MXMIDIOut implements Comparable<MXMIDIOut>{
                     }
                 }
 
-                if (command != MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                if (command != MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                     if (portVisitant._currentCCAge != msgVisitant._currentCCAge) {
                         int did = 0;
                         for (int code = 0; code < 128; ++code) {
@@ -270,7 +270,7 @@ public class MXMIDIOut implements Comparable<MXMIDIOut>{
             return;
         }
         
-        if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
+        if (message.isCommand(MXMidiStatic.COMMAND_CH_NOTEON)) {
             _myNoteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
                 @Override
                 public void onNoteOffEvent(MXMessage target) {
@@ -283,12 +283,12 @@ public class MXMIDIOut implements Comparable<MXMIDIOut>{
             _driver.OutputOneMessage(_orderInDriver, one);
             MXMain.addOutsideOutput(new MXMidiConsoleElement(message));
             return;
-        } else if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
+        } else if (message.isCommand(MXMidiStatic.COMMAND_CH_NOTEOFF)) {
             if (_myNoteOff.raiseHandler(message)) {
                 return;
             }
-        } else if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)
-                && message.getCompiled(1) == MXMidi.DATA1_CC_ALLNOTEOFF) {
+        } else if (message.isCommand(MXMidiStatic.COMMAND_CH_CONTROLCHANGE)
+                && message.getCompiled(1) == MXMidiStatic.DATA1_CC_ALLNOTEOFF) {
             allNoteOff(message);
         }
 

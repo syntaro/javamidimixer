@@ -25,7 +25,7 @@ import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.libs.json.MXJsonValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
@@ -60,7 +60,7 @@ public class MX32MixerProcess extends MXReceiver<MX32MixerView> implements MXINI
 
     @Override
     public String getReceiverName() {
-        return "#" + MXMidi.nameOfPortShort(_port);
+        return "#" + MXMidiStatic.nameOfPortShort(_port);
     }
 
     @Override

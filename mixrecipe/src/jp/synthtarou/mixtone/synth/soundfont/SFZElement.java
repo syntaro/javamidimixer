@@ -18,7 +18,7 @@ package jp.synthtarou.mixtone.synth.soundfont;
 
 import java.util.ArrayList;
 import java.util.List;
-import jp.synthtarou.mixtone.listmodel.TextListForDebug;
+
 import jp.synthtarou.mixtone.synth.soundfont.table.XTTable;
 import jp.synthtarou.mixtone.synth.soundfont.table.XTHeader;
 import jp.synthtarou.mixtone.synth.soundfont.table.XTRow;
@@ -65,13 +65,6 @@ public abstract class SFZElement extends XTTable {
 
         public List<SFZElement> getChildren() {
             return _childCache;
-        }
-
-        @Override
-        public void getDump(TextListForDebug dump) {
-            get(0).setColumn(LIST_TYPE ,_type);
-            get(0).setColumn(LIST_COUNT , _childCache.size());
-            super.getDump(dump);
         }
     }
 
@@ -661,10 +654,6 @@ public abstract class SFZElement extends XTTable {
             element = (new SFZElement.SFZElement_shdr(riff));
         } else {
             element = (new SFZElement("unknown") {
-                @Override
-                public void getDump(TextListForDebug dump) {
-                    dump.add("Unknown");
-                }
             });
         }
 

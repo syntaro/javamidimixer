@@ -28,7 +28,7 @@ import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.mx00playlist.MXPianoRoll;
 
@@ -145,13 +145,13 @@ public class SMFSequencer {
             int data1 = smf.getData1();
 
             if (_firstNote[channel] == null) {
-                if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
+                if (command == MXMidiStatic.COMMAND_CH_PROGRAMCHANGE) {
                     firstProgram[channel] = smf;
-                } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == 0) {
+                } else if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE && data1 == 0) {
                     firstBank0[channel] = smf;
-                } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == 32) {
+                } else if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE && data1 == 32) {
                     firstBank32[channel] = smf;
-                } else if (command == MXMidi.COMMAND_CH_NOTEON) {
+                } else if (command == MXMidiStatic.COMMAND_CH_NOTEON) {
                     _firstNote[channel] = smf;
                     doneCh++;
                     if (doneCh >= 16) {
@@ -252,19 +252,21 @@ public class SMFSequencer {
         long launched = System.currentTimeMillis() - _startMilliSeconds;
         long lastSent = 0;
 
-        _nextDraw = 0;
+        _nextDraw = -1;
 
         while (!_stopAll && !_stopPlayer && pos < list.size()) {
             long elapsed = (System.currentTimeMillis() - launched);
             long nextNote = list.get(pos)._millisecond;
             paintPiano(elapsed);
             _currentMilliSeconds = elapsed;
-            while (nextNote - elapsed >= 5) {
+            while (nextNote - elapsed >= 2) {
                 try {
-                    long waiting = nextNote - elapsed - 5;
-                    long waiting2 = _nextDraw - elapsed;
-                    if (waiting >= waiting2) {
-                        waiting = waiting2;
+                    long waiting = nextNote - elapsed - 2;
+                    if (_nextDraw >= 0) {
+                        long waiting2 = _nextDraw - elapsed;
+                        if (waiting >= waiting2) {
+                            waiting = waiting2;
+                        }
                     }
                     if (waiting >= 1) {
                         synchronized (this) {
@@ -319,20 +321,20 @@ public class SMFSequencer {
             }
             synchronized (SMFSequencer.this) {
                 for (int i = start; i <= end; ++i) {
-                    OneMessage message = new OneMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
+                    OneMessage message = OneMessage.thisCodes(0, MXMidiStatic.COMMAND_CH_CONTROLCHANGE + i, MXMidiStatic.DATA1_CC_DAMPERPEDAL, 0);
                     message._port = port;
                     smfPlayNote(message);
-                    message = new OneMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 127);
+                    message = OneMessage.thisCodes(0, MXMidiStatic.COMMAND_CH_CONTROLCHANGE + i, MXMidiStatic.DATA1_CC_ALLNOTEOFF, 127);
                     message._port = port;
                     smfPlayNote(message);
-                    message = new OneMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_EXPRESSION, 127);
+                    message = OneMessage.thisCodes(0, MXMidiStatic.COMMAND_CH_CONTROLCHANGE + i, MXMidiStatic.DATA1_CC_EXPRESSION, 127);
                     message._port = port;
                     smfPlayNote(message);
-                    message = new OneMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_CHANNEL_VOLUME, 127);
+                    message = OneMessage.thisCodes(0, MXMidiStatic.COMMAND_CH_CONTROLCHANGE + i, MXMidiStatic.DATA1_CC_CHANNEL_VOLUME, 127);
                     message._port = port;
                     smfPlayNote(message);
                 }
-                MXTemplate temp = MXMidi.TEMPLATE_MASTERVOLUME;
+                MXTemplate temp = MXMidiStatic.TEMPLATE_MASTERVOLUME;
                 MXMessage msg1 = MXMessageFactory.fromTemplate(0, temp, 0, MXRangedValue.ZERO7, MXRangedValue.new7bit(127));
                 OneMessage mesasge = msg1.toOneMessage(0);
                 smfPlayNote(mesasge);
@@ -352,13 +354,13 @@ public class SMFSequencer {
         }
         for (int i = chFrom; i <= chTo; ++i) {
             OneMessage message;
-            message = new OneMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_DAMPERPEDAL, 0);
+            message = OneMessage.thisCodes(0, MXMidiStatic.COMMAND_CH_CONTROLCHANGE + i, MXMidiStatic.DATA1_CC_DAMPERPEDAL, 0);
             message._port = port;
             smfPlayNote(message);
-            message = new OneMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLNOTEOFF, 0);
+            message = OneMessage.thisCodes(0, MXMidiStatic.COMMAND_CH_CONTROLCHANGE + i, MXMidiStatic.DATA1_CC_ALLNOTEOFF, 0);
             message._port = port;
             smfPlayNote(message);
-            message = new OneMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE + i, MXMidi.DATA1_CC_ALLSOUNDOFF, 0);
+            message = OneMessage.thisCodes(0, MXMidiStatic.COMMAND_CH_CONTROLCHANGE + i, MXMidiStatic.DATA1_CC_ALLSOUNDOFF, 0);
             message._port = port;
             smfPlayNote(message);
         }
@@ -411,16 +413,16 @@ public class SMFSequencer {
                     }
 
                     switch (status & 0xf0) {
-                        case MXMidi.COMMAND_CH_NOTEON:
-                        case MXMidi.COMMAND_CH_NOTEOFF:
-                        case MXMidi.COMMAND_CH_PITCHWHEEL:
+                        case MXMidiStatic.COMMAND_CH_NOTEON:
+                        case MXMidiStatic.COMMAND_CH_NOTEOFF:
+                        case MXMidiStatic.COMMAND_CH_PITCHWHEEL:
                             skip = false;
                             break;
-                        case MXMidi.COMMAND_CH_CONTROLCHANGE:
-                            if (data1 == MXMidi.DATA1_CC_DAMPERPEDAL
-                                    || data1 == MXMidi.DATA1_CC_MODULATION
-                                    || data1 == MXMidi.DATA1_CC_ALLNOTEOFF
-                                    || data1 == MXMidi.DATA1_CC_ALLSOUNDOFF) {
+                        case MXMidiStatic.COMMAND_CH_CONTROLCHANGE:
+                            if (data1 == MXMidiStatic.DATA1_CC_DAMPERPEDAL
+                                    || data1 == MXMidiStatic.DATA1_CC_MODULATION
+                                    || data1 == MXMidiStatic.DATA1_CC_ALLNOTEOFF
+                                    || data1 == MXMidiStatic.DATA1_CC_ALLSOUNDOFF) {
                                 skip = false;
                             }
                             break;
@@ -447,7 +449,7 @@ public class SMFSequencer {
         ArrayList<OneMessage> list = _parser._listMessage;
         for (OneMessage smf : list) {
             int command = smf.getStatus() & 0xf0;
-            if (command == MXMidi.COMMAND_CH_NOTEON) {
+            if (command == MXMidiStatic.COMMAND_CH_NOTEON) {
                 return smf._millisecond;
             }
         }
@@ -503,7 +505,7 @@ public class SMFSequencer {
             return false;
         }
         for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
-            File f = new File(directory, directory.getName() + "-" + MXMidi.nameOfPortInput(port) + ".mid");
+            File f = new File(directory, directory.getName() + "-" + MXMidiStatic.nameOfPortInput(port) + ".mid");
             try {
                 _parser.writeFile(f, port);
             } catch (IOException ex) {
@@ -520,7 +522,7 @@ public class SMFSequencer {
         }
         SortedArray<OneMessage> merge = new SortedArray<>();
         for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++port) {
-            File f = new File(directory, directory.getName() + "-" + MXMidi.nameOfPortInput(port) + ".mid");
+            File f = new File(directory, directory.getName() + "-" + MXMidiStatic.nameOfPortInput(port) + ".mid");
             if (f.isFile()) {
                 try {
                     SMFParser parser = new SMFParser(f);

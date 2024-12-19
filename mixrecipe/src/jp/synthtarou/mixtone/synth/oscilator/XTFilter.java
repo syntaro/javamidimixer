@@ -36,8 +36,10 @@ public class XTFilter {
     }
     
     public XTFilter(double cutoffFreq, double resonance) {
-        cutoffFreq = Math.clamp(cutoffFreq, 10, 22200);
-        resonance = Math.clamp(resonance, 0.1, 1);
+        if (cutoffFreq < 10) cutoffFreq = 10;
+        if (cutoffFreq > 22200) cutoffFreq = 22200;
+        if (resonance < 0.1) resonance = 0.1;
+        if (resonance > 1) resonance = 1;
         _cutoffFreq = cutoffFreq;
         _resonance = resonance;
         _samplerate = XTAudioStream._sampleRate;

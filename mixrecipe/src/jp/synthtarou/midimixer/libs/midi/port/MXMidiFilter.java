@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.libs.midi.port;
 
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 
 /**
  *
@@ -110,72 +110,72 @@ public class MXMidiFilter {
             case TYPE_ISSKIPPER:
                 return true;
             case TYPE_NOTE:
-                if (command == MXMidi.COMMAND_CH_NOTEON
-                        || command == MXMidi.COMMAND_CH_NOTEOFF) {
+                if (command == MXMidiStatic.COMMAND_CH_NOTEON
+                        || command == MXMidiStatic.COMMAND_CH_NOTEOFF) {
                     return true;
                 }
                 break;
             case TYPE_DAMPER_PEDAL:
-                if (command == MXMidi.COMMAND_CH_CONTROLCHANGE
-                        && data1 == MXMidi.DATA1_CC_DAMPERPEDAL) {
+                if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE
+                        && data1 == MXMidiStatic.DATA1_CC_DAMPERPEDAL) {
                     return true;
                 }
                 break;
             case TYPE_PITCH_BEND:
-                if (command == MXMidi.COMMAND_CH_PITCHWHEEL || command == MXMidi.COMMAND2_CH_PITCH_MSBLSB) {
+                if (command == MXMidiStatic.COMMAND_CH_PITCHWHEEL || command == MXMidiStatic.COMMAND2_CH_PITCH_MSBLSB) {
                     return true;
                 }
                 break;
             case TYPE_MOD_WHEEL:
-                if (command == MXMidi.COMMAND_CH_CONTROLCHANGE
-                        && data1 == MXMidi.DATA1_CC_MODULATION) {
+                if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE
+                        && data1 == MXMidiStatic.DATA1_CC_MODULATION) {
                     return true;
                 }
                 break;
             case TYPE_BANK_SELECT:
-                if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                     switch (data1) {
-                        case MXMidi.DATA1_CC_BANKSELECT:
-                        case MXMidi.DATA1_CC_BANKSELECT + 0x20:
+                        case MXMidiStatic.DATA1_CC_BANKSELECT:
+                        case MXMidiStatic.DATA1_CC_BANKSELECT + 0x20:
                             return true;
                     }
                 }
                 break;
             case TYPE_PROGRAM_CHANGE:
-                if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
+                if (command == MXMidiStatic.COMMAND_CH_PROGRAMCHANGE) {
                     return true;
                 }
                 break;
             case TYPE_DATA_ENTRY:
-                if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                     switch (data1) {
-                        case MXMidi.DATA1_CC_DATAENTRY:
-                        case MXMidi.DATA1_CC_DATAENTRY2:
-                        case MXMidi.DATA1_CC_DATAINC:
-                        case MXMidi.DATA1_CC_DATADEC:
-                        case MXMidi.DATA1_CC_RPN_LSB:
-                        case MXMidi.DATA1_CC_RPN_MSB:
-                        case MXMidi.DATA1_CC_NRPN_LSB:
-                        case MXMidi.DATA1_CC_NRPN_MSB:
+                        case MXMidiStatic.DATA1_CC_DATAENTRY:
+                        case MXMidiStatic.DATA1_CC_DATAENTRY2:
+                        case MXMidiStatic.DATA1_CC_DATAINC:
+                        case MXMidiStatic.DATA1_CC_DATADEC:
+                        case MXMidiStatic.DATA1_CC_RPN_LSB:
+                        case MXMidiStatic.DATA1_CC_RPN_MSB:
+                        case MXMidiStatic.DATA1_CC_NRPN_LSB:
+                        case MXMidiStatic.DATA1_CC_NRPN_MSB:
                             return true;
                     }
                 }
                 break;
             case TYPE_ANOTHER_CC:
-                if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                     switch (data1) {
-                        case MXMidi.DATA1_CC_DAMPERPEDAL:
-                        case MXMidi.DATA1_CC_MODULATION:
-                        case MXMidi.DATA1_CC_BANKSELECT:
-                        case MXMidi.DATA1_CC_BANKSELECT + 0x20:
-                        case MXMidi.DATA1_CC_DATAENTRY:
-                        case MXMidi.DATA1_CC_DATAENTRY2:
-                        case MXMidi.DATA1_CC_DATAINC:
-                        case MXMidi.DATA1_CC_DATADEC:
-                        case MXMidi.DATA1_CC_RPN_LSB:
-                        case MXMidi.DATA1_CC_RPN_MSB:
-                        case MXMidi.DATA1_CC_NRPN_LSB:
-                        case MXMidi.DATA1_CC_NRPN_MSB:
+                        case MXMidiStatic.DATA1_CC_DAMPERPEDAL:
+                        case MXMidiStatic.DATA1_CC_MODULATION:
+                        case MXMidiStatic.DATA1_CC_BANKSELECT:
+                        case MXMidiStatic.DATA1_CC_BANKSELECT + 0x20:
+                        case MXMidiStatic.DATA1_CC_DATAENTRY:
+                        case MXMidiStatic.DATA1_CC_DATAENTRY2:
+                        case MXMidiStatic.DATA1_CC_DATAINC:
+                        case MXMidiStatic.DATA1_CC_DATADEC:
+                        case MXMidiStatic.DATA1_CC_RPN_LSB:
+                        case MXMidiStatic.DATA1_CC_RPN_MSB:
+                        case MXMidiStatic.DATA1_CC_NRPN_LSB:
+                        case MXMidiStatic.DATA1_CC_NRPN_MSB:
                             return false;
                     }
                     return true;
@@ -183,23 +183,23 @@ public class MXMidiFilter {
                 break;
             case TYPE_RESET_GENERAL:
                 if (message.isSysexOrMeta()) {
-                    if (MXMidi.isReset(message.toOneMessage(0).getBinary())) {
+                    if (MXMidiStatic.isReset(message.toOneMessage(0).getBinary())) {
                         return true;
                     }
                 }
                 break;
             case TYPE_SYSEX:
-                if (command == MXMidi.COMMAND_SYSEX || command == MXMidi.COMMAND_SYSEX_END){
+                if (command == MXMidiStatic.COMMAND_SYSEX || command == MXMidiStatic.COMMAND_SYSEX_END){
                     return true;
                 }
                 break;
             case TYPE_CLOCK:
-                if (command == MXMidi.COMMAND_MIDICLOCK) {
+                if (command == MXMidiStatic.COMMAND_MIDICLOCK) {
                     return true;
                 }
                 break;
             case TYPE_ACTIVE_SENSING:
-                if (command == MXMidi.COMMAND_ACTIVESENSING) {
+                if (command == MXMidiStatic.COMMAND_ACTIVESENSING) {
                     return true;
                 }
                 break;

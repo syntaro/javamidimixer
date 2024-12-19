@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.mx30surface.capture;
 
 import java.util.TreeMap;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 
 /**
  *
@@ -36,11 +36,11 @@ public class CaptureGate {
             command = _command._template.get(0) & 0xfff0;
         }
         String add = "";
-        if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_POLYPRESSURE || command == MXMidi.COMMAND_CH_NOTEOFF) {
-            add = " = " + MXMidi.nameOfNote(_gate);
+        if (command == MXMidiStatic.COMMAND_CH_NOTEON || command == MXMidiStatic.COMMAND_CH_POLYPRESSURE || command == MXMidiStatic.COMMAND_CH_NOTEOFF) {
+            add = " = " + MXMidiStatic.nameOfNote(_gate);
         }
-        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
-            add = " = CC " + MXMidi.nameOfControlChange(_gate);
+        if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
+            add = " = CC " + MXMidiStatic.nameOfControlChange(_gate);
         }
         return _gate + add;
     }

@@ -19,7 +19,7 @@ package jp.synthtarou.midimixer.mx11vcurve;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 
 /**
  *
@@ -39,7 +39,7 @@ public class MX11Process extends MXReceiver<MX11View> {
     public void processMXMessage(MXMessage message) {
         if (isUsingThisRecipe() == false) { sendToNext(message); return; }
 
-        if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
+        if (message.isCommand(MXMidiStatic.COMMAND_CH_NOTEON)) {
             int port = message.getPort();
             int velocity = message.getCompiled(1);
             int newVelocity = _viewData.transform(port, velocity);

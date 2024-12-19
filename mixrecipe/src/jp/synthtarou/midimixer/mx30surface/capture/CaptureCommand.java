@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.mx30surface.capture;
 
 import java.util.TreeMap;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 
 /**
@@ -42,11 +42,11 @@ public class CaptureCommand {
             command = _template.get(0) & 0xfff0;
         }
         String add = "";
-        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+        if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
             add = " = CC";
         }
         else {
-            add = MXMidi.nameOfSystemCommonMessage(command);
+            add = MXMidiStatic.nameOfSystemCommonMessage(command);
             if (add == null) {
                 add = "";
             }

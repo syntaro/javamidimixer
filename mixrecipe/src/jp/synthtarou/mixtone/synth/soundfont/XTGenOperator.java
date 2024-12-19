@@ -113,15 +113,18 @@ public class XTGenOperator {
         }
         if (_min != null) {
             if (param < _min) {
+                /*
                 String err = "param " + _name + " trim to min, param:" + param + " min: " + _min + " overflow " +wasOverflow;
                 System.err.println(err);
+                */
                 param = _min;
             }
         }
         if (_max != null) {
             if (param > _max) {
-                String err = "param " + _name + " trim to max, param:" + param + " max: " + _max + " overflow " +wasOverflow;
+                /*String err = "param " + _name + " trim to max, param:" + param + " max: " + _max + " overflow " +wasOverflow;
                 System.err.println(err);
+                */
                 param = _max;
             }
         }

@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.mx63patch;
 
 import javax.swing.event.ChangeEvent;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIOut;
 import jp.synthtarou.midimixer.mx13patch.CheckableElement;
 
@@ -51,6 +51,6 @@ public class MX63To implements CheckableElement {
 
     @Override
     public String itemToString() {
-        return MXMidi.nameOfPortShort(_port);
+        return MXMidiStatic.nameOfPortShort(_port);
     }
 }

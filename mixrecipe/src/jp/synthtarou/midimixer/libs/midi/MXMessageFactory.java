@@ -93,31 +93,31 @@ public class MXMessageFactory {
         if (status >= 0x80 && status <= 0xef) {
             status = status & 0xf0;
             switch (status) {
-                case MXMidi.COMMAND_CH_PITCHWHEEL:
-                    template = new int[]{MXMidi.COMMAND_CH_PITCHWHEEL, MXMidi.CCXML_VL, MXMidi.CCXML_VH};
+                case MXMidiStatic.COMMAND_CH_PITCHWHEEL:
+                    template = new int[]{MXMidiStatic.COMMAND_CH_PITCHWHEEL, MXMidiStatic.CCXML_VL, MXMidiStatic.CCXML_VH};
                     break;
-                case MXMidi.COMMAND_CH_CHANNELPRESSURE:
-                    template = new int[]{MXMidi.COMMAND_CH_CHANNELPRESSURE, MXMidi.CCXML_VL};
+                case MXMidiStatic.COMMAND_CH_CHANNELPRESSURE:
+                    template = new int[]{MXMidiStatic.COMMAND_CH_CHANNELPRESSURE, MXMidiStatic.CCXML_VL};
                     break;
-                case MXMidi.COMMAND_CH_POLYPRESSURE:
-                    template = new int[]{MXMidi.COMMAND_CH_POLYPRESSURE, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
+                case MXMidiStatic.COMMAND_CH_POLYPRESSURE:
+                    template = new int[]{MXMidiStatic.COMMAND_CH_POLYPRESSURE, MXMidiStatic.CCXML_GL, MXMidiStatic.CCXML_VL};
                     break;
-                case MXMidi.COMMAND_CH_CONTROLCHANGE:
-                    template = new int[]{MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
+                case MXMidiStatic.COMMAND_CH_CONTROLCHANGE:
+                    template = new int[]{MXMidiStatic.COMMAND_CH_CONTROLCHANGE, MXMidiStatic.CCXML_GL, MXMidiStatic.CCXML_VL};
                     break;
-                case MXMidi.COMMAND_CH_NOTEON:
-                    template = new int[]{MXMidi.COMMAND_CH_NOTEON, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
+                case MXMidiStatic.COMMAND_CH_NOTEON:
+                    template = new int[]{MXMidiStatic.COMMAND_CH_NOTEON, MXMidiStatic.CCXML_GL, MXMidiStatic.CCXML_VL};
                     break;
-                case MXMidi.COMMAND_CH_NOTEOFF:
-                    template = new int[]{MXMidi.COMMAND_CH_NOTEOFF, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
+                case MXMidiStatic.COMMAND_CH_NOTEOFF:
+                    template = new int[]{MXMidiStatic.COMMAND_CH_NOTEOFF, MXMidiStatic.CCXML_GL, MXMidiStatic.CCXML_VL};
                     break;
-                case MXMidi.COMMAND_CH_PROGRAMCHANGE:
-                    template = new int[]{MXMidi.COMMAND_CH_PROGRAMCHANGE, MXMidi.CCXML_GL};
+                case MXMidiStatic.COMMAND_CH_PROGRAMCHANGE:
+                    template = new int[]{MXMidiStatic.COMMAND_CH_PROGRAMCHANGE, MXMidiStatic.CCXML_GL};
                     break;
             }
         } else {
             switch (status) {
-                case MXMidi.COMMAND_SYSEX: //sysex
+                case MXMidiStatic.COMMAND_SYSEX: //sysex
             }
         }
 
@@ -127,7 +127,7 @@ public class MXMessageFactory {
         return new MXTemplate(template);
     }
     
-    static final MXTemplate ZERO = new MXTemplate(new int[]{ MXMidi.COMMAND2_NONE, 0, 0 });
+    static final MXTemplate ZERO = new MXTemplate(new int[]{ MXMidiStatic.COMMAND2_NONE, 0, 0 });
     
     public static MXMessage fromTemplate(int port, MXTemplate template, int channel, MXRangedValue gate, MXRangedValue value) {
         MXMessage message = new MXMessage(port, template, channel, gate, value);
@@ -199,7 +199,7 @@ public class MXMessageFactory {
         return _instance.fromCached(port, dword);
     }
 
-    static final int [] _cc7bit_int = new int[]{MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
+    static final int [] _cc7bit_int = new int[]{MXMidiStatic.COMMAND_CH_CONTROLCHANGE, MXMidiStatic.CCXML_GL, MXMidiStatic.CCXML_VL};
     static final MXTemplate _cc7bit = new MXTemplate(_cc7bit_int);
 
     public static MXMessage fromControlChange(int port, int channel, int cc, int value) {
@@ -207,7 +207,7 @@ public class MXMessageFactory {
         return message;
     }
 
-    static final int [] _cc14bit_int = new int[]{MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.CCXML_GL, MXMidi.CCXML_VH, MXMidi.CCXML_VL};
+    static final int [] _cc14bit_int = new int[]{MXMidiStatic.COMMAND_CH_CONTROLCHANGE, MXMidiStatic.CCXML_GL, MXMidiStatic.CCXML_VH, MXMidiStatic.CCXML_VL};
     static final MXTemplate _cc14bit = new MXTemplate(_cc14bit_int);
     
     public static MXMessage fromControlChange14(int port, int channel, int data1, int msb, int lsb) {
@@ -216,7 +216,7 @@ public class MXMessageFactory {
         return message;
     }
 
-    static final int [] _noteon_int = new int[]{MXMidi.COMMAND_CH_NOTEON, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
+    static final int [] _noteon_int = new int[]{MXMidiStatic.COMMAND_CH_NOTEON, MXMidiStatic.CCXML_GL, MXMidiStatic.CCXML_VL};
     static final MXTemplate _noteon = new MXTemplate(_noteon_int);
 
     public static MXMessage fromNoteon(int port, int channel, int note, int velocity) {
@@ -224,7 +224,7 @@ public class MXMessageFactory {
         return message;
     }
 
-    static final int [] _noteoff_int = new int[]{MXMidi.COMMAND_CH_NOTEOFF, MXMidi.CCXML_GL, MXMidi.CCXML_VL};
+    static final int [] _noteoff_int = new int[]{MXMidiStatic.COMMAND_CH_NOTEOFF, MXMidiStatic.CCXML_GL, MXMidiStatic.CCXML_VL};
     static final MXTemplate _noteoff = new MXTemplate(_noteoff_int);
 
     public static MXMessage fromNoteoff(int port, int channel, int note) {
@@ -232,7 +232,7 @@ public class MXMessageFactory {
         return message;
     }
 
-    static final int [] _programchange_int = new int[]{MXMidi.COMMAND_CH_PROGRAMCHANGE, MXMidi.CCXML_GL, 0 };
+    static final int [] _programchange_int = new int[]{MXMidiStatic.COMMAND_CH_PROGRAMCHANGE, MXMidiStatic.CCXML_GL, 0 };
     static final MXTemplate _programchange = new MXTemplate(_programchange_int);
 
     public static MXMessage fromProgramChange(int port, int channel, int program) {

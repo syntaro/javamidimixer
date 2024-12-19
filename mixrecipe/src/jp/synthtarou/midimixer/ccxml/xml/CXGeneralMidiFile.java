@@ -29,7 +29,7 @@ import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObject;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.libs.MXLineReader;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
@@ -206,10 +206,10 @@ public class CXGeneralMidiFile extends CXFile {
         folderTag0._listAttributes.addNameAndValue("Name", "Note");
         for (MXNamedObject<Integer> seek : MXNamedObjectListFactory.listupCommand(false)) {
             int command = seek._value;
-            if (command != MXMidi.COMMAND_CH_NOTEON && command != MXMidi.COMMAND_CH_NOTEOFF) {
+            if (command != MXMidiStatic.COMMAND_CH_NOTEON && command != MXMidiStatic.COMMAND_CH_NOTEOFF) {
                 continue;
             }
-            if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+            if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                 continue;
             }
             String name = seek._name;
@@ -226,9 +226,9 @@ public class CXGeneralMidiFile extends CXFile {
             CXNode gateTag = ccmTag.newTag("Gate", true);
             gateTag.setTextContent("" + message.getCompiled(1));
             switch (message.getStatus() & 0xf0) {
-                case MXMidi.COMMAND_CH_POLYPRESSURE:
-                case MXMidi.COMMAND_CH_NOTEON:
-                case MXMidi.COMMAND_CH_NOTEOFF:
+                case MXMidiStatic.COMMAND_CH_POLYPRESSURE:
+                case MXMidiStatic.COMMAND_CH_NOTEON:
+                case MXMidiStatic.COMMAND_CH_NOTEOFF:
                     gateTag._listAttributes.addNameAndValue("Type", "Key");
                     break;
             }
@@ -243,10 +243,10 @@ public class CXGeneralMidiFile extends CXFile {
 
         for (MXNamedObject<Integer> seek : MXNamedObjectListFactory.listupCommand(false)) {
             int command = seek._value;
-            if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF) {
+            if (command == MXMidiStatic.COMMAND_CH_NOTEON || command == MXMidiStatic.COMMAND_CH_NOTEOFF) {
                 continue;
             }
-            if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+            if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                 continue;
             }
             String name = seek._name;
@@ -263,9 +263,9 @@ public class CXGeneralMidiFile extends CXFile {
             CXNode gateTag = ccmTag.newTag("Gate", true);
             gateTag.setTextContent("" + message.getCompiled(1));
             switch(message.getStatus() & 0xf0) {
-                case MXMidi.COMMAND_CH_POLYPRESSURE:
-                case MXMidi.COMMAND_CH_NOTEON:
-                case MXMidi.COMMAND_CH_NOTEOFF:
+                case MXMidiStatic.COMMAND_CH_POLYPRESSURE:
+                case MXMidiStatic.COMMAND_CH_NOTEON:
+                case MXMidiStatic.COMMAND_CH_NOTEOFF:
                     gateTag._listAttributes.addNameAndValue("Type", "Key");
                     break;
             }
@@ -279,7 +279,7 @@ public class CXGeneralMidiFile extends CXFile {
         folderTag2._listAttributes.addNameAndValue("Name", "ControlChange");
 
         for (int i = 0; i < 128; ++i) {
-            String name = MXMidi.nameOfControlChange(i);
+            String name = MXMidiStatic.nameOfControlChange(i);
             CXNode ccmTag = folderTag2.newTag("CCM", true);
             ccmTag._listAttributes.addNameAndValue("ID", String.valueOf(2000 + i));
             ccmTag._listAttributes.addNameAndValue("Name", name);

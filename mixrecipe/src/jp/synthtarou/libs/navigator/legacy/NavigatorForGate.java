@@ -23,7 +23,7 @@ import javax.swing.JPanel;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 
 
 /**
@@ -33,7 +33,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMidi;
 public class NavigatorForGate extends javax.swing.JPanel implements INavigator<Integer>{
     
     public static void main(String[] args) {
-        NavigatorForGate navi = new NavigatorForGate(MXMidi.COMMAND_CH_CONTROLCHANGE, 7);
+        NavigatorForGate navi = new NavigatorForGate(MXMidiStatic.COMMAND_CH_CONTROLCHANGE, 7);
         navi.simpleAsk(null);
         System.out.println(navi.getReturnStatus() + " = " + navi.getReturnValue());
     }
@@ -64,17 +64,17 @@ public class NavigatorForGate extends javax.swing.JPanel implements INavigator<I
         buttonGroup1.add(jRadioButtonNote);
         buttonGroup1.add(jRadioButtonPC);
         setPreferredSize(new Dimension(400, 600));
-        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+        if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
             _current = _modelCC;
             jRadioButtonControlChange.setSelected(true);
         }
-        else if (command == MXMidi.COMMAND_CH_NOTEON
-             || command == MXMidi.COMMAND_CH_NOTEOFF
-             || command == MXMidi.COMMAND_CH_POLYPRESSURE) {
+        else if (command == MXMidiStatic.COMMAND_CH_NOTEON
+             || command == MXMidiStatic.COMMAND_CH_NOTEOFF
+             || command == MXMidiStatic.COMMAND_CH_POLYPRESSURE) {
             _current = _modelNote;
             jRadioButtonNote.setSelected(true);
         }
-        else if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
+        else if (command == MXMidiStatic.COMMAND_CH_PROGRAMCHANGE) {
             _current = _modelPC;
             jRadioButtonPC.setSelected(true);
         }

@@ -20,7 +20,7 @@ import java.io.File;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.libs.smf.SMFCallback;
 import jp.synthtarou.libs.smf.OneMessage;
@@ -100,15 +100,15 @@ public class MX60ViewData  {
                 if (message == null) {
                     return;
                 }
-                if (message.isCommand(MXMidi.COMMAND_CH_NOTEON) && message.getCompiled(2) == 0) {
+                if (message.isCommand(MXMidiStatic.COMMAND_CH_NOTEON) && message.getCompiled(2) == 0) {
                     message = MXMessageFactory.fromNoteoff(message.getPort(), message.getChannel(), message.getCompiled(1));
                 }
-                if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
+                if (message.isCommand(MXMidiStatic.COMMAND_CH_NOTEOFF)) {
                     if (_noteOff.raiseHandler(message, message.getPort(), message.getChannel(), message.getCompiled(1))) {
                         return;
                     }
                 }
-                if (message.isCommand(MXMidi.COMMAND_CH_NOTEON)) {
+                if (message.isCommand(MXMidiStatic.COMMAND_CH_NOTEON)) {
                     _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
                         @Override
                         public void onNoteOffEvent(MXMessage target) {

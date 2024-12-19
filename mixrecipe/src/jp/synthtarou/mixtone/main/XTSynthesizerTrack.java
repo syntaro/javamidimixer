@@ -20,9 +20,10 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import jp.synthtarou.libs.smf.OneMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.mixtone.listmodel.IBagLineMean;
 import jp.synthtarou.mixtone.listmodel.PBagLineMean;
+import jp.synthtarou.mixtone.synth.audio.AndroidSourceDataLine;
 import jp.synthtarou.mixtone.synth.oscilator.XTOscilator;
 import jp.synthtarou.mixtone.synth.soundfont.SFZElement;
 import jp.synthtarou.mixtone.synth.soundfont.XTGenOperator;
@@ -36,6 +37,8 @@ import jp.synthtarou.mixtone.synth.soundfont.table.XTTable;
  * @author Syntarou YOSHIDA
  */
 public class XTSynthesizerTrack {
+    static String TAG = "XTSynthesizerTrack";
+
     int _track;
     int _program;
     int _bank;
@@ -47,9 +50,8 @@ public class XTSynthesizerTrack {
     double _volume;
     double _expression;
     double _mixing;
-    boolean _sustain;
+    boolean _damper;
     ArrayList<XTOscilator> _markNoteOff;
-    
     public XTSynthesizerTrack(XTSynthesizer synth, int track) {
         _synth = synth;
         _track = track;
@@ -57,10 +59,10 @@ public class XTSynthesizerTrack {
         _volume = 1.0;
         _expression = 1.0;
         _mixing = 1.0;
-        _sustain = false;
-        _markNoteOff = new ArrayList<>();
-    }            
-    
+        _damper = false;
+        _markNoteOff = null;
+    }
+
     public List<XTOscilator> createOscilator(int key, int velocity) {
         if (_synth._sfz == null) {
             return null;
@@ -147,11 +149,9 @@ public class XTSynthesizerTrack {
                             loop == null ? false: (loop.intValue() > 0), 
                             overridingRootKey == null ? -1 : overridingRootKey);
                     osc.setPan(_pan);
-                    osc.setVolume(_volume * _expression * _mixing * osc._velocity);
+                    osc.setVolume(_volume * _expression * _mixing);
                     result.add(osc);
                 }catch(Throwable ex) {
-                    System.err.println("inst "  + instBag.get(inst));
-                    System.err.println("imean "  + imean);
                     ex.printStackTrace();
                 }
             }
@@ -193,11 +193,6 @@ public class XTSynthesizerTrack {
         }
         if (found != null) {
             _phdr_row = found;
-            XTTable bag = _phdr_row.tableColumn(SFZElement.PHDR_BAGINDEX_TABLE);
-            if (bag == null) {
-                System.err.println("bag = null +" + _phdr_row);
-                new Throwable().printStackTrace();
-            }
         }
     }
 
@@ -227,44 +222,95 @@ public class XTSynthesizerTrack {
             return _oper.asParameter(_generater);
         }
     }
-    
-    List<XTOscilator> _listOscilator = new LinkedList<>();
-    ArrayList<XTOscilator> _listRemove = new ArrayList<>();
+
+    List<XTOscilator> _listForMessage = new LinkedList<>();
+    int noteTotal = 0;
 
     public void processMesssage(OneMessage message) {
         int status = message.getStatus();
         int data1 = message.getData1();
         int data2 = message.getData2();
-        
+
         if (status >= 0x80 && status <= 0xef) {
             int ch = status & 0x0f;
-            status = status & 0xf0;
-            if (status == MXMidi.COMMAND_CH_NOTEON) {
+            if (ch != _track) {
+                throw new IllegalArgumentException();
+            }
+            status &= 0xf0;
+
+            if (status == MXMidiStatic.COMMAND_CH_NOTEON) {
                 if (data2 == 0) {
-                    status = MXMidi.COMMAND_CH_NOTEOFF;
+                    status = MXMidiStatic.COMMAND_CH_NOTEOFF;
                 }
             }
-            
+
             switch (status) {
-                case MXMidi.COMMAND_CH_NOTEON:
+                case MXMidiStatic.COMMAND_CH_NOTEON:
+                    for (XTOscilator seek : _listForMessage) {
+                        if (seek._playKey == data1) {
+                            seek.noteOff();
+                        }
+                    }
+
+                    while (true) {
+                        int countOn = 0;
+                        XTSynthesizerTrack maxOn = null;
+                        XTSynthesizerTrack maxOff = null;
+
+                        for (int t = 0; t < 16; ++ t) {
+                            XTSynthesizerTrack  seek = _synth.getTrack(t);
+                            int off = seek.countNoteOffed();
+                            if (off > 0) {
+                                if (maxOff == null || off >= maxOff.countNoteOffed()) {
+                                    maxOff = seek;
+                                }
+                            }
+                        }
+                        for (int t = 0; t < 16; ++ t) {
+                            XTSynthesizerTrack  seek = _synth.getTrack(t);
+                            int all = seek.countNoteAll();
+                            if (all > 0) {
+                                countOn += all;
+                                if (maxOn == null || all >= maxOn.countNoteAll()) {
+                                    maxOn = seek;
+                                }
+                            }
+                        }
+                        if (countOn > _synth._polyPhony) {
+                            if (maxOff != null) {
+                                maxOff.removeOneOff();
+                                continue;
+                            }
+                            if (maxOn != null) {
+                                maxOn.removeOneLower();
+                                continue;
+                            }
+                        }
+                        break;
+                    }
+
                     List<XTOscilator> list = createOscilator(data1, data2);
-                    for (XTOscilator seek : list) {
-                        _listOscilator.add(seek);
-                        _synth._audioStream.addToQueue(seek);
+                    if (list != null) {
+                        _listForMessage.addAll(list);
+                        for (XTOscilator osc : list) {
+                            if (osc._playKey != data1) {
+                                throw  new IllegalStateException();
+                            }
+                            _synth._audioStream.push(osc);
+                        }
                     }
                     break;
 
-                case MXMidi.COMMAND_CH_NOTEOFF:
-                    _listRemove.clear();
-                    if (_sustain) {
-                        for (XTOscilator seek : _listOscilator) {
+                case MXMidiStatic.COMMAND_CH_NOTEOFF:
+                    if (_markNoteOff != null) {
+                        for (XTOscilator seek : _listForMessage) {
                             if (seek._playKey == data1) {
                                 _markNoteOff.add(seek);
                             }
                         }
                     }
                     else {
-                        for (XTOscilator seek : _listOscilator) {
+                        for (XTOscilator seek : _listForMessage) {
                             if (seek._playKey == data1) {
                                 seek.noteOff();
                             }
@@ -273,7 +319,7 @@ public class XTSynthesizerTrack {
 
                     break;
 
-                case MXMidi.COMMAND_CH_PROGRAMCHANGE:
+                case MXMidiStatic.COMMAND_CH_PROGRAMCHANGE:
                     if (_track == 9) {
                         setupPHDRObject(data1, 128);
                         setupPHDRObject(data1, 127);
@@ -283,41 +329,43 @@ public class XTSynthesizerTrack {
                     }
                     break;
                     
-                case MXMidi.COMMAND_CH_CONTROLCHANGE:
+                case MXMidiStatic.COMMAND_CH_CONTROLCHANGE:
                     boolean modulated = false;
-                    if (data1 == MXMidi.DATA1_CC_ALLNOTEOFF
-                        || data1 == MXMidi.DATA1_CC_ALLSOUNDOFF) {
+                    if (data1 == MXMidiStatic.DATA1_CC_ALLNOTEOFF
+                        || data1 == MXMidiStatic.DATA1_CC_ALLSOUNDOFF) {
                         allNoteOff();
                     }
-                    if (data1 == MXMidi.DATA1_CC_CHANNEL_VOLUME) {
+                    if (data1 == MXMidiStatic.DATA1_CC_CHANNEL_VOLUME) {
                         _volume = data2 * 1.0 / 127;
-                        //System.out.println("volume of ch" + _track + " " + _volume);
                         modulated = true;
                     }
-                    if (data1 == MXMidi.DATA1_CC_EXPRESSION) {
+                    if (data1 == MXMidiStatic.DATA1_CC_EXPRESSION) {
                         _expression = data2 * 1.0 / 127;
-                        //System.out.println("expression of ch" + _track + " " + _expression);
                         modulated = true;
                     }
-                    if (data1 == MXMidi.DATA1_CC_PANPOT) {
+                    if (data1 == MXMidiStatic.DATA1_CC_PANPOT) {
                         _pan = (data2 - 64) * 1.0 / 64;
                         modulated = true;
                     }
                     if (modulated) {
-                        for (XTOscilator seek : _listOscilator) {
+                        for (XTOscilator seek : _listForMessage) {
                             seek.setPan(_pan);
                             seek.setVolume(_volume * _expression * _mixing * seek._velocity);
                         }
                     }
-                    if (data1 == MXMidi.DATA1_CC_DAMPERPEDAL /*|| data1 == MXMidi.DATA1_CC_FOOT_SOFTENUT || data1 == MXMidi.DATA1_CC_HOLD2_FREEZE */) {
-                        _sustain = (data2 >= 0x40);
-                        System.err.println(message);
-                        if (_sustain == false) {
-                            List<XTOscilator> cont = _markNoteOff;
-                            for (XTOscilator seek : cont) {
-                                seek.noteOff();
+                    if (data1 == MXMidiStatic.DATA1_CC_DAMPERPEDAL) {
+                        _damper = (data2 >= 0x40);
+                        if (_damper) {
+                            _markNoteOff = new ArrayList<>();
+                        }
+                        else {
+                            if (_markNoteOff != null) {
+                                for (XTOscilator seek : _markNoteOff) {
+                                    seek.noteOff();
+                                }
+                                _markNoteOff.clear();
+                                _markNoteOff = null;
                             }
-                            _markNoteOff.clear();
                         }
                     }
             }
@@ -334,8 +382,46 @@ public class XTSynthesizerTrack {
         30 	releaseModEnv 	フィルタ 	フィルタ・ピッチ用エンベロープのリリース時間
     */
     public void allNoteOff() {
-        for (XTOscilator seek : _listOscilator) {
+        for (XTOscilator seek : _listForMessage) {
             seek.noteOff();
+        }
+    }
+    public int countNoteAll() {
+        int cnt = 0;
+        for (XTOscilator seek : _listForMessage) {
+            cnt ++;
+        }
+        return cnt;
+    }
+
+    public int countNoteOffed() {
+        int cnt = 0;
+        for (XTOscilator seek : _listForMessage) {
+            if (seek.isNoteOff()) {
+                cnt ++;
+            }
+        }
+        return cnt;
+    }
+
+    public void removeOneLower() {
+        XTOscilator ret = null;
+        for (XTOscilator seek : _listForMessage) {
+            if (ret == null || ret._playKey > seek._playKey) {
+                ret = seek;
+            }
+        }
+        ret.noteMute();
+        _listForMessage.remove(ret);
+    }
+    public void removeOneOff() {
+        XTOscilator ret = null;
+        for (XTOscilator seek : _listForMessage) {
+            if (seek.isNoteOff()) {
+                _listForMessage.remove(seek);
+                seek.noteMute();
+                break;
+            }
         }
     }
 }

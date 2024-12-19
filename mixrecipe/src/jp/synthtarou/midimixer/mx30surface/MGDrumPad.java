@@ -21,7 +21,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 
 /**
  *
@@ -132,8 +132,8 @@ public class MGDrumPad extends javax.swing.JPanel {
         MXMessage message = drum.updatingValue(parent, push, velocity);
         if (message != null) {
             _mixer._parent._packet.addResult(message);
-            if (message.getTemplate().get(0) == MXMidi.COMMAND2_CH_RPN ||
-                    message.getTemplate().get(0) == MXMidi.COMMAND2_CH_NRPN) {
+            if (message.getTemplate().get(0) == MXMidiStatic.COMMAND2_CH_RPN ||
+                    message.getTemplate().get(0) == MXMidiStatic.COMMAND2_CH_NRPN) {
                 new Throwable().printStackTrace();
             }
         }

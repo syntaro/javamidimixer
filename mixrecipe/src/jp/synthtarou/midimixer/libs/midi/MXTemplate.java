@@ -217,10 +217,10 @@ public class MXTemplate implements Comparable<MXTemplate> {
         int countChecksumEnd = 0;
         for (int i = 0; i < _commands.length; ++i) {
             switch (_commands[i]) {
-                case MXMidi.CCXML_CHECKSUM_START:
+                case MXMidiStatic.CCXML_CHECKSUM_START:
                     countChecksumStart++;
                     break;
-                case MXMidi.CCXML_CHECKSUM_END:
+                case MXMidiStatic.CCXML_CHECKSUM_END:
                     countChecksumEnd++;
                     break;
             }
@@ -236,7 +236,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
 
             for (int i = 0; i < _commands.length; ++i) {
                 int x = _commands[i];
-                if (x == MXMidi.CCXML_CHECKSUM_START) {
+                if (x == MXMidiStatic.CCXML_CHECKSUM_START) {
                     if (checksum != null) {
                         throw new IllegalArgumentException("Checksum stasrt without past end");
                     }
@@ -246,7 +246,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
                         _listChecksum = new ArrayList<>();
                     }
                     _listChecksum.add(checksum);
-                } else if (x == MXMidi.CCXML_CHECKSUM_END) {
+                } else if (x == MXMidiStatic.CCXML_CHECKSUM_END) {
                     if (checksum == null) {
                         throw new IllegalArgumentException("Checksum stasrt without past end");
                     }
@@ -269,16 +269,16 @@ public class MXTemplate implements Comparable<MXTemplate> {
         for (int i = 0; i < _commands.length; ++i) {
             int x = _commands[i];
             switch (_commands[i]) {
-                case MXMidi.CCXML_VL:
+                case MXMidiStatic.CCXML_VL:
                     _indexOfValueLow = i;
                     break;
-                case MXMidi.CCXML_VH:
+                case MXMidiStatic.CCXML_VH:
                     _indexOfValueHi = i;
                     break;
-                case MXMidi.CCXML_GL:
+                case MXMidiStatic.CCXML_GL:
                     _indexOfGateLow = i;
                     break;
-                case MXMidi.CCXML_GH:
+                case MXMidiStatic.CCXML_GH:
                     _indexOfGateHi = i;
                     break;
             }
@@ -315,9 +315,9 @@ public class MXTemplate implements Comparable<MXTemplate> {
         if (command >= 0x80 && command <= 0xef) {
             data[0] = (byte) ((command & 0xf0) + message.getChannel());
         }
-        if ((data[0] & 0xff) == MXMidi.COMMAND_SYSEX && data.length >= 2) {
-            if ((data[1] & 0xff) == MXMidi.COMMAND_SYSEX
-              ||(data[1] & 0xff) == MXMidi.COMMAND_SYSEX_END) {
+        if ((data[0] & 0xff) == MXMidiStatic.COMMAND_SYSEX && data.length >= 2) {
+            if ((data[1] & 0xff) == MXMidiStatic.COMMAND_SYSEX
+              ||(data[1] & 0xff) == MXMidiStatic.COMMAND_SYSEX_END) {
                 byte[] newData = new byte[data.length-1];
                 for (int i = 0; i < newData.length ;++ i) {
                     newData[i] = data[i+1];
@@ -334,86 +334,86 @@ public class MXTemplate implements Comparable<MXTemplate> {
         int channel = message.getChannel();
 
         switch (alias & 0xff00) {
-            case MXMidi.CCXML_NONE:
+            case MXMidiStatic.CCXML_NONE:
                 return 0;
-            case MXMidi.CCXML_VL:
+            case MXMidiStatic.CCXML_VL:
                 alias = value & 0x7f;
                 break;
-            case MXMidi.CCXML_VH:
+            case MXMidiStatic.CCXML_VH:
                 alias = (value >> 7) & 0x7f;
                 break;
-            case MXMidi.CCXML_GL:
+            case MXMidiStatic.CCXML_GL:
                 alias = gate & 0x7f;
                 break;
-            case MXMidi.CCXML_GH:
+            case MXMidiStatic.CCXML_GH:
                 alias = (gate >> 7) & 0x7f;
                 break;
-            case MXMidi.CCXML_CH:
+            case MXMidiStatic.CCXML_CH:
                 alias = channel;
                 break;
-            case MXMidi.CCXML_1CH:
+            case MXMidiStatic.CCXML_1CH:
                 alias = 0x10 + channel;
                 break;
-            case MXMidi.CCXML_2CH:
+            case MXMidiStatic.CCXML_2CH:
                 alias = 0x20 + channel;
                 break;
-            case MXMidi.CCXML_3CH:
+            case MXMidiStatic.CCXML_3CH:
                 alias = 0x30 + channel;
                 break;
-            case MXMidi.CCXML_PCH:
+            case MXMidiStatic.CCXML_PCH:
                 if (message.getPort() >= 0 && message.getPort() <= 3) {
                     alias = message.getPort() * 0x10 + channel;
                 } else {
                     alias = 0x30 + channel;
                 }
                 break;
-            case MXMidi.CCXML_1RCH:
-            case MXMidi.CCXML_2RCH:
-            case MXMidi.CCXML_3RCH:
-            case MXMidi.CCXML_4RCH:
+            case MXMidiStatic.CCXML_1RCH:
+            case MXMidiStatic.CCXML_2RCH:
+            case MXMidiStatic.CCXML_3RCH:
+            case MXMidiStatic.CCXML_4RCH:
                 throw new IllegalArgumentException("1RCH, 2RCH, 3RCH, 4RCH not supported.");
             //break;
-            case MXMidi.CCXML_VF1:
+            case MXMidiStatic.CCXML_VF1:
                 alias = (value) & 0x0f;
                 break;
-            case MXMidi.CCXML_VF2:
+            case MXMidiStatic.CCXML_VF2:
                 alias = (value >> 4) & 0x0f;
                 break;
-            case MXMidi.CCXML_VF3:
+            case MXMidiStatic.CCXML_VF3:
                 alias = (value >> 8) & 0x0f;
                 break;
-            case MXMidi.CCXML_VF4:
+            case MXMidiStatic.CCXML_VF4:
                 alias = (value >> 12) & 0x0f;
                 break;
-            case MXMidi.CCXML_VPGL:
+            case MXMidiStatic.CCXML_VPGL:
                 alias = (value + gate) & 0x7f;
                 break;
-            case MXMidi.CCXML_VPGH:
+            case MXMidiStatic.CCXML_VPGH:
                 alias = ((value + gate) >> 7) & 0x7f;
                 break;
-            case MXMidi.CCXML_RSCTRT1:
-            case MXMidi.CCXML_RSCTRT2:
-            case MXMidi.CCXML_RSCTRT3:
+            case MXMidiStatic.CCXML_RSCTRT1:
+            case MXMidiStatic.CCXML_RSCTRT2:
+            case MXMidiStatic.CCXML_RSCTRT3:
                 throw new IllegalArgumentException("RSCTRT1, RSCTRT2, RSCTRT3 not supported.");
             //break;
-            case MXMidi.CCXML_RSCTRT1P:
-            case MXMidi.CCXML_RSCTRT2P:
-            case MXMidi.CCXML_RSCTRT3P:
+            case MXMidiStatic.CCXML_RSCTRT1P:
+            case MXMidiStatic.CCXML_RSCTRT2P:
+            case MXMidiStatic.CCXML_RSCTRT3P:
                 throw new IllegalArgumentException("RSCTRT1P, RSCTRT2P, RSCTRT3P not supported.");
             //break;
-            case MXMidi.CCXML_RSCTPT1:
-            case MXMidi.CCXML_RSCTPT2:
-            case MXMidi.CCXML_RSCTPT3:
+            case MXMidiStatic.CCXML_RSCTPT1:
+            case MXMidiStatic.CCXML_RSCTPT2:
+            case MXMidiStatic.CCXML_RSCTPT3:
                 throw new IllegalArgumentException("RSCTPT1, RSCTPT2, RSCTPT3 not supported.");
             //break;
-            case MXMidi.CCXML_RSCTPT1P:
-            case MXMidi.CCXML_RSCTPT2P:
-            case MXMidi.CCXML_RSCTPT3P:
+            case MXMidiStatic.CCXML_RSCTPT1P:
+            case MXMidiStatic.CCXML_RSCTPT2P:
+            case MXMidiStatic.CCXML_RSCTPT3P:
                 throw new IllegalArgumentException("RSCTPT1P, RSCTPT2P, RSCTPT3P not supported.");
 
-            case MXMidi.CCXML_CHECKSUM_START:
+            case MXMidiStatic.CCXML_CHECKSUM_START:
                 return 0;
-            case MXMidi.CCXML_CHECKSUM_END:
+            case MXMidiStatic.CCXML_CHECKSUM_END:
                 return 0;
 
             case 0:
@@ -483,60 +483,60 @@ public class MXTemplate implements Comparable<MXTemplate> {
             data[wrote++] = status;
 
             switch(status) {
-                case MXMidi.COMMAND_CH_NOTEON:
-                case MXMidi.COMMAND_CH_NOTEOFF:
-                case MXMidi.COMMAND_CH_POLYPRESSURE:
-                case MXMidi.COMMAND_CH_CONTROLCHANGE:
-                case MXMidi.COMMAND_SONGPOSITION:
+                case MXMidiStatic.COMMAND_CH_NOTEON:
+                case MXMidiStatic.COMMAND_CH_NOTEOFF:
+                case MXMidiStatic.COMMAND_CH_POLYPRESSURE:
+                case MXMidiStatic.COMMAND_CH_CONTROLCHANGE:
+                case MXMidiStatic.COMMAND_SONGPOSITION:
                     data[wrote++] = _commands[1];
                     data[wrote++] = _commands[2];
                     return data;
 
-                case MXMidi.COMMAND_CH_PROGRAMCHANGE:
-                case MXMidi.COMMAND_CH_CHANNELPRESSURE:
-                case MXMidi.COMMAND_SONGSELECT:
-                case MXMidi.COMMAND_MIDITIMECODE:
+                case MXMidiStatic.COMMAND_CH_PROGRAMCHANGE:
+                case MXMidiStatic.COMMAND_CH_CHANNELPRESSURE:
+                case MXMidiStatic.COMMAND_SONGSELECT:
+                case MXMidiStatic.COMMAND_MIDITIMECODE:
                     data[wrote++] = _commands[1];
                     return data;
 
-                case MXMidi.COMMAND_F4:
-                case MXMidi.COMMAND_F5:
-                case MXMidi.COMMAND_TUNEREQUEST:
-                case MXMidi.COMMAND_MIDICLOCK:
-                case MXMidi.COMMAND_F9:
-                case MXMidi.COMMAND_SEQSTART:
-                case MXMidi.COMMAND_SEQCONTINUE:
-                case MXMidi.COMMAND_SEQSTOP:
-                case MXMidi.COMMAND_FD:
-                case MXMidi.COMMAND_ACTIVESENSING:
-                case MXMidi.COMMAND_META_OR_RESET:
+                case MXMidiStatic.COMMAND_F4:
+                case MXMidiStatic.COMMAND_F5:
+                case MXMidiStatic.COMMAND_TUNEREQUEST:
+                case MXMidiStatic.COMMAND_MIDICLOCK:
+                case MXMidiStatic.COMMAND_F9:
+                case MXMidiStatic.COMMAND_SEQSTART:
+                case MXMidiStatic.COMMAND_SEQCONTINUE:
+                case MXMidiStatic.COMMAND_SEQSTOP:
+                case MXMidiStatic.COMMAND_FD:
+                case MXMidiStatic.COMMAND_ACTIVESENSING:
+                case MXMidiStatic.COMMAND_META_OR_RESET:
                     return data;
 
-                case MXMidi.COMMAND_SYSEX:
-                case MXMidi.COMMAND_SYSEX_END:
+                case MXMidiStatic.COMMAND_SYSEX:
+                case MXMidiStatic.COMMAND_SYSEX_END:
                     break;
 
-                case MXMidi.COMMAND2_CH_RPN:
-                case MXMidi.COMMAND2_CH_NRPN:
+                case MXMidiStatic.COMMAND2_CH_RPN:
+                case MXMidiStatic.COMMAND2_CH_NRPN:
                     data[wrote++] = _commands[1];
                     data[wrote++] = _commands[2];
                     data[wrote++] = _commands[3];
                     data[wrote++] = _commands[4];
                     return data;
 
-                case MXMidi.COMMAND2_NONE:
-                case MXMidi.COMMAND2_CH_PROGRAM_INC:
-                case MXMidi.COMMAND2_CH_PROGRAM_DEC:
+                case MXMidiStatic.COMMAND2_NONE:
+                case MXMidiStatic.COMMAND2_CH_PROGRAM_INC:
+                case MXMidiStatic.COMMAND2_CH_PROGRAM_DEC:
                     return data;
 
-                case MXMidi.COMMAND_CH_PITCHWHEEL:
-                    data[wrote ++] = MXMidi.CCXML_VL;
-                    data[wrote ++] = MXMidi.CCXML_VH;
+                case MXMidiStatic.COMMAND_CH_PITCHWHEEL:
+                    data[wrote ++] = MXMidiStatic.CCXML_VL;
+                    data[wrote ++] = MXMidiStatic.CCXML_VH;
                     return data;
 
-                case MXMidi.COMMAND2_CH_PITCH_MSBLSB:
-                    data[wrote ++] = MXMidi.CCXML_VH;
-                    data[wrote ++] = MXMidi.CCXML_VL;
+                case MXMidiStatic.COMMAND2_CH_PITCH_MSBLSB:
+                    data[wrote ++] = MXMidiStatic.CCXML_VH;
+                    data[wrote ++] = MXMidiStatic.CCXML_VL;
                     return data;
             }
         }
@@ -554,7 +554,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
         for (int i = 0; i < _commands.length; ++i) {
             int code = _commands[i];
             if (sumHead != null && seekHead < sumHead.length && sumHead[seekHead] == wrote) {
-                data[wrote++] = MXMidi.CCXML_CHECKSUM_START;
+                data[wrote++] = MXMidiStatic.CCXML_CHECKSUM_START;
                 seekHead ++;
             }
 
@@ -570,8 +570,8 @@ public class MXTemplate implements Comparable<MXTemplate> {
             if (i == 0 && code >= 0x100) {
                 code &= 0xfff0;
             }
-            if (code == MXMidi.CCXML_CHECKSUM_END) {
-                data[wrote ++] = MXMidi.CCXML_CHECKSUM_END;
+            if (code == MXMidiStatic.CCXML_CHECKSUM_END) {
+                data[wrote ++] = MXMidiStatic.CCXML_CHECKSUM_END;
                 continue;
             }
             data[wrote ++] = code;
@@ -596,56 +596,56 @@ public class MXTemplate implements Comparable<MXTemplate> {
     }
 
     static {
-        textAlias.addNameAndValue("#NONE", MXMidi.CCXML_NONE);
-        textAlias.addNameAndValue("#VL", MXMidi.CCXML_VL);
-        textAlias.addNameAndValue("#VH", MXMidi.CCXML_VH);
-        textAlias.addNameAndValue("#GL", MXMidi.CCXML_GL);
-        textAlias.addNameAndValue("#GH", MXMidi.CCXML_GH);
-        textAlias.addNameAndValue("#CH", MXMidi.CCXML_CH);
-        textAlias.addNameAndValue("#1CH", MXMidi.CCXML_1CH);
-        textAlias.addNameAndValue("#2CH", MXMidi.CCXML_2CH);
-        textAlias.addNameAndValue("#3CH", MXMidi.CCXML_3CH);
-        textAlias.addNameAndValue("#PCH", MXMidi.CCXML_PCH);
-        textAlias.addNameAndValue("#1RCH", MXMidi.CCXML_1RCH);
-        textAlias.addNameAndValue("#2RCH", MXMidi.CCXML_2RCH);
-        textAlias.addNameAndValue("#3RCH", MXMidi.CCXML_3RCH);
-        textAlias.addNameAndValue("#4RCH", MXMidi.CCXML_4RCH);
-        textAlias.addNameAndValue("#VF1", MXMidi.CCXML_VF1);
-        textAlias.addNameAndValue("#VF2", MXMidi.CCXML_VF2);
-        textAlias.addNameAndValue("#VF3", MXMidi.CCXML_VF3);
-        textAlias.addNameAndValue("#VF4", MXMidi.CCXML_VF4);
-        textAlias.addNameAndValue("#VPGL", MXMidi.CCXML_VPGL);
-        textAlias.addNameAndValue("#VPGH", MXMidi.CCXML_VPGH);
-        textAlias.addNameAndValue("#RSCTRT1", MXMidi.CCXML_RSCTRT1);
-        textAlias.addNameAndValue("#RSCTRT2", MXMidi.CCXML_RSCTRT2);
-        textAlias.addNameAndValue("#RSCTRT3", MXMidi.CCXML_RSCTRT3);
-        textAlias.addNameAndValue("#RSCTRT1P", MXMidi.CCXML_RSCTRT1P);
-        textAlias.addNameAndValue("#RSCTRT2P", MXMidi.CCXML_RSCTRT2P);
-        textAlias.addNameAndValue("#RSCTRT3P", MXMidi.CCXML_RSCTRT3P);
-        textAlias.addNameAndValue("#RSCTPT1", MXMidi.CCXML_RSCTPT1);
-        textAlias.addNameAndValue("#RSCTPT2", MXMidi.CCXML_RSCTPT2);
-        textAlias.addNameAndValue("#RSCTPT3", MXMidi.CCXML_RSCTPT3);
-        textAlias.addNameAndValue("#RSCTPT1P", MXMidi.CCXML_RSCTPT1P);
-        textAlias.addNameAndValue("#RSCTPT2P", MXMidi.CCXML_RSCTPT2P);
-        textAlias.addNameAndValue("#RSCTPT3P", MXMidi.CCXML_RSCTPT3P);
-        textAlias.addNameAndValue("[", MXMidi.CCXML_CHECKSUM_START);
-        textAlias.addNameAndValue("]", MXMidi.CCXML_CHECKSUM_END);
+        textAlias.addNameAndValue("#NONE", MXMidiStatic.CCXML_NONE);
+        textAlias.addNameAndValue("#VL", MXMidiStatic.CCXML_VL);
+        textAlias.addNameAndValue("#VH", MXMidiStatic.CCXML_VH);
+        textAlias.addNameAndValue("#GL", MXMidiStatic.CCXML_GL);
+        textAlias.addNameAndValue("#GH", MXMidiStatic.CCXML_GH);
+        textAlias.addNameAndValue("#CH", MXMidiStatic.CCXML_CH);
+        textAlias.addNameAndValue("#1CH", MXMidiStatic.CCXML_1CH);
+        textAlias.addNameAndValue("#2CH", MXMidiStatic.CCXML_2CH);
+        textAlias.addNameAndValue("#3CH", MXMidiStatic.CCXML_3CH);
+        textAlias.addNameAndValue("#PCH", MXMidiStatic.CCXML_PCH);
+        textAlias.addNameAndValue("#1RCH", MXMidiStatic.CCXML_1RCH);
+        textAlias.addNameAndValue("#2RCH", MXMidiStatic.CCXML_2RCH);
+        textAlias.addNameAndValue("#3RCH", MXMidiStatic.CCXML_3RCH);
+        textAlias.addNameAndValue("#4RCH", MXMidiStatic.CCXML_4RCH);
+        textAlias.addNameAndValue("#VF1", MXMidiStatic.CCXML_VF1);
+        textAlias.addNameAndValue("#VF2", MXMidiStatic.CCXML_VF2);
+        textAlias.addNameAndValue("#VF3", MXMidiStatic.CCXML_VF3);
+        textAlias.addNameAndValue("#VF4", MXMidiStatic.CCXML_VF4);
+        textAlias.addNameAndValue("#VPGL", MXMidiStatic.CCXML_VPGL);
+        textAlias.addNameAndValue("#VPGH", MXMidiStatic.CCXML_VPGH);
+        textAlias.addNameAndValue("#RSCTRT1", MXMidiStatic.CCXML_RSCTRT1);
+        textAlias.addNameAndValue("#RSCTRT2", MXMidiStatic.CCXML_RSCTRT2);
+        textAlias.addNameAndValue("#RSCTRT3", MXMidiStatic.CCXML_RSCTRT3);
+        textAlias.addNameAndValue("#RSCTRT1P", MXMidiStatic.CCXML_RSCTRT1P);
+        textAlias.addNameAndValue("#RSCTRT2P", MXMidiStatic.CCXML_RSCTRT2P);
+        textAlias.addNameAndValue("#RSCTRT3P", MXMidiStatic.CCXML_RSCTRT3P);
+        textAlias.addNameAndValue("#RSCTPT1", MXMidiStatic.CCXML_RSCTPT1);
+        textAlias.addNameAndValue("#RSCTPT2", MXMidiStatic.CCXML_RSCTPT2);
+        textAlias.addNameAndValue("#RSCTPT3", MXMidiStatic.CCXML_RSCTPT3);
+        textAlias.addNameAndValue("#RSCTPT1P", MXMidiStatic.CCXML_RSCTPT1P);
+        textAlias.addNameAndValue("#RSCTPT2P", MXMidiStatic.CCXML_RSCTPT2P);
+        textAlias.addNameAndValue("#RSCTPT3P", MXMidiStatic.CCXML_RSCTPT3P);
+        textAlias.addNameAndValue("[", MXMidiStatic.CCXML_CHECKSUM_START);
+        textAlias.addNameAndValue("]", MXMidiStatic.CCXML_CHECKSUM_END);
 
-        textCommand.addNameAndValue("@NONE", MXMidi.COMMAND2_NONE);
-        textCommand.addNameAndValue("@PB", MXMidi.COMMAND2_CH_PITCH_MSBLSB);
-        textCommand.addNameAndValue("@CC", MXMidi.COMMAND_CH_CONTROLCHANGE);
-        textCommand.addNameAndValue("@CP", MXMidi.COMMAND_CH_CHANNELPRESSURE);
-        textCommand.addNameAndValue("@PKP", MXMidi.COMMAND_CH_POLYPRESSURE);
-        textCommand.addNameAndValue("@SYSEX", MXMidi.COMMAND_SYSEX);
-        textCommand.addNameAndValue("@RPN", MXMidi.COMMAND2_CH_RPN); //@RPN [RPN MSB] [RPN LSB] [Data MSB] [Data LSB]
-        textCommand.addNameAndValue("@NRPN", MXMidi.COMMAND2_CH_NRPN); //@NRPN [NRPN MSB] [NRPN LSB] [Data MSB] [Data LSB]
+        textCommand.addNameAndValue("@NONE", MXMidiStatic.COMMAND2_NONE);
+        textCommand.addNameAndValue("@PB", MXMidiStatic.COMMAND2_CH_PITCH_MSBLSB);
+        textCommand.addNameAndValue("@CC", MXMidiStatic.COMMAND_CH_CONTROLCHANGE);
+        textCommand.addNameAndValue("@CP", MXMidiStatic.COMMAND_CH_CHANNELPRESSURE);
+        textCommand.addNameAndValue("@PKP", MXMidiStatic.COMMAND_CH_POLYPRESSURE);
+        textCommand.addNameAndValue("@SYSEX", MXMidiStatic.COMMAND_SYSEX);
+        textCommand.addNameAndValue("@RPN", MXMidiStatic.COMMAND2_CH_RPN); //@RPN [RPN MSB] [RPN LSB] [Data MSB] [Data LSB]
+        textCommand.addNameAndValue("@NRPN", MXMidiStatic.COMMAND2_CH_NRPN); //@NRPN [NRPN MSB] [NRPN LSB] [Data MSB] [Data LSB]
 
-        textCommand.addNameAndValue("@PROG_INC", MXMidi.COMMAND2_CH_PROGRAM_INC);
-        textCommand.addNameAndValue("@PROG_DEC", MXMidi.COMMAND2_CH_PROGRAM_DEC);
-        textCommand.addNameAndValue("@ON", MXMidi.COMMAND_CH_NOTEON);
-        textCommand.addNameAndValue("@OFF", MXMidi.COMMAND_CH_NOTEOFF);
-        textCommand.addNameAndValue("@PROGRAM", MXMidi.COMMAND_CH_PROGRAMCHANGE);
-        textCommand.addNameAndValue("@META", MXMidi.COMMAND_META_OR_RESET);
+        textCommand.addNameAndValue("@PROG_INC", MXMidiStatic.COMMAND2_CH_PROGRAM_INC);
+        textCommand.addNameAndValue("@PROG_DEC", MXMidiStatic.COMMAND2_CH_PROGRAM_DEC);
+        textCommand.addNameAndValue("@ON", MXMidiStatic.COMMAND_CH_NOTEON);
+        textCommand.addNameAndValue("@OFF", MXMidiStatic.COMMAND_CH_NOTEOFF);
+        textCommand.addNameAndValue("@PROGRAM", MXMidiStatic.COMMAND_CH_PROGRAMCHANGE);
+        textCommand.addNameAndValue("@META", MXMidiStatic.COMMAND_META_OR_RESET);
     }
 
     public static int readCommandText(String str) {
@@ -716,18 +716,18 @@ public class MXTemplate implements Comparable<MXTemplate> {
         MXRangedValue value = MXRangedValue.ZERO7;
 
         switch (get(0)) {
-            case MXMidi.COMMAND2_NONE:
+            case MXMidiStatic.COMMAND2_NONE:
                 if (data.length == 0) {
                     return new MXMessage(port, this);
                 }
                 return null;
-            case MXMidi.COMMAND2_CH_RPN:
-            case MXMidi.COMMAND2_CH_NRPN:
-            case MXMidi.COMMAND2_CH_PROGRAM_INC:
-            case MXMidi.COMMAND2_CH_PROGRAM_DEC:
+            case MXMidiStatic.COMMAND2_CH_RPN:
+            case MXMidiStatic.COMMAND2_CH_NRPN:
+            case MXMidiStatic.COMMAND2_CH_PROGRAM_INC:
+            case MXMidiStatic.COMMAND2_CH_PROGRAM_DEC:
                 return null;
 
-            case MXMidi.COMMAND2_CH_PITCH_MSBLSB:
+            case MXMidiStatic.COMMAND2_CH_PITCH_MSBLSB:
                 checkMatch = true;
                 break;
                 
@@ -747,7 +747,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
                 int c1 = get(templateSeek);
                 templateSeek++;
 
-                if (c1 == MXMidi.CCXML_CHECKSUM_END) {
+                if (c1 == MXMidiStatic.CCXML_CHECKSUM_END) {
                     dataSeek++;
                     continue;
                 }
@@ -760,16 +760,16 @@ public class MXTemplate implements Comparable<MXTemplate> {
                 }
                 if (c1 != c2) {
                     switch (c1) {
-                        case MXMidi.CCXML_GL:
+                        case MXMidiStatic.CCXML_GL:
                             gateLo = c2;
                             break;
-                        case MXMidi.CCXML_GH:
+                        case MXMidiStatic.CCXML_GH:
                             gateHi = c2;
                             break;
-                        case MXMidi.CCXML_VL:
+                        case MXMidiStatic.CCXML_VL:
                             valueLo = c2;
                             break;
-                        case MXMidi.CCXML_VH:
+                        case MXMidiStatic.CCXML_VH:
                             valueHi = c2;
                             break;
                         default:

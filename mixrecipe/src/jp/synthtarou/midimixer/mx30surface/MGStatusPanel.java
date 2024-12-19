@@ -51,7 +51,7 @@ import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.libs.navigator.legacy.NavigatorForText;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.libs.navigator.legacy.INavigator;
@@ -196,7 +196,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             public void approvedIndex(int selected) {
                 int x = getList().valueOfIndex(selected);
                 _status._base.setGate(_status._base.getGate().changeValue(x));
-                if ((_status._base.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                if ((_status._base.getStatus() & 0xf0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                     int[] temp = _status._base.getTemplate().toIntArray();
                     if (temp.length == 3) {
                         temp[1] = x;
@@ -230,7 +230,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
                     int x = getList().valueOfIndex(selected);
                     _status._drum._customGate = MXRangedValue.new7bit(x);
                     int command = _status._drum._customTemplate.get(0) & 0xfff0;
-                    if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                    if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                         _status._drum._customTemplate = new MXTemplate("@CC " + x + " #VL");
                     }
                     displayStatusToPanelSlider();
@@ -245,11 +245,11 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             public MXNamedObjectList<Integer> getList() {
                 try {
                     int command = _status._drum._customTemplate.get(0) & 0xfff0;
-                    if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF
-                            || command == MXMidi.COMMAND_CH_POLYPRESSURE) {
+                    if (command == MXMidiStatic.COMMAND_CH_NOTEON || command == MXMidiStatic.COMMAND_CH_NOTEOFF
+                            || command == MXMidiStatic.COMMAND_CH_POLYPRESSURE) {
                         return MXNamedObjectListFactory.listupNoteNo(true);
                     }
-                    if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                    if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                         return MXNamedObjectListFactory.listupControlChange(true);
                     }
                 } catch (NullPointerException e) {
@@ -340,12 +340,12 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             jLabelDefaultName.setText("'" + _status._base.toStringMessageInfo(2) + "' if blank");
 
             MXTemplate temp = _status._base.getTemplate();
-            if (temp.get(1) != MXMidi.CCXML_GL) {
+            if (temp.get(1) != MXMidiStatic.CCXML_GL) {
                 MXMessage message = _status._base;
-                if (temp.get(0) == MXMidi.COMMAND_CH_NOTEON
-                        || temp.get(1) == MXMidi.COMMAND_CH_NOTEOFF
-                        || temp.get(2) == MXMidi.COMMAND_CH_POLYPRESSURE) {
-                    MXTemplate temp2 = new MXTemplate(new int[]{temp.get(0), MXMidi.CCXML_GL, MXMidi.CCXML_VL});
+                if (temp.get(0) == MXMidiStatic.COMMAND_CH_NOTEON
+                        || temp.get(1) == MXMidiStatic.COMMAND_CH_NOTEOFF
+                        || temp.get(2) == MXMidiStatic.COMMAND_CH_POLYPRESSURE) {
+                    MXTemplate temp2 = new MXTemplate(new int[]{temp.get(0), MXMidiStatic.CCXML_GL, MXMidiStatic.CCXML_VL});
                     message = MXMessageFactory.fromTemplate(message.getPort(), temp2, message.getChannel(), message.getGate(), message.getValue());
                     _status.setBaseMessage(message);
                 }
@@ -354,9 +354,9 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             int command = _status._base.getStatus() & 0xf0;
             int gateValue = _status._base.getGate()._value;
 
-            if (command == MXMidi.COMMAND_CH_POLYPRESSURE || command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF) {
+            if (command == MXMidiStatic.COMMAND_CH_POLYPRESSURE || command == MXMidiStatic.COMMAND_CH_NOTEON || command == MXMidiStatic.COMMAND_CH_NOTEOFF) {
                 _currentGateModel = _keyGateModel;
-            } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+            } else if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                 _currentGateModel = _ccGateModel;
             } else {
                 _currentGateModel = _normalGateModel;
@@ -407,9 +407,9 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
                 MXMessage message = data._base;
                 if (message.isEmpty()) {
                     result.add("TextCommand [" + data._base.getTemplateAsText() + "] is not valid.");
-                } else if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
+                } else if (message.isCommand(MXMidiStatic.COMMAND_CH_CONTROLCHANGE)) {
                     switch (message.getCompiled(1)) {
-                        case MXMidi.DATA1_CC_DATAENTRY:
+                        case MXMidiStatic.DATA1_CC_DATAENTRY:
                             result.add("If you need DATAENTRY. try [@RPN/@NRPN msb lsb value 0].");
                             break;
                     }
@@ -651,12 +651,12 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         }
 
         MXMessage msg = _status._base;
-        if (msg.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE) && msg.getCompiled(1) >= 0 && msg.getCompiled(1) < 32) {
+        if (msg.isCommand(MXMidiStatic.COMMAND_CH_CONTROLCHANGE) && msg.getCompiled(1) >= 0 && msg.getCompiled(1) < 32) {
             _status._ccPair14 = jCheckBoxCC14bit.isSelected();
             jCheckBoxCC14bit.setEnabled(true);
         } else {
-            if (msg.isCommand(MXMidi.COMMAND2_CH_RPN)
-                    || msg.isCommand(MXMidi.COMMAND2_CH_NRPN)) {
+            if (msg.isCommand(MXMidiStatic.COMMAND2_CH_RPN)
+                    || msg.isCommand(MXMidiStatic.COMMAND2_CH_NRPN)) {
                 _status._ccPair14 = true;
                 jCheckBoxCC14bit.setEnabled(false);
                 jCheckBoxCC14bit.setSelected(true);
@@ -2067,7 +2067,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         if (textNavi.simpleAsk(this)) {
             MXMessage message = MXMessageFactory.fromCCXMLText(0, textNavi.getReturnValue(), 0, null, null);
             if (message != null) {
-                if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                if ((message.getStatus() & 0xf0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                     int messageGate = message.getCompiled(1);
                     message.setGate(messageGate);
                 }
@@ -2086,7 +2086,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         if (textNavi.simpleAsk(this)) {
             MXMessage message = MXMessageFactory.fromCCXMLText(0, textNavi.getReturnValue(), 0, null, null);
             if (message != null) {
-                if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                if ((message.getStatus() & 0xf0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                     int messageGate = message.getCompiled(1);
                     _status._drum._customTemplate = new MXTemplate("@CC " + message.getCompiled(1) + " #VL");
                     _status._drum._customGate = MXRangedValue.new7bit(messageGate);
@@ -2327,7 +2327,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             }
 
             MXMessage message = MXMessageFactory.fromTemplate(_status._port, template, _status.getChannel(), gate, value);
-            if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+            if ((message.getStatus() & 0xf0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                 int messageGate = message.getCompiled(1);
                 message.setGate(messageGate);
             }
@@ -2370,9 +2370,9 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
 
             if (template != null && template.size() >= 2) {
                 int command = template.get(0) & 0xfff0;
-                if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                     int messageGate = template.get(1);
-                    if (messageGate != MXMidi.CCXML_GL) {
+                    if (messageGate != MXMidiStatic.CCXML_GL) {
                         _status._drum._customGate = MXRangedValue.new7bit(messageGate);
                         template = new MXTemplate("@CC " + _status._drum._customGate._value + " #VL");
                     }
@@ -2394,7 +2394,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
     public void captureCallback(int channel, String command, int gate, int valueMin, int valueMax) {
         try {
             MXTemplate temp = new MXTemplate(command);
-            if (temp.get(0) == MXMidi.COMMAND_CH_NOTEOFF) {
+            if (temp.get(0) == MXMidiStatic.COMMAND_CH_NOTEOFF) {
                 int z = JOptionPane.showConfirmDialog(
                         this,
                         "Seems you choiced Note Off\n"

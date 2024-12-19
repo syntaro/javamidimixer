@@ -24,7 +24,7 @@ import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
@@ -109,10 +109,10 @@ public class MX90Process extends MXReceiver<MX90View> {
                 continue;
             }
             switch(cc) {
-                case  MXMidi.DATA1_CC_RPN_LSB:
-                case  MXMidi.DATA1_CC_RPN_MSB:
-                case  MXMidi.DATA1_CC_NRPN_LSB:
-                case  MXMidi.DATA1_CC_NRPN_MSB:
+                case  MXMidiStatic.DATA1_CC_RPN_LSB:
+                case  MXMidiStatic.DATA1_CC_RPN_MSB:
+                case  MXMidiStatic.DATA1_CC_NRPN_LSB:
+                case  MXMidiStatic.DATA1_CC_NRPN_MSB:
                     continue;
             }
             if (e.is14bitChoiced()) {
@@ -131,7 +131,7 @@ public class MX90Process extends MXReceiver<MX90View> {
         MXFileLogger.getLogger(MX90Process.class).info("Testing Volume");
         for (int ch = 0; ch < 16; ++ch) {
             int vol = random(128);
-            MXMessage volume = MXMessageFactory.fromControlChange(0, ch, MXMidi.DATA1_CC_CHANNEL_VOLUME, vol);
+            MXMessage volume = MXMessageFactory.fromControlChange(0, ch, MXMidiStatic.DATA1_CC_CHANNEL_VOLUME, vol);
             new MXDebugSame(volume);
             if (Thread.interrupted()) {
                 return;

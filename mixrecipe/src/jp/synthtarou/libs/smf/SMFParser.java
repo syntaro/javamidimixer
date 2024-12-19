@@ -34,7 +34,7 @@ import java.util.logging.Level;
 import javax.sound.midi.ShortMessage;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.MXConfiguration;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.libs.SortedArray;
 
 /**
@@ -329,18 +329,18 @@ public class SMFParser {
                 data1 = child.read8();
                 data2 = child.read8();
 
-                message = new OneMessage(0, status, data1, data2);
+                message = OneMessage.thisCodes(0, status, data1, data2);
                 break;
             case 0xC0:
             case 0xD0:
                 data1 = child.read8();
-                message = new OneMessage(0, status, data1, 0);
+                message = OneMessage.thisCodes(0, status, data1, 0);
                 break;
             case 0xF0:
                 // sys-ex or meta
                 switch (status) {
-                    case MXMidi.COMMAND_SYSEX:
-                    case MXMidi.COMMAND_SYSEX_END:
+                    case MXMidiStatic.COMMAND_SYSEX:
+                    case MXMidiStatic.COMMAND_SYSEX_END:
                         // sys ex
                         int sysexLength = (int) child.readVariable();
                         if (sysexLength == 0) {
@@ -353,7 +353,7 @@ public class SMFParser {
                         message = OneMessage.thisBuffer(0, sysexData);
                         break;
 
-                    case MXMidi.COMMAND_META_OR_RESET:
+                    case MXMidiStatic.COMMAND_META_OR_RESET:
                         // meta
                         int metaType = child.read8();
                         int metaLength = (int) child.readVariable();
@@ -401,8 +401,8 @@ public class SMFParser {
             case 0xF0:
                 // sys-ex or meta
                 switch (message.getStatus()) {
-                    case MXMidi.COMMAND_SYSEX:
-                    case MXMidi.COMMAND_SYSEX_END:
+                    case MXMidiStatic.COMMAND_SYSEX:
+                    case MXMidiStatic.COMMAND_SYSEX_END:
                         byte[] binary = message.getBinary();
                         int length = binary.length;
                         out.writeVariable(length - 1);
@@ -411,7 +411,7 @@ public class SMFParser {
                         }
                         break;
 
-                    case MXMidi.COMMAND_META_OR_RESET:
+                    case MXMidiStatic.COMMAND_META_OR_RESET:
                         byte[] data = message.getBinary();
                         out.write8(message.getData1());
                         out.writeVariable(data.length - 2);
@@ -534,7 +534,7 @@ public class SMFParser {
 
             int command = status & 0xf0;
 
-            if (command == MXMidi.COMMAND_CH_NOTEON) {
+            if (command == MXMidiStatic.COMMAND_CH_NOTEON) {
                 if (_firstNotePos < 0) {
                     _firstNotePos = i;
                 }

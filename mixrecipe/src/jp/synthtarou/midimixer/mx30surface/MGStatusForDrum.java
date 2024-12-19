@@ -23,7 +23,7 @@ import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.libs.smf.SMFCallback;
 import jp.synthtarou.libs.smf.OneMessage;
@@ -293,7 +293,7 @@ public class MGStatusForDrum implements Cloneable {
                         message = null;
                         break;
                     case STYLE_NOTES:
-                        int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
+                        int[] noteList = MXMidiStatic.textToNoteList(_harmonyNotes);
                         for (int note : noteList) {
                             message = MXMessageFactory.fromNoteon(port, channel, note, velocity);
                             message._owner = MXMessage.getRealOwner(owner);
@@ -355,12 +355,12 @@ public class MGStatusForDrum implements Cloneable {
                                 break;
                             case PROGRAM_INC:
                                 message = MXMessageFactory.fromTemplate(port,
-                                        new MXTemplate(new int[]{MXMidi.COMMAND2_CH_PROGRAM_INC}),
+                                        new MXTemplate(new int[]{MXMidiStatic.COMMAND2_CH_PROGRAM_INC}),
                                         channel, null, null);
                                 break;
                             case PROGRAM_DEC:
                                 message = MXMessageFactory.fromTemplate(port,
-                                        new MXTemplate(new int[]{MXMidi.COMMAND2_CH_PROGRAM_DEC}),
+                                        new MXTemplate(new int[]{MXMidiStatic.COMMAND2_CH_PROGRAM_DEC}),
                                         channel, null, null);
                                 break;
                             default:
@@ -397,7 +397,7 @@ public class MGStatusForDrum implements Cloneable {
                         message = null;
                         break;
                     case STYLE_NOTES:
-                        int[] noteList = MXMidi.textToNoteList(_harmonyNotes);
+                        int[] noteList = MXMidiStatic.textToNoteList(_harmonyNotes);
                         for (int note : noteList) {
                             message = MXMessageFactory.fromNoteoff(port, channel, note);
                             message._owner = MXMessage.getRealOwner(owner);
@@ -426,11 +426,11 @@ public class MGStatusForDrum implements Cloneable {
     }
 
     public int[] getHarmonyNotesAsArray() {
-        return MXMidi.textToNoteList(_harmonyNotes);
+        return MXMidiStatic.textToNoteList(_harmonyNotes);
     }
 
     public void setHarmoyNotesAsArray(int[] array) {
-        _harmonyNotes = MXMidi.noteListToText(array);
+        _harmonyNotes = MXMidiStatic.noteListToText(array);
     }
 
     public Object clone() {

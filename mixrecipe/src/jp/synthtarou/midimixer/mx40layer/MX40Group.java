@@ -22,7 +22,7 @@ import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 
 /**
  *
@@ -60,7 +60,7 @@ public class MX40Group {
     public String toString() {
         StringBuilder str = new StringBuilder();
         str.append("By ");
-        str.append("Port=").append(_isWatchPort).append("[").append(MXMidi.nameOfPortOutput(_watchingPort)).append("]");
+        str.append("Port=").append(_isWatchPort).append("[").append(MXMidiStatic.nameOfPortOutput(_watchingPort)).append("]");
         str.append("Channel=").append(_isWatchChannel).append("[").append(_watchingChannel+1).append("]");
         str.append("Program=").append(_isWatchProgram).append("[").append(_watchingProgram).append("]");
         str.append("Bank=").append(_watchingBankMSB).append(":").append(_watchingBankLSB).append("]");
@@ -135,18 +135,18 @@ public class MX40Group {
         }
         int channel = message.getChannel();
         
-        if (command == MXMidi.COMMAND_CH_NOTEOFF) {
+        if (command == MXMidiStatic.COMMAND_CH_NOTEOFF) {
             if (_noteOff.raiseHandler(message, port, channel, message.getCompiled(1))) {
                 return true;
             }
         }
 
-        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+        if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
             int cc = message.getGate()._value;
-            if (cc == MXMidi.DATA1_CC_BANKSELECT) {
+            if (cc == MXMidiStatic.DATA1_CC_BANKSELECT) {
                 return true;
             }
-            if (cc == MXMidi.DATA1_CC_BANKSELECT + 32) {
+            if (cc == MXMidiStatic.DATA1_CC_BANKSELECT + 32) {
                 return true;
             }
         }
@@ -154,7 +154,7 @@ public class MX40Group {
         //記録したプログラム番号が処理対象か判断する
         boolean assigned;
         
-        if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
+        if (command == MXMidiStatic.COMMAND_CH_PROGRAMCHANGE) {
             assigned = isAssigned(port, channel);
             if (assigned) {
                 for (MX40Layer layer: _listLayer) {
@@ -174,7 +174,7 @@ public class MX40Group {
         if (_listLayer.size() == 0) {
             return false;
         }
-        if (_rotatePoly >= 1 && command == MXMidi.COMMAND_CH_NOTEON) {
+        if (_rotatePoly >= 1 && command == MXMidiStatic.COMMAND_CH_NOTEON) {
             int found = _lastLayerPos + 1;
             if (found < 0 || found >= _listLayer.size()) {
                 found = 0;
@@ -203,7 +203,7 @@ public class MX40Group {
         }else {
             for (MX40Layer layer: _listLayer) {
                 layer.processByLayer(message);
-                if (command == MXMidi.COMMAND_CH_NOTEON) {
+                if (command == MXMidiStatic.COMMAND_CH_NOTEON) {
                     MXMessage noteOff = MXMessageFactory.fromNoteoff(port, channel, message.getCompiled(1));
                     noteOff._owner = MXMessage.getRealOwner(message);
                     _noteOff.setHandler(message, noteOff,  new NoteOffWatcher2(layer, -1));

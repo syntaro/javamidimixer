@@ -50,7 +50,7 @@ import jp.synthtarou.midimixer.ccxml.InformationForCCM;
 import jp.synthtarou.midimixer.ccxml.ui.NavigatorForCCXMLCC;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsole;
 import jp.synthtarou.midimixer.libs.midi.console.MXMidiConsoleElement;
@@ -205,7 +205,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             }
         });
 
-        _baseMessage = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_NOTEON, 64, 0);
+        _baseMessage = MXMessageFactory.fromShortMessage(0, MXMidiStatic.COMMAND_CH_NOTEON, 64, 0);
 
         scrollToCenter();
         _input.bind(jListInput);
@@ -235,7 +235,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
                 jSliderPitch.setValue(value);
 
                 MXMessage msg  = MXMessageFactory.fromTemplate(_process._mousePort
-                        , MXMidi.TEMPLATE_CCXMLPB, _process._mouseChannel
+                        , MXMidiStatic.TEMPLATE_CCXMLPB, _process._mouseChannel
                         , MXRangedValue.ZERO7, MXRangedValue.new14bit(value));
 
                 //MXMessage msg = MXMessageFactory.fromShortMessage(_process._mousePort, MXMidi.COMMAND_CH_PITCHWHEEL + _process._mouseChannel, 0, 0);
@@ -256,7 +256,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
                 jSliderModwheel.setValue(value);
 
                 _sentModulation = value;
-                MXMessage msg = MXMessageFactory.fromControlChange(_process._mousePort, _process._mouseChannel, MXMidi.DATA1_CC_MODULATION, 0);
+                MXMessage msg = MXMessageFactory.fromControlChange(_process._mousePort, _process._mouseChannel, MXMidiStatic.DATA1_CC_MODULATION, 0);
                 msg.setValue(MXRangedValue.new7bit(value));
                 _process.sendCCAndGetResult(msg, MXMain.getMain().getInputProcess());
             }
@@ -546,7 +546,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             String text;
             
             boolean new14Bit = false;
-            if (_baseMessage.getTemplate().get(0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+            if (_baseMessage.getTemplate().get(0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                 if (_baseMessage.getCompiled(1)>=0 && _baseMessage.getCompiled(1) <= 31) {
                     new14Bit = true;
                 }
@@ -638,9 +638,9 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             
             try {
                 if (template.size() >= 3) {
-                    if (template.get(0) == MXMidi.COMMAND_CH_CONTROLCHANGE && template.get(1) != MXMidi.CCXML_GL) {
+                    if (template.get(0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE && template.get(1) != MXMidiStatic.CCXML_GL) {
                         gate = MXRangedValue.new7bit(template.get(1));
-                        template = new MXTemplate(new int[]{MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.CCXML_GL, MXMidi.CCXML_VL});
+                        template = new MXTemplate(new int[]{MXMidiStatic.COMMAND_CH_CONTROLCHANGE, MXMidiStatic.CCXML_GL, MXMidiStatic.CCXML_VL});
                     }
                 }
             }catch(Throwable ex) {
@@ -715,7 +715,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
                 if (template.size() >= 2) {
                     int command = template.get(0) & 0xfff0;
                     int gate = template.get(1);
-                    if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && gate != MXMidi.CCXML_GL) {
+                    if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE && gate != MXMidiStatic.CCXML_GL) {
                         int[] newTemplate = new int[template.size()];
                         for (int i = 0; i < newTemplate.length; ++ i) {
                             newTemplate[i] = template.get(i);

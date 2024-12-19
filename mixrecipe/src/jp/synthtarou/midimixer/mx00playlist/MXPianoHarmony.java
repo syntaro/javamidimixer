@@ -17,7 +17,7 @@
 package jp.synthtarou.midimixer.mx00playlist;
 
 import java.util.ArrayList;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 
 /**
  *
@@ -95,7 +95,7 @@ public class MXPianoHarmony {
                 }else {
                     str.append(", ");
                 }
-                str.append(MXMidi.nameOfNote(list.get(i)));
+                str.append(MXMidiStatic.nameOfNote(list.get(i)));
             }
             str.append("]");
             return str.toString();

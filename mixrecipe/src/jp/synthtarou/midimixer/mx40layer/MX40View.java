@@ -32,7 +32,7 @@ import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.MXCountdownTimer;
 import jp.synthtarou.libs.namedobject.MXNamedObject;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.ccxml.ui.NavigatorForCCXMLInst;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
@@ -1383,7 +1383,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         }
         
         for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++ i) {
-            String name = MXMidi.nameOfPortOutput(i);
+            String name = MXMidiStatic.nameOfPortOutput(i);
             JMenuItem item = new JMenuItem(name);  
             item.addActionListener(new ActionListener() {
                 @Override
@@ -1408,7 +1408,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         }
         
         for (int i = 0; i < MXConfiguration.TOTAL_PORT_COUNT; ++ i) {
-            String name = MXMidi.nameOfPortOutput(i);
+            String name = MXMidiStatic.nameOfPortOutput(i);
             JMenuItem item = new JMenuItem(name);  
             item.addActionListener(new ActionListener() {
                 @Override
@@ -1574,7 +1574,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         jCheckBoxProgram.setSelected(group._isWatchProgram);
         jCheckBoxRotateLayer.setSelected(group._isRotate);
         jSpinnerRotatePoly.setValue(group._rotatePoly);
-        jButtonWatchPort.setText(MXMidi.nameOfPortShort(group._watchingPort));
+        jButtonWatchPort.setText(MXMidiStatic.nameOfPortShort(group._watchingPort));
         //jComboBoxWatchPort.setSelectedIndex(_watchPort.indexOfValue(group._watchingPort));
         jComboBoxWatchChannel.setSelectedIndex(_watchChannel.indexOfValue(group._watchingChannel));
         jSpinnerWatchProgram.setValue(group._watchingProgram);
@@ -1634,7 +1634,7 @@ public class MX40View extends javax.swing.JPanel implements TableModelListener {
         _modBank.writeComboBox(jComboBoxModBank, layer._modBank);
         _modProgram.writeComboBox(jComboBoxModProgram, layer._modProgram);
 
-        jButtonSendPort.setText(MXMidi.nameOfPortShort(layer._fixedPort));
+        jButtonSendPort.setText(MXMidiStatic.nameOfPortShort(layer._fixedPort));
         //_changePort.writeComboBox(jComboBoxSendPort, layer._fixedPort);
         _changeChannel.writeComboBox(jComboBoxSendChannel, layer._fixedChannel);
         jSpinnerSendProgram.setValue(layer._fixedProgram);

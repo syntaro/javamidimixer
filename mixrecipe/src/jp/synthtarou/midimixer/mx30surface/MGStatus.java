@@ -24,7 +24,7 @@ import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
@@ -184,8 +184,8 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
             return -1;
         }
 
-        if ((_base.getTemplate().get(0) & 0xfff0) == MXMidi.COMMAND_CH_NOTEON) {
-            if ((message.getTemplate().get(0) & 0xfff0) == MXMidi.COMMAND_CH_NOTEOFF) {
+        if ((_base.getTemplate().get(0) & 0xfff0) == MXMidiStatic.COMMAND_CH_NOTEON) {
+            if ((message.getTemplate().get(0) & 0xfff0) == MXMidiStatic.COMMAND_CH_NOTEOFF) {
                 MXMessage newMessage = MXMessageFactory.fromNoteon(message.getPort(), message.getChannel(), message.getCompiled(1), 0);
                 newMessage._owner = MXMessage.getRealOwner(message);
                 message = newMessage;
@@ -198,7 +198,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
 
             int newValue = value._value;
 
-            if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
+            if (message.isCommand(MXMidiStatic.COMMAND_CH_NOTEOFF)) {
                 newValue = 0;
             }
             if (newValue >= value._min && newValue <= value._max) {

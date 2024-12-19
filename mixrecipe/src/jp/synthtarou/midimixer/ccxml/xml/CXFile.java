@@ -49,7 +49,7 @@ import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObject;
 import jp.synthtarou.libs.MXLineReader;
 import jp.synthtarou.libs.log.MXFileLogger;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -280,7 +280,7 @@ public class CXFile {
                     MXTemplate template = null;
                     try {
                         template = new MXTemplate(ccm._data);
-                        if (template.get(1) == MXMidi.COMMAND_SYSEX || template.get(1) == MXMidi.COMMAND_SYSEX_END) 
+                        if (template.get(1) == MXMidiStatic.COMMAND_SYSEX || template.get(1) == MXMidiStatic.COMMAND_SYSEX_END) 
                             if (template.get(template.size() - 1) == 0xf7) {
                                 templateOK = true;
                         }

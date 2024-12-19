@@ -30,7 +30,7 @@ import javax.sound.midi.ShortMessage;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.smf.OneMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 
 /**
@@ -173,7 +173,7 @@ public class MXDriver_Java implements MXDriver {
                 int status = shortMsg.getStatus() & 0xff;
                 int data1 = shortMsg.getData1() & 0xff;
                 int data2 = shortMsg.getData2() & 0xff;
-                if (status == MXMidi.COMMAND_META_OR_RESET || status == MXMidi.COMMAND_ACTIVESENSING) {
+                if (status == MXMidiStatic.COMMAND_META_OR_RESET || status == MXMidiStatic.COMMAND_ACTIVESENSING) {
                     return;
                 }
 

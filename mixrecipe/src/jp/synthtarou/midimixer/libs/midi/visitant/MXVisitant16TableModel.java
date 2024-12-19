@@ -25,7 +25,7 @@ import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 
 /**
  *
@@ -105,7 +105,7 @@ public class MXVisitant16TableModel implements TableModel {
         
         switch(columnIndex) {
             case 0:
-                return MXMidi.nameOfPortShort(port) + (channel+1);
+                return MXMidiStatic.nameOfPortShort(port) + (channel+1);
             case 1:
                 if (info.isHavingBank()) {
                     return MXUtil.toHexFF(info.getBankMSB()) + ":" + MXUtil.toHexFF(info.getBankLSB());
@@ -118,18 +118,18 @@ public class MXVisitant16TableModel implements TableModel {
                 }
                 break;
             case 3:
-                if (info.isCCSet(MXMidi.DATA1_CC_CHANNEL_VOLUME)) {                    
-                    return Integer.toString(info.getCCValue(MXMidi.DATA1_CC_CHANNEL_VOLUME));
+                if (info.isCCSet(MXMidiStatic.DATA1_CC_CHANNEL_VOLUME)) {                    
+                    return Integer.toString(info.getCCValue(MXMidiStatic.DATA1_CC_CHANNEL_VOLUME));
                 }
                 break;
             case 4:
-                if (info.isCCSet(MXMidi.DATA1_CC_EXPRESSION)) {                    
-                    return Integer.toString(info.getCCValue(MXMidi.DATA1_CC_EXPRESSION));
+                if (info.isCCSet(MXMidiStatic.DATA1_CC_EXPRESSION)) {                    
+                    return Integer.toString(info.getCCValue(MXMidiStatic.DATA1_CC_EXPRESSION));
                 }
                 break;
             case 5:
-                if (info.isCCSet(MXMidi.DATA1_CC_PANPOT)) {                    
-                    return Integer.toString(info.getCCValue(MXMidi.DATA1_CC_PANPOT));
+                if (info.isCCSet(MXMidiStatic.DATA1_CC_PANPOT)) {                    
+                    return Integer.toString(info.getCCValue(MXMidiStatic.DATA1_CC_PANPOT));
                 }
                 break;
         }

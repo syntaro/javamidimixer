@@ -22,7 +22,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMidiFilter;
@@ -82,7 +82,7 @@ public class MX13Process extends MXReceiver<MX13View> {
             if (result.length() > 0) {
                 result.append(", ");
             }
-            result.append(MXMidi.nameOfPortShort(p));
+            result.append(MXMidiStatic.nameOfPortShort(p));
             if (listTypes != null) {
                 result.append(listTypes.toString());
             }

@@ -28,7 +28,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.log.MXFileLogger;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.swing.JTableWithFooter;
 import jp.synthtarou.midimixer.libs.swing.SafeSpinnerNumberModel;
 
@@ -237,7 +237,7 @@ public class MX16View extends javax.swing.JPanel {
         model.addColumn("");
         
         for (int port = 0; port < MXConfiguration.TOTAL_PORT_COUNT; ++ port) {
-            model.addColumn(outName + MXMidi.nameOfPortInput(port));
+            model.addColumn(outName + MXMidiStatic.nameOfPortInput(port));
         }
         
         for (int i = viewData.curveCount() - 1; i >= 0; --i) {
@@ -267,7 +267,7 @@ public class MX16View extends javax.swing.JPanel {
                 int base = viewData.curveDefault(curveId);
                 int set = viewData.curveValue(port, curveId);
 
-                jLabelVelocityPort.setText(MXMidi.nameOfPortInput(port));
+                jLabelVelocityPort.setText(MXMidiStatic.nameOfPortInput(port));
                 jLabelVelocityOriginal.setText(String.valueOf(base));
                 jSpinnerVelocityCurve.setModel(new SafeSpinnerNumberModel(set, 0, 127, 1));
             }catch(RuntimeException ex) {

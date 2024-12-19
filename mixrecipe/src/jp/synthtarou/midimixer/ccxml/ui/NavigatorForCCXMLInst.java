@@ -39,7 +39,7 @@ import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.port.FinalMIDIOut;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
 import jp.synthtarou.libs.navigator.legacy.INavigator;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
@@ -914,7 +914,7 @@ public class NavigatorForCCXMLInst extends javax.swing.JPanel implements INaviga
         int lsb = _returnValue._bankLSB;
 
         if (msb >= 0 && lsb >= 0) {
-            int data1 = MXMidi.DATA1_CC_BANKSELECT;
+            int data1 = MXMidiStatic.DATA1_CC_BANKSELECT;
             int data2 = 0;
             MXMessage message = MXMessageFactory.fromControlChange14(getPort(), getChannel(), data1, msb, lsb);
             MXMIDIIn.messageToReceiverThreaded(message, getReceiver());

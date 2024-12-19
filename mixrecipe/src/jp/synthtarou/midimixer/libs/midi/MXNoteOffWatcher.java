@@ -50,7 +50,7 @@ public class MXNoteOffWatcher {
     Handler _lastHandler;
 
     public synchronized boolean setHandler(MXMessage noteOn, MXMessage noteOff, Handler listener) {
-        if (noteOn.isCommand(MXMidi.COMMAND_CH_NOTEON) == false) {
+        if (noteOn.isCommand(MXMidiStatic.COMMAND_CH_NOTEON) == false) {
             MXFileLogger.getLogger(MXMessage.class).severe("Its not note on " + noteOn);
             return false;
         }

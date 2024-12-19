@@ -17,7 +17,7 @@
 package jp.synthtarou.mixtone.synth.oscilator;
 
 import jp.synthtarou.mixtone.synth.soundfont.SFZElement;
-import static jp.synthtarou.mixtone.synth.oscilator.XTEnvelope.sampleRate;
+
 import jp.synthtarou.mixtone.synth.soundfont.XTFile;
 import jp.synthtarou.mixtone.synth.soundfont.table.XTRow;
 
@@ -26,6 +26,7 @@ import jp.synthtarou.mixtone.synth.soundfont.table.XTRow;
  * @author Syntarou YOSHIDA
  */
 public class XTOscilator {
+    static final String TAG =  "XTOscilator";
     XTFile _sfz;
     SFZElement.SFZElement_shdr _shdr;
     SFZElement.SFZElement_smpl _smpl;
@@ -101,9 +102,10 @@ public class XTOscilator {
         if (_overridingRootKey >= 0) {
             sampleKey = _overridingRootKey;
         }
+        /*
         if (playKey< 0) {
             playKey = sampleKey;
-        }
+        }*/
        
         _totalFrame = 0;
         _pos = new OscilatorPosition(_sampleRate, sampleKey, _correction, playKey);
@@ -113,9 +115,12 @@ public class XTOscilator {
     }
 
     public double nextValueOfOscilator(long frame){
+        if (isMuted()) {
+            return 0;
+        }
         long x = _pos.frameToSampleoffset(frame);
         if (_loopEnd >= 0 && x + _start > _loopEnd) {
-            if (_loop && _loopStart <= _loopEnd) {
+            if (_loop) {
                 long distance = _loopEnd - _loopStart + 1;
                 while (x > _loopEnd - _start) {
                     x -= distance;
@@ -127,48 +132,50 @@ public class XTOscilator {
                     }
                 }
                 int smpl = _smpl.getSample16((int)(_start + x));
-                return smpl / 256.0;
+                return smpl;
             }
         }
         if (x + _start > _end) {
             _faded = true;
             return 0;
         }
-        int smpl = _smpl.getSample16((int)(_start + x));
-        return smpl / 256.0;
+        return _smpl.getSample16((int)(_start + x));
     }
 
     XTEnvelope _ampEnv;
 
     public void initEnvelope() {
         _ampEnv = new XTEnvelope();
-
-        _ampEnv.setAttachSamples((long)(0));
-        _ampEnv.setDecaySamples((long)(sampleRate * 0.3));
-        _ampEnv.setSustainLevel(0.6);
-        _ampEnv.setReleaseSamples((long)(sampleRate * 0.1));
     }
     
     public void noteOff() {
-        if (!_ampEnv.isNoteOff()) {
-            _ampEnv.noteOff();
-        }
+        _ampEnv.noteOff();
     }
-    
+
     public double nextValueWithAmp() {
         long frame = _totalFrame ++;
         double osc = nextValueOfOscilator(frame);
         //double filt = _filter.update(osc);
         double amp = _ampEnv.getAmountAt(frame);
-        return osc * amp;        
+        return osc * amp;
     }
     
     public boolean isNoteOff() {
         return _ampEnv.isNoteOff();
     }
+
+    public void noteMute() {
+        _ampEnv.noteMute();
+    }
     
     public boolean isMuted() {
-        return _faded || _ampEnv.isNoteFaded();
+        if (_faded) {
+            return _faded;
+        }
+        if (_ampEnv.isNoteFaded()) {
+            _faded = true;
+        }
+        return _faded;
     }
 
     public void setPan(double x) { //-1 ~ +1
@@ -183,5 +190,4 @@ public class XTOscilator {
     public double _volume;
     public double _velocity;
     public boolean _faded = false;
-    public long _frame = 0;
 }

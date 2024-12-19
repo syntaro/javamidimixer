@@ -22,7 +22,7 @@ import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 
 /**
  *
@@ -57,12 +57,12 @@ public class MXVisitant implements Cloneable {
 
     public void setCCValue(int cc, int value) {
         // skip mode change type cc
-        if (cc == MXMidi.DATA1_CC_ALLNOTEOFF || cc == MXMidi.DATA1_CC_ALLSOUNDOFF
-         || cc == MXMidi.DATA1_CC_BANKSELECT || cc == MXMidi.DATA1_CC_DATAENTRY
-         || cc == MXMidi.DATA1_CC_DATAINC || cc == MXMidi.DATA1_CC_DATADEC
-         || cc == MXMidi.DATA1_CC_RPN_MSB || cc == MXMidi.DATA1_CC_RPN_LSB
-         || cc == MXMidi.DATA1_CC_NRPN_MSB || cc == MXMidi.DATA1_CC_NRPN_LSB
-         || cc == MXMidi.DATA1_CC_RESET_ALLCTRLS) {
+        if (cc == MXMidiStatic.DATA1_CC_ALLNOTEOFF || cc == MXMidiStatic.DATA1_CC_ALLSOUNDOFF
+         || cc == MXMidiStatic.DATA1_CC_BANKSELECT || cc == MXMidiStatic.DATA1_CC_DATAENTRY
+         || cc == MXMidiStatic.DATA1_CC_DATAINC || cc == MXMidiStatic.DATA1_CC_DATADEC
+         || cc == MXMidiStatic.DATA1_CC_RPN_MSB || cc == MXMidiStatic.DATA1_CC_RPN_LSB
+         || cc == MXMidiStatic.DATA1_CC_NRPN_MSB || cc == MXMidiStatic.DATA1_CC_NRPN_LSB
+         || cc == MXMidiStatic.DATA1_CC_RESET_ALLCTRLS) {
             return;
         }
         if (_valueCC[cc] != value) {
@@ -136,7 +136,7 @@ public class MXVisitant implements Cloneable {
         }
         for (int cc = 0; cc < 128; ++cc) {
             if (isCCSet(cc)) {
-                str += "[" + MXMidi.nameOfControlChange(cc);
+                str += "[" + MXMidiStatic.nameOfControlChange(cc);
                 str += "." + getCCValue(cc);
                 str += "]";
             }
@@ -208,7 +208,7 @@ public class MXVisitant implements Cloneable {
             int port = message.getPort();
             int channel = message.getChannel();
             switch (widerStatus & 0xfff0) {
-                case MXMidi.COMMAND2_CH_PROGRAM_DEC:
+                case MXMidiStatic.COMMAND2_CH_PROGRAM_DEC:
                     int progDec = isHavingProgram() ? getProgram() - 1 : 0;
                     if (progDec >= 0) {
                         setProgram(progDec);
@@ -219,7 +219,7 @@ public class MXVisitant implements Cloneable {
                         MXFileLogger.getLogger(MXVisitant.class).severe("@PROG_DEC got less than 0");
                     }
                     return null;
-                case MXMidi.COMMAND2_CH_PROGRAM_INC:
+                case MXMidiStatic.COMMAND2_CH_PROGRAM_INC:
                     int progInc = isHavingProgram() ? getProgram() + 1 : 0;
                     if (progInc <= 127) {
                         setProgram(progInc);
@@ -237,7 +237,7 @@ public class MXVisitant implements Cloneable {
             int status = message.getStatus() & 0xf0;
             int channel = message.getStatus() & 0x0f;
 
-            if (status == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
+            if (status == MXMidiStatic.COMMAND_CH_PROGRAMCHANGE) {
                 if (gate >= 0 && gate <= 127) {
                     setProgram(gate);
                     return message;
@@ -246,15 +246,15 @@ public class MXVisitant implements Cloneable {
                     MXFileLogger.getLogger(MXVisitant.class).severe("@PROG got not in 0~127");
                 }
             }
-            if (status == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+            if (status == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                 setCCValue(message.getCompiled(1), value);
                 switch (message.getCompiled(1)) {
 
-                    case MXMidi.DATA1_CC_BANKSELECT:
+                    case MXMidiStatic.DATA1_CC_BANKSELECT:
                         setBankMSB(value);
                         break;
 
-                    case MXMidi.DATA1_CC_BANKSELECT + 32:
+                    case MXMidiStatic.DATA1_CC_BANKSELECT + 32:
                         setBankLSB(value);
                         break;
 
@@ -268,7 +268,7 @@ public class MXVisitant implements Cloneable {
             for (int i = 0; i < message.countOneMessage(); ++ i) {
                 OneMessage one = message.toOneMessage(i);
                 byte[] bin = one.getBinary();
-                if (bin != null && MXMidi.isReset(bin)) {
+                if (bin != null && MXMidiStatic.isReset(bin)) {
                     System.out.println("GM    RESET ********");
                     reset();
                     break;

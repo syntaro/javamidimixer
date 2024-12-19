@@ -23,13 +23,14 @@ import jp.synthtarou.mixtone.synth.audio.XTAudioStream;
  * @author Syntarou YOSHIDA
  */
 public class XTEnvelope {
+    long _sampleRate = (long)(XTAudioStream._sampleRate);
     long _attackSamples = 0;
-    long _decaySamples = 0;
-    double _sustainLevel = 1.0;
-    long _releaseSamples = 0;
-    
+    long _decaySamples = (long)(_sampleRate / 4);
+    double _sustainLevel = 0.7;
+    long _releaseSamples = (long)(_sampleRate / 6);
+
     long _currentSample;
-    double _currentAmount;
+    double _currentAmount = 1;
 
     long _noteOffSample = -1;
     double _noteOffAmount;
@@ -38,10 +39,10 @@ public class XTEnvelope {
    
     public static void main(String[] args) {
         XTEnvelope env = new XTEnvelope();
-        env.setAttachSamples((long)sampleRate / 4);
-        env.setDecaySamples((long)sampleRate);
+        env.setAttachSamples((long)0);
+        env.setDecaySamples((long)(sampleRate / 4));
         env.setSustainLevel(0.5);
-        env.setReleaseSamples((long)sampleRate/10);
+        env.setReleaseSamples((long)(sampleRate / 4));
         
         for(long x = 0; x <= (sampleRate * 10); x += sampleRate / 10) {
             if (x >= sampleRate * 5) {
@@ -84,58 +85,53 @@ public class XTEnvelope {
     
     public boolean isNoteFaded() {
         if (_noteOffSample >= 0) {
-            if (_currentSample >= _noteOffSample + _releaseSamples) {
+            if (_tillMute <= 0) {
                 return true;
             }
         }
         return false;
     }
+
+    public void noteMute() {
+        _tillMute = 0;
+    }
     
     public void noteOff() {
-        _noteOffSample = _currentSample;
-        _noteOffAmount = _currentAmount;
-    }
-    
-    long _tillMute = Long.MIN_VALUE;
-
-    public long calcFrameTillMute() {
-        return (long)_tillMute;
-    }
-    
-    public double getAmountAt(long samples) {
-        if (samples < _currentSample) {
-            new Throwable().printStackTrace();
-           
+        if (_noteOffSample < 0) {
+            _noteOffSample = _currentSample;
+            _noteOffAmount = _currentAmount;
         }
+    }
+    
+    long _tillMute = Long.MAX_VALUE;
+
+    public double getAmountAt(long samples) {
         _currentSample = samples;
 
+        if (_tillMute <= 0) {
+            return 0;
+        }
         if (_noteOffSample >= 0) {
             if (_releaseSamples == 0) {
+                _tillMute = 0;
                 return 0;
             }
-
-            if (_noteOffAmount == 0) {
-                return 0;
-            }
-
             double from = _noteOffAmount;
             double to = 0;
 
             long spentSample = samples - _noteOffSample;
             double spentPercent = ((double)spentSample) / _releaseSamples;
             double step = to - from;
-
             double leftPercent = 1 - spentPercent;
             _tillMute = (long)(leftPercent * _releaseSamples);
-
+            if (_tillMute <= 0) {
+                return 0;
+            }
             _currentAmount = from + step * spentPercent;
             return _currentAmount;
         }
 
-        if (_attackSamples == 0 && samples == 0) {
-            _currentAmount = 1.0;
-        }
-        else if (samples < _attackSamples) {
+        if (samples < _attackSamples) {
             _currentAmount = samples * 1.0 / _attackSamples;
         }
         else  if (samples <= (_attackSamples + _decaySamples)) {

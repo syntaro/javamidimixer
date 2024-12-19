@@ -28,7 +28,7 @@ import jp.synthtarou.midimixer.ccxml.InformationForCCM;
 import jp.synthtarou.midimixer.ccxml.ui.NavigatorForCCXMLCC;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.MXUtil;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.libs.navigator.MXPopup;
 import jp.synthtarou.libs.navigator.MXPopupForList;
@@ -61,9 +61,9 @@ public class MXResolutionView extends javax.swing.JPanel {
         } catch (Exception e) {
         }
 
-        if (command == MXMidi.COMMAND_CH_POLYPRESSURE || command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF) {
+        if (command == MXMidiStatic.COMMAND_CH_POLYPRESSURE || command == MXMidiStatic.COMMAND_CH_NOTEON || command == MXMidiStatic.COMMAND_CH_NOTEOFF) {
             _currentGateModel = _keyGateModel;
-        } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+        } else if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
             _currentGateModel = _ccGateModel;
         } else {
             _currentGateModel = _normalGateModel;
@@ -146,7 +146,7 @@ public class MXResolutionView extends javax.swing.JPanel {
                             _resolution._gate = gate;
                             //refill
                             if (_resolution._command != null) {
-                                if (_resolution._command.get(0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                                if (_resolution._command.get(0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                                     int[] template = _resolution._command.toIntArray();
                                     template[1] = _resolution._gate;
                                     _resolution._command = new MXTemplate(template);
@@ -345,9 +345,9 @@ public class MXResolutionView extends javax.swing.JPanel {
                 _resolution._command = new MXTemplate(ccm._data);
                 _resolution._gate = ccm.getParsedGate()._value;
 
-                if (_resolution._command.get(0) == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+                if (_resolution._command.get(0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                     int gate = _resolution._command.get(1);
-                    if (gate != MXMidi.CCXML_GL) {
+                    if (gate != MXMidiStatic.CCXML_GL) {
                         _resolution._gate = gate;
                     }
                 }

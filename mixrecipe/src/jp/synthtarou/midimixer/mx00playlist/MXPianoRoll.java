@@ -35,7 +35,7 @@ import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys.KeyRect;
 import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.libs.smf.SMFSequencer;
 import jp.synthtarou.libs.smf.SMFTestSynthesizer;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 
 /**
  *
@@ -347,12 +347,12 @@ public class MXPianoRoll extends JComponent {
             int velocity = smf.getData2();
 
             switch (command) {
-                case MXMidi.COMMAND_CH_NOTEON:
+                case MXMidiStatic.COMMAND_CH_NOTEON:
                     if (velocity >= 1) {
                         _currentKeyColor[note] |= channelbit;
                         break;
                     }
-                case MXMidi.COMMAND_CH_NOTEOFF:
+                case MXMidiStatic.COMMAND_CH_NOTEOFF:
                     _currentKeyColor[note] &= ~channelbit;
                     break;
             }
@@ -416,7 +416,7 @@ public class MXPianoRoll extends JComponent {
             }
 
             switch (command) {
-                case MXMidi.COMMAND_CH_NOTEON:
+                case MXMidiStatic.COMMAND_CH_NOTEON:
                     if (velocity >= 1) {
                         if (_listNotePressedChannel[note] == 0) {
                             _keys.noteOn(note);
@@ -424,7 +424,7 @@ public class MXPianoRoll extends JComponent {
                         _listNotePressedChannel[note] |= 1 << channel;
                         break;
                     }
-                case MXMidi.COMMAND_CH_NOTEOFF:
+                case MXMidiStatic.COMMAND_CH_NOTEOFF:
                     if ((_listNotePressedChannel[note] & (1 << channel)) != 0) {
                         _listNotePressedChannel[note] -= (1 << channel);
                     }

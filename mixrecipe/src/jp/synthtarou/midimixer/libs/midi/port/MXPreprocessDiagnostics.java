@@ -20,7 +20,7 @@ import java.util.LinkedList;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 
 /**
@@ -55,16 +55,16 @@ public class MXPreprocessDiagnostics {
         int thisCC = -1;
         if (message.getStatus() >= 0x100) {
             switch(message.getStatus() & 0xfff0) {
-                case MXMidi.COMMAND2_CH_RPN:
-                case MXMidi.COMMAND2_CH_NRPN:
+                case MXMidiStatic.COMMAND2_CH_RPN:
+                case MXMidiStatic.COMMAND2_CH_NRPN:
                     MXTemplate temp = message.getTemplate();
-                    RecordEntry e = getEntry(MXMidi.DATA1_CC_DATAENTRY);
+                    RecordEntry e = getEntry(MXMidiStatic.DATA1_CC_DATAENTRY);
                     _caret = e;
                     _pastDataMSB = MXTemplate.parseDAlias(temp.get(1), message);
                     _pastDataLSB  = MXTemplate.parseDAlias(temp.get(2), message);
                     e._pooling0 = MXTemplate.parseDAlias(temp.get(3), message);
                     e._pooling32 = MXTemplate.parseDAlias(temp.get(4), message);
-                    if ((message.getStatus() & 0xfff0) == MXMidi.COMMAND2_CH_RPN)  {
+                    if ((message.getStatus() & 0xfff0) == MXMidiStatic.COMMAND2_CH_RPN)  {
                         _pastWasRPN = 1;
                     }else {
                         _pastWasRPN = 2;
@@ -73,15 +73,15 @@ public class MXPreprocessDiagnostics {
                     return;
             }
         }
-        if (message.isCommand(MXMidi.COMMAND_CH_PITCHWHEEL)) {
+        if (message.isCommand(MXMidiStatic.COMMAND_CH_PITCHWHEEL)) {
             // convert to Internal PitchBend
             MXRangedValue value = message.getValue();
             message = MXMessageFactory.fromTemplate(message.getPort()
-                    , MXMidi.TEMPLATE_CCXMLPB, message.getChannel()
+                    , MXMidiStatic.TEMPLATE_CCXMLPB, message.getChannel()
                     , MXRangedValue.ZERO7, value);
         }
 
-        if (message.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
+        if (message.isCommand(MXMidiStatic.COMMAND_CH_CONTROLCHANGE)) {
             thisCC = message.getCompiled(1);
         }
 
@@ -89,24 +89,24 @@ public class MXPreprocessDiagnostics {
         _lastMessage = message;
         int lastCC = -1;
 
-        if (last != null && last.isCommand(MXMidi.COMMAND_CH_CONTROLCHANGE)) {
+        if (last != null && last.isCommand(MXMidiStatic.COMMAND_CH_CONTROLCHANGE)) {
             lastCC = last.getCompiled(1);
         }
 
         switch (thisCC) {
-            case MXMidi.DATA1_CC_RPN_MSB:
+            case MXMidiStatic.DATA1_CC_RPN_MSB:
                 _pastDataMSB = message.getCompiled(2);
                 _pastWasRPN = 1;
                 return;
-            case MXMidi.DATA1_CC_RPN_LSB:
+            case MXMidiStatic.DATA1_CC_RPN_LSB:
                 _pastDataLSB = message.getCompiled(2);
                 _pastWasRPN = 1;
                 return;
-            case MXMidi.DATA1_CC_NRPN_MSB:
+            case MXMidiStatic.DATA1_CC_NRPN_MSB:
                 _pastDataMSB = message.getCompiled(2);
                 _pastWasRPN = 2;
                 return;
-            case MXMidi.DATA1_CC_NRPN_LSB:
+            case MXMidiStatic.DATA1_CC_NRPN_LSB:
                 _pastDataLSB = message.getCompiled(2);
                 _pastWasRPN = 2;
                 return;
@@ -165,14 +165,14 @@ public class MXPreprocessDiagnostics {
         }
     }
 
-    MXTemplate cc7bit = new MXTemplate(new int[]{MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.CCXML_GL, MXMidi.CCXML_VL});
-    MXTemplate cc14bit = new MXTemplate(new int[]{MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.CCXML_GL, MXMidi.CCXML_VH, MXMidi.CCXML_VL});
+    MXTemplate cc7bit = new MXTemplate(new int[]{MXMidiStatic.COMMAND_CH_CONTROLCHANGE, MXMidiStatic.CCXML_GL, MXMidiStatic.CCXML_VL});
+    MXTemplate cc14bit = new MXTemplate(new int[]{MXMidiStatic.COMMAND_CH_CONTROLCHANGE, MXMidiStatic.CCXML_GL, MXMidiStatic.CCXML_VH, MXMidiStatic.CCXML_VL});
 
-    MXTemplate datar7bit = new MXTemplate(new int[]{MXMidi.COMMAND2_CH_RPN, MXMidi.CCXML_GH, MXMidi.CCXML_GL, MXMidi.CCXML_VL});
-    MXTemplate datar14bit = new MXTemplate(new int[]{MXMidi.COMMAND2_CH_RPN, MXMidi.CCXML_GH, MXMidi.CCXML_GL, MXMidi.CCXML_VH, MXMidi.CCXML_VL});
+    MXTemplate datar7bit = new MXTemplate(new int[]{MXMidiStatic.COMMAND2_CH_RPN, MXMidiStatic.CCXML_GH, MXMidiStatic.CCXML_GL, MXMidiStatic.CCXML_VL});
+    MXTemplate datar14bit = new MXTemplate(new int[]{MXMidiStatic.COMMAND2_CH_RPN, MXMidiStatic.CCXML_GH, MXMidiStatic.CCXML_GL, MXMidiStatic.CCXML_VH, MXMidiStatic.CCXML_VL});
 
-    MXTemplate datan7bit = new MXTemplate(new int[]{MXMidi.COMMAND2_CH_NRPN, MXMidi.CCXML_GH, MXMidi.CCXML_GL, MXMidi.CCXML_VL});
-    MXTemplate datan14bit = new MXTemplate(new int[]{MXMidi.COMMAND2_CH_NRPN, MXMidi.CCXML_GH, MXMidi.CCXML_GL, MXMidi.CCXML_VH, MXMidi.CCXML_VL});
+    MXTemplate datan7bit = new MXTemplate(new int[]{MXMidiStatic.COMMAND2_CH_NRPN, MXMidiStatic.CCXML_GH, MXMidiStatic.CCXML_GL, MXMidiStatic.CCXML_VL});
+    MXTemplate datan14bit = new MXTemplate(new int[]{MXMidiStatic.COMMAND2_CH_NRPN, MXMidiStatic.CCXML_GH, MXMidiStatic.CCXML_GL, MXMidiStatic.CCXML_VH, MXMidiStatic.CCXML_VL});
 
     MXRangedValue dataRoom = new MXRangedValue(128 * 30 + 20, 0, 128 * 128 - 1);
 
@@ -227,7 +227,7 @@ public class MXPreprocessDiagnostics {
             //new IllegalCallerException("EMPTY").printStackTrace();
             return;
         }
-        if (message.getStatus() == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+        if (message.getStatus() == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
             //DATAENTRY設定中
         }
         _result.add(message);
@@ -275,8 +275,8 @@ public class MXPreprocessDiagnostics {
 
     public static void test0(MXPreprocessDiagnostics diag) {
         System.out.println("test0");
-        diag.processMain(MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_RPN_MSB, 10));
-        diag.processMain(MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_RPN_LSB, 50));
+        diag.processMain(MXMessageFactory.fromShortMessage(0, MXMidiStatic.COMMAND_CH_CONTROLCHANGE, MXMidiStatic.DATA1_CC_RPN_MSB, 10));
+        diag.processMain(MXMessageFactory.fromShortMessage(0, MXMidiStatic.COMMAND_CH_CONTROLCHANGE, MXMidiStatic.DATA1_CC_RPN_LSB, 50));
         diag.recordCC(0 + 6, 10);
         diag.recordCC(32 + 6, 1);
         diag.recordCC(0 + 6, 10);
@@ -285,8 +285,8 @@ public class MXPreprocessDiagnostics {
         diag.recordCC(32 + 6, 3);
         diag.recordCC(0 + 6, 10);
         diag.recordCC(32 + 6,4);
-        diag.processMain(MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_NRPN_MSB, 1));
-        diag.processMain(MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_NRPN_LSB, 2));
+        diag.processMain(MXMessageFactory.fromShortMessage(0, MXMidiStatic.COMMAND_CH_CONTROLCHANGE, MXMidiStatic.DATA1_CC_NRPN_MSB, 1));
+        diag.processMain(MXMessageFactory.fromShortMessage(0, MXMidiStatic.COMMAND_CH_CONTROLCHANGE, MXMidiStatic.DATA1_CC_NRPN_LSB, 2));
         diag.recordCC(0 + 6, 10);
         diag.recordCC(32 + 6, 5);
         diag.recordCC(0 + 6, 10);
@@ -303,9 +303,9 @@ public class MXPreprocessDiagnostics {
         MXMessage message;
         for (int i = 0; i < 128; ++i) {
             for (int j = 0; j < 128; ++j) {
-                message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_NOTEON, j, j);
+                message = MXMessageFactory.fromShortMessage(0, MXMidiStatic.COMMAND_CH_NOTEON, j, j);
                 diag.processMain(message);
-                message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_NOTEOFF, j, j);
+                message = MXMessageFactory.fromShortMessage(0, MXMidiStatic.COMMAND_CH_NOTEOFF, j, j);
                 diag.processMain(message);
             }
         }
@@ -328,9 +328,9 @@ public class MXPreprocessDiagnostics {
         MXMessage message;
         for (int i = 0; i < 128; ++i) {
             for (int j = 0; j < 128; ++j) {
-                message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_NOTEON, j, j);
+                message = MXMessageFactory.fromShortMessage(0, MXMidiStatic.COMMAND_CH_NOTEON, j, j);
                 diag.processMain(message);
-                message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_NOTEOFF, j, j);
+                message = MXMessageFactory.fromShortMessage(0, MXMidiStatic.COMMAND_CH_NOTEOFF, j, j);
                 diag.processMain(message);
             }
         }
@@ -342,9 +342,9 @@ public class MXPreprocessDiagnostics {
         MXMessage message;
         for (int i = 0; i < 128; ++i) {
             for (int j = 0; j < 128; ++j) {
-                message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_DATAENTRY, i);
+                message = MXMessageFactory.fromShortMessage(0, MXMidiStatic.COMMAND_CH_CONTROLCHANGE, MXMidiStatic.DATA1_CC_DATAENTRY, i);
                 diag.processMain(message);
-                message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_DATAENTRY2, j);
+                message = MXMessageFactory.fromShortMessage(0, MXMidiStatic.COMMAND_CH_CONTROLCHANGE, MXMidiStatic.DATA1_CC_DATAENTRY2, j);
                 diag.processMain(message);
             }
         }
@@ -355,7 +355,7 @@ public class MXPreprocessDiagnostics {
         System.out.println("test5");
         MXMessage message;
         for (int i = 0; i < 128; ++i) {
-            message = MXMessageFactory.fromShortMessage(0, MXMidi.COMMAND_CH_CONTROLCHANGE, MXMidi.DATA1_CC_DATAENTRY, i);
+            message = MXMessageFactory.fromShortMessage(0, MXMidiStatic.COMMAND_CH_CONTROLCHANGE, MXMidiStatic.DATA1_CC_DATAENTRY, i);
             diag.processMain(message);
         }
         flush(diag);

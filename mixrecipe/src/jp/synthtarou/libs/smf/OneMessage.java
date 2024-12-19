@@ -19,7 +19,7 @@ package jp.synthtarou.libs.smf;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 
 /**
  *
@@ -30,17 +30,17 @@ public class OneMessage implements Comparable<OneMessage> {
         if (binary == null || binary.length <= 1 || binary.length > 3) {
             return 0;
         }
-        int status = binary[0] & 0xff;
-        if (status == MXMidi.COMMAND_SYSEX
-         || status == MXMidi.COMMAND_SYSEX_END
-         || status == MXMidi.COMMAND_META_OR_RESET) {
-            return 0;
+        int status = binary[0];
+        status &= 0xff;
+        if (status >= 0x80 && status <= 0xfe) {
+            int c1 = binary.length > 1 ? binary[1] : 0;
+            int c2 = binary.length > 2 ? binary[2] : 0;
+            c1 &= 0xff;
+            c2 &= 0xff;
+            int x = (status << 16) | (c1 << 8) | c2;
+            return x;
         }
-
-        int c1 = binary.length > 1 ? (binary[1] & 0xff) : 0;
-        int c2 = binary.length > 2 ? (binary[2] & 0xff) : 0;
-        int x = (status << 16) | (c1 << 7) | c2;
-        return x;
+        return 0;
     }
 
     public static OneMessage cloneBuffer(long tick, byte[] binary) {
@@ -58,18 +58,19 @@ public class OneMessage implements Comparable<OneMessage> {
         return new OneMessage(tick, binary);
     }
     
+
     public static OneMessage thisCodes(long tick, int status, int data1, int data2) {
         return new OneMessage(tick, status, data1, data2);
     }
 
-    public OneMessage(long tick, int status, int data1, int data2) {
+    private OneMessage(long tick, int status, int data1, int data2) {
         _tick = tick;
         if (status == 0) {
             new Throwable().printStackTrace();;
         }
-        if (status == MXMidi.COMMAND_SYSEX
-         || status == MXMidi.COMMAND_SYSEX_END
-         || status == MXMidi.COMMAND_META_OR_RESET) {
+        if (status == MXMidiStatic.COMMAND_SYSEX
+         || status == MXMidiStatic.COMMAND_SYSEX_END
+         || status == MXMidiStatic.COMMAND_META_OR_RESET) {
             _dword = 0;
             _binary = new byte[] { (byte)status, (byte)data1, (byte)data2 };
         }
@@ -328,17 +329,17 @@ public class OneMessage implements Comparable<OneMessage> {
             return 1;
         }
         
-        boolean isProg1 = (o1.getStatus() & 0xf0) == MXMidi.COMMAND_CH_PROGRAMCHANGE;
-        boolean isProg2 = (o2.getStatus() & 0xf0) == MXMidi.COMMAND_CH_PROGRAMCHANGE;
-        boolean isBank1 = (o1.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE && (o1.getData1() == 0 || o1.getData1() == 32);
-        boolean isBank2 = (o2.getStatus() & 0xf0) == MXMidi.COMMAND_CH_CONTROLCHANGE && (o2.getData1() == 0 || o2.getData1() == 32);
+        boolean isProg1 = (o1.getStatus() & 0xf0) == MXMidiStatic.COMMAND_CH_PROGRAMCHANGE;
+        boolean isProg2 = (o2.getStatus() & 0xf0) == MXMidiStatic.COMMAND_CH_PROGRAMCHANGE;
+        boolean isBank1 = (o1.getStatus() & 0xf0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE && (o1.getData1() == 0 || o1.getData1() == 32);
+        boolean isBank2 = (o2.getStatus() & 0xf0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE && (o2.getData1() == 0 || o2.getData1() == 32);
         
         byte[] data1 = o1.getBinary();
         byte[] data2 = o2.getBinary();
 
         /* リセットとバンクとプログラムは早めに送信する */
-        boolean isReset1 = data1 == null ? false : MXMidi.isReset(data1);
-        boolean isReset2 = data2 == null ? false : MXMidi.isReset(data2);
+        boolean isReset1 = data1 == null ? false : MXMidiStatic.isReset(data1);
+        boolean isReset2 = data2 == null ? false : MXMidiStatic.isReset(data2);
 
         if (isReset1 && !isReset2) {
             return -1;

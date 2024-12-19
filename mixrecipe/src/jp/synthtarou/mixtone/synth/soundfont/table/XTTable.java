@@ -17,7 +17,6 @@
 package jp.synthtarou.mixtone.synth.soundfont.table;
 
 import java.util.ArrayList;
-import jp.synthtarou.mixtone.listmodel.TextListForDebug;
 
 /**
  *
@@ -53,56 +52,6 @@ public class XTTable extends ArrayList<XTRow> {
         add(row);
         return row;
     }
-
-    public String toString() {
-        TextListForDebug dumper = new TextListForDebug();
-        getDump(dumper);
-        return dumper.toString();
-    }
-
-    public void getDump(TextListForDebug list) {
-        StringBuilder line = new StringBuilder();
-        for (int x = 0; x < _header.size(); ++ x) {
-            String text = _header.get(x);
-            text = escape(text);
-            if (x == 0) {
-                line.append(text);
-            }
-            else {
-                line.append(",");
-                line.append(text);
-            }
-        }
-        list.add(line.toString());
-        for (int y = 0; y < size(); ++ y) {
-            XTRow row = get(y);
-            line = new StringBuilder();
-            for (int x = 0; x < _header.size(); ++ x) {
-                XTColumn col = row.get(x);
-                String text = col._textValue;
-                if (text != null) {
-                    text = escape(text);
-                }
-                else {
-                    text = String.valueOf(col._numberValue);
-                }
-                if (x == 0) {
-                    line.append(text);
-                }
-                else {
-                    line.append(",");
-                    line.append(text);
-                }
-            }
-            list.add(line.toString());
-        }
-        
-    }
-    
-    public String escape(String text) {
-        return TextListForDebug.quote(text);
-    }
-    
     public XTRow getOr(int x) {
         if (x < 0 || x >= size()) {
             return null;

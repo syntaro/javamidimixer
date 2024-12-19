@@ -21,7 +21,7 @@ import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 
 /**
@@ -152,7 +152,7 @@ public class MX40Layer {
     public String toString() {
         StringBuilder str = new StringBuilder();
         if (_modChannel == MOD_FIXED) {
-            str.append("[Channel=").append(MXMidi.nameOfPortOutput(_fixedPort)).append("/").append(_fixedChannel+1).append("]");
+            str.append("[Channel=").append(MXMidiStatic.nameOfPortOutput(_fixedPort)).append("/").append(_fixedChannel+1).append("]");
         }
         if (_modBank == MOD_FIXED) {
             str.append("[Bank=").append(MXUtil.toHexFF(_fixedBankMSB));
@@ -167,9 +167,9 @@ public class MX40Layer {
         }
         if (getAcceptKeyLowest() != 0 || getAcceptKeyHighest() != 127) {
             str.append("[Note=");
-            str.append(MXMidi.nameOfNote(getAcceptKeyLowest()));
+            str.append(MXMidiStatic.nameOfNote(getAcceptKeyLowest()));
             str.append("-");
-            str.append(MXMidi.nameOfNote(getAcceptKeyHighest()));
+            str.append(MXMidiStatic.nameOfNote(getAcceptKeyHighest()));
             str.append("]");
         }
         if (getAcceptVelocityLowest()!= 0 || getAcceptVelocityHighest() != 127) {
@@ -203,7 +203,7 @@ public class MX40Layer {
         int data1 = message.getCompiled(1);
         int data2 = message.getCompiled(2);
         
-        if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
+        if (command == MXMidiStatic.COMMAND_CH_PROGRAMCHANGE) {
             processProgramChange(message);
             return true;
         }
@@ -214,7 +214,7 @@ public class MX40Layer {
         int data1_trans = data1;
         int data2_trans = data2;
 
-        if (command == MXMidi.COMMAND_CH_NOTEOFF) {
+        if (command == MXMidiStatic.COMMAND_CH_NOTEOFF) {
             if (_noteOff.raiseHandler(message, port, channel, data1)) {
                 return true;
             }
@@ -230,14 +230,14 @@ public class MX40Layer {
             channel_trans = _fixedChannel;
         }
         
-        if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF || command == MXMidi.COMMAND_CH_POLYPRESSURE) {
+        if (command == MXMidiStatic.COMMAND_CH_NOTEON || command == MXMidiStatic.COMMAND_CH_NOTEOFF || command == MXMidiStatic.COMMAND_CH_POLYPRESSURE) {
             if (_adjustTranspose != 0) {
                 data1_trans = data1 + _adjustTranspose;
                 if(data1_trans < 1) data1_trans  = 0;
                 if(data1_trans > 127) data1_trans = 127;
                 changed = true;
             }
-            if (command == MXMidi.COMMAND_CH_NOTEON && _adjustVelocity != 0) {
+            if (command == MXMidiStatic.COMMAND_CH_NOTEON && _adjustVelocity != 0) {
                 data2_trans = data2 + _adjustVelocity;
                 if(data2_trans < 1) data2_trans  = 1;
                 if(data2_trans > 127) data2_trans = 127;
@@ -245,7 +245,7 @@ public class MX40Layer {
             }
         }
 
-        if (command == MXMidi.COMMAND_CH_NOTEON) {
+        if (command == MXMidiStatic.COMMAND_CH_NOTEON) {
             MXMessage target = MXMessageFactory.fromNoteoff(port_trans, channel_trans, data1_trans);
             _noteOff.setHandler(message, target, new MXNoteOffWatcher.Handler() {
                 public void onNoteOffEvent(MXMessage target) {
@@ -257,17 +257,17 @@ public class MX40Layer {
         if(data1_trans < 0) return true;
         if(data1_trans > 128) return true;
 
-        if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF || command == MXMidi.COMMAND_CH_POLYPRESSURE) {
+        if (command == MXMidiStatic.COMMAND_CH_NOTEON || command == MXMidiStatic.COMMAND_CH_NOTEOFF || command == MXMidiStatic.COMMAND_CH_POLYPRESSURE) {
             if(data1_trans < getAcceptKeyLowest()) return true;
             if(data1_trans > getAcceptKeyHighest()) return true;
         }
 
-        if (command == MXMidi.COMMAND_CH_NOTEON) {
+        if (command == MXMidiStatic.COMMAND_CH_NOTEON) {
            if (data2_trans < getAcceptVelocityLowest()) return true;
            if (data2_trans > getAcceptVelocityHighest()) return true;
         }
 
-        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && message.getCompiled(1) == MXMidi.DATA1_CC_EXPRESSION) {
+        if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE && message.getCompiled(1) == MXMidiStatic.DATA1_CC_EXPRESSION) {
             if (_adjustExpression != 100) {
                 double exp = message.getValue()._value;
                 exp = exp * _adjustExpression;
@@ -279,7 +279,7 @@ public class MX40Layer {
                 changed = true;
             }
         }
-        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && message.getCompiled(1) == MXMidi.DATA1_CC_PANPOT) {
+        if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE && message.getCompiled(1) == MXMidiStatic.DATA1_CC_PANPOT) {
             if (_modPan == MOD_FIXED) {
                 //int x = message.getValue();
                 int y = _fixedPan;
@@ -322,14 +322,14 @@ public class MX40Layer {
 
         if (_modBank == MOD_ASFROM) {
             if (bankMSB >= 0 && bankLSB >= 0) {
-                MXMessage bank = MXMessageFactory.fromControlChange14(port, channel, MXMidi.DATA1_CC_BANKSELECT, bankMSB, bankLSB);
+                MXMessage bank = MXMessageFactory.fromControlChange14(port, channel, MXMidiStatic.DATA1_CC_BANKSELECT, bankMSB, bankLSB);
                 bank._owner = MXMessage.getRealOwner(message);
                 _process.sendToNext(bank);
                 proc = true;
             }
         }else if (_modBank == MOD_FIXED) {
             if (_fixedBankMSB >= 0 && _fixedBankLSB >= 0) {
-                MXMessage bank = MXMessageFactory.fromControlChange14(port, channel, MXMidi.DATA1_CC_BANKSELECT, _fixedBankMSB, _fixedBankLSB);
+                MXMessage bank = MXMessageFactory.fromControlChange14(port, channel, MXMidiStatic.DATA1_CC_BANKSELECT, _fixedBankMSB, _fixedBankLSB);
                 bank._owner = MXMessage.getRealOwner(message);
                 _process.sendToNext(bank);
                 proc = true;
@@ -354,25 +354,25 @@ public class MX40Layer {
         }
 
         if (proc) { //プログラムチェンジ直後、EXPとPANをいじる
-            int org = info.getCCValue(MXMidi.DATA1_CC_EXPRESSION);
+            int org = info.getCCValue(MXMidiStatic.DATA1_CC_EXPRESSION);
             double exp = org;
             exp = exp * _adjustExpression * 0.01;
             int data2_exp = (int)exp;
-            int data1_cc = MXMidi.DATA1_CC_EXPRESSION;
+            int data1_cc = MXMidiStatic.DATA1_CC_EXPRESSION;
             if (data2_exp < 0) data2_exp = 0;
             if (data2_exp > 127) data2_exp = 127;
             MXMessage newMessage = MXMessageFactory.fromControlChange(port, channel, data1_cc, data2_exp);
             newMessage._owner = MXMessage.getRealOwner(message);
             _process.sendToNext(newMessage);
 
-            org = info.getCCValue(MXMidi.DATA1_CC_PANPOT);
+            org = info.getCCValue(MXMidiStatic.DATA1_CC_PANPOT);
             int data2_value = org;
             if (_modPan == MX40Layer.MOD_FIXED) {
                 data2_value = _fixedPan;
             }
             if (data2_value < 0) data2_value = 0;
             if (data2_value > 127) data2_value = 127;
-            newMessage = MXMessageFactory.fromControlChange(port, channel, MXMidi.DATA1_CC_PANPOT, data2_value);
+            newMessage = MXMessageFactory.fromControlChange(port, channel, MXMidiStatic.DATA1_CC_PANPOT, data2_value);
             newMessage._owner = MXMessage.getRealOwner(message);
             _process.sendToNext(newMessage);
         }

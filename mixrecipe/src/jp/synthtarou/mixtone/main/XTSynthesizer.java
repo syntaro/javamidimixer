@@ -16,13 +16,12 @@
  */
 package jp.synthtarou.mixtone.main;
 
-import jp.synthtarou.mixtone.main.view.XTSynthesizerFrame;
+
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import jp.synthtarou.libs.smf.OneMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
-import jp.synthtarou.mixtone.listmodel.TheConsole;
+
 import jp.synthtarou.mixtone.synth.audio.XTAudioStream;
 import jp.synthtarou.mixtone.synth.soundfont.XTFile;
 
@@ -31,11 +30,20 @@ import jp.synthtarou.mixtone.synth.soundfont.XTFile;
  * @author Syntarou YOSHIDA
  */
 public class XTSynthesizer {
-    XTSynthesizerFrame _mainFrame;
     XTAudioStream _audioStream;
     public XTFile _sfz;
     XTSynthesizerTrack[] _tracks;
-    
+    public int _polyPhony = 100;
+        
+    public XTSynthesizerTrack getTrack(int ch) {
+        return  _tracks[ch];
+    }
+
+
+    public boolean isReady() {
+        return _audioStream.isReady() && _sfz != null;
+    }
+
     public XTSynthesizer() {
         _tracks = new XTSynthesizerTrack[16];
         for (int i = 0; i < 16; ++ i) {
@@ -63,12 +71,18 @@ public class XTSynthesizer {
     
     public XTAudioStream prepareAudioStream() {
         if (_audioStream == null) {
-            _audioStream = XTAudioStream.getInstance();
+            _audioStream = XTAudioStream.getInstance(this);
         }
         _audioStream.startStream();
         return _audioStream;
     }
-    
+
+    public void stopAudioStream() {
+        if (_audioStream != null) {
+            _audioStream.stopStream();
+        }
+    }
+
     public XTFile openSoundfont(File file) {
         try {
             XTFile newSfz = new XTFile(file);
@@ -77,18 +91,22 @@ public class XTSynthesizer {
             ex.printStackTrace();
             _sfz = null;
         }
-        prepareAudioStream();
         allNoteOff();
         return _sfz;
     }
-    
-    public void dump(TheConsole console) {
-        _sfz.dumpPreset(console);
-        _sfz.dumpHeader(console);
-        _sfz.dumpSamples(console);
-        _sfz.dumpInstrument(console);
+
+    public XTFile openSoundfont(InputStream input) {
+        try {
+            XTFile newSfz = new XTFile(input);
+            _sfz = newSfz;
+        }catch(IOException ex) {
+            ex.printStackTrace();
+            _sfz = null;
+        }
+        allNoteOff();
+        return _sfz;
     }
-    
+
     public void closeSoundFont() {
         allNoteOff();
         _audioStream.stopStream();
@@ -101,19 +119,6 @@ public class XTSynthesizer {
     public void processMessage(OneMessage message) {
         int status = message.getStatus();
         
-        if (debugMessage && message.getStatus() >= 0x80 && message.getStatus() <= 0xef) {
-            if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_NOTEON) {
-
-            }
-            else if ((message.getStatus() & 0xf0) == MXMidi.COMMAND_CH_NOTEOFF) {
-
-            }
-            else {
-                MXMessage mx = message.toMXMessage();
-                System.out.println("Message "  + mx.getChannel() + " : " + mx.getTemplateAsText() + " gate " + mx.getGate()._value + " value " + mx.getValue()._value);
-            }
-        }
-
         if (status >= 0x80 && status <= 0xef) {
             int ch = status & 0x0f;
             _tracks[ch].processMesssage(message);
@@ -137,7 +142,6 @@ public class XTSynthesizer {
                     }
                     if (detected >= 0) {
                         _audioStream._masterVolume = detected * 1.0 / 127;
-                        //System.out.println("matervolume " + _audioStream._masterVolume);
                     }
                 }
             }

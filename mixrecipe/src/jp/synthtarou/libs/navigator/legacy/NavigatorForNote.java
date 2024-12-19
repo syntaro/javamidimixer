@@ -25,7 +25,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
 import jp.synthtarou.midimixer.mx00playlist.MXPianoKeys;
 
@@ -112,7 +112,7 @@ public class NavigatorForNote extends javax.swing.JPanel implements  INavigator<
         for (int i = 0; i < sel.size(); ++ i) {
             _retNote[i] = sel.get(i);
         }
-        jLabelNoteList.setText(MXMidi.noteListToText(_retNote));
+        jLabelNoteList.setText(MXMidiStatic.noteListToText(_retNote));
         jLabelChord.setText("Chord Name ? " + _piano.listChord().toString());
     }
 

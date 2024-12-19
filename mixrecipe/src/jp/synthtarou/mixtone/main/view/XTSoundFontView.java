@@ -41,7 +41,8 @@ public class XTSoundFontView extends javax.swing.JPanel {
         _synth = synth;
         _console = new TheConsole();
         _console.attach(jListDebug);
-        jTextFieldFileName.setEditable(false);
+        _synth.prepareAudioStream();
+       jTextFieldFileName.setEditable(false);
     }
     
     XTSynthesizer _synth;
@@ -416,7 +417,6 @@ public class XTSoundFontView extends javax.swing.JPanel {
         StringBuilder text = new StringBuilder();
         try {
             _synth.openSoundfont(f);
-            _synth.dump(_console);
             _synth.resetGM();
             listInstrument();
             listPreset();
@@ -445,7 +445,7 @@ public class XTSoundFontView extends javax.swing.JPanel {
     public void playOneShot(int note) {
         if (_listModelSHDRProperty != null) {
             XTOscilator osc = _listModelSHDRProperty.newOscilator(note);
-            _synth.prepareAudioStream().addToQueue(osc);
+            _synth.prepareAudioStream().push(osc);
             new Thread(() -> {
                 try {
                     Thread.sleep(1000);

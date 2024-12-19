@@ -32,7 +32,7 @@ import jp.synthtarou.libs.log.MXFileLogger;
  *
  * @author Syntarou YOSHIDA
  */
-public class MXMidi {
+public class MXMidiStatic {
 
     public static void main(String[] args) {
         File dir = new File("C:/java/release/2022-02-work/src");
@@ -94,25 +94,25 @@ public class MXMidi {
                 System.out.println(s);
             }
         }catch(IOException ex) {
-            MXFileLogger.getLogger(MXMidi.class).log(Level.WARNING, ex.getMessage(), ex);
+            MXFileLogger.getLogger(MXMidiStatic.class).log(Level.WARNING, ex.getMessage(), ex);
         }finally {
             try {
                 in.close();
             } catch (IOException ex) {
-                MXFileLogger.getLogger(MXMidi.class).log(Level.WARNING, ex.getMessage(), ex);
+                MXFileLogger.getLogger(MXMidiStatic.class).log(Level.WARNING, ex.getMessage(), ex);
             }
         }
     }
     
     
     static int[] MASTERVOLUME = new int[]{
-        0xf0, 0x7F, 0x7F, 0x04, 0x01, 0x11, MXMidi.CCXML_VL, 0xF7
+        0xf0, 0x7F, 0x7F, 0x04, 0x01, 0x11, MXMidiStatic.CCXML_VL, 0xF7
     };
     static int[] PB_ = new int[]{
-        MXMidi.COMMAND2_CH_PITCH_MSBLSB, MXMidi.CCXML_VH, MXMidi.CCXML_VL
+        MXMidiStatic.COMMAND2_CH_PITCH_MSBLSB, MXMidiStatic.CCXML_VH, MXMidiStatic.CCXML_VL
     };
     static int[] PITCH = new int[]{
-        MXMidi.COMMAND_CH_PITCHWHEEL, MXMidi.CCXML_VL, MXMidi.CCXML_VH
+        MXMidiStatic.COMMAND_CH_PITCHWHEEL, MXMidiStatic.CCXML_VL, MXMidiStatic.CCXML_VH
     };
     public static MXTemplate TEMPLATE_MASTERVOLUME;
     public static MXTemplate TEMPLATE_CCXMLPB;
@@ -311,19 +311,19 @@ public class MXMidi {
     
     public static final String nameOfChannelMessage(int command) {
         switch (command) {
-            case MXMidi.COMMAND_CH_NOTEON:
+            case MXMidiStatic.COMMAND_CH_NOTEON:
                 return "ON   ";
-            case MXMidi.COMMAND_CH_NOTEOFF:
+            case MXMidiStatic.COMMAND_CH_NOTEOFF:
                 return "OFF  ";
-            case MXMidi.COMMAND_CH_POLYPRESSURE:
+            case MXMidiStatic.COMMAND_CH_POLYPRESSURE:
                 return "PresP";
-            case MXMidi.COMMAND_CH_CONTROLCHANGE:
+            case MXMidiStatic.COMMAND_CH_CONTROLCHANGE:
                 return "CC   ";
-            case MXMidi.COMMAND_CH_PROGRAMCHANGE:
+            case MXMidiStatic.COMMAND_CH_PROGRAMCHANGE:
                 return "PROG ";
-            case MXMidi.COMMAND_CH_CHANNELPRESSURE:
+            case MXMidiStatic.COMMAND_CH_CHANNELPRESSURE:
                 return "Press";
-            case MXMidi.COMMAND_CH_PITCHWHEEL:
+            case MXMidiStatic.COMMAND_CH_PITCHWHEEL:
                 return "PITCH";
         }
         return null;
@@ -361,139 +361,139 @@ public class MXMidi {
     public static final String nameOfControlChange(int data1cc) {
         String namePrefix = "";
         switch (data1cc) {
-            case MXMidi.DATA1_CC_BANKSELECT:
+            case MXMidiStatic.DATA1_CC_BANKSELECT:
                 return namePrefix + "BANK";
-            case MXMidi.DATA1_CC_MODULATION:
+            case MXMidiStatic.DATA1_CC_MODULATION:
                 return namePrefix + "MODW";
-            case MXMidi.DATA1_CC_BREATH:
+            case MXMidiStatic.DATA1_CC_BREATH:
                 return namePrefix + "BRTH";
-            case MXMidi.DATA1_CC_3:
+            case MXMidiStatic.DATA1_CC_3:
                 return namePrefix + "CC03";
-            case MXMidi.DATA1_CC_FOOTCONTROL:
+            case MXMidiStatic.DATA1_CC_FOOTCONTROL:
                 return namePrefix + "FOOT";
-            case MXMidi.DATA1_CC_PORTAMENTTIME:
+            case MXMidiStatic.DATA1_CC_PORTAMENTTIME:
                 return namePrefix + "PRTA";
-            case MXMidi.DATA1_CC_DATAENTRY:
+            case MXMidiStatic.DATA1_CC_DATAENTRY:
                 return namePrefix + "DATA ";
-            case MXMidi.DATA1_CC_DATAENTRY2:
+            case MXMidiStatic.DATA1_CC_DATAENTRY2:
                 return namePrefix + "DATA2 ";
-            case MXMidi.DATA1_CC_CHANNEL_VOLUME:
+            case MXMidiStatic.DATA1_CC_CHANNEL_VOLUME:
                 return namePrefix + "VOL ";
-            case MXMidi.DATA1_CC_BALANCE:
+            case MXMidiStatic.DATA1_CC_BALANCE:
                 return namePrefix + "BAL ";
-            case MXMidi.DATA1_CC_9:
+            case MXMidiStatic.DATA1_CC_9:
                 return namePrefix + "CC09";
-            case MXMidi.DATA1_CC_PANPOT:
+            case MXMidiStatic.DATA1_CC_PANPOT:
                 return namePrefix + "PAN ";
-            case MXMidi.DATA1_CC_EXPRESSION:
+            case MXMidiStatic.DATA1_CC_EXPRESSION:
                 return namePrefix + "EXP ";
-            case MXMidi.DATA1_CC_EFFECTCONTROL1:
+            case MXMidiStatic.DATA1_CC_EFFECTCONTROL1:
                 return namePrefix + "EFC1";
-            case MXMidi.DATA1_CC_EFFECTCONTROL2:
+            case MXMidiStatic.DATA1_CC_EFFECTCONTROL2:
                 return namePrefix + "EFC2";
-            case MXMidi.DATA1_CC_14:
+            case MXMidiStatic.DATA1_CC_14:
                 return namePrefix + "CC14";
-            case MXMidi.DATA1_CC_15:
+            case MXMidiStatic.DATA1_CC_15:
                 return namePrefix + "CC15";
-            case MXMidi.DATA1_CC_COMMON1:
+            case MXMidiStatic.DATA1_CC_COMMON1:
                 return namePrefix + "CMN1";
-            case MXMidi.DATA1_CC_COMMON2:
+            case MXMidiStatic.DATA1_CC_COMMON2:
                 return namePrefix + "CMN2";
-            case MXMidi.DATA1_CC_COMMON3:
+            case MXMidiStatic.DATA1_CC_COMMON3:
                 return namePrefix + "CMN3";
-            case MXMidi.DATA1_CC_COMMON4:
+            case MXMidiStatic.DATA1_CC_COMMON4:
                 return namePrefix + "CMN4";
-            case MXMidi.DATA1_CC_DAMPERPEDAL:
+            case MXMidiStatic.DATA1_CC_DAMPERPEDAL:
                 return namePrefix + "DUMP";
-            case MXMidi.DATA1_CC_PORTAMENT:
+            case MXMidiStatic.DATA1_CC_PORTAMENT:
                 return namePrefix + "PORT";
-            case MXMidi.DATA1_CC_FOOT_SOFTENUT:
+            case MXMidiStatic.DATA1_CC_FOOT_SOFTENUT:
                 return namePrefix + "SFTE";
-            case MXMidi.DATA1_CC_FOOT_SOFT:
+            case MXMidiStatic.DATA1_CC_FOOT_SOFT:
                 return namePrefix + "SOFT";
-            case MXMidi.DATA1_CC_FOOT_LEGATO:
+            case MXMidiStatic.DATA1_CC_FOOT_LEGATO:
                 return namePrefix + "REGD";
-            case MXMidi.DATA1_CC_HOLD2_FREEZE:
+            case MXMidiStatic.DATA1_CC_HOLD2_FREEZE:
                 return namePrefix + "FREZ";
-            case MXMidi.DATA1_CC_SOUND_VALIATION:
+            case MXMidiStatic.DATA1_CC_SOUND_VALIATION:
                 return namePrefix + "VALI";
-            case MXMidi.DATA1_CC_SOUND_TIMBER:
+            case MXMidiStatic.DATA1_CC_SOUND_TIMBER:
                 return namePrefix + "TMBR";
-            case MXMidi.DATA1_CC_SOUND_RELEASETIME:
+            case MXMidiStatic.DATA1_CC_SOUND_RELEASETIME:
                 return namePrefix + "RELS";
-            case MXMidi.DATA1_CC_SOUND_ATTACKTIME:
+            case MXMidiStatic.DATA1_CC_SOUND_ATTACKTIME:
                 return namePrefix + "ATCK";
-            case MXMidi.DATA1_CC_SOUND_BLIGHTNESS:
+            case MXMidiStatic.DATA1_CC_SOUND_BLIGHTNESS:
                 return namePrefix + "BLIG";
-            case MXMidi.DATA1_CC_SOUND_DECAYTIME:
+            case MXMidiStatic.DATA1_CC_SOUND_DECAYTIME:
                 return namePrefix + "DCAY";
-            case MXMidi.DATA1_CC_SOUND_VIBRATE_RATE:
+            case MXMidiStatic.DATA1_CC_SOUND_VIBRATE_RATE:
                 return namePrefix + "VRate";
-            case MXMidi.DATA1_CC_SOUND_VIBRATE_DEPTH:
+            case MXMidiStatic.DATA1_CC_SOUND_VIBRATE_DEPTH:
                 return namePrefix + "VDpth";
-            case MXMidi.DATA1_CC_SOUND_VIBRATE_DELAY:
+            case MXMidiStatic.DATA1_CC_SOUND_VIBRATE_DELAY:
                 return namePrefix + "VDlay";
-            case MXMidi.DATA1_CC_79:
+            case MXMidiStatic.DATA1_CC_79:
                 return namePrefix + "CC79";
-            case MXMidi.DATA1_CC_COMMON5:
+            case MXMidiStatic.DATA1_CC_COMMON5:
                 return namePrefix + "CMN5";
-            case MXMidi.DATA1_CC_COMMON6:
+            case MXMidiStatic.DATA1_CC_COMMON6:
                 return namePrefix + "CMN6";
-            case MXMidi.DATA1_CC_COMMON7:
+            case MXMidiStatic.DATA1_CC_COMMON7:
                 return namePrefix + "CMN7";
-            case MXMidi.DATA1_CC_COMMON8:
+            case MXMidiStatic.DATA1_CC_COMMON8:
                 return namePrefix + "CMN8";
-            case MXMidi.DATA1_CC_CONTROL_SOURCENOTE:
+            case MXMidiStatic.DATA1_CC_CONTROL_SOURCENOTE:
                 return namePrefix + "NOTE#";
-            case MXMidi.DATA1_CC_85:
+            case MXMidiStatic.DATA1_CC_85:
                 return namePrefix + "CC85";
-            case MXMidi.DATA1_CC_86:
+            case MXMidiStatic.DATA1_CC_86:
                 return namePrefix + "CC86";
-            case MXMidi.DATA1_CC_87:
+            case MXMidiStatic.DATA1_CC_87:
                 return namePrefix + "CC87";
-            case MXMidi.DATA1_CC_VELOCITYHQ:
+            case MXMidiStatic.DATA1_CC_VELOCITYHQ:
                 return namePrefix + "VEL2";
-            case MXMidi.DATA1_CC_89:
+            case MXMidiStatic.DATA1_CC_89:
                 return namePrefix + "CC89";
-            case MXMidi.DATA1_CC_90:
+            case MXMidiStatic.DATA1_CC_90:
                 return namePrefix + "CC90";
-            case MXMidi.DATA1_CC_EFFECT1_REVERVE:
+            case MXMidiStatic.DATA1_CC_EFFECT1_REVERVE:
                 return namePrefix + "REVR";
-            case MXMidi.DATA1_CC_EFFECT2_TREMOLO:
+            case MXMidiStatic.DATA1_CC_EFFECT2_TREMOLO:
                 return namePrefix + "TRML";
-            case MXMidi.DATA1_CC_EFFECT3_CHORUS:
+            case MXMidiStatic.DATA1_CC_EFFECT3_CHORUS:
                 return namePrefix + "CHOR";
-            case MXMidi.DATA1_CC_EFFECT4_DETUNE:
+            case MXMidiStatic.DATA1_CC_EFFECT4_DETUNE:
                 return namePrefix + "DETU";
-            case MXMidi.DATA1_CC_EFFECT5_PHASER:
+            case MXMidiStatic.DATA1_CC_EFFECT5_PHASER:
                 return namePrefix + "PHAS";
-            case MXMidi.DATA1_CC_DATAINC:
+            case MXMidiStatic.DATA1_CC_DATAINC:
                 return namePrefix + "INC ";
-            case MXMidi.DATA1_CC_DATADEC:
+            case MXMidiStatic.DATA1_CC_DATADEC:
                 return namePrefix + "DEC ";
-            case MXMidi.DATA1_CC_NRPN_LSB:
+            case MXMidiStatic.DATA1_CC_NRPN_LSB:
                 return namePrefix + "NRPN L";
-            case MXMidi.DATA1_CC_NRPN_MSB:
+            case MXMidiStatic.DATA1_CC_NRPN_MSB:
                 return namePrefix + "NRPN M";
-            case MXMidi.DATA1_CC_RPN_LSB:
+            case MXMidiStatic.DATA1_CC_RPN_LSB:
                 return namePrefix + "RPN L";
-            case MXMidi.DATA1_CC_RPN_MSB:
+            case MXMidiStatic.DATA1_CC_RPN_MSB:
                 return namePrefix + "RPN M";
-            case MXMidi.DATA1_CC_ALLSOUNDOFF:
+            case MXMidiStatic.DATA1_CC_ALLSOUNDOFF:
                 return "AllOff";
-            case MXMidi.DATA1_CC_RESET_ALLCTRLS:
+            case MXMidiStatic.DATA1_CC_RESET_ALLCTRLS:
                 return "ResetCC";
-            case MXMidi.DATA1_CC_LOCALCTRL:
+            case MXMidiStatic.DATA1_CC_LOCALCTRL:
                 return "Local";
-            case MXMidi.DATA1_CC_ALLNOTEOFF:
+            case MXMidiStatic.DATA1_CC_ALLNOTEOFF:
                 return "AllNoteOff";
-            case MXMidi.DATA1_CC_OMNI_OFF:
+            case MXMidiStatic.DATA1_CC_OMNI_OFF:
                 return "OmniOff";
-            case MXMidi.DATA1_CC_OMNI_ON:
+            case MXMidiStatic.DATA1_CC_OMNI_ON:
                 return "OmniOn";
-            case MXMidi.DATA1_CC_MONOMODE:
+            case MXMidiStatic.DATA1_CC_MONOMODE:
                 return "Mono";
-            case MXMidi.DATA1_CC_POLYMODE:
+            case MXMidiStatic.DATA1_CC_POLYMODE:
                 return "Poly";
         }
         return "#CC(" + MXUtil.toHexFF(data1cc) + "h)";
@@ -501,21 +501,21 @@ public class MXMidi {
 
     public static String nameOfSystemRealtimeMessage(int command) {
         switch (command) {
-            case MXMidi.COMMAND_MIDICLOCK:
+            case MXMidiStatic.COMMAND_MIDICLOCK:
                 return "Clock";
-            case MXMidi.COMMAND_F9:
+            case MXMidiStatic.COMMAND_F9:
                 return "#F9";
-            case MXMidi.COMMAND_SEQSTART:
+            case MXMidiStatic.COMMAND_SEQSTART:
                 return "Seq Start";
-            case MXMidi.COMMAND_SEQCONTINUE:
+            case MXMidiStatic.COMMAND_SEQCONTINUE:
                 return "Seq Cont";
-            case MXMidi.COMMAND_SEQSTOP:
+            case MXMidiStatic.COMMAND_SEQSTOP:
                 return "Seq Stop";
-            case MXMidi.COMMAND_FD:
+            case MXMidiStatic.COMMAND_FD:
                 return "#FD";
-            case MXMidi.COMMAND_ACTIVESENSING:
+            case MXMidiStatic.COMMAND_ACTIVESENSING:
                 return "Active";
-            case MXMidi.COMMAND_META_OR_RESET:
+            case MXMidiStatic.COMMAND_META_OR_RESET:
                 return "Meta/Reset";
         }
         return null;
@@ -547,21 +547,21 @@ public class MXMidi {
 
     public static String nameOfSystemCommonMessage(int status) {
         switch (status) {
-            case MXMidi.COMMAND_SYSEX:
+            case MXMidiStatic.COMMAND_SYSEX:
                 return "SysEx[";
-            case MXMidi.COMMAND_MIDITIMECODE:
+            case MXMidiStatic.COMMAND_MIDITIMECODE:
                 return "Time  ";
-            case MXMidi.COMMAND_SONGPOSITION:
+            case MXMidiStatic.COMMAND_SONGPOSITION:
                 return "SngPos";
-            case MXMidi.COMMAND_SONGSELECT:
+            case MXMidiStatic.COMMAND_SONGSELECT:
                 return "SngNum";
-            case MXMidi.COMMAND_F4:
+            case MXMidiStatic.COMMAND_F4:
                 return "Sys F4";
-            case MXMidi.COMMAND_F5:
+            case MXMidiStatic.COMMAND_F5:
                 return "Sys F5";
-            case MXMidi.COMMAND_TUNEREQUEST:
+            case MXMidiStatic.COMMAND_TUNEREQUEST:
                 return "Tuner ";
-            case MXMidi.COMMAND_SYSEX_END:
+            case MXMidiStatic.COMMAND_SYSEX_END:
                 return "]EndEx";
         }
         return null;
@@ -569,21 +569,21 @@ public class MXMidi {
 
     public static String nameOfMessage(int status, int data1, int data2) {
         int command = status & 240;
-        if (command == MXMidi.COMMAND_CH_CONTROLCHANGE) {
-            if (data1 == MXMidi.DATA1_CC_DATAINC) {
+        if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
+            if (data1 == MXMidiStatic.DATA1_CC_DATAINC) {
                 return "INC";
             }
-            if (data1 == MXMidi.DATA1_CC_DATADEC) {
+            if (data1 == MXMidiStatic.DATA1_CC_DATADEC) {
                 return "DEC";
             }
-            if (data1 == MXMidi.DATA1_CC_DATAENTRY) {
+            if (data1 == MXMidiStatic.DATA1_CC_DATAENTRY) {
                 return "DATA";
             }
             return nameOfControlChange(data1);
         }
         if (command >= 128 && command <= 224) {
             String name = nameOfChannelMessage(command);
-            if (command == MXMidi.COMMAND_CH_NOTEON || command == MXMidi.COMMAND_CH_NOTEOFF || command == MXMidi.COMMAND_CH_POLYPRESSURE) {
+            if (command == MXMidiStatic.COMMAND_CH_NOTEON || command == MXMidiStatic.COMMAND_CH_NOTEOFF || command == MXMidiStatic.COMMAND_CH_POLYPRESSURE) {
                 return name;
             } else {
                 return name;
@@ -629,7 +629,7 @@ public class MXMidi {
     public static String noteListToText(int[] note) {
         StringBuilder str = new StringBuilder();
         for (int i = 0; i < note.length; ++ i) {
-            str.append(MXMidi.nameOfNote(note[i]));
+            str.append(MXMidiStatic.nameOfNote(note[i]));
             str.append(" ");
         }
         return str.toString();

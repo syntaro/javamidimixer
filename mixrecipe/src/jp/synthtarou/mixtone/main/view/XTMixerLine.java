@@ -26,7 +26,7 @@ import javax.swing.JLabel;
 import javax.swing.JSlider;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.libs.smf.OneMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.swing.CurvedSlider;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
@@ -193,9 +193,9 @@ public class XTMixerLine extends javax.swing.JPanel {
         int data2 = smf.getData2();
         
         int statusHi = status & 0xf0;
-        if (statusHi == MXMidi.COMMAND_CH_NOTEON) {
+        if (statusHi == MXMidiStatic.COMMAND_CH_NOTEON) {
             if (data2 == 0) {
-                statusHi = MXMidi.COMMAND_CH_NOTEOFF;
+                statusHi = MXMidiStatic.COMMAND_CH_NOTEOFF;
             }
             else {
                 _noteList.add(new Note(data1));
@@ -203,7 +203,7 @@ public class XTMixerLine extends javax.swing.JPanel {
                 return;
             }
         }
-        if (statusHi == MXMidi.COMMAND_CH_NOTEOFF) {
+        if (statusHi == MXMidiStatic.COMMAND_CH_NOTEOFF) {
             for (Iterator<Note> it = _noteList.iterator(); it.hasNext(); ) {
                 Note t = it.next();
                 if (t._number == data1) {
@@ -213,26 +213,26 @@ public class XTMixerLine extends javax.swing.JPanel {
                 }
             }
         }
-        if (statusHi == MXMidi.COMMAND_CH_CONTROLCHANGE) {
+        if (statusHi == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
             switch(data1) {
-                case MXMidi.DATA1_CC_PANPOT:
+                case MXMidiStatic.DATA1_CC_PANPOT:
                     _panSlider.setValue(MXRangedValue.new7bit(data2));
                     break;
-                case MXMidi.DATA1_CC_EFFECT1_REVERVE:
+                case MXMidiStatic.DATA1_CC_EFFECT1_REVERVE:
                     _reverveSlider.setValue(MXRangedValue.new7bit(data2));
                     break;
-                case MXMidi.DATA1_CC_EFFECT3_CHORUS:
+                case MXMidiStatic.DATA1_CC_EFFECT3_CHORUS:
                     _chorusSlider.setValue(MXRangedValue.new7bit(data2));
                     break;
-                case MXMidi.DATA1_CC_BANKSELECT:
+                case MXMidiStatic.DATA1_CC_BANKSELECT:
                     updateBank0(data2);
                     break;
-                case MXMidi.DATA1_CC_BANKSELECT + 32:
+                case MXMidiStatic.DATA1_CC_BANKSELECT + 32:
                     updateBank32(data2);
                     break;
             }
         }
-        if (statusHi == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
+        if (statusHi == MXMidiStatic.COMMAND_CH_PROGRAMCHANGE) {
             updateProgram(data1);
         }
     }

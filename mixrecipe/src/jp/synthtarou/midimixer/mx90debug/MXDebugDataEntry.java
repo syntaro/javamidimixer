@@ -24,7 +24,7 @@ import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 
 /**
  *
@@ -37,10 +37,10 @@ public class MXDebugDataEntry extends MXDebug {
         int high = (data >> 7) & 0x7f;
         int low = data & 0x7f;
         MXMessage parent = MXMessageFactory.newEmpty(0);
-        MXMessage message100 = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_RPN_LSB, lsb);
-        MXMessage message101 = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_RPN_MSB, msb);
-        MXMessage messageMSB = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_DATAENTRY, high);
-        MXMessage messageLSB = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_DATAENTRY + 32, low);
+        MXMessage message100 = MXMessageFactory.fromControlChange(0, 0, MXMidiStatic.DATA1_CC_RPN_LSB, lsb);
+        MXMessage message101 = MXMessageFactory.fromControlChange(0, 0, MXMidiStatic.DATA1_CC_RPN_MSB, msb);
+        MXMessage messageMSB = MXMessageFactory.fromControlChange(0, 0, MXMidiStatic.DATA1_CC_DATAENTRY, high);
+        MXMessage messageLSB = MXMessageFactory.fromControlChange(0, 0, MXMidiStatic.DATA1_CC_DATAENTRY + 32, low);
         message100._owner = MXMessage.getRealOwner(parent);
         message101._owner = MXMessage.getRealOwner(parent);
         messageMSB._owner = MXMessage.getRealOwner(parent);
@@ -57,10 +57,10 @@ public class MXDebugDataEntry extends MXDebug {
         int high = (data >> 7) & 0x7f;
         int low = data & 0x7f;
         MXMessage parent = MXMessageFactory.newEmpty(0);
-        MXMessage message98 = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_NRPN_LSB, lsb);
-        MXMessage message99 = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_NRPN_MSB, msb);
-        MXMessage messageMSB = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_DATAENTRY, high);
-        MXMessage messageLSB = MXMessageFactory.fromControlChange(0, 0, MXMidi.DATA1_CC_DATAENTRY + 32, low);
+        MXMessage message98 = MXMessageFactory.fromControlChange(0, 0, MXMidiStatic.DATA1_CC_NRPN_LSB, lsb);
+        MXMessage message99 = MXMessageFactory.fromControlChange(0, 0, MXMidiStatic.DATA1_CC_NRPN_MSB, msb);
+        MXMessage messageMSB = MXMessageFactory.fromControlChange(0, 0, MXMidiStatic.DATA1_CC_DATAENTRY, high);
+        MXMessage messageLSB = MXMessageFactory.fromControlChange(0, 0, MXMidiStatic.DATA1_CC_DATAENTRY + 32, low);
         message98._owner = MXMessage.getRealOwner(parent);
         message99._owner = MXMessage.getRealOwner(parent);
         messageMSB._owner = MXMessage.getRealOwner(parent);

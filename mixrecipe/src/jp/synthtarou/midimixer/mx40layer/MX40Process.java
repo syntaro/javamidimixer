@@ -25,7 +25,7 @@ import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.libs.inifile.MXINIFileNode;
@@ -87,7 +87,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                 command &= 0xfff0;
             }
 
-            if (command == MXMidi.COMMAND2_CH_PROGRAM_INC) {
+            if (command == MXMidiStatic.COMMAND2_CH_PROGRAM_INC) {
                 int x = message.getVisitant().getProgram() + 1;
                 if (x >= 128) {
                     x = 127;
@@ -95,9 +95,9 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                 MXMessage newMessage = MXMessageFactory.fromProgramChange(message.getPort(), message.getChannel(), x);
                 newMessage._owner = MXMessage.getRealOwner(message);
                 message = newMessage;
-                command = MXMidi.COMMAND_CH_PROGRAMCHANGE;
+                command = MXMidiStatic.COMMAND_CH_PROGRAMCHANGE;
             }
-            if (command == MXMidi.COMMAND2_CH_PROGRAM_DEC) {
+            if (command == MXMidiStatic.COMMAND2_CH_PROGRAM_DEC) {
                 int x = message.getVisitant().getProgram() - 1;
                 if (x < 0) {
                     x = 0;
@@ -105,10 +105,10 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                 MXMessage newMessage = MXMessageFactory.fromProgramChange(message.getPort(), message.getChannel(), x);
                 newMessage._owner = MXMessage.getRealOwner(message);
                 message = newMessage;
-                command = MXMidi.COMMAND_CH_PROGRAMCHANGE;
+                command = MXMidiStatic.COMMAND_CH_PROGRAMCHANGE;
             }
 
-            if (command == MXMidi.COMMAND_CH_NOTEOFF) {
+            if (command == MXMidiStatic.COMMAND_CH_NOTEOFF) {
                 if (_noteOff.raiseHandler(message, port, channel, message.getCompiled(1))) {
                     return;
                 }
@@ -120,7 +120,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                 for (int i = 0; i < _groupList.size(); ++i) {
                     final MX40Group col = _groupList.get(i);
                     if (col.processByGroup(message)) {
-                        if (command == MXMidi.COMMAND_CH_NOTEON) {
+                        if (command == MXMidiStatic.COMMAND_CH_NOTEON) {
                             _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
                                 public void onNoteOffEvent(MXMessage target) {
                                     MXMessage newMessage = MXMessageFactory.fromNoteoff(
@@ -138,7 +138,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                 }
             }
             if (!dispatched) {
-                if (command == MXMidi.COMMAND_CH_NOTEON) {
+                if (command == MXMidiStatic.COMMAND_CH_NOTEON) {
                     _noteOff.setHandler(message, message, new MXNoteOffWatcher.Handler() {
                         public void onNoteOffEvent(MXMessage target) {
                             MXMessage newMessage = MXMessageFactory.fromNoteoff(target.getPort(),
@@ -149,7 +149,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
                         }
                     });
                 }
-                if (message.isCommand(MXMidi.COMMAND_CH_PROGRAMCHANGE) && message.getGate()._value < 0) {
+                if (message.isCommand(MXMidiStatic.COMMAND_CH_PROGRAMCHANGE) && message.getGate()._value < 0) {
                     return;
                 }
                 sendToNext(message);

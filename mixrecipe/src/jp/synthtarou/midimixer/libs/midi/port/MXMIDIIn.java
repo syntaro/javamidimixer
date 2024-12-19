@@ -27,7 +27,7 @@ import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.log.MXFileLogger;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.MXNoteOffWatcher;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 import jp.synthtarou.midimixer.libs.midi.driver.MXDriver;
@@ -231,10 +231,10 @@ public class MXMIDIIn implements Comparable<MXMIDIIn>{
     public void allNoteOff(MXMessage parent) {
         _myNoteOff.allNoteOff(parent);
         for (int ch = 0; ch < 16; ++ch) {
-            int status = MXMidi.COMMAND_CH_CONTROLCHANGE | ch;
-            int data1 = MXMidi.DATA1_CC_ALLNOTEOFF;
+            int status = MXMidiStatic.COMMAND_CH_CONTROLCHANGE | ch;
+            int data1 = MXMidiStatic.DATA1_CC_ALLNOTEOFF;
             receiveShortMessage(parent, (status << 16) | (data1 << 8));
-            data1 = MXMidi.DATA1_CC_ALLSOUNDOFF;
+            data1 = MXMidiStatic.DATA1_CC_ALLSOUNDOFF;
             receiveShortMessage(parent, (status << 16) | (data1 << 8));
         }
     }
@@ -322,20 +322,20 @@ public class MXMIDIIn implements Comparable<MXMIDIIn>{
         int command = status & 0xf0;
         int channel = status & 0x0f;
 
-        if (command == MXMidi.COMMAND_CH_NOTEON) {
+        if (command == MXMidiStatic.COMMAND_CH_NOTEON) {
             if (data2 == 0) {
-                command = MXMidi.COMMAND_CH_NOTEOFF;
+                command = MXMidiStatic.COMMAND_CH_NOTEOFF;
                 status = command | channel;
                 dword = (status << 16) | (data1 << 8) | data2;
             }
         }
-        if (command == MXMidi.COMMAND_CH_NOTEOFF) {
+        if (command == MXMidiStatic.COMMAND_CH_NOTEOFF) {
             if (_myNoteOff.raiseHandler(null, 0, channel, data1)) {
                 return;
             }
-        } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_ALLNOTEOFF) {
+        } else if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE && data1 == MXMidiStatic.DATA1_CC_ALLNOTEOFF) {
             _myNoteOff.allNoteOff(null);
-        } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE && data1 == MXMidi.DATA1_CC_ALLSOUNDOFF) {
+        } else if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE && data1 == MXMidiStatic.DATA1_CC_ALLSOUNDOFF) {
             _myNoteOff.allNoteOff(null);
         }
 

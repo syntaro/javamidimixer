@@ -20,7 +20,7 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Comparator;
 import javax.swing.text.NumberFormatter;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 
 /**
  *
@@ -78,10 +78,10 @@ public class RecordEntry {
         _in = in;
         _cc = cc;
         switch (cc) {
-            case MXMidi.DATA1_CC_BANKSELECT:
+            case MXMidiStatic.DATA1_CC_BANKSELECT:
                 _choiceBit = 7;
                 break;
-            case MXMidi.DATA1_CC_DATAENTRY:
+            case MXMidiStatic.DATA1_CC_DATAENTRY:
                 _choiceBit = 14;
                 break;
         }
@@ -138,7 +138,7 @@ public class RecordEntry {
     }
 
     public String toString() {
-        String ccName = MXMidi.nameOfControlChange(_cc);
+        String ccName = MXMidiStatic.nameOfControlChange(_cc);
         String ccCode = _cc + ":" + ccName;
         //String device = ccCode + "@" + _in.getName();
         return ccCode;

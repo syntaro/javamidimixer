@@ -18,11 +18,11 @@ package jp.synthtarou.libs.namedobject;
 
 import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.midimixer.ccxml.xml.CXGeneralMidiFile;
-import static jp.synthtarou.midimixer.libs.midi.MXMidi.nameOfChannelMessage;
-import static jp.synthtarou.midimixer.libs.midi.MXMidi.nameOfControlChange;
-import static jp.synthtarou.midimixer.libs.midi.MXMidi.nameOfNote;
-import static jp.synthtarou.midimixer.libs.midi.MXMidi.nameOfSystemCommonMessage;
-import static jp.synthtarou.midimixer.libs.midi.MXMidi.nameOfSystemRealtimeMessage;
+import static jp.synthtarou.midimixer.libs.midi.MXMidiStatic.nameOfChannelMessage;
+import static jp.synthtarou.midimixer.libs.midi.MXMidiStatic.nameOfControlChange;
+import static jp.synthtarou.midimixer.libs.midi.MXMidiStatic.nameOfNote;
+import static jp.synthtarou.midimixer.libs.midi.MXMidiStatic.nameOfSystemCommonMessage;
+import static jp.synthtarou.midimixer.libs.midi.MXMidiStatic.nameOfSystemRealtimeMessage;
 
 /**
  *

@@ -43,7 +43,7 @@ import jp.synthtarou.midimixer.MXConfiguration;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.namedobject.MXNamedObject;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.libs.inifile.MXINIFile;
 import jp.synthtarou.midimixer.libs.swing.MXFileChooser;
 import jp.synthtarou.midimixer.libs.swing.focus.MXFocusHandler;
@@ -66,12 +66,12 @@ public class MX32MixerView extends javax.swing.JPanel implements MXFocusHandler 
 
         // following must here (late bind not work)
         chainModel = new MXNamedObjectList<Integer>();
-        chainModel.addNameAndValue(MXMidi.nameOfPortShort(-1), -1);
+        chainModel.addNameAndValue(MXMidiStatic.nameOfPortShort(-1), -1);
         for (int p2 = 0; p2 < MXConfiguration.TOTAL_PORT_COUNT; ++p2) {
             if (p2 == port) {
                 continue;
             }
-            chainModel.addNameAndValue(MXMidi.nameOfPortShort(p2), p2);
+            chainModel.addNameAndValue(MXMidiStatic.nameOfPortShort(p2), p2);
         }
 
         jComboBoxChain.setModel(chainModel);

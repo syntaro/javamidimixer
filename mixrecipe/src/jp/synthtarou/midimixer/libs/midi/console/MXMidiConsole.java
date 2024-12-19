@@ -30,7 +30,7 @@ import jp.synthtarou.libs.MXSafeThread;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 
 /**
  *
@@ -89,7 +89,7 @@ public class MXMidiConsole extends DefaultListModel<MXMidiConsoleElement> {
                 }
                 String gateValue = message.toStringGateValue();
                 if (gateValue.isEmpty() == false) {
-                    if (message.isCommand(MXMidi.COMMAND_CH_NOTEOFF)) {
+                    if (message.isCommand(MXMidiStatic.COMMAND_CH_NOTEOFF)) {
                         int data2 = message.parseTemplate(2);
                         if (data2 != 0) {
                             var += "("+ gateValue + ")";

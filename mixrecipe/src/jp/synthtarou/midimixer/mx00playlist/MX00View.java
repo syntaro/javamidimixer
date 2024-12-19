@@ -41,7 +41,7 @@ import jp.synthtarou.midimixer.libs.swing.MXFileChooser;
 import jp.synthtarou.libs.smf.SMFCallback;
 import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.libs.navigator.legacy.INavigator;
-import jp.synthtarou.midimixer.libs.midi.MXMidi;
+import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIIn;
 import jp.synthtarou.midimixer.libs.midi.port.MXMIDIInForPlayer;
 import jp.synthtarou.midimixer.libs.midi.port.MXPreprocessPanel;
@@ -740,11 +740,11 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         int channel = status & 0x0f;
 
         if (command >= 0x80 && command <= 0xef) {
-            if (command == MXMidi.COMMAND_CH_NOTEON && data2 == 0) {
-                command = MXMidi.COMMAND_CH_NOTEOFF;
+            if (command == MXMidiStatic.COMMAND_CH_NOTEON && data2 == 0) {
+                command = MXMidiStatic.COMMAND_CH_NOTEOFF;
             }
 
-            if (command == MXMidi.COMMAND_CH_NOTEON) {
+            if (command == MXMidiStatic.COMMAND_CH_NOTEON) {
                 if (channel != DRUM_CH) {
                     MX00PianoPanel piano = _listKeyboard[channel];
                     if (piano != null) {
@@ -754,7 +754,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                     MX00DrumPadPanel kit = _drumPanel;
                     kit.noteOn(data1);
                 }
-            } else if (command == MXMidi.COMMAND_CH_NOTEOFF) {
+            } else if (command == MXMidiStatic.COMMAND_CH_NOTEOFF) {
                 if (channel != DRUM_CH) {
                     MX00PianoPanel piano = _listKeyboard[channel];
                     if (piano != null) {
@@ -766,19 +766,19 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
                         kit.noteOff(data1);
                     }
                 }
-            } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE
-                    && data1 == MXMidi.DATA1_CC_DAMPERPEDAL) {
+            } else if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE
+                    && data1 == MXMidiStatic.DATA1_CC_DAMPERPEDAL) {
                 MX00PianoPanel piano = _listKeyboard[channel];
                 if (piano != null) {
                     piano.getKeys().sustain(data2);
                 }
-            } else if (command == MXMidi.COMMAND_CH_CONTROLCHANGE
-                    && data1 == MXMidi.DATA1_CC_ALLNOTEOFF) {
+            } else if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE
+                    && data1 == MXMidiStatic.DATA1_CC_ALLNOTEOFF) {
                 MX00PianoPanel piano = _listKeyboard[channel];
                 if (piano != null) {
                     piano.getKeys().allNoteOff();
                 }
-            } else if (command == MXMidi.COMMAND_CH_PROGRAMCHANGE) {
+            } else if (command == MXMidiStatic.COMMAND_CH_PROGRAMCHANGE) {
                 MX00PianoPanel piano = _listKeyboard[channel];
                 if (piano != null) {
                     piano.updateProgramNumber(data1);
