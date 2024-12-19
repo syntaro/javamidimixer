@@ -119,6 +119,8 @@ public class XTAudioStream{
         }
     }
 
+    ArrayList<XTOscilator> _muteCheck = new ArrayList<>();
+
     public boolean updateBuffer(){
         if (_sourceDL == null) {
             return false;
@@ -131,52 +133,42 @@ public class XTAudioStream{
             _frame_right = new double[pageSize];
         }
 
+        while (true) {
+            XTOscilator osc = _push.tryPeek();
+            if (osc == null) {
+                break;
+            }
+            _push.pop();
+            _copy.push(osc);
+        }
+
+        _muteCheck.clear();
+        for (XTOscilator j : _copy) {
+            if (j.isMuted()) {
+                _muteCheck.add(j);
+            }
+        }
+        _copy.removeAll(_muteCheck);
         //double popTo = System.currentTimeMillis() - 1.0 * setting.getSamplePageSize() /setting.getSampleRate();
         while( _sourceDL.available() >= pageSize ){
-            //double pendAmount = 0;
-            //int pendCount = 0;
-            //int pendNotCount = 0; 
             for(int i = 0; i < pageSize; i++) {
                 double valueLeft = 0;
                 double valueRight = 0;
-                //double lastTime = 1.0 * i / setting.getSampleRate() + popTo;
-
-                while (true) {
-                    XTOscilator osc = _push.tryPeek();
-                    if (osc == null) {
-                        break;
-                    }
-                    _push.pop();
-                    _copy.push(osc);
-                }
-
-                ArrayList<XTOscilator> check = new ArrayList<>();
-                for (XTOscilator j : _copy) {
-                    if (j.isMuted()) {
-                        check.add(j);
-                    }
-                }
-                _copy.removeAll(check);
 
                 for (XTOscilator j : _copy) {
                     double v = j.nextValueWithAmp() * j._volume * j._velocity;
                     double pan = j._pan;
+                    if (j._type == 2) {
+                        pan = 1;
+                    }else if (j._type == 4) {
+                        pan = -1;
+                    }
                     pan += 1;
                     pan /= 2;
                     double right = pan, left = 1 - pan;
-                    
-                    switch (j._type) {
-                        case 2:
-                            valueRight += v * right;
-                            break;
-                        case 4:
-                            valueLeft += v * left;
-                            break;
-                        default:
-                            valueRight += v / 2 * right;
-                            valueLeft += v / 2 * left;
-                            break;
-                    }
+
+                    valueRight += v / 2 * right;
+                    valueLeft += v / 2 * left;
                 }
 
                 _frame_left[i] = valueLeft;
