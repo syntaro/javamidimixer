@@ -117,21 +117,22 @@ public class XTOscilator {
         initEnvelope();
     }
 
-    public double nextValueOfOscilator(long frame){
-        if (isMuted()) {
+    private double getFromOscilator(long frame){
+        if (isFaded()) {
             return 0;
         }
         long x = _pos.frameToSampleoffset(frame);
         if (_loopEnd >= 0 && x + _start > _loopEnd) {
             if (_loop) {
                 long distance = _loopEnd - _loopStart + 1;
-                while (x > _loopEnd - _start) {
+                while (x + _start > _loopEnd) {
                     x -= distance;
                 }
                 if (_ampEnv.isNoteOff()) {
                     x += distance;
-                    if (x > _end - _start) {
-                        x = _end - _start;
+                    if (x + _start > _end) {
+                        _faded = true;
+                        return 0;
                     }
                 }
                 int smpl = _smpl.getSample16((int)(_start + x));
@@ -157,9 +158,9 @@ public class XTOscilator {
 
     public double nextValueWithAmp() {
         long frame = _totalFrame ++;
-        double osc = nextValueOfOscilator(frame);
+        double osc = getFromOscilator(frame);
         //double filt = _filter.update(osc);
-        double amp = _ampEnv.getAmountAt(frame);
+        double amp = _ampEnv.getAmpAmount(frame);
         return osc * amp;
     }
     
@@ -171,7 +172,7 @@ public class XTOscilator {
         _ampEnv.noteMute();
     }
     
-    public boolean isMuted() {
+    public boolean isFaded() {
         if (_faded) {
             return _faded;
         }

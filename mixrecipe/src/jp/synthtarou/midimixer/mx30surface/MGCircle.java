@@ -24,6 +24,7 @@ import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
+import jp.synthtarou.midimixer.libs.midi.MXMessageFormatter;
 
 /**
  *
@@ -63,13 +64,12 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
         MGStatus status = getStatus();
         if (status != null) {
             jCircleValue.setValue(status.getValue());
-
-            if (status._name == null || status._name.length() == 0) {
-                MXMessage message = status._base;
-                jLabel1.setText(message.toStringMessageInfo(1));
-            } else {
-                jLabel1.setText(status._name);
+            MXMessageFormatter format = MXMessageFormatter._short;
+            String formatText = status._name;
+            if (formatText != null && formatText.length() > 0) {
+                format = new MXMessageFormatter(formatText);
             }
+            jLabel1.setText(format.format(status._base));
         }
         super.updateUI();
     }
@@ -124,7 +124,7 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
             return;
         }
         int newValue = jCircleValue.getValue();
-        jLabel1.setText(String.valueOf(newValue));
+        //jLabel1.setText(String.valueOf(newValue));
         _mixer._parent.addSliderMove(null, getStatus(), newValue);
     }
 
@@ -165,7 +165,12 @@ public class MGCircle extends javax.swing.JPanel implements MouseWheelListener {
         MXUtil.showAsDialog(this, panel, "Enter Edit Circle {row:" + _row + ", column:" + _column + "}");
         if (panel._okOption) {
             setStatus(panel._status);
-            jLabel1.setText(panel._status._name);
+            MXMessageFormatter format = MXMessageFormatter._long; 
+            String formatText = status._name;
+            if (formatText != null && formatText.length() > 0) {
+                format = new MXMessageFormatter(formatText);
+            }
+            jLabel1.setText(format.format(status._base));
             _mixer.notifyCacheBroken();
             updateUI();
         }

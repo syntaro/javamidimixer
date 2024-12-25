@@ -25,6 +25,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMessageFactory;
 import jp.synthtarou.libs.namedobject.MXNamedObjectListFactory;
 import jp.synthtarou.midimixer.MXMain;
+import jp.synthtarou.midimixer.libs.midi.MXMessageFormatter;
 import jp.synthtarou.midimixer.mx30surface.MGStatus;
 
 /**
@@ -192,7 +193,11 @@ public class MX36Status {
     public static MX36Status fromMGStatus(MGStatus status) {
         MX36Status it = new MX36Status();
                 
-        it._outName = status.getAsName();
+        String name = status.getName();
+        if (name == null || name.isBlank()) {
+            it._outName = MXMessageFormatter._short.format(status.getBase());
+        }
+        it._outName = new MXMessageFormatter(name).format(status.getBase());
 
         it._surfaceValueRange = status.getValue();
         it._surfaceobj = status;

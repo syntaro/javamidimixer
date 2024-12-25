@@ -57,7 +57,7 @@ public abstract class MXDebug {
 
         @Override
         public void processMXMessage(MXMessage message) {
-            if (message.getTemplate().get(0) >= 0x100) {
+            if (message.getTemplate().safeGet(0) >= 0x100) {
                 MXMIDIIn.DEBUGGER.receiveExMessage(message, message);
             }
             else{

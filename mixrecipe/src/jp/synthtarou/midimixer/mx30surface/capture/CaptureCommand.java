@@ -39,7 +39,7 @@ public class CaptureCommand {
     public String toString() {
         int command = -1;
         if (_template != null && _template.size() >= 1) {
-            command = _template.get(0) & 0xfff0;
+            command = _template.safeGet(0) & 0xfff0;
         }
         String add = "";
         if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {

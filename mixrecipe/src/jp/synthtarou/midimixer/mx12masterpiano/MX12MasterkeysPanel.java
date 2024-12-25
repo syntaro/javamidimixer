@@ -546,7 +546,7 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             String text;
             
             boolean new14Bit = false;
-            if (_baseMessage.getTemplate().get(0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
+            if (_baseMessage.getTemplate().safeGet(0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                 if (_baseMessage.getCompiled(1)>=0 && _baseMessage.getCompiled(1) <= 31) {
                     new14Bit = true;
                 }
@@ -638,8 +638,8 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
             
             try {
                 if (template.size() >= 3) {
-                    if (template.get(0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE && template.get(1) != MXMidiStatic.CCXML_GL) {
-                        gate = MXRangedValue.new7bit(template.get(1));
+                    if (template.safeGet(0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE && template.safeGet(1) != MXMidiStatic.CCXML_GL) {
+                        gate = MXRangedValue.new7bit(template.safeGet(1));
                         template = new MXTemplate(new int[]{MXMidiStatic.COMMAND_CH_CONTROLCHANGE, MXMidiStatic.CCXML_GL, MXMidiStatic.CCXML_VL});
                     }
                 }
@@ -713,12 +713,12 @@ public class MX12MasterkeysPanel extends javax.swing.JPanel implements MXAccordi
                 String text = navi.getReturnValue();
                 MXTemplate template = new MXTemplate(text);
                 if (template.size() >= 2) {
-                    int command = template.get(0) & 0xfff0;
-                    int gate = template.get(1);
+                    int command = template.safeGet(0) & 0xfff0;
+                    int gate = template.safeGet(1);
                     if (command == MXMidiStatic.COMMAND_CH_CONTROLCHANGE && gate != MXMidiStatic.CCXML_GL) {
                         int[] newTemplate = new int[template.size()];
                         for (int i = 0; i < newTemplate.length; ++ i) {
-                            newTemplate[i] = template.get(i);
+                            newTemplate[i] = template.safeGet(i);
                         }
                         newTemplate[1] = gate;
                         template = new MXTemplate(newTemplate);

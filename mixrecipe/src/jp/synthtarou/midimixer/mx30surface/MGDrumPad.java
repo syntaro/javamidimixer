@@ -21,6 +21,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.SwingUtilities;
 import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
+import jp.synthtarou.midimixer.libs.midi.MXMessageFormatter;
 import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 
 /**
@@ -82,13 +83,13 @@ public class MGDrumPad extends javax.swing.JPanel {
         if (jLabel1 != null) {
             _mixer._finder = null;
             MGStatus status = getStatus();
-            if (status._name == null || status._name.length() == 0) {
-                MXMessage message = status._base;
-                jLabel1.setText(message.toStringMessageInfo(1));
-            } else {
-                jLabel1.setText(status._name);
+            MXMessageFormatter format = MXMessageFormatter._short;
+            String formatText = status._name;
+            if (formatText != null && formatText.length() > 0) {
+                format = new MXMessageFormatter(formatText);
             }
-        }
+            jLabel1.setText(format.format(status._base));
+       }
     }
 
     /**
@@ -132,8 +133,8 @@ public class MGDrumPad extends javax.swing.JPanel {
         MXMessage message = drum.updatingValue(parent, push, velocity);
         if (message != null) {
             _mixer._parent._packet.addResult(message);
-            if (message.getTemplate().get(0) == MXMidiStatic.COMMAND2_CH_RPN ||
-                    message.getTemplate().get(0) == MXMidiStatic.COMMAND2_CH_NRPN) {
+            if (message.getTemplate().safeGet(0) == MXMidiStatic.COMMAND2_CH_RPN ||
+                    message.getTemplate().safeGet(0) == MXMidiStatic.COMMAND2_CH_NRPN) {
                 new Throwable().printStackTrace();
             }
         }

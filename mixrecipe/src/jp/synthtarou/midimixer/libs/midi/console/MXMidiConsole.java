@@ -24,12 +24,11 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataListener;
 import jp.synthtarou.libs.MXSafeThread;
-import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
+import jp.synthtarou.midimixer.libs.midi.MXMessageFormatter;
 import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 
 /**
@@ -83,7 +82,8 @@ public class MXMidiConsole extends DefaultListModel<MXMidiConsoleElement> {
                 MXMidiConsoleElement value = (MXMidiConsoleElement) var;
                 MXMessage message = value.getMessage();
 
-                var = message.toStringMessageInfo(2);
+                var = MXMessageFormatter._long.format(message);
+
                 if (message.isSysexOrMeta()) {
                     var += "\"" + message.toOneMessage(0).toString() + "\"";
                 }

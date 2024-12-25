@@ -33,7 +33,7 @@ public class CaptureGate {
     public String toString() {
         int command = -1;
         if (_command._template != null && _command._template.size() >= 1) {
-            command = _command._template.get(0) & 0xfff0;
+            command = _command._template.safeGet(0) & 0xfff0;
         }
         String add = "";
         if (command == MXMidiStatic.COMMAND_CH_NOTEON || command == MXMidiStatic.COMMAND_CH_POLYPRESSURE || command == MXMidiStatic.COMMAND_CH_NOTEOFF) {

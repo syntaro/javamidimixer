@@ -24,6 +24,7 @@ import jp.synthtarou.libs.MXUtil;
 import jp.synthtarou.libs.MXRangedValue;
 import jp.synthtarou.midimixer.MXMain;
 import jp.synthtarou.midimixer.libs.midi.MXMessage;
+import jp.synthtarou.midimixer.libs.midi.MXMessageFormatter;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderLikeEclipse;
 import jp.synthtarou.midimixer.libs.swing.attachment.MXAttachSliderSingleClick;
 import jp.synthtarou.midimixer.libs.swing.themes.ThemeManager;
@@ -84,12 +85,13 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
             jSliderValue.setPaintLabels(true);
             jSliderValue.setValue(value._value);
             jLabelValue.setText(String.valueOf(value._value));
-            if (status._name == null || status._name.length() == 0) {
-                MXMessage message = status._base;
-                jLabelName.setText(message.toStringMessageInfo(1));
-            }else {
-                jLabelName.setText(status._name);
+
+            MXMessageFormatter format = MXMessageFormatter._short;
+            String formatText = status._name;
+            if (formatText != null && formatText.length() > 0) {
+                format = new MXMessageFormatter(formatText);
             }
+            jLabelName.setText(format.format(status._base));
         }
     }
 
@@ -218,7 +220,14 @@ public class MGSlider extends javax.swing.JPanel implements MouseWheelListener {
         MXUtil.showAsDialog(this, panel, "Enter Edit Slider {row:" + _row + ", column:" + _column + "}");
         if (panel._okOption) {
             setStatus(panel._status);
-            jLabelName.setText(panel._status._name);
+
+            MXMessageFormatter format = MXMessageFormatter._long; 
+            String formatText = status._name;
+            if (formatText != null && formatText.length() > 0) {
+                format = new MXMessageFormatter(formatText);
+            }
+            jLabelName.setText(format.format(status._base));
+
             _mixer.notifyCacheBroken();
             updateUI();
         }

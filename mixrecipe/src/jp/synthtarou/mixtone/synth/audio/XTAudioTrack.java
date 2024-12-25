@@ -78,7 +78,7 @@ public class XTAudioTrack {
 
     public void cleanMuted() {
         for (XTOscilator seek : _oscilator) {
-            if (seek.isMuted()) {
+            if (seek.isFaded()) {
                 _muted.add(seek);
             }
         }

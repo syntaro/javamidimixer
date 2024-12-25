@@ -56,12 +56,12 @@ public class MGCapture {
         try {
             //modify
             MXTemplate temp = message.getTemplate();
-            if (temp.get(0) == MXMidiStatic.COMMAND2_CH_RPN
-              || temp.get(0) == MXMidiStatic.COMMAND2_CH_NRPN) {
-                int room1 = temp.get(1);
-                int room2 = temp.get(2);
-                int value1 = temp.get(3);
-                int value2 = temp.size() > 4 ? temp.get(4) : 0xffff;
+            if (temp.safeGet(0) == MXMidiStatic.COMMAND2_CH_RPN
+              || temp.safeGet(0) == MXMidiStatic.COMMAND2_CH_NRPN) {
+                int room1 = temp.safeGet(1);
+                int room2 = temp.safeGet(2);
+                int value1 = temp.safeGet(3);
+                int value2 = temp.size() > 4 ? temp.safeGet(4) : 0xffff;
                 boolean changed = false;
                 
                 if ((value2 & 0xff00) == 0xff00) {
@@ -83,7 +83,7 @@ public class MGCapture {
                 
                 if (changed) {
                     temp = new MXTemplate(new int[] { 
-                       temp.get(0), room1, room2, value1, value2
+                       temp.safeGet(0), room1, room2, value1, value2
                    });
                 }
                 MXMessage newMessage = MXMessageFactory.fromTemplate(

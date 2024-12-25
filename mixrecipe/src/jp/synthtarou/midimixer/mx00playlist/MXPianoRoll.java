@@ -268,7 +268,7 @@ public class MXPianoRoll extends JComponent {
 
             _canvas.line((int) 0, realY2, (int) widthAll, realY2, color);
 
-            for (int i = keysRoot; i < keysRoot + keysCount; ++i) {
+            for (int i = keysRoot; i <= keysRoot + keysCount; ++i) {
                 boolean selected = false;
                 if (playing[i] > 0 && playing[i] != onlyDrum) {
                     selected = true;

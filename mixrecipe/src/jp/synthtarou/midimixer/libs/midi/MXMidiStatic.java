@@ -143,11 +143,11 @@ public class MXMidiStatic {
     public static final int COMMAND_F5 = 0xf5;
     public static final int COMMAND_TUNEREQUEST = 0xf6;
     public static final int COMMAND_SYSEX_END = 0xf7;
-    public static final int COMMAND_MIDICLOCK = 0xf8;
+    public static final int COMMAND_TRANSPORT_MIDICLOCK = 0xf8;
     public static final int COMMAND_F9 = 0xf9;
-    public static final int COMMAND_SEQSTART = 0xfa;
-    public static final int COMMAND_SEQCONTINUE = 0xfb;
-    public static final int COMMAND_SEQSTOP = 0xfc;
+    public static final int COMMAND_TRANSPORT_START = 0xfa;
+    public static final int COMMAND_TRANSPORT_CONTINUE = 0xfb;
+    public static final int COMMAND_TRANSPORT_STOP = 0xfc;
     public static final int COMMAND_FD = 0xfd;
     public static final int COMMAND_ACTIVESENSING = 0xfe;
     public static final int COMMAND_META_OR_RESET = 0xff;
@@ -501,15 +501,15 @@ public class MXMidiStatic {
 
     public static String nameOfSystemRealtimeMessage(int command) {
         switch (command) {
-            case MXMidiStatic.COMMAND_MIDICLOCK:
+            case MXMidiStatic.COMMAND_TRANSPORT_MIDICLOCK:
                 return "Clock";
             case MXMidiStatic.COMMAND_F9:
                 return "#F9";
-            case MXMidiStatic.COMMAND_SEQSTART:
+            case MXMidiStatic.COMMAND_TRANSPORT_START:
                 return "Seq Start";
-            case MXMidiStatic.COMMAND_SEQCONTINUE:
+            case MXMidiStatic.COMMAND_TRANSPORT_CONTINUE:
                 return "Seq Cont";
-            case MXMidiStatic.COMMAND_SEQSTOP:
+            case MXMidiStatic.COMMAND_TRANSPORT_STOP:
                 return "Seq Stop";
             case MXMidiStatic.COMMAND_FD:
                 return "#FD";

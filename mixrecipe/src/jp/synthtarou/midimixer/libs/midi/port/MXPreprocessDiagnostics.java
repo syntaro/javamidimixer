@@ -60,10 +60,10 @@ public class MXPreprocessDiagnostics {
                     MXTemplate temp = message.getTemplate();
                     RecordEntry e = getEntry(MXMidiStatic.DATA1_CC_DATAENTRY);
                     _caret = e;
-                    _pastDataMSB = MXTemplate.parseDAlias(temp.get(1), message);
-                    _pastDataLSB  = MXTemplate.parseDAlias(temp.get(2), message);
-                    e._pooling0 = MXTemplate.parseDAlias(temp.get(3), message);
-                    e._pooling32 = MXTemplate.parseDAlias(temp.get(4), message);
+                    _pastDataMSB = MXTemplate.parseDAlias(temp.safeGet(1), message);
+                    _pastDataLSB  = MXTemplate.parseDAlias(temp.safeGet(2), message);
+                    e._pooling0 = MXTemplate.parseDAlias(temp.safeGet(3), message);
+                    e._pooling32 = MXTemplate.parseDAlias(temp.safeGet(4), message);
                     if ((message.getStatus() & 0xfff0) == MXMidiStatic.COMMAND2_CH_RPN)  {
                         _pastWasRPN = 1;
                     }else {

@@ -28,6 +28,7 @@ import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
 import jp.synthtarou.midimixer.libs.midi.MXTemplate;
 import jp.synthtarou.midimixer.libs.midi.visitant.MXVisitant;
 import jp.synthtarou.libs.namedobject.MXNamedObjectList;
+import jp.synthtarou.midimixer.libs.midi.MXMessageFormatter;
 import jp.synthtarou.midimixer.mx36ccmapping.MX36Status;
 
 /**
@@ -51,14 +52,15 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
     String _name = "";
     String _memo = "";
     
-    public String getAsName() {
-        if (_name == null || _name.isBlank()) {
-            return _base.toStringMessageInfo(1);
-        }
+    MXMessage _base = null;
+    
+    public String getName() {
         return _name;
     }
 
-    MXMessage _base = null;
+    public MXMessage getBase() {
+        return _base;
+    }
     
     boolean _ccPair14 = false;
 
@@ -165,13 +167,7 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
                 text = "Error";
                 break;
         }
-        String name;
-        if (_name == null || _name.length() == 0) {
-            name = message.toStringMessageInfo(2);
-        } else {
-            name = _name;
-        }
-        return name + " (" + _memo + ")" + ", "
+        return MXMessageFormatter._short.format(message) + " (" + _memo + ")" + ", "
                 + text + "[row " + (_row + 1) + ", col " + (_column + 1) + "], "
                 + (message.indexOfValueHi() >= 0 ? " (=14bit)" : "");
     }
@@ -184,8 +180,8 @@ public class MGStatus implements Cloneable, Comparable<MGStatus> {
             return -1;
         }
 
-        if ((_base.getTemplate().get(0) & 0xfff0) == MXMidiStatic.COMMAND_CH_NOTEON) {
-            if ((message.getTemplate().get(0) & 0xfff0) == MXMidiStatic.COMMAND_CH_NOTEOFF) {
+        if ((_base.getTemplate().safeGet(0) & 0xfff0) == MXMidiStatic.COMMAND_CH_NOTEON) {
+            if ((message.getTemplate().safeGet(0) & 0xfff0) == MXMidiStatic.COMMAND_CH_NOTEOFF) {
                 MXMessage newMessage = MXMessageFactory.fromNoteon(message.getPort(), message.getChannel(), message.getCompiled(1), 0);
                 newMessage._owner = MXMessage.getRealOwner(message);
                 message = newMessage;

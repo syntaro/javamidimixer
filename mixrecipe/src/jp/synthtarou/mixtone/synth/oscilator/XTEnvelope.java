@@ -48,7 +48,7 @@ public class XTEnvelope {
             if (x >= _sampleRate * 5) {
                 env.noteOff();
             }
-            System.out.println("step " + x + " -> " + env.getAmountAt(x));
+            System.out.println("step " + x + " -> " + env.getAmpAmount(x));
         }
     }
     
@@ -105,7 +105,7 @@ public class XTEnvelope {
     
     long _tillMute = Long.MAX_VALUE;
 
-    public double getAmountAt(long samples) {
+    public double getAmpAmount(long samples) {
         _currentSample = samples;
 
         if (_tillMute <= 0) {

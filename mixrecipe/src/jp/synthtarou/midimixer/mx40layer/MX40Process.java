@@ -80,7 +80,7 @@ public class MX40Process extends MXReceiver<MX40View> implements MXINIFileSuppor
             }
 
             int port = message.getPort();
-            int status = message.getTemplate().get(0);
+            int status = message.getTemplate().safeGet(0);
             int channel = message.getChannel();
             int command = status;
             if (message.isChannelMessage2()) {

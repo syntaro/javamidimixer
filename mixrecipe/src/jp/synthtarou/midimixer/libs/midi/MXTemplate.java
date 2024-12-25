@@ -185,7 +185,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
         initFields(compiled);
     }
 
-    public int get(int pos) {
+    public int safeGet(int pos) {
         if (_commands == null) {
             return 0;
         }
@@ -502,11 +502,11 @@ public class MXTemplate implements Comparable<MXTemplate> {
                 case MXMidiStatic.COMMAND_F4:
                 case MXMidiStatic.COMMAND_F5:
                 case MXMidiStatic.COMMAND_TUNEREQUEST:
-                case MXMidiStatic.COMMAND_MIDICLOCK:
+                case MXMidiStatic.COMMAND_TRANSPORT_MIDICLOCK:
                 case MXMidiStatic.COMMAND_F9:
-                case MXMidiStatic.COMMAND_SEQSTART:
-                case MXMidiStatic.COMMAND_SEQCONTINUE:
-                case MXMidiStatic.COMMAND_SEQSTOP:
+                case MXMidiStatic.COMMAND_TRANSPORT_START:
+                case MXMidiStatic.COMMAND_TRANSPORT_CONTINUE:
+                case MXMidiStatic.COMMAND_TRANSPORT_STOP:
                 case MXMidiStatic.COMMAND_FD:
                 case MXMidiStatic.COMMAND_ACTIVESENSING:
                 case MXMidiStatic.COMMAND_META_OR_RESET:
@@ -715,7 +715,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
         MXRangedValue gate = MXRangedValue.ZERO7;
         MXRangedValue value = MXRangedValue.ZERO7;
 
-        switch (get(0)) {
+        switch (safeGet(0)) {
             case MXMidiStatic.COMMAND2_NONE:
                 if (data.length == 0) {
                     return new MXMessage(port, this);
@@ -744,7 +744,7 @@ public class MXTemplate implements Comparable<MXTemplate> {
             int templateSeek = 0;
 
             while (templateSeek < size() && dataSeek < data.length) {
-                int c1 = get(templateSeek);
+                int c1 = safeGet(templateSeek);
                 templateSeek++;
 
                 if (c1 == MXMidiStatic.CCXML_CHECKSUM_END) {

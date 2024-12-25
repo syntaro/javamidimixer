@@ -194,7 +194,7 @@ public class MXMidiFilter {
                 }
                 break;
             case TYPE_CLOCK:
-                if (command == MXMidiStatic.COMMAND_MIDICLOCK) {
+                if (command == MXMidiStatic.COMMAND_TRANSPORT_MIDICLOCK) {
                     return true;
                 }
                 break;

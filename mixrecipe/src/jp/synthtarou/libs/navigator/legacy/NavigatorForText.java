@@ -18,6 +18,7 @@ package jp.synthtarou.libs.navigator.legacy;
 
 import java.awt.Container;
 import java.awt.Dimension;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import jp.synthtarou.libs.MXUtil;
 
@@ -40,8 +41,33 @@ public class NavigatorForText extends javax.swing.JPanel implements INavigator<S
         initComponents();
         jTextArea1.setText(text);
         setPreferredSize(new Dimension(600, 200));
+        jPanelCandidate.removeAll();
+    }
+    
+    public void doTyping(String text) {
+        String org = jTextArea1.getText();
+        if (org.endsWith(" ")) {
+            text = org + text;
+        }else {
+            text = org + " " + text;
+        }
+        jTextArea1.setText(text);
+        jTextArea1.setSelectionStart(text.length());
+        jTextArea1.setSelectionEnd(text.length());
+        jTextArea1.requestFocus();
     }
 
+    public void addCandidate(String text, String memo) {
+        JButton button = new JButton(text);
+        if (memo != null && memo.isBlank() == false) {
+            button.setToolTipText(memo);
+        }
+        button.addActionListener((e) -> {
+            doTyping(text);
+        });
+        jPanelCandidate.add(button);
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -56,6 +82,8 @@ public class NavigatorForText extends javax.swing.JPanel implements INavigator<S
         jTextArea1 = new javax.swing.JTextArea();
         jButtonCancel = new javax.swing.JButton();
         jButtonOK = new javax.swing.JButton();
+        jPanelCandidate = new javax.swing.JPanel();
+        jButton1 = new javax.swing.JButton();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -80,7 +108,7 @@ public class NavigatorForText extends javax.swing.JPanel implements INavigator<S
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         add(jButtonCancel, gridBagConstraints);
 
@@ -92,9 +120,19 @@ public class NavigatorForText extends javax.swing.JPanel implements INavigator<S
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         add(jButtonOK, gridBagConstraints);
+
+        jButton1.setText("jButton1");
+        jPanelCandidate.add(jButton1);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(jPanelCandidate, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOKActionPerformed
@@ -110,8 +148,10 @@ public class NavigatorForText extends javax.swing.JPanel implements INavigator<S
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButtonCancel;
     private javax.swing.JButton jButtonOK;
+    private javax.swing.JPanel jPanelCandidate;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextArea jTextArea1;
     // End of variables declaration//GEN-END:variables

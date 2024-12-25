@@ -280,8 +280,8 @@ public class CXFile {
                     MXTemplate template = null;
                     try {
                         template = new MXTemplate(ccm._data);
-                        if (template.get(1) == MXMidiStatic.COMMAND_SYSEX || template.get(1) == MXMidiStatic.COMMAND_SYSEX_END) 
-                            if (template.get(template.size() - 1) == 0xf7) {
+                        if (template.safeGet(1) == MXMidiStatic.COMMAND_SYSEX || template.safeGet(1) == MXMidiStatic.COMMAND_SYSEX_END) 
+                            if (template.safeGet(template.size() - 1) == 0xf7) {
                                 templateOK = true;
                         }
                         if (template.haveChecksum()) {

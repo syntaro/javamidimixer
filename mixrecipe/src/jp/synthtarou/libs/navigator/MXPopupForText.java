@@ -16,11 +16,11 @@
  */
 package jp.synthtarou.libs.navigator;
 
+import java.util.ArrayList;
 import jp.synthtarou.libs.navigator.legacy.INavigator;
 import jp.synthtarou.libs.navigator.legacy.NavigatorForText;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
-import jp.synthtarou.libs.MXUtil;
 
 /**
  *
@@ -39,6 +39,11 @@ public abstract class MXPopupForText extends MXPopup {
             previous = _target.getText();
         }
         NavigatorForText text = new NavigatorForText(previous);
+        if (_listCandidate != null) {
+            for (CandidateEntry e : _listCandidate) {
+                text.addCandidate(e._text, e._memo);
+            }
+        }
         if (text.simpleAsk(mouseBase)) {
             approvedText(text.getReturnValue());
         }
@@ -49,6 +54,24 @@ public abstract class MXPopupForText extends MXPopup {
         _dialogTitle = title;
     }
     
+    class CandidateEntry {
+        String _text;
+        String _memo;
+
+        public CandidateEntry(String text, String memo) {
+           _text = text;
+           _memo = memo;
+        }
+    }
+    
+    public void addCandidate(String text, String meaning) {
+        if (_listCandidate == null) {
+            _listCandidate = new ArrayList<>();
+        }
+        _listCandidate.add(new CandidateEntry(text, meaning));
+    }
+
+    ArrayList<CandidateEntry> _listCandidate = null;
     String _dialogTitle = INavigator.DEFAULT_TITLE;
     
     public abstract void approvedText(String text);

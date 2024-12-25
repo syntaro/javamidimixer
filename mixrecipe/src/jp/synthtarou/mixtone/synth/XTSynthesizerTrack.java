@@ -72,6 +72,14 @@ public class XTSynthesizerTrack {
             return null;
         }
 
+        for (int i = 0; i < _listForMessage.size(); ++ i) {
+            XTOscilator seek = _listForMessage.get(i);
+            if (seek.isFaded()) {
+                _listForMessage.remove(i);
+                i --;
+            }
+        }
+
         XTTable table = _phdr_row.tableColumn(SFZElement.PHDR_BAGINDEX_TABLE);
         ArrayList<XTOscilator> result = new ArrayList<>();
 
@@ -141,10 +149,10 @@ public class XTSynthesizerTrack {
                     pan = 0.0;
                 }
 
-                XTGenOperator oper = _genMaster.get(XTGenOperatorMaster.pan);
                 int min = -500;
                 int max = 500;
                 /*
+                XTGenOperator oper = _genMaster.get(XTGenOperatorMaster.pan);
                 if (oper != null) {
                     if (oper.getMin() != null && oper.getMax() != null) {
                         if (oper.getMin() < oper.getMax()) {

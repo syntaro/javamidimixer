@@ -57,10 +57,49 @@ public class OneMessage implements Comparable<OneMessage> {
         }
         return new OneMessage(tick, binary);
     }
-    
+
 
     public static OneMessage thisCodes(long tick, int status, int data1, int data2) {
         return new OneMessage(tick, status, data1, data2);
+    }
+    public int getMessageLength(int midiEvent) {
+        switch (midiEvent & 0xf0) {
+            case 0xf0: {
+                switch (midiEvent) {
+                    case 0xf0: //sysex
+                    case 0xf7: //sysex special
+                        return -1;
+
+                    case 0xf1: //midi time code
+                    case 0xf3: //song select
+                        return 2;
+
+                    case 0xf2: //song position
+                        return 3;
+
+                    case 0xf6: //tune request
+                    case 0xf8: //timeing clock
+                    case 0xfa: //start
+                    case 0xfb: //continue
+                    case 0xfc: //stop
+                    case 0xfe: //active sencing
+                    case 0xff: //system reset
+                        return 1;
+                }
+            }
+            return 1;
+            case 0x80:
+            case 0x90:
+            case 0xa0:
+            case 0xb0:
+            case 0xe0:
+                return 3;
+
+            case 0xc0: // program change
+            case 0xd0: // channel after-touch
+                return 2;
+        }
+        return 1;
     }
 
     private OneMessage(long tick, int status, int data1, int data2) {
@@ -69,10 +108,24 @@ public class OneMessage implements Comparable<OneMessage> {
             new Throwable().printStackTrace();;
         }
         if (status == MXMidiStatic.COMMAND_SYSEX
-         || status == MXMidiStatic.COMMAND_SYSEX_END
-         || status == MXMidiStatic.COMMAND_META_OR_RESET) {
+                || status == MXMidiStatic.COMMAND_SYSEX_END
+                || status == MXMidiStatic.COMMAND_META_OR_RESET) {
             _dword = 0;
-            _binary = new byte[] { (byte)status, (byte)data1, (byte)data2 };
+            int len = getMessageLength(status);
+            switch (len){
+                case 1:
+                    _binary = new byte[] { (byte)status };
+                    break;
+                case 2:
+                    _binary = new byte[] { (byte)status, (byte)data1 };
+                    break;
+                case 3:
+                    _binary = new byte[] { (byte)status, (byte)data1, (byte)data2 };
+                    break;
+                default: //TODO ?
+                    _binary = new byte[] { (byte)status, (byte)data1, (byte)data2 };
+                    break;
+            }
         }
         else {
             _dword = (status << 16) | (data1 << 8) | data2;
@@ -87,7 +140,7 @@ public class OneMessage implements Comparable<OneMessage> {
         _tick = tick;
         _dword = calcDWord(binary);
         if (_dword == 0) {
-           _binary = binary;
+            _binary = binary;
         }
         else {
             _binary = null;
@@ -214,20 +267,20 @@ public class OneMessage implements Comparable<OneMessage> {
                         case 0x54: //SMPTE offset
                             meta4 = " as hour, min, sec, frame, FF";
                             break;
-                        case 0x58: //Time Signature	
+                        case 0x58: //Time Signature
                             meta4 = " as numerator, denominator, cc, bb";
                             break;
                         case 0x59: //Key Signature
                             meta4 = " as sf/mi";
                             break;
                     }
-                    
+
                     return meta + " = [" + meta3 + "]" + meta4;
             }
         }
         return null;
     }
-    
+
     public String toString() {
         if (getStatus() == 0xff) {
             return "[meta:" + getMetaText() + "]";
@@ -280,13 +333,6 @@ public class OneMessage implements Comparable<OneMessage> {
             int status = getStatus();
             int data1 = getData1();
             int data2 = getData2();
-            /*
-            if ((status & 0xf0) == MXMidi.COMMAND_CH_NOTEON) {
-                if (data2 == 0) {
-                    int ch = (status & 0x0f);
-                    status = MXMidi.COMMAND_CH_NOTEOFF | ch;
-                }
-            }*/
             message = MXMessageFactory.fromShortMessage(_port, status, data1, data2);
         } else {
             message = MXMessageFactory.fromBinary(_port, getBinary());
@@ -299,7 +345,7 @@ public class OneMessage implements Comparable<OneMessage> {
         OneMessage o1 = this;
         OneMessage o2 = o;
         long x, y, z;
-        
+
         if (o1._tick == 0 && o2._tick == 0) {
             x = o1._millisecond - o2._millisecond;
         }
@@ -328,33 +374,21 @@ public class OneMessage implements Comparable<OneMessage> {
         if (y > 0) {
             return 1;
         }
-        
+
         boolean isProg1 = (o1.getStatus() & 0xf0) == MXMidiStatic.COMMAND_CH_PROGRAMCHANGE;
         boolean isProg2 = (o2.getStatus() & 0xf0) == MXMidiStatic.COMMAND_CH_PROGRAMCHANGE;
         boolean isBank1 = (o1.getStatus() & 0xf0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE && (o1.getData1() == 0 || o1.getData1() == 32);
         boolean isBank2 = (o2.getStatus() & 0xf0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE && (o2.getData1() == 0 || o2.getData1() == 32);
-        
-        byte[] data1 = o1.getBinary();
-        byte[] data2 = o2.getBinary();
 
-        /* リセットとバンクとプログラムは早めに送信する */
-        boolean isReset1 = data1 == null ? false : MXMidiStatic.isReset(data1);
-        boolean isReset2 = data2 == null ? false : MXMidiStatic.isReset(data2);
+        if (o1.isBinaryMessage() != o2.isBinaryMessage()) {
+            if (o1.isBinaryMessage()) {
+                return -1;
+            }
+            else {
+                return 1;
+            }
+        }
 
-        if (isReset1 && !isReset2) {
-            return -1;
-        }
-        if (!isReset1 && isReset2) {
-            return 1;
-        }
-        
-        if (data1 != null && data2 == null) {
-            return -1;
-        }
-        if (data1 == null && data2 != null) {
-            return 1;
-        }
-        
         if (isProg1 && !isProg2) {
             return -1;
         }
@@ -368,8 +402,22 @@ public class OneMessage implements Comparable<OneMessage> {
         if (!isBank1 && isBank2) {
             return 1;
         }
-        
-        if (data1 != null && data2 != null) {        
+
+        if (o1.isBinaryMessage() && o2.isBinaryMessage()) {
+            byte[] data1 = o1.getBinary();
+            byte[] data2 = o2.getBinary();
+
+            /* リセットとバンクとプログラムは早めに送信する */
+            boolean isReset1 = data1 == null ? false : MXMidiStatic.isReset(data1);
+            boolean isReset2 = data2 == null ? false : MXMidiStatic.isReset(data2);
+
+            if (isReset1 && !isReset2) {
+                return -1;
+            }
+            if (!isReset1 && isReset2) {
+                return 1;
+            }
+
             int len = data1.length - data2.length;
             if (len != 0) {
                 return len;
@@ -410,7 +458,7 @@ public class OneMessage implements Comparable<OneMessage> {
         int b3 = (0xff & _binary[4]);
         return b1 + b2 + b3;
     }
-    
+
     public boolean isMetaMessage() {
         return getStatus() == 0xff;
     }
@@ -423,6 +471,28 @@ public class OneMessage implements Comparable<OneMessage> {
     }
 
     public byte[] getBinary() {
+        if (_binary == null) {
+            int status = getStatus();
+            int data1 = getData1();
+            int data2 = getData2();
+            int len =  getMessageLength(status);
+            byte[] data = null;
+            switch (len){
+                case 1:
+                    data = new byte[] { (byte)status };
+                    break;
+                case 2:
+                    data = new byte[] { (byte)status, (byte)data1 };
+                    break;
+                case 3:
+                    data = new byte[] { (byte)status, (byte)data1, (byte)data2 };
+                    break;
+                default: //TODO ?
+                    data = new byte[] { (byte)status, (byte)data1, (byte)data2 };
+                    break;
+            }           
+            return data;
+        }
         return _binary;
     }
 
@@ -435,7 +505,7 @@ public class OneMessage implements Comparable<OneMessage> {
         int dt2 = getData2() & 0x7f;
         return (((st << 8) | dt1) << 8) | dt2;
     }
-    
+
     public boolean isTempoMessage() {
         if (getStatus() == 0xff) {
             if (getData1() == 0x51) {
@@ -444,7 +514,7 @@ public class OneMessage implements Comparable<OneMessage> {
         }
         return false;
     }
-    
+
     public boolean equals(Object o) {
         if (o instanceof OneMessage) {
             return compareTo((OneMessage)o) == 0;

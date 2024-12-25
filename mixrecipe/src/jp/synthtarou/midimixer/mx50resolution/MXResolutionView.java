@@ -57,7 +57,7 @@ public class MXResolutionView extends javax.swing.JPanel {
     public void displayResolutionToPanel() {
         int command = 0;
         try {
-            command = _resolution._command.get(0);
+            command = _resolution._command.safeGet(0);
         } catch (Exception e) {
         }
 
@@ -146,7 +146,7 @@ public class MXResolutionView extends javax.swing.JPanel {
                             _resolution._gate = gate;
                             //refill
                             if (_resolution._command != null) {
-                                if (_resolution._command.get(0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
+                                if (_resolution._command.safeGet(0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
                                     int[] template = _resolution._command.toIntArray();
                                     template[1] = _resolution._gate;
                                     _resolution._command = new MXTemplate(template);
@@ -345,8 +345,8 @@ public class MXResolutionView extends javax.swing.JPanel {
                 _resolution._command = new MXTemplate(ccm._data);
                 _resolution._gate = ccm.getParsedGate()._value;
 
-                if (_resolution._command.get(0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
-                    int gate = _resolution._command.get(1);
+                if (_resolution._command.safeGet(0) == MXMidiStatic.COMMAND_CH_CONTROLCHANGE) {
+                    int gate = _resolution._command.safeGet(1);
                     if (gate != MXMidiStatic.CCXML_GL) {
                         _resolution._gate = gate;
                     }

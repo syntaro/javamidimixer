@@ -144,7 +144,7 @@ public class XTAudioStream{
 
         _muteCheck.clear();
         for (XTOscilator j : _copy) {
-            if (j.isMuted()) {
+            if (j.isFaded()) {
                 _muteCheck.add(j);
             }
         }
