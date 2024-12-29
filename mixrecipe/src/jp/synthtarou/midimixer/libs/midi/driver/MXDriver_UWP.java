@@ -164,15 +164,12 @@ public class MXDriver_UWP implements MXDriver {
             return false;
         }
         
-        int dword = message.getDWORD();
-        if (dword != 0) {
-            return windows10.OutputShortMessage(device, dword);
+        if (message.isBinaryMessage()) {
+            return windows10.OutputLongMessage(device, message.getBinary());
         }
-        byte[] data = message.getBinary();
-        if (message != null) {
-            return windows10.OutputLongMessage(device, data);
+        else {
+            return windows10.OutputShortMessage(device, message.getDWORD());
         }
-        return false;
     }
 
 

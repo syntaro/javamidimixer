@@ -17,7 +17,7 @@
 package jp.synthtarou.mixtone.synth.view;
 
 import javax.swing.JFrame;
-import jp.synthtarou.mixtone.listmodel.TheConsole;
+import jp.synthtarou.mixtone.synth.view.listmodel.TheConsole;
 import jp.synthtarou.mixtone.synth.XTSynthesizer;
 import jp.synthtarou.mixtone.synth.XTSynthesizerSetting;
 

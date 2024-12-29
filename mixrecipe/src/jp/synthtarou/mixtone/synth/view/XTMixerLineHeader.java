@@ -28,7 +28,7 @@ import jp.synthtarou.libs.smf.SMFSequencer;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileFilterListExt;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.FileList;
 import jp.synthtarou.midimixer.libs.swing.folderbrowser.MXFolderBrowser;
-import jp.synthtarou.mixtone.listmodel.ComboModelMidiFile;
+import jp.synthtarou.mixtone.synth.view.listmodel.ComboModelMidiFile;
 
 /**
  *

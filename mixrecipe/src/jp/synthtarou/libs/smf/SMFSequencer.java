@@ -400,11 +400,9 @@ public class SMFSequencer {
                     _callback.smfPlayNote(smf);
                 } else {
                     boolean skip = true;
-                    int dword = smf.getDWORD();
-
-                    int status = (dword >> 16) & 0xff;
-                    int data1 = (dword >> 8) & 0xff;
-                    int data2 = (dword) & 0xff;
+                    int status = smf.getStatus();
+                    int data1 = smf.getData1();
+                    int data2 = smf.getData2();
 
                     if (_forceSingleChannel >= 0) {
                         if (status >= 0x80 && status <= 0xef) {

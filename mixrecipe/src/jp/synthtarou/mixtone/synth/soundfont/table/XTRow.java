@@ -59,11 +59,6 @@ public class XTRow extends ArrayList<XTColumn> {
         ensurePosition(column);
         set(column, new XTColumn(value));
     }
-
-    public void setColumn(int column, XTTable value) {
-        ensurePosition(column);
-        set(column, new XTColumn(value));
-    }
     
     public void set(String column, XTColumn value) {
         int x = _table._header.indexOf(column);
@@ -96,13 +91,6 @@ public class XTRow extends ArrayList<XTColumn> {
         return get(column).numberValue();
     }
 
-    public XTTable tableColumn(int column) {
-        if (column >= size()) {
-            return null;
-        }
-        return get(column).extraValue();
-    }
-    
     public String getDump() {
         XTHeader header = _table.getHeader();
         StringBuilder str = new StringBuilder();

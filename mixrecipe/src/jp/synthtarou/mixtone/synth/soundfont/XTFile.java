@@ -20,14 +20,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.logging.Level;
 import jp.synthtarou.libs.log.MXFileLogger;
-import jp.synthtarou.midimixer.libs.swing.MXFileChooser;
 
-import jp.synthtarou.mixtone.synth.soundfont.table.XTRow;
-import jp.synthtarou.mixtone.synth.soundfont.table.XTTable;
 
 /**
  *
@@ -38,22 +33,18 @@ public class XTFile {
     public XTFile(File f) throws IOException {
         RiffChunk riff = new RiffChunk();
         riff.setData(f);
-        _storage = new HashMap<>();
         prepareChunkTree(riff);
         prepareRooms(riff);
-        dumpPreset();
-        dumpInstrument();
+        //dumpPreset();
+        //dumpInstrument();
     }
 
     public XTFile(InputStream stream) throws IOException {
         try {
             RiffChunk riff = new RiffChunk();
             riff.setData(stream);
-            _storage = new HashMap<>();
             prepareChunkTree(riff);
             prepareRooms(riff);
-            dumpPreset();
-            dumpInstrument();
         }catch(Throwable ex) {
             MXFileLogger.getLogger(XTFile.class).log(Level.SEVERE, ex.getMessage(), ex);
         }
@@ -72,8 +63,6 @@ public class XTFile {
 
             current._chunkId = chunkId;
             current._chunkType = null;
-
-            prepareList(chunkId).add(current);
 
             if (chunkSize < 0) {
                 throw new IllegalStateException("chunkSize was minus");
@@ -102,22 +91,6 @@ public class XTFile {
         return "";
     }
 
-    HashMap<String, List<RiffChunk>> _storage;
-
-    public List<RiffChunk> listChunk(String type) {
-        List<RiffChunk> list = _storage.get(type);
-        return list;
-    }
-
-    protected List<RiffChunk> prepareList(String type) {
-        List<RiffChunk> list = _storage.get(type);
-        if (list == null) {
-            list = new ArrayList<>();
-            _storage.put(type, list);
-        }
-        return list;
-    }
-
     public void prepareRooms(RiffChunk data) {
         ArrayList<RiffChunk> children = data._children;
         
@@ -128,143 +101,95 @@ public class XTFile {
             String id = seek._chunkId;
             String type = seek._chunkType; 
             int size = seek._chunkSize;
-            SFZElement struct = SFZElement.parseSingle(seek);
+            SFZElement struct = parseSingle(seek);
             prepareRooms(seek);
         }
     }
 
-    public void dumpInstrument() {
-        SFZElement _inst = getElement("inst");
-        SFZElement _ibag = getElement("ibag");
-        SFZElement _imod = getElement("imod");
-        SFZElement _igen = getElement("igen");
-
-        if (_inst == null || _ibag == null || _imod == null || _igen == null ){
-            return;
+    public SFZElement parseSingle(RiffChunk riff) {
+        if (riff._listDataElement != null) {
+            return riff._listDataElement;
         }
-
-        for (int i = 0; i < _inst.size() - 1; ++ i) {
-            XTRow inst = _inst.get(i);
-            XTRow instNext = _inst.get(i + 1);
-
-            int instBagIndex = inst.intColumn(SFZElement.INST_BAGINDEX);
-            int nextBagIndex = instNext.intColumn(SFZElement.INST_BAGINDEX);
-
-            XTTable bagIndexExtra = new XTTable(_ibag, instBagIndex, nextBagIndex - 1);
-            inst.setColumn(SFZElement.INST_BAGINDEX_TABLE, bagIndexExtra);
-
-            for (int bagIndex = instBagIndex; bagIndex < nextBagIndex; ++ bagIndex) {
-                XTRow bag = _ibag.get(bagIndex);
-                XTRow bagNext = _ibag.get(bagIndex+1);
-
-                int modFrom = bag.intColumn(SFZElement.IBAG_IMODINDEX);
-                int modTo = bagNext.intColumn(SFZElement.IBAG_IMODINDEX) - 1;
-
-                XTTable modIndexExtra = new XTTable(_imod, modFrom, modTo);
-                bag.setColumn(SFZElement.IBAG_IMODINDEX_TABLE, modIndexExtra);
-
-                int genFrom = bag.intColumn(SFZElement.IBAG_IGENINDEX);
-                int genTo = bagNext.intColumn(SFZElement.IBAG_IGENINDEX) - 1;
-
-                XTTable genIndexExtra = new XTTable(_igen, genFrom, genTo);
-                bag.setColumn(SFZElement.IBAG_IGENINDEX_TABLE, genIndexExtra);
-            }
-        }
-    }
-
-    public void dumpPreset() {
-        SFZElement _phdr = getElement("phdr");
-        SFZElement _pbag = getElement("pbag");
-        SFZElement _pmod = getElement("pmod");
-        SFZElement _pgen = getElement("pgen");
-
-        for (int i = 0; i < _phdr.size() - 1; ++ i) {
-            XTRow preset = _phdr.get(i);
-            XTRow next = _phdr.get(i + 1);
-
-            int presetBagIndex = preset.intColumn(SFZElement.PHDR_BAGINDEX);
-            int nextBagIndex = next.intColumn(SFZElement.PHDR_BAGINDEX);
-
-            XTTable bagIndexExtra = new XTTable(_pbag, presetBagIndex, nextBagIndex - 1);
-            preset.setColumn(SFZElement.PHDR_BAGINDEX_TABLE, bagIndexExtra);
-
-            for (int bagIndex = presetBagIndex; bagIndex < nextBagIndex; ++ bagIndex) {
-                XTRow bag = _pbag.get(bagIndex);
-                XTRow bagNext = _pbag.get(bagIndex+1);
-
-                int modFrom = bag.intColumn(SFZElement.PBAG_PMODINDEX);
-                int modTo = bagNext.intColumn(SFZElement.PBAG_PMODINDEX) - 1;
-                if (modFrom <= modTo) {
-                    XTTable modIndexExtra = new XTTable(_pmod, modFrom, modTo);
-                    bag.setColumn(SFZElement.PBAG_PMODINDEX_TABLE, modIndexExtra);
-                }
-
-                int genFrom = bag.intColumn(SFZElement.PBAG_PGENINDEX);
-                int genTo = bagNext.intColumn(SFZElement.PBAG_PGENINDEX) - 1;
-
-                if (genFrom <= genTo) {
-                    XTTable genIndexExtra = new XTTable(_pgen, genFrom, genTo);
-                    bag.setColumn(SFZElement.PBAG_PGENINDEX_TABLE, genIndexExtra);
-                }
-            }
-        }
-    }
-
-    SFZElement.SFZElement_inst _inst = null;
-    public SFZElement.SFZElement_inst getElement_inst() {
-        if (_inst == null) {
-            _inst = (SFZElement.SFZElement_inst)getElement("inst");
-        }
-        return _inst;
-    }
-    
-    SFZElement.SFZElement_phdr _phdr = null;
-    public SFZElement.SFZElement_phdr getElement_phdr() {
-        if (_phdr == null) {
-            _phdr = (SFZElement.SFZElement_phdr)getElement("phdr");
-        }
-        return _phdr;
-    }
-    
-    SFZElement.SFZElement_shdr _shdr = null;
-    public SFZElement.SFZElement_shdr getElement_shdr() {
-        if (_shdr == null) {
-            _shdr = (SFZElement.SFZElement_shdr)getElement("shdr");
-        }
-        return _shdr;
-    }
-
-    SFZElement.SFZElement_smpl _smpl = null;
-    public SFZElement.SFZElement_smpl getElement_smpl() {
-        if (_smpl == null) {
-            _smpl = (SFZElement.SFZElement_smpl)getElement("smpl");
-        }
-        return _smpl;
-    }
-    
-    SFZElement.SFZElement_sm24 _sm24 = null;
-    public SFZElement.SFZElement_sm24 getElement_sm24() {
-        if (_sm24 == null) {
-            _sm24 = (SFZElement.SFZElement_sm24)getElement("sm24");
-        }
-        return _sm24;
-    }
-    
-    public SFZElement getElement(String id) {
-        try {
-            List<RiffChunk> list = prepareList(id);
-            List<SFZElement> result = new ArrayList<>();
-            if (list.size() >= 2) {
-                throw new IllegalStateException();
-            }
-            for (RiffChunk chunk : list)  {
-                if (chunk._chunkId.equals(id)) {
-                    return chunk._listDataElement;
-                }
-            }
-            return null;
-        }catch(Throwable ex) {
+        String chunk = riff._chunkId;
+        if (chunk == null) {
             return null;
         }
+
+        SFZElement element =  null;
+        if (chunk.equals("ifil")) {
+            _ifil = new SFZElement.SFZElement_ifil(riff);
+        } else if (chunk.equals("isng")) {
+            _isng = new SFZElement.SFZElement_isng(riff);
+        } else if (chunk.equals("INAM")) {
+            _INAM = new SFZElement.SFZElement_INAM(riff);
+        } else if (chunk.equals("irom")) {
+            _irom = new SFZElement.SFZElement_irom(riff);
+        } else if (chunk.equals("iver")) {
+            _iver = new SFZElement.SFZElement_iver(riff);
+        } else if (chunk.equals("ICRD")) {
+            _ICRD = new SFZElement.SFZElement_ICRD(riff);
+        } else if (chunk.equals("IENG")) {
+            _IENG = new SFZElement.SFZElement_IENG(riff);
+        } else if (chunk.equals("IPRD")) {
+            _IPDR = new SFZElement.SFZElement_IPRD(riff);
+        } else if (chunk.equals("ICOP")) {
+            _ICOP = new SFZElement.SFZElement_ICOP(riff);
+        } else if (chunk.equals("ICMT")) {
+            _ICMT = new SFZElement.SFZElement_ICMT(riff);
+        } else if (chunk.equals("ISFT")) {
+            _ISFT = new SFZElement.SFZElement_ISFT(riff);
+        } else if (chunk.equals("smpl")) {
+            _smpl = new SFZElement.SFZElement_smpl(riff);
+        } else if (chunk.equals("sm24")) {
+            _sm24 = new SFZElement.SFZElement_sm24(riff);
+        } else if (chunk.equals("phdr")) {
+            _phdr = new SFZElement.SFZElement_phdr(riff);
+        } else if (chunk.equals("pbag")) {
+            _pbag = new SFZElement.SFZElement_pbag(riff);
+        } else if (chunk.equals("pmod")) {
+            _pmod = new SFZElement.SFZElement_pmod(riff);
+        } else if (chunk.equals("pgen")) {
+            _pgen = new SFZElement.SFZElement_pgen(riff);
+        } else if (chunk.equals("inst")) {
+            _inst  = new SFZElement.SFZElement_inst(riff);
+        } else if (chunk.equals("ibag")) {
+            _ibag = new SFZElement.SFZElement_ibag(riff);
+        } else if (chunk.equals("imod")) {
+            _imod = new SFZElement.SFZElement_imod(riff);
+        } else if (chunk.equals("igen")) {
+            _igen = new SFZElement.SFZElement_igen(riff);
+        } else if (chunk.equals("shdr")) {
+            _shdr = new SFZElement.SFZElement_shdr(riff);
+        } else {
+            element = (new SFZElement("unknown") {
+            });
+        }
+
+        riff._listDataElement = element;
+        return element;
     }
+
+    public SFZElement.SFZElement_ifil _ifil = null;
+    public SFZElement.SFZElement_isng _isng = null;
+    public SFZElement.SFZElement_INAM _INAM = null;
+    public SFZElement.SFZElement_irom _irom = null;
+    public SFZElement.SFZElement_inst _inst = null;
+    public SFZElement.SFZElement_ibag _ibag = null;
+    public SFZElement.SFZElement_igen _igen = null;
+    public SFZElement.SFZElement_imod _imod = null;
+    public SFZElement.SFZElement_phdr _phdr = null;
+    public SFZElement.SFZElement_pbag _pbag = null;
+    public SFZElement.SFZElement_pgen _pgen = null;
+    public SFZElement.SFZElement_pmod _pmod = null;
+    public SFZElement.SFZElement_shdr _shdr = null;
+    public SFZElement.SFZElement_smpl _smpl = null;
+    public SFZElement.SFZElement_sm24 _sm24 = null;
+
+    public SFZElement.SFZElement_iver _iver = null;
+    public SFZElement.SFZElement_ICRD _ICRD = null;;
+    public SFZElement.SFZElement_IENG _IENG = null;;
+    public SFZElement.SFZElement_IPRD _IPDR = null;;
+    public SFZElement.SFZElement_ICOP _ICOP = null;;
+    public SFZElement.SFZElement_ICMT _ICMT = null;;
+    public SFZElement.SFZElement_ISFT _ISFT = null;;
 }

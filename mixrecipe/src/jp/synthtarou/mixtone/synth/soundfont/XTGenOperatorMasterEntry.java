@@ -20,7 +20,7 @@ package jp.synthtarou.mixtone.synth.soundfont;
  *
  * @author Syntarou YOSHIDA
  */
-public class XTGenOperator {
+public class XTGenOperatorMasterEntry {
     int _id;
     String _name;
     String _unit;
@@ -42,43 +42,43 @@ public class XTGenOperator {
          Double asParameter(int generator);
     }
     
-    public XTGenOperator(int id, String name) {
+    public XTGenOperatorMasterEntry(int id, String name) {
         _id = id;
         _name = name;
     }
 
-    public XTGenOperator unit(String unit)
+    public XTGenOperatorMasterEntry unit(String unit)
     {
         _unit = unit;
         return this;
     }
 
-    public XTGenOperator unit(String unit, SFZTranslator trans){
+    public XTGenOperatorMasterEntry unit(String unit, SFZTranslator trans){
         _unit = unit;
         return this;
     }
 
-    public XTGenOperator trans(SFZTranslator trans){
+    public XTGenOperatorMasterEntry trans(SFZTranslator trans){
         _trans = trans;
         _min = null;
         _max = null;
         return this;
     }
 
-    public XTGenOperator generator(Integer min, Integer max) {
+    public XTGenOperatorMasterEntry generator(Integer min, Integer max) {
         _generatorMin = min;
         _generatorMax = max;
         return this;
     }
 
-    public XTGenOperator range(Double initial, Double min, Double max) {
+    public XTGenOperatorMasterEntry range(Double initial, Double min, Double max) {
         _initial = initial;
         _min = min;
         _max = max;
         return this;
     }
     
-    public XTGenOperator range(Integer initial, Integer min, Integer max) {
+    public XTGenOperatorMasterEntry range(Integer initial, Integer min, Integer max) {
         _initial = (initial == null) ? null : initial.doubleValue();
         _min = (min == null) ? null :  min.doubleValue();
         _max = (max == null) ? null : max.doubleValue();

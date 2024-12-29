@@ -344,7 +344,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
             jTextFieldChannel.setText(_channelModel.nameOfValue(_status._base.getChannel()));
             MXMessageFormatter format = MXMessageFormatter._short;
 
-            jLabelDefaultName.setText("'" + format.format(_status._base) + "' if blank");
+            jLabelDefaultName.setText("if blank '" + format.getFormat() + "' will be used and, will showing " + format.format(_status._base));
 
             MXTemplate temp = _status._base.getTemplate();
             if (temp.safeGet(1) != MXMidiStatic.CCXML_GL) {
@@ -644,7 +644,7 @@ public class MGStatusPanel extends javax.swing.JPanel implements CaptureCallback
         if (_stopFeedback > 0) {
             return;
         }
-        _status._memo = jTextFieldName.getText();
+        _status._name = jTextFieldName.getText();
         String gateName = jTextFieldGate.getText();
         int gate = _currentGateModel.valueOfName(gateName);
         _status._base.setGate(MXRangedValue.new7bit(gate));

@@ -27,6 +27,7 @@ import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
 import jp.synthtarou.libs.json.MXJsonValue;
+import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.midimixer.libs.midi.MXReceiver;
 
 /**
@@ -138,8 +139,8 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
     public void processMXMessage(MXMessage message) {
     }
     
-    public void updatePianoDX(int dword) {
-        _view.updatePianoDX(dword);
+    public void updatePianoDX(OneMessage one) {
+        _view.updatePianoDX(one);
     }
 
     @Override

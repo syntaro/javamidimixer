@@ -131,7 +131,7 @@ public class MXDriver_VSTi implements MXDriver {
             if (x == 0){ 
                 return false;
             }
-            return _ownList.getInstrument(port).postShortMessage(message.getDWORD());
+            return _ownList.getInstrument(port).postShortMessage(x);
         }
     }
 }

@@ -14,39 +14,35 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.mixtone.synth.soundfont.table;
+package jp.synthtarou.mixtone.synth.view.listmodel;
+
+import javax.swing.AbstractListModel;
+import jp.synthtarou.mixtone.synth.soundfont.wrapper.PHDREntry;
+import jp.synthtarou.mixtone.synth.soundfont.wrapper.PHDREntryList;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class XTColumn {
-    public XTColumn(String value) {
-        _textValue = value;
+public class ModelForPHDREntryList extends AbstractListModel<String>{
+    PHDREntryList _listBase;
+    
+    public ModelForPHDREntryList(PHDREntryList list) {
+        _listBase = list;
     }
 
-    public XTColumn(Number value) {
-        _numberValue = value;
-    }
-
-    public String textValue() {
-        return _textValue;
+    @Override
+    public int getSize() {
+        return  _listBase.count();
     }
     
-    public Number numberValue() {
-        return _numberValue;
+    public PHDREntry getPHDREntry(int index) {
+        return _listBase.getPHDREntry(index);
     }
 
-    String _textValue;
-    Number _numberValue;
-    
-    public String toString() {
-        if (_numberValue != null) {
-            return _numberValue.toString();
-        }
-        if (_textValue != null) {
-            return '"' + _textValue + '"';
-        }
-        return "none";
+    @Override
+    public String getElementAt(int index) {
+        PHDREntry phdr = getPHDREntry(index);
+        return index + ")" + phdr.getName();
     }
 }

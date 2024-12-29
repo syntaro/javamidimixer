@@ -21,15 +21,18 @@ import java.util.LinkedList;
 import java.util.List;
 import jp.synthtarou.libs.smf.OneMessage;
 import jp.synthtarou.midimixer.libs.midi.MXMidiStatic;
-import jp.synthtarou.mixtone.listmodel.IBagLineMean;
-import jp.synthtarou.mixtone.listmodel.PBagLineMean;
 import jp.synthtarou.mixtone.synth.oscilator.XTOscilator;
 import jp.synthtarou.mixtone.synth.soundfont.SFZElement;
-import jp.synthtarou.mixtone.synth.soundfont.XTGenOperator;
+import jp.synthtarou.mixtone.synth.soundfont.XTGenOperatorMasterEntry;
 import jp.synthtarou.mixtone.synth.soundfont.XTGenOperatorMaster;
+import jp.synthtarou.mixtone.synth.soundfont.wrapper.IGENEntry;
+import jp.synthtarou.mixtone.synth.soundfont.wrapper.IBAGEntry;
+import jp.synthtarou.mixtone.synth.soundfont.wrapper.PGENEntry;
+import jp.synthtarou.mixtone.synth.soundfont.wrapper.PBAGEntry;
 import jp.synthtarou.mixtone.synth.soundfont.table.XTHeader;
 import jp.synthtarou.mixtone.synth.soundfont.table.XTRow;
-import jp.synthtarou.mixtone.synth.soundfont.table.XTTable;
+import jp.synthtarou.mixtone.synth.soundfont.wrapper.INSTEntry;
+import jp.synthtarou.mixtone.synth.soundfont.wrapper.PHDREntry;
 
 /**
  *
@@ -41,9 +44,7 @@ public class XTSynthesizerTrack {
     int _track;
     int _program;
     int _bank;
-    SFZElement.SFZElement_phdr _phdr;
-    SFZElement.SFZElement_inst _inst;
-    XTRow _phdr_row;
+    int _phdr_row;
     XTSynthesizer _synth;
     double _pan;
     double _volume;
@@ -63,7 +64,7 @@ public class XTSynthesizerTrack {
         _damper = false;
         _markNoteOff = null;
         if (_genMaster == null) {
-            _genMaster = new XTGenOperatorMaster();
+            _genMaster = XTGenOperatorMaster.getMaster();
         }
     }
 
@@ -80,104 +81,83 @@ public class XTSynthesizerTrack {
             }
         }
 
-        XTTable table = _phdr_row.tableColumn(SFZElement.PHDR_BAGINDEX_TABLE);
+        PHDREntry phdrEntry = new PHDREntry(_synth._sfz, _phdr_row);
         ArrayList<XTOscilator> result = new ArrayList<>();
 
-        for (int row = 0; row <table.size(); ++ row) {
-            PBagLineMean pmean = new PBagLineMean(table.get(row));
-            if (pmean.keyRange() != null && pmean.keyRange() != 0) {
-                if (pmean.keyRangeLo() <= key && key <= pmean.keyRangeHi()) {
-                }else {
-                    continue;
-                }
+        for (int row = 0; row < phdrEntry.countPBAGEntry(); ++ row) {
+            PBAGEntry pbag = phdrEntry.getPBAGEntry(row);
+            PGENEntry pgen = pbag.getPGENEntry();
+            if (pgen.getGenerator(XTGenOperatorMaster.keyRange) != null && pgen.inKeyRange(key) == false) {
+                continue;
             }
-            if (pmean.velRange() != null && pmean.velRange() != 0) {
-                if (pmean.velRangeLo() <= velocity && velocity <= pmean.velRangeHi()) {
-                }else {
-                    continue;
-                }
+            if (pgen.getGenerator(XTGenOperatorMaster.velRange) != null && pgen.inVelocityRange(key) == false) {
+                continue;
             }
 
-            Integer instrument = pmean.instrument();
+            Integer instrument = pgen.getInstrument();
             if (instrument == null) {
                 continue;
             }
-            XTRow instrumentRow = _inst.get(instrument);
-            if (instrumentRow == null) {
-                continue;
-            }
-            XTTable instBag = instrumentRow.tableColumn(SFZElement.INST_BAGINDEX_TABLE);
-            IBagLineMean root = null;
+            
+            INSTEntry instEntry = new INSTEntry(_synth._sfz, instrument);
+            IGENEntry root = null;
 
-            for (int inst = 0; inst < instBag.size() ; ++ inst) {
-                IBagLineMean imean = new IBagLineMean(instBag.get(inst));
-                if (root == null && imean.sampleID() == null) {
-                    root = imean;
+            for (int inst = 0; inst < instEntry.countIBAGEntry(); ++ inst) {
+                IBAGEntry ibag = instEntry.getIBAGEntry(inst);
+                IGENEntry igen = ibag.getIGENEntry();
+                Integer sampleId = igen.getSampleId();
+                if (root == null && sampleId == null) {
+                    root = igen;
                     continue;
                 }
-                if (imean.keyRange() != null && imean.keyRange() != 0) {
-                    if (imean.keyRangeLo() <= key && key <= imean.keyRangeHi()) {
-                    }else {
+                if (sampleId == null) {
+                    continue;
+                }
+                if (igen.getGenerator(XTGenOperatorMaster.keyRange) != null) {
+                    if (igen.inKeyRange(key) == false) {
+                        continue;
+                    }
+                }else if (root != null && root.getGenerator(XTGenOperatorMaster.keyRange) != null) {
+                    if (root.inKeyRange(key) == false) {
                         continue;
                     }
                 }
-                else if (root != null && root.keyRange() != null && root.keyRange() != 0) {
-                    if (root.keyRangeLo() <= key && key <= root.keyRangeHi()) {
-                    }else {
+                if (igen.getGenerator(XTGenOperatorMaster.velRange) != null) {
+                    if (igen.inVelocityRange(velocity) == false) {
+                        continue;
+                    }
+                }else if (root != null && root.getGenerator(XTGenOperatorMaster.velRange) != null) {
+                    if (root.inVelocityRange(velocity) == false) {
                         continue;
                     }
                 }
-                if (imean.velRange() != null && imean.velRange() != 0) {
-                    if (imean.velRangeLo() <= velocity && velocity <= imean.velRangeHi()) {
-                    }else {
-                        continue;
-                    }
-                }
-                else if (root != null && root.velRange() != null && root.velRange() != 0) {
-                    if (root.velRangeLo() <= velocity && velocity <= root.velRangeHi()) {
-                    }else {
-                        continue;
-                    }
-                }
-
-                Double pan = imean.pan();
-                if (pan == null && root != null) {
-                    pan = root.pan();
+   
+                Integer ipan = igen.getPan();
+                if (ipan == null && root != null) {
+                    ipan = root.getPan();
                 }
                 
-                if (pan == null) {
-                    pan = 0.0;
+                if (ipan == null) {
+                    ipan = 0;
                 }
+                Double pan = _genMaster.getEntry(XTGenOperatorMaster.pan).asParameter(ipan);
 
                 int min = -500;
                 int max = 500;
-                /*
-                XTGenOperator oper = _genMaster.get(XTGenOperatorMaster.pan);
-                if (oper != null) {
-                    if (oper.getMin() != null && oper.getMax() != null) {
-                        if (oper.getMin() < oper.getMax()) {
-                            min = oper.getMin().intValue();
-                            max = oper.getMax().intValue();
-                        }
-                    }
-                }*/
+
                 double pos = (pan.doubleValue() - min) / (max - min);
                 double centerPos = (pos - 0.5) * 2;
                 if (centerPos < -1) centerPos = -1;
                 if (centerPos > 1) centerPos = 1;
 
                 try {
-                    Integer sampleId = imean.sampleID();
-                    if (sampleId == null) {
-                        continue;
-                    }
-                    Integer overridingRootKey = imean.overridingRootKey();
+                    Integer overridingRootKey = igen.getOverridingRootKey();
                     if (overridingRootKey == null && root != null) {
-                        overridingRootKey = root.overridingRootKey();
+                        overridingRootKey = root.getOverridingRootKey();
                     }
-                    Integer loop = imean.sampleModes();
+                    Integer loop = igen.getSampleModes();
                     if (loop == null && root != null) {
-                        loop = root.sampleModes();
+                        loop = root.getSampleModes();
                     }
 
                     XTOscilator osc = new XTOscilator(
@@ -186,7 +166,7 @@ public class XTSynthesizerTrack {
                             velocity * 1.0 / 127, 
                             _synth._sfz, 
                             sampleId, 
-                            loop == null ? false: (loop.intValue() > 0), 
+                            loop != null && loop.intValue() > 0,
                             overridingRootKey == null ? -1 : overridingRootKey,
                             centerPos);
 
@@ -204,52 +184,47 @@ public class XTSynthesizerTrack {
     public void setupPHDRObject(int program, int bank) {
         _program = program;
         _bank = bank;
-        _phdr = _synth._sfz.getElement_phdr();
-        _inst = _synth._sfz.getElement_inst();
+        SFZElement.SFZElement_phdr _phdr = _synth._sfz._phdr;
         XTHeader header = _phdr.getHeader();
-        XTRow found = null;
+        int found = -1;
         
         for (int i = 0; i < _phdr.size() -1; ++ i) {
             XTRow row = _phdr.get(i);
             Number numPreset = row.numberColumn(SFZElement.PHDR_PRESETNO, null);
             Number numBank = row.numberColumn(SFZElement.PHDR_BANK, null);
-            if (found == null) {
+            if (found < 0) {
                 if (numPreset != null && numPreset.intValue() == program) {
-                    found = row;
+                    found = i;
                 }
             }
             else {
                 if (numPreset != null && numPreset.intValue() == program) {
                     if (_track == 9) {
                         if (numBank != null && numBank.intValue() >= 120) {
-                            found = row;
+                            found = i;
                         }
                     }
                     else {
                         if (numBank != null && numBank.intValue() == bank) {
-                            found = row;
+                            found = i;
                         }
                     }
                 }
             }
         }
-        if (found != null) {
-            _phdr_row = found;
-        }
+        _phdr_row = found;
     }
-
-    static XTGenOperatorMaster _opratorMaster = new XTGenOperatorMaster();
     
     class BindValue {
-        XTGenOperator _oper; 
+        XTGenOperatorMasterEntry _oper; 
         Integer _generater = null;
         
-        BindValue(XTGenOperator oper) {
+        BindValue(XTGenOperatorMasterEntry oper) {
             _oper = oper;
         }
 
         BindValue(int oper) {
-            _oper = _opratorMaster.get(oper);
+            _oper = _genMaster.getEntry(oper);
         }
         
         public BindValue setGenerator(int x) {

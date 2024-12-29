@@ -68,10 +68,10 @@ public class XTOscilator {
         _tonePan = pan;
 
         _sfz = sfz;
-        _shdr = _sfz.getElement_shdr();
-        _smpl = _sfz.getElement_smpl();
-        _sm24 = _sfz.getElement_sm24();
-
+        _shdr = _sfz._shdr;
+        _smpl = _sfz._smpl;
+        _sm24 = _sfz._sm24;
+        
         _row = _shdr.get(sampleId);
         if (_row == null) {
             throw new IllegalArgumentException("sampleID " + sampleId + " overflow " + _shdr.size());
@@ -81,7 +81,7 @@ public class XTOscilator {
         _end = _row.intColumn(SFZElement.SHDR_END);
         _loopStart = _row.intColumn(SFZElement.SHDR_LOOPSTART);
         _loopEnd = _row.intColumn(SFZElement.SHDR_LOOPEND);
-
+        
         /*
         if (_loopStart >= 0 && _loopEnd >= 0 && _start <= _loopStart && _loopStart <= _loopEnd && _loopEnd <= _end) {
             _loop = true;

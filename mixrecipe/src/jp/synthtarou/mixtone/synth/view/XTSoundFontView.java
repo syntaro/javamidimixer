@@ -18,14 +18,21 @@ package jp.synthtarou.mixtone.synth.view;
 
 import java.io.File;
 import javax.swing.JFileChooser;
-import jp.synthtarou.mixtone.listmodel.ListModelINSTBagTable;
-import jp.synthtarou.mixtone.listmodel.ListModelINSTList;
-import jp.synthtarou.mixtone.listmodel.ListModelINSTSHDRProperty;
-import jp.synthtarou.mixtone.listmodel.ListModelPHDRBagTable;
-import jp.synthtarou.mixtone.listmodel.ListModelPHDRList;
-import jp.synthtarou.mixtone.listmodel.TheConsole;
+import jp.synthtarou.mixtone.synth.view.listmodel.ModelForINSTEntry;
+import jp.synthtarou.mixtone.synth.view.listmodel.ModelForINSTEntryList;
+import jp.synthtarou.mixtone.synth.view.listmodel.ModelForSHDRList;
+import jp.synthtarou.mixtone.synth.view.listmodel.ModelForPHDREntryList;
+import jp.synthtarou.mixtone.synth.view.listmodel.TheConsole;
 import jp.synthtarou.mixtone.synth.XTSynthesizer;
 import jp.synthtarou.mixtone.synth.oscilator.XTOscilator;
+import jp.synthtarou.mixtone.synth.soundfont.wrapper.IBAGEntry;
+import jp.synthtarou.mixtone.synth.soundfont.wrapper.IGENEntry;
+import jp.synthtarou.mixtone.synth.soundfont.wrapper.INSTEntry;
+import jp.synthtarou.mixtone.synth.soundfont.wrapper.INSTEntryList;
+import jp.synthtarou.mixtone.synth.soundfont.wrapper.PBAGEntry;
+import jp.synthtarou.mixtone.synth.soundfont.wrapper.PHDREntry;
+import jp.synthtarou.mixtone.synth.soundfont.wrapper.PHDREntryList;
+import jp.synthtarou.mixtone.synth.view.listmodel.ModelForPHDREntry;
 
 /**
  *
@@ -39,8 +46,6 @@ public class XTSoundFontView extends javax.swing.JPanel {
     public XTSoundFontView(XTSynthesizer synth) {
         initComponents();
         _synth = synth;
-        _console = new TheConsole();
-        _console.attach(jListDebug);
         _synth.startAudioStream();
        jTextFieldFileName.setEditable(false);
     }
@@ -59,28 +64,23 @@ public class XTSoundFontView extends javax.swing.JPanel {
 
         jTextFieldFileName = new javax.swing.JTextField();
         jButtonBrowse = new javax.swing.JButton();
-        jSplitPane2 = new javax.swing.JSplitPane();
-        jPanel5 = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jListDebug = new javax.swing.JList<>();
+        jButtonClearSel = new javax.swing.JButton();
         jSplitPane1 = new javax.swing.JSplitPane();
         jSplitPane3 = new javax.swing.JSplitPane();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane5 = new javax.swing.JScrollPane();
-        jListPHDRList = new javax.swing.JList<>();
+        jList1ListPreset = new javax.swing.JList<>();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane6 = new javax.swing.JScrollPane();
-        jListPHDRBagProperty = new javax.swing.JList<>();
+        jList2Preset = new javax.swing.JList<>();
         jSplitPane4 = new javax.swing.JSplitPane();
         jPanelInstrument = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jListInstrumentList = new javax.swing.JList<>();
+        jList3ListInst = new javax.swing.JList<>();
         jPanelZone = new javax.swing.JPanel();
         jScrollPane4 = new javax.swing.JScrollPane();
-        jListInstBagProperty = new javax.swing.JList<>();
+        jList4Inst = new javax.swing.JList<>();
         jButton60 = new javax.swing.JButton();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        jListSHDRProperty = new javax.swing.JList<>();
         jButton61 = new javax.swing.JButton();
         jButton62 = new javax.swing.JButton();
         jButton63 = new javax.swing.JButton();
@@ -104,36 +104,32 @@ public class XTSoundFontView extends javax.swing.JPanel {
                 jButtonBrowseActionPerformed(evt);
             }
         });
+        add(jButtonBrowse, new java.awt.GridBagConstraints());
+
+        jButtonClearSel.setText("ClearSel");
+        jButtonClearSel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonClearSelActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        add(jButtonBrowse, gridBagConstraints);
-
-        jSplitPane2.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-
-        jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder("Logging"));
-        jPanel5.setLayout(new javax.swing.BoxLayout(jPanel5, javax.swing.BoxLayout.LINE_AXIS));
-
-        jScrollPane1.setViewportView(jListDebug);
-
-        jPanel5.add(jScrollPane1);
-
-        jSplitPane2.setLeftComponent(jPanel5);
+        gridBagConstraints.gridy = 1;
+        add(jButtonClearSel, gridBagConstraints);
 
         jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
 
         jSplitPane3.setDividerLocation(300);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Preset"));
-        jPanel1.setLayout(new javax.swing.BoxLayout(jPanel1, javax.swing.BoxLayout.LINE_AXIS));
+        jPanel1.setLayout(new javax.swing.BoxLayout(jPanel1, javax.swing.BoxLayout.PAGE_AXIS));
 
-        jListPHDRList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+        jList1ListPreset.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                jListPHDRListValueChanged(evt);
+                jList1ListPresetValueChanged(evt);
             }
         });
-        jScrollPane5.setViewportView(jListPHDRList);
+        jScrollPane5.setViewportView(jList1ListPreset);
 
         jPanel1.add(jScrollPane5);
 
@@ -142,12 +138,12 @@ public class XTSoundFontView extends javax.swing.JPanel {
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("PresetBag ListEntries"));
         jPanel2.setLayout(new javax.swing.BoxLayout(jPanel2, javax.swing.BoxLayout.LINE_AXIS));
 
-        jListPHDRBagProperty.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+        jList2Preset.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                jListPHDRBagPropertyValueChanged(evt);
+                jList2PresetValueChanged(evt);
             }
         });
-        jScrollPane6.setViewportView(jListPHDRBagProperty);
+        jScrollPane6.setViewportView(jList2Preset);
 
         jPanel2.add(jScrollPane6);
 
@@ -160,12 +156,12 @@ public class XTSoundFontView extends javax.swing.JPanel {
         jPanelInstrument.setBorder(javax.swing.BorderFactory.createTitledBorder("Instrument"));
         jPanelInstrument.setLayout(new javax.swing.BoxLayout(jPanelInstrument, javax.swing.BoxLayout.LINE_AXIS));
 
-        jListInstrumentList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+        jList3ListInst.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                jListInstrumentListValueChanged(evt);
+                jList3ListInstValueChanged(evt);
             }
         });
-        jScrollPane2.setViewportView(jListInstrumentList);
+        jScrollPane2.setViewportView(jList3ListInst);
 
         jPanelInstrument.add(jScrollPane2);
 
@@ -174,12 +170,12 @@ public class XTSoundFontView extends javax.swing.JPanel {
         jPanelZone.setBorder(javax.swing.BorderFactory.createTitledBorder("InstrumentBag ListEntry"));
         jPanelZone.setLayout(new java.awt.GridBagLayout());
 
-        jListInstBagProperty.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+        jList4Inst.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                jListInstBagPropertyValueChanged(evt);
+                jList4InstValueChanged(evt);
             }
         });
-        jScrollPane4.setViewportView(jListInstBagProperty);
+        jScrollPane4.setViewportView(jList4Inst);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -202,17 +198,6 @@ public class XTSoundFontView extends javax.swing.JPanel {
         gridBagConstraints.gridy = 10;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTH;
         jPanelZone.add(jButton60, gridBagConstraints);
-
-        jScrollPane3.setViewportView(jListSHDRProperty);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.gridheight = 8;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        jPanelZone.add(jScrollPane3, gridBagConstraints);
 
         jButton61.setText("Play 61");
         jButton61.addActionListener(new java.awt.event.ActionListener() {
@@ -290,16 +275,14 @@ public class XTSoundFontView extends javax.swing.JPanel {
 
         jSplitPane1.setRightComponent(jSplitPane4);
 
-        jSplitPane2.setRightComponent(jSplitPane1);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        add(jSplitPane2, gridBagConstraints);
+        add(jSplitPane1, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonBrowseActionPerformed
@@ -313,75 +296,33 @@ public class XTSoundFontView extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jButtonBrowseActionPerformed
 
-    private void jListPHDRListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListPHDRListValueChanged
-        int index = jListPHDRList.getSelectedIndex();
+    private void jList1ListPresetValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jList1ListPresetValueChanged
+        int index = jList1ListPreset.getSelectedIndex();
         if (index >= 0) {
             try {
-                ListModelPHDRBagTable model = _listModelPHDRList.getAsPHDRBagTable(index);
-                if (model != null) {
-                    _listModelPHDRBagList = model;
-                    jListPHDRBagProperty.setModel(model);
-                }
-            }catch(IndexOutOfBoundsException ex) {
-                ex.printStackTrace();
+                PHDREntry entry = _listModel1PHDRList.getPHDREntry(index);
+                _listModel2PHDREntry = new ModelForPHDREntry(entry);
+                System.err.println("listModel2 " + index + " / " +_listModel2PHDREntry.getSize());
+                jList2Preset.setModel(_listModel2PHDREntry);
             }catch(Throwable ex) {
                 ex.printStackTrace();
             }
         }
-    }//GEN-LAST:event_jListPHDRListValueChanged
+    }//GEN-LAST:event_jList1ListPresetValueChanged
 
-    private void jListPHDRBagPropertyValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListPHDRBagPropertyValueChanged
-        int index = jListPHDRBagProperty.getSelectedIndex();
+    private void jList3ListInstValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jList3ListInstValueChanged
+        int index = jList3ListInst.getSelectedIndex();
         if (index >= 0) {
             try {
-                int instrument = _listModelPHDRBagList.getInstrumentOf(index);
-                ListModelINSTBagTable model = _listModelINSTList.getAsINSTBagTable(instrument);
-                if (model != null) {
-                    _listModelINSTBagList = model;
-                    jListInstBagProperty.setModel(model);
-                }
-            }catch(IndexOutOfBoundsException ex) {
-                ex.printStackTrace();
+                INSTEntry entry = _listModel3InstList.getINSTEntry(index);
+                _listModel4InstEntry = new ModelForINSTEntry(entry);
+                System.err.println("listModel4 "  + index + " / " + _listModel4InstEntry.getSize());
+                jList4Inst.setModel(_listModel4InstEntry);
             }catch(Throwable ex) {
                 ex.printStackTrace();
             }
         }
-
-    }//GEN-LAST:event_jListPHDRBagPropertyValueChanged
-
-    private void jListInstrumentListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListInstrumentListValueChanged
-        int index = jListInstrumentList.getSelectedIndex();
-        if (index >= 0) {
-            try {
-                ListModelINSTBagTable model = _listModelINSTList.getAsINSTBagTable(index);
-                if (model != null) {
-                    _listModelINSTBagList = model;
-                    jListInstBagProperty.setModel(model);
-                }
-            }catch(IndexOutOfBoundsException ex) {
-                ex.printStackTrace();
-            }catch(Throwable ex) {
-                ex.printStackTrace();
-            }
-        }
-    }//GEN-LAST:event_jListInstrumentListValueChanged
-
-    private void jListInstBagPropertyValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListInstBagPropertyValueChanged
-        int index = jListInstBagProperty.getSelectedIndex();
-        if (index >= 0) {
-            try {
-                int sampleId = _listModelINSTBagList.getSampleIdOf(index);
-                int overridingRootKey = _listModelINSTBagList.getOverrindingRootkey(index);
-                boolean loop = _listModelINSTBagList.getLoopOf(index);
-                _listModelSHDRProperty = new ListModelINSTSHDRProperty(_synth._sfz, sampleId, loop, overridingRootKey);
-                jListSHDRProperty.setModel(_listModelSHDRProperty);
-            }catch(IndexOutOfBoundsException ex) {
-                ex.printStackTrace();
-            }catch(Throwable ex) {
-                ex.printStackTrace();
-            }
-        }
-    }//GEN-LAST:event_jListInstBagPropertyValueChanged
+    }//GEN-LAST:event_jList3ListInstValueChanged
 
     private void jButton60ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton60ActionPerformed
         playOneShot(60);
@@ -411,45 +352,90 @@ public class XTSoundFontView extends javax.swing.JPanel {
         playOneShot(70);
     }//GEN-LAST:event_jButton70ActionPerformed
 
+    private void jList2PresetValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jList2PresetValueChanged
+        int index = jList2Preset.getSelectedIndex();
+        if (index >= 0) {
+            try {
+                PBAGEntry entry = _listModel2PHDREntry.getPBAGEntry(index);
+                INSTEntryList list = new INSTEntryList(_synth._sfz);
+                _listModel3InstList = new ModelForINSTEntryList(list, entry);
+                System.err.println("list3 = "+  _listModel3InstList.getSize());
+                jList3ListInst.setModel(_listModel3InstList);
+            }catch(Throwable ex) {
+                ex.printStackTrace();
+            }
+        }
+    }//GEN-LAST:event_jList2PresetValueChanged
+
+    private void jList4InstValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jList4InstValueChanged
+        int index = jList4Inst.getSelectedIndex();
+        if (index >= 0) {
+            try {
+                IBAGEntry entry = _listModel4InstEntry.getIBAGEntry(index);
+                _selectedIBAGEntry = entry;
+            }catch(Throwable ex) {
+                ex.printStackTrace();
+            }
+        }
+    }//GEN-LAST:event_jList4InstValueChanged
+
+    private void jButtonClearSelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonClearSelActionPerformed
+        if (_synth != null && _synth._sfz != null) {
+            PHDREntryList listPreset = new PHDREntryList(_synth._sfz);
+            _listModel1PHDRList = new ModelForPHDREntryList(listPreset);
+            System.err.println("listMode1 - / " + _listModel1PHDRList.getSize());
+            jList1ListPreset.setModel(_listModel1PHDRList);
+
+            INSTEntryList listInst = new INSTEntryList(_synth._sfz);
+            _listModel3InstList = new ModelForINSTEntryList(listInst, null);
+            System.err.println("listMode13 - / " + _listModel3InstList.getSize());
+            jList3ListInst.setModel(_listModel3InstList);
+        }
+    }//GEN-LAST:event_jButtonClearSelActionPerformed
+
     TheConsole _console;            
 
     public void startOpen(File f) {
-        StringBuilder text = new StringBuilder();
         try {
             _synth.openSoundfont(f);
             _synth.resetGM();
-            listInstrument();
-            listPreset();
+            PHDREntryList listPreset = new PHDREntryList(_synth._sfz);
+            _listModel1PHDRList = new ModelForPHDREntryList(listPreset);
+            System.err.println("listMode1 - / " + _listModel1PHDRList.getSize());
+            jList1ListPreset.setModel(_listModel1PHDRList);
+
+            INSTEntryList listInst = new INSTEntryList(_synth._sfz);
+            _listModel3InstList = new ModelForINSTEntryList(listInst, null);
+            System.err.println("listMode13 - / " + _listModel3InstList.getSize());
+            jList3ListInst.setModel(_listModel3InstList);
         }catch(Throwable ex) {
-            text.append("exception " + ex.toString() + "\n");
             ex.printStackTrace();
         }
     }
     
-    ListModelINSTList _listModelINSTList;
-    ListModelINSTBagTable _listModelINSTBagList;
-    ListModelPHDRList _listModelPHDRList;
-    ListModelPHDRBagTable _listModelPHDRBagList;
-    ListModelINSTSHDRProperty _listModelSHDRProperty;
-    
-    public void listInstrument() {
-        _listModelINSTList = new ListModelINSTList(_synth._sfz);
-        jListInstrumentList.setModel(_listModelINSTList);
-    }
-    
-    public void listPreset() {
-        _listModelPHDRList = new ListModelPHDRList(_synth._sfz);
-        jListPHDRList.setModel(_listModelPHDRList);
-    }
+    ModelForPHDREntryList _listModel1PHDRList;
+    ModelForPHDREntry _listModel2PHDREntry;
+
+    ModelForINSTEntryList _listModel3InstList;
+    ModelForINSTEntry _listModel4InstEntry;
+
+    ModelForSHDRList _listModelSHDRProperty;
+    IBAGEntry _selectedIBAGEntry;
     
     public void playOneShot(int note) {
-        if (_listModelSHDRProperty != null) {
-            XTOscilator osc = _listModelSHDRProperty.newOscilator(note);
+        if (_selectedIBAGEntry != null) {
+            IGENEntry ent = null;
+            XTOscilator osc = new XTOscilator(0, note, 0.8, _synth._sfz, 
+                    ent.getSampleId(), 
+                    ent.getSampleModes() != null, 
+                    ent.getOverridingRootKey(), 
+                    ent.getPan());
             _synth.startAudioStream().push(osc);
             new Thread(() -> {
                 try {
                     Thread.sleep(1000);
                 }catch(Throwable ex) {
+                    ex.printStackTrace();
                 }
                 osc.noteOff();
             }).start();
@@ -465,25 +451,20 @@ public class XTSoundFontView extends javax.swing.JPanel {
     private javax.swing.JButton jButton69;
     private javax.swing.JButton jButton70;
     private javax.swing.JButton jButtonBrowse;
-    private javax.swing.JList<String> jListDebug;
-    private javax.swing.JList<String> jListInstBagProperty;
-    private javax.swing.JList<String> jListInstrumentList;
-    private javax.swing.JList<String> jListPHDRBagProperty;
-    private javax.swing.JList<String> jListPHDRList;
-    private javax.swing.JList<String> jListSHDRProperty;
+    private javax.swing.JButton jButtonClearSel;
+    private javax.swing.JList<String> jList1ListPreset;
+    private javax.swing.JList<String> jList2Preset;
+    private javax.swing.JList<String> jList3ListInst;
+    private javax.swing.JList<String> jList4Inst;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanelInstrument;
     private javax.swing.JPanel jPanelZone;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JSplitPane jSplitPane1;
-    private javax.swing.JSplitPane jSplitPane2;
     private javax.swing.JSplitPane jSplitPane3;
     private javax.swing.JSplitPane jSplitPane4;
     private javax.swing.JTextField jTextFieldFileName;

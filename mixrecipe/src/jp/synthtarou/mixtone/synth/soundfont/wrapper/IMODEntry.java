@@ -14,39 +14,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.mixtone.synth.soundfont.table;
+package jp.synthtarou.mixtone.synth.soundfont.wrapper;
+
+import jp.synthtarou.mixtone.synth.soundfont.XTFile;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class XTColumn {
-    public XTColumn(String value) {
-        _textValue = value;
-    }
-
-    public XTColumn(Number value) {
-        _numberValue = value;
-    }
-
-    public String textValue() {
-        return _textValue;
-    }
-    
-    public Number numberValue() {
-        return _numberValue;
-    }
-
-    String _textValue;
-    Number _numberValue;
-    
-    public String toString() {
-        if (_numberValue != null) {
-            return _numberValue.toString();
-        }
-        if (_textValue != null) {
-            return '"' + _textValue + '"';
-        }
-        return "none";
-    }
+public class IMODEntry {
+    public IMODEntry(XTFile sfz, int instrument, int index) {
+    } 
 }

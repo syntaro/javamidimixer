@@ -33,6 +33,9 @@ public abstract class SFZElement extends XTTable {
     public SFZElement(String type) {
         super();
         _type = type;
+        if (_genMaster == null) {
+            _genMaster = XTGenOperatorMaster.getMaster();
+        }
     }
     
     public XTRow get(int x) {
@@ -274,7 +277,6 @@ public abstract class SFZElement extends XTTable {
     public static final int PHDR_LIBRARY = 4;
     public static final int PHDR_GENRE = 5;
     public static final int PHDR_MORTH = 6;
-    public static final int PHDR_BAGINDEX_TABLE = 7;
 
     public static class SFZElement_phdr extends SFZElement {
         public SFZElement_phdr(RiffChunk riff) {
@@ -288,7 +290,6 @@ public abstract class SFZElement extends XTTable {
             header.add("library");
             header.add("genre");
             header.add("morth");
-            header.add("bagIndex_table");
             while (riff.remainByteLength() > 0) {
                 XTRow row = newRow();
                 row.setColumn(0, riff.readZSTR(20));
@@ -304,8 +305,6 @@ public abstract class SFZElement extends XTTable {
 
     public static final int PBAG_PGENINDEX = 0;
     public static final int PBAG_PMODINDEX = 1;
-    public static final int PBAG_PGENINDEX_TABLE = 2;
-    public static final int PBAG_PMODINDEX_TABLE = 3;
 
     public static class SFZElement_pbag extends SFZElement {
         public SFZElement_pbag(RiffChunk riff) {
@@ -314,8 +313,6 @@ public abstract class SFZElement extends XTTable {
             XTHeader header = getHeader();
             header.add("pmodIndex");
             header.add("pgenIndex");
-            header.add("pmodIndex_table");
-            header.add("pgenIndex_table");
 
             while (riff.remainByteLength() > 0) {
                 XTRow row = newRow();
@@ -357,8 +354,8 @@ public abstract class SFZElement extends XTTable {
         }
     }
 
-    static XTGenOperatorMaster operatorList = new XTGenOperatorMaster();
-
+    static XTGenOperatorMaster _genMaster = null;
+    
     public static final int PGEN_GENOPER = 0;
     public static final int PGEN_GENAMOUNT = 1;
     public static final int PGEN_GENOPER_MEAN = 2;
@@ -381,7 +378,7 @@ public abstract class SFZElement extends XTTable {
                 row.setColumn(0, genOper);
                 row.setColumn(1, genAmount);
 
-                XTGenOperator operator = operatorList.get(genOper);
+                XTGenOperatorMasterEntry operator = _genMaster.getEntry(genOper);
 
                 if (operator != null) {
                     String name = operator._name;
@@ -407,7 +404,7 @@ public abstract class SFZElement extends XTTable {
         }
         
         public double getAmount(int oper) {
-            XTGenOperator operator = operatorList.get(oper);
+            XTGenOperatorMasterEntry operator = _genMaster.getEntry(oper);
             if (operator == null) {
                 return Double.NaN;
             }
@@ -440,7 +437,6 @@ public abstract class SFZElement extends XTTable {
 
     public static final int INST_NAME = 0;
     public static final int INST_BAGINDEX = 1;
-    public static final int INST_BAGINDEX_TABLE = 2;
 
     public static class SFZElement_inst extends SFZElement {
         public SFZElement_inst(RiffChunk riff) {
@@ -449,7 +445,6 @@ public abstract class SFZElement extends XTTable {
             XTHeader header = getHeader();
             header.add("name");
             header.add("bagIndex");
-            header.add("bagIndex_table");
             
             while (riff.remainByteLength() > 0) {
                 XTRow row = newRow();
@@ -461,8 +456,6 @@ public abstract class SFZElement extends XTTable {
 
     public static final int IBAG_IGENINDEX = 0;
     public static final int IBAG_IMODINDEX = 1;
-    public static final int IBAG_IGENINDEX_TABLE = 2;
-    public static final int IBAG_IMODINDEX_TABLE = 3;
     
     public static class SFZElement_ibag extends SFZElement {
         public SFZElement_ibag(RiffChunk riff) {
@@ -471,8 +464,6 @@ public abstract class SFZElement extends XTTable {
             XTHeader header = getHeader();
             header.add("igenIndex");
             header.add("imodIndex");
-            header.add("igenIndex_table");
-            header.add("imodIndex_table");
 
             while (riff.remainByteLength() > 0) {
                 XTRow row = newRow();
@@ -533,7 +524,7 @@ public abstract class SFZElement extends XTTable {
                 row.setColumn(0, genOper);
                 row.setColumn(1, genAmount);
 
-                XTGenOperator operator = operatorList.get(genOper);
+                XTGenOperatorMasterEntry operator = _genMaster.getEntry(genOper);
 
                 if (operator != null) {
                     String name = operator._name;
@@ -606,66 +597,4 @@ public abstract class SFZElement extends XTTable {
        }
     }
     
-    public static SFZElement parseSingle(RiffChunk riff) {
-        if (riff._listDataElement != null) {
-            return riff._listDataElement;
-        }
-        String chunk = riff._chunkId;
-        if (chunk == null) {
-            return null;
-        }
-
-        SFZElement element =  null;
-        if (chunk.equals("ifil")) {
-            element = (new SFZElement.SFZElement_ifil(riff));
-        } else if (chunk.equals("isng")) {
-            element = (new SFZElement.SFZElement_isng(riff));
-        } else if (chunk.equals("INAM")) {
-            element = (new SFZElement.SFZElement_INAM(riff));
-        } else if (chunk.equals("irom")) {
-            element = (new SFZElement.SFZElement_irom(riff));
-        } else if (chunk.equals("iver")) {
-            element = (new SFZElement.SFZElement_iver(riff));
-        } else if (chunk.equals("ICRD")) {
-            element = (new SFZElement.SFZElement_ICRD(riff));
-        } else if (chunk.equals("IENG")) {
-            element = (new SFZElement.SFZElement_IENG(riff));
-        } else if (chunk.equals("IPRD")) {
-            element = (new SFZElement.SFZElement_IPRD(riff));
-        } else if (chunk.equals("ICOP")) {
-            element = (new SFZElement.SFZElement_ICOP(riff));
-        } else if (chunk.equals("ICMT")) {
-            element = (new SFZElement.SFZElement_ICMT(riff));
-        } else if (chunk.equals("ISFT")) {
-            element = (new SFZElement.SFZElement_ISFT(riff));
-        } else if (chunk.equals("smpl")) {
-            element = (new SFZElement.SFZElement_smpl(riff));
-        } else if (chunk.equals("sm24")) {
-            element = (new SFZElement.SFZElement_sm24(riff));
-        } else if (chunk.equals("phdr")) {
-            element = (new SFZElement.SFZElement_phdr(riff));
-        } else if (chunk.equals("pbag")) {
-            element = (new SFZElement.SFZElement_pbag(riff));
-        } else if (chunk.equals("pmod")) {
-            element = (new SFZElement.SFZElement_pmod(riff));
-        } else if (chunk.equals("pgen")) {
-            element = (new SFZElement.SFZElement_pgen(riff));
-        } else if (chunk.equals("inst")) {
-            element = (new SFZElement.SFZElement_inst(riff));
-        } else if (chunk.equals("ibag")) {
-            element = (new SFZElement.SFZElement_ibag(riff));
-        } else if (chunk.equals("imod")) {
-            element = (new SFZElement.SFZElement_imod(riff));
-        } else if (chunk.equals("igen")) {
-            element = (new SFZElement.SFZElement_igen(riff));
-        } else if (chunk.equals("shdr")) {
-            element = (new SFZElement.SFZElement_shdr(riff));
-        } else {
-            element = (new SFZElement("unknown") {
-            });
-        }
-
-        riff._listDataElement = element;
-        return element;
-    }
 }

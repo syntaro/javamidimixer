@@ -65,7 +65,7 @@ public abstract class MXDebug {
                 for (int i = 0; i < count; ++ i) {
                     OneMessage one = message.toOneMessage(i);
                     if(one.isBinaryMessage()) {
-                        byte[] data = message.toOneMessage(0).getBinary();
+                        byte[] data = one.getBinary();
                         MXMIDIIn.DEBUGGER.receiveLongMessage(message, data);
                     }else {
                         int dword = one.getDWORD();

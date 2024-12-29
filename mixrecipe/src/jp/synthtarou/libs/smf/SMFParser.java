@@ -527,12 +527,12 @@ public class SMFParser {
             }
             int msg = smf.getDWORD();
 
-            int status = (msg >> 16) & 0xff;
-            int ch = status & 0x0f;
-            int data1 = (msg >> 8) & 0xff;
-            int data2 = msg & 0xff;
-
+            int status = smf.getStatus();
             int command = status & 0xf0;
+            int ch = status & 0x0f;
+
+            int data1 = smf.getData1();
+            int data2 = smf.getData2();
 
             if (command == MXMidiStatic.COMMAND_CH_NOTEON) {
                 if (_firstNotePos < 0) {

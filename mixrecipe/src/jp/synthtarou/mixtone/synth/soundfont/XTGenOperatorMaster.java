@@ -16,13 +16,18 @@
  */
 package jp.synthtarou.mixtone.synth.soundfont;
 
-import java.util.ArrayList;
-
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class XTGenOperatorMaster extends ArrayList<XTGenOperator>{
+public class XTGenOperatorMaster {
+    public static XTGenOperatorMaster getMaster() {
+        if (_master == null) {
+            _master = new XTGenOperatorMaster();
+        }
+        return _master;
+    }
+    static XTGenOperatorMaster _master = null;
     
     public static final int startAddrsOffset = 0;
     public static final int endAddrsOffset = 1;
@@ -97,17 +102,20 @@ public class XTGenOperatorMaster extends ArrayList<XTGenOperator>{
     public static final int unused5 = 59;
     public static final int endOper = 60;
 
-    public XTGenOperatorMaster() {
+    XTGenOperatorMasterEntry[] _table = new XTGenOperatorMasterEntry[endOper+1];
+
+    private XTGenOperatorMaster() {
         super();
 
-        XTGenOperator.SFZTranslator div10 = (v) -> v / 10.0;
-        XTGenOperator.SFZTranslator div100 = (v) -> v / 100.0;
-        XTGenOperator.SFZTranslator thepow = (v) -> Math.pow(2, v / 1200.0);
-        XTGenOperator.SFZTranslator thepow8176 = (v) -> 8.176 * Math.pow(2, v / 1200.0);
+        XTGenOperatorMasterEntry.SFZTranslator div10 = (v) -> v / 10.0;
+        XTGenOperatorMasterEntry.SFZTranslator div100 = (v) -> v / 100.0;
+        XTGenOperatorMasterEntry.SFZTranslator thepow = (v) -> Math.pow(2, v / 1200.0);
+        XTGenOperatorMasterEntry.SFZTranslator thepow8176 = (v) -> 8.176 * Math.pow(2, v / 1200.0);
 
         String SAMPLES = "smpls";
         String SEMITONE = "cent fs";
         String CENT = "Hz";
+        String SECONDS = "sec";
         String PERCENT = "%";
         String SAMPLES32k = "x 32768 smpls";
 
@@ -141,27 +149,27 @@ public class XTGenOperatorMaster extends ArrayList<XTGenOperator>{
 
         //20-29
         newEntry(unused4, null, "unused4");
-        newEntry(delayModLFO, "sec", "delayModLFO").trans( thepow).range(0.001, 0.001, 17.979).generator(-12000, 5000);
+        newEntry(delayModLFO, SECONDS, "delayModLFO").trans( thepow).range(0.001, 0.001, 17.979).generator(-12000, 5000);
         newEntry(freqModLFO, CENT, "freqModLFO").range(8.2, 0.1, 110.10).generator(-16000, 4500);
-        newEntry(delayVibLFO, "sec", "delayVibLFO").trans(thepow).range(0.001, 0.001, 17.959).generator(-12000, 5000);
+        newEntry(delayVibLFO, SECONDS, "delayVibLFO").trans(thepow).range(0.001, 0.001, 17.959).generator(-12000, 5000);
         newEntry(freqVibLFO, CENT, "freqVibLFO").trans(thepow8176).range(8.2, 0.1, 110.10).generator(-16000, 4500);
-        newEntry(delayModEnv, "sec", "delayModEnv").trans(thepow).range(0.001, 0.001, 17.959).generator(-12000, 5000);
-        newEntry(attackModEnv, "sec", "attackModEnv").trans(thepow).range(0.001, 0.001, 101.594).generator(-12000, 8000);
-        newEntry(holdModEnv, "sec", "holdModEnv").trans(thepow).range(0.001, 0.001, 17.959).generator(-12000, 5000);
-        newEntry(decayModEnv, "sec", "decayModEnv").trans(thepow).range(0.001, 0.001, 101.594).generator(8000, 8000);
+        newEntry(delayModEnv, SECONDS, "delayModEnv").trans(thepow).range(0.001, 0.001, 17.959).generator(-12000, 5000);
+        newEntry(attackModEnv, SECONDS, "attackModEnv").trans(thepow).range(0.001, 0.001, 101.594).generator(-12000, 8000);
+        newEntry(holdModEnv, SECONDS, "holdModEnv").trans(thepow).range(0.001, 0.001, 17.959).generator(-12000, 5000);
+        newEntry(decayModEnv, SECONDS, "decayModEnv").trans(thepow).range(0.001, 0.001, 101.594).generator(8000, 8000);
         newEntry(sustainModEnv, "%", "sustainModEnv").trans(div10).range(0, 0, 100).generator(0, 1000);
         
         //30-39
-        newEntry(releaseModEnv, "sec", "releaseModEnv").trans(thepow).range(0.001, 0.001, 101.594).generator(-12000, 8000);
+        newEntry(releaseModEnv, SECONDS, "releaseModEnv").trans(thepow).range(0.001, 0.001, 101.594).generator(-12000, 8000);
         newEntry(keynumToModEnvHold, "semitone/key", "keynumToModEnvHold").trans(div100).range(0, -12, 12).generator(-1200, 1200);
         newEntry(keynumToModEnvDecay, "semitone/key", "keynumToModEnvDecay").trans(div100).range(0, -12, 12).generator(-1200, 1200);
-        newEntry(delayVolEnv, "sec", "delayVolEnv").trans(thepow).range(0.001, 0.001, 17.959).generator(-12000, 5000);
-        newEntry(attackVolEnv, "sec", "attackVolEnv").trans(thepow).range(0.001, 0.001, 101.594).generator(-12000, 8000);
-        newEntry(holdVolEnv, "sec", "holdVolEnv").trans(thepow).range(0.001, 0.001, 17.959).generator(-12000, 5000);
-        newEntry(decayVolEnv, "sec", "decayVolEnv").trans(thepow).range(0.001, 0.001, 101.594).generator(-12000, 8000);
+        newEntry(delayVolEnv, SECONDS, "delayVolEnv").trans(thepow).range(0.001, 0.001, 17.959).generator(-12000, 5000);
+        newEntry(attackVolEnv, SECONDS, "attackVolEnv").trans(thepow).range(0.001, 0.001, 101.594).generator(-12000, 8000);
+        newEntry(holdVolEnv, SECONDS, "holdVolEnv").trans(thepow).range(0.001, 0.001, 17.959).generator(-12000, 5000);
+        newEntry(decayVolEnv, SECONDS, "decayVolEnv").trans(thepow).range(0.001, 0.001, 101.594).generator(-12000, 8000);
 
         newEntry(sustainVolEnv, "cB attn", "sustainVolEnv").trans(div10).range(0, 0, 144).generator( 0, 1440);
-        newEntry(releaseVolEnv, "sec", "releaseVolEnv").trans(thepow).range(0.001, 0.001, 101.594).generator(-12000, 8000);
+        newEntry(releaseVolEnv, SECONDS, "releaseVolEnv").trans(thepow).range(0.001, 0.001, 101.594).generator(-12000, 8000);
         newEntry(keynumToVolEnvHold, "semitone/key", "keynumToVolEnvHold").trans(div100).range(0, -12, 12).generator(-1200, 1200);
 
         //40-49
@@ -192,17 +200,20 @@ public class XTGenOperatorMaster extends ArrayList<XTGenOperator>{
         newEntry(endOper, null, "endOper");
     }
 
-    public final XTGenOperator newEntry(int id, String unit, String name) {
-        XTGenOperator ope = new XTGenOperator(id, name);        
-        add(ope);
+    public final XTGenOperatorMasterEntry newEntry(int id, String unit, String name) {
+        XTGenOperatorMasterEntry ope = new XTGenOperatorMasterEntry(id, name);       
+        _table[id] = ope;
         ope.unit(unit);
         return ope;
     }
 
-    @Override
-    public XTGenOperator get(int x) {
-        if (x >= 0 && x <= size() - 1) {
-            return super.get(x);
+    public int countEntry() {
+        return _table.length;
+    }
+    
+    public XTGenOperatorMasterEntry getEntry(int x) {
+        if (x >= 0 && x < _table.length) {
+            return _table[x];
         }
         return null;
     }

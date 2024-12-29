@@ -724,17 +724,17 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         }
     }//GEN-LAST:event_jSliderSongPositionStateChanged
 
-    public void updatePianoDX(int dword) {
+    public void updatePianoDX(OneMessage one) {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> {
-                updatePianoDX(dword);
+                updatePianoDX(one);
             });
             return;
         }
 
-        int status = (dword >> 16) & 0xff;
-        int data1 = (dword >> 8) & 0xff;
-        int data2 = (dword) & 0xff;
+        int status = one.getStatus();
+        int data1 = one.getData1();
+        int data2 = one.getData2();
 
         int command = status & 0xf0;
         int channel = status & 0x0f;
@@ -830,7 +830,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
 
     @Override
     public void smfPlayNote(OneMessage e) {
-        updatePianoDX(e.getDWORD());
+        updatePianoDX(e);
     }
 
     @Override

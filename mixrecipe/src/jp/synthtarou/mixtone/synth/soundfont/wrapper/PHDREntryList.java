@@ -14,39 +14,35 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jp.synthtarou.mixtone.synth.soundfont.table;
+package jp.synthtarou.mixtone.synth.soundfont.wrapper;
+
+import jp.synthtarou.mixtone.synth.soundfont.XTFile;
 
 /**
  *
  * @author Syntarou YOSHIDA
  */
-public class XTColumn {
-    public XTColumn(String value) {
-        _textValue = value;
-    }
+public class PHDREntryList {
+    XTFile _sfz;
+    PHDREntry[] _listPHDREntry;
 
-    public XTColumn(Number value) {
-        _numberValue = value;
-    }
-
-    public String textValue() {
-        return _textValue;
+    public PHDREntryList(XTFile sfz) {
+        _sfz = sfz;
+        
+        int count = _sfz._phdr.size();
+        _listPHDREntry = new PHDREntry[count];
     }
     
-    public Number numberValue() {
-        return _numberValue;
+    public int count() {
+        return _listPHDREntry.length;
     }
-
-    String _textValue;
-    Number _numberValue;
     
-    public String toString() {
-        if (_numberValue != null) {
-            return _numberValue.toString();
+    public PHDREntry getPHDREntry(int preset) {
+        PHDREntry e = _listPHDREntry[preset];
+        if (e == null) {
+            e = new PHDREntry(_sfz, preset);
+            _listPHDREntry[preset] = e;
         }
-        if (_textValue != null) {
-            return '"' + _textValue + '"';
-        }
-        return "none";
+        return e;
     }
 }

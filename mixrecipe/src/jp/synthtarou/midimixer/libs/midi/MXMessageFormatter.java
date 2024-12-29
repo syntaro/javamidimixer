@@ -45,6 +45,10 @@ public class MXMessageFormatter {
         _format = format;
     }
     
+    public String getFormat() {
+        return _format;
+    }
+    
     public static void main(String[] args) {
         MXMessageFormatter format = MXMessageFormatter._short;
         System.out.println(format._format);
