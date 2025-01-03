@@ -515,7 +515,9 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         jPanelPianoRoll.removeAll();
         jPanelPianoRoll.add(_pianoRollRoll);
         jPanelPianoRollKeys.setMinimumSize(new Dimension(100, 150));
-        autoResizePiano();
+        SwingUtilities.invokeLater(() -> {
+            autoResizePiano();
+        });
     }
 
     MXPianoRollSettings _pianoRollSettings;
@@ -660,7 +662,7 @@ public class MX00View extends javax.swing.JPanel implements SMFCallback {
         PlayListDX playList = _playListProcess._viewData._playListModel;
         if (x >= 0 && x < playList.size() - 1) {
             PlayListElement f = playList.elementAt(x);
-            playList.removeElement(x);
+            playList.removeElementAt(x);
             playList.insertElementAt(f, x + 1);
             jListPlayList.setSelectedIndex(x + 1);
         }

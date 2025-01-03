@@ -17,7 +17,6 @@
 package jp.synthtarou.mixtone.synth.oscilator;
 
 import jp.synthtarou.mixtone.synth.XTSynthesizerSetting;
-import jp.synthtarou.mixtone.synth.audio.XTAudioStream;
 
 /**
  *
@@ -30,29 +29,49 @@ public class OscilatorPosition {
     double _waveFrequency;
     int _targetKey;
     double _targetFrequency;
-    
+    int _waveCorrection;
+    int _pitchRange = 2;
+
+    XTEnvelope _debugEnv = null;//new XTEnvelope().setAttachSamples(44100);
+
     public OscilatorPosition(int waveSampleRate, int waveKey, int waveCorrection, int targetKey) {
         _waveKey = waveKey;
         _targetKey = targetKey;
         _waveSampleRate = waveSampleRate;
+        _waveCorrection = waveCorrection;
         
-        _waveFrequency = 440 * Math.pow(2, (_waveKey-69) / 12.0 -(waveCorrection / 100.0 / 12.0));
-        _targetFrequency = 440 * Math.pow(2, (_targetKey -69) / 12.0 );
+        _waveFrequency = 440 * Math.pow(2, (_waveKey-69) / 12.0 );
+        _targetFrequency = 440 * Math.pow(2, (_targetKey -69) / 12.0 +(_waveCorrection / 100.0 / 12.0));
 
         /*
         System.out.println("wave " + _waveKey + " (" + _waveFrequency + "hz)");
         System.out.println("target " + _targetKey + " (" + _targetFrequency + "hz)");
         */
     }
-    
-    public int frameToSampleoffset(long frame) {
-        double time = frame / _streamSampleRate * _targetFrequency / _waveFrequency;
-        double frame2 = time * _waveSampleRate;
-        if (frame2 >= Integer.MAX_VALUE) {
+
+    double _lastEnv = 0;
+
+    public int frameToSampleoffset(long timeFrame) {
+        double envelope = 0;//_debugMEnv.getAmpAmount(timeFrame) * 2 - 1;
+        timeFrame -= _timeBase;
+        
+        _targetFrequency = 440 * Math.pow(2, ((_targetKey+(envelope*_pitchRange))-69) / 12.0 +(_waveCorrection / 100.0 / 12.0));
+
+        double time = timeFrame / _streamSampleRate * _targetFrequency / _waveFrequency;
+        double sampleFrame = time * _waveSampleRate;
+        if (sampleFrame >= Integer.MAX_VALUE) {
             return Integer.MAX_VALUE;
         }
-        return (int)frame2;
+        if (true) {
+            _timeBase += timeFrame;
+            _sampleBase += sampleFrame;
+        }
+        sampleFrame += _sampleBase;
+        return (int)sampleFrame;
     }
+    
+    long _timeBase = 0;
+    double _sampleBase = 0;
     
     public double sampleOffsetToTime(long frame) {
         double time = frame / _waveSampleRate;

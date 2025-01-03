@@ -52,7 +52,7 @@ public class XTEnvelope {
         }
     }
     
-    public void setAttachSamples(long samples) {
+    public XTEnvelope setAttachSamples(long samples) {
         _attackSamples = samples;
         if (samples == 0) {
             _currentAmount = 1;
@@ -60,18 +60,22 @@ public class XTEnvelope {
         else {
             _currentAmount = 1;
         }
+        return this;
     }
 
-    public void setDecaySamples(long samples) {
+    public XTEnvelope setDecaySamples(long samples) {
         _decaySamples = samples;
+        return this;
     }
 
-    public void setSustainLevel(double level) {
+    public XTEnvelope setSustainLevel(double level) {
         _sustainLevel = level;
+        return this;
     }
 
-    public void setReleaseSamples(long samples) {
+    public XTEnvelope setReleaseSamples(long samples) {
         _releaseSamples = samples;
+        return this;
     }
     
     public static long millisecToSample(long millisec) {

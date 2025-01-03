@@ -110,6 +110,7 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
             _viewData._playListModel.addFile("synth03.mid");
             _viewData._playListModel.addFile("synth04.mid");
             _viewData._playListModel.addFile("synth05.mid");
+            _viewData._playListModel.addFile("synth06.mid");
         }
 
         _view.showDataFirst();
@@ -178,6 +179,8 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
             _viewData._playListModel.addFile("synth02.mid");
             _viewData._playListModel.addFile("synth03.mid");
             _viewData._playListModel.addFile("synth04.mid");
+            _viewData._playListModel.addFile("synth05.mid");
+            _viewData._playListModel.addFile("synth06.mid");
         }
 
         _view.showDataFirst();
@@ -221,6 +224,7 @@ public class MX00Process extends MXReceiver<MX00View> implements MXINIFileSuppor
         _viewData._playListModel.addFile("synth03.mid");
         _viewData._playListModel.addFile("synth04.mid");
         _viewData._playListModel.addFile("synth05.mid");
+        _viewData._playListModel.addFile("synth06.mid");
 
         _viewData._playAsRepeated = false;
         _viewData._playAsChained = false;
