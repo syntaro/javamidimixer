@@ -67,14 +67,14 @@ int my_fluid_retune(fluid_synth_t* synth, int bank, int program, float hzamust, 
         // ignore percussion or invalid bank/program
         return FLUID_FAILED;
     }
-
+/*
     if (equalTemp && hzamust== 440.) {
         for (int ch = 0; ch < 16; ++ ch) {
             fluid_synth_activate_tuning(synth, ch, bank, program, 0);
         }
         return FLUID_FAILED;
     }
-
+*/
     for (int i = 0; i < 0x80; ++ i) {
         keys[i] = i;
     }
