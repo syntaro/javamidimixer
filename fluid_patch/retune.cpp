@@ -69,7 +69,9 @@ int my_fluid_retune(fluid_synth_t* synth, int bank, int program, float hzamust, 
     }
 
     if (equalTemp && hzamust== 440.) {
-        fluid_synth_activate_tuning(synth, 0, bank, program, 0);
+        for (int ch = 0; ch < 16; ++ ch) {
+            fluid_synth_activate_tuning(synth, ch, bank, program, 0);
+        }
         return FLUID_FAILED;
     }
 
@@ -86,7 +88,9 @@ int my_fluid_retune(fluid_synth_t* synth, int bank, int program, float hzamust, 
     }
     int code = fluid_synth_tune_notes(synth, bank, program, 0x80, keys, pitches, 1);
     if (code == FLUID_OK) {
-        code = fluid_synth_activate_tuning(synth, 0, bank, program, 1);
+        for (int ch = 0; ch < 16; ++ ch) {
+             code = fluid_synth_activate_tuning(synth, ch, bank, program, 1);
+        }
     }
     return code;
 }
