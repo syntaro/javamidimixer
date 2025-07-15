@@ -7,7 +7,6 @@ using std::cout; using std::endl;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
-using std::chrono::system_clock;
 
 extern MXVSTInstrument* _arraySynth[16];
 
@@ -138,10 +137,12 @@ void MXVSTInstrument::setBusAcive(int bus, bool active) {
     _easyVst->setBusActive(kAudio, kOutput, bus, active);
 }
 
+/*
 double currentTimeMilllies() {
     auto millisec_since_epoch = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     return millisec_since_epoch;
 }
+*/
 
 bool MXVSTInstrument::processAudio(TimeInfo& ti, MXStereoBuffer* inputBuffer, MXStereoBuffer* outputBuffer, float outputVolumme, MXStereoBuffer* efxBuffer, float efxVolume) {
     if (isActive() == false) {

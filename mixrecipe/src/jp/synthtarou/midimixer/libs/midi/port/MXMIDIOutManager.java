@@ -32,7 +32,7 @@ import jp.synthtarou.libs.inifile.MXINIFileSupport;
 import jp.synthtarou.libs.json.MXJsonParser;
 import jp.synthtarou.libs.json.MXJsonSupport;
 import jp.synthtarou.libs.json.MXJsonValue;
-import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_SoundFont;
+import jp.synthtarou.midimixer.libs.midi.driver.MXDriver_FluidSynth;
 
 /**
  *
@@ -146,10 +146,19 @@ public class MXMIDIOutManager implements MXINIFileSupport, MXJsonSupport {
         }
 
         TreeSet<MXMIDIOut> sorted = new TreeSet<>();
-        
+
+/*        
         MXDriver sfz = MXDriver_SoundFont.getInstance();
         for (int i = 0; i < sfz.OutputDevicesRoomSize(); i++) {
             MXMIDIOut device = new MXMIDIOut(sfz, i);
+            sorted.add(device);
+        }
+*/
+        System.err.println("loading Fluid");
+        MXDriver fluid = MXDriver_FluidSynth.getInstance();
+        System.err.println("Fluid = " + fluid + "/ " + fluid.isUsable());
+        for (int i = 0; i < fluid.OutputDevicesRoomSize(); i++) {
+            MXMIDIOut device = new MXMIDIOut(fluid, i);
             sorted.add(device);
         }
         

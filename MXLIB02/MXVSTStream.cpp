@@ -2,6 +2,7 @@
 #include "MXVSTStream.h"
 #include "MXVSTOperator.h"
 #include "strconv.h"
+#include <chrono>
 
 MXVSTStream* _stream;
 

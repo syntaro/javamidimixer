@@ -5,17 +5,17 @@
 #include "MXVSTStream.h"
 
 #ifdef DEBUG
-#pragma comment(lib,"C:/github/vstsdk_build/lib/Debug/base.lib")
-#pragma comment(lib,"C:/github/vstsdk_build/lib/Debug/pluginterfaces.lib")
-#pragma comment(lib,"C:/github/vstsdk_build/lib/Debug/sdk.lib")
-#pragma comment(lib,"C:/github/vstsdk_build/lib/Debug/sdk_hosting.lib")
-#pragma comment(lib,"C:/github/vstsdk_build/lib/Debug/sdk_common.lib")
+#pragma comment(lib,"C:/github/VST_SDK/vst3sdk_build/lib/Debug/base.lib")
+#pragma comment(lib,"C:/github/VST_SDK/vst3sdk_build/lib/Debug/pluginterfaces.lib")
+#pragma comment(lib,"C:/github/VST_SDK/vst3sdk_build/lib/Debug/sdk.lib")
+#pragma comment(lib,"C:/github/VST_SDK/vst3sdk_build/lib/Debug/sdk_hosting.lib")
+#pragma comment(lib,"C:/github/VST_SDK/vst3sdk_build/lib/Debug/sdk_common.lib")
 #else
-#pragma comment(lib,"C:/github/vstsdk_build/lib/Release/base.lib")
-#pragma comment(lib,"C:/github/vstsdk_build/lib/Release/pluginterfaces.lib")
-#pragma comment(lib,"C:/github/vstsdk_build/lib/Release/sdk.lib")
-#pragma comment(lib,"C:/github/vstsdk_build/lib/Release/sdk_hosting.lib")
-#pragma comment(lib,"C:/github/vstsdk_build/lib/Release/sdk_common.lib")
+#pragma comment(lib,"C:/github/VST_SDK/vst3sdk_build/lib/Release/base.lib")
+#pragma comment(lib,"C:/github/VST_SDK/vst3sdk_build/lib/Release/pluginterfaces.lib")
+#pragma comment(lib,"C:/github/VST_SDK/vst3sdk_build/lib/Release/sdk.lib")
+#pragma comment(lib,"C:/github/VST_SDK/vst3sdk_build/lib/Release/sdk_hosting.lib")
+#pragma comment(lib,"C:/github/VST_SDK/vst3sdk_build/lib/Release/sdk_common.lib")
 #endif
 
 HostApplication* EasyVstCustom::_standardPluginContext = nullptr;

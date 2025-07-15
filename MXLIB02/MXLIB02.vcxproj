@@ -23,7 +23,7 @@
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{43d867a2-a3e5-43dd-b1bd-262930ab9956}</ProjectGuid>
     <RootNamespace>MXLIB02</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -130,7 +130,8 @@
       <ForceFileOutput>Enabled</ForceFileOutput>
     </Link>
     <PostBuildEvent>
-      <Command>copy /b C:\github\MXLIB01\x64\Debug\MXLIB02.dll c:\VST_SDK</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -143,7 +144,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\github\VST_SDK\vst3sdk;C:\github\asiosdk2\common;C:\github\portaudio\include;C:\java\jdk-22\include;C:\java\jdk-22\include\win32;C:\Boost\include\boost-1_83;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\github\VST_SDK\vst3sdk;C:\github\asiosdk2\common;C:\github\portaudio\include;C:\java\jdk-22\include;C:\java\jdk-22\include\win32;C:\github\boost_1_87_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -158,7 +159,7 @@
       </Command>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>copy /b C:\github\MXLIB01\x64\Release\MXLIB02.dll C:\VST_SDK</Command>
+      <Command>copy /b C:\github\MXLIB01\x64\Release\MXLIB02.dll C:\midi</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

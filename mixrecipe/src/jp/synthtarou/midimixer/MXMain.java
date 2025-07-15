@@ -53,7 +53,6 @@ import jp.synthtarou.midimixer.mx36ccmapping.MX36Process;
 import jp.synthtarou.midimixer.mx12masterpiano.MX12Process;
 import jp.synthtarou.midimixer.mx50resolution.MX50Process;
 import jp.synthtarou.midimixer.mx70console.MX70Process;
-import jp.synthtarou.midimixer.mx85soundfont.MX85Process;
 import jp.synthtarou.midimixer.mx90debug.MX90Process;
 
 /**
@@ -118,7 +117,6 @@ public class MXMain {
     private MX60Process _mx60outputProcess;
     private MX70Process _mx70CosoleProcess;
     private MX80Process _mx80VstRack;
-    private MX85Process _mx85SoundFont;
     private MX90Process _mx90Debugger;
     private CXXMLManager _mxXMLManager;
 
@@ -183,7 +181,6 @@ public class MXMain {
         _mx50resolutionProcess = new MX50Process();
 
         _mx80VstRack = MX80Process.getInstance();
-        _mx85SoundFont = new MX85Process();
         _mx90Debugger = new MX90Process();
         _mxXMLManager = CXXMLManager.getInstance();
 
@@ -247,7 +244,6 @@ public class MXMain {
         ArrayList<MXReceiver> reList2 = new ArrayList();
         reList2.add(_mx50resolutionProcess);
         reList2.add(_mx80VstRack);
-        reList2.add(_mx85SoundFont);
         reList2.add(_mxXMLManager);
         reList2.add(_mx90Debugger);
         reList2.add(_mx70CosoleProcess);
